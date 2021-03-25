@@ -12,9 +12,11 @@ import java.nio.charset.StandardCharsets
 import java.util.Collections
 import java.util.Map.Entry
 
+import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
+import org.apache.accumulo.core.iterators.user.ReqVisFilter
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.{AccumuloIndexWriter, AccumuloResultsToFeatures, ZIterPriority}
@@ -26,7 +28,7 @@ import org.locationtech.geomesa.accumulo.iterators.DensityIterator.AccumuloDensi
 import org.locationtech.geomesa.accumulo.iterators.StatsIterator.AccumuloStatsResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, TableUtils}
-import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
+import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
@@ -66,8 +68,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
     // create table if it doesn't exist
     val created = TableUtils.createTableIfNeeded(ds.connector, table, index.sft.isLogicalTime)
 
-    // even if the table existed, we still need to check the splits and locality groups if its shared
-    if (created || index.keySpace.sharing.nonEmpty) {
+    def addSplitsAndGroups(): Unit = {
       // create splits
       val splitsToAdd = splits.map(new Text(_)).toSet -- tableOps.listSplits(table).asScala.toSet
       if (splitsToAdd.nonEmpty) {
@@ -94,6 +95,10 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
       if (localityGroups != existingGroups) {
         tableOps.setLocalityGroups(table, localityGroups)
       }
+    }
+
+    if (created) {
+      addSplitsAndGroups()
 
       // enable block cache
       tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
@@ -103,6 +108,13 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
         tableOps.setProperty(table, Property.TABLE_BLOOM_KEY_FUNCTOR.getKey, classOf[RowFunctor].getCanonicalName)
         tableOps.setProperty(table, Property.TABLE_BLOOM_ENABLED.getKey, "true")
       }
+
+      if (index.sft.isVisibilityRequired) {
+        VisibilityIterator.set(tableOps, table)
+      }
+    } else if (index.keySpace.sharing.nonEmpty) {
+      // even if the table existed, we still need to check the splits and locality groups if it's shared
+      addSplitsAndGroups()
     }
   }
 
@@ -264,17 +276,24 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
     }
   }
 
-  override def createWriter(sft: SimpleFeatureType,
-                            indices: Seq[GeoMesaFeatureIndex[_, _]],
-                            partition: Option[String]): AccumuloIndexWriter = {
+  override def createWriter(
+      sft: SimpleFeatureType,
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
+      partition: Option[String]): AccumuloIndexWriter = {
     // make sure to provide our index values for attribute join indices if we need them
     val base = WritableFeature.wrapper(sft, groups)
-    val wrapper = if (indices.exists(_.isInstanceOf[AccumuloJoinIndex])) {
-      AccumuloWritableFeature.wrapper(sft, base)
+    val wrapper =
+      if (indices.exists(_.isInstanceOf[AccumuloJoinIndex])) {
+        AccumuloWritableFeature.wrapper(sft, base)
+      } else {
+        base
+      }
+
+    if (sft.isVisibilityRequired) {
+      new AccumuloIndexWriter(ds, indices, wrapper, partition) with RequiredVisibilityWriter
     } else {
-      base
+      new AccumuloIndexWriter(ds, indices, wrapper, partition)
     }
-    new AccumuloIndexWriter(ds, indices, wrapper, partition)
   }
 }
 

@@ -33,8 +33,9 @@ import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChanged
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
-import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
+import org.locationtech.geomesa.security.{AuthProviderParam, AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.io.WithClose
@@ -295,6 +296,27 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           consumer.dispose()
           producer.dispose()
         }
+      }
+    }
+
+    "require visibilities on write" >> {
+      val (producer, consumer, sft) = createStorePair("reqvis")
+      try {
+        sft.getUserData.put(Configs.RequireVisibility, "true")
+        producer.createSchema(sft)
+
+        val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+        val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
+
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true)) must throwAn[IllegalArgumentException]
+          f0.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "USER")
+          f1.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "USER&ADMIN")
+          Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true)) must not(throwAn[Exception]) // ok
+        }
+      } finally {
+        consumer.dispose()
+        producer.dispose()
       }
     }
 

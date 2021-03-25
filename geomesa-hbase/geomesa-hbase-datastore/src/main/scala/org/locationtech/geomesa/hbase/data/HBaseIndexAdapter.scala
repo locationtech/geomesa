@@ -24,6 +24,7 @@ import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
+import org.locationtech.geomesa.index.api.IndexAdapter.RequiredVisibilityWriter
 import org.locationtech.geomesa.utils.io.IsFlushableImplicits
 
 import scala.util.Try
@@ -343,10 +344,17 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     }
   }
 
-  override def createWriter(sft: SimpleFeatureType,
-                            indices: Seq[GeoMesaFeatureIndex[_, _]],
-                            partition: Option[String]): HBaseIndexWriter =
-    new HBaseIndexWriter(ds, indices, WritableFeature.wrapper(sft, groups), partition)
+  override def createWriter(
+      sft: SimpleFeatureType,
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
+      partition: Option[String]): HBaseIndexWriter = {
+    val wrapper = WritableFeature.wrapper(sft, groups)
+    if (sft.isVisibilityRequired) {
+      new HBaseIndexWriter(ds, indices, wrapper, partition) with RequiredVisibilityWriter
+    } else {
+      new HBaseIndexWriter(ds, indices, wrapper, partition)
+    }
+  }
 
   /**
    * Configure the hbase scan

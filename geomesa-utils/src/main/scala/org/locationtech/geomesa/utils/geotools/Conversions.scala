@@ -252,17 +252,21 @@ object RichSimpleFeatureType extends Conversions {
     }
     def setVisibilityLevel(vis: VisibilityLevel): Unit = sft.getUserData.put(IndexVisibilityLevel, vis.toString)
 
+    def isVisibilityRequired: Boolean = boolean(sft.getUserData.get(RequireVisibility), default = false)
+    def setVisibilityRequired(required: Boolean): Unit =
+      sft.getUserData.put(RequireVisibility, String.valueOf(required))
+
     def getZ3Interval: TimePeriod = userData[String](IndexZ3Interval) match {
       case None    => TimePeriod.Week
       case Some(i) => TimePeriod.withName(i.toLowerCase)
     }
     def setZ3Interval(i: TimePeriod): Unit = sft.getUserData.put(IndexZ3Interval, i.toString)
 
-    def getS3Interval: TimePeriod = userData[String](S3_INTERVAL_KEY) match {
+    def getS3Interval: TimePeriod = userData[String](IndexS3Interval) match {
       case None    => TimePeriod.Week
       case Some(i) => TimePeriod.withName(i.toLowerCase)
     }
-    def setS3Interval(i: TimePeriod): Unit = sft.getUserData.put(S3_INTERVAL_KEY, i.toString)
+    def setS3Interval(i: TimePeriod): Unit = sft.getUserData.put(IndexS3Interval, i.toString)
 
     def getXZPrecision: Short = userData(IndexXzPrecision).map(short).getOrElse(XZSFC.DefaultPrecision)
     def setXZPrecision(p: Short): Unit = sft.getUserData.put(IndexXzPrecision, p.toString)

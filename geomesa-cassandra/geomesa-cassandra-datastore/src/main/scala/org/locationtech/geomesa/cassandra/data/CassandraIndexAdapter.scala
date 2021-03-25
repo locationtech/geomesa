@@ -22,7 +22,7 @@ import org.locationtech.geomesa.cassandra.index.CassandraColumnMapper
 import org.locationtech.geomesa.cassandra.index.CassandraColumnMapper.{FeatureIdColumnName, SimpleFeatureColumnName}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
+import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
@@ -31,6 +31,8 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[CassandraDataStore] with StrictLogging {
+
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val tableNameLimit: Option[Int] = Some(CassandraIndexAdapter.TableNameLimit)
 
@@ -43,7 +45,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
 
     if (cluster.getMetadata.getKeyspace(ds.session.getLoggedKeyspace).getTable(table) == null) {
       val columns = CassandraColumnMapper(index).columns
-      require(columns.last.name == SimpleFeatureColumnName, s"Expected final column to be ${SimpleFeatureColumnName}")
+      require(columns.last.name == SimpleFeatureColumnName, s"Expected final column to be $SimpleFeatureColumnName")
       val (partitions, pks) = columns.dropRight(1).partition(_.partition) // drop serialized feature col
       val create = s"CREATE TABLE $table (${columns.map(c => s"${c.name} ${c.cType}").mkString(", ")}, " +
           s"PRIMARY KEY (${partitions.map(_.name).mkString("(", ", ", ")")}" +
@@ -100,10 +102,17 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
     }
   }
 
-  override def createWriter(sft: SimpleFeatureType,
-                            indices: Seq[GeoMesaFeatureIndex[_, _]],
-                            partition: Option[String]): CassandraIndexWriter =
-    new CassandraIndexWriter(ds, indices, WritableFeature.wrapper(sft, groups), partition)
+  override def createWriter(
+      sft: SimpleFeatureType,
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
+      partition: Option[String]): CassandraIndexWriter = {
+    val wrapper = WritableFeature.wrapper(sft, groups)
+    if (sft.isVisibilityRequired) {
+      new CassandraIndexWriter(ds, indices, wrapper, partition) with RequiredVisibilityWriter
+    } else {
+      new CassandraIndexWriter(ds, indices, wrapper, partition)
+    }
+  }
 }
 
 object CassandraIndexAdapter extends LazyLogging {
