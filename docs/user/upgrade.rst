@@ -93,6 +93,22 @@ Compatibility Matrix
 Version 3.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
+Scala Support
+-------------
+
+GeoMesa now supports Scala 2.12. Scala 2.11 support has been deprecated and will be removed in a future version.
+
+Spark Versions
+--------------
+
+GeoMesa now supports Spark 3.0 and 3.1. Support for Spark 2.3 and 2.4 has been deprecated and will be removed
+in a future version.
+
+Dependency Updates
+------------------
+
+* com.fasterxml.jackson: 2.9.10 -> 2.12.1
+
 FileSystem Data Store Metadata Format Change
 --------------------------------------------
 
@@ -104,12 +120,6 @@ Lambda Data Store Binary Distribution Change
 
 The Lambda data store binary distribution no longer contains the ``geomesa-accumulo-distributed-runtime`` JAR.
 This JAR is available in the Accumulo data store binary distribution.
-
-Scala Support
--------------
-
-In GeoMesa 3.2.0, Scala 2.12 support has been added.
-Scala 2.11 support is deprecated and will be removed in the future.
 
 Deprecated Modules
 ------------------
@@ -356,6 +366,16 @@ requiring changes in user code.
 
 In addition, the format used to store metadata files has been updated, so older versions of GeoMesa will not be
 able to read metadata created with this version.
+
+Deprecated Modules
+------------------
+
+The following modules have been deprecated, and will be removed in a future version:
+
+* GeoMesa Raster
+* GeoMesa Native API
+* GeoMesa Blob Store
+* GeoMesa Metrics
 
 Version 2.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
