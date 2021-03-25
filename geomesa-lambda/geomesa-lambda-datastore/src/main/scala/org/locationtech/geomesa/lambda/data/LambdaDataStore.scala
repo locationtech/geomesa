@@ -22,7 +22,7 @@ import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, GeoMesaFea
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, NoopStats}
 import org.locationtech.geomesa.kafka.AdminUtilsVersions
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
-import org.locationtech.geomesa.lambda.data.LambdaFeatureWriter.{AppendLambdaFeatureWriter, ModifyLambdaFeatureWriter}
+import org.locationtech.geomesa.lambda.data.LambdaFeatureWriter.{AppendLambdaFeatureWriter, ModifyLambdaFeatureWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -43,6 +43,8 @@ class LambdaDataStore(val persistence: DataStore,
                       config: LambdaConfig)
                      (implicit clock: Clock = Clock.systemUTC())
     extends DataStore with HasGeoMesaStats with LazyLogging {
+
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
 
@@ -139,8 +141,14 @@ class LambdaDataStore(val persistence: DataStore,
   override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader =
     GeoMesaFeatureReader(getSchema(query.getTypeName), query, runner, None, None)
 
-  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): SimpleFeatureWriter =
-    new AppendLambdaFeatureWriter(transients.get(typeName))
+  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): SimpleFeatureWriter = {
+    val transient = transients.get(typeName)
+    if (transient.sft.isVisibilityRequired) {
+      new AppendLambdaFeatureWriter(transient) with RequiredVisibilityWriter
+    } else {
+      new AppendLambdaFeatureWriter(transient)
+    }
+  }
 
   override def getFeatureWriter(typeName: String, transaction: Transaction): SimpleFeatureWriter =
     getFeatureWriter(typeName, Filter.INCLUDE, transaction)
@@ -150,7 +158,12 @@ class LambdaDataStore(val persistence: DataStore,
                                 transaction: Transaction): SimpleFeatureWriter= {
     val query = new Query(typeName, filter)
     val features = SelfClosingIterator(getFeatureReader(query, transaction))
-    new ModifyLambdaFeatureWriter(transients.get(typeName), features)
+    val transient = transients.get(typeName)
+    if (transient.sft.isVisibilityRequired) {
+      new ModifyLambdaFeatureWriter(transient, features) with RequiredVisibilityWriter
+    } else {
+      new ModifyLambdaFeatureWriter(transient, features)
+    }
   }
 
   override def dispose(): Unit = {

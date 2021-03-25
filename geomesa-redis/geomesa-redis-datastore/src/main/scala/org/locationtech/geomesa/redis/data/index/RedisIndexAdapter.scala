@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
+import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
@@ -37,6 +37,8 @@ import scala.util.control.NonFatal
   * @param ds data store
   */
 class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore] with StrictLogging {
+
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   // each 'table' is a sorted set - they are created automatically when you insert values
   override def createTable(
@@ -88,7 +90,13 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
       sft: SimpleFeatureType,
       indices: Seq[GeoMesaFeatureIndex[_, _]],
       partition: Option[String]): RedisIndexWriter = {
-    new RedisIndexWriter(ds.connection, indices, partition, ds.aging.writer(sft), RedisWritableFeature.wrapper(sft))
+    val aging = ds.aging.writer(sft)
+    val wrapper = RedisWritableFeature.wrapper(sft)
+    if (sft.isVisibilityRequired) {
+      new RedisIndexWriter(ds.connection, indices, partition, aging, wrapper) with RequiredVisibilityWriter
+    } else {
+      new RedisIndexWriter(ds.connection, indices, partition, aging, wrapper)
+    }
   }
 }
 

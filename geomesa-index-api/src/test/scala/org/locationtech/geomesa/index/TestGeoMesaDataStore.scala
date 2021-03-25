@@ -14,7 +14,7 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore._
-import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter}
+import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{WritableFeature, _}
@@ -53,6 +53,7 @@ object TestGeoMesaDataStore {
   class TestIndexAdapter(ds: TestGeoMesaDataStore) extends IndexAdapter[TestGeoMesaDataStore] {
 
     import ByteArrays.ByteOrdering
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     private val ordering = new Ordering[SingleRowKeyValue[_]] {
       override def compare(x: SingleRowKeyValue[_], y: SingleRowKeyValue[_]): Int = ByteOrdering.compare(x.row, y.row)
@@ -107,11 +108,17 @@ object TestGeoMesaDataStore {
       TestQueryPlan(strategy.filter, tables, strategy.index.sft, serializer, ranges, reducer, ecql, sort, maxFeatures, project)
     }
 
-    override def createWriter(sft: SimpleFeatureType,
-                              indices: Seq[GeoMesaFeatureIndex[_, _]],
-                              partition: Option[String]): IndexWriter = {
+    override def createWriter(
+        sft: SimpleFeatureType,
+        indices: Seq[GeoMesaFeatureIndex[_, _]],
+        partition: Option[String]): IndexWriter = {
       val tables = indices.map(i => this.tables(i.getTableNames(partition).head))
-      new TestIndexWriter(indices, WritableFeature.wrapper(sft, groups), tables)
+      val wrapper = WritableFeature.wrapper(sft, groups)
+      if (sft.isVisibilityRequired) {
+        new TestIndexWriter(indices, wrapper, tables) with RequiredVisibilityWriter
+      } else {
+        new TestIndexWriter(indices, wrapper, tables)
+      }
     }
 
     override def toString: String = getClass.getSimpleName

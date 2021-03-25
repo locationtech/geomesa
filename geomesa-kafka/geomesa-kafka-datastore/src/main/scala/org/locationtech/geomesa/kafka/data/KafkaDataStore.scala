@@ -32,7 +32,7 @@ import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, Runn
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
-import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter}
+import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.kafka.index._
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor.GeoMessageConsumer
@@ -59,6 +59,7 @@ class KafkaDataStore(
   ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
 
   import KafkaDataStore.TopicKey
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
 
@@ -234,7 +235,12 @@ class KafkaDataStore(
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    val writer = new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter)
+    val writer =
+      if (sft.isVisibilityRequired) {
+        new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter) with RequiredVisibilityWriter
+      } else {
+        new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter)
+      }
     if (config.clearOnStart && cleared.add(typeName)) {
       writer.clear()
     }
@@ -246,7 +252,12 @@ class KafkaDataStore(
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    val writer = new AppendKafkaFeatureWriter(sft, producer, config.serialization)
+    val writer =
+      if (sft.isVisibilityRequired) {
+        new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
+      } else {
+        new AppendKafkaFeatureWriter(sft, producer, config.serialization)
+      }
     if (config.clearOnStart && cleared.add(typeName)) {
       writer.clear()
     }
