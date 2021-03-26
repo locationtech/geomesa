@@ -5,7 +5,7 @@ Ingest a GeoMesa Kafka Topic into HBase
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A common use case is to store the most recent state of an object in a GeoMesa Kafka data store to drive a live map
-view, but to persist every state of the object into long-term storage in HBase or Accumulo for history and
+view, and to persist every state of the object into long-term storage in HBase or Accumulo for history and
 analytics. This example will show how to pull data off a GeoMesa Kafka topic, and persist it in HBase with
 minimal configuration.
 
