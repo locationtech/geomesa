@@ -54,5 +54,5 @@ and a catalog table, which is where it will write out data:
 .. image:: /user/_static/img/nifi-avro-to-hbase-config.png
    :align: center
 
-Once all the processors are configured, enable them in the NiFi UI. If everything goes correctly, you'll start
-seeing your Kafka data show up in HBase.
+Once all the processors and controller services are configured, enable them in the NiFi UI. If everything
+goes correctly, you'll start seeing your Kafka data show up in HBase.
