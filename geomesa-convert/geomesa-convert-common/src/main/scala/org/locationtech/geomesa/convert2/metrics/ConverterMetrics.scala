@@ -47,7 +47,7 @@ class ConverterMetrics(
     * @return
     */
   def gauge[T](id: String): SimpleGauge[T] =
-    registry.gauge(super.id(typeName, id), ConverterMetrics.GaugeSupplier).asInstanceOf[SimpleGauge[T]]
+    super.gauge(typeName, id, ConverterMetrics.GaugeSupplier).asInstanceOf[SimpleGauge[T]]
 
   /**
     * Creates a prefixed histogram

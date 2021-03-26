@@ -13,7 +13,6 @@ import java.io.Closeable
 import com.codahale.metrics.MetricRegistry.MetricSupplier
 import com.codahale.metrics._
 import com.typesafe.config.Config
-import org.locationtech.geomesa.metrics.core.GeoMesaMetrics.SimpleGauge
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 /**
@@ -40,15 +39,16 @@ class GeoMesaMetrics(val registry: MetricRegistry, prefix: String, reporters: Se
   def counter(typeName: String, id: String): Counter = registry.counter(this.id(typeName, id))
 
   /**
-   * Gets an updatable gauge
+   * Gets a gauge. Note that it is possible (although unlikely) that the gauge will not be the
+   * one from the supplier, if the id has already been registered
    *
    * @param typeName simple feature type name
-   * @param id short identifier for hte metric being gauged
-   * @tparam T gauge type
+   * @param id short identifier for the metric being gauged
+   * @param supplier metric supplier
    * @return
    */
-  def gauge[T](typeName: String, id: String): SimpleGauge[T] =
-    registry.gauge(this.id(typeName, id), GeoMesaMetrics.GaugeSupplier).asInstanceOf[SimpleGauge[T]]
+  def gauge(typeName: String, id: String, supplier: MetricSupplier[Gauge[_]]): Gauge[_] =
+    registry.gauge(this.id(typeName, id), supplier)
 
   /**
    * Creates a prefixed histogram
@@ -78,7 +78,8 @@ class GeoMesaMetrics(val registry: MetricRegistry, prefix: String, reporters: Se
   def timer(typeName: String, id: String): Timer = registry.timer(this.id(typeName, id))
 
   /**
-   * Register a metric
+   * Register a metric. Note that in comparison to most methods in this class, a given identifier
+   * can only be registered once
    *
    * @param typeName simple feature type name
    * @param id short identifier for the metric
@@ -93,10 +94,6 @@ class GeoMesaMetrics(val registry: MetricRegistry, prefix: String, reporters: Se
 }
 
 object GeoMesaMetrics {
-
-  private val GaugeSupplier = new MetricSupplier[Gauge[_]] {
-    override def newMetric(): Gauge[_] = new SimpleGauge()
-  }
 
   /**
     * Create a registry
@@ -114,20 +111,5 @@ object GeoMesaMetrics {
   private def safePrefix(name: String): String = {
     val replaced = name.replaceAll("[^A-Za-z0-9]", ".")
     if (replaced.isEmpty || replaced.endsWith(".")) { replaced } else { s"$replaced." }
-  }
-
-  /**
-    * Simple gauge that can be updated
-    *
-    * @tparam T value
-    */
-  class SimpleGauge[T] extends Gauge[T] {
-
-    @volatile
-    private var value: T = _
-
-    override def getValue: T = value
-
-    def set(value: T): Unit = this.value = value
   }
 }
