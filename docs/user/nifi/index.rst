@@ -27,3 +27,4 @@ User Guide <https://nifi.apache.org/docs/nifi-docs/html/user-guide.html>`__.
    ingress
    conversions
    integrations
+   examples

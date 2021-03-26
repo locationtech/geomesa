@@ -60,7 +60,8 @@ for details.
 
 Finally, the ``AvroToPut`` processors will ingest GeoMesa-specific GeoAvro files without any configuration. GeoAvro
 is a special Avro file that has ``SimpleFeatureType`` metadata included. It can be produced using the GeoMesa
-command-line tools export in ``avro`` format, the ``ConvertToGeoFile`` processor, or directly through an instance of
+command-line tools export in ``avro`` format, the ``ConvertToGeoFile`` processor, the
+``GeoAvroRecordSetWriterFactory`` record writer factory, or directly through an instance of
 ``org.locationtech.geomesa.features.avro.AvroDataFileWriter``. GeoAvro is particularly useful because it is
 self-describing. See :doc:`/user/nifi/avro` for details.
 

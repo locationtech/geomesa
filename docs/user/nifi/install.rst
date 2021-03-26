@@ -1,3 +1,5 @@
+.. _nifi_install:
+
 Installation
 ------------
 
