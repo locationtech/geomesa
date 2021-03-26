@@ -31,7 +31,7 @@ this example, just auto-terminate all other connections for simplicity.
 Next, create a new controller service by clicking 'Configure' on the NiFi flow, then going to the Controller
 Services tab and clicking the ``+`` button, then selecting the ``GeoAvroRecordSetWriterFactory``. The
 ``GeoAvroRecordSetWriterFactory`` can be left with its default configuration, which is to use NiFi expressions.
-The ``GeoGeoMesaKafkaRecord`` processor will populate the necessary attributes according to the feature type
+The ``GetGeoMesaKafkaRecord`` processor will populate the necessary attributes according to the feature type
 being read:
 
 .. image:: /user/_static/img/nifi-avro-record-writer-config.png
