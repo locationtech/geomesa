@@ -237,6 +237,16 @@ trait KafkaDataStoreParams extends NamespaceParams {
       readWrite = ReadWriteFlag.ReadOnly
     )
 
+  val MetricsReporters =
+    new GeoMesaParam[String](
+      "kafka.metrics.reporters",
+      "Reporters used to publish Kafka metrics, as TypeSafe config. . To use multiple reporters, " +
+          "nest them under the key 'reporters'",
+      default = """{"type":"slf4j","logger":"org.locationtech.geomesa.kafka.metrics"}""",
+      largeText = true,
+      readWrite = ReadWriteFlag.ReadOnly
+    )
+
   val LooseBBox: GeoMesaParam[java.lang.Boolean] = GeoMesaDataStoreFactory.LooseBBoxParam
   val AuditQueries: GeoMesaParam[java.lang.Boolean] = GeoMesaDataStoreFactory.AuditQueriesParam
   val Authorizations: GeoMesaParam[String] = org.locationtech.geomesa.security.AuthsParam

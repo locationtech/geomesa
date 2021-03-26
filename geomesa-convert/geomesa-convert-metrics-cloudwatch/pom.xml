@@ -17,19 +17,8 @@
             <artifactId>geomesa-convert-common_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.github.azagniotov</groupId>
-            <artifactId>dropwizard-metrics-cloudwatch</artifactId>
-            <version>1.0.13</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <version>4.4.6</version>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-metrics-cloudwatch_${scala.binary.version}</artifactId>
         </dependency>
     </dependencies>
 
