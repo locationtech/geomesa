@@ -18,6 +18,7 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
+import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
@@ -37,15 +38,19 @@ object KafkaFeatureCache extends LazyLogging {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   /**
-    * Create a standard feature cache
-    *
-    * @param sft simple feature type
-    * @param config cache config
-    * @return
-    */
-  def apply(sft: SimpleFeatureType, config: IndexConfig): KafkaFeatureCache = {
+   * Create a standard feature cache
+   *
+   * @param sft simple feature type
+   * @param config cache config
+   * @param metrics optional metrics hook
+   * @return
+   */
+  def apply(sft: SimpleFeatureType, config: IndexConfig, metrics: Option[GeoMesaMetrics] = None): KafkaFeatureCache = {
     if (config.expiry == ImmediatelyExpireConfig) { NoOpFeatureCache } else {
-      new KafkaFeatureCacheImpl(sft, config)
+      metrics match {
+        case None => new KafkaFeatureCacheImpl(sft, config)
+        case Some(m) => new KafkaFeatureCacheWithMetrics(sft, config, m)
+      }
     }
   }
 

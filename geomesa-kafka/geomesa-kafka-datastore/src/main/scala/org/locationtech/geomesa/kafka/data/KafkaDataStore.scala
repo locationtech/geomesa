@@ -39,6 +39,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor.GeoMessageConsum
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.{GeoMessagePartitioner, GeoMessageSerializerFactory}
 import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions}
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
+import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -86,7 +87,7 @@ class KafkaDataStore(
       } else {
         val sft = getSchema(key)
         // if the expiry is zero, this will return a NoOpFeatureCache
-        val cache = KafkaFeatureCache(sft, config.indices)
+        val cache = KafkaFeatureCache(sft, config.indices, config.metrics)
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config.brokers, topic, config.consumers)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
@@ -419,6 +420,7 @@ object KafkaDataStore extends LazyLogging {
       looseBBox: Boolean,
       authProvider: AuthorizationsProvider,
       audit: Option[(AuditWriter, AuditProvider, String)],
+      metrics: Option[GeoMesaMetrics],
       namespace: Option[String]) extends NamespaceConfig
 
   case class ConsumerConfig(count: Int, properties: Map[String, String], readBack: Option[Duration])
