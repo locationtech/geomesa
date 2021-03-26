@@ -20,10 +20,13 @@ Add and Configure the Processors
 
 The first step is to add two processors to your flow, a ``GetGeoMesaKafkaRecord`` processor and an
 ``AvroToPutGeoMesaHBase`` processor. Connect the output of the ``Get`` processor to the input of the ``Put``
-processor, and auto-terminate all the other connections:
+processor:
 
 .. image:: /user/_static/img/nifi-kafka-to-hbase-flow.png
    :align: center
+
+For a robust system, you would want to add further processing for handling successes and failures. For
+this example, just auto-terminate all other connections for simplicity.
 
 Next, create a new controller service by clicking 'Configure' on the NiFi flow, then going to the Controller
 Services tab and clicking the ``+`` button, then selecting the ``GeoAvroRecordSetWriterFactory``. The
