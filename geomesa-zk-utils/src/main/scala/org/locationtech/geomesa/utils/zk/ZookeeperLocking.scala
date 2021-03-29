@@ -14,8 +14,7 @@ import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
-
-import scala.util.Try
+import org.locationtech.geomesa.utils.io.CloseQuietly
 
 trait ZookeeperLocking extends DistributedLocking {
 
@@ -34,7 +33,7 @@ trait ZookeeperLocking extends DistributedLocking {
       lock.acquire()
       ZookeeperLocking.releasable(lock, client)
     } catch {
-      case e: Exception => Try(client.close()).failed.foreach(e.addSuppressed); throw e
+      case e: Exception => CloseQuietly(client).foreach(e.addSuppressed); throw e
     }
   }
 
@@ -55,14 +54,18 @@ trait ZookeeperLocking extends DistributedLocking {
         None
       }
     } catch {
-      case e: Exception => Try(client.close()).failed.foreach(e.addSuppressed); throw e
+      case e: Exception => CloseQuietly(client).foreach(e.addSuppressed); throw e
     }
   }
 
   private def distributedLock(key: String): (CuratorFramework, InterProcessSemaphoreMutex) = {
     val lockPath = if (key.startsWith("/")) key else s"/$key"
-    val backOff = new ExponentialBackoffRetry(1000, 3)
-    val client = CuratorFrameworkFactory.newClient(zookeepers, backOff)
+    val client =
+      CuratorFrameworkFactory.builder()
+          .connectString(zookeepers)
+          .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+          .zk34CompatibilityMode(true)
+          .build()
     client.start()
     val lock = new InterProcessSemaphoreMutex(client, lockPath)
     (client, lock)

@@ -111,7 +111,7 @@ rst_epilog = """
 
 .. |zookeeper_version| replace:: 3.4.5 or later
 
-.. |kafka_version| replace:: 0.9.x or later
+.. |kafka_version| replace:: 0.10.x or later
 
 .. |cassandra_version| replace:: 3.x
 
