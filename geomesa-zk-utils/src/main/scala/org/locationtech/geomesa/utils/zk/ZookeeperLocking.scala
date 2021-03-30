@@ -65,6 +65,7 @@ trait ZookeeperLocking extends DistributedLocking {
           .connectString(zookeepers)
           .retryPolicy(new ExponentialBackoffRetry(1000, 3))
           .zk34CompatibilityMode(true)
+          .dontUseContainerParents()
           .build()
     client.start()
     val lock = new InterProcessSemaphoreMutex(client, lockPath)

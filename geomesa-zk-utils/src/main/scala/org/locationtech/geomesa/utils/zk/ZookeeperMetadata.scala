@@ -26,6 +26,7 @@ class ZookeeperMetadata[T](val namespace: String, val zookeepers: String, val se
         .connectString(zookeepers)
         .retryPolicy(new ExponentialBackoffRetry(1000, 3))
         .zk34CompatibilityMode(true)
+        .dontUseContainerParents()
         .build()
 
   client.start()
