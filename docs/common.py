@@ -113,6 +113,8 @@ rst_epilog = """
 
 .. |kafka_version| replace:: 0.10.x or later
 
+.. |kafka_tested_version| replace:: 2.7.0
+
 .. |cassandra_version| replace:: 3.x
 
 .. |redis_version| replace:: 5.0.x

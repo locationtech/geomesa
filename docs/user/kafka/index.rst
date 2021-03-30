@@ -5,9 +5,9 @@ Kafka Data Store
 
 .. note::
 
-    GeoMesa currently supports Kafka version |kafka_version|. However, not all features are supported
-    for versions prior to 1.0. The runtime classpath requires Kafka version 2+, but should be compatible
-    with brokers back to Kafka 0.10.
+    GeoMesa currently supports Kafka version |kafka_version|, and has been tested up to |kafka_tested_version|.
+    However, not all features are supported for versions prior to 1.0. The runtime classpath requires Kafka
+    version 2+, but should be compatible with brokers back to Kafka 0.10.
 
 The GeoMesa Kafka Data Store is an implementation of the GeoTools
 ``DataStore`` interface that is backed by `Apache Kafka`_. The
