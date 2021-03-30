@@ -545,7 +545,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
     // check for attributes flagged 'index' and convert them to sft-level user data
     def indexed(d: AttributeDescriptor): Boolean = {
-      d.getUserData.remove(AttributeOptions.OptIndex) match {
+      d.getUserData.get(AttributeOptions.OptIndex) match {
         case i: String if Seq("true", "full").exists(_.equalsIgnoreCase(i)) => true
         case i if i == null || Seq("false", "none").exists(_.equalsIgnoreCase(i.toString)) => false
         case i => throw new IllegalArgumentException(s"Configured index coverage '$i' is not valid: expected 'true'")
@@ -588,6 +588,8 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     sft.getUserData.remove(Configs.EnabledIndices)
     // remove any null/empty keys as a way to delete existing user data
     sft.getUserData.asScala.collect { case (k, null | "") => k }.foreach(sft.getUserData.remove)
+    // remove any 'index' flags in the attribute user data - we need them above for checking enabled indices
+    sft.getAttributeDescriptors.asScala.foreach(_.getUserData.remove(AttributeOptions.OptIndex))
   }
 
   /**

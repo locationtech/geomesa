@@ -9,12 +9,9 @@
 package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.config.ConfigFactory
-import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{Query, Transaction}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.referencing.CRS
-import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
@@ -24,7 +21,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -183,8 +180,6 @@ class GeoMesaDataStoreAlterSchemaTest extends Specification {
       ds.checkSchemaCompatibility("test", toSft(addAttributeConfig)) mustEqual SchemaCompatibility.Unchanged
     }
     "update compatible schemas from index flags" in {
-      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
       def toSft(config: String): SimpleFeatureType = SimpleFeatureTypes.createType(ConfigFactory.parseString(config))
 
       val ds = new TestGeoMesaDataStore(true)
@@ -196,6 +191,29 @@ class GeoMesaDataStoreAlterSchemaTest extends Specification {
           |    { name = "dtg",  type = "Date",  default = true                            }
           |    { name = "geom", type = "Point", default = true, index = true, srid = 4326 }
           |  ]
+          |}""".stripMargin
+
+      val missing = ds.checkSchemaCompatibility("test", toSft(missingConfig))
+      missing must beAnInstanceOf[SchemaCompatibility.DoesNotExist]
+      missing.apply()
+
+      ds.checkSchemaCompatibility("test", toSft(missingConfig)) mustEqual SchemaCompatibility.Unchanged
+    }
+    "update compatible schemas from index flags with enabled indices user data" in {
+      def toSft(config: String): SimpleFeatureType = SimpleFeatureTypes.createType(ConfigFactory.parseString(config))
+
+      val ds = new TestGeoMesaDataStore(true)
+      val missingConfig =
+        """{
+          |  type-name = "test"
+          |  attributes = [
+          |    { name = "type", type = "String", index = true                             }
+          |    { name = "dtg",  type = "Date",  default = true                            }
+          |    { name = "geom", type = "Point", default = true, index = true, srid = 4326 }
+          |  ]
+          |  user-data = {
+          |  "geomesa.indices.enabled" = "id,z3,attr"
+          |  }
           |}""".stripMargin
 
       val missing = ds.checkSchemaCompatibility("test", toSft(missingConfig))
