@@ -20,6 +20,8 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.util.Try
+
 /**
   * Plan for querying a GeoMesaDataStore
   *
@@ -219,8 +221,11 @@ object QueryPlan {
       */
     def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature]
 
-    override def toString: String =
-      s"class:${getClass.getSimpleName}, state:{${state.map { case (k, v) => s"$k=$v" }.mkString(", ")}}"
+    override def toString: String = {
+      // TODO GEOMESA-3035 show local transform state in explain log
+      val s = Try(state).getOrElse(Map("unserializable state" -> "???"))
+      s"class:${getClass.getSimpleName}, state:{${s.map { case (k, v) => s"$k=$v" }.mkString(", ")}}"
+    }
   }
 
   object FeatureReducer {
