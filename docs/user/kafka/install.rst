@@ -3,8 +3,9 @@ Installing GeoMesa Kafka
 
 .. note::
 
-    GeoMesa currently supports Kafka version |kafka_version|. However, not all features are supported
-    for versions prior to 1.0.
+    GeoMesa currently supports Kafka version |kafka_version|, and has been tested up to |kafka_tested_version|.
+    However, not all features are supported for versions prior to 1.0. The runtime classpath requires Kafka
+    version 2+, but should be compatible with brokers back to Kafka 0.10.
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -169,14 +170,6 @@ The specific JARs needed for some common configurations are listed below:
         * kafka-clients-0.10.2.1.jar
         * kafka-2.11-0.10.2.1.jar
         * zkclient-0.10.jar
-        * zookeeper-3.4.10.jar
-        * metrics-core-2.2.0.jar
-
-    .. tab:: Kafka 0.9
-
-        * kafka-clients-0.9.0.1.jar
-        * kafka_2.11-0.9.0.1.jar
-        * zkclient-0.7.jar
         * zookeeper-3.4.10.jar
         * metrics-core-2.2.0.jar
 

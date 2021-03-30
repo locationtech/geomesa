@@ -40,10 +40,7 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
     val persist = PersistParam.lookup(params).booleanValue
 
     val consumerConfig = parsePropertiesParam(Kafka.ConsumerOptsParam.lookup(params)) ++ Map("bootstrap.servers" -> brokers)
-    val producer = {
-      val producerConfig = parsePropertiesParam(Kafka.ProducerOptsParam.lookup(params)) ++ Map("bootstrap.servers" -> brokers)
-      KafkaStore.producer(producerConfig)
-    }
+    val producerConfig = parsePropertiesParam(Kafka.ProducerOptsParam.lookup(params)) ++ Map("bootstrap.servers" -> brokers)
 
     // TODO GEOMESA-1891 attribute level vis
     val persistence = new AccumuloDataStoreFactory().createDataStore(LambdaDataStoreFactory.filter(params))
@@ -58,7 +55,7 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
 
     val config = LambdaConfig(zk, zkNamespace, partitions, consumers, expiry, persist)
 
-    new LambdaDataStore(persistence, producer, consumerConfig, offsetManager, config)(clock)
+    new LambdaDataStore(persistence, producerConfig, consumerConfig, offsetManager, config)(clock)
   }
 
   override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
