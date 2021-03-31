@@ -14,11 +14,10 @@ import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, Syn
 import java.util.{Collections, Date}
 
 import com.typesafe.scalalogging.LazyLogging
-import kafka.admin.AdminUtils
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
+import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig}
 import org.geotools.data._
-import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -35,6 +34,7 @@ import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChange
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.io.WithClose
@@ -167,16 +167,18 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
             schema.getUserData.get("geomesa.foo") mustEqual "bar"
             schema.getUserData.get(KafkaDataStore.TopicKey) mustEqual topic
           }
-          KafkaDataStore.withZk(kafka.zookeepers) { zk =>
-            AdminUtils.topicExists(zk, topic) must beTrue
+
+          val props = Collections.singletonMap[String, AnyRef](AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.brokers)
+          WithClose(AdminClient.create(props)) { admin =>
+            admin.listTopics().names().get.asScala must contain(topic)
           }
           consumer.removeSchema(sft.getTypeName)
           foreach(Seq(consumer, producer)) { ds =>
             eventually(40, 100.millis)(ds.getTypeNames.toSeq must beEmpty)
             ds.getSchema(sft.getTypeName) must beNull
           }
-          KafkaDataStore.withZk(kafka.zookeepers) { zk =>
-            eventually(40, 100.millis)(AdminUtils.topicExists(zk, topic) must beFalse)
+          WithClose(AdminClient.create(props)) { admin =>
+            eventually(40, 100.millis)(admin.listTopics().names().get.asScala must not(contain(topic)))
           }
         } finally {
           consumer.dispose()
@@ -295,6 +297,27 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           consumer.dispose()
           producer.dispose()
         }
+      }
+    }
+
+    "require visibilities on write" >> {
+      val (producer, consumer, sft) = createStorePair("reqvis")
+      try {
+        sft.getUserData.put(Configs.RequireVisibility, "true")
+        producer.createSchema(sft)
+
+        val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+        val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
+
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true)) must throwAn[IllegalArgumentException]
+          f0.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "USER")
+          f1.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "USER&ADMIN")
+          Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true)) must not(throwAn[Exception]) // ok
+        }
+      } finally {
+        consumer.dispose()
+        producer.dispose()
       }
     }
 

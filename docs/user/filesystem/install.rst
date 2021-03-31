@@ -104,8 +104,8 @@ your Hadoop installations into GeoServer's ``WEB-INF/lib`` directory:
   * aws-java-sdk-core-1.10.6.jar
   * aws-java-sdk-s3-1.10.6.jar
   * joda-time-2.8.1.jar
-  * httpclient-4.3.4.jar
-  * httpcore-4.3.3.jar
+  * httpclient-4.5.2.jar
+  * httpcore-4.4.4.jar
   * commons-httpclient-3.1.jar
 
 You can use the bundled ``$GEOMESA_FS_HOME/bin/install-dependencies.sh`` script to install these JARs.

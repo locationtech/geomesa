@@ -3,7 +3,7 @@
 Record Processors
 -----------------
 
-Record-based processors (``PutGeoMesaRecord``) accept the following configuration parameters for specifying the
+Record-based processors (``PutGeoMesa*Record``) accept the following configuration parameters for specifying the
 input source. Each datastore-specific processor also has additional parameters for connecting to the datastore,
 detailed in the following sections.
 
@@ -33,3 +33,11 @@ detailed in the following sections.
 +-----------------------------------+-----------------------------------------------------------------------------------------------------+
 | ``Schema user data``              | User data used to configure the GeoMesa SimpleFeatureType, in the form 'key1=value1,key2=value2'    |
 +-----------------------------------+-----------------------------------------------------------------------------------------------------+
+
+.. _geoavro_record_writer:
+
+GeoAvroRecordSetWriterFactory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+GeoMesa also provides a record writer that can be used to produce GeoAvro files from any NiFi processor that
+supports record-based output. The writer factory uses the same properties detailed above.

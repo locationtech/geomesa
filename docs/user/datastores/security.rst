@@ -19,6 +19,10 @@ two tags, ``admin`` and ``user``. An expression could be ``admin``, ``user``, ``
 depending on how you want to grant access to your data. For more complex expressions, parentheses can be used
 for operation order.
 
+.. note::
+
+  See :ref:`required_vis_config` to enforce visibility labels on all writes.
+
 Visibility labels can be written in two different ways, either at the level of each feature, or at the level
 of each attribute in a feature.
 

@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.spark.jts.rules
 
 import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql.catalyst.expressions.{GenericInternalRow, Literal, ScalaUDF}
+import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.catalyst.expressions.{Literal, ScalaUDF}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.jts.GeometryUDT
@@ -26,7 +27,9 @@ object GeometryLiteralRules {
             // TODO: Break down by GeometryType
             Try {
                 s.eval(null) match {
-                  case row: GenericInternalRow =>
+                  // Prior to Spark 3.1.1 GenericInteralRows have been returned
+                  // Spark 3.1.1 started returning UnsafeRows instead of GenericInteralRows
+                  case row: InternalRow =>
                     val ret = GeometryUDT.deserialize(row)
                     GeometryLiteral(row, ret)
                   case other: Any =>

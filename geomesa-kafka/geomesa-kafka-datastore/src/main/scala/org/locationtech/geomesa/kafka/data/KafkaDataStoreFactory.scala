@@ -21,6 +21,7 @@ import org.locationtech.geomesa.index.metadata.MetadataStringSerializer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
+import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAuditProvider}
@@ -96,7 +97,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreParams.LazyFeatures,
       KafkaDataStoreParams.AuditQueries,
       KafkaDataStoreParams.LooseBBox,
-      KafkaDataStoreParams.Authorizations
+      KafkaDataStoreParams.Authorizations,
+      KafkaDataStoreParams.MetricsReporters
     )
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
@@ -191,6 +193,13 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     }
     val authProvider = buildAuthProvider(params)
 
+    val metrics = MetricsReporters.lookupOpt(params).map { conf =>
+      val config = ConfigFactory.parseString(conf).resolve()
+      val reporters =
+        if (config.hasPath("reporters")) { config.getConfigList("reporters").asScala } else { Seq(config) }
+      GeoMesaMetrics(catalog, reporters)
+    }
+
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 
     // noinspection ScalaDeprecation
@@ -201,7 +210,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     }
 
     KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, clearOnStart, topics, serialization,
-      indices, looseBBox, authProvider, audit, ns)
+      indices, looseBBox, authProvider, audit, metrics, ns)
   }
 
   private def buildAuthProvider(params: java.util.Map[String, Serializable]): AuthorizationsProvider = {

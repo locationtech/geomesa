@@ -101,6 +101,7 @@ object HBaseConnectionPool extends LazyLogging {
       ProvidedConnection(ConnectionParam.lookup(params))
     } else {
       val conf = getConfiguration(params)
+      logger.debug(s"Connecting to HBase instance at ${conf.get(HConstants.ZOOKEEPER_QUORUM)}")
       if (HBaseDataStoreParams.CacheConnectionsParam.lookup(params)) {
         connections.get((conf, validate))
       } else {

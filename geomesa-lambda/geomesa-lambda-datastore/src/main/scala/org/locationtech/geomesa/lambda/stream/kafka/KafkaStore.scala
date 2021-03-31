@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
+import java.io.Flushable
 import java.time.Clock
-import java.util.{Properties, UUID}
+import java.util.{Collections, Properties, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
-import kafka.admin.AdminUtils
-import kafka.common.TopicAlreadyMarkedForDeletionException
-import kafka.utils.ZkUtils
+import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, KafkaConsumer}
 import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.serialization._
@@ -27,7 +26,7 @@ import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
-import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions}
+import org.locationtech.geomesa.kafka.KafkaConsumerVersions
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
@@ -43,15 +42,18 @@ import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 
-class KafkaStore(ds: DataStore,
-                 val sft: SimpleFeatureType,
-                 authProvider: Option[AuthorizationsProvider],
-                 offsetManager: OffsetManager,
-                 producer: Producer[Array[Byte], Array[Byte]],
-                 consumerConfig: Map[String, String],
-                 config: LambdaConfig)
-                (implicit clock: Clock = Clock.systemUTC())
-    extends TransientStore with LazyLogging {
+class KafkaStore(
+    ds: DataStore,
+    val sft: SimpleFeatureType,
+    authProvider: Option[AuthorizationsProvider],
+    offsetManager: OffsetManager,
+    producerConfig: Map[String, String],
+    consumerConfig: Map[String, String],
+    config: LambdaConfig)
+   (implicit clock: Clock = Clock.systemUTC()
+   ) extends TransientStore with Flushable with LazyLogging {
+
+  private val producer = KafkaStore.producer(producerConfig)
 
   private val topic = KafkaStore.topic(config.zkNamespace, sft)
 
@@ -82,25 +84,30 @@ class KafkaStore(ds: DataStore,
   offsetManager.addOffsetListener(topic, cache)
 
   override def createSchema(): Unit = {
-    KafkaStore.withZk(config.zookeepers) { zk =>
-      if (AdminUtils.topicExists(zk, topic)) {
-       logger.warn(s"Topic [$topic] already exists - it may contain stale data")
+    val props = new Properties()
+    producerConfig.foreach { case (k, v) => props.put(k, v) }
+
+    WithClose(AdminClient.create(props)) { admin =>
+      if (admin.listTopics().names().get.contains(topic)) {
+        logger.warn(s"Topic [$topic] already exists - it may contain stale data")
       } else {
         val replication = SystemProperty("geomesa.kafka.replication").option.map(_.toInt).getOrElse(1)
-        AdminUtilsVersions.createTopic(zk, topic, config.partitions, replication)
+        val newTopic = new NewTopic(topic, config.partitions, replication.toShort)
+        admin.createTopics(Collections.singletonList(newTopic)).all().get
       }
     }
   }
 
   override def removeSchema(): Unit = {
     offsetManager.deleteOffsets(topic)
-    KafkaStore.withZk(config.zookeepers) { zk =>
-      try {
-        if (AdminUtils.topicExists(zk, topic)) {
-          AdminUtils.deleteTopic(zk, topic)
-        }
-      } catch {
-        case _: TopicAlreadyMarkedForDeletionException => logger.warn("Topic is already marked for deletion")
+    val props = new Properties()
+    producerConfig.foreach { case (k, v) => props.put(k, v) }
+
+    WithClose(AdminClient.create(props)) { admin =>
+      if (admin.listTopics().names().get.contains(topic)) {
+        admin.deleteTopics(Collections.singletonList(topic)).all().get
+      } else {
+        logger.warn(s"Topic [$topic] does not exist, can't delete it")
       }
     }
   }
@@ -146,6 +153,8 @@ class KafkaStore(ds: DataStore,
     case None => throw new IllegalStateException("Persistence disabled for this store")
   }
 
+  override def flush(): Unit = producer.flush()
+
   override def close(): Unit = {
     CloseWithLogging(loader)
     CloseWithLogging(interceptors)
@@ -156,7 +165,7 @@ class KafkaStore(ds: DataStore,
 
 object KafkaStore {
 
-  val LoadIntervalProperty = SystemProperty("geomesa.lambda.load.interval", "100ms")
+  val LoadIntervalProperty: SystemProperty = SystemProperty("geomesa.lambda.load.interval", "100ms")
 
   object MessageTypes {
     val Write:  Byte = 0
@@ -166,14 +175,6 @@ object KafkaStore {
   def topic(ns: String, sft: SimpleFeatureType): String = topic(ns, sft.getTypeName)
 
   def topic(ns: String, typeName: String): String = s"${ns}_$typeName".replaceAll("[^a-zA-Z0-9_\\-]", "_")
-
-  def withZk[T](zookeepers: String)(fn: ZkUtils => T): T = {
-    val security = SystemProperty("geomesa.zookeeper.security.enabled").option.exists(_.toBoolean)
-    val zkUtils = ZkUtils(zookeepers, 3000, 3000, security)
-    try { fn(zkUtils) } finally {
-      zkUtils.close()
-    }
-  }
 
   def producer(connect: Map[String, String]): Producer[Array[Byte], Array[Byte]] = {
     import org.apache.kafka.clients.producer.ProducerConfig._
@@ -245,11 +246,11 @@ object KafkaStore {
     override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {}
 
     override def onPartitionsAssigned(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
 
       // ensure we have queues for each partition
       // read our last committed offsets and seek to them
-      topicPartitions.foreach { tp =>
+      topicPartitions.asScala.foreach { tp =>
 
         // seek to earliest existing offset and return the offset
         def seekToBeginning(): Long = {

@@ -20,11 +20,15 @@ class ZookeeperMetadata[T](val namespace: String, val zookeepers: String, val se
 
   import org.locationtech.geomesa.utils.zk.ZookeeperMetadata.Root
 
-  private val client = CuratorFrameworkFactory.builder()
-      .namespace(namespace)
-      .connectString(zookeepers)
-      .retryPolicy(new ExponentialBackoffRetry(1000, 3))
-      .build()
+  private val client =
+    CuratorFrameworkFactory.builder()
+        .namespace(namespace)
+        .connectString(zookeepers)
+        .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+        .zk34CompatibilityMode(true)
+        .dontUseContainerParents()
+        .build()
+
   client.start()
 
   override protected def checkIfTableExists: Boolean = true

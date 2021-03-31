@@ -13,6 +13,7 @@ import java.util.Date
 
 import com.clearspring.analytics.stream.cardinality.RegisterSet
 import com.esotericsoftware.kryo.io.{Input, Output}
+import org.ejml.data.DMatrixRMaj
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal}
 import org.locationtech.geomesa.utils.clearspring.{HyperLogLog, StreamSummary}
@@ -203,14 +204,14 @@ object StatSerializer {
 
       def writeArray(array: Array[Double]): Unit = for(v <- array) { output.writeDouble(v) }
 
-      writeArray(stat._min.getMatrix.data)
-      writeArray(stat._max.getMatrix.data)
-      writeArray(stat._sum.getMatrix.data)
-      writeArray(stat._mean.getMatrix.data)
-      writeArray(stat._m2n.getMatrix.data)
-      writeArray(stat._m3n.getMatrix.data)
-      writeArray(stat._m4n.getMatrix.data)
-      writeArray(stat._c2.getMatrix.data)
+      writeArray(stat._min.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      writeArray(stat._max.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      writeArray(stat._sum.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      writeArray(stat._mean.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      writeArray(stat._m2n.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      writeArray(stat._m3n.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      writeArray(stat._m4n.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      writeArray(stat._c2.getMatrix.asInstanceOf[DMatrixRMaj].data)
 
       output.writeLong(stat._count, true)
     }
@@ -234,14 +235,14 @@ object StatSerializer {
 
       def readArray(array: Array[Double]): Unit = for(i <- array.indices) { array(i) = input.readDouble }
 
-      readArray(stats._min.getMatrix.data)
-      readArray(stats._max.getMatrix.data)
-      readArray(stats._sum.getMatrix.data)
-      readArray(stats._mean.getMatrix.data)
-      readArray(stats._m2n.getMatrix.data)
-      readArray(stats._m3n.getMatrix.data)
-      readArray(stats._m4n.getMatrix.data)
-      readArray(stats._c2.getMatrix.data)
+      readArray(stats._min.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      readArray(stats._max.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      readArray(stats._sum.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      readArray(stats._mean.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      readArray(stats._m2n.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      readArray(stats._m3n.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      readArray(stats._m4n.getMatrix.asInstanceOf[DMatrixRMaj].data)
+      readArray(stats._c2.getMatrix.asInstanceOf[DMatrixRMaj].data)
 
       stats._count = input.readLong(true)
 

@@ -22,7 +22,7 @@ import org.apache.hadoop.fs._
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
-import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
+import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -140,6 +140,25 @@ class FileBasedMetadata(
     }
   }
 
+  override def setPartitions(partitions: Seq[PartitionMetadata]): Unit = {
+    val map = new ConcurrentHashMap[String, PartitionFiles]
+    this.partitions.put(BoxedUnit.UNIT, map)
+    this.metadata.invalidateAll()
+
+    val configs = partitions.map { partition =>
+      val action = PartitionAction.Add
+      val envelope = partition.bounds.map(b => EnvelopeConfig(b.envelope)).getOrElse(Seq.empty)
+      val config = PartitionConfig(partition.name, action, partition.files, partition.count, envelope, System.currentTimeMillis())
+      // note: side effects in map
+      this.metadata.put(partition.name, partition)
+      map.put(partition.name, PartitionFiles(config = Seq(config)))
+      config
+    }
+
+    writeCompactedConfig(configs)
+    delete(readPartitionFiles(8).asScala.flatMap { case (_, f) => f.unparsed ++ f.parsed }, 8)
+  }
+
   // noinspection ScalaDeprecation
   override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
 
@@ -165,21 +184,14 @@ class FileBasedMetadata(
     }
 
     writeCompactedConfig(configs)
-
-    if (threads < 2) {
-      paths.foreach(fc.delete(_, false))
-    } else {
-      val ec = ExecutionContext.fromExecutorService(new CachedThreadPool(threads))
-      try {
-        val parPaths = paths.par
-        parPaths.tasksupport = new ExecutionContextTaskSupport(ec)
-        parPaths.foreach(fc.delete(_, false))
-      } finally {
-        ec.shutdown()
-      }
-    }
+    delete(paths, threads)
 
     partitions.invalidate(BoxedUnit.UNIT)
+  }
+
+  override def invalidate(): Unit = {
+    partitions.invalidateAll()
+    metadata.invalidateAll()
   }
 
   override def close(): Unit = {}
@@ -251,7 +263,7 @@ class FileBasedMetadata(
       val pool = new CachedThreadPool(threads)
       // use a phaser to track worker thread completion
       val phaser = new Phaser(2) // 1 for the initial directory worker + 1 for this thread
-      pool.submit(new DirectoryWorker(pool, phaser, directory, result))
+      pool.submit(new DirectoryWorker(pool, phaser, fc.listStatus(directory), result))
       // wait for the worker threads to complete
       try {
         phaser.awaitAdvanceInterruptibly(phaser.arrive())
@@ -328,36 +340,64 @@ class FileBasedMetadata(
     }
   }
 
+  /**
+   * Delete a seq of paths
+   *
+   * @param paths paths to delete
+   * @param threads number of threads to use
+   */
+  private def delete(paths: Iterable[Path], threads: Int): Unit = {
+    if (threads < 2) {
+      paths.foreach(fc.delete(_, false))
+    } else {
+      val ec = ExecutionContext.fromExecutorService(new CachedThreadPool(threads))
+      try {
+        val parPaths = paths.par
+        parPaths.tasksupport = new ExecutionContextTaskSupport(ec)
+        parPaths.foreach(fc.delete(_, false))
+      } finally {
+        ec.shutdown()
+      }
+    }
+  }
+
   private class DirectoryWorker(
       es: ExecutorService,
       phaser: Phaser,
-      dir: Path,
+      listDirectory: => RemoteIterator[FileStatus],
       result: ConcurrentHashMap[String, PartitionFiles]
     ) extends Runnable {
 
     override def run(): Unit = {
       try {
-        val iter = fc.listStatus(dir)
-        while (iter.hasNext) {
+        var i = phaser.getRegisteredParties + 1
+        val iter = listDirectory
+        while (iter.hasNext && i < PhaserUtils.MaxParties) {
           val status = iter.next
           val path = status.getPath
           lazy val name = path.getName
           if (status.isDirectory) {
-            phaser.register() // register the new worker thread
-            es.submit(new DirectoryWorker(es, phaser, path, result))
+            i += 1
+            // use a tiered phaser on each directory avoid the limit of 65535 registered parties
+            es.submit(new DirectoryWorker(es, new Phaser(phaser, 1), fc.listStatus(path), result))
           } else if (name.startsWith(UpdatePartitionPrefix)) {
             // pull out the partition name but don't parse the file yet
             val encoded = name.substring(8, name.length - 42) // strip out prefix and suffix
             val partition = StringSerialization.decodeAlphaNumericSafeString(encoded)
             result.merge(partition, PartitionFiles(unparsed = Seq(path)), addFiles)
           } else if (name == CompactedHocon || name == CompactedJson) {
+            i += 1
             phaser.register() // register the new worker thread
             es.submit(new CompactedParser(phaser, path, result))
           } else if (name.startsWith(UpdateFilePrefix) && name.endsWith(JsonPathSuffix)) {
             // old update files - have to parse them to get the partition name
+            i += 1
             phaser.register() // register the new worker thread
             es.submit(new UpdateParser(phaser, path, result))
           }
+        }
+        if (iter.hasNext) {
+          es.submit(new DirectoryWorker(es, new Phaser(phaser, 1), iter, result))
         }
       } catch {
         case _: FileNotFoundException => // the partition dir was deleted... just return

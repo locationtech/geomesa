@@ -619,6 +619,28 @@ user-data key ``geomesa.temporal.priority``:
 
 This may be configured before calling ``createSchema``, or updated by calling ``updateSchema``.
 
+.. _required_vis_config:
+
+Configuring Required Visibilities
+---------------------------------
+
+GeoMesa supports :ref:`data_security` through the use of visibility labels to secure access to sensitive data.
+To help prevent data spills, a schema can be configured to reject any writes that don't contain valid visibilities.
+To enable this setting, use the user-data key ``geomesa.vis.required``:
+
+.. code-block:: java
+
+    sft.getUserData().put("geomesa.vis.required", "true");
+
+This may be configured before calling ``createSchema``, or updated by calling ``updateSchema``.
+
+Note that this configuration will prevent missing visibility labels in normal write paths, but that
+it is still possible to write unlabelled data through older clients, bulk loading, or direct access
+to the underlying database.
+
+In Accumulo data stores, setting this configuration will also set the Accumulo ``ReqVisFilter`` on all data
+tables, which will prevent any unlabelled data from being returned in queries.
+
 Mixed Geometry Types
 --------------------
 

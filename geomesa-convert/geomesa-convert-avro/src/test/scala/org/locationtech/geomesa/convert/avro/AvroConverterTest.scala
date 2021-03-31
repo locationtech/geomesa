@@ -211,6 +211,34 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
       }
     }
 
+    "automatically convert geomesa avro files with lenient matching" >> {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+      val features = Seq.tabulate(10) { i =>
+        ScalaSimpleFeature.create(sft, s"$i", s"name$i", i, s"2018-01-01T0$i:00:00.000Z", s"POINT(4$i 55)")
+      }
+
+      val out = new ByteArrayOutputStream()
+      WithClose(new AvroDataFileWriter(out, sft))(writer => features.foreach(writer.append))
+
+      val bytes = out.toByteArray
+
+      val updated = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326,tag:String")
+      val inferred = new AvroConverterFactory().infer(new ByteArrayInputStream(bytes), Some(updated))
+
+      inferred must beSome
+      inferred.get._1 mustEqual sft
+
+      logger.trace(inferred.get._2.root().render(ConfigRenderOptions.concise().setFormatted(true)))
+
+      WithClose(SimpleFeatureConverter(updated, inferred.get._2)) { converter =>
+        converter must not(beNull)
+
+        val converted = SelfClosingIterator(converter.process(new ByteArrayInputStream(bytes))).toList
+
+        converted must containTheSameElementsAs(features.map(ScalaSimpleFeature.retype(updated, _)))
+      }
+    }
+
     "automatically convert arbitrary avro files" >> {
       val schema = parser.parse(
         """{

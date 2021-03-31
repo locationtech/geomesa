@@ -14,8 +14,7 @@ import java.util.{Collections, Properties, UUID}
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, Ticker}
 import com.typesafe.scalalogging.LazyLogging
-import kafka.admin.AdminUtils
-import kafka.utils.ZkUtils
+import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
 import org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG
 import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, KafkaConsumer}
@@ -29,22 +28,23 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.Namespace
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, RunnableStats}
+import org.locationtech.geomesa.kafka.KafkaConsumerVersions
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
-import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter}
+import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.kafka.index._
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor.GeoMessageConsumer
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.{GeoMessagePartitioner, GeoMessageSerializerFactory}
-import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions}
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
+import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TableSharing
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.TableSharingPrefix
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -59,6 +59,7 @@ class KafkaDataStore(
   ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
 
   import KafkaDataStore.TopicKey
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
 
@@ -85,7 +86,7 @@ class KafkaDataStore(
       } else {
         val sft = getSchema(key)
         // if the expiry is zero, this will return a NoOpFeatureCache
-        val cache = KafkaFeatureCache(sft, config.indices)
+        val cache = KafkaFeatureCache(sft, config.indices, config.metrics)
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config.brokers, topic, config.consumers)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
@@ -174,11 +175,16 @@ class KafkaDataStore(
   // create kafka topic
   override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
     val topic = KafkaDataStore.topic(sft)
-    KafkaDataStore.withZk(config.zookeepers) { zk =>
-      if (AdminUtils.topicExists(zk, topic)) {
+    val props = new Properties()
+    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
+    config.producers.properties.foreach { case (k, v) => props.put(k, v) }
+
+    WithClose(AdminClient.create(props)) { admin =>
+      if (admin.listTopics().names().get.contains(topic)) {
         logger.warn(s"Topic [$topic] already exists - it may contain stale data")
       } else {
-        AdminUtilsVersions.createTopic(zk, topic, config.topics.partitions, config.topics.replication)
+        val newTopic = new NewTopic(topic, config.topics.partitions, config.topics.replication.toShort)
+        admin.createTopics(Collections.singletonList(newTopic)).all().get
       }
     }
   }
@@ -198,9 +204,13 @@ class KafkaDataStore(
       caches.invalidate(sft.getTypeName)
     }
     val topic = KafkaDataStore.topic(sft)
-    KafkaDataStore.withZk(config.zookeepers) { zk =>
-      if (AdminUtils.topicExists(zk, topic)) {
-        AdminUtils.deleteTopic(zk, topic)
+    val props = new Properties()
+    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
+    config.producers.properties.foreach { case (k, v) => props.put(k, v) }
+
+    WithClose(AdminClient.create(props)) { admin =>
+      if (admin.listTopics().names().get.contains(topic)) {
+        admin.deleteTopics(Collections.singletonList(topic)).all().get
       } else {
         logger.warn(s"Topic [$topic] does not exist, can't delete it")
       }
@@ -234,7 +244,12 @@ class KafkaDataStore(
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    val writer = new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter)
+    val writer =
+      if (sft.isVisibilityRequired) {
+        new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter) with RequiredVisibilityWriter
+      } else {
+        new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter)
+      }
     if (config.clearOnStart && cleared.add(typeName)) {
       writer.clear()
     }
@@ -246,7 +261,12 @@ class KafkaDataStore(
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    val writer = new AppendKafkaFeatureWriter(sft, producer, config.serialization)
+    val writer =
+      if (sft.isVisibilityRequired) {
+        new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
+      } else {
+        new AppendKafkaFeatureWriter(sft, producer, config.serialization)
+      }
     if (config.clearOnStart && cleared.add(typeName)) {
       writer.clear()
     }
@@ -336,14 +356,6 @@ object KafkaDataStore extends LazyLogging {
     }
   }
 
-  private [kafka] def withZk[T](zookeepers: String)(fn: ZkUtils => T): T = {
-    val security = SystemProperty("geomesa.zookeeper.security.enabled").option.exists(_.toBoolean)
-    val zkUtils = ZkUtils(zookeepers, 3000, 3000, security)
-    try { fn(zkUtils) } finally {
-      zkUtils.close()
-    }
-  }
-
   /**
     * Rebalance listener that seeks the consumer to the an offset based on a read-back duration
     *
@@ -408,6 +420,7 @@ object KafkaDataStore extends LazyLogging {
       looseBBox: Boolean,
       authProvider: AuthorizationsProvider,
       audit: Option[(AuditWriter, AuditProvider, String)],
+      metrics: Option[GeoMesaMetrics],
       namespace: Option[String]) extends NamespaceConfig
 
   case class ConsumerConfig(count: Int, properties: Map[String, String], readBack: Option[Duration])

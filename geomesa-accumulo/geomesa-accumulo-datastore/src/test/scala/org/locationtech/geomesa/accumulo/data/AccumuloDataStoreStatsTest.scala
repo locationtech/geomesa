@@ -11,6 +11,7 @@ package org.locationtech.geomesa.accumulo.data
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureReader
 import org.geotools.feature.DefaultFeatureCollection
@@ -33,7 +34,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts {
+class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts with LazyLogging {
 
   sequential
 
@@ -421,7 +422,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
           exact must beGreaterThan(0L)
           val calculated = ds.stats.getCount(sft, filter, exact = true, hints)
           calculated must beSome(exact)
-          println(s"FS Count: $count reader count: $exact stats count: $calculated")
+          logger.debug(s"FS Count: $count reader count: $exact stats count: $calculated")
           count mustEqual exact
         }
       }

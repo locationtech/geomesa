@@ -8,14 +8,12 @@
 
 package org.locationtech.geomesa.convert2.metrics
 
-import java.io.Closeable
-
 import com.codahale.metrics.MetricRegistry.MetricSupplier
 import com.codahale.metrics._
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics.SimpleGauge
+import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
@@ -27,13 +25,11 @@ import org.opengis.feature.simple.SimpleFeatureType
   * @param reporters metric reporters
   */
 class ConverterMetrics(
-    val registry: MetricRegistry,
+    registry: MetricRegistry,
     prefix: Option[String],
     typeName: String,
     reporters: Seq[ScheduledReporter]
-  ) extends Closeable {
-
-  private val pre = s"${prefix.map(_ + ".").getOrElse("")}geomesa.convert.${typeName.replaceAll("[^A-Za-z0-9]", ".")}."
+  ) extends GeoMesaMetrics(registry, s"${prefix.map(_ + ".").getOrElse("")}geomesa.convert", reporters) {
 
   /**
     * Creates a prefixed counter
@@ -41,7 +37,7 @@ class ConverterMetrics(
     * @param id short identifier for the metric being counted
     * @return
     */
-  def counter(id: String): Counter = registry.counter(s"$pre$id")
+  def counter(id: String): Counter = super.counter(typeName, id)
 
   /**
     * Gets an updatable gauge
@@ -51,7 +47,7 @@ class ConverterMetrics(
     * @return
     */
   def gauge[T](id: String): SimpleGauge[T] =
-    registry.gauge(s"$pre$id", ConverterMetrics.GaugeSupplier).asInstanceOf[SimpleGauge[T]]
+    super.gauge(typeName, id, ConverterMetrics.GaugeSupplier).asInstanceOf[SimpleGauge[T]]
 
   /**
     * Creates a prefixed histogram
@@ -59,7 +55,7 @@ class ConverterMetrics(
     * @param id short identifier for the metric being histogramed
     * @return
     */
-  def histogram(id: String): Histogram = registry.histogram(s"$pre$id")
+  def histogram(id: String): Histogram = super.histogram(typeName, id)
 
   /**
     * Creates a prefixed meter
@@ -67,7 +63,7 @@ class ConverterMetrics(
     * @param id short identifier for the metric being metered
     * @return
     */
-  def meter(id: String): Meter = registry.meter(s"$pre$id")
+  def meter(id: String): Meter = super.meter(typeName, id)
 
   /**
     * Creates a prefixed timer
@@ -75,7 +71,7 @@ class ConverterMetrics(
     * @param id short identifier for the metric being timed
     * @return
     */
-  def timer(id: String): Timer = registry.timer(s"$pre$id")
+  def timer(id: String): Timer = super.timer(typeName, id)
 
   /**
     * Register a metric
@@ -85,18 +81,19 @@ class ConverterMetrics(
     * @tparam T metric type
     * @return
     */
-  def register[T <: Metric](id: String, metric: T): T = registry.register(s"$pre$id", metric)
+  def register[T <: Metric](id: String, metric: T): T = super.register(typeName, id, metric)
 
   override def close(): Unit = {
     // execute a final report before closing, for situations where the converter runs too quickly to report anything
-    reporters.foreach(_.report())
-    CloseWithLogging(reporters)
+    try { reporters.foreach(_.report()) } finally {
+      super.close()
+    }
   }
 }
 
 object ConverterMetrics {
 
-  val MetricsPrefix = SystemProperty("geomesa.convert.validators.prefix")
+  val MetricsPrefix: SystemProperty = SystemProperty("geomesa.convert.validators.prefix")
 
   private val GaugeSupplier = new MetricSupplier[Gauge[_]] {
     override def newMetric(): Gauge[_] = new SimpleGauge()
@@ -118,7 +115,7 @@ object ConverterMetrics {
     */
   def apply(sft: SimpleFeatureType, reporters: Seq[Config]): ConverterMetrics = {
     val registry = new MetricRegistry()
-    val reps = reporters.map(ReporterFactory.apply(_, registry)).toList
+    val reps = reporters.map(org.locationtech.geomesa.metrics.core.ReporterFactory.apply(_, registry)).toList
     new ConverterMetrics(registry, MetricsPrefix.option, sft.getTypeName, reps)
   }
 

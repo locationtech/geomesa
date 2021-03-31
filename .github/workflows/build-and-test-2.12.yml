@@ -1,0 +1,39 @@
+name: build-and-test-2.12
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-scala:
+    runs-on: ubuntu-latest
+    # avoid duplicate jobs on PRs from the main repo
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    steps:
+
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Set Scala version
+        run: ./build/change-scala-version.sh 2.12
+      - name: Build with Maven
+        run: ./build/mvn clean install -Pbigtable -DskipTests -T4
+      - name: Unit Tests
+        run: mvn -o surefire:test -Pbigtable -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+      - name: HBase Tests
+        run: mvn -o surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+      - name: Integration Tests
+        run: mvn failsafe:integration-test -Pbigtable -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+      - name: Remove geomesa artifacts
+        run: |
+          find . -name '*.tar.gz' -exec rm {} \;
+          rm -rf $HOME/.m2/repository/org/locationtech/geomesa

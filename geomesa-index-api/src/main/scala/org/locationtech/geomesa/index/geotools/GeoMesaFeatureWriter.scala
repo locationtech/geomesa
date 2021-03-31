@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.SimpleFeatureWriter
-import org.geotools.data.{Query, Transaction}
+import org.geotools.data.{DataUtilities, Query, Transaction}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -30,8 +30,6 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWriter with Flushable with LazyLogging {
-
-  import scala.collection.JavaConverters._
 
   def ds: DS
   def sft: SimpleFeatureType
@@ -51,8 +49,13 @@ trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWrit
     // `write` will calculate all mutations up front in case the feature is not valid, so we don't write partial entries
     try { getWriter(writable).write(writable, update) } catch {
       case NonFatal(e) =>
-        val attributes = s"${writable.getID}:${writable.getAttributes.asScala.mkString("|")}"
-        throw new IllegalArgumentException(s"Error indexing feature '$attributes'", e)
+        val msg = s"Error indexing feature '${writable.getID}:${DataUtilities.encodeFeature(writable, false)}'"
+        if (e.isInstanceOf[IllegalArgumentException]) {
+          throw new IllegalArgumentException(msg, e)
+        } else {
+          throw new RuntimeException(msg, e)
+        }
+
     }
     statUpdater.add(writable)
   }

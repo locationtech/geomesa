@@ -121,6 +121,13 @@ Lambda Data Store Binary Distribution Change
 The Lambda data store binary distribution no longer contains the ``geomesa-accumulo-distributed-runtime`` JAR.
 This JAR is available in the Accumulo data store binary distribution.
 
+StrategyDecider API Update
+--------------------------
+
+The ``org.locationtech.geomesa.index.planning.StrategyDecider`` API has been extended with an optional
+``GeoMesaStats`` argument that enables stat-based strategy decisions. The old API method has been deprecated
+and will be removed in a future version.
+
 Deprecated Modules
 ------------------
 
