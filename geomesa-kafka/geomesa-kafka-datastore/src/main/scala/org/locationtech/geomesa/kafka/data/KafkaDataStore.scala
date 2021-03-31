@@ -18,6 +18,7 @@ import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
 import org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG
 import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, KafkaConsumer}
+import org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
@@ -32,7 +33,7 @@ import org.locationtech.geomesa.kafka.KafkaConsumerVersions
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
-import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter, RequiredVisibilityWriter}
+import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter._
 import org.locationtech.geomesa.kafka.index._
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor.GeoMessageConsumer
@@ -59,6 +60,7 @@ class KafkaDataStore(
   ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
 
   import KafkaDataStore.TopicKey
+  import org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
@@ -244,6 +246,7 @@ class KafkaDataStore(
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
+    val producer = getTransactionalProducer(transaction)
     val writer =
       if (sft.isVisibilityRequired) {
         new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter) with RequiredVisibilityWriter
@@ -261,6 +264,7 @@ class KafkaDataStore(
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
+    val producer = getTransactionalProducer(transaction)
     val writer =
       if (sft.isVisibilityRequired) {
         new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
@@ -284,6 +288,30 @@ class KafkaDataStore(
 
   // zookeeper locking methods
   override protected def zookeepers: String = config.zookeepers
+
+  private def getTransactionalProducer(transaction: Transaction): KafkaFeatureProducer = {
+    if (transaction == null || transaction == Transaction.AUTO_COMMIT) {
+      return AutoCommitProducer(producer)
+    }
+
+    val state = transaction.getState(KafkaDataStore.TransactionStateKey)
+    if (state == null) {
+      // add kafka transactional id if it's not set, but force acks to "all" as required by kafka
+      val props =
+        Map(TRANSACTIONAL_ID_CONFIG -> UUID.randomUUID().toString) ++
+            this.config.producers.properties ++
+            Map(ACKS_CONFIG -> "all")
+      val config = this.config.copy(producers = this.config.producers.copy(properties = props))
+      val producer = KafkaTransactionState(KafkaDataStore.producer(config))
+      transaction.putState(KafkaDataStore.TransactionStateKey, producer)
+      producer
+    } else {
+      state match {
+        case p: KafkaTransactionState => p
+        case _ => throw new IllegalArgumentException(s"Found non-kafka state in transaction: $state")
+      }
+    }
+  }
 }
 
 object KafkaDataStore extends LazyLogging {
@@ -291,6 +319,8 @@ object KafkaDataStore extends LazyLogging {
   val TopicKey = "geomesa.kafka.topic"
 
   val MetadataPath = "metadata"
+
+  val TransactionStateKey = "geomesa.kafka.state"
 
   val LoadIntervalProperty: SystemProperty = SystemProperty("geomesa.kafka.load.interval", "1s")
 
