@@ -35,15 +35,13 @@ with GeoServer. To deploy them in GeoServer requires:
 
 1. a GeoMesa datastore plugin
 2. the GeoServer WPS extension
-3. the ``geomesa-process-wps_2.11-<version>.jar`` deployed in ``${GEOSERVER_HOME}/WEB-INF/lib``
 
 .. note::
 
   Some processes also require custom output formats, available separately in the GPL licensed
   `GeoMesa GeoServer WFS module <https://github.com/geomesa/geomesa-geoserver>`__
 
-The GeoMesa datastore plugin and GeoMesa process jars are both
-available in the binary distribution in the gs-plugins directory.
+The GeoMesa datastore plugin is available in the binary distribution in the gs-plugins directory.
 
 Documentation about the GeoServer WPS Extension (including download
 instructions) is available `here <http://docs.geoserver.org/stable/en/user/services/wps/install.html>`__.

@@ -210,13 +210,8 @@ Restart GeoServer after the JARs are installed.
 GeoMesa Process
 ^^^^^^^^^^^^^^^
 
-.. note::
-
-    Some GeoMesa-specific WPS processes such as ``geomesa:Density``, which is used
-    in the generation of heat maps, also require ``geomesa-process-wps_2.11-$VERSION.jar``.
-    This JAR is included in the ``geomesa-lambda_2.11-$VERSION/dist/gs-plugins`` directory of the binary
-    distribution, or is built in the ``geomesa-process`` module of the source
-    distribution.
+GeoMesa provides some WPS processes, such as ``geomesa:Density`` which is used to generate heat maps. In order
+to use these processes, install the GeoServer WPS plugin as described in :ref:`geomesa-process`.
 
 Upgrading
 ---------
