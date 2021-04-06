@@ -11,7 +11,7 @@ package org.locationtech.geomesa.kafka.data
 import java.io.Closeable
 import java.time.Duration
 import java.util.Collections
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicLong}
 import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Executors}
 
 import com.typesafe.scalalogging.LazyLogging
@@ -89,7 +89,24 @@ trait KafkaCacheLoader extends Closeable with LazyLogging {
   }
 }
 
-object KafkaCacheLoader {
+object KafkaCacheLoader extends LazyLogging {
+  object LoaderStatus {
+    private val count = new AtomicInteger(0)
+    private val firstLoadStarTime = new AtomicLong(0L)
+
+    def startLoad(): Boolean = {
+      count.incrementAndGet()
+      firstLoadStarTime.compareAndSet(0L, System.currentTimeMillis())
+    }
+    def completedLoad(): Unit = {
+      if (count.decrementAndGet() == 0) {
+        logger.info(s"Last active initial load completed.  " +
+          s"Initial loads took ${System.currentTimeMillis()-firstLoadStarTime.get} milliseconds.")
+      }
+    }
+
+    def allLoaded(): Boolean = count.get() == 0
+  }
 
   object NoOpLoader extends KafkaCacheLoader {
     override val cache: KafkaFeatureCache = KafkaFeatureCache.empty()
@@ -201,6 +218,8 @@ object KafkaCacheLoader {
     }
 
     override def run(): Unit = {
+      LoaderStatus.startLoad()
+
       import scala.collection.JavaConverters._
 
       val partitions = consumers.head.partitionsFor(topic).asScala.map(_.partition)
@@ -241,6 +260,7 @@ object KafkaCacheLoader {
       logger.info(s"Starting normal load for [$topic]")
       // start the normal loading
       toLoad.startConsumers()
+      LoaderStatus.completedLoad()
     }
   }
 }
