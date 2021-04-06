@@ -209,8 +209,8 @@ location, or high volume data in general.
 
 .. note::
 
-    The heatmap style requires that ``geomesa-process-wps`` be installed in your
-    GeoServer, as described in :ref:`install_geomesa_process`.
+    The heatmap style requires that the GeoServer WPS plugin be installed in your
+    GeoServer, as described in :ref:`geomesa_process`.
 
 
 Add the SLD file :download:`heatmap.sld <_static/geomesa-examples-gdelt/heatmap.sld>` to
