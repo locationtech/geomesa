@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.io.Flushable
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.producer.{Producer, ProducerRecord}
+import org.geotools.data.Transaction
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -37,9 +38,11 @@ object KafkaFeatureWriter {
   private val featureIds = new AtomicLong(0)
   private val FeatureIdHints = Seq(Hints.USE_PROVIDED_FID, Hints.PROVIDED_FID)
 
-  class AppendKafkaFeatureWriter(sft: SimpleFeatureType,
-                                 producer: Producer[Array[Byte], Array[Byte]],
-                                 serialization: SerializationType) extends KafkaFeatureWriter with LazyLogging {
+  class AppendKafkaFeatureWriter(
+      sft: SimpleFeatureType,
+      producer: KafkaFeatureProducer,
+      serialization: SerializationType
+    ) extends KafkaFeatureWriter with LazyLogging {
 
     protected val topic: String = KafkaDataStore.topic(sft)
 
@@ -92,10 +95,12 @@ object KafkaFeatureWriter {
     }
   }
 
-  class ModifyKafkaFeatureWriter(sft: SimpleFeatureType,
-                                 producer: Producer[Array[Byte], Array[Byte]],
-                                 serialization: SerializationType,
-                                 filter: Filter) extends AppendKafkaFeatureWriter(sft, producer, serialization) {
+  class ModifyKafkaFeatureWriter(
+      sft: SimpleFeatureType,
+      producer: KafkaFeatureProducer,
+      serialization: SerializationType,
+      filter: Filter
+    ) extends AppendKafkaFeatureWriter(sft, producer, serialization) {
 
     import scala.collection.JavaConversions._
 
@@ -129,5 +134,66 @@ object KafkaFeatureWriter {
       requireVisibilities(feature)
       super.write()
     }
+  }
+
+  trait KafkaFeatureProducer extends Flushable {
+    def send(record: ProducerRecord[Array[Byte], Array[Byte]]): Unit
+  }
+
+  case class AutoCommitProducer(producer: Producer[Array[Byte], Array[Byte]]) extends KafkaFeatureProducer {
+    override def send(record: ProducerRecord[Array[Byte], Array[Byte]]): Unit = producer.send(record)
+    override def flush(): Unit = producer.flush()
+  }
+
+  case class KafkaTransactionState(producer: Producer[Array[Byte], Array[Byte]])
+      extends Transaction.State with KafkaFeatureProducer {
+
+    private val tx = new AtomicReference[Transaction](null)
+    private var inTransaction = false
+
+    override def send(record: ProducerRecord[Array[Byte], Array[Byte]]): Unit = {
+      if (!inTransaction) {
+        inTransaction = true
+        producer.beginTransaction()
+      }
+      producer.send(record)
+    }
+
+    override def flush(): Unit = producer.flush()
+
+    override def setTransaction(transaction: Transaction): Unit = {
+      if (transaction == null) {
+        // null transaction indicates the transaction has been closed
+        try {
+          if (inTransaction) {
+            inTransaction = false
+            producer.commitTransaction()
+          }
+        } finally {
+          producer.close()
+        }
+      } else if (tx.compareAndSet(null, transaction)) {
+        producer.initTransactions()
+      } else {
+        throw new IllegalStateException(
+          s"State is already associated with transaction ${tx.get} and can't be associated with $transaction")
+      }
+    }
+
+    override def commit(): Unit = {
+      if (inTransaction) {
+        inTransaction = false
+        producer.commitTransaction()
+      }
+    }
+
+    override def rollback(): Unit = {
+      if (inTransaction) {
+        inTransaction = false
+        producer.abortTransaction()
+      }
+    }
+
+    override def addAuthorization(authID: String): Unit = {}
   }
 }
