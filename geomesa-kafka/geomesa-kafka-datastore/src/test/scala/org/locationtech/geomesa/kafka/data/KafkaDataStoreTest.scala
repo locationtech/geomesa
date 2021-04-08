@@ -558,6 +558,54 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       }
     }
 
+    "support transactions" >> {
+      val (producer, consumer, _) = createStorePair("transactions")
+      try {
+        val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+        producer.createSchema(sft)
+
+        val features = Seq.tabulate(10) { i =>
+          ScalaSimpleFeature.create(sft, s"$i", s"name$i", i, f"2018-01-01T$i%02d:00:00.000Z", s"POINT (4$i 55)")
+        }
+
+        val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
+
+        val ids = new CopyOnWriteArrayList[String]()
+
+        val listener = new FeatureListener() {
+          override def changed(event: FeatureEvent): Unit = {
+            ids.add(event.asInstanceOf[KafkaFeatureChanged].feature.getID)
+          }
+        }
+
+        store.addFeatureListener(listener)
+
+        try {
+          WithClose(new DefaultTransaction()) { transaction =>
+            WithClose(producer.getFeatureWriterAppend(sft.getTypeName, transaction)) { writer =>
+              features.take(2).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+              transaction.rollback()
+              features.take(3).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+              transaction.commit()
+            }
+            eventually(40, 100.millis)(ids.asScala mustEqual Seq.tabulate(3)(_.toString))
+
+            WithClose(producer.getFeatureWriterAppend(sft.getTypeName, transaction)) { writer =>
+              features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+              transaction.commit()
+            }
+
+            eventually(40, 100.millis)(ids.asScala mustEqual Seq.tabulate(3)(_.toString) ++ Seq.tabulate(10)(_.toString))
+          }
+        } finally {
+          store.removeFeatureListener(listener)
+        }
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
     "support at-least-once consumers" >> {
       skipped("inconsistent")
       val params = Map(
