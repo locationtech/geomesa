@@ -93,6 +93,22 @@ Compatibility Matrix
 Version 3.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
+Scala Versions
+--------------
+
+GeoMesa now supports Scala 2.12. Scala 2.11 support has been deprecated and will be removed in a future version.
+
+Spark Versions
+--------------
+
+GeoMesa now supports Spark 3.0 and 3.1. Support for Spark 2.3 and 2.4 has been deprecated and will be removed
+in a future version.
+
+Dependency Updates
+------------------
+
+* com.fasterxml.jackson: 2.9.10 -> 2.12.1
+
 FileSystem Data Store Metadata Format Change
 --------------------------------------------
 
@@ -111,6 +127,16 @@ StrategyDecider API Update
 The ``org.locationtech.geomesa.index.planning.StrategyDecider`` API has been extended with an optional
 ``GeoMesaStats`` argument that enables stat-based strategy decisions. The old API method has been deprecated
 and will be removed in a future version.
+
+Deprecated Modules
+------------------
+
+The following modules have been deprecated, and will be removed in a future version:
+
+* GeoMesa Kudu
+* GeoMesa Streaming (Camel integration)
+* GeoMesa Web
+* GeoMesa GeoJSON
 
 Deprecated Arrow Output Options
 -------------------------------

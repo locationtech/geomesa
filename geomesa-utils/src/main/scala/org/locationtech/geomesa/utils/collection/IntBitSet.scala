@@ -131,7 +131,7 @@ object IntBitSet {
   }
 
   /**
-    * Checks if the mask contains teh value, and invokes `update` if it does
+    * Checks if the mask contains the value, and invokes `update` if it does
     *
     * @param mask mask
     * @param value value
