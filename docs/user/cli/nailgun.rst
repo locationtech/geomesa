@@ -23,7 +23,7 @@ The following environment variables control the behavior of the server, and can 
 
   GEOMESA_NG_ENABLED # enable the Nailgun server
   GEOMESA_NG_SERVER # the host to use to connect to the server, or to bind the server on startup
-  GEOMESA_NG_PORT # the port to use to connect to the server, or to bind teh server on startup
+  GEOMESA_NG_PORT # the port to use to connect to the server, or to bind the server on startup
   GEOMESA_NG_TIMEOUT # client heartbeat timeout
   GEOMESA_NG_IDLE # amount of time before the server will terminate due to inactivity
   GEOMESA_NG_POOL_SIZE # number of threads in the server available for running commands
