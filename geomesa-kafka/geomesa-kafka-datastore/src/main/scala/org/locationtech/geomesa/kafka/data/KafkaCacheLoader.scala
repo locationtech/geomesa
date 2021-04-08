@@ -92,16 +92,17 @@ trait KafkaCacheLoader extends Closeable with LazyLogging {
 object KafkaCacheLoader extends LazyLogging {
   object LoaderStatus {
     private val count = new AtomicInteger(0)
-    private val firstLoadStarTime = new AtomicLong(0L)
+    private val firstLoadStartTime = new AtomicLong(0L)
 
-    def startLoad(): Boolean = {
+    def startLoad(): Boolean = synchronized {
       count.incrementAndGet()
-      firstLoadStarTime.compareAndSet(0L, System.currentTimeMillis())
+      firstLoadStartTime.compareAndSet(0L, System.currentTimeMillis())
     }
-    def completedLoad(): Unit = {
+    def completedLoad(): Unit = synchronized {
       if (count.decrementAndGet() == 0) {
         logger.info(s"Last active initial load completed.  " +
-          s"Initial loads took ${System.currentTimeMillis()-firstLoadStarTime.get} milliseconds.")
+          s"Initial loads took ${System.currentTimeMillis()-firstLoadStartTime.get} milliseconds.")
+        firstLoadStartTime.set(0L)
       }
     }
 
