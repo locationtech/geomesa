@@ -37,16 +37,16 @@ geospatial analytics.
 
 ## Downloads
 
-**Current release: [3.2.0](https://github.com/locationtech/geomesa/releases/tag/geomesa_2.11-3.2.0)**
+**Current release: [3.2.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.2.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
-  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.2.0/geomesa-hbase_2.11-3.2.0-bin.tar.gz) |
-  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.2.0/geomesa-accumulo_2.11-3.2.0-bin.tar.gz) |
-  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.2.0/geomesa-cassandra_2.11-3.2.0-bin.tar.gz) |
-  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.2.0/geomesa-kafka_2.11-3.2.0-bin.tar.gz) |
-  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.2.0/geomesa-redis_2.11-3.2.0-bin.tar.gz) |
-  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.2.0/geomesa-fs_2.11-3.2.0-bin.tar.gz) |
-  [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.2.0/geomesa-bigtable_2.11-3.2.0-bin.tar.gz)
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.2.0/geomesa-hbase_2.11-3.2.0-bin.tar.gz) |
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.2.0/geomesa-accumulo_2.11-3.2.0-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.2.0/geomesa-cassandra_2.11-3.2.0-bin.tar.gz) |
+  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.2.0/geomesa-kafka_2.11-3.2.0-bin.tar.gz) |
+  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.2.0/geomesa-redis_2.11-3.2.0-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.2.0/geomesa-fs_2.11-3.2.0-bin.tar.gz) |
+  [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.2.0/geomesa-bigtable_2.11-3.2.0-bin.tar.gz)
 
 ### Verifying Downloads
 
