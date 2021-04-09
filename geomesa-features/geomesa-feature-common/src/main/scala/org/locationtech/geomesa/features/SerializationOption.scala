@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.features
 
-import org.locationtech.geomesa.features.SerializationOption.Value
-
 /**
  * Options to be applied when encoding.  The same options must be specified when decoding.
  */

@@ -9,14 +9,14 @@
 package org.locationtech.geomesa.features.interop;
 
 import org.locationtech.geomesa.features.SerializationOption;
-import org.locationtech.geomesa.features.SerializationOption$;
+import scala.Enumeration;
 
 public class SerializationOptions {
-    public static scala.collection.immutable.Set<SerializationOption$.Value> withUserData() {
+    public static scala.collection.immutable.Set<Enumeration.Value> withUserData() {
         return SerializationOption.SerializationOptions$.MODULE$.withUserData();
     }
 
-    public static scala.collection.immutable.Set<SerializationOption$.Value> withoutId() {
+    public static scala.collection.immutable.Set<Enumeration.Value> withoutId() {
         return SerializationOption.SerializationOptions$.MODULE$.withoutId();
     }
 }
