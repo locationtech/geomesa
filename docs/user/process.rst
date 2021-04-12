@@ -1,4 +1,4 @@
-.. _geomesa-process:
+.. _geomesa_process:
 
 GeoMesa Processes
 =================
