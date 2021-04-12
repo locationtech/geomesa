@@ -8,7 +8,7 @@
     <inceptionYear>2013</inceptionYear>
 
     <groupId>org.locationtech.geomesa</groupId>
-    <artifactId>geomesa_2.11</artifactId>
+    <artifactId>geomesa_2.12</artifactId>
     <packaging>pom</packaging>
     <version>4.0.0-SNAPSHOT</version>
 
@@ -59,8 +59,8 @@
 
         <!-- *** main dependency versions *** -->
 
-        <scala.version>2.11.7</scala.version>
-        <scala.binary.version>2.11</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
+        <scala.version>2.12.13</scala.version>
+        <scala.binary.version>2.12</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
 
         <scala.xml.version>1.3.0</scala.xml.version>
         <scala.parsers.version>1.1.2</scala.parsers.version>
@@ -2809,20 +2809,20 @@
                                 <bannedDependencies>
                                     <excludes combine.children="append">
                                         <exclude>*:*_2.10</exclude>
-                                        <exclude>*:*_2.12</exclude>
+                                        <exclude>*:*_2.11</exclude>
                                     </excludes>
                                 </bannedDependencies>
                                 <requireProperty>
                                     <message>property scala.version must be set</message>
                                     <property>scala.version</property>
                                     <regexMessage>property scala.version doesn't match expected compiler version</regexMessage>
-                                    <regex>2.11.*</regex>
+                                    <regex>2.12.*</regex>
                                 </requireProperty>
                                 <requireProperty>
                                     <message>property scala.binary.version must be set</message>
                                     <property>scala.binary.version</property>
                                     <regexMessage>property scala.binary.version doesn't match compiler version</regexMessage>
-                                    <regex>2.11</regex>
+                                    <regex>2.12</regex>
                                 </requireProperty>
                             </rules>
                         </configuration>
