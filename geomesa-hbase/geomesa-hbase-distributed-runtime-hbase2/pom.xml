@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-hbase_2.11</artifactId>
+        <artifactId>geomesa-hbase_2.12</artifactId>
         <version>4.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-hbase-distributed-runtime-hbase2_2.11</artifactId>
+    <artifactId>geomesa-hbase-distributed-runtime-hbase2_2.12</artifactId>
     <name>GeoMesa HBase Distributed Runtime, HBase 2.x</name>
     <description>GeoMesa coprocessors and filters, for installation into an HBase cluster</description>
 

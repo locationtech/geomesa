@@ -3,12 +3,12 @@
 
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>geomesa-archetypes_2.11</artifactId>
+        <artifactId>geomesa-archetypes_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>4.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-archetypes-binary-dist_2.11</artifactId>
+    <artifactId>geomesa-archetypes-binary-dist_2.12</artifactId>
     <name>GeoMesa Binary Distribution Archetype</name>
     <packaging>pom</packaging>
 

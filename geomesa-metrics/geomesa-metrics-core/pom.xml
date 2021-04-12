@@ -3,12 +3,12 @@
 
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-metrics_2.11</artifactId>
+        <artifactId>geomesa-metrics_2.12</artifactId>
         <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-metrics-core_2.11</artifactId>
+    <artifactId>geomesa-metrics-core_2.12</artifactId>
     <name>GeoMesa Metrics Core</name>
 
     <dependencies>

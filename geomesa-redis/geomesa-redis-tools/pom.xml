@@ -3,12 +3,12 @@
 
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-redis_2.11</artifactId>
+        <artifactId>geomesa-redis_2.12</artifactId>
         <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-redis-tools_2.11</artifactId>
+    <artifactId>geomesa-redis-tools_2.12</artifactId>
     <name>GeoMesa Redis Tools</name>
     <packaging>jar</packaging>
 
