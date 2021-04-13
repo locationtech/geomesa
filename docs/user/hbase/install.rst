@@ -15,19 +15,23 @@ Installing the Binary Distribution
 ----------------------------------
 
 GeoMesa HBase artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version
-(|release|) from `GitHub`__.
+The easiest way to get started is to download the most recent binary version from `GitHub`__.
 
 __ https://github.com/locationtech/geomesa/releases
+
+.. note::
+
+  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
+  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
 
 Extract it somewhere convenient:
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-hbase_2.11-$VERSION-bin.tar.gz"
-    $ tar xvf geomesa-hbase_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-hbase_2.11-$VERSION
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-hbase_${VERSION}-bin.tar.gz"
+    $ tar xvf geomesa-hbase_${VERSION}-bin.tar.gz
+    $ cd geomesa-hbase_${VERSION}
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
@@ -66,13 +70,13 @@ this directory as follows:
 
     .. code-block:: bash
 
-      hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_2.11-$VERSION.jar ${hbase.dynamic.jars.dir}/
+      hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar ${hbase.dynamic.jars.dir}/
 
   .. group-tab:: HBase 1.x
 
     .. code-block:: bash
 
-      hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_2.11-$VERSION.jar ${hbase.dynamic.jars.dir}/
+      hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar ${hbase.dynamic.jars.dir}/
 
 If running on top of Amazon S3, you will need to use the ``aws s3`` command line tool.
 
@@ -82,13 +86,13 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 
     .. code-block:: bash
 
-      aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_2.11-$VERSION.jar s3://${hbase.dynamic.jars.dir}/
+      aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
 
   .. group-tab:: HBase 1.x
 
     .. code-block:: bash
 
-      aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_2.11-$VERSION.jar s3://${hbase.dynamic.jars.dir}/
+      aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
 
 If required, you may disable distributed processing by setting the system property ``geomesa.hbase.remote.filtering``
 to ``false``. Note that this may have an adverse effect on performance.
@@ -116,7 +120,7 @@ Setting up the HBase Command Line Tools
     the distributed runtime first. See :ref:`hbase_deploy_distributed_runtime`.
 
 GeoMesa comes with a set of command line tools for managing HBase features located in
-``geomesa-hbase_2.11-$VERSION/bin/`` of the binary distribution.
+``geomesa-hbase_${VERSION}/bin/`` of the binary distribution.
 
 GeoMesa requires ``java`` to be available on the default path.
 
@@ -183,26 +187,26 @@ commands. Note that this can be slow, so it is usually better to use ``GEOMESA_H
     .. group-tab:: Standalone
 
         If there is no local HBase instance, the necessary JARs can be installed by downloading them. Modify the
-        version numbers in ``geomesa-hbase_2.11-$VERSION/conf/dependencies.sh`` to match the target system and use
-        ``geomesa-hbase_2.11-$VERSION/bin/install-dependencies.sh`` to install them:
+        version numbers in ``geomesa-hbase_${VERSION}/conf/dependencies.sh`` to match the target system and use
+        ``geomesa-hbase_${VERSION}/bin/install-dependencies.sh`` to install them:
 
         .. code-block:: bash
 
-            $ cd geomesa-hbase_2.11-$VERSION/bin
+            $ cd geomesa-hbase_${VERSION}/bin
             $ ./install-dependencies.sh
 
         In order to connect to a cluster, an appropriate ``hbase-site.xml`` is required. Copy it from your cluster
-        into ``geomesa-hbase_2.11-$VERSION/conf/``.
+        into ``geomesa-hbase_${VERSION}/conf/``.
 
         In order to run map/reduce jobs, copy the Hadoop ``*-site.xml`` configuration files
-        from your Hadoop installation into ``geomesa-hbase_2.11-$VERSION/conf``.
+        from your Hadoop installation into ``geomesa-hbase_${VERSION}/conf``.
 
 In order to run map/reduce and Spark jobs, you will need to put ``hbase-site.xml`` into a JAR on the distributed
 classpath. Add it at the root level of the ``geomesa-hbase-datastore`` JAR in the ``lib`` folder:
 
 .. code-block:: bash
 
-    $ zip -r lib/geomesa-hbase-datastore_2.11-$VERSION.jar hbase-site.xml
+    $ zip -r lib/geomesa-hbase-datastore_${VERSION}.jar hbase-site.xml
 
 .. warning::
 
@@ -233,11 +237,11 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 
 .. code-block:: bash
 
-    $ echo 'export GEOMESA_HBASE_HOME=/path/to/geomesa-hbase_2.11-$VERSION' >> ~/.bashrc
+    $ echo 'export GEOMESA_HBASE_HOME=/path/to/geomesa-hbase_${VERSION}' >> ~/.bashrc
     $ echo 'export PATH=${GEOMESA_HBASE_HOME}/bin:$PATH' >> ~/.bashrc
     $ source ~/.bashrc
     $ which geomesa-hbae
-    /path/to/geomesa-hbase_2.11-$VERSION/bin/geomesa-hbase
+    /path/to/geomesa-hbase_${VERSION}/bin/geomesa-hbase
 
 Running Commands
 ^^^^^^^^^^^^^^^^
@@ -263,7 +267,7 @@ Installing GeoMesa HBase in GeoServer
     See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
 
 The HBase GeoServer plugin is bundled by default in a GeoMesa binary distribution. To install, extract
-``$GEOMESA_HBASE_HOME/dist/gs-plugins/geomesa-hbase-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
+``$GEOMESA_HBASE_HOME/dist/gs-plugins/geomesa-hbase-gs-plugin_${VERSION}-install.tar.gz`` into GeoServer's
 ``WEB-INF/lib`` directory.
 
 This distribution does not include the HBase client, Hadoop or Zookeeper JARs. These JARs can be installed

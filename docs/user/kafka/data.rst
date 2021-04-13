@@ -64,7 +64,7 @@ key ``"v"``, when using Kafka 0.11.x or newer.
 
 By default, message bodies are serialized with a custom Kryo serializer. For Java/Scala clients, the
 ``org.locationtech.geomesa.features.kryo.KryoFeatureSerializer`` class may be used to decode messages, available
-in the ``geomesa-feature-kryo_2.11`` module through Maven. Alternatively, producers can be configured to send
+in the ``geomesa-feature-kryo`` module through Maven. Alternatively, producers can be configured to send
 Avro-encoded messages through the ``kafka.serialization.type`` data store parameter. Avro libraries exist in many
 languages, and Avro messages follow a defined schema that allows for cross-platform parsing.
 

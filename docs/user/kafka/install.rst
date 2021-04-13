@@ -11,19 +11,23 @@ Installing from the Binary Distribution
 ---------------------------------------
 
 GeoMesa Kafka artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version
-(|release|) from `GitHub`__.
+The easiest way to get started is to download the most recent binary version from `GitHub`__.
 
 __ https://github.com/locationtech/geomesa/releases
+
+.. note::
+
+  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
+  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
 
 Extract it somewhere convenient:
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-kafka_2.11-$VERSION-bin.tar.gz"
-    $ tar xzvf geomesa-kafka_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-kafka_2.11-$VERSION
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-kafka_${VERSION}-bin.tar.gz"
+    $ tar xzvf geomesa-kafka_${VERSION}-bin.tar.gz
+    $ cd geomesa-kafka_${VERSION}
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt
 
@@ -47,7 +51,7 @@ Setting up the Kafka Command Line Tools
 ---------------------------------------
 
 GeoMesa comes with a set of command line tools for managing Kafka features. In the Kafka distribution the
-tools are located in ``geomesa-kafka_2.11-$VERSION/bin/``.
+tools are located in ``geomesa-kafka_${VERSION}/bin/``.
 
 If the environment variables ``KAFKA_HOME`` and ``ZOOKEEPER_HOME`` are set, then GeoMesa will load the appropriate
 JARs and configuration files from those locations and no further configuration is required. Otherwise, you will
@@ -116,21 +120,21 @@ Installing the GeoMesa Kafka Data Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install the GeoMesa data store, extract the contents of the
-``geomesa-kafka-gs-plugin_2.11-$VERSION-install.tar.gz`` file in ``geomesa-kafka_2.11-$VERSION/dist/geoserver/``
+``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/geoserver/``
 in the binary distribution or ``geomesa-kafka/geomesa-kafka-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-kafka_2.11-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin_2.11-$VERSION-install.tar.gz \
+      geomesa-kafka_${VERSION}/dist/gs-plugins/geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 Next, install the JARs for Kafka and Zookeeper. By default, JARs will be downloaded from Maven central. You may
 override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do no have an internet connection
 you can download the JARs manually via http://search.maven.org/.
 
-Edit the file ``geomesa-kafka_2.11-$VERSION/conf/dependencies.sh`` to set the versions of Kafka and Zookeeper
+Edit the file ``geomesa-kafka_${VERSION}/conf/dependencies.sh`` to set the versions of Kafka and Zookeeper
 to match the target environment, and then run the script:
 
 .. code-block:: bash
@@ -139,8 +143,7 @@ to match the target environment, and then run the script:
 
 .. warning::
 
-    GeoMesa |release| depends on Scala 2.11, so you should make sure you use the
-    Kafka version built with Scala 2.11 as well (``kafka_2.11_*``) to avoid
+    Ensure that the Scala version (either ``_2.11`` or ``_2.12``) of both GeoMesa and Kafka match to avoid
     compatibility issues.
 
 The specific JARs needed for some common configurations are listed below:
@@ -168,7 +171,7 @@ The specific JARs needed for some common configurations are listed below:
     .. tab:: Kafka 0.10
 
         * kafka-clients-0.10.2.1.jar
-        * kafka-2.11-0.10.2.1.jar
+        * kafka_2.11-0.10.2.1.jar
         * zkclient-0.10.jar
         * zookeeper-3.4.10.jar
         * metrics-core-2.2.0.jar
