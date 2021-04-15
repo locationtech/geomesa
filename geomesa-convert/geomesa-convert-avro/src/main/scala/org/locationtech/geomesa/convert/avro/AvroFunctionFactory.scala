@@ -25,17 +25,29 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
 
   // parses a list encoded by the geomesa avro writer
   private val binaryList = TransformerFunction.pure("avroBinaryList") { args =>
-    AvroSimpleFeatureUtils.decodeList(ByteBuffer.wrap(args(0).asInstanceOf[Array[Byte]]))
+    args(0) match {
+      case bytes: Array[Byte] => AvroSimpleFeatureUtils.decodeList(ByteBuffer.wrap(bytes))
+      case null => null
+      case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
+    }
   }
 
   // parses a map encoded by the geomesa avro writer
   private val binaryMap = TransformerFunction.pure("avroBinaryMap") { args =>
-    AvroSimpleFeatureUtils.decodeMap(ByteBuffer.wrap(args(0).asInstanceOf[Array[Byte]]))
+    args(0) match {
+      case bytes: Array[Byte] => AvroSimpleFeatureUtils.decodeMap(ByteBuffer.wrap(bytes))
+      case null => null
+      case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
+    }
   }
 
   // parses a uuid encoded by the geomesa avro writer
   private val binaryUuid = TransformerFunction.pure("avroBinaryUuid") { args =>
-    AvroSimpleFeatureUtils.decodeUUID(ByteBuffer.wrap(args(0).asInstanceOf[Array[Byte]]))
+    args(0) match {
+      case bytes: Array[Byte] => AvroSimpleFeatureUtils.decodeUUID(ByteBuffer.wrap(bytes))
+      case null => null
+      case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
+    }
   }
 
   class AvroPathFn(path: AvroPath) extends NamedTransformerFunction(Seq("avroPath"), pure = true) {

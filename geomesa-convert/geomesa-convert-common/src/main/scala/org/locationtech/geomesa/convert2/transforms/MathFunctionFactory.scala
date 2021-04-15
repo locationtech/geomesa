@@ -64,6 +64,7 @@ class MathFunctionFactory extends TransformerFunctionFactory {
       case n: Long   => n.toDouble
       case n: String => n.toDouble
       case n: Any    => n.toString.toDouble
+      case null      => throw new NullPointerException()
     }
   }
 }
