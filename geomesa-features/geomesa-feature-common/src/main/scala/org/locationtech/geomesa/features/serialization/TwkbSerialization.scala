@@ -31,6 +31,9 @@ trait TwkbSerialization[T <: NumericWriter, V <: NumericReader]
   private val factory = new GeometryFactory()
   private val csFactory = factory.getCoordinateSequenceFactory
 
+  private val maxNesting = GeometryNestingThreshold.toInt.get
+  private val maxLength = GeometryLengthThreshold.toInt.getOrElse(Int.MaxValue)
+
   /**
     * Serialize a geometry
     *
@@ -141,7 +144,9 @@ trait TwkbSerialization[T <: NumericWriter, V <: NumericReader]
     * @param in input
     * @return
     */
-  def deserialize(in: V): Geometry = {
+  def deserialize(in: V): Geometry = deserialize(in, 0)
+
+  private def deserialize(in: V, nesting: Int): Geometry = {
     try {
       val precisionAndType = in.readByte()
       if (precisionAndType == ZeroByte) {
@@ -209,7 +214,7 @@ trait TwkbSerialization[T <: NumericWriter, V <: NumericReader]
           case TwkbMultiPoint      => readMultiPoint(in)
           case TwkbMultiLineString => readMultiLineString(in)
           case TwkbMultiPolygon    => readMultiPolygon(in)
-          case TwkbCollection      => readCollection(in)
+          case TwkbCollection      => readCollection(in, nesting)
           case _ => throw new IllegalArgumentException(s"Invalid TWKB geometry type $geomType")
         }
       }
@@ -244,7 +249,13 @@ trait TwkbSerialization[T <: NumericWriter, V <: NumericReader]
 
   private def readPolygon(in: V)(implicit state: DeltaState): Polygon = {
     val numRings = readUnsignedVarInt(in)
-    if (numRings == 0) { factory.createPolygon(null, null) } else {
+    if (numRings == 0) {
+      factory.createPolygon(null, null)
+    } else if (numRings > maxLength) {
+      throw new IllegalArgumentException(
+        s"Attempting to deserialize a polygon of size $numRings " +
+            s"with '${GeometryLengthThreshold.property}' = $maxLength'")
+    } else {
       val exteriorRing = readLinearRing(in, readUnsignedVarInt(in))
       val interiorRings = Array.ofDim[LinearRing](numRings - 1)
       var i = 1
@@ -287,7 +298,13 @@ trait TwkbSerialization[T <: NumericWriter, V <: NumericReader]
 
   private def readMultiLineString(in: V)(implicit state: DeltaState): MultiLineString = {
     val numLineStrings = readUnsignedVarInt(in)
-    if (numLineStrings == 0) { factory.createMultiLineString(null) } else {
+    if (numLineStrings == 0) {
+      factory.createMultiLineString(null)
+    } else if (numLineStrings > maxLength) {
+      throw new IllegalArgumentException(
+        s"Attempting to deserialize a multi-linestring of size $numLineStrings " +
+            s"with '${GeometryLengthThreshold.property}' = $maxLength'")
+    } else {
       // note: id list would go here, with one ID per line string
       val lineStrings = Array.ofDim[LineString](numLineStrings)
       var i = 0
@@ -311,7 +328,13 @@ trait TwkbSerialization[T <: NumericWriter, V <: NumericReader]
 
   private def readMultiPolygon(in: V)(implicit state: DeltaState): MultiPolygon = {
     val numPolygons = readUnsignedVarInt(in)
-    if (numPolygons == 0) { factory.createMultiPolygon(null) } else {
+    if (numPolygons == 0) {
+      factory.createMultiPolygon(null)
+    } else if (numPolygons > maxLength) {
+      throw new IllegalArgumentException(
+        s"Attempting to deserialize a multi-polygon of size $numPolygons " +
+            s"with '${GeometryLengthThreshold.property}' = $maxLength'")
+    } else {
       // note: id list would go here, with one ID per polygon
       val polygons = Array.ofDim[Polygon](numPolygons)
       var i = 0
@@ -333,14 +356,23 @@ trait TwkbSerialization[T <: NumericWriter, V <: NumericReader]
     }
   }
 
-  private def readCollection(in: V): GeometryCollection = {
+  private def readCollection(in: V, nesting: Int): GeometryCollection = {
+    if (nesting > maxNesting) {
+      throw new IllegalArgumentException(s"Detected recursive deserialization loop of $maxNesting")
+    }
     val numGeoms = readUnsignedVarInt(in)
-    if (numGeoms == 0) { factory.createGeometryCollection(null) } else {
+    if (numGeoms == 0) {
+      factory.createGeometryCollection(null)
+    } else if (numGeoms > maxLength) {
+      throw new IllegalArgumentException(
+        s"Attempting to deserialize a geometry collection of size $numGeoms " +
+            s"with '${GeometryLengthThreshold.property}' = $maxLength'")
+    } else {
       // note: id list would go here, with one ID per sub geometry
       val geoms = Array.ofDim[Geometry](numGeoms)
       var i = 0
       while (i < numGeoms) {
-        geoms(i) = deserialize(in)
+        geoms(i) = deserialize(in, nesting + 1)
         i += 1
       }
       factory.createGeometryCollection(geoms)
@@ -357,6 +389,11 @@ trait TwkbSerialization[T <: NumericWriter, V <: NumericReader]
   }
 
   private def readPointArray(in: V, length: Int)(implicit state: DeltaState): Array[Coordinate] = {
+    if (length > maxLength) {
+      throw new IllegalArgumentException(
+        s"Attempting to deserialize a point array of size $length with " +
+            s"'${GeometryLengthThreshold.property}' = $maxLength'")
+    }
     val result = Array.ofDim[Coordinate](length)
     var i = 0
     while (i < length) {
@@ -367,7 +404,13 @@ trait TwkbSerialization[T <: NumericWriter, V <: NumericReader]
   }
 
   private def readLinearRing(in: V, length: Int)(implicit state: DeltaState): LinearRing = {
-    if (length == 0) { factory.createLinearRing(null: CoordinateSequence) } else {
+    if (length == 0) {
+      factory.createLinearRing(null: CoordinateSequence)
+    } else if (length > maxLength) {
+      throw new IllegalArgumentException(
+        s"Attempting to deserialize a linear ring of size $length " +
+            s"with '${GeometryLengthThreshold.property}' = $maxLength'")
+    } else {
       val result = Array.ofDim[Coordinate](length + 1)
       var i = 0
       while (i < length) {
