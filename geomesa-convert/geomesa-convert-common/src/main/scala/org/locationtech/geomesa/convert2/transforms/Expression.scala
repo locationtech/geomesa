@@ -170,14 +170,17 @@ object Expression {
   }
 
   case class FieldLookup(n: String) extends Expression {
-    private var doEval: EvaluationContext => Any = ctx => {
-      val idx = ctx.indexOf(n)
-      // rewrite the eval to lookup by index
-      doEval = if (idx < 0) { _  => null } else { ec => ec.get(idx) }
-      doEval(ctx)
-    }
 
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = doEval(ctx)
+    private var ref: EvaluationContext = _
+    private var i = -1
+
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
+      if (!ctx.eq(ref)) {
+        ref = ctx
+        i = ctx.indexOf(n)
+      }
+      if (i == -1) { null } else { ctx.get(i) }
+    }
 
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = {
       fieldMap.get(n) match {
