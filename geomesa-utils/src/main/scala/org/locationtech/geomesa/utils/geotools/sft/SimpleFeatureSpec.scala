@@ -86,6 +86,7 @@ object SimpleFeatureSpec {
       */
     def toDescriptor: AttributeDescriptor = {
       val builder = new AttributeTypeBuilder().binding(clazz)
+      builder.setDescription("GeoMesa Description!")
       descriptorOptions.foreach { case (k, v) => builder.userData(k, v) }
       builderHook(builder)
       builder.buildDescriptor(name)

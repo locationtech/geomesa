@@ -27,6 +27,7 @@ import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.reflect.ClassTag
 import scala.util.Try
 
@@ -328,8 +329,14 @@ object RichSimpleFeatureType extends Conversions {
 
     def getRemoteVersion: Option[SemanticVersion] = userData[String](RemoteVersion).map(SemanticVersion.apply)
 
-    def getKeywords: Set[String] =
-      userData[String](Keywords).map(_.split(KeywordsDelimiter).toSet).getOrElse(Set.empty)
+    def getKeywords: Set[String] = {
+      val foo: Set[String] = getIndices.flatMap(_.attributes).toSet
+      val extraKeyword: Set[String] = if (foo.nonEmpty) {
+        Set(s"geomesa.indices=${foo.mkString(",")}")
+      } else { Set() }
+      sft.getAttributeDescriptors.asScala.foreach{_.getType}
+      userData[String](Keywords).map(_.split(KeywordsDelimiter).toSet).getOrElse(Set.empty).union(extraKeyword)
+    }
 
     def addKeywords(keywords: Set[String]): Unit =
       sft.getUserData.put(Keywords, getKeywords.union(keywords).mkString(KeywordsDelimiter))

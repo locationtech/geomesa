@@ -9,12 +9,15 @@
 package org.locationtech.geomesa.accumulo.data
 
 import com.typesafe.config.ConfigFactory
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
+@RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreKeywordsTest extends TestWithMultipleSfts {
 
   "AccumuloDataStore" should {
