@@ -29,8 +29,10 @@ class XmlCompositeConverter(
     delegates: Seq[(Predicate, ParsingConverter[Element])]
   ) extends AbstractCompositeConverter[Element](sft, errorMode, delegates) {
 
-  private val parser = new DocParser(xsd)
+  private val parser = new ThreadLocal[DocParser]() {
+    override def initialValue(): DocParser = new DocParser(xsd)
+  }
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[Element] =
-    XmlConverter.iterator(parser, is, encoding, lineMode, ec)
+    XmlConverter.iterator(parser.get, is, encoding, lineMode, ec)
 }

@@ -82,7 +82,7 @@ private [transforms] class ExpressionParser extends BasicParser {
           throw new ParsingException(s"Invalid function name: $name"))
         val expr = FunctionExpression(function.getInstance(args), args.toArray)
         if (function.pure && args.forall(a => a.isInstanceOf[Literal[_]])) {
-          LiteralAny(expr.eval(Array.empty))
+          LiteralAny(expr.apply(Array.empty))
         } else {
           expr
         }
@@ -122,7 +122,7 @@ private [transforms] class ExpressionParser extends BasicParser {
     (nonCast ~ ("::integer" | "::int")) ~~> {
       e => {
         val expr = CastToInt(e)
-        if (e.isInstanceOf[Literal[_]]) { LiteralInt(expr.eval(Array.empty)) } else { expr }
+        if (e.isInstanceOf[Literal[_]]) { LiteralInt(expr.apply(Array.empty)) } else { expr }
       }
     }
   }
@@ -131,7 +131,7 @@ private [transforms] class ExpressionParser extends BasicParser {
     (nonCast ~ "::long") ~~> {
       e => {
         val expr = CastToLong(e)
-        if (e.isInstanceOf[Literal[_]]) { LiteralLong(expr.eval(Array.empty)) } else { expr }
+        if (e.isInstanceOf[Literal[_]]) { LiteralLong(expr.apply(Array.empty)) } else { expr }
       }
     }
   }
@@ -140,7 +140,7 @@ private [transforms] class ExpressionParser extends BasicParser {
     (nonCast ~ "::float") ~~> {
       e => {
         val expr = CastToFloat(e)
-        if (e.isInstanceOf[Literal[_]]) { LiteralFloat(expr.eval(Array.empty)) } else { expr }
+        if (e.isInstanceOf[Literal[_]]) { LiteralFloat(expr.apply(Array.empty)) } else { expr }
       }
     }
   }
@@ -149,7 +149,7 @@ private [transforms] class ExpressionParser extends BasicParser {
     (nonCast ~ "::double") ~~> {
       e => {
         val expr = CastToDouble(e)
-        if (e.isInstanceOf[Literal[_]]) { LiteralDouble(expr.eval(Array.empty)) } else { expr }
+        if (e.isInstanceOf[Literal[_]]) { LiteralDouble(expr.apply(Array.empty)) } else { expr }
       }
     }
   }
@@ -158,7 +158,7 @@ private [transforms] class ExpressionParser extends BasicParser {
     (nonCast ~ "::string") ~~> {
       e => {
         val expr = CastToString(e)
-        if (e.isInstanceOf[Literal[_]]) { LiteralString(expr.eval(Array.empty)) } else { expr }
+        if (e.isInstanceOf[Literal[_]]) { LiteralString(expr.apply(Array.empty)) } else { expr }
       }
     }
   }
@@ -167,7 +167,7 @@ private [transforms] class ExpressionParser extends BasicParser {
     (nonCast ~ "::" ~ ("boolean" | "bool")) ~~> {
       e => {
         val expr = CastToBoolean(e)
-        if (e.isInstanceOf[Literal[_]]) { LiteralBoolean(expr.eval(Array.empty)) } else { expr }
+        if (e.isInstanceOf[Literal[_]]) { LiteralBoolean(expr.apply(Array.empty)) } else { expr }
       }
     }
   }

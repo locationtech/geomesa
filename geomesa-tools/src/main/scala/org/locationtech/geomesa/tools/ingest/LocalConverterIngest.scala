@@ -16,7 +16,6 @@ import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, DataUtilities, FeatureWriter, Transaction}
 import org.locationtech.geomesa.convert.EvaluationContext
-import org.locationtech.geomesa.convert.EvaluationContext.DelegatingEvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
 import org.locationtech.geomesa.jobs._
@@ -28,7 +27,6 @@ import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
-import org.locationtech.geomesa.utils.stats.CountingInputStream
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -153,11 +151,11 @@ class LocalConverterIngest(
     override def run(): Unit = {
       try {
         converters.borrow { converter =>
-          val delegate = converter.createEvaluationContext(EvaluationContext.inputFileParam(file.path))
-          val ec = new DelegatingEvaluationContext(delegate)(failure = globalFailures)
           WithClose(file.open) { streams =>
             streams.foreach { case (name, is) =>
-              ec.setInputFilePath(name.getOrElse(file.path))
+              val params = EvaluationContext.inputFileParam(name.getOrElse(file.path))
+              val success = converter.createEvaluationContext().success
+              val ec = converter.createEvaluationContext(params, success, globalFailures)
               WithClose(LocalConverterIngest.this.features(converter.process(is, ec))) { features =>
                 writers.borrow { writer =>
                   var count = batches.get(writer)

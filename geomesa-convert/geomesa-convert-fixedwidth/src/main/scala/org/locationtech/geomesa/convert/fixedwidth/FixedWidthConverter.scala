@@ -56,13 +56,21 @@ object FixedWidthConverter {
 
   case class OffsetField(name: String, transforms: Option[Expression], start: Int, width: Int)
       extends FixedWidthField {
+
     private val endIdx: Int = start + width
-    private val mutableArray = Array.ofDim[Any](1)
+    private val mutableArray = Array.ofDim[AnyRef](1)
+
+    override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
+
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
       mutableArray(0) = args(0).asInstanceOf[String].substring(start, endIdx)
-      super.eval(mutableArray)
+      super.eval(mutableArray.asInstanceOf[Array[Any]])
     }
+
+    private def values(args: Array[AnyRef]): AnyRef = args(0).asInstanceOf[String].substring(start, endIdx)
   }
 
-  case class DerivedField(name: String, transforms: Option[Expression]) extends FixedWidthField
+  case class DerivedField(name: String, transforms: Option[Expression]) extends FixedWidthField {
+    override val fieldArg: Option[Array[AnyRef] => AnyRef] = None
+  }
 }
