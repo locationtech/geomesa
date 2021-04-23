@@ -17,7 +17,6 @@ import com.typesafe.scalalogging.LazyLogging
 import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
 import org.apache.commons.io.filefilter.TrueFileFilter
 import org.apache.commons.io.{FileUtils, FilenameUtils, IOUtils}
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
@@ -121,8 +120,8 @@ object ScriptingFunctionFactory extends LazyLogging {
 
   class ScriptTransformerFn(ext: String, name: String, engine: Invocable)
       extends NamedTransformerFunction(Seq(s"$ext:$name")) {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      engine.asInstanceOf[Invocable].invokeFunction(name, args.asInstanceOf[Array[_ <: Object]]: _*)
+    override def apply(args: Array[AnyRef]): AnyRef =
+      engine.asInstanceOf[Invocable].invokeFunction(name, args: _*)
   }
 }
 

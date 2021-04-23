@@ -9,9 +9,15 @@
 package org.locationtech.geomesa.convert2.transforms
 
 import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert.EvaluationContext.ContextDependent
 
-trait Predicate {
-  def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean
+sealed trait Predicate extends ContextDependent[Predicate] {
+
+  def apply(args: Array[AnyRef]): Boolean
+
+  @deprecated("Use `withContext` and `evaluate`")
+  def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
+    withContext(ctx).apply(args.asInstanceOf[Array[AnyRef]])
 }
 
 object Predicate {
@@ -19,46 +25,61 @@ object Predicate {
   def apply(e: String): Predicate = PredicateParser.parse(e)
 
   case class BinaryEquals(left: Expression, right: Expression) extends Predicate {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
-      left.eval(args) == right.eval(args)
+    override def apply(args: Array[AnyRef]): Boolean = left(args) == right(args)
+    override def withContext(ec: EvaluationContext): Predicate =
+      BinaryEquals(left.withContext(ec), right.withContext(ec))
   }
 
   case class BinaryNotEquals(left: Expression, right: Expression) extends Predicate {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
-      left.eval(args) != right.eval(args)
+    override def apply(args: Array[AnyRef]): Boolean = left(args) != right(args)
+    override def withContext(ec: EvaluationContext): Predicate =
+      BinaryNotEquals(left.withContext(ec), right.withContext(ec))
   }
 
   case class BinaryLessThan(left: Expression, right: Expression) extends Predicate {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
-      left.eval(args).asInstanceOf[Comparable[Any]].compareTo(right.eval(args)) < 0
+    override def apply(args: Array[AnyRef]): Boolean =
+      left(args).asInstanceOf[Comparable[AnyRef]].compareTo(right(args)) < 0
+    override def withContext(ec: EvaluationContext): Predicate =
+      BinaryLessThan(left.withContext(ec), right.withContext(ec))
   }
 
   case class BinaryLessThanOrEquals(left: Expression, right: Expression) extends Predicate {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
-      left.eval(args).asInstanceOf[Comparable[Any]].compareTo(right.eval(args)) <= 0
+    override def apply(args: Array[AnyRef]): Boolean =
+      left(args).asInstanceOf[Comparable[AnyRef]].compareTo(right(args)) <= 0
+    override def withContext(ec: EvaluationContext): Predicate =
+      BinaryLessThanOrEquals(left.withContext(ec), right.withContext(ec))
   }
 
   case class BinaryGreaterThan(left: Expression, right: Expression) extends Predicate {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
-      left.eval(args).asInstanceOf[Comparable[Any]].compareTo(right.eval(args)) > 0
+    override def apply(args: Array[AnyRef]): Boolean =
+      left(args).asInstanceOf[Comparable[AnyRef]].compareTo(right(args)) > 0
+    override def withContext(ec: EvaluationContext): Predicate =
+      BinaryGreaterThan(left.withContext(ec), right.withContext(ec))
   }
 
   case class BinaryGreaterThanOrEquals(left: Expression, right: Expression) extends Predicate {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
-      left.eval(args).asInstanceOf[Comparable[Any]].compareTo(right.eval(args)) >= 0
+    override def apply(args: Array[AnyRef]): Boolean =
+      left(args).asInstanceOf[Comparable[AnyRef]].compareTo(right(args)) >= 0
+    override def withContext(ec: EvaluationContext): Predicate =
+      BinaryGreaterThanOrEquals(left.withContext(ec), right.withContext(ec))
   }
 
   case class And(clause: Predicate, clauses: Seq[Predicate]) extends Predicate {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
-      clause.eval(args) && clauses.forall(_.eval(args))
+    override def apply(args: Array[AnyRef]): Boolean =
+      clause(args) && clauses.forall(_.apply(args))
+    override def withContext(ec: EvaluationContext): Predicate =
+      And(clause.withContext(ec), clauses.map(_.withContext(ec)))
   }
 
   case class Or(clause: Predicate, clauses: Seq[Predicate])  extends Predicate {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
-      clause.eval(args) || clauses.exists(_.eval(args))
+    override def apply(args: Array[AnyRef]): Boolean =
+      clause(args) || clauses.exists(_.apply(args))
+    override def withContext(ec: EvaluationContext): Predicate =
+      Or(clause.withContext(ec), clauses.map(_.withContext(ec)))
   }
 
   case class Not(p: Predicate) extends Predicate {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean = !p.eval(args)
+    override def apply(args: Array[AnyRef]): Boolean = !p(args)
+    override def withContext(ec: EvaluationContext): Predicate = Not(p.withContext(ec))
   }
 }

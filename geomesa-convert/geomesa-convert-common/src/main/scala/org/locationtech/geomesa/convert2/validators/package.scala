@@ -31,8 +31,14 @@ package object validators {
     override def close(): Unit = {}
   }
 
-  object NoValidator extends SimpleFeatureValidator {
+  case object NoValidator extends SimpleFeatureValidator {
     override def validate(sf: SimpleFeature): String = null
+    override def close(): Unit = {}
+  }
+
+  case object IdValidator extends SimpleFeatureValidator {
+    override def validate(sf: SimpleFeature): String =
+      if (sf.getID == null || sf.getID.isEmpty) { "feature ID is null" } else { null }
     override def close(): Unit = {}
   }
 

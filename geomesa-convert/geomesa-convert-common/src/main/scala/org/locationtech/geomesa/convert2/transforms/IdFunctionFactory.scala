@@ -13,12 +13,11 @@ import java.util.{Date, UUID}
 
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Geometry, Point}
 import org.apache.commons.codec.binary.Base64
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.uuid.Z3UuidGenerator
+import org.locationtech.jts.geom.{Geometry, Point}
 
 import scala.util.control.NonFatal
 
@@ -61,20 +60,20 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 
   private val md5: TransformerFunction = new NamedTransformerFunction(Seq("md5"), pure = true) {
     private val hasher = Hashing.md5()
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
+    override def apply(args: Array[AnyRef]): AnyRef =
       hasher.hashBytes(args(0).asInstanceOf[Array[Byte]]).toString
   }
 
   private val murmur3_32: TransformerFunction = new NamedTransformerFunction(Seq("murmur3_32"), pure = true) {
     private val hasher = Hashing.murmur3_32()
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
+    override def apply(args: Array[AnyRef]): AnyRef =
       hasher.hashString(args(0).toString, StandardCharsets.UTF_8)
   }
 
   private val murmur3_128: TransformerFunction =
     new NamedTransformerFunction(Seq("murmur3_128", "murmur3_64"), pure = true) {
       private val hasher = Hashing.murmur3_128()
-      override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-        hasher.hashString(args(0).toString, StandardCharsets.UTF_8).asLong()
+      override def apply(args: Array[AnyRef]): AnyRef =
+        Long.box(hasher.hashString(args(0).toString, StandardCharsets.UTF_8).asLong())
     }
 }

@@ -12,7 +12,6 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.{Date, Locale}
 
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.DateFunctionFactory.{CustomFormatDateParser, DateToString, StandardDateParser}
 import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
@@ -36,8 +35,7 @@ class DateFunctionFactory extends TransformerFunctionFactory {
   private val millisToDate = TransformerFunction.pure("millisToDate") { args =>
     args(0) match {
       case null => null
-      case d: Long => new Date(d)
-      case d: Int  => new Date(d)
+      case d: Number => new Date(d.longValue)
       case d => throw new IllegalArgumentException(s"Invalid millisecond: $d")
     }
   }
@@ -45,8 +43,7 @@ class DateFunctionFactory extends TransformerFunctionFactory {
   private val secsToDate = TransformerFunction.pure("secsToDate") { args =>
     args(0) match {
       case null => null
-      case d: Long => new Date(d * 1000L)
-      case d: Int  => new Date(d * 1000L)
+      case d: Number => new Date(d.longValue * 1000L)
       case d => throw new IllegalArgumentException(s"Invalid second: $d")
     }
   }
@@ -169,8 +166,8 @@ class DateFunctionFactory extends TransformerFunctionFactory {
 object DateFunctionFactory {
 
   abstract class StandardDateParser(names: Seq[String]) extends NamedTransformerFunction(names, pure = true) {
-    val format: DateTimeFormatter
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
+    val format: DateTimeFormatter // note: formats are thread safe
+    override def apply(args: Array[AnyRef]): AnyRef = {
       args(0) match {
         case null => null
         case d: String => DateParsing.parseDate(d, format)
@@ -189,7 +186,7 @@ object DateFunctionFactory {
       new CustomFormatDateParser(format)
     }
 
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
+    override def apply(args: Array[AnyRef]): AnyRef = {
       args(1) match {
         case null => null
         case d: String => DateParsing.parseDate(d, format)
@@ -208,7 +205,7 @@ object DateFunctionFactory {
       new DateToString(format)
     }
 
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
+    override def apply(args: Array[AnyRef]): AnyRef =
       DateParsing.formatDate(args(1).asInstanceOf[java.util.Date], format)
   }
 }

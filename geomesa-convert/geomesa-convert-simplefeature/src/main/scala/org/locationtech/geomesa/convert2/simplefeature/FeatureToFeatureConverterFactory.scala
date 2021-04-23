@@ -56,11 +56,11 @@ class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory wit
         config.copy(idField = Some(Expression.Column(inputSft.getAttributeCount)))
       }
 
-      // add transform expressions to look up the attribute attribute
+      // add transform expressions to look up the attribute
       val columns = fields.map { field =>
         field.transforms match {
           case None => field.copy(transforms = Some(Expression.Column(inputSft.indexOf(field.name))))
-          case Some(Expression.FieldLookup(n)) => field.copy(transforms = Some(Expression.Column(inputSft.indexOf(n))))
+          case Some(Expression.FieldLookup(n, _)) => field.copy(transforms = Some(Expression.Column(inputSft.indexOf(n))))
           case _ => field
         }
       }

@@ -14,6 +14,7 @@ import java.util.{Date, UUID}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -55,8 +56,7 @@ class ParquetConverterTest extends Specification {
       val path = new File(file.toURI).getAbsolutePath
 
       val res = WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
-        val ec = converter.createEvaluationContext()
-        ec.setInputFilePath(path)
+        val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(path))
         WithClose(converter.process(file.openStream(), ec))(_.toList)
       }
 
@@ -84,8 +84,7 @@ class ParquetConverterTest extends Specification {
           Seq(classOf[java.lang.Integer], classOf[String], classOf[java.lang.Integer], classOf[Date], classOf[Point])
 
       val res = WithClose(SimpleFeatureConverter(sft, config)) { converter =>
-        val ec = converter.createEvaluationContext()
-        ec.setInputFilePath(path)
+        val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(path))
         WithClose(converter.process(file.openStream(), ec))(_.toList)
       }
 
@@ -115,8 +114,7 @@ class ParquetConverterTest extends Specification {
       val converter = factory.apply(sft, config)
       converter must beSome
 
-      val ec = converter.get.createEvaluationContext()
-      ec.setInputFilePath(path)
+      val ec = converter.get.createEvaluationContext(EvaluationContext.inputFileParam(path))
       val features = converter.get.process(file.openStream(), ec).toList
       converter.get.close()
       features must haveLength(3)
@@ -146,8 +144,7 @@ class ParquetConverterTest extends Specification {
             classOf[MultiPolygon], classOf[Date], classOf[Point])
 
       val res = WithClose(SimpleFeatureConverter(sft, config)) { converter =>
-        val ec = converter.createEvaluationContext()
-        ec.setInputFilePath(path)
+        val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(path))
         WithClose(converter.process(file.openStream(), ec))(_.toList)
       }
 

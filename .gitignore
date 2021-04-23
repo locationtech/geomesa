@@ -28,3 +28,4 @@ geomesa-*.*.*-*
 .scalafmt.conf
 .vscode/settings.json
 venv/**
+metastore_db/**

@@ -71,7 +71,7 @@ class ValidatorTest extends Specification {
       val conf = baseConf
       WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
         converter must not(beNull)
-  
+
         WithClose(converter.process(is("20160101,Point(2 2)")))(_.toList) must haveLength(1)
         WithClose(converter.process(is(
           """20160101,Point(2 2)
