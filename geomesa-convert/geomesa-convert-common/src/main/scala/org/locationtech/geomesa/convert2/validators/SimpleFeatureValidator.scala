@@ -42,15 +42,31 @@ object SimpleFeatureValidator extends LazyLogging {
   def default: Seq[String] = DefaultValidators.get.split(",")
 
   /**
-    * Create validators for the given feature type
-    *
-    * @param sft simple feature type
-    * @param names validator names and options
-    * @param metrics optional metrics registry for tracking validation results
-    * @return
-    */
-  def apply(sft: SimpleFeatureType, names: Seq[String], metrics: ConverterMetrics): SimpleFeatureValidator = {
-    val validators = names.map { full =>
+   * Create validators for the given feature type
+   *
+   * @param sft simple feature type
+   * @param names validator names and options
+   * @param metrics optional metrics registry for tracking validation results
+   * @return
+   */
+  def apply(sft: SimpleFeatureType, names: Seq[String], metrics: ConverterMetrics): SimpleFeatureValidator =
+    apply(sft, names, metrics, includeId = false)
+
+  /**
+   * Create validators for the given feature type
+   *
+   * @param sft simple feature type
+   * @param names validator names and options
+   * @param metrics optional metrics registry for tracking validation results
+   * @param includeId add an id validator
+   * @return
+   */
+  def apply(
+      sft: SimpleFeatureType,
+      names: Seq[String],
+      metrics: ConverterMetrics,
+      includeId: Boolean): SimpleFeatureValidator = {
+    val validators = { if (includeId) { Seq(IdValidator) } else { Seq.empty } } ++ names.map { full =>
       val i = full.indexOf('(')
       val (name, options) = if (i == -1) { (full, None) } else {
         require(full.last == ')', s"Invalid option parentheses: $full")

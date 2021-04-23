@@ -11,6 +11,7 @@ package org.locationtech.geomesa.convert.shp
 import java.io.InputStream
 import java.util.Collections
 
+import com.codahale.metrics.Counter
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -32,6 +33,16 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
     // used for accessing shapefile properties by name in ShapefileFunctionFactory
     val shpParams = Map(InputSchemaKey -> Array.empty[String], InputValuesKey -> Array.empty[Any])
     super.createEvaluationContext(globalParams ++ shpParams)
+  }
+
+  override def createEvaluationContext(
+      globalParams: Map[String, Any],
+      success: Counter,
+      failure: Counter): EvaluationContext = {
+    // inject placeholders for shapefile attributes into the evaluation context
+    // used for accessing shapefile properties by name in ShapefileFunctionFactory
+    val shpParams = Map(InputSchemaKey -> Array.empty[String], InputValuesKey -> Array.empty[Any])
+    super.createEvaluationContext(globalParams ++ shpParams, success, failure)
   }
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {

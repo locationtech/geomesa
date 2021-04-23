@@ -27,10 +27,9 @@ import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.EvaluationContext
-import org.locationtech.geomesa.convert.EvaluationContext.DelegatingEvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
-import org.locationtech.geomesa.jobs.mapreduce.ConverterInputFormat.{ConverterKey, ConverterCounters, RetypeKey}
+import org.locationtech.geomesa.jobs.mapreduce.ConverterInputFormat.{ConverterCounters, ConverterKey, RetypeKey}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.fs.{ArchiveFileIterator, ZipFileIterator}
@@ -101,13 +100,14 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
     val filter    = GeoMesaConfigurator.getFilter(context.getConfiguration).map(ECQL.toFilter)
     val retypedSpec = context.getConfiguration.get(RetypeKey)
 
-    val ec = {
+    def ec(path: String): EvaluationContext = {
       // global success/failure counters for the entire job
       val success = new MapReduceCounter(context.getCounter(ConverterCounters.Group, ConverterCounters.Converted))
       val failure = new MapReduceCounter(context.getCounter(ConverterCounters.Group, ConverterCounters.Failed))
-      val delegate = converter.createEvaluationContext(EvaluationContext.inputFileParam(filePath.toString))
-      new DelegatingEvaluationContext(delegate)(success, failure)
+      converter.createEvaluationContext(EvaluationContext.inputFileParam(path), success, failure)
     }
+
+    lazy val defaultEc = ec(filePath.toString)
 
     val streams: CloseableIterator[(Option[String], InputStream)] =
       PathUtils.getUncompressedExtension(filePath.getName).toLowerCase(Locale.US) match {
@@ -126,8 +126,7 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
       }
 
     val all = streams.flatMap { case (name, is) =>
-      ec.setInputFilePath(name.getOrElse(filePath.toString))
-      converter.process(is, ec)
+      converter.process(is, name.map(ec).getOrElse(defaultEc))
     }
     val iter = filter match {
       case Some(f) => all.filter(f.evaluate)
