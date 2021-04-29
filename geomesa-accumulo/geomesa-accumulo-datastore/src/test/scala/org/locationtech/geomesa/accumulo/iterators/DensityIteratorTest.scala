@@ -38,7 +38,7 @@ class DensityIteratorTest extends Specification with TestWithFeatureType {
   sequential
 
   override val spec: String =
-    "an_id:Int,attr:Double,dtg:Date," +
+    "an_id:Int,attr:Double:index=join,dtg:Date," +
         "*geom:Point:srid=4326," +
         "testBox:MultiPolygon:srid=4326," +
         "testLine:LineString:srid=4326," +
@@ -60,7 +60,8 @@ class DensityIteratorTest extends Specification with TestWithFeatureType {
     q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
     q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
     attribute.foreach(q.getHints.put(QueryHints.DENSITY_GEOM, _))
-    strategy.foreach(s => q.getHints.put(QueryHints.QUERY_INDEX, s.identifier))
+    strategy.foreach(s => q.getHints.put(QueryHints.QUERY_INDEX, "join:8:3:attr:geom:dtg"))
+    q.getHints.put(QueryHints.QUERY_INDEX, "join:8:attr:geom:dtg")
     val decode = DensityScan.decodeResult(geom, 500, 500)
     SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(q).features).flatMap(decode).toList
   }

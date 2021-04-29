@@ -123,10 +123,10 @@
     <!-- uncomment the following line to enable verbose log messages from the index query-planner -->
 
     <!--
+    -->
     <category name="org.locationtech.geomesa.index.utils.Explainer">
         <priority value="trace"/>
     </category>
-    -->
 
     <!-- uncomment the following lines to enable verbose log messages from the Spark SQL query-planner -->
 
