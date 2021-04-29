@@ -16,10 +16,13 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.index.AccumuloJoinIndex
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.filters.DtgAgeOffFilter.Configuration
 import org.locationtech.geomesa.index.filters.{AgeOffFilter, DtgAgeOffFilter}
 import org.locationtech.geomesa.utils.conf.FeatureExpiration
 import org.locationtech.geomesa.utils.conf.FeatureExpiration.FeatureTimeExpiration
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.concurrent.duration.Duration
@@ -71,6 +74,17 @@ object DtgAgeOffIterator extends LazyLogging {
                 priority: Int = 5): IteratorSetting = {
     val is = new IteratorSetting(priority, Name, classOf[DtgAgeOffIterator])
     DtgAgeOffFilter.configure(sft, index, expiry, dtgField).foreach { case (k, v) => is.addOption(k, v) }
+
+    index match {
+      case joinIndex: AccumuloJoinIndex =>
+        // Add handling for join indexes
+      joinIndex.indexSft
+        is.addOption(Configuration.SftOpt, SimpleFeatureTypes.encodeType(joinIndex.indexSft))
+        val priorIndex = is.getOptions.get(Configuration.DtgOpt)
+        val updatedIndex = joinIndex.indexSft.indexOf(sft.getDescriptor(priorIndex.toInt).getLocalName).toString
+        is.addOption(Configuration.DtgOpt, updatedIndex)
+      case _ =>
+    }
     is
   }
 

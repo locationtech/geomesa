@@ -71,7 +71,7 @@ case object MiniCluster extends LazyLogging {
   sys.addShutdownHook({
     logger.info("Stopping Accumulo minicluster")
     try { cluster.stop() } finally {
-      PathUtils.deleteRecursively(miniClusterTempDir)
+      //PathUtils.deleteRecursively(miniClusterTempDir)
     }
     logger.info("Stopped Accumulo minicluster")
   })

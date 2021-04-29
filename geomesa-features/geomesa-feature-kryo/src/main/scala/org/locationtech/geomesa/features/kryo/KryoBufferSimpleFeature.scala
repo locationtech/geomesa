@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.features.kryo
 
 import com.esotericsoftware.kryo.io.{Input, Output}
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
@@ -327,7 +328,7 @@ object KryoBufferSimpleFeature {
     * @param serializer serializer
     * @param input input
     */
-  private class KryoBufferV3(serializer: KryoFeatureDeserialization, input: Input) extends KryoBufferDelegate {
+  private class KryoBufferV3(serializer: KryoFeatureDeserialization, input: Input) extends KryoBufferDelegate with LazyLogging {
 
     private var metadata: Metadata = _
     private var transformer: Transformer = _
@@ -355,7 +356,9 @@ object KryoBufferSimpleFeature {
     override def getAttribute(index: Int): AnyRef = {
       if (index >= metadata.count || metadata.nulls.contains(index)) { null } else {
         metadata.setPosition(index)
-        serializer.readers(index).apply(input)
+        val ret = serializer.readers(index).apply(input)
+        logger.error(s"Read index $index and got $ret")
+        ret
       }
     }
 
@@ -367,7 +370,9 @@ object KryoBufferSimpleFeature {
     override def getDateAsLong(index: Int): Long = {
       if (index >= metadata.count || metadata.nulls.contains(index)) { 0L } else {
         metadata.setPosition(index)
-        KryoLongReader.apply(input)
+        val ret = KryoLongReader.apply(input)
+        logger.error(s"In getDateAsLong.  Index: $index read: $ret")
+        ret
       }
     }
 

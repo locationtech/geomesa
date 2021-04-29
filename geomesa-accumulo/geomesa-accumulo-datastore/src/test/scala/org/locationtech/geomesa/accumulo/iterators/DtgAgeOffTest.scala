@@ -11,10 +11,11 @@ package org.locationtech.geomesa.accumulo.iterators
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.{Collections, Date}
 
+import org.apache.accumulo.core.client.Connector
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
+import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithFeatureType}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -32,13 +33,15 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 
   sequential
 
-  override val spec = "dtg:Date,geom:Point:srid=4326"
+  override val spec = "l1:Int,l2:Boolean,l3:Long,l4:Long,s:Int," +
+    "name:String,foo:String:index=join,geom:Point:srid=4326,dtg:Date,bar:String:index=join"
 
   val today: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)
 
   def add(ids: Range, ident: String, vis: String): Unit = {
     val features = ids.map { i =>
-      ScalaSimpleFeature.create(sft, s"${ident}_$i", Date.from(today.minusDays(i).toInstant), s"POINT($i $i)")
+      ScalaSimpleFeature.create(sft,  i.toString, 1, true, 3L, 4L, 5,
+        "foo", s"${ident}_$i", s"POINT($i $i)", Date.from(today.minusDays(i).toInstant), "bar")
     }
     features.foreach(SecurityUtils.setFeatureVisibility(_, vis))
     addFeatures(features)
@@ -65,29 +68,83 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
       val adminDs = getDataStore(admin.name)
       val sysDs = ds
 
+      dumpTables("before age off")
+
       query(userDs) must haveSize(10)
       query(adminDs) must haveSize(20)
       query(sysDs) must haveSize(30)
 
+      scanDirect(30)
+
       configureAgeOff(11)
+      dumpTableConfig()
+
       query(userDs) must haveSize(10)
       query(adminDs) must haveSize(20)
       query(sysDs) must haveSize(30)
+
+      scanDirect(30)
 
       configureAgeOff(10)
       query(userDs) must haveSize(9)
       query(adminDs) must haveSize(18)
       query(sysDs) must haveSize(27)
 
+      scanDirect(27)
+
       configureAgeOff(5)
       query(userDs) must haveSize(4)
       query(adminDs) must haveSize(8)
       query(sysDs) must haveSize(12)
 
+      dumpTables("after age off - 5 days")
+
       configureAgeOff(1)
       query(userDs) must haveSize(0)
       query(adminDs) must haveSize(0)
       query(sysDs) must haveSize(0)
+
+      dumpTables("after age off all")
+
+      //dumpTableConfig()
+      ok
+    }
+  }
+
+  // Scans all GeoMesa Accumulo tables directly and verifies the number of records that the `root` user can see.
+  private def scanDirect(expected: Int) = {
+    val conn: Connector = MiniCluster.cluster.getConnector(MiniCluster.Users.root.name, MiniCluster.Users.root.password)
+    conn.tableOperations().list().asScala.filter(t => t.contains("DtgAgeOffTest_DtgAgeOffTest")).forall { tableName =>
+      val count = conn.createScanner(tableName, MiniCluster.Users.root.auths).asScala.size
+      count mustEqual expected
+    }
+  }
+
+  private def dumpTables(mesg: String): Unit = {
+    val conn: Connector = MiniCluster.cluster.getConnector(MiniCluster.Users.root.name, MiniCluster.Users.root.password)
+    conn.getInstance()
+    val to = conn.tableOperations()
+
+    println("\n")
+    to.list().asScala.filter(t => t.contains("DtgAgeOffTest_DtgAgeOffTest")).foreach { tableName =>
+      val count = conn.createScanner(tableName, MiniCluster.Users.root.auths).asScala.size
+      println(s"$mesg: Table $tableName has $count records")
+    }
+  }
+
+  private def dumpTableConfig(mesg: String = ""): Unit = {
+    val conn: Connector = MiniCluster.cluster.getConnector(MiniCluster.Users.root.name, MiniCluster.Users.root.password)
+    conn.getInstance()
+    val to = conn.tableOperations()
+
+    println("\n")
+    to.list().asScala.filter(t => t.contains("DtgAgeOffTest_DtgAgeOffTest")).foreach { tableName =>
+      to.listIterators(tableName).asScala.foreach { case (iterator, scopes) =>
+        scopes.asScala.foreach { scope =>
+          val is = to.getIteratorSetting(tableName, iterator, scope)
+          println(s"Table: $tableName Scope: $scope Iterator: $iterator IS: $is")
+        }
+      }
     }
   }
 }
