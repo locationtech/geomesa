@@ -31,9 +31,6 @@ trait TwkbSerialization[T <: NumericWriter, V <: NumericReader]
   private val factory = new GeometryFactory()
   private val csFactory = factory.getCoordinateSequenceFactory
 
-  private val maxNesting = GeometryNestingThreshold.toInt.get
-  private val maxLength = GeometryLengthThreshold.toInt.getOrElse(Int.MaxValue)
-
   /**
     * Serialize a geometry
     *
@@ -144,82 +141,82 @@ trait TwkbSerialization[T <: NumericWriter, V <: NumericReader]
     * @param in input
     * @return
     */
-  def deserialize(in: V): Geometry = deserialize(in, 0)
+  def deserialize(in: V): Geometry = {
+    try { deserialize(in, 0) } catch {
+      case NonFatal(e) => logger.error(s"Error reading serialized kryo geometry:", e); null
+    }
+  }
 
   private def deserialize(in: V, nesting: Int): Geometry = {
-    try {
-      val precisionAndType = in.readByte()
-      if (precisionAndType == ZeroByte) {
-        null
-      } else if (precisionAndType == NOT_NULL_BYTE) {
-        // TODO this overlaps with twkb point type with precision 0
-        deserializeWkb(in)
-      } else {
-        // first byte contains the geometry type in the first 4 bits and the x-y precision in the second 4 bits
-        val geomType = (precisionAndType & 0x0F).toByte
-        val precision = VarIntEncoding.zigzagDecode((precisionAndType & 0xF0) >>> 4)
+    val precisionAndType = in.readByte()
+    if (precisionAndType == ZeroByte) {
+      null
+    } else if (precisionAndType == NOT_NULL_BYTE) {
+      // TODO this overlaps with twkb point type with precision 0
+      deserializeWkb(in)
+    } else {
+      // first byte contains the geometry type in the first 4 bits and the x-y precision in the second 4 bits
+      val geomType = (precisionAndType & 0x0F).toByte
+      val precision = VarIntEncoding.zigzagDecode((precisionAndType & 0xF0) >>> 4)
 
-        // second byte contains flags for optional elements
-        val flags = in.readByte()
-        val hasBoundingBox = (flags & BoundingBoxFlag) != 0
-        val hasExtendedDims = (flags & ExtendedDimsFlag) != 0
-        val isEmpty = (flags & EmptyFlag) != 0
+      // second byte contains flags for optional elements
+      val flags = in.readByte()
+      val hasBoundingBox = (flags & BoundingBoxFlag) != 0
+      val hasExtendedDims = (flags & ExtendedDimsFlag) != 0
+      val isEmpty = (flags & EmptyFlag) != 0
 
-        // extended dims indicates the presence of z and/or m
-        // we create our state tracker based on the dimensions that are present
-        implicit val state: DeltaState = if (hasExtendedDims) {
-          // z and m precisions are indicated in the next byte, where (from right to left):
-          //   bit 0 indicates presence of z dimension
-          //   bit 1 indicates presence of m dimension
-          //   bits 2-5 indicate z precision
-          //   bits 6-8 indicate m precision
-          val extendedDims = in.readByte()
-          if ((extendedDims & 0x01) != 0) { // indicates z dimension
-            if ((extendedDims & 0x02) != 0) { // indicates m dimension
-              new XYZMState(precision, (extendedDims & 0x1C) >> 2, (extendedDims & 0xE0) >>> 5)
-            } else {
-              new XYZState(precision, (extendedDims & 0x1C) >> 2)
-            }
-          } else if ((extendedDims & 0x02) != 0) {  // indicates m dimension
-            new XYMState(precision, (extendedDims & 0xE0) >>> 5)
+      // extended dims indicates the presence of z and/or m
+      // we create our state tracker based on the dimensions that are present
+      implicit val state: DeltaState = if (hasExtendedDims) {
+        // z and m precisions are indicated in the next byte, where (from right to left):
+        //   bit 0 indicates presence of z dimension
+        //   bit 1 indicates presence of m dimension
+        //   bits 2-5 indicate z precision
+        //   bits 6-8 indicate m precision
+        val extendedDims = in.readByte()
+        if ((extendedDims & 0x01) != 0) { // indicates z dimension
+          if ((extendedDims & 0x02) != 0) { // indicates m dimension
+            new XYZMState(precision, (extendedDims & 0x1C) >> 2, (extendedDims & 0xE0) >>> 5)
           } else {
-            // not sure why anyone would indicate extended dims but set them all false...
-            new XYState(precision)
+            new XYZState(precision, (extendedDims & 0x1C) >> 2)
           }
+        } else if ((extendedDims & 0x02) != 0) {  // indicates m dimension
+          new XYMState(precision, (extendedDims & 0xE0) >>> 5)
         } else {
+          // not sure why anyone would indicate extended dims but set them all false...
           new XYState(precision)
         }
-
-        // size is the length of the remainder of the geometry, after the size attribute
-        // we don't currently use size - parsing will fail if size is actually present
-
-        // val hasSize = (flags & FlagBytes.SizeFlag) != 0
-        // if (hasSize) {
-        //   val size = readUnsignedVarInt(in)
-        // }
-
-        // bounding box is not currently used, but we write it in anticipation of future filter optimizations
-        if (hasBoundingBox) {
-          state.skipBoundingBox(in)
-        }
-
-        // children geometries can be written with an id list
-        // we don't currently use ids - parsing will fail if ids are actually present
-        // val hasIds = (flags & FlagBytes.IdsFlag) != 0
-
-        geomType match {
-          case TwkbPoint => factory.createPoint(if (isEmpty) { null } else { csFactory.create(readPointArray(in, 1)) })
-          case TwkbLineString      => readLineString(in)
-          case TwkbPolygon         => readPolygon(in)
-          case TwkbMultiPoint      => readMultiPoint(in)
-          case TwkbMultiLineString => readMultiLineString(in)
-          case TwkbMultiPolygon    => readMultiPolygon(in)
-          case TwkbCollection      => readCollection(in, nesting)
-          case _ => throw new IllegalArgumentException(s"Invalid TWKB geometry type $geomType")
-        }
+      } else {
+        new XYState(precision)
       }
-    } catch {
-      case NonFatal(e) => logger.error(s"Error reading serialized kryo geometry:", e); null
+
+      // size is the length of the remainder of the geometry, after the size attribute
+      // we don't currently use size - parsing will fail if size is actually present
+
+      // val hasSize = (flags & FlagBytes.SizeFlag) != 0
+      // if (hasSize) {
+      //   val size = readUnsignedVarInt(in)
+      // }
+
+      // bounding box is not currently used, but we write it in anticipation of future filter optimizations
+      if (hasBoundingBox) {
+        state.skipBoundingBox(in)
+      }
+
+      // children geometries can be written with an id list
+      // we don't currently use ids - parsing will fail if ids are actually present
+      // val hasIds = (flags & FlagBytes.IdsFlag) != 0
+
+      geomType match {
+        case TwkbPoint => factory.createPoint(if (isEmpty) { null } else { csFactory.create(readPointArray(in, 1)) })
+        case TwkbLineString      => readLineString(in)
+        case TwkbPolygon         => readPolygon(in)
+        case TwkbMultiPoint      => readMultiPoint(in)
+        case TwkbMultiLineString => readMultiLineString(in)
+        case TwkbMultiPolygon    => readMultiPolygon(in)
+        case TwkbCollection      => readCollection(in, nesting)
+        case _ => throw new IllegalArgumentException(s"Invalid TWKB geometry type $geomType")
+      }
     }
   }
 
