@@ -42,9 +42,7 @@ trait DtgAgeOffFilter extends AgeOffFilter with LazyLogging {
     sft = IteratorCache.sft(spec)
     index = options.get(IndexSftOpt) match {
       case None => IteratorCache.index(sft, spec, options(IndexOpt))
-      case Some(ispec) =>
-        logger.error(s"Calling index with $ispec ${options(IndexOpt)}")
-        IteratorCache.index(IteratorCache.sft(ispec), ispec, options(IndexOpt))
+      case Some(ispec) => IteratorCache.index(IteratorCache.sft(ispec), ispec, options(IndexOpt))
     }
 
     // noinspection ScalaDeprecation

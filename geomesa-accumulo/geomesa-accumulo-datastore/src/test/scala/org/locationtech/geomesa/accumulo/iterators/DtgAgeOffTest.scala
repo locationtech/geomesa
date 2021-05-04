@@ -18,7 +18,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithFeatureType}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.opengis.feature.simple.SimpleFeature
@@ -104,7 +104,9 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
   private def scanDirect(expected: Int) = {
     val conn: Connector = MiniCluster.cluster.getConnector(MiniCluster.Users.root.name, MiniCluster.Users.root.password)
     conn.tableOperations().list().asScala.filter(t => t.contains("DtgAgeOffTest_DtgAgeOffTest")).forall { tableName =>
-      val count = conn.createScanner(tableName, MiniCluster.Users.root.auths).asScala.size
+      val scanner = conn.createScanner(tableName, MiniCluster.Users.root.auths)
+      val count = scanner.asScala.size
+      scanner.close()
       count mustEqual expected
     }
   }
