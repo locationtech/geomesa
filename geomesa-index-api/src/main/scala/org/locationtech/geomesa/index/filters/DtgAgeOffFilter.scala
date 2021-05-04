@@ -14,6 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.iterators.AggregatingScan._
 import org.locationtech.geomesa.index.iterators.IteratorCache
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -33,13 +34,18 @@ trait DtgAgeOffFilter extends AgeOffFilter with LazyLogging {
   protected var dtgIndex: Int = -1
 
   override def init(options: Map[String, String]): Unit = {
-    import DtgAgeOffFilter.Configuration.{DtgOpt, IndexOpt, SftOpt}
+    import DtgAgeOffFilter.Configuration.{DtgOpt, IndexOpt, IndexSftOpt, SftOpt}
 
     super.init(options)
 
     val spec = options(SftOpt)
     sft = IteratorCache.sft(spec)
-    index = IteratorCache.index(sft, spec, options(IndexOpt))
+    index = options.get(IndexSftOpt) match {
+      case None => IteratorCache.index(sft, spec, options(IndexOpt))
+      case Some(ispec) =>
+        logger.error(s"Calling index with $ispec ${options(IndexOpt)}")
+        IteratorCache.index(IteratorCache.sft(ispec), ispec, options(IndexOpt))
+    }
 
     // noinspection ScalaDeprecation
     val withId = if (index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
@@ -70,9 +76,10 @@ object DtgAgeOffFilter {
 
   // configuration keys
   object Configuration {
-    val SftOpt   = "sft"
-    val IndexOpt = "index"
-    val DtgOpt   = "dtg"
+    val SftOpt      = "sft"
+    val IndexOpt    = "index"
+    val IndexSftOpt = "index-sft"
+    val DtgOpt      = "dtg"
   }
 
   def configure(sft: SimpleFeatureType,
@@ -100,10 +107,14 @@ object DtgAgeOffFilter {
         i
     }
 
+    val indexSftOpt = Some(index.sft).collect {
+      case s if s != sft => SimpleFeatureTypes.encodeType(s, includeUserData = true)
+    }
+
     AgeOffFilter.configure(sft, expiry) ++ Map (
       Configuration.SftOpt   -> SimpleFeatureTypes.encodeType(sft),
       Configuration.IndexOpt -> index.identifier,
       Configuration.DtgOpt   -> dtgIndex.toString
-    )
+    ) ++ optionalMap(Configuration.IndexSftOpt -> indexSftOpt)
   }
 }
