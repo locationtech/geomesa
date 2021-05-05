@@ -46,8 +46,9 @@
             <artifactId>accumulo-core</artifactId>
             <scope>compile</scope>
         </dependency>
+
+        <!-- bring in guava and relocate it -->
         <dependency>
-            <!-- include guava so we can relocate it -->
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <scope>compile</scope>
@@ -175,6 +176,20 @@
                                 <relocation>
                                     <pattern>org.json4s</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.org.json4s</shadedPattern>
+                                </relocation>
+                                <!-- paranamer and jackson conflict with spark 3 -->
+                                <relocation>
+                                    <pattern>com.thoughtworks.paranamer</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.thoughtworks.paranamer</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.fasterxml.jackson</shadedPattern>
+                                </relocation>
+                                <!-- Databricks uses an old version of scalalogging, include it to allow us to run on databricks clusters -->
+                                <relocation>
+                                    <pattern>com.typesafe.scalalogging</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>

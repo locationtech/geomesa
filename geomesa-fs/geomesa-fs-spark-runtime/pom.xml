@@ -154,6 +154,11 @@
                                     <pattern>pureconfig</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.pureconfig</shadedPattern>
                                 </relocation>
+                                <!-- Databricks uses an old version of scalalogging, include it to allow us to run on databricks clusters -->
+                                <relocation>
+                                    <pattern>com.typesafe.scalalogging</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
+                                </relocation>
                                 <!-- we need parquet 1.9.0 in order to do dictionary filtering = 30% speed increase -->
                                 <!-- TODO remove this when spark supports parquet 1.9.0 out of the box -->
                                 <relocation>
@@ -170,7 +175,7 @@
                                     <pattern>org.json4s</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.org.json4s</shadedPattern>
                                 </relocation>
-                                <!-- paranamer and jackson conflict with EMR spark 3 -->
+                                <!-- paranamer and jackson conflict with spark 3 -->
                                 <relocation>
                                     <pattern>com.thoughtworks.paranamer</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.thoughtworks.paranamer</shadedPattern>
