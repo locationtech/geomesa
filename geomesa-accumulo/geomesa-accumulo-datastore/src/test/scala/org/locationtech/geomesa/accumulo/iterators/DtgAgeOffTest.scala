@@ -33,7 +33,7 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
 
   sequential
 
-  override val spec = "some_id:String:index=join,dtg:Date,geom:Point:srid=4326"
+  override val spec = "some_id:String:index=join,dtg:Date,geom:Point:srid=4326,some_num:Int:index=full"
   override val tableSharing = false
 
   "DTGAgeOff" should {
@@ -50,7 +50,8 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
       val arr = Array[AnyRef](
         id,
         today.minusDays(i).toDate,
-        geom
+        geom,
+        new Integer(i)
       )
       val sf = ScalaSimpleFeature.create(sft, id, arr: _*)
       sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)

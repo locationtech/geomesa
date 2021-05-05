@@ -62,6 +62,8 @@ trait DtgAgeOffFilter extends AgeOffFilter with LazyLogging {
                       timestamp: Long): Boolean = {
     try {
       reusableSf.setBuffer(value, valueOffset, valueLength)
+      val ret = reusableSf.getDateAsLong(dtgIndex)
+      println(s"Got date: $ret for index $index")
       reusableSf.getDateAsLong(dtgIndex) > expiry
     } catch {
       case NonFatal(e) =>
@@ -76,9 +78,10 @@ object DtgAgeOffFilter {
 
   // configuration keys
   object Configuration {
-    val SftOpt   = "sft"
-    val IndexOpt = "index"
-    val DtgOpt   = "dtg"
+    val SftOpt      = "sft"
+    val IndexOpt    = "index"
+    val IndexSftOpt = "index-sft"
+    val DtgOpt      = "dtg"
   }
 
   def configure(sft: SimpleFeatureType,
@@ -105,6 +108,10 @@ object DtgAgeOffFilter {
         }
         i
     }
+
+//    val indexSftOpt = Some(index.sft).collect {
+//      case s if s != sft => SimpleFeatureTypes.encodeType(s, includeUserData = true)
+//    }
 
     AgeOffFilter.configure(sft, expiry) ++ Map (
       Configuration.SftOpt   -> SimpleFeatureTypes.encodeType(sft),
