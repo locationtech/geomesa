@@ -87,7 +87,7 @@
     <repositories>
         <repository>
             <id>topobyte</id>
-            <url>http://mvn.topobyte.de/</url>
+            <url>https://mvn.topobyte.de/</url>
         </repository>
     </repositories>
 
