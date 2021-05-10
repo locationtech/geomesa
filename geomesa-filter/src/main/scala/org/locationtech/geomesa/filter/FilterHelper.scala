@@ -525,8 +525,13 @@ object FilterHelper {
         val clauses = decomposed.head // Seq(1,2,3)
         val duplicates = clauses.filter(c => decomposed.tail.forall(_.contains(c))) // Seq(1,2)
         if (duplicates.isEmpty) { or } else {
-          val deduplicated = orOption(decomposed.flatMap(d => andOption(d.filterNot(duplicates.contains))))
-          andFilters(deduplicated.toSeq ++ duplicates)
+          val simplified = decomposed.flatMap(d => andOption(d.filterNot(duplicates.contains)))
+          if (simplified.length < decomposed.length) {
+            // the duplicated filters are an entire clause, so we can ignore the rest of the clauses
+            andFilters(duplicates)
+          } else {
+            andFilters(orOption(simplified).toSeq ++ duplicates)
+          }
         }
 
       case _ => f
