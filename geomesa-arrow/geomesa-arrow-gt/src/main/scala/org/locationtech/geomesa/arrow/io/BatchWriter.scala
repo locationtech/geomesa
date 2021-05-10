@@ -115,7 +115,7 @@ object BatchWriter {
             builder.sizeHint(fromVectors.size())
             var i = 0
             while (i < fromVectors.size()) {
-              builder += createTransferPair(fromVectors.get(i), toVectors.get(i))
+              builder += createTransferPair(sft, fromVectors.get(i), toVectors.get(i))
               i += 1
             }
             builder.result()

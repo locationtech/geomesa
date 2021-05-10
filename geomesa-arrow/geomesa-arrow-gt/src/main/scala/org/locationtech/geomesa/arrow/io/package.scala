@@ -100,11 +100,13 @@ package object io {
    * @param to to vector
    * @return transfer(fromIndex, toIndex)
    */
-  def createTransferPair(from: FieldVector, to: FieldVector): (Int, Int) => Unit = {
-    if (SimpleFeatureVector.isGeometryVector(from)) {
+  def createTransferPair(sft: SimpleFeatureType, from: FieldVector, to: FieldVector): (Int, Int) => Unit = {
+    val i = sft.indexOf(from.getField.getName)
+    lazy val binding = sft.getDescriptor(i).getType.getBinding
+    if (i != -1 && classOf[Geometry].isAssignableFrom(binding)) {
       // geometry vectors use FixedSizeList vectors, for which transfer pairs aren't implemented
-      val fromGeom = GeometryFields.wrap(from).asInstanceOf[GeometryVector[Geometry, FieldVector]]
-      val toGeom = GeometryFields.wrap(to).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+      val fromGeom = GeometryFields.wrap(from, binding).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+      val toGeom = GeometryFields.wrap(to, binding).asInstanceOf[GeometryVector[Geometry, FieldVector]]
       (fromIndex: Int, toIndex: Int) => fromGeom.transfer(fromIndex, toIndex, toGeom)
     } else {
       val transfer = from.makeTransferPair(to)
