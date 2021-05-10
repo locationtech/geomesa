@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.filter.expression.AttributeExpression.FunctionLiteral
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter._
 import org.specs2.mutable.Specification
@@ -210,6 +211,50 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
         ll.size mustEqual 1
         ll(0).size mustEqual 1
       }
+    }
+  }
+
+  "The function 'checkOrder'" should {
+    val ff  = CommonFactoryFinder.getFilterFactory2
+
+    "handle function expressions correctly" >> {
+      val f1 = ff.function("min", ff.property("f0"), ff.literal(10))
+      val f2 = ff.function("min", ff.literal(5), ff.literal(10))
+      val attrExprOpt = checkOrder(f1, f2)
+      attrExprOpt must not(beNone)
+      attrExprOpt.get must beAnInstanceOf[FunctionLiteral]
+      val attrExpr = attrExprOpt.get.asInstanceOf[FunctionLiteral]
+      attrExpr.function.getName mustEqual("min")
+      attrExpr.name mustEqual("f0")
+      attrExpr.literal.getValue mustEqual(5)
+      attrExpr.flipped must beFalse
+    }
+
+    "handle flipped function expressions correctly" >> {
+      val f1 = ff.function("min", ff.literal(5), ff.literal(10))
+      val f2 = ff.function("min", ff.property("f0"), ff.literal(10))
+      val attrExprOpt = checkOrder(f1, f2)
+      attrExprOpt must not(beNone)
+      attrExprOpt.get must beAnInstanceOf[FunctionLiteral]
+      val attrExpr = attrExprOpt.get.asInstanceOf[FunctionLiteral]
+      attrExpr.function.getName mustEqual("min")
+      attrExpr.name mustEqual("f0")
+      attrExpr.literal.getValue mustEqual(5)
+      attrExpr.flipped must beTrue
+    }
+
+    "don't optimize function expressions containing attributes" >> {
+      val f1 = ff.function("min", ff.property("f1"), ff.literal(10))
+      val f2 = ff.function("min", ff.property("f0"), ff.literal(10))
+      val attrExprOpt = checkOrder(f1, f2)
+      attrExprOpt must beNone
+    }
+
+    "don't optimize function with embedded expressions containing attributes" >> {
+      val f1 = ff.function("min", ff.property("f1"), ff.literal(10))
+      val f2 = ff.function("min", ff.add(ff.property("f0"), ff.literal(10)), ff.literal(10))
+      val attrExprOpt = checkOrder(f1, f2)
+      attrExprOpt must beNone
     }
   }
 
