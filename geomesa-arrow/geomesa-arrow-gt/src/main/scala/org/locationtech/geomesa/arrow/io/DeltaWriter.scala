@@ -303,8 +303,9 @@ object DeltaWriter extends StrictLogging {
             } else if (sft.indexOf(name) != -1 &&
                 classOf[Geometry].isAssignableFrom(sft.getDescriptor(name).getType.getBinding)) {
               // geometry vectors use FixedSizeList vectors, for which transfer pairs aren't implemented
-              val from = GeometryFields.wrap(fromVector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
-              val to = GeometryFields.wrap(toVector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+              val binding = sft.getDescriptor(name).getType.getBinding
+              val from = GeometryFields.wrap(fromVector, binding).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+              val to = GeometryFields.wrap(toVector, binding).asInstanceOf[GeometryVector[Geometry, FieldVector]]
               (fromIndex: Int, toIndex: Int, _: java.util.Map[Integer, Integer]) => {
                 from.transfer(fromIndex, toIndex, to)
               }
@@ -474,8 +475,9 @@ object DeltaWriter extends StrictLogging {
             } else if (sft.indexOf(name) != -1 &&
                 classOf[Geometry].isAssignableFrom(sft.getDescriptor(name).getType.getBinding)) {
               // geometry vectors use FixedSizeList vectors, for which transfer pairs aren't implemented
-              val from = GeometryFields.wrap(fromVector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
-              val to = GeometryFields.wrap(toVector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+              val binding = sft.getDescriptor(name).getType.getBinding
+              val from = GeometryFields.wrap(fromVector, binding).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+              val to = GeometryFields.wrap(toVector, binding).asInstanceOf[GeometryVector[Geometry, FieldVector]]
               (fromIndex: Int, toIndex: Int) => from.transfer(fromIndex, toIndex, to)
             } else {
               val transfer = fromVector.makeTransferPair(toVector)
