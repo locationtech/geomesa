@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa
 
+import org.geotools.data.DataUtilities
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.expression.AttributeExpression
@@ -414,8 +415,8 @@ package object filter {
 
       case (f1: Function, f2: Function) =>
         (attribute(f1), attribute(f2)) match {
-          case (Some(a), None) => Some(FunctionLiteral(a, f1, ff.literal(f2.evaluate(null))))
-          case (None, Some(a)) => Some(FunctionLiteral(a, f2, ff.literal(f1.evaluate(null))))
+          case (Some(a), None) => Some(FunctionLiteral(a, f1, ff.literal(f2.evaluate(null)), flipped = false))
+          case (None, Some(a)) => Some(FunctionLiteral(a, f2, ff.literal(f1.evaluate(null)), flipped = true))
           case _ => None
         }
 
@@ -438,5 +439,5 @@ package object filter {
   }
 
   private def attribute(f: Function): Option[String] =
-    f.getParameters.collectFirst { case p: PropertyName => p.getPropertyName }
+    f.getParameters.map(DataUtilities.attributeNames(_).headOption).collectFirst { case Some(p) => p }
 }

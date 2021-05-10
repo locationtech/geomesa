@@ -10,12 +10,14 @@
 package org.locationtech.geomesa.filter.factory
 
 import org.geotools.factory.CommonFactoryFinder
+import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.expression.{FastPropertyName, OrHashEquality, OrSequentialEquality}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.spatial.BBOX
+import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -86,6 +88,18 @@ class FastFilterFactoryTest extends Specification {
       FastFilterFactory.toFilter(sft, "name ilike '%abc\\'") must throwA[IllegalArgumentException]
       FastFilterFactory.toFilter(sft, "name like '%abc\\'") must throwA[IllegalArgumentException]
       ok
+    }
+    "create filter containing functions with embedded expressions" >> {
+      val sft = SimpleFeatureTypes.createType("test", "f0:Integer,f1:Integer")
+      val ecql = "min(f0 + 2, 4) < min(f1, 5)"
+      val filterGeoMesa = FastFilterFactory.toFilter(sft, ecql)
+      val filterGeoTools = ECQL.toFilter(ecql)
+      Result.foreach(1 to 10) { i =>
+        Result.foreach(1 to 10){ j =>
+          val sf = ScalaSimpleFeature.create(sft, s"${i}_${j}", i, j)
+          filterGeoMesa.evaluate(sf) mustEqual filterGeoTools.evaluate(sf)
+        }
+      }
     }
   }
 }
