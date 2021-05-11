@@ -439,5 +439,9 @@ package object filter {
   }
 
   private def attribute(f: Function): Option[String] =
+<<<<<<< HEAD
     f.getParameters.asScala.map(DataUtilities.attributeNames(_).headOption).collectFirst { case Some(p) => p }
+=======
+    f.getParameters.map(DataUtilities.attributeNames(_).headOption).collectFirst { case Some(p) => p }
+>>>>>>> 7acc3ea465 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 }
