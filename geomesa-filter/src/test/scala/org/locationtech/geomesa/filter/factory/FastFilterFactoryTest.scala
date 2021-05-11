@@ -105,6 +105,7 @@ class FastFilterFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -142,6 +143,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> b4320946b4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 907fb0b08a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
     "handle logical erasure of entire clauses" >> {
       val sft = SimpleFeatureTypes.createType("test", "a:Integer")
       val ecql = "(a = 0 AND a = 0) OR (a = 0 AND a = 1) OR (a = 0 AND a = 2)"
@@ -162,6 +165,7 @@ class FastFilterFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7acc3ea465 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
@@ -219,6 +223,10 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> b4320946b4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 7acc3ea46 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+>>>>>>> 907fb0b08a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
     "create filter containing functions with embedded expressions" >> {
       val sft = SimpleFeatureTypes.createType("test", "f0:Integer,f1:Integer")
       val ecql = "min(f0 + 2, 4) < min(f1, 5)"
@@ -236,6 +244,7 @@ class FastFilterFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         Result.foreach(1 to 10) { j =>
 =======
         Result.foreach(1 to 10){ j =>
@@ -317,6 +326,12 @@ class FastFilterFactoryTest extends Specification {
 =======
         Result.foreach(1 to 10) { j =>
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+=======
+        Result.foreach(1 to 10) { j =>
+=======
+        Result.foreach(1 to 10){ j =>
+>>>>>>> 7acc3ea46 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+>>>>>>> 907fb0b08a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
           val sf = ScalaSimpleFeature.create(sft, s"${i}_${j}", i, j)
           filterGeoMesa.evaluate(sf) mustEqual filterGeoTools.evaluate(sf)
         }
@@ -324,8 +339,11 @@ class FastFilterFactoryTest extends Specification {
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 907fb0b08a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
     "comparison operators should have consistent semantics" >> {
       val sft = SimpleFeatureTypes.createType("test", "s:String")
       val sf = ScalaSimpleFeature.create(sft, "id", "5")
@@ -334,6 +352,7 @@ class FastFilterFactoryTest extends Specification {
       FastFilterFactory.toFilter(sft, "s < '100'").evaluate(sf) must beFalse
       FastFilterFactory.toFilter(sft, "s <= '100'").evaluate(sf) must beFalse
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -351,5 +370,9 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> 908ad4071d (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 7acc3ea46 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+>>>>>>> 907fb0b08a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
   }
 }
