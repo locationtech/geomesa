@@ -468,8 +468,11 @@ package object filter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 1c72270c6e (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> 7213a78a3a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
@@ -634,6 +637,7 @@ package object filter {
 =======
 >>>>>>> 78fe4921a6 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
     f.getParameters.map(DataUtilities.attributeNames(_).headOption).collectFirst { case Some(p) => p }
@@ -695,4 +699,12 @@ package object filter {
 >>>>>>> 1ee8aaa6ce (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> 2fc46c0a1c (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+=======
+>>>>>>> locationtech-main
+=======
+=======
+    f.getParameters.map(DataUtilities.attributeNames(_).headOption).collectFirst { case Some(p) => p }
+>>>>>>> 7acc3ea46 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+>>>>>>> b540b71fce (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+>>>>>>> 1c72270c6e (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 }
