@@ -439,7 +439,9 @@ package object filter {
   }
 
   private def attribute(f: Function): Option[String] =
+<<<<<<< HEAD
     f.getParameters.asScala.map(DataUtilities.attributeNames(_).headOption).collectFirst { case Some(p) => p }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -466,10 +468,13 @@ package object filter {
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 7213a78a3a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+=======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 4bbf97686c (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
@@ -499,6 +504,10 @@ package object filter {
 =======
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4bbf97686c (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+=======
+>>>>>>> 7213a78a3a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
     f.getParameters.map(DataUtilities.attributeNames(_).headOption).collectFirst { case Some(p) => p }
 <<<<<<< HEAD
 >>>>>>> 7acc3ea465 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
@@ -528,6 +537,9 @@ package object filter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7213a78a3a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -573,6 +585,7 @@ package object filter {
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4bbf97686c (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
@@ -633,4 +646,8 @@ package object filter {
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4bbf97686c (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+>>>>>>> 7213a78a3a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 }
