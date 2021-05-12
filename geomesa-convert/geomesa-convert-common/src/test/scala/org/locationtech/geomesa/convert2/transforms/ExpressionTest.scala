@@ -5465,6 +5465,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 9e8a3c11c3 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -5534,6 +5535,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 447efc836d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 500975957 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -5572,6 +5575,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 2a3da881ff (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> 83670fc93 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -5581,6 +5586,8 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> 9e8a3c11c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 =======
@@ -5966,12 +5973,17 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> a9e41bce3a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b36757a53 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
@@ -6210,8 +6222,16 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 98a03c586 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9e8a3c11c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 2a3da881ff (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 447efc836d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
       exp.apply(Array("", Double.box(45.0), Double.box(46.0))) mustEqual WKTUtils.read("POINT(45 46)")
 
       val trans = Expression("point($0)")
@@ -6244,6 +6264,7 @@ class ExpressionTest extends Specification {
 =======
       exp.apply(Array("", Double.box(45.0), Double.box(45.0))).asInstanceOf[Point].getCoordinate mustEqual new Coordinate(45.0, 45.0)
       exp.eval(Array("", 45.0, 45.0)).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(45.0, 45.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6350,6 +6371,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 447efc836d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 500975957 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -6380,12 +6403,16 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 2a3da881ff (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> a7ca1d57e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> e8299f1551 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d1cf3ad8b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9e8a3c11c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -7413,6 +7440,9 @@ class ExpressionTest extends Specification {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b36757a53 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
@@ -7636,8 +7666,22 @@ class ExpressionTest extends Specification {
 >>>>>>> 30d431265 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 98a03c586 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9e8a3c11c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 2a3da881ff (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 447efc836d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+=======
+
+      val trans = Expression("point($0)")
+      trans.apply(Array("POINT(50 52)")).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(50, 52)
+      trans.eval(Array("POINT(50 52)")).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(50, 52)
+
+>>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
       // turn "Geometry" into "Point"
       val geoFac = new GeometryFactory()
       val geom = geoFac.createPoint(new Coordinate(55, 56)).asInstanceOf[Geometry]
@@ -7647,6 +7691,7 @@ class ExpressionTest extends Specification {
         res.asInstanceOf[Point] mustEqual geoFac.createPoint(new Coordinate(55, 56))
       }
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7757,6 +7802,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 447efc836d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 500975957 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -7779,12 +7826,16 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 2a3da881ff (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> a7ca1d57e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> e8299f1551 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d1cf3ad8b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9e8a3c11c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> e734e4d064 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -9431,9 +9482,20 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 30d431265 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 98a03c586 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 9e8a3c11c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 2a3da881ff (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 447efc836d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+=======
+=======
+>>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
     }
     "parse multipoint wkt and objects" >> {
       val geoFac = new GeometryFactory()
@@ -9508,6 +9570,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -9580,6 +9643,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 7f45654b0b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> e014d8c87 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -9626,6 +9691,8 @@ class ExpressionTest extends Specification {
 >>>>>>> a8155d31a1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -9678,8 +9745,16 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> d1cf3ad8b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 7f45654b0b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -10313,6 +10388,8 @@ class ExpressionTest extends Specification {
       trans.eval(Array(x, y)) mustEqual expected
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
     }
     "parse multipoint from x/y coords" >> {
       val expected = WKTUtils.read("MultiPoint((45.0 45.0), (50 52))")
@@ -10322,6 +10399,8 @@ class ExpressionTest extends Specification {
       val y = Seq(45, 52).asJava
       trans.apply(Array(x, y)) mustEqual expected
       trans.eval(Array(x, y)) mustEqual expected
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
     }
     "parse linestring wkt and objects" >> {
       val geoFac = new GeometryFactory()
@@ -10350,6 +10429,7 @@ class ExpressionTest extends Specification {
         res.getClass mustEqual classOf[LineString]
         res.asInstanceOf[LineString] mustEqual WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10468,6 +10548,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 7f45654b0b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> e014d8c87 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -10514,6 +10596,8 @@ class ExpressionTest extends Specification {
 >>>>>>> a8155d31a1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -10566,8 +10650,16 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> d1cf3ad8b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 7f45654b0b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -11201,6 +11293,8 @@ class ExpressionTest extends Specification {
       trans.eval(Array(x, y)) mustEqual expected
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
     }
     "parse linestring from x/y coords" >> {
       val expected = WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
@@ -11210,6 +11304,8 @@ class ExpressionTest extends Specification {
       val y = Seq(0, 1, 0, 1).asJava
       trans.apply(Array(x, y)) mustEqual expected
       trans.eval(Array(x, y)) mustEqual expected
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
     }
     "parse multilinestring wkt and objects" >> {
       val geoFac = new GeometryFactory()
@@ -11477,6 +11573,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -11534,6 +11631,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 773beb5125 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> fa3a402d4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 3773ac3a73 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -11548,17 +11647,24 @@ class ExpressionTest extends Specification {
 >>>>>>> 5626ca0b0d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 8caee7452 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6d0e01a084 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 <<<<<<< HEAD
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 6d0e01a084 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
@@ -11576,7 +11682,13 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
     }
     "parse null geometries" >> {
       val functions =
@@ -11591,6 +11703,7 @@ class ExpressionTest extends Specification {
           "geometrycollection($0)",
           "geometry($0)"
         )
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11626,6 +11739,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 81ee66102b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
       foreach(functions.map(Expression.apply)) { exp =>
         exp.apply(Array(null, null)) must beNull
 <<<<<<< HEAD
@@ -11654,7 +11769,19 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> 8caee7452 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 6d0e01a084 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+      foreach(functions.map(Expression.apply)) { exp =>
+        exp.apply(Array(null, null)) must beNull
+        exp.eval(Array(null, null)) must beNull
+      }
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
     }
     "parse null geometries" >> {
       val functions =
@@ -12859,9 +12986,18 @@ class ExpressionTest extends Specification {
         Expression(exp).eval(Array(null, null)) must beNull
       }
     }
+<<<<<<< HEAD
 >>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 8de43cccf6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
     "reproject to EPSG 4326" >> {
       val geom = WKTUtils.read("POINT (1113194.91 1689200.14)")
       val trans = Expression("projectFrom('EPSG:3857',$1)")
@@ -14403,6 +14539,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 516fe7e9c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -14457,11 +14594,15 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 0c734cda2b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> d6616d893 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -14783,8 +14924,11 @@ class ExpressionTest extends Specification {
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5b8b0204a2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -15021,7 +15165,12 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
       exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
       exp.eval(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
     }
@@ -16721,9 +16870,22 @@ class ExpressionTest extends Specification {
       val hashedResult = exp.eval(Array(testBytes)).asInstanceOf[String]
       hashedResult mustEqual "53587708703184a0b6f8952425c21d9f"
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+      exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
+      exp.eval(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
     }
 =======
       exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
@@ -16833,6 +16995,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     }
     "encode bytes as base64 strings" >> {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17351,6 +17514,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 32c76144ad (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7a6dd271d (GEOMESA-3109 Json array to object converter function (#2788))
@@ -17463,6 +17628,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 541f1862a7 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -17579,8 +17746,16 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> 7a0ab99f8 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 541f1862a7 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 32c76144ad (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
       val exp = Expression("base64($0)")
       exp.apply(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
       exp.eval(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
@@ -18046,8 +18221,11 @@ class ExpressionTest extends Specification {
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> cd8248bbdc (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
@@ -18435,8 +18613,16 @@ class ExpressionTest extends Specification {
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> c44517c36 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 7a0ab99f8 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 541f1862a7 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 32c76144ad (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
       foreach(Seq("base64($0)", "base64Encode($0)")) { expression =>
         val exp = Expression(expression)
         exp.apply(Array(testBytes)) mustEqual Base64.encodeBase64URLSafeString(testBytes)
@@ -18448,6 +18634,7 @@ class ExpressionTest extends Specification {
       val exp = Expression("base64Decode($0)")
       exp.apply(Array(encoded)) mustEqual testBytes
       exp.eval(Array(encoded)) mustEqual testBytes
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18611,6 +18798,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 32c76144ad (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> e7b61a536 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 0df4f16d9 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -18709,6 +18898,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 541f1862a7 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> dbc712b84 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 6ac55e1ef (GEOMESA-3071 Move all converter state into evaluation context)
@@ -18784,8 +18975,16 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> 7a0ab99f8 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 541f1862a7 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 32c76144ad (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
@@ -19004,8 +19203,11 @@ class ExpressionTest extends Specification {
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 09c8a6d2fd (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -19288,12 +19490,21 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 7a0ab99f8 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 541f1862a7 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 32c76144ad (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
       val exp = Expression("base64($0)")
       exp.apply(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
       exp.eval(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -19402,6 +19613,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 32c76144ad (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> a8155d31a1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -19411,6 +19624,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 541f1862a7 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 =======
 >>>>>>> e08000604 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -19418,6 +19633,8 @@ class ExpressionTest extends Specification {
 >>>>>>> d1cf3ad8b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7a0ab99f8 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 2c3111e68 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -19956,8 +20173,11 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
@@ -20401,8 +20621,16 @@ class ExpressionTest extends Specification {
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> c44517c36 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 7a0ab99f8 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 541f1862a7 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 32c76144ad (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
     }
     "handle whitespace in functions" >> {
       val variants = Seq(
@@ -21946,6 +22174,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -21981,6 +22210,8 @@ class ExpressionTest extends Specification {
 >>>>>>> f4291966d2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7f45654b0b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> e014d8c87 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -22027,6 +22258,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 55b43ae56 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> cb7d3570f (GEOMESA-3071 Move all converter state into evaluation context)
@@ -22070,8 +22303,16 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> d1cf3ad8b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 7f45654b0b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 02ce9d8126 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -22673,6 +22914,8 @@ class ExpressionTest extends Specification {
       trans.eval(Array("")) mustEqual Collections.emptyList[Int]()
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -22706,6 +22949,8 @@ class ExpressionTest extends Specification {
       trans.apply(Array("")) mustEqual Collections.emptyList[Int]()
       trans.eval(Array(null)) must beNull
       trans.eval(Array("")) mustEqual Collections.emptyList[Int]()
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -22721,6 +22966,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 8a6a96234b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     "parse null lists" >> {
       val trans = Expression("parseList('int', $0)")
+      trans.apply(Array(null)) must beNull
+      trans.apply(Array("")) mustEqual Collections.emptyList[Int]()
       trans.eval(Array(null)) must beNull
       trans.eval(Array("")) mustEqual Collections.emptyList[Int]()
 <<<<<<< HEAD
@@ -22821,6 +23068,7 @@ class ExpressionTest extends Specification {
     }
     "parse null maps" >> {
       val trans = Expression("parseMap('String->Int', $0)")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23371,6 +23619,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 8de43cccf6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 31039e261 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -23490,6 +23740,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -23614,8 +23866,16 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 8de43cccf6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
       trans.apply(Array(null)) must beNull
       trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
 =======
@@ -23921,12 +24181,21 @@ class ExpressionTest extends Specification {
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 0c734cda2b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
       trans.apply(Array(null)) must beNull
       trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23987,6 +24256,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 6ac55e1ef (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8caee7452 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -24020,7 +24291,12 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> d1cf3ad8b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 7e68948ac (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
@@ -24101,6 +24377,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -24174,10 +24451,18 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> d1cf3ad8b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
       trans.apply(Array(null)) must beNull
       trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -24248,6 +24533,10 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> 0c734cda2b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -24566,8 +24855,11 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -24873,7 +25165,14 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
       trans.eval(Array(null)) must beNull
       trans.eval(Array("")) mustEqual Collections.emptyMap[String, Int]()
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
