@@ -33,6 +33,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -9241,6 +9242,14 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 79bf541ac8 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+import java.io.InputStream
+import java.util.Collections
+
+import com.codahale.metrics.Counter
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
