@@ -42,6 +42,7 @@ class MiscFunctionFactoryTest extends Specification {
       }
       "return the default if the first argument is null" >> {
         MiscFunctionFactory.withDefault(Array(null, Int.box(1))) mustEqual 1
+<<<<<<< HEAD
       }
       "return the first non-null argument" >> {
         MiscFunctionFactory.withDefault(Array("a", "b", "c", "d")) mustEqual "a"
@@ -49,6 +50,7 @@ class MiscFunctionFactoryTest extends Specification {
         MiscFunctionFactory.withDefault(Array(null, null, "c", "d")) mustEqual "c"
         MiscFunctionFactory.withDefault(Array(null, null, null, "d")) mustEqual "d"
         MiscFunctionFactory.withDefault(Array(null, null, null, null)) must beNull
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -68,6 +70,8 @@ class MiscFunctionFactoryTest extends Specification {
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -92,6 +96,7 @@ class MiscFunctionFactoryTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -119,6 +124,8 @@ class MiscFunctionFactoryTest extends Specification {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
       }
     }
 
