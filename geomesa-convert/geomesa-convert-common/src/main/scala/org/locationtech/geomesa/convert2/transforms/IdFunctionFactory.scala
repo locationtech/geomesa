@@ -10040,6 +10040,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -10161,13 +10162,22 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 <<<<<<< HEAD
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 7a670e5d35 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a68b9539c7 (GEOMESA-3071 Move all converter state into evaluation context)
   private val murmur3_128: TransformerFunction =
     new NamedTransformerFunction(Seq("murmur3_128", "murmur3_64"), pure = true) {
       private val hasher = Hashing.murmur3_128()
       override def apply(args: Array[AnyRef]): AnyRef =
         Long.box(hasher.hashString(args(0).toString, StandardCharsets.UTF_8).asLong())
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14574,6 +14584,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 =======
+>>>>>>> 7a670e5d35 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 2c3111e68 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -15629,7 +15641,15 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 7a670e5d35 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a68b9539c7 (GEOMESA-3071 Move all converter state into evaluation context)
     }
 }
