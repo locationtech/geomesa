@@ -13,12 +13,12 @@ import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 
 import com.typesafe.config.ConfigFactory
-import org.locationtech.jts.geom._
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -1231,6 +1231,34 @@ class JsonConverterTest extends Specification {
         val features = WithClose(converter.process(in, ec))(_.toList)
         features must haveLength(8)
         forall(features)(_.getDefaultGeometry must not(beNull))
+      }
+    }
+
+    "work with different evaluation contexts" >> {
+      val sft = SimpleFeatureTypes.createType("global", "foo:String,bar:String,baz:String")
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type = "json"
+          |   id-field = "md5(string2bytes(json2string($0)))"
+          |   fields = [
+          |     { name = "foo", transform = "${gp.foo}" }
+          |     { name = "bar", transform = "${gp.bar}" }
+          |     { name = "baz", transform = "${gp.baz}" }
+          |   ]
+          | }
+        """.stripMargin)
+      val in = "{}".getBytes(StandardCharsets.UTF_8)
+
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        foreach(Seq("foo", "bar", "baz")) { prop =>
+          val ec = converter.createEvaluationContext(Map(s"gp.$prop" -> prop))
+          val features = WithClose(converter.process(new ByteArrayInputStream(in), ec))(_.toList)
+          features must haveLength(1)
+          features.head.getAttribute(prop) mustEqual prop
+          features.head.getAttributes.asScala.filter(_ == null) must haveLength(2)
+        }
       }
     }
 
