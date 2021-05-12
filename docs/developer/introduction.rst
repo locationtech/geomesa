@@ -210,6 +210,7 @@ This downloads the latest development version. To check out the code for the lat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -508,11 +509,14 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 3d5144418e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 (``$VERSION`` = |release_version|):
 
 .. code-block:: bash
 
     $ git checkout tags/geomesa-$VERSION -b geomesa-$VERSION 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3065,6 +3069,8 @@ This downloads the latest development version. To check out the code for the lat
     $ git checkout tags/geomesa-$VERSION -b geomesa-$VERSION
 >>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 3d5144418e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 Building and dependency management for GeoMesa is handled by `Maven <http://maven.apache.org/>`__.
 The Maven ``pom.xml`` file in the root directory of the source distribution contains a
