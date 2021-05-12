@@ -1,63 +1,61 @@
 <project name="docs" default="html">
-	<target name="init">
-		<property environment="env"></property>
-        <property name="sphinx.binary" value="sphinx-build"/>
+  <target name="init">
+    <property environment="env"></property>
+    <property name="sphinx.binary" value="sphinx-build"/>
 
-		<condition property="sphinx.available">
-            <or>
-                <available file="${sphinx.binary}" filepath="${env.PATH}"/>
-            </or>
-        </condition>
+    <condition property="sphinx.available">
+      <available file="${sphinx.binary}" filepath="${env.PATH}"/>
+    </condition>
 
-		<condition property="build.directory" value="${build.directory}" else="${basedir}/target">
-			<isset property="build.directory" />
-		</condition>
+    <condition property="build.directory" value="${build.directory}" else="${basedir}/target">
+      <isset property="build.directory"/>
+    </condition>
 
-		<echo message="Build directory: ${build.directory}" />
-	</target>
+    <echo message="Build directory: ${build.directory}"/>
+  </target>
 
-	<target name="clean" depends="init">
-		<delete includeemptydirs="true">
-			<fileset dir="${build.directory}" defaultexcludes="false">
-				<include name="**/"></include>
-			</fileset>
-		</delete>
-	</target>
-	
-	<target name="singlehtml" depends="init,single-html">
-	</target>
+  <target name="clean" depends="init">
+    <delete includeemptydirs="true">
+      <fileset dir="${build.directory}" defaultexcludes="false">
+        <include name="**/"></include>
+      </fileset>
+    </delete>
+  </target>
+  
+  <target name="singlehtml" depends="init,single-html">
+  </target>
 
-	<target name="html" depends="init,all-html">
-	</target>
+  <target name="html" depends="init,all-html">
+  </target>
 
-	<target name="latex" depends="init,all-latex">
-	</target>
+  <target name="latex" depends="init,all-latex">
+  </target>
 
-	<target name="single-html" depends="init">
-		<antcall target="sphinx">
-			<param name="id" value="." />
-			<param name="build" value="singlehtml" />
-		</antcall>
-	</target>
+  <target name="single-html" depends="init">
+    <antcall target="sphinx">
+      <param name="id" value="." />
+      <param name="build" value="singlehtml" />
+    </antcall>
+  </target>
 
-	<target name="all-html" depends="init">
-		<antcall target="sphinx">
-			<param name="id" value="." />
-			<param name="build" value="html" />
-		</antcall>
-	</target>
-	
-	<target name="all-latex" depends="init">
-		<antcall target="sphinx">
-			<param name="id" value="." />
-			<param name="build" value="latex" />
-		</antcall>
-	</target>
+  <target name="all-html" depends="init">
+    <antcall target="sphinx">
+      <param name="id" value="." />
+      <param name="build" value="html" />
+    </antcall>
+  </target>
+  
+  <target name="all-latex" depends="init">
+    <antcall target="sphinx">
+      <param name="id" value="." />
+      <param name="build" value="latex" />
+    </antcall>
+  </target>
 
-	<target name="sphinx" if="sphinx.available">
-		<exec executable="${sphinx.binary}" failonerror="true" dir="${basedir}/${id}">
-			<arg line="-b ${build} -d &quot;${build.directory}/${id}/doctrees&quot; . &quot;${build.directory}/${id}/${build}&quot;" />
-		</exec>
-	</target>
-	
+  <target name="sphinx" if="sphinx.available">
+    <exec executable="${sphinx.binary}" failonerror="true" dir="${basedir}/${id}">
+      <arg line="-b ${build} -d &quot;${build.directory}/${id}/doctrees&quot; . &quot;${build.directory}/${id}/${build}&quot;" />
+    </exec>
+  </target>
+  
 </project>

@@ -7,6 +7,11 @@ Cloud SDK command line tools.  Instructions for doing so can be found `here <htt
 Ensure that you have installed all the appropriate components for working with GCP Bigtable and GCP
 Dataproc.
 
+.. note::
+
+  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
+  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
+
 .. code-block:: shell
 
    $ gcloud components install cbt
@@ -32,33 +37,27 @@ determine the name of the master node by using the following command line.
 
    $ gcloud compute instances list
 
-Find the master node instance and then scp the distro as follows.
-
-.. code-block:: shell
-
-   $ gcloud beta compute scp --zone $ZONEID  ~/.m2/repository/org/locationtech/geomesa/geomesa-bigtable-dist_2.11/$VERSION/geomesa-bigtable_2.11-$VERSION-bin.tar.gz <masterhost>:~/
-
-Log in to the master node using gcloud ssh as follows.
+Find the master node instance and log into it using gcloud ssh as follows:
 
 .. code-block:: shell
 
    $ gcloud compute --project $PROJECTID ssh --zone $ZONEID $MASTER
 
-
-Now, configure the installation by unpacking the tarball, editing the hbase-site.xml appropriately, and including the hbase-site.xml in the 
-spark runtime jar.
+Now, configure the installation by downloading and unpacking the GeoMesa distribution, editing the hbase-site.xml
+appropriately, and including the hbase-site.xml in the spark runtime jar:
 
 .. code-block:: shell
 
-   $ tar zxvf geomesa-bigtable_2.11-$VERSION-bin.tar.gz
-   $ ln -s geomesa-bigtable_2.11-$VERSION geomesa
+   $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-bigtable_${VERSION}-bin.tar.gz"
+   $ tar zxvf geomesa-bigtable_${VERSION}-bin.tar.gz
+   $ ln -s geomesa-bigtable_${VERSION} geomesa
    $ export PATH=$PATH:~/geomesa/bin
    $ export HADOOP_HOME=/usr/lib/hadoop
    $ export HBASE_HOME=/usr/lib/hbase
    $ vi geomesa/conf/hbase-site.xml
    $ cp geomesa/conf/hbase-site.xml geomesa/dist/spark/
    $ cd geomesa/dist/spark/
-   $ jar uvf geomesa-bigtable-spark-runtime_2.11-$VERSION hbase-site.xml
+   $ jar uvf geomesa-bigtable-spark-runtime_${VERSION} hbase-site.xml
 
 Download sample GDELT data and ingest it as follows.
 
@@ -70,7 +69,7 @@ Now, you can run a spark shell and execute Spark SQL over your GeoMesa on Bigtab
 
 .. code-block:: shell
 
-   $ spark-shell --num-executors 4 --master yarn --jars file://$HOME/geomesa/dist/spark/geomesa-bigtable-spark-runtime_2.11-$VERSION.jar,file://$HOME/geomesa/lib/bigtable-hbase-1.2-0.9.4.jar,file://$HOME/geomesa/lib/netty-tcnative-boringssl-static-1.1.33.Fork19.jar
+   $ spark-shell --num-executors 4 --master yarn --jars file://$HOME/geomesa/dist/spark/geomesa-bigtable-spark-runtime_${VERSION}.jar,file://$HOME/geomesa/lib/bigtable-hbase-1.2-0.9.4.jar,file://$HOME/geomesa/lib/netty-tcnative-boringssl-static-1.1.33.Fork19.jar
 
 From the Spark shell prompt.
 
@@ -79,5 +78,3 @@ From the Spark shell prompt.
    scala> val df = spark.read.format("geomesa").option("bigtable.catalog", "geomesa.gdelt").option("geomesa.feature", "gdelt").load()
    scala> df.createOrReplaceTempView("gdelt")
    scala> spark.sql("SELECT actor1Name,actor2Name,geom,dtg FROM gdelt WHERE st_contains(st_geomFromWKT('POLYGON((-80 35,-70 35,-70 40,-80 40,-80 35))'),geom)").show()
-
-

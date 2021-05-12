@@ -9,19 +9,23 @@ Installing the Binary Distribution
 ----------------------------------
 
 GeoMesa Kudu artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version
-(|release|) from `GitHub`__.
+The easiest way to get started is to download the most recent binary version from `GitHub`__.
 
 __ https://github.com/locationtech/geomesa/releases
+
+.. note::
+
+  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
+  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
 
 Extract it somewhere convenient:
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-kudu_2.11-$VERSION-bin.tar.gz"
-    $ tar xvf geomesa-kudu_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-kudu_2.11-$VERSION
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-kudu_${VERSION}-bin.tar.gz"
+    $ tar xvf geomesa-kudu_${VERSION}-bin.tar.gz
+    $ cd geomesa-kudu_${VERSION}
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
@@ -44,7 +48,7 @@ Setting up the Kudu Command Line Tools
 --------------------------------------
 
 GeoMesa comes with a set of command line tools for managing Kudu features located in
-``geomesa-kudu_2.11-$VERSION/bin/`` of the binary distribution.
+``geomesa-kudu_${VERSION}/bin/`` of the binary distribution.
 
 Configuring the Classpath
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -58,7 +62,7 @@ be prompted to download the appropriate JARs the first time you invoke the tools
 specified in ``conf/*-env.sh`` and dependency versions can be specified in ``conf/dependencies.sh``.
 
 In order to run map/reduce jobs, the Hadoop ``*-site.xml`` configuration files from your Hadoop installation
-must be on the classpath. If ``HADOOP_HOME`` is not set, then copy them into ``geomesa-accumulo_2.11-$VERSION/conf``.
+must be on the classpath. If ``HADOOP_HOME`` is not set, then copy them into ``geomesa-kudu_${VERSION}/conf``.
 
 GeoMesa also provides the ability to add additional JARs to the classpath using the environmental variable
 ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
@@ -99,7 +103,7 @@ Installing GeoMesa Kudu in GeoServer
     See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
 
 The Kudu GeoServer plugin is bundled by default in a GeoMesa binary distribution. To install, extract
-``$GEOMESA_KUDU_HOME/dist/gs-plugins/geomesa-kudu-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
+``$GEOMESA_KUDU_HOME/dist/gs-plugins/geomesa-kudu-gs-plugin_${VERSION}-install.tar.gz`` into GeoServer's
 ``WEB-INF/lib`` directory.
 
 Restart GeoServer after the JARs are installed.
