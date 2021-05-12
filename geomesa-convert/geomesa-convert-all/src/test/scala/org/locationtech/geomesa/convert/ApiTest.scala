@@ -23,6 +23,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -72,13 +73,21 @@
 =======
 >>>>>>> 6c202d4480 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> bcac8febd9 (GEOMESA-3071 Move all converter state into evaluation context)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> a3aefef462 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> bcac8febd9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 0d80bae0c6 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -358,7 +367,12 @@
 =======
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 6c202d4480 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> bcac8febd9 (GEOMESA-3071 Move all converter state into evaluation context)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -386,6 +400,7 @@ import java.io.InputStream
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -393,10 +408,13 @@ import java.io.InputStream
 =======
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -420,6 +438,8 @@ import pureconfig.error.ConfigReaderFailures
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 import org.apache.commons.io.IOUtils
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.TestConverterFactory.TestField
@@ -440,11 +460,14 @@ import pureconfig.error.ConfigReaderFailures
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 @RunWith(classOf[JUnitRunner])
 class ApiTest extends Specification {
 
@@ -485,6 +508,7 @@ class ApiTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -505,6 +529,9 @@ import java.io.InputStream
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 
 class TestConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Seq[TestField], options: BasicOptions)
     extends AbstractConverter[String, BasicConfig, TestField, BasicOptions](sft, config, fields, options) {
@@ -528,6 +555,7 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -535,12 +563,15 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 =======
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 class TestConverterFactory extends AbstractConverterFactory[TestConverter, BasicConfig, TestField, BasicOptions] {
   override protected val typeToProcess: String = "test"
   override protected implicit val configConvert: ConverterConfigConvert[BasicConfig] = BasicConfigConvert
   override protected implicit val fieldConvert: FieldConvert[TestField] = TestConverterFactory.TestFieldConvert
   override protected implicit val optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -564,6 +595,9 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 
 object TestConverterFactory {
 
@@ -604,6 +638,7 @@ object TestConverterFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -611,11 +646,14 @@ object TestConverterFactory {
 =======
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
   case class TestDerivedField(name: String, transforms: Option[Expression]) extends TestField
 
   case class TestSplitField(name: String, transforms: Option[Expression]) extends TestField {
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any =
       super.eval(Array[Any](args(0)) ++ args(0).asInstanceOf[String].split(","))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -643,6 +681,9 @@ object TestConverterFactory {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
   }
 }
 
@@ -659,6 +700,7 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = "foo " + args(0)
 <<<<<<< HEAD
@@ -687,6 +729,11 @@ class TestFunctionFactory extends TransformerFunctionFactory {
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = "foo " + args(0)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = "foo " + args(0)
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
   }
 
   private val bar = new TransformerFunction {
@@ -700,6 +747,7 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = "bar " + args(0)
 <<<<<<< HEAD
@@ -728,5 +776,10 @@ class TestFunctionFactory extends TransformerFunctionFactory {
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = "bar " + args(0)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = "bar " + args(0)
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
   }
 }
