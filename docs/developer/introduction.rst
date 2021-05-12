@@ -357,6 +357,7 @@ This downloads the latest development version. To check out the code for the lat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6f1e1da646 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -457,6 +458,8 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> a38834fade (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0b168af9c8 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> dcbf9c4320 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -612,6 +615,7 @@ This downloads the latest development version. To check out the code for the lat
 =======
 >>>>>>> 6fc8851879 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 >>>>>>> 84ac051f28 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 3995e6a61c (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -1016,6 +1020,8 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> ecd45f2c3e (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 0b168af9c8 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> dcbf9c4320 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4cc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1603,6 +1609,8 @@ This downloads the latest development version. To check out the code for the lat
 =======
 >>>>>>> 256a642cc1 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
+>>>>>>> aceaf3bd81 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 >>>>>>> 45ad5d11f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b009fd23f4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -1694,6 +1702,7 @@ This downloads the latest development version. To check out the code for the lat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4d9f87a514 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -1778,6 +1787,8 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c2cfc968d2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> dcbf9c4320 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 4d9f87a514 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -2013,6 +2024,7 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 8150bc0e65 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> ecd45f2c3e (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 6fc8851879 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -2302,6 +2314,10 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> a38834fade (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0b168af9c8 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+=======
+>>>>>>> 6fc8851879 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> dcbf9c4320 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6385,13 +6401,20 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> c5e182765 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 8cbe155de (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+=======
+>>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 5f428db97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 (``$VERSION`` = |release_version_literal|):
 =======
 (``$VERSION`` = |release_version|):
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 (``$VERSION`` = |release_version_literal|):
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 .. code-block:: bash
 
