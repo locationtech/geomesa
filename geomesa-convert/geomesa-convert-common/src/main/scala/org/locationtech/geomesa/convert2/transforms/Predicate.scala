@@ -12,12 +12,16 @@ import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.EvaluationContext.ContextDependent
 
 sealed trait Predicate extends ContextDependent[Predicate] {
+<<<<<<< HEAD
   def apply(args: Array[AnyRef]): Boolean
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 
   def apply(args: Array[AnyRef]): Boolean
@@ -25,6 +29,7 @@ sealed trait Predicate extends ContextDependent[Predicate] {
   @deprecated("Use `withContext` and `evaluate`")
   def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
     withContext(ctx).apply(args.asInstanceOf[Array[AnyRef]])
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -41,6 +46,9 @@ sealed trait Predicate extends ContextDependent[Predicate] {
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 }
 
 object Predicate {
