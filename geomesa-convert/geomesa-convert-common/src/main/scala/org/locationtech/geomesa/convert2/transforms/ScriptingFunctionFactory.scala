@@ -85,8 +85,15 @@ import scala.collection.JavaConversions._
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 import scala.collection.JavaConversions._
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 
 /**
   * Provides TransformerFunctions that execute javax.scripts compatible functions defined
