@@ -22,6 +22,7 @@ package org.locationtech.geomesa.convert.xml
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -124,6 +125,13 @@ import java.util.concurrent.TimeUnit
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+import java.io.StringWriter
+import java.util.concurrent.TimeUnit
+
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
 import com.typesafe.config.ConfigFactory
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
@@ -150,6 +158,7 @@ import javax.xml.xpath.XPathExpression
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -180,12 +189,15 @@ import javax.xml.xpath.XPathExpression
 =======
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
 import scala.concurrent.duration.Duration
 =======
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
 import org.locationtech.geomesa.utils.cache.{SoftThreadLocal, ThreadLocalCache}
 import org.w3c.dom.Element
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -258,6 +270,10 @@ import org.w3c.dom.Element
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+
+>>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
 import scala.concurrent.duration.Duration
 
 class XmlFunctionFactory extends TransformerFunctionFactory {
