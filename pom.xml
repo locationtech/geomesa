@@ -1899,6 +1899,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <geomesa.release.version>4.0.5</geomesa.release.version>
 =======
 =======
@@ -2057,6 +2058,8 @@
 >>>>>>> 67c8f3fa6c7 (Set latest release version to 3.5.1)
 =======
 >>>>>>> cfb36f66827 (Set release version)
+=======
+>>>>>>> 0f662ca727f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
         <geomesa.release.version>4.0.4</geomesa.release.version>
 <<<<<<< HEAD
@@ -2872,6 +2875,8 @@
 >>>>>>> 7542c0e90a (Set latest release version to 3.5.1)
 =======
 >>>>>>> 66945bac29 (Set release version)
+=======
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.release.version>3.5.0</geomesa.release.version>
 =======
         <geomesa.release.version>3.5.1</geomesa.release.version>
@@ -2880,11 +2885,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.release.version>4.0.0</geomesa.release.version>
         <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
 >>>>>>> e17adf156 (Set release version)
         <copyright.year>2023</copyright.year>
 =======
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -3269,8 +3277,20 @@
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 823f734cb8 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+        <geomesa.release.version>3.2.0</geomesa.release.version>
+        <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
+        <copyright.year>2021</copyright.year>
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 327aa98a18 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
         <!-- recommended installation versions -->
 <<<<<<< HEAD
