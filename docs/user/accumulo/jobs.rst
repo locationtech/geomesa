@@ -26,8 +26,13 @@ complex operations. These are::
     org.locationtech.geomesa.accumulo.jobs.mapreduce.interop.FeatureCountJob
     org.locationtech.geomesa.accumulo.jobs.mapreduce.interop.FeatureWriterJob
 
+<<<<<<< HEAD
 GeoMesaAccumuloInputFormat
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+=======
+    org.locationtech.geomesa.jobs.interop.mapreduce.FeatureCountJob
+    org.locationtech.geomesa.jobs.interop.mapreduce.FeatureWriterJob
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 The ``GeoMesaAccumuloInputFormat`` can be used to get ``SimpleFeature``\ s into
 your jobs directly from GeoMesa.
@@ -85,7 +90,11 @@ The job can be invoked through Yarn as follows:
 .. code-block:: shell
 
     geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_${VERSION}.jar \
+<<<<<<< HEAD
         org.locationtech.geomesa.accumulo.jobs.index.AttributeIndexJob \
+=======
+        org.locationtech.geomesa.jobs.index.AttributeIndexJob \
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         --geomesa.input.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \
         --geomesa.input.user <user> \
@@ -118,7 +127,11 @@ slightly):
 .. code-block:: shell
 
     geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_${VERSION}.jar \
+<<<<<<< HEAD
         org.locationtech.geomesa.accumulo.jobs.index.SchemaCopyJob \
+=======
+        org.locationtech.geomesa.jobs.index.SchemaCopyJob \
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         --geomesa.input.instanceId <instance> \
         --geomesa.output.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \
