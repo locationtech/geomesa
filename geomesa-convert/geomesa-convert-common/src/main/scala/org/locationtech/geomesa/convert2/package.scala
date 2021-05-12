@@ -25,10 +25,14 @@ import org.locationtech.geomesa.convert.EvaluationContext.EvaluationError
 >>>>>>> e05e1390095 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert2.AbstractConverter.FieldApiError
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -39,6 +43,9 @@ import org.locationtech.geomesa.convert2.AbstractConverter.FieldApiError
 =======
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
@@ -94,9 +101,13 @@ package object convert2 {
      *
      * @return an optional function to use instead of the args
      */
+<<<<<<< HEAD
     def fieldArg: Option[Array[AnyRef] => AnyRef]
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
     // TODO remove default impl in next major release
     // this will be caught and handled by the evaluation context
@@ -106,6 +117,7 @@ package object convert2 {
     @deprecated("Replaced with `fieldArg` for updating the raw input")
     def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = transforms.map(_.eval(args)).getOrElse(args(0))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -114,6 +126,9 @@ package object convert2 {
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
   }
 
   trait ConverterOptions {
