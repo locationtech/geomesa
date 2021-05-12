@@ -301,12 +301,14 @@ Back inside the Apache Spark container on your master node run the following:
 
   cd /mnt/geomesa
   pip install toree
+<<<<<<< HEAD
   wget https://repo1.maven.org/maven2/org/locationtech/geomesa/geomesa-spark-jupyter-leaflet_2.12/${VERSION}/geomesa-spark-jupyter-leaflet_${VERSION}.jar
 <<<<<<< HEAD
   jupyter toree install \
     --spark_home=/home/spark-current \
     --replace \
     --spark_opts="--master spark://`hostname -i`:7077 --num-executors 2 --conf spark.dynamicAllocation.enabled=false --jars /mnt/geomesa/geomesa-fs_${VERSION}/dist/spark/geomesa-fs-spark-runtime_${VERSION}.jar,/mnt/geomesa/geomesa-spark-jupyter-leaflet_${VERSION}.jar"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -325,6 +327,10 @@ Back inside the Apache Spark container on your master node run the following:
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
   wget https://repo1.maven.org/maven2/org/locationtech/geomesa/geomesa-jupyter-leaflet_2.12/${VERSION}/geomesa-jupyter-leaflet_${VERSION}.jar
   jupyter toree install \
     --spark_home=/home/spark-current \
@@ -336,8 +342,11 @@ Back inside the Apache Spark container on your master node run the following:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 810876750d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -352,6 +361,7 @@ Back inside the Apache Spark container on your master node run the following:
     --replace \
     --spark_opts="--master spark://`hostname -i`:7077 --num-executors 2 --conf spark.dynamicAllocation.enabled=false --jars /mnt/geomesa/geomesa-fs_${VERSION}/dist/spark/geomesa-fs-spark-runtime_${VERSION}.jar,/mnt/geomesa/geomesa-spark-jupyter-leaflet_${VERSION}.jar"
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -375,6 +385,11 @@ Back inside the Apache Spark container on your master node run the following:
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 If you have increased the size of your cluster, you should also increase ``--num-executors`` accordingly. You can also
 set other executor and driver options by editing the ``spark_opts`` contents.
