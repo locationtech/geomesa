@@ -26255,6 +26255,13 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- bring in guava and relocate it -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
         <!--Mark dependency as provided to avoid Spark 2.2.x conflicts-->
         <dependency>
             <groupId>org.apache.commons</groupId>
