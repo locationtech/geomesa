@@ -32,6 +32,7 @@ class DelimitedTextConverterTest extends Specification {
 
   sequential
 
+<<<<<<< HEAD
   val data = Seq(
     """1,hello,45.0,45.0""",
     """2,world,90.0,90.0""",
@@ -61,6 +62,38 @@ class DelimitedTextConverterTest extends Specification {
 
   "DelimitedTextConverter" should {
 
+=======
+
+  val data = Seq(
+    """1,hello,45.0,45.0""",
+    """2,world,90.0,90.0""",
+    """willfail,hello""").mkString("\n")
+
+  val conf = ConfigFactory.parseString(
+    """
+      | {
+      |   type         = "delimited-text",
+      |   format       = "DEFAULT",
+      |   id-field     = "md5(string2bytes($0))",
+      |   fields = [
+      |     { name = "oneup",    transform = "$1" },
+      |     { name = "phrase",   transform = "concat($1, $2)" },
+      |     { name = "lat",      transform = "$3::double" },
+      |     { name = "lon",      transform = "$4::double" },
+      |     { name = "lit",      transform = "'hello'" },
+      |     { name = "geom",     transform = "point($lat, $lon)" }
+      |     { name = "l1",       transform = "concat($lit, $lit)" }
+      |     { name = "l2",       transform = "concat($l1,  $lit)" }
+      |     { name = "l3",       transform = "concat($l2,  $lit)" }
+      |   ]
+      | }
+      """.stripMargin)
+
+  val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+
+  "DelimitedTextConverter" should {
+
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
     "be built from a conf" >> {
       SimpleFeatureConverter(sft, conf).close() must not(throwAn[Exception])
     }
@@ -75,8 +108,14 @@ class DelimitedTextConverterTest extends Specification {
       // handle more derived fields than input fields
       res(0).getAttribute("oneup").asInstanceOf[String] must be equalTo "1"
       // correctly identify feature IDs based on lines
+<<<<<<< HEAD
       res(0).getID mustEqual "924ab432cc82d3442f94f3c4969a2b0e" // hashing.hashBytes("1,hello,45.0,45.0".getBytes(StandardCharsets.UTF_8)).toString
       res(1).getID mustEqual "cd8bf6a68220d43c9158ff101a30a99d" // hashing.hashBytes("2,world,90.0,90.0".getBytes(StandardCharsets.UTF_8)).toString
+=======
+      val hashing = Hashing.md5()
+      res(0).getID mustEqual hashing.hashBytes("1,hello,45.0,45.0".getBytes(StandardCharsets.UTF_8)).toString
+      res(1).getID mustEqual hashing.hashBytes("2,world,90.0,90.0".getBytes(StandardCharsets.UTF_8)).toString
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
     }
 
     "handle tab delimited files" >> {
