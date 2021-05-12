@@ -19,6 +19,7 @@ sealed trait Predicate extends ContextDependent[Predicate] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -26,12 +27,15 @@ sealed trait Predicate extends ContextDependent[Predicate] {
 =======
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 
   def apply(args: Array[AnyRef]): Boolean
 
   @deprecated("Use `withContext` and `evaluate`")
   def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
     withContext(ctx).apply(args.asInstanceOf[Array[AnyRef]])
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -56,6 +60,9 @@ sealed trait Predicate extends ContextDependent[Predicate] {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 }
 
 object Predicate {
