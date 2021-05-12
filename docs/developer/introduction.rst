@@ -301,6 +301,7 @@ This downloads the latest development version. To check out the code for the lat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -646,6 +647,8 @@ This downloads the latest development version. To check out the code for the lat
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4cc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -771,6 +774,7 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -791,11 +795,16 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 9293965a7d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 (``$VERSION`` = |release_version|):
 
 .. code-block:: bash
 
     $ git checkout tags/geomesa-$VERSION -b geomesa-$VERSION 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -814,6 +823,8 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 9293965a7d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
@@ -4864,6 +4875,7 @@ This downloads the latest development version. To check out the code for the lat
 .. code-block:: bash
 
     $ git checkout tags/geomesa-$VERSION -b geomesa-$VERSION
+<<<<<<< HEAD
 >>>>>>> 10ade3dcd (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 703374130f (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 93fa8c797f (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -4874,6 +4886,11 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 9293965a7d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 731987cbc8 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 Building and dependency management for GeoMesa is handled by `Maven <http://maven.apache.org/>`__.
 The Maven ``pom.xml`` file in the root directory of the source distribution contains a
