@@ -292,6 +292,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -881,6 +882,8 @@
 >>>>>>> f19ccd21a4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> dbd7279f66 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> b7c183b83f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 =======
 >>>>>>> b2177e9015 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -975,6 +978,8 @@
 >>>>>>> fc1024de7e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 27c0ee7e6d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 5dcf23da52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> e6079868d7 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1119,6 +1124,7 @@
 =======
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 >>>>>>> 1bcc513539 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
@@ -1413,6 +1419,8 @@
 >>>>>>> 86ec77f9cb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 27c0ee7e6d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 947a867d1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e6e1f4bdd5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -3989,8 +3997,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 27c0ee7e6d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -4028,6 +4039,7 @@
 =======
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 1bcc513539 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -4079,6 +4091,8 @@
 =======
 >>>>>>> 86ec77f9cb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 27c0ee7e6d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 <<<<<<< HEAD
@@ -4106,6 +4120,8 @@
 >>>>>>> 89bdd3013 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> c8a325e13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 =======
 >>>>>>> c8a325e13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -4211,6 +4227,10 @@
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 1f17117603 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -4244,10 +4264,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fc1024de7e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 27c0ee7e6d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b9c0fc77b9 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -4258,6 +4281,7 @@
 >>>>>>> 86ec77f9cb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 1f17117603 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -4280,6 +4304,8 @@
 =======
 >>>>>>> 86ec77f9cb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 27c0ee7e6d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c5e182765 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> c1f99f4bcb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6709,12 +6735,16 @@
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d69216810e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> c8a325e13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 86ec77f9cb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6724,6 +6754,10 @@
 >>>>>>> fc1024de7e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 27c0ee7e6d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6732,14 +6766,20 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f110463a26 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> f110463a26 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 39c52cab32 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 5f428db97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -7702,14 +7742,18 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8171686fd2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 7925093789 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 >>>>>>> a788dfac03 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> fd5565dfba (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -7719,6 +7763,10 @@
 >>>>>>> 1bcc513539 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 7925093789 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -7734,6 +7782,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1bcc513539 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -7741,6 +7790,8 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -7816,6 +7867,7 @@
 >>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 1bcc513539 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -7879,6 +7931,8 @@
 >>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> fd5565dfba (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 7925093789 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -7912,11 +7966,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> fd5565dfba (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 >>>>>>> 1bcc513539 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> a38834fade (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -7937,14 +7995,19 @@
 >>>>>>> fd5565dfba (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 7925093789 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 =======
 >>>>>>> bdbced26d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7925093789 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -7965,6 +8028,7 @@
 =======
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 1bcc513539 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -7973,6 +8037,8 @@
 =======
 >>>>>>> fd5565dfba (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 7925093789 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -7989,15 +8055,19 @@
 >>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
->>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d4c5768cf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -8984,6 +9054,8 @@
 >>>>>>> 89bdd3013 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> c8a325e13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 =======
 =======
@@ -8995,6 +9067,10 @@
 >>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -9009,12 +9085,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 98eacc8492 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 664350d86f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> a35efac12e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c5e182765 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 947a867d1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -9051,10 +9130,13 @@
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> c8a325e13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> a35efac12e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -9537,6 +9619,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -11462,6 +11547,7 @@
 >>>>>>> be6c995cc7 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 1bcc513539 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -13914,7 +14000,15 @@
 >>>>>>> f302a54949 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 86ec77f9cb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 27c0ee7e6d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> dbd7279f66 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> b7c183b83f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15225,6 +15319,7 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 009a284072 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -15445,6 +15540,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 868c1a4d81 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 08a67b9e7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 9d1506029d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -15780,6 +15877,7 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 >>>>>>> 1bcc513539 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 8665a820cb (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -16477,6 +16575,8 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 08a67b9e7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 >>>>>>> 23c0241798 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
@@ -17295,6 +17395,10 @@ class MetadataJsonTest extends Specification {
 >>>>>>> bb1e627b99 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 5f17de37ee (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 69d749947 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -47263,6 +47367,9 @@ class MetadataJsonTest extends Specification {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -47276,6 +47383,7 @@ class MetadataJsonTest extends Specification {
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -47326,9 +47434,14 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 34e0106122 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e28e15e197 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -47355,6 +47468,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> d69216810e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e28e15e197 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 8f88e57edc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 07a6a5c291 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -47747,6 +47862,7 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 5f17de37ee (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -47757,6 +47873,10 @@ class MetadataJsonTest extends Specification {
 >>>>>>> d69216810e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e28e15e197 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -48461,6 +48581,10 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> e28e15e197 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> b9c0fc77b9 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -48468,6 +48592,7 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -48489,6 +48614,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> d69216810e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 86ec77f9cb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 947a867d1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -48501,10 +48628,14 @@ class MetadataJsonTest extends Specification {
 >>>>>>> f302a54949 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> b9c0fc77b9 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -48513,6 +48644,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> d69216810e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 86ec77f9cb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> e6e1f4bdd5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -49235,6 +49368,7 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 23c024179 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 250f01786f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -49245,6 +49379,8 @@ class MetadataJsonTest extends Specification {
 =======
 =======
 >>>>>>> d4c5768cf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -49357,6 +49493,7 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 364812dd7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -49496,10 +49633,15 @@ class MetadataJsonTest extends Specification {
 >>>>>>> bb1e627b99 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 5f17de37ee (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
   "MetadataJson" should {
     "persist and replace system properties (and environment variables)" in {
       skipped("fails in github actions")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -49718,6 +49860,8 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> f302a54949 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 23c024179 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 250f01786f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -49851,6 +49995,10 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 07a6a5c291 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -49873,6 +50021,7 @@ class MetadataJsonTest extends Specification {
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -50119,6 +50268,8 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 9627a2de6a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -50127,7 +50278,11 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
   val schemeOptions =
 
@@ -50151,6 +50306,7 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -50540,6 +50696,8 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 5f17de37ee (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -50560,6 +50718,10 @@ class MetadataJsonTest extends Specification {
 >>>>>>> d6616d893 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> f39309c33 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -50846,6 +51008,7 @@ class MetadataJsonTest extends Specification {
 =======
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -51223,6 +51386,10 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 3dd99aed4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 4524373ac (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 059393960 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 962f9e0a8d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -51235,6 +51402,14 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
 =======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -51511,6 +51686,7 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d4c5768cf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> fe51719bc6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -51570,6 +51746,7 @@ class MetadataJsonTest extends Specification {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
@@ -51578,6 +51755,10 @@ class MetadataJsonTest extends Specification {
 =======
 =======
 >>>>>>> b8545eda8f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c1f99f4bcb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -54507,6 +54688,7 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 5f17de37ee (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -55080,11 +55262,16 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 868c1a4d81 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 08a67b9e7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
   "MetadataJson" should {
     "persist and replace system properties (and environment variables)" in {
       skipped("fails in github actions")
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -55582,6 +55769,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 868c1a4d81 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 08a67b9e7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6ed35b9ff9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 7c9589b247 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -55752,6 +55941,7 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 69d749947 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 6d9ef35086 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -56076,6 +56266,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 5f17de37ee (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 08a67b9e7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 69d749947 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 6d9ef35086 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -57664,6 +57856,7 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -57678,9 +57871,14 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 868c1a4d81 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 08a67b9e7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -57695,6 +57893,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 8111fd4732 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 08a67b9e7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 8f88e57edc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 7e4b777b7d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -58314,10 +58514,15 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 5f17de37ee (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> 08a67b9e7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -59314,14 +59519,20 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 8111fd4732 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 08a67b9e7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> locationtech-main
 =======
 >>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -59334,8 +59545,11 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 27c0ee7e6d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 947a867d1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 6150564577 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -59349,12 +59563,18 @@ class MetadataJsonTest extends Specification {
 >>>>>>> f302a54949 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 27c0ee7e6d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> e6e1f4bdd5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -60490,8 +60710,11 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8171686fd2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 23c024179 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 250f01786f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -60507,10 +60730,15 @@ class MetadataJsonTest extends Specification {
 >>>>>>> d4c5768cf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> 8171686fd2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -60656,8 +60884,11 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 08a67b9e7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 364812dd7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> f038e6d420 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -60888,12 +61119,16 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 5f17de37ee (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> e28e15e197 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
 =======
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 76908c410a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -67229,6 +67464,9 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> e28e15e197 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 08a67b9e7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 17f16286aa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 8435590eee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       withPath { context =>
         val prop = "MetadataJsonTest.foo"
         val interpolated = "${" + prop + "}"
