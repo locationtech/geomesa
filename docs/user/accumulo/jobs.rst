@@ -26,8 +26,10 @@ complex operations. These are::
     org.locationtech.geomesa.accumulo.jobs.mapreduce.interop.FeatureCountJob
     org.locationtech.geomesa.accumulo.jobs.mapreduce.interop.FeatureWriterJob
 
+<<<<<<< HEAD
 GeoMesaAccumuloInputFormat
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -42,6 +44,12 @@ GeoMesaAccumuloInputFormat
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+    org.locationtech.geomesa.jobs.interop.mapreduce.FeatureCountJob
+    org.locationtech.geomesa.jobs.interop.mapreduce.FeatureWriterJob
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 The ``GeoMesaAccumuloInputFormat`` can be used to get ``SimpleFeature``\ s into
 your jobs directly from GeoMesa.
@@ -99,7 +107,9 @@ The job can be invoked through Yarn as follows:
 .. code-block:: shell
 
     geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_${VERSION}.jar \
+<<<<<<< HEAD
         org.locationtech.geomesa.accumulo.jobs.index.AttributeIndexJob \
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -113,6 +123,11 @@ The job can be invoked through Yarn as follows:
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+        org.locationtech.geomesa.jobs.index.AttributeIndexJob \
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         --geomesa.input.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \
         --geomesa.input.user <user> \
@@ -145,7 +160,9 @@ slightly):
 .. code-block:: shell
 
     geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_${VERSION}.jar \
+<<<<<<< HEAD
         org.locationtech.geomesa.accumulo.jobs.index.SchemaCopyJob \
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -159,6 +176,11 @@ slightly):
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+        org.locationtech.geomesa.jobs.index.SchemaCopyJob \
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         --geomesa.input.instanceId <instance> \
         --geomesa.output.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \

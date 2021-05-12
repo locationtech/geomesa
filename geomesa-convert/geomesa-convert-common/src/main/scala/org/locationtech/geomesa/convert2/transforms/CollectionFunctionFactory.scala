@@ -91,6 +91,7 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
       case m => throw new IllegalArgumentException(s"Expected a java.util.Map but got $m:${m.getClass.getName}")
     }
   }
+<<<<<<< HEAD
 
   private val listItem = TransformerFunction.pure("listItem") { args =>
     args(0) match {
@@ -101,6 +102,7 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
   }
 
   private val transformList = new TransformList(null)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -965,6 +967,10 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 }
 
 object CollectionFunctionFactory {

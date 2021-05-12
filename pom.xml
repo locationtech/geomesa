@@ -1297,6 +1297,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <geomesa.release.version>4.0.5</geomesa.release.version>
 =======
 =======
@@ -1401,6 +1402,8 @@
 >>>>>>> b7925a7bdc5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 8d17c775453 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 74161e6dea8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
         <geomesa.release.version>4.0.4</geomesa.release.version>
 <<<<<<< HEAD
@@ -2160,7 +2163,24 @@
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> c8d2cfae9c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+        <geomesa.release.version>3.5.0</geomesa.release.version>
+        <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
+<<<<<<< HEAD
+        <copyright.year>2023</copyright.year>
+=======
+        <copyright.year>2022</copyright.year>
+=======
+        <geomesa.release.version>3.2.0</geomesa.release.version>
+        <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
+        <copyright.year>2021</copyright.year>
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 66290f2cff (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
         <!-- recommended installation versions -->
 <<<<<<< HEAD
