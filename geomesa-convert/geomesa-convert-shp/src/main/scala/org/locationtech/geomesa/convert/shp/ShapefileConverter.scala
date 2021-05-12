@@ -214,6 +214,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c0205a0050 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
@@ -248,6 +249,8 @@ import com.codahale.metrics.Counter
 >>>>>>> de8896ccfc (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> a3506f6924 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 302df4295a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -300,6 +303,7 @@ import com.codahale.metrics.Counter
 >>>>>>> 30b2505101 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 13d53e6b02 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 07e49471e8 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -411,6 +415,10 @@ import com.codahale.metrics.Counter
 >>>>>>> de8896ccfc (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 07e49471e8 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a3506f6924 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> d2042eea397 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -553,6 +561,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a3506f6924 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 3ea600ce08 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -574,6 +585,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 13d53e6b02 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 07e49471e8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -609,6 +621,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> de8896ccfc (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 07e49471e8 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> a3506f6924 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 91dbd747c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> ddc2cffa3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -1539,8 +1555,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 235643d3d2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> a3506f6924 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> c8dc147f252 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -4363,8 +4382,11 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 07e49471e8 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 2787ace19dc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> aa1dd01cf45 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 3ea600ce08 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 235643d3d2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -7654,7 +7676,12 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> d1cf3ad8b5 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 13d53e6b02 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 70da829a09a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> a3506f6924 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> aa1dd01cf45 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext
