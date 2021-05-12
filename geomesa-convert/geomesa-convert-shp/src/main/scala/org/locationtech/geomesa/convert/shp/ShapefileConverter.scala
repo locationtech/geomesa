@@ -33,6 +33,10 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+=======
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 import org.geotools.api.data.{DataStoreFinder, Query}
@@ -7029,12 +7033,19 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 190b2701741 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 =======
+>>>>>>> locationtech-main
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 91fff88c9ab (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
 import java.io.InputStream
 import java.util.Collections
+<<<<<<< HEAD
 import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 
@@ -10352,7 +10363,16 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 5f4f3b71589 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+
+import com.codahale.metrics.Counter
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 91fff88c9ab (GEOMESA-3071 Move all converter state into evaluation context)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext
