@@ -1,0 +1,46 @@
+[
+  {
+    "namespace": "org.locationtech.geomesa.convert.avro",
+    "type": "record",
+    "name": "Person",
+    "fields": [
+      {
+        "name": "name",
+        "type" : [ "null", "string" ],
+        "default" : null
+      },
+      {
+        "name": "age",
+        "type" : [ "null", "int" ],
+        "default" : null
+      },
+      {
+        "name": "location",
+        "type" : [ "null", "string" ],
+        "default" : null
+      }
+    ]
+  },
+  {
+    "namespace": "org.locationtech.geomesa.convert.avro",
+    "type": "record",
+    "name": "Animal",
+    "fields": [
+      {
+        "name": "name",
+        "type" : [ "null", "string" ],
+        "default" : null
+      },
+      {
+        "name": "breed",
+        "type" : [ "null", "string" ],
+        "default" : null
+      },
+      {
+        "name": "location",
+        "type" : [ "null", "string" ],
+        "default" : null
+      }
+    ]
+  }
+]
