@@ -103,15 +103,19 @@ object AbstractCompositeConverter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -125,6 +129,10 @@ object AbstractCompositeConverter {
 =======
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
   // noinspection ScalaDeprecation
   case class CompositeEvaluationContext(contexts: Seq[EvaluationContext], success: Counter, failure: Counter)
       extends EvaluationContext {
@@ -140,12 +148,15 @@ object AbstractCompositeConverter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -173,6 +184,7 @@ object AbstractCompositeConverter {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -196,6 +208,8 @@ object AbstractCompositeConverter {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
     override def cache: Map[String, EnrichmentCache] = throw new NotImplementedError()
     override def metrics: ConverterMetrics = throw new NotImplementedError()
     override def accessor(name: String): FieldAccessor = throw new NotImplementedError()
