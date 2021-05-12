@@ -46,6 +46,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -60,9 +61,12 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 686339d050 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
+>>>>>>> 149b7a7809 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 30d431265a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> f3a49e0825 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -78,6 +82,10 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> eee5d7ae15 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 149b7a7809 (GEOMESA-3071 Move all converter state into evaluation context)
     case Array(x: Number, y: Number) => gf.createPoint(coord(x, y))
     case Array(x: Number, y: Number, z: Number) => gf.createPoint(coordZ(x, y, z))
     case Array(x: Number, y: Number, z: Number, m: Number) => gf.createPoint(coordZM(x, y, z, m))
@@ -93,12 +101,17 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0d80bae0c6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f3a49e0825 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 67b361c856 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 149b7a7809 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
     case Array(x: Number, y: Number) => gf.createPoint(new Coordinate(x.doubleValue, y.doubleValue))
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[Point]
