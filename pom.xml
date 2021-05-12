@@ -29862,6 +29862,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -29870,6 +29871,8 @@
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -29887,6 +29890,7 @@
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -29917,6 +29921,8 @@
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
         <maven.test.jvmargs>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.jvmargs>
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -29964,6 +29970,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -29972,12 +29979,19 @@
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
         <maven.test.jvmargs>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.jvmargs>
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
         <maven.test.jvmargs>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.jvmargs>
@@ -30014,6 +30028,7 @@
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 =======
         <maven.test.jvmargs>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.jvmargs>
@@ -30073,6 +30088,8 @@
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
         <test.fork.count>4</test.fork.count>
         <test.fork.reuse>true</test.fork.reuse>
         <!-- arrow tests become extremely slow with assertions enabled-->
