@@ -46,6 +46,7 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -70,6 +71,8 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 >>>>>>> 1ea8b10ac7 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 9293965a7d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
       <artifactId>geomesa-spark-jts_2.12</artifactId>
       // version, etc.
@@ -110,10 +113,14 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
       <artifactId>geomesa-spark-jts_2.12</artifactId>
       // version, etc.
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -194,6 +201,10 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 >>>>>>> 1ea8b10ac7 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 9293965a7d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     </dependency>
 
 Example
