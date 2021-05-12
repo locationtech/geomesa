@@ -32,6 +32,9 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -80,6 +83,7 @@ import java.util.ServiceLoader
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
@@ -108,6 +112,10 @@ import java.util.ServiceLoader
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.EvaluationContext.ContextDependent
 import org.locationtech.geomesa.convert2.AbstractConverter.TransformerFunctionApiError
@@ -119,6 +127,9 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -148,6 +159,7 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -200,6 +212,8 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 =======
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 trait TransformerFunction extends ContextDependent[TransformerFunction] {
 
   /**
@@ -243,6 +257,7 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -256,6 +271,8 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -268,6 +285,7 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -369,9 +387,12 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
   def apply(args: Array[AnyRef]): AnyRef =
     // this error will be caught and handled by the evaluation context
     throw TransformerFunctionApiError // TODO remove default impl in next major release
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -416,7 +437,13 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 
   /**
     * Returns an uninitialized instance of this function
@@ -478,6 +505,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -502,6 +530,8 @@ object TransformerFunction {
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
       override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
 <<<<<<< HEAD
@@ -546,6 +576,7 @@ object TransformerFunction {
       override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -604,6 +635,13 @@ object TransformerFunction {
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+      override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
       override def apply(args: Array[AnyRef]): AnyRef = f(args.asInstanceOf[Array[Any]]).asInstanceOf[AnyRef]
     }
   }
@@ -631,6 +669,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -655,6 +694,8 @@ object TransformerFunction {
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
       override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
 <<<<<<< HEAD
@@ -699,6 +740,7 @@ object TransformerFunction {
       override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -757,6 +799,13 @@ object TransformerFunction {
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+      override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
       override def apply(args: Array[AnyRef]): AnyRef = f(args.asInstanceOf[Array[Any]]).asInstanceOf[AnyRef]
     }
   }
@@ -786,6 +835,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -807,6 +857,8 @@ object TransformerFunction {
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -819,6 +871,7 @@ object TransformerFunction {
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -842,6 +895,8 @@ object TransformerFunction {
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
     override def apply(args: Array[AnyRef]): AnyRef =
       eval(args.asInstanceOf[Array[Any]])(null).asInstanceOf[AnyRef] // TODO remove this in next major release
   }
@@ -854,6 +909,7 @@ object TransformerFunction {
       new DelegateFunction(delegate.getInstance(args), ec)
     override def pure: Boolean = delegate.pure
     override def withContext(ec: EvaluationContext): TransformerFunction = new DelegateFunction(delegate, ec)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -884,6 +940,8 @@ object TransformerFunction {
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -917,6 +975,7 @@ object TransformerFunction {
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -967,5 +1026,10 @@ object TransformerFunction {
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
   }
 }

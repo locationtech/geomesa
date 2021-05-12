@@ -76,6 +76,7 @@ class ScriptingFunctionFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
@@ -94,6 +95,8 @@ class ScriptingFunctionFactoryTest extends Specification {
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
         hello.eval(Array("geomesa")) mustEqual "hello: geomesa"
 =======
@@ -125,10 +128,15 @@ class ScriptingFunctionFactoryTest extends Specification {
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
         hello.eval(Array("geomesa")) mustEqual "hello: geomesa"
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -140,6 +148,9 @@ class ScriptingFunctionFactoryTest extends Specification {
         whatsup.eval(Array("geomesa")) mustEqual "whatsup: geomesa"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -153,6 +164,7 @@ class ScriptingFunctionFactoryTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -263,6 +275,8 @@ class ScriptingFunctionFactoryTest extends Specification {
 =======
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
       } finally {
         ScriptingFunctionFactory.ConvertScriptsPath.threadLocalValue.remove()
       }
