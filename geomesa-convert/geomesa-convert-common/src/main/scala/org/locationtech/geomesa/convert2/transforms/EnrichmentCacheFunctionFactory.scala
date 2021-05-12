@@ -32,6 +32,7 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -39,6 +40,15 @@ object EnrichmentCacheFunctionFactory {
 =======
 =======
 =======
+=======
+=======
+    }
+
+    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
+      val cache = ec.cache(args(0).asInstanceOf[String])
+      cache.get(Array(args(1).asInstanceOf[String], args(2).asInstanceOf[String]))
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
     }
 
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
