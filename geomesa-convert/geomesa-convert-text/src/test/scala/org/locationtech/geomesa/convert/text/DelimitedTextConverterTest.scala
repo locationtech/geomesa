@@ -85,7 +85,10 @@ class DelimitedTextConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -161,6 +164,7 @@ class DelimitedTextConverterTest extends Specification {
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
@@ -184,6 +188,12 @@ class DelimitedTextConverterTest extends Specification {
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
+=======
+=======
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
 
   val data = Seq(
     """1,hello,45.0,45.0""",
@@ -233,8 +243,12 @@ class DelimitedTextConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -348,6 +362,7 @@ class DelimitedTextConverterTest extends Specification {
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
@@ -390,6 +405,12 @@ class DelimitedTextConverterTest extends Specification {
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
     "be built from a conf" >> {
       SimpleFeatureConverter(sft, conf).close() must not(throwAn[Exception])
     }
@@ -434,8 +455,11 @@ class DelimitedTextConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -615,6 +639,7 @@ class DelimitedTextConverterTest extends Specification {
 <<<<<<< HEAD
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
@@ -747,6 +772,16 @@ class DelimitedTextConverterTest extends Specification {
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
+=======
+=======
+      val hashing = Hashing.md5()
+      res(0).getID mustEqual hashing.hashBytes("1,hello,45.0,45.0".getBytes(StandardCharsets.UTF_8)).toString
+      res(1).getID mustEqual hashing.hashBytes("2,world,90.0,90.0".getBytes(StandardCharsets.UTF_8)).toString
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
     }
 
     "handle tab delimited files" >> {
