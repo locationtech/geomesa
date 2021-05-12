@@ -8388,6 +8388,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
@@ -8489,7 +8490,12 @@ libraryDependencies ++= Seq(
 =======
 =======
 >>>>>>> 7c58c5ebda ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 4848410c92 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 49a5a0454f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> a75dd93dd3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 **Development version: 4.1.0-SNAPSHOT**
 =======
 **Development version: 3.3.0-SNAPSHOT**
@@ -8523,6 +8529,7 @@ libraryDependencies ++= Seq(
 >>>>>>> 1f8411bc8e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> c009eb5e7f ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -8672,12 +8679,19 @@ libraryDependencies ++= Seq(
 >>>>>>> 7f02afb594 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 7c58c5ebda ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+>>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 947a867d1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 49a5a0454f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 **Development version: 3.4.0-SNAPSHOT**
 =======
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8764,6 +8778,10 @@ libraryDependencies ++= Seq(
 =======
 <<<<<<< HEAD
 >>>>>>> 1aa0b19c24 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 49a5a0454f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 **Development version: 3.5.0-SNAPSHOT**
 =======
 **Development version: 4.0.0-SNAPSHOT**
@@ -8791,6 +8809,9 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 49a5a0454f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 3c071a6b3e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -33250,6 +33271,8 @@ libraryDependencies ++= Seq(
 =======
 =======
 =======
+>>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 **Development version: 3.3.0-SNAPSHOT**
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -33264,9 +33287,21 @@ libraryDependencies ++= Seq(
 =======
 **Development version: 3.4.0-SNAPSHOT**
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> c009eb5e7f ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 7c58c5ebda ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 947a867d1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 49a5a0454f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
