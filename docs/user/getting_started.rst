@@ -32,14 +32,6 @@ GeoMesa. They are a good stepping-stone on the path to the other tutorials that 
 examples of how to use GeoMesa. The tutorials show how to write custom Java code to ingest and query data with
 GeoMesa, and visualize the changes being made in GeoServer.
 
-Docker Images
--------------
-
-The `Geodocker <https://github.com/geodocker/geodocker-geomesa>`_ project provides Docker images that make it easy
-to stand up an Accumulo cluster with GeoMesa already configured. This
-:doc:`guide </tutorials/geodocker-geomesa/geodocker-geomesa-spark-on-aws>` describes how to bootstrap a cluster
-using Amazon ElasticMapReduce (EMR) and Docker in order to ingest and query sample GDELT data.
-
 Data Ingestion
 --------------
 

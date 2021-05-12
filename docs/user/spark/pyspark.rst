@@ -23,7 +23,7 @@ the providers outlined in :ref:`spatial_rdd_providers`.
 
     mvn clean install -Ppython
     pip3 install geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$VERSION.tar.gz
-    cp  geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo2/target/geomesa-accumulo-spark-runtime-accumulo2_2.11-$VERSION.jar /path/to/
+    cp  geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo2/target/geomesa-accumulo-spark-runtime-accumulo2_${VERSION}.jar /path/to/
 
 Alternatively, you can use ``conda-pack`` to bundle the dependencies for your project. This may be more appropriate if
 you have additional dependencies.
@@ -39,7 +39,7 @@ you have additional dependencies.
     # Install additional dependencies using conda or pip here
 
     conda pack -o environment.tar.gz
-    cp geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo2/target/geomesa-accumulo-spark-runtime-accumulo2_2.11-$VERSION.jar /path/to/
+    cp geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo2/target/geomesa-accumulo-spark-runtime-accumulo2_${VERSION}.jar /path/to/
 
 .. warning::
     ``conda-pack`` currently has issues with Python 3.8, and ``pyspark`` has issues with Python 3.9, hence the explicit
@@ -57,7 +57,7 @@ the ``pyspark`` library.
 
     import geomesa_pyspark
     conf = geomesa_pyspark.configure(
-        jars=['/path/to/geomesa-accumulo-spark-runtime-accumulo2_2.11-$VERSION.jar'],
+        jars=['/path/to/geomesa-accumulo-spark-runtime-accumulo2_${VERSION}.jar'],
         packages=['geomesa_pyspark','pytz'],
         spark_home='/path/to/spark/').\
         setAppName('MyTestApp')
@@ -80,7 +80,7 @@ must start ``pyspark`` or your application as follows, updating paths as require
 .. code-block:: bash
 
     PYSPARK_DRIVER_PYTHON=/opt/anaconda3/envs/$ENV_NAME/bin/python PYSPARK_PYTHON=./environment/bin/python pyspark \
-    --jars /path/to/geomesa-accumulo-spark-runtime_2.11-$VERSION.jar \
+    --jars /path/to/geomesa-accumulo-spark-runtime_${VERSION}.jar \
     --conf spark.yarn.appMasterEnv.PYSPARK_PYTHON=./environment/bin/python \
     --master yarn --deploy-mode client --archives environment.tar.gz#environment
 

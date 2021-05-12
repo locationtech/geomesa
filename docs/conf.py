@@ -14,5 +14,7 @@ master_doc = 'index'
 # HTML title
 html_title = 'GeoMesa %s Manuals' % release
 
+exclude_patterns = [ 'README.md' ]
+
 def setup(app):
     app.add_stylesheet('https://fonts.googleapis.com/css?family=Roboto:400,700')

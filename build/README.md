@@ -182,6 +182,6 @@ environment variable to point to the root of your JDK.  Example from a Mac:
 
 ### Scala Cross Build
 
-To build for a different Scala version (e.g. 2.12), run the following script, then build as normal:
+To build for a different Scala version (e.g. 2.11), run the following script, then build as normal:
 
-    ./build/change-scala-version.sh 2.12
+    ./build/change-scala-version.sh 2.11

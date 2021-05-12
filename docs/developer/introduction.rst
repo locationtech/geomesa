@@ -30,7 +30,7 @@ The GeoMesa source distribution may be cloned from GitHub:
     $ cd geomesa
 
 This downloads the latest development version. To check out the code for the latest stable release
-(``$VERSION`` = |release|):
+(``$VERSION`` = |release_version|):
 
 .. code-block:: bash
 

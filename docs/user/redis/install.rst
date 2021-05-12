@@ -9,19 +9,23 @@ Installing the Binary Distribution
 ----------------------------------
 
 GeoMesa Redis artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version
-(|release|) from `GitHub`__.
+The easiest way to get started is to download the most recent binary version from `GitHub`__.
 
 __ https://github.com/locationtech/geomesa/releases
+
+.. note::
+
+  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
+  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
 
 Extract it somewhere convenient:
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-redis_2.11-$VERSION-bin.tar.gz"
-    $ tar xvf geomesa-redis_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-redis_2.11-$VERSION
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-redis_${VERSION}-bin.tar.gz"
+    $ tar xvf geomesa-redis_${VERSION}-bin.tar.gz
+    $ cd geomesa-redis_${VERSION}
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
@@ -44,7 +48,7 @@ Setting up the Redis Command Line Tools
 ---------------------------------------
 
 GeoMesa comes with a set of command line tools for managing Redis features located in
-``geomesa-redis_2.11-$VERSION/bin/`` of the binary distribution.
+``geomesa-redis_${VERSION}/bin/`` of the binary distribution.
 
 .. note::
 
@@ -89,7 +93,7 @@ Installing GeoMesa Redis in GeoServer
     See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
 
 The Redis GeoServer plugin is bundled by default in a GeoMesa binary distribution. To install, extract
-``$GEOMESA_REDIS_HOME/dist/gs-plugins/geomesa-redis-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
+``$GEOMESA_REDIS_HOME/dist/gs-plugins/geomesa-redis-gs-plugin_${VERSION}-install.tar.gz`` into GeoServer's
 ``WEB-INF/lib`` directory.
 
 Restart GeoServer after the JARs are installed. See :doc:`/user/redis/geoserver` for details on configuring stores

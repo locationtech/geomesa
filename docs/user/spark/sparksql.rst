@@ -12,7 +12,7 @@ GeoMesa SparkSQL code is provided by the ``geomesa-spark-sql`` module:
 
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
-      <artifactId>geomesa-spark-sql_2.11</artifactId>
+      <artifactId>geomesa-spark-sql_2.12</artifactId>
       // version, etc.
     </dependency>
 
