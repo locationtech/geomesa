@@ -80,6 +80,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -245,6 +246,8 @@
 >>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 32cf8a2426 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
 >>>>>>> 2537391cc6 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -263,6 +266,8 @@
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -332,8 +337,11 @@
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9bfce7e5bc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> 32cf8a2426 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -576,7 +584,12 @@
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 32cf8a2426 (GEOMESA-3071 Move all converter state into evaluation context)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -642,8 +655,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
@@ -700,6 +716,7 @@
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -799,6 +816,13 @@
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -832,12 +856,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5f12c5b15a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1db60d5575 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -848,6 +875,7 @@
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -881,6 +909,10 @@
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 5bf7fcb2bf (GEOMESA-3071 Move all converter state into evaluation context)
@@ -999,6 +1031,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 82361e757f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -1009,10 +1042,14 @@
 =======
 >>>>>>> 69f3e67660 (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 32cf8a2426 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 >>>>>>> b71b0e3cfc (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -1303,10 +1340,13 @@
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> dbed56f042 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 32cf8a2426 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -1816,7 +1856,14 @@
 =======
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 32cf8a2426 (GEOMESA-3071 Move all converter state into evaluation context)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -1839,6 +1886,7 @@ import pureconfig.ConfigObjectCursor
 import pureconfig.error.ConfigReaderFailures
 
 import java.io.InputStream
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1881,6 +1929,8 @@ import java.io.InputStream
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -1901,6 +1951,7 @@ import java.io.InputStream
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -1922,6 +1973,8 @@ import java.io.InputStream
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 
@@ -1941,6 +1994,7 @@ import com.typesafe.config.ConfigFactory
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -1957,6 +2011,10 @@ import com.typesafe.config.ConfigFactory
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.apache.commons.io.IOUtils
@@ -1977,6 +2035,9 @@ import pureconfig.error.ConfigReaderFailures
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -2017,6 +2078,7 @@ import pureconfig.error.ConfigReaderFailures
 <<<<<<< HEAD
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2115,6 +2177,28 @@ import pureconfig.error.ConfigReaderFailures
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+import org.apache.commons.io.IOUtils
+import org.junit.runner.RunWith
+import org.locationtech.geomesa.convert.TestConverterFactory.TestField
+import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicOptions}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicConfigConvert, BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert, PrimitiveConvert}
+import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
+import org.locationtech.geomesa.convert2.transforms.{Expression, TransformerFunction, TransformerFunctionFactory}
+import org.locationtech.geomesa.convert2.{AbstractConverter, AbstractConverterFactory, Field, SimpleFeatureConverter}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.geomesa.utils.io.WithClose
+import org.opengis.feature.simple.SimpleFeatureType
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
+import pureconfig.ConfigObjectCursor
+import pureconfig.error.ConfigReaderFailures
+
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 @RunWith(classOf[JUnitRunner])
 class ApiTest extends Specification {
 
@@ -2167,10 +2251,14 @@ class ApiTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -2189,6 +2277,8 @@ class ApiTest extends Specification {
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2213,8 +2303,11 @@ import java.io.InputStream
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2255,6 +2348,7 @@ import java.io.InputStream
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2302,6 +2396,8 @@ import java.io.InputStream
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 
 class TestConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Seq[TestField], options: BasicOptions)
     extends AbstractConverter[String, BasicConfig, TestField, BasicOptions](sft, config, fields, options) {
@@ -2316,6 +2412,7 @@ class TestConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Seq[Tes
       ec: EvaluationContext): CloseableIterator[Array[Any]] = parsed.map(Array[Any](_))
 }
 
+<<<<<<< HEAD
 class TestConverterFactory extends AbstractConverterFactory[TestConverter, BasicConfig, TestField, BasicOptions](
   "test", BasicConfigConvert, TestConverterFactory.TestFieldConvert, BasicOptionsConvert)
 <<<<<<< HEAD
@@ -2341,6 +2438,7 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2368,6 +2466,8 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2387,10 +2487,14 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -2414,6 +2518,8 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 class TestConverterFactory extends AbstractConverterFactory[TestConverter, BasicConfig, TestField, BasicOptions] {
   override protected val typeToProcess: String = "test"
   override protected implicit val configConvert: ConverterConfigConvert[BasicConfig] = BasicConfigConvert
@@ -2436,10 +2542,14 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -2458,6 +2568,8 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2481,8 +2593,11 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2523,6 +2638,7 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2570,6 +2686,8 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 
 object TestConverterFactory {
 
@@ -2596,6 +2714,7 @@ object TestConverterFactory {
 
   trait TestField extends Field
 
+<<<<<<< HEAD
   case class TestDerivedField(name: String, transforms: Option[Expression]) extends TestField {
     override def fieldArg: Option[Array[AnyRef] => AnyRef] = None
   }
@@ -2623,6 +2742,7 @@ object TestConverterFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2646,6 +2766,8 @@ object TestConverterFactory {
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2666,6 +2788,7 @@ object TestConverterFactory {
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -2687,6 +2810,8 @@ object TestConverterFactory {
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
   case class TestDerivedField(name: String, transforms: Option[Expression]) extends TestField
 
   case class TestSplitField(name: String, transforms: Option[Expression]) extends TestField {
@@ -2708,10 +2833,14 @@ object TestConverterFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -2730,6 +2859,8 @@ object TestConverterFactory {
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2757,8 +2888,11 @@ object TestConverterFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2799,6 +2933,7 @@ object TestConverterFactory {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2846,6 +2981,8 @@ object TestConverterFactory {
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
   }
 }
 
@@ -2854,6 +2991,7 @@ class TestFunctionFactory extends TransformerFunctionFactory {
   override def functions: Seq[TransformerFunction] = Seq(foo, bar)
 
   private val foo = new NamedTransformerFunction(Seq("foo")) {
+<<<<<<< HEAD
     override def apply(args: Array[AnyRef]): AnyRef = "foo " + args(0)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2878,13 +3016,17 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -2914,6 +3056,10 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 =======
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = "foo " + args(0)
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2943,6 +3089,9 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2988,6 +3137,7 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3048,10 +3198,15 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
   }
 
   private val bar = new TransformerFunction {
     override def names: Seq[String] = Seq("bar")
+<<<<<<< HEAD
     override def apply(args: Array[AnyRef]): AnyRef = "bar " + args(0)
     override def withContext(ec: EvaluationContext): TransformerFunction = this
 <<<<<<< HEAD
@@ -3077,13 +3232,17 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -3113,6 +3272,10 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 =======
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = "bar " + args(0)
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3142,6 +3305,9 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -3187,6 +3353,7 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3247,5 +3414,9 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
   }
 }
