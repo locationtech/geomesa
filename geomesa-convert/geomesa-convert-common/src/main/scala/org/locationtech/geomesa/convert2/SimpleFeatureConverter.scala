@@ -35,6 +35,7 @@ package org.locationtech.geomesa.convert2
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -43,6 +44,8 @@ package org.locationtech.geomesa.convert2
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -60,6 +63,7 @@ package org.locationtech.geomesa.convert2
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -90,6 +94,8 @@ package org.locationtech.geomesa.convert2
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 import java.io.{Closeable, InputStream}
 
 <<<<<<< HEAD
@@ -140,12 +146,17 @@ import java.io.{Closeable, InputStream}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 import java.io.{Closeable, InputStream}
@@ -155,8 +166,11 @@ import java.io.{Closeable, InputStream}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 import java.io.{Closeable, InputStream}
@@ -196,6 +210,7 @@ import java.io.{Closeable, InputStream}
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 =======
 import java.io.{Closeable, InputStream}
@@ -254,6 +269,8 @@ import java.io.{Closeable, InputStream}
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
@@ -396,13 +413,17 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -426,6 +447,10 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 =======
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -435,8 +460,11 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -463,10 +491,13 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
   def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext =
     // TODO remove default impl in next major release
     new DelegatingEvaluationContext(createEvaluationContext(globalParams))(success, failure)
@@ -480,8 +511,11 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -489,10 +523,15 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -552,6 +591,7 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -683,6 +723,10 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 
   /**
    * Java API for `createEvaluationContext`
