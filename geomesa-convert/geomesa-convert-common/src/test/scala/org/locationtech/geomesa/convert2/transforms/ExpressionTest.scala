@@ -72,6 +72,7 @@ package org.locationtech.geomesa.convert2.transforms
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 063b0f26f0 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -101,6 +102,8 @@ package org.locationtech.geomesa.convert2.transforms
 >>>>>>> 09c8a6d2fd (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -530,6 +533,7 @@ package org.locationtech.geomesa.convert2.transforms
 =======
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 35b3ecb03d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
@@ -577,6 +581,11 @@ package org.locationtech.geomesa.convert2.transforms
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 09c8a6d2fd (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.{Collections, Date}
@@ -592,6 +601,7 @@ import java.util.{Collections, Date}
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -689,6 +699,8 @@ import java.util.{Collections, Date}
 >>>>>>> 243797ba3c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 09c8a6d2fd (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> c44517c36 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 6938112d54 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -1434,7 +1446,12 @@ import java.util.{Collections, Date}
 =======
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -1852,6 +1869,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+<<<<<<< HEAD
 =======
       Expression("false").eval(null) mustEqual false
       Expression("true").eval(null) mustEqual true
@@ -1865,41 +1883,58 @@ class ExpressionTest extends Specification {
       exp.apply(Array("", "foo ", "bar")) must be equalTo "foo"
       exp.apply(Array("", null)) must beNull
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.eval(Array("", "foo ", "bar")) must be equalTo "foo"
       exp.eval(Array("", null)) must beNull
     }
     "capitalize" >> {
       val exp = Expression("capitalize($1)")
+<<<<<<< HEAD
       exp.apply(Array("", "foo", "bar")) must be equalTo "Foo"
       exp.apply(Array("", null)) must beNull
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.eval(Array("", "foo", "bar")) must be equalTo "Foo"
       exp.eval(Array("", null)) must beNull
     }
     "lowercase" >> {
       val exp = Expression("lowercase($1)")
+<<<<<<< HEAD
       exp.apply(Array("", "FOO", "bar")) must be equalTo "foo"
       exp.apply(Array("", null)) must beNull
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.eval(Array("", "FOO", "bar")) must be equalTo "foo"
       exp.eval(Array("", null)) must beNull
     }
     "uppercase" >> {
       val exp = Expression("uppercase($1)")
+<<<<<<< HEAD
       exp.apply(Array("", "FoO")) must be equalTo "FOO"
       exp.apply(Array("", null)) must beNull
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.eval(Array("", "FoO")) must be equalTo "FOO"
       exp.eval(Array("", null)) must beNull
     }
     "regexReplace" >> {
       val exp = Expression("regexReplace('foo'::r,'bar',$1)")
+<<<<<<< HEAD
       exp.apply(Array("", "foobar")) must be equalTo "barbar"
       exp.apply(Array("", null)) must beNull
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.eval(Array("", "foobar")) must be equalTo "barbar"
       exp.eval(Array("", null)) must beNull
     }
     "compound expressions" >> {
       val exp = Expression("regexReplace('foo'::r,'bar',trim($1))")
+<<<<<<< HEAD
       exp.apply(Array("", " foobar ")) must be equalTo "barbar"
       exp.apply(Array("", null)) must beNull
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.eval(Array("", " foobar ")) must be equalTo "barbar"
       exp.eval(Array("", null)) must beNull
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1908,6 +1943,7 @@ class ExpressionTest extends Specification {
     "take substrings" >> {
       foreach(Seq("substring", "substr")) { fn =>
         val exp = Expression(s"$fn($$1, 2, 5)")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1929,6 +1965,8 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         exp.apply(Array("", "foobarbaz")) must be equalTo "foobarbaz".substring(2, 5)
         exp.apply(Array("", null)) must beNull
 =======
@@ -1936,6 +1974,11 @@ class ExpressionTest extends Specification {
         exp.apply(Array("", "foobarbaz")) must be equalTo "foobarbaz".substring(2, 5)
         exp.apply(Array("", null)) must beNull
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+        exp.apply(Array("", "foobarbaz")) must be equalTo "foobarbaz".substring(2, 5)
+        exp.apply(Array("", null)) must beNull
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         exp.eval(Array("", "foobarbaz")) must be equalTo "foobarbaz".substring(2, 5)
         exp.eval(Array("", null)) must beNull
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1971,6 +2014,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -1981,6 +2025,10 @@ class ExpressionTest extends Specification {
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.apply(Array("", "FOO")) mustEqual 3
       exp.apply(Array("", null)) mustEqual 0
     }
@@ -1997,6 +2045,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2010,9 +2059,12 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
       exp.apply(Array("", "FOO")) mustEqual 3
       exp.apply(Array("", null)) mustEqual 0
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -2020,11 +2072,16 @@ class ExpressionTest extends Specification {
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.eval(Array("", "FOO")) must be equalTo 3
       exp.eval(Array("", null)) mustEqual 0
     }
     "calculate length" >> {
       val exp = Expression("length($1)")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2043,6 +2100,12 @@ class ExpressionTest extends Specification {
       exp.apply(Array("", "FOO")) mustEqual 3
       exp.apply(Array("", null)) mustEqual 0
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+      exp.apply(Array("", "FOO")) mustEqual 3
+      exp.apply(Array("", null)) mustEqual 0
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.eval(Array("", "FOO")) must be equalTo 3
       exp.eval(Array("", null)) mustEqual 0
     }
@@ -2052,8 +2115,13 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.apply(Array("", Int.box(5))) must be equalTo "5"
       exp.apply(Array("", null)) must beNull
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.eval(Array("", 5)) must be equalTo "5"
       exp.eval(Array("", null)) must beNull
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -2149,6 +2217,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+<<<<<<< HEAD
 =======
       exp.eval(Array("", 5, 6)) must be equalTo "56"
     }
@@ -2157,13 +2226,18 @@ class ExpressionTest extends Specification {
       exp.apply(Array("", Int.box(1), Int.box(2), Int.box(3), Int.box(4), Int.box(5), Int.box(6))) mustEqual "123456"
       exp.apply(Array("", Int.box(1), null, Int.box(3), Int.box(4), Int.box(5), Int.box(6))) mustEqual "1null3456"
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.eval(Array("", 1, 2, 3, 4, 5, 6)) must be equalTo "123456"
       exp.eval(Array("", 1, null, 3, 4, 5, 6)) mustEqual "1null3456"
     }
     "mkstring" >> {
       val exp = Expression("mkstring(',', $1, $2, $3, $4, $5, $6)")
+<<<<<<< HEAD
       exp.apply(Array("", Int.box(1), Int.box(2), Int.box(3), Int.box(4), Int.box(5), Int.box(6))) must be equalTo "1,2,3,4,5,6"
       exp.apply(Array("", Int.box(1), null, Int.box(3), Int.box(4), Int.box(5), Int.box(6))) must be equalTo "1,null,3,4,5,6"
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       exp.eval(Array("", 1, 2, 3, 4, 5, 6)) must be equalTo "1,2,3,4,5,6"
       exp.eval(Array("", 1, null, 3, 4, 5, 6)) must be equalTo "1,null,3,4,5,6"
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6818,9 +6892,17 @@ class ExpressionTest extends Specification {
           "geometrycollection($0)",
           "geometry($0)"
         )
+<<<<<<< HEAD
       foreach(functions.map(Expression.apply)) { exp =>
         exp.apply(Array(null, null)) must beNull
+<<<<<<< HEAD
         exp.eval(Array(null, null)) must beNull
+=======
+=======
+      foreach(functions) { exp =>
+        Expression(exp).eval(Array(null, null)) must beNull
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       }
 <<<<<<< HEAD
 =======
@@ -12806,6 +12888,11 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
     }
+    "parse null lists" >> {
+      val trans = Expression("parseList('int', $0)")
+      trans.eval(Array(null)) must beNull
+      trans.eval(Array("")) mustEqual Collections.emptyList[Int]()
+    }
     "throw exception for invalid list values" >> {
       val trans = Expression("parseList('int', $0, '%')")
       trans.apply(Array("1%2%a")).asInstanceOf[java.util.List[Int]] must throwAn[IllegalArgumentException]
@@ -12865,6 +12952,7 @@ class ExpressionTest extends Specification {
     }
     "parse null maps" >> {
       val trans = Expression("parseMap('String->Int', $0)")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13308,6 +13396,8 @@ class ExpressionTest extends Specification {
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       trans.apply(Array(null)) must beNull
       trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
 =======
@@ -13622,6 +13712,11 @@ class ExpressionTest extends Specification {
       trans.apply(Array(null)) must beNull
       trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+      trans.apply(Array(null)) must beNull
+      trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
+=======
+>>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       trans.eval(Array(null)) must beNull
       trans.eval(Array("")) mustEqual Collections.emptyMap[String, Int]()
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
