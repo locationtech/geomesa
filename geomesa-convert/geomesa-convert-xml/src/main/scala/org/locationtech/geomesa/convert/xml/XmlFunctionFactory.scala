@@ -130,8 +130,15 @@ import java.util.concurrent.TimeUnit
 import java.io.StringWriter
 import java.util.concurrent.TimeUnit
 
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
 import com.typesafe.config.ConfigFactory
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
@@ -207,6 +214,7 @@ import org.w3c.dom.Element
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -271,7 +279,12 @@ import org.w3c.dom.Element
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 
 >>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
 import scala.concurrent.duration.Duration
