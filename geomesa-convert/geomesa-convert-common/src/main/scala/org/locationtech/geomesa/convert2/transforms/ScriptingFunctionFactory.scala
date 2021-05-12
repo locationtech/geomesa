@@ -33,6 +33,7 @@ import scala.collection.JavaConverters._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
@@ -75,11 +76,15 @@ import scala.collection.JavaConverters._
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
 import org.apache.commons.io.filefilter.TrueFileFilter
 import org.apache.commons.io.{FileUtils, FilenameUtils, IOUtils}
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -167,6 +172,10 @@ import scala.collection.JavaConversions._
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+import scala.collection.JavaConversions._
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
 
 /**
   * Provides TransformerFunctions that execute javax.scripts compatible functions defined
