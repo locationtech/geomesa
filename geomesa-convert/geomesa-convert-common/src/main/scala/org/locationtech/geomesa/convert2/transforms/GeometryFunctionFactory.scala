@@ -489,6 +489,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 914d29005e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -755,6 +756,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 44568bdad8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 195d1e0018 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> e5009bc661 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -1409,6 +1412,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 9ddbf4df0c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 63504e7a16 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 319ecdc02f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 30d431265 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> a990ff330 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -3137,6 +3142,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b59955740a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -3147,6 +3153,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> a71ff4b55b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 21308670a5 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> e5009bc661 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> bf90e5fa00 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
@@ -3178,6 +3186,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 81b8eb5ae (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 319ecdc02f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -3194,8 +3203,13 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 21308670a5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 319ecdc02f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> e5009bc661 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3223,6 +3237,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 21308670a5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6adfbb9118 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> e5009bc661 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -4075,6 +4091,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> b36757a53 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 63504e7a16 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 319ecdc02f (GEOMESA-3071 Move all converter state into evaluation context)
@@ -5028,6 +5045,10 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 44568bdad8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 195d1e0018 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 319ecdc02f (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> e5009bc661 (GEOMESA-3071 Move all converter state into evaluation context)
     case Array(x: Number, y: Number) => gf.createPoint(coord(x, y))
     case Array(x: Number, y: Number, z: Number) => gf.createPoint(coordZ(x, y, z))
     case Array(x: Number, y: Number, z: Number, m: Number) => gf.createPoint(coordZM(x, y, z, m))
