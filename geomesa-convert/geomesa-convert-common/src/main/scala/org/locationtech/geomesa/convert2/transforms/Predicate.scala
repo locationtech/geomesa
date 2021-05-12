@@ -12,7 +12,16 @@ import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.EvaluationContext.ContextDependent
 
 sealed trait Predicate extends ContextDependent[Predicate] {
+<<<<<<< HEAD
   def apply(args: Array[AnyRef]): Boolean
+=======
+
+  def apply(args: Array[AnyRef]): Boolean
+
+  @deprecated("Use `withContext` and `evaluate`")
+  def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
+    withContext(ctx).apply(args.asInstanceOf[Array[AnyRef]])
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 }
 
 object Predicate {
