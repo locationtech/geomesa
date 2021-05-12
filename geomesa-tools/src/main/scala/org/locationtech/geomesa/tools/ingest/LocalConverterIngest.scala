@@ -182,6 +182,7 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 =======
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
@@ -3790,6 +3791,12 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+=======
+import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
+=======
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
