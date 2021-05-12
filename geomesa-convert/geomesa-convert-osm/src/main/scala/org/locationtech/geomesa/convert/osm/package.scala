@@ -97,6 +97,16 @@ package object osm {
 
     override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
 
+<<<<<<< HEAD
+=======
+    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
+      transforms match {
+        case None => args(lookup)
+        case Some(t) => mutableArray(0) = args(lookup); t.eval(mutableArray)
+      }
+    }
+
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
     private def values(args: Array[AnyRef]): AnyRef = args(lookup)
   }
 

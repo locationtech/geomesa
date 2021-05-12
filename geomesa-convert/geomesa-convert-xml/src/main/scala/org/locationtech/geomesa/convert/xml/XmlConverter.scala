@@ -54,7 +54,11 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
       parsed: CloseableIterator[Element],
       ec: EvaluationContext): CloseableIterator[Array[Any]] = {
 
+<<<<<<< HEAD
     val array = Array.ofDim[Any](2)
+=======
+    val array = Array.ofDim[Any](1)
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 
     helper.get.rootPath match {
       case None =>
@@ -65,7 +69,6 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 
       case Some(path) =>
         parsed.flatMap { element =>
-          array(1) = element
           val nodeList = path.evaluate(element, XPathConstants.NODESET).asInstanceOf[NodeList]
           Iterator.tabulate(nodeList.getLength) { i =>
             array(0) = nodeList.item(i)
@@ -155,6 +158,7 @@ object XmlConverter extends StrictLogging {
 
     private var helper: ThreadLocal[XmlHelper] = _
 
+<<<<<<< HEAD
     private val expression = new ThreadLocal[XPathExpression]() {
       override def initialValue(): XPathExpression = helper.get.xpath.compile(path)
     }
@@ -163,6 +167,23 @@ object XmlConverter extends StrictLogging {
 
     override def compile(helper: ThreadLocal[XmlHelper]): Unit = this.helper = helper
 
+=======
+    private val mutableArray = Array.ofDim[Any](1)
+
+    private val expression = new ThreadLocal[XPathExpression]() {
+      override def initialValue(): XPathExpression = helper.get.xpath.compile(path)
+    }
+
+    override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
+
+    override def compile(helper: ThreadLocal[XmlHelper]): Unit = this.helper = helper
+
+    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
+      mutableArray(0) = expression.get.evaluate(args(0))
+      super.eval(mutableArray)
+    }
+
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
     private def values(args: Array[AnyRef]): AnyRef = expression.get.evaluate(args(0))
   }
 
