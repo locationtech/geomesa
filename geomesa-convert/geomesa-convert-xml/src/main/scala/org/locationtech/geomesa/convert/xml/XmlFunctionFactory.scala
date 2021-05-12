@@ -36,17 +36,19 @@ class XmlFunctionFactory extends TransformerFunctionFactory {
 
       override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
         val element = args.head.asInstanceOf[Element]
-        val transformer = transformers.getOrElseUpdate {
-          val t = TransformerFactory.newInstance().newTransformer()
-          t.setOutputProperty(OutputKeys.ENCODING, "utf-8")
-          t.setOutputProperty(OutputKeys.INDENT, "no")
-          t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes")
-          t
+        if (element == null) { null } else {
+          val transformer = transformers.getOrElseUpdate {
+            val t = TransformerFactory.newInstance().newTransformer()
+            t.setOutputProperty(OutputKeys.ENCODING, "utf-8")
+            t.setOutputProperty(OutputKeys.INDENT, "no")
+            t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes")
+            t
+          }
+          val result = new StreamResult(new StringWriter())
+          val source = new DOMSource(element)
+          transformer.transform(source, result)
+          result.getWriter.toString
         }
-        val result = new StreamResult(new StringWriter())
-        val source = new DOMSource(element)
-        transformer.transform(source, result)
-        result.getWriter.toString
       }
     }
 

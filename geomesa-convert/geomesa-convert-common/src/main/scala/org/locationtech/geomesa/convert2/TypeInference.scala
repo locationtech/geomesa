@@ -336,15 +336,15 @@ object TypeInference {
   }
 
   sealed class CastTransform(to: String) extends InferredTransform {
-    def apply(i: Int): String = s"$$$i::$to"
+    def apply(i: Int): String = s"$to($$$i)"
   }
 
-  case object CastToInt extends CastTransform("int")
-  case object CastToLong extends CastTransform("long")
-  case object CastToFloat extends CastTransform("float")
-  case object CastToDouble extends CastTransform("double")
-  case object CastToBoolean extends CastTransform("boolean")
-  case object CastToString extends CastTransform("string")
+  case object CastToInt extends CastTransform("toInt")
+  case object CastToLong extends CastTransform("toLong")
+  case object CastToFloat extends CastTransform("toFloat")
+  case object CastToDouble extends CastTransform("toDouble")
+  case object CastToBoolean extends CastTransform("toBoolean")
+  case object CastToString extends CastTransform("toString")
 
   case class FunctionTransform(prefix: String, suffix: String) extends InferredTransform {
     def apply(i: Int): String = s"$prefix$$$i$suffix"

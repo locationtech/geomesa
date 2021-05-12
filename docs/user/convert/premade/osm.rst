@@ -38,7 +38,7 @@ commands:
     mvn clean install -DskipTests
     mvn dependency:copy-dependencies -pl geomesa-convert/geomesa-convert-osm/ \
       -DincludeScope=compile -DoutputDirectory=$GEOMESA_HOME/lib
-    cp geomesa-convert/geomesa-convert-osm/target/geomesa-convert-osm_2.11-$version.jar \
+    cp geomesa-convert/geomesa-convert-osm/target/geomesa-convert-osm_2.12-$version.jar \
       $GEOMESA_HOME/lib
 
 

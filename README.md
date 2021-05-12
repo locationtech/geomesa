@@ -148,7 +148,7 @@ libraryDependencies ++= Seq(
 
 ## Building from Source
 
-**Development version: 3.3.0-SNAPSHOT**
+**Development version: 4.0.0-SNAPSHOT**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
@@ -182,6 +182,6 @@ environment variable to point to the root of your JDK.  Example from a Mac:
 
 ### Scala Cross Build
 
-To build for a different Scala version (e.g. 2.12), run the following script, then build as normal:
+To build for a different Scala version (e.g. 2.11), run the following script, then build as normal:
 
-    ./build/change-scala-version.sh 2.12
+    ./build/change-scala-version.sh 2.11

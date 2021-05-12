@@ -10,9 +10,8 @@ package org.locationtech.geomesa.convert2.transforms
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneOffset}
-import java.util.Date
+import java.util.{Collections, Date}
 
-import com.google.common.hash.Hashing
 import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -95,44 +94,54 @@ class ExpressionTest extends Specification {
     "trim" >> {
       val exp = Expression("trim($1)")
       exp.eval(Array("", "foo ", "bar")) must be equalTo "foo"
+      exp.eval(Array("", null)) must beNull
     }
     "capitalize" >> {
       val exp = Expression("capitalize($1)")
       exp.eval(Array("", "foo", "bar")) must be equalTo "Foo"
+      exp.eval(Array("", null)) must beNull
     }
     "lowercase" >> {
       val exp = Expression("lowercase($1)")
       exp.eval(Array("", "FOO", "bar")) must be equalTo "foo"
+      exp.eval(Array("", null)) must beNull
     }
     "uppercase" >> {
       val exp = Expression("uppercase($1)")
       exp.eval(Array("", "FoO")) must be equalTo "FOO"
+      exp.eval(Array("", null)) must beNull
     }
     "regexReplace" >> {
       val exp = Expression("regexReplace('foo'::r,'bar',$1)")
       exp.eval(Array("", "foobar")) must be equalTo "barbar"
+      exp.eval(Array("", null)) must beNull
     }
     "compound expressions" >> {
       val exp = Expression("regexReplace('foo'::r,'bar',trim($1))")
       exp.eval(Array("", " foobar ")) must be equalTo "barbar"
+      exp.eval(Array("", null)) must beNull
     }
     "take substrings" >> {
       foreach(Seq("substring", "substr")) { fn =>
         val exp = Expression(s"$fn($$1, 2, 5)")
         exp.eval(Array("", "foobarbaz")) must be equalTo "foobarbaz".substring(2, 5)
+        exp.eval(Array("", null)) must beNull
       }
     }
     "calculate strlen" >> {
       val exp = Expression("strlen($1)")
       exp.eval(Array("", "FOO")) must be equalTo 3
+      exp.eval(Array("", null)) mustEqual 0
     }
     "calculate length" >> {
       val exp = Expression("length($1)")
       exp.eval(Array("", "FOO")) must be equalTo 3
+      exp.eval(Array("", null)) mustEqual 0
     }
     "convert toString" >> {
       val exp = Expression("toString($1)")
       exp.eval(Array("", 5)) must be equalTo "5"
+      exp.eval(Array("", null)) must beNull
     }
     "concat with toString" >> {
       val exp = Expression("concat(toString($1), toString($2))")
@@ -141,10 +150,12 @@ class ExpressionTest extends Specification {
     "concat many args" >> {
       val exp = Expression("concat($1, $2, $3, $4, $5, $6)")
       exp.eval(Array("", 1, 2, 3, 4, 5, 6)) must be equalTo "123456"
+      exp.eval(Array("", 1, null, 3, 4, 5, 6)) mustEqual "1null3456"
     }
     "mkstring" >> {
       val exp = Expression("mkstring(',', $1, $2, $3, $4, $5, $6)")
       exp.eval(Array("", 1, 2, 3, 4, 5, 6)) must be equalTo "1,2,3,4,5,6"
+      exp.eval(Array("", 1, null, 3, 4, 5, 6)) must be equalTo "1,null,3,4,5,6"
     }
     "convert emptyToNull" >> {
       val exp = Expression("emptyToNull($1)")
@@ -421,6 +432,23 @@ class ExpressionTest extends Specification {
         "GeometryCollection(Linestring(102 0, 103 1, 104 0, 105 1), " +
         "multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), ((10 0, 11 0, 11 1, 10 1, 10 0))))")
     }
+    "parse null geometries" >> {
+      val functions =
+        Seq(
+          "point($0)",
+          "point($0, $1)",
+          "linestring($0)",
+          "multipoint($0)",
+          "polygon($0)",
+          "multilinestring($0)",
+          "multipolygon($0)",
+          "geometrycollection($0)",
+          "geometry($0)"
+        )
+      foreach(functions) { exp =>
+        Expression(exp).eval(Array(null, null)) must beNull
+      }
+    }
     "reproject to EPSG 4326" >> {
       val geom = WKTUtils.read("POINT (1113194.91 1689200.14)")
       val trans = Expression("projectFrom('EPSG:3857',$1)")
@@ -431,10 +459,9 @@ class ExpressionTest extends Specification {
       transformed.asInstanceOf[Point].getY must beCloseTo(15d, 0.001)
     }
     "generate md5 hashes" >> {
-      val hasher = Hashing.md5().newHasher()
       val exp = Expression("md5($0)")
       val hashedResult = exp.eval(Array(testBytes)).asInstanceOf[String]
-      hashedResult must be equalTo hasher.putBytes(testBytes).hash().toString
+      hashedResult mustEqual "53587708703184a0b6f8952425c21d9f"
     }
     "generate uuids" >> {
       val exp = Expression("uuid()")
@@ -705,6 +732,11 @@ class ExpressionTest extends Specification {
       res.size mustEqual 3
       res.asScala mustEqual List(1,2,3)
     }
+    "parse null lists" >> {
+      val trans = Expression("parseList('int', $0)")
+      trans.eval(Array(null)) must beNull
+      trans.eval(Array("")) mustEqual Collections.emptyList[Int]()
+    }
     "throw exception for invalid list values" >> {
       val trans = Expression("parseList('int', $0, '%')")
       trans.eval(Array("1%2%a")).asInstanceOf[java.util.List[Int]] must throwAn[IllegalArgumentException]
@@ -724,6 +756,11 @@ class ExpressionTest extends Specification {
       res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.Map[String, Int]]
       res.asInstanceOf[java.util.Map[String, Int]].size mustEqual 3
       res.asInstanceOf[java.util.Map[String, Int]].asScala mustEqual Map("a" -> 1, "b" -> 2, "c" -> 3)
+    }
+    "parse null maps" >> {
+      val trans = Expression("parseMap('String->Int', $0)")
+      trans.eval(Array(null)) must beNull
+      trans.eval(Array("")) mustEqual Collections.emptyMap[String, Int]()
     }
     "throw exception for invalid map values" >> {
       val trans = Expression("parseMap('String->Int', $0)")

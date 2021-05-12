@@ -16,7 +16,6 @@ import org.apache.avro.Schema.Parser
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericDatumWriter, GenericRecord}
 import org.apache.avro.io.{DecoderFactory, EncoderFactory}
-import org.codehaus.jackson.node.TextNode
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.avro.AvroConverter._
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
@@ -75,15 +74,25 @@ object AvroConverter {
     * @return
     */
   def addBytes(schema: Schema): Schema = {
-    val fields = new java.util.ArrayList[Schema.Field](schema.getFields.size() + 1)
-    schema.getFields.asScala.foreach { field =>
-      fields.add(new Schema.Field(field.name, field.schema, field.doc, field.defaultValue()))
-    }
-    fields.add(new Schema.Field(BytesField, Schema.create(Schema.Type.BYTES), "raw bytes", TextNode.valueOf("")))
+    schema.getType match {
+      case Schema.Type.RECORD =>
+        val fields = new java.util.ArrayList[Schema.Field](schema.getFields.size() + 1)
+        schema.getFields.asScala.foreach { field =>
+          fields.add(new Schema.Field(field.name, field.schema, field.doc, field.defaultVal()))
+        }
+        fields.add(new Schema.Field(BytesField, Schema.create(Schema.Type.BYTES), "raw bytes", ""))
 
-    val updated = Schema.createRecord(schema.getName, schema.getDoc, schema.getNamespace, schema.isError)
-    updated.setFields(fields)
-    updated
+        val updated = Schema.createRecord(schema.getName, schema.getDoc, schema.getNamespace, schema.isError)
+        updated.setFields(fields)
+        updated
+
+      case Schema.Type.UNION =>
+        Schema.createUnion(schema.getTypes.asScala.map(addBytes): _*)
+
+      case _ =>
+        throw new NotImplementedError(
+          s"Raw Avro bytes (i.e. $$0) is not implemented for schema type ${schema.getType}")
+    }
   }
 
   case class AvroConfig(

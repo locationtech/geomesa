@@ -21,81 +21,169 @@ class StringFunctionFactory extends TransformerFunctionFactory {
       substr, string, mkstring, emptyToNull, printf)
 
   private val string = TransformerFunction.pure("toString") { args =>
-    args(0).toString
+    if (args(0) == null) { null } else { args(0).toString }
   }
 
   private val stripQuotes = TransformerFunction.pure("stripQuotes") { args =>
-    StringUtils.strip(args(0).asInstanceOf[String], "'\"")
+    if (args(0) == null) { null } else {
+      val s = args(0) match {
+        case s: String => s
+        case s => s.toString
+      }
+      StringUtils.strip(s, "'\"")
+    }
   }
 
   private val strip = TransformerFunction.pure("strip") { args =>
-    if (args.length == 1) {
-      StringUtils.strip(args(0).asInstanceOf[String])
-    } else {
-      val toStrip = args(1).asInstanceOf[String]
-      StringUtils.strip(args(0).asInstanceOf[String], toStrip)
+    if (args(0) == null) { null } else {
+      val s = args(0) match {
+        case s: String => s
+        case s => s.toString
+      }
+      val toStrip = if (args.length == 1) { null } else { args(1).asInstanceOf[String] }
+      StringUtils.strip(s, toStrip)
     }
   }
 
   private val stripPrefix = TransformerFunction.pure("stripPrefix") { args =>
-    val toStrip = args(1).asInstanceOf[String]
-    StringUtils.stripStart(args(0).asInstanceOf[String], toStrip)
+    if (args(0) == null) { null } else {
+      val s = args(0) match {
+        case s: String => s
+        case s => s.toString
+      }
+      val toStrip = args(1).asInstanceOf[String]
+      StringUtils.stripStart(s, toStrip)
+    }
   }
 
   private val stripSuffix = TransformerFunction.pure("stripSuffix") { args =>
-    val toStrip = args(1).asInstanceOf[String]
-    StringUtils.stripEnd(args(0).asInstanceOf[String], toStrip)
+    if (args(0) == null) { null } else {
+      val s = args(0) match {
+        case s: String => s
+        case s => s.toString
+      }
+      val toStrip = args(1).asInstanceOf[String]
+      StringUtils.stripEnd(s, toStrip)
+    }
   }
 
   private val replace = TransformerFunction.pure("replace") { args =>
-    val toRemove = args(1).asInstanceOf[String]
-    val replacement = args(2).asInstanceOf[String]
-    args(0).asInstanceOf[String].replaceAllLiterally(toRemove, replacement)
+    if (args(0) == null) { null } else {
+      val s = args(0) match {
+        case s: String => s
+        case s => s.toString
+      }
+      val toRemove = args(1).asInstanceOf[String]
+      val replacement = args(2).asInstanceOf[String]
+      s.replaceAllLiterally(toRemove, replacement)
+    }
   }
 
   private val remove = TransformerFunction.pure("remove") { args =>
-    val toRemove = args(1).asInstanceOf[String]
-    StringUtils.remove(args(0).asInstanceOf[String], toRemove)
+    if (args(0) == null) { null } else {
+      val s = args(0) match {
+        case s: String => s
+        case s => s.toString
+      }
+      val toRemove = args(1).asInstanceOf[String]
+      StringUtils.remove(s, toRemove)
+    }
   }
 
   private val trim = TransformerFunction.pure("trim") { args =>
-    args(0).asInstanceOf[String].trim
+    if (args(0) == null) { null } else {
+      val s = args(0) match {
+        case s: String => s
+        case s => s.toString
+      }
+      s.trim
+    }
   }
 
   private val capitalize = TransformerFunction.pure("capitalize") { args =>
-    args(0).asInstanceOf[String].capitalize
+    if (args(0) == null) { null } else {
+      val s = args(0) match {
+        case s: String => s
+        case s => s.toString
+      }
+      s.capitalize
+    }
   }
 
   private val lowercase = TransformerFunction.pure("lowercase") { args =>
-    args(0).asInstanceOf[String].toLowerCase
+    if (args(0) == null) { null } else {
+      val s = args(0) match {
+        case s: String => s
+        case s => s.toString
+      }
+      s.toLowerCase
+    }
   }
 
   private val uppercase = TransformerFunction.pure("uppercase") { args =>
-    args(0).asInstanceOf[String].toUpperCase
+    if (args(0) == null) { null } else {
+      val s = args(0) match {
+        case s: String => s
+        case s => s.toString
+      }
+      s.toUpperCase
+    }
   }
 
   private val concat = TransformerFunction.pure("concat", "concatenate") { args =>
-    args.map(_.toString).mkString
+    val strings = args.map {
+      case s: String => s
+      case null => "null"
+      case s => s.toString
+    }
+    strings.mkString
   }
 
   private val mkstring = TransformerFunction.pure("mkstring") { args =>
-    args.drop(1).map(_.toString).mkString(args(0).toString)
+    val delim = args(0).asInstanceOf[String]
+    val strings = args.drop(1).map {
+      case s: String => s
+      case null => "null"
+      case s => s.toString
+    }
+    strings.mkString(delim)
   }
 
   private val emptyToNull = TransformerFunction.pure("emptyToNull") { args =>
-    Option(args(0)).map(_.toString).filterNot(_.trim.isEmpty).orNull
+    if (args(0) == null || args(0).toString.trim.isEmpty) { null } else { args(0) }
   }
 
   private val regexReplace = TransformerFunction.pure("regexReplace") { args =>
-    args(0).asInstanceOf[Regex].replaceAllIn(args(2).asInstanceOf[String], args(1).asInstanceOf[String])
+    if (args(2) == null) { null } else {
+      val s = args(2) match {
+        case s: String => s
+        case s => s.toString
+      }
+      val regex = args(0).asInstanceOf[Regex]
+      val replacement = args(1).asInstanceOf[String]
+      regex.replaceAllIn(s, replacement)
+    }
   }
 
   private val substr = TransformerFunction.pure("substr", "substring") { args =>
-    args(0).asInstanceOf[String].substring(args(1).asInstanceOf[Int], args(2).asInstanceOf[Int])
+    if (args(0) == null) { null } else {
+      val s = args(0) match {
+        case s: String => s
+        case s => s.toString
+      }
+      val from = args(1).asInstanceOf[Int]
+      val to = args(2).asInstanceOf[Int]
+      s.substring(from, to)
+    }
   }
 
   private val strLen = TransformerFunction.pure("strlen", "stringLength", "length") { args =>
-    args(0).asInstanceOf[String].length
+    val s = args(0) match {
+      case s: String => s
+      case null => ""
+      case s => s.toString
+    }
+    s.length
   }
 
   private val printf = TransformerFunction.pure("printf") { args =>

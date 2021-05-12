@@ -16,7 +16,7 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
-      <artifactId>geomesa-spark-jts_2.11</artifactId>
+      <artifactId>geomesa-spark-jts_2.12</artifactId>
       // version, etc.
     </dependency>
 

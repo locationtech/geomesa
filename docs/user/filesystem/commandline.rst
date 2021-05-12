@@ -120,7 +120,7 @@ Argument                 Description
 ``--leaf-storage``       Use leaf storage
 ``--target-file-size``   Target size for data files (e.g. 500MB or 1GB)
 ``--temp-path``          Path to a temp directory used for working files
-``--storage-opt``        Additional storage options, as ``key=value``
+``--storage-opt``        Additional storage options to set as SimpleFeatureType user data, in the form ``key=value``
 ======================== =============================================================
 
 If the schema does not already exist, then ``--encoding`` and ``--partition-scheme`` are required, otherwise

@@ -68,7 +68,7 @@ are the same as those passed to ``DataStoreFinder.getDataStore()``. See :ref:`hb
 
     .. code-block:: bash
 
-        $ spark-shell --jars file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase1_2.11-${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
+        $ spark-shell --jars file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase1_${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
 
     Alternatively, you may specify the zookeepers in the data store parameter map. However, this may not work
     for every HBase setup.

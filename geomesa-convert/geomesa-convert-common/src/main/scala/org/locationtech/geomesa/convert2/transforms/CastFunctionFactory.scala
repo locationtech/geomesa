@@ -11,37 +11,61 @@ package org.locationtech.geomesa.convert2.transforms
 class CastFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFunction] =
-    Seq(stringToInt, stringToLong, stringToFloat, stringToDouble, stringToBoolean)
+    Seq(castToInt, castToLong, castToFloat, castToDouble, castToBoolean)
 
   // usage: stringToInt($1, 0)
-  private val stringToInt = TransformerFunction.pure("stringToInt", "stringToInteger") { args =>
-    tryConvert(args(0).asInstanceOf[String], _.toInt, args(1))
+  private val castToInt = TransformerFunction.pure("toInt", "toInteger", "stringToInt", "stringToInteger") { args =>
+    val default = if (args.lengthCompare(1) > 0) { args(1) } else { null }
+    args(0) match {
+      case n: String => try { n.toInt } catch { case _: Exception => default }
+      case n: Number => n.intValue()
+      case n: Any    => try { n.toString.toInt } catch { case _: Exception => default }
+      case null      => default
+    }
   }
 
   // usage: stringToLong($1, 0L)
-  private val stringToLong = TransformerFunction.pure("stringToLong") { args =>
-    tryConvert(args(0).asInstanceOf[String], _.toLong, args(1))
+  private val castToLong = TransformerFunction.pure("toLong", "stringToLong") { args =>
+    val default = if (args.lengthCompare(1) > 0) { args(1) } else { null }
+    args(0) match {
+      case n: String => try { n.toLong } catch { case _: Exception => default }
+      case n: Number => n.longValue()
+      case n: Any    => try { n.toString.toLong } catch { case _: Exception => default }
+      case null      => default
+    }
   }
 
   // usage: stringToFloat($1, 0f)
-  private val stringToFloat = TransformerFunction.pure("stringToFloat") { args =>
-    tryConvert(args(0).asInstanceOf[String], _.toFloat, args(1))
+  private val castToFloat = TransformerFunction.pure("toFloat", "stringToFloat") { args =>
+    val default = if (args.lengthCompare(1) > 0) { args(1) } else { null }
+    args(0) match {
+      case n: String => try { n.toFloat } catch { case _: Exception => default }
+      case n: Number => n.floatValue()
+      case n: Any    => try { n.toString.toFloat } catch { case _: Exception => default }
+      case null      => default
+    }
   }
 
   // usage: stringToDouble($1, 0d)
-  private val stringToDouble = TransformerFunction.pure("stringToDouble") { args =>
-    tryConvert(args(0).asInstanceOf[String], _.toDouble, args(1))
+  private val castToDouble = TransformerFunction.pure("toDouble", "stringToDouble") { args =>
+    val default = if (args.lengthCompare(1) > 0) { args(1) } else { null }
+    args(0) match {
+      case n: String => try { n.toDouble } catch { case _: Exception => default }
+      case n: Number => n.doubleValue()
+      case n: Any    => try { n.toString.toDouble } catch { case _: Exception => default }
+      case null      => default
+    }
   }
 
   // usage: stringToBoolean($1, false)
-  private val stringToBoolean = TransformerFunction.pure("stringToBool", "stringToBoolean") { args =>
-    tryConvert(args(0).asInstanceOf[String], _.toBoolean, args(1))
-  }
-
-  private def tryConvert(s: String, conversion: String => Any, default: Any): Any = {
-    if (s == null || s.isEmpty) {
-      return default
+  private val castToBoolean = TransformerFunction.pure("toBool", "toBoolean", "stringToBool", "stringToBoolean") { args =>
+    val default = if (args.lengthCompare(1) > 0) { args(1) } else { null }
+    args(0) match {
+      case b: String  => try { b.toBoolean } catch { case _: Exception => default }
+      case b: Boolean => b
+      case n: Number  => n.intValue() != 0
+      case b: Any     => try { b.toString.toBoolean } catch { case _: Exception => default }
+      case null       => default
     }
-    try { conversion(s) } catch { case _: Exception => default }
   }
 }

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 
 import com.google.common.hash.Hashing
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
@@ -306,6 +306,52 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
 
         // note: feature ids won't be the same
         converted.map(_.getAttributes) must containTheSameElementsAs(expected.map(_.getAttributes))
+      }
+    }
+
+    "calculate record bytes for union-type schemas" >> {
+      val schema = parser.parse(getClass.getClassLoader.getResourceAsStream("union.avsc"))
+
+      // generate the test data - this is stored in resources already
+      if (false) {
+        val person = new GenericData.Record(schema.getTypes.get(0))
+        Seq("name" -> "pname", "age" -> 21, "location" -> "POINT (45 55)").foreach { case (k, v) => person.put(k, v) }
+        val animal = new GenericData.Record(schema.getTypes.get(1))
+        Seq("name" -> "aname", "breed" -> "pug", "location" -> "POINT (1 2)").foreach { case (k, v) => animal.put(k, v) }
+        val file = new File("union.avro")
+        val datumWriter = new GenericDatumWriter[GenericRecord](schema)
+        val dataFileWriter = new DataFileWriter[GenericRecord](datumWriter)
+        dataFileWriter.create(schema, file)
+        dataFileWriter.append(person)
+        dataFileWriter.append(animal)
+        dataFileWriter.close()
+      }
+
+      val sft = SimpleFeatureTypes.createType("union", "name:String,*geom:Point:srid=4326")
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type        = "avro"
+          |   schema      = "embedded"
+          |   id-field    = "md5($0)"
+          |   fields = [
+          |     { name = "name", transform = "avroPath($1, '/name')" },
+          |     { name = "geom", transform = "point(avroPath($1, '/location'))" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val ec = converter.createEvaluationContext()
+
+        // pass two messages to check message buffering for record bytes
+        val res = WithClose(converter.process(getClass.getClassLoader.getResourceAsStream("union.avro"), ec))(_.toList)
+        res must haveLength(2)
+        res(0).getAttribute(0) mustEqual "pname"
+        res(1).getAttribute(0) mustEqual "aname"
+        res(0).getAttribute(1).toString mustEqual "POINT (45 55)"
+        res(1).getAttribute(1).toString mustEqual "POINT (1 2)"
       }
     }
   }

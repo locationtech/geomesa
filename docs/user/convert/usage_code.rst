@@ -5,8 +5,8 @@ Converters and SimpleFeatureTypes can be imported through maven and used directl
 
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
-      <!-- pull in all converters, or use a specific converter, e.g. geomesa-convert-json_2.11 -->
-      <artifactId>geomesa-convert-all_2.11</artifactId>
+      <!-- pull in all converters, or use a specific converter, e.g. geomesa-convert-json_2.12 -->
+      <artifactId>geomesa-convert-all_2.12</artifactId>
     </dependency>
 
 .. tabs::

@@ -59,7 +59,7 @@ CloudWatch Reporter
 -------------------
 
 The CloudWatch reporter can be included by adding a dependency on
-``org.locationtech.geomesa:geomesa-metrics-cloudwatch_2.11``.  The CloudWatch reporter uses the default credentials
+``org.locationtech.geomesa:geomesa-metrics-cloudwatch``.  The CloudWatch reporter uses the default credentials
 and region specified in your AWS profile config.
 
 ====================== ===============================================================================================
@@ -90,7 +90,7 @@ Ganglia Reporter
 ----------------
 
 The Ganglia reporter can be included by adding a dependency on
-``org.locationtech.geomesa:geomesa-metrics-ganglia_2.11``. Using Ganglia requires additional GPL-licensed
+``org.locationtech.geomesa:geomesa-metrics-ganglia``. Using Ganglia requires additional GPL-licensed
 dependencies ``info.ganglia.gmetric4j:gmetric4j:1.0.7`` and ``org.acplt:oncrpc:1.0.7``, which are excluded by default.
 
 ====================== ===============================================================================================
@@ -124,7 +124,7 @@ Graphite Reporter
 -----------------
 
 The Graphite reporter can be included by adding a dependency on
-``org.locationtech.geomesa:geomesa-metrics-graphite_2.11``.
+``org.locationtech.geomesa:geomesa-metrics-graphite``.
 
 ====================== ===============================================================================================
 Configuration Property Description
