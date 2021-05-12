@@ -63,6 +63,9 @@ object FixedWidthConverter {
     override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
     private val mutableArray = Array.ofDim[AnyRef](1)
 
@@ -73,6 +76,7 @@ object FixedWidthConverter {
       super.eval(mutableArray.asInstanceOf[Array[Any]])
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -85,6 +89,9 @@ object FixedWidthConverter {
     override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
 
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
     private def values(args: Array[AnyRef]): AnyRef = args(0).asInstanceOf[String].substring(start, endIdx)
   }
 
