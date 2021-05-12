@@ -26,7 +26,9 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
   // parses a list encoded by the geomesa avro writer
   private val binaryList = TransformerFunction.pure("avroBinaryList") { args =>
     args(0) match {
+<<<<<<< HEAD
       case bytes: Array[Byte] => CollectionSerialization.decodeList(ByteBuffer.wrap(bytes))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -40,6 +42,11 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+      case bytes: Array[Byte] => AvroSimpleFeatureUtils.decodeList(ByteBuffer.wrap(bytes))
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       case null => null
       case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
     }
@@ -48,7 +55,9 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
   // parses a map encoded by the geomesa avro writer
   private val binaryMap = TransformerFunction.pure("avroBinaryMap") { args =>
     args(0) match {
+<<<<<<< HEAD
       case bytes: Array[Byte] => CollectionSerialization.decodeMap(ByteBuffer.wrap(bytes))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -62,6 +71,11 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+      case bytes: Array[Byte] => AvroSimpleFeatureUtils.decodeMap(ByteBuffer.wrap(bytes))
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       case null => null
       case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
     }
@@ -70,7 +84,9 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
   // parses a uuid encoded by the geomesa avro writer
   private val binaryUuid = TransformerFunction.pure("avroBinaryUuid") { args =>
     args(0) match {
+<<<<<<< HEAD
       case bytes: Array[Byte] => UuidBinaryField.decode(ByteBuffer.wrap(bytes))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -84,6 +100,11 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+      case bytes: Array[Byte] => AvroSimpleFeatureUtils.decodeUUID(ByteBuffer.wrap(bytes))
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       case null => null
       case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
     }
