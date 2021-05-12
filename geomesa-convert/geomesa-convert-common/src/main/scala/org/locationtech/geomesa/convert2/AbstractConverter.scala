@@ -11,11 +11,15 @@ package org.locationtech.geomesa.convert2
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 import java.io.{IOException, InputStream}
 import java.nio.charset.{Charset, StandardCharsets}
 import java.util.Date
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -25,6 +29,9 @@ import java.util.Date
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -146,10 +153,15 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     builder.result
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
@@ -159,6 +171,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
       s"Field name(s) conflict with reserved values $IdFieldName and/or $UserDataFieldPrefix")
   }
 
+<<<<<<< HEAD
   private val requiredFields: Array[Field] = {
     val fieldNameMap = fields.map(f => f.name -> f.asInstanceOf[Field]).toMap
     val dag = scala.collection.mutable.Map.empty[Field, Set[Field]]
@@ -209,10 +222,21 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     }
     builder.result()
   }
+=======
+  private val requiredFields: Array[Field] = AbstractConverter.requiredFields(this)
+
+  private val attributeIndices: Array[(Int, Int)] =
+    sft.getAttributeDescriptors.asScala.toArray.flatMapWithIndex { case (d, i) =>
+      // note: missing fields are already checked and logged in requiredFields
+      val j = requiredFields.indexWhere(_.name == d.getLocalName)
+      if (j == -1) { None } else { Some(i -> j)}
+    }
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 
 
   private val idIndex: Int = requiredFields.indexWhere(_.name == IdFieldName)
 
+<<<<<<< HEAD
   private val userDataIndices: Array[(String, Int)] = {
     val builder = Array.newBuilder[(String, Int)]
     builder.sizeHint(requiredFields.count(_.name.startsWith(UserDataFieldPrefix)))
@@ -235,6 +259,17 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     builder.result
   }
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+  private val userDataIndices: Array[(String, Int)] =
+    requiredFields.flatMapWithIndex { case (f, i) =>
+      if (f.name.startsWith(UserDataFieldPrefix)) {
+        Seq(f.name.substring(UserDataFieldPrefix.length) -> i)
+      } else {
+        Seq.empty
+      }
+    }
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 
   private val metrics = ConverterMetrics(sft, options.reporters)
 
@@ -455,14 +490,60 @@ object AbstractConverter {
    * @param message message
    */
   class AbstractApiError(message: String) extends Exception(message, null, false, false)
+<<<<<<< HEAD
+
+  object FieldApiError extends AbstractApiError("Field")
+  object TransformerFunctionApiError extends AbstractApiError("TransformerFunction")
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 
   object FieldApiError extends AbstractApiError("Field")
   object TransformerFunctionApiError extends AbstractApiError("TransformerFunction")
 <<<<<<< HEAD
 =======
 
-  object FieldApiError extends AbstractApiError("Field")
-  object TransformerFunctionApiError extends AbstractApiError("TransformerFunction")
+  /**
+    * Determines the fields that are actually used for the conversion
+    *
+    * @param converter converter
+    * @tparam T intermediate parsed values binding
+    * @tparam C config binding
+    * @tparam F field binding
+    * @tparam O options binding
+    * @return
+    */
+  private def requiredFields[T, C <: ConverterConfig, F <: Field, O <: ConverterOptions](
+      converter: AbstractConverter[T, C, F, O]): Array[Field] = {
+
+    val fieldNameMap = converter.fields.map(f => f.name -> f).toMap
+    val dag = scala.collection.mutable.Map.empty[Field, Set[Field]]
+
+    // compute only the input fields that we need to deal with to populate the simple feature
+    converter.sft.getAttributeDescriptors.asScala.foreach { ad =>
+      fieldNameMap.get(ad.getLocalName).foreach(addDependencies(_, fieldNameMap, dag))
+    }
+
+    // add id field and user data
+    converter.config.idField.foreach { expression =>
+      addDependencies(BasicField(IdFieldName, Some(expression)), fieldNameMap, dag)
+    }
+    converter.config.userData.foreach { case (key, expression) =>
+      addDependencies(BasicField(UserDataFieldPrefix + key, Some(expression)), fieldNameMap, dag)
+    }
+
+    // use a topological ordering to ensure that dependencies are evaluated before the fields that require them
+    val ordered = topologicalOrder(dag)
+
+    // log warnings for missing/unused fields
+    checkMissingFields(converter, ordered.map(_.name))
+
+    ordered
+  }
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 
   /**
 <<<<<<< HEAD
