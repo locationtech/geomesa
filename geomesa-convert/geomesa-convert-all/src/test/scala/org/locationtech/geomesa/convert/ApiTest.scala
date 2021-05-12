@@ -75,6 +75,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -230,6 +231,8 @@
 >>>>>>> 8c0293d6a6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6473e30f31 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> feb4837986 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
 >>>>>>> 2537391cc6 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -238,6 +241,8 @@
 >>>>>>> 6d51efa18f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9ebea6992b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 5f12c5b15a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -260,10 +265,13 @@
 >>>>>>> 1db60d5575 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> e21fee2121 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 6473e30f31 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> feb4837986 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7f7bfc7004 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -505,7 +513,14 @@
 =======
 =======
 >>>>>>> 9ebea6992b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 6473e30f31 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+>>>>>>> 7f7bfc7004 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5f12c5b15a (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> feb4837986 (GEOMESA-3071 Move all converter state into evaluation context)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -556,6 +571,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 5f12c5b15a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -606,6 +624,7 @@
 =======
 >>>>>>> f3a49e0825 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1db60d5575 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 7f7bfc7004 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -706,6 +725,10 @@
 >>>>>>> 6d51efa18f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9ebea6992b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 7f7bfc7004 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5f12c5b15a (GEOMESA-3071 Move all converter state into evaluation context)
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -736,10 +759,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 5f12c5b15a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1db60d5575 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7f7bfc7004 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -768,6 +795,8 @@
 =======
 >>>>>>> 1db60d5575 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 9ebea6992b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 5f12c5b15a (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 5bf7fcb2bf (GEOMESA-3071 Move all converter state into evaluation context)
@@ -779,6 +808,7 @@
 =======
 =======
 >>>>>>> f3a49e0825 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -797,8 +827,12 @@
 >>>>>>> 7f69d957e8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
+>>>>>>> feb4837986 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 9ebea6992b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6473e30f31 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 5f12c5b15a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0f4c829f25 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -1127,8 +1161,11 @@
 >>>>>>> 0f4c829f25 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 7f7bfc7004 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> a59f50acfa (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> feb4837986 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -1634,7 +1671,12 @@
 =======
 >>>>>>> 1db60d5575 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 9ebea6992b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 6473e30f31 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 5f12c5b15a (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> feb4837986 (GEOMESA-3071 Move all converter state into evaluation context)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
