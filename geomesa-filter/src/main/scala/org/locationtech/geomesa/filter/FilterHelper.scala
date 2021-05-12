@@ -577,6 +577,7 @@ object FilterHelper {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
             andFilters(orOption(simplified).toSeq ++ duplicates)
 <<<<<<< HEAD
@@ -605,6 +606,11 @@ object FilterHelper {
             andFilters(orOption(simplified).toSeq ++ duplicates)
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+            andFilters(orOption(simplified).toSeq ++ duplicates)
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
           }
         }
 
