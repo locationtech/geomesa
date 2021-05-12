@@ -2997,6 +2997,7 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> a07496c758d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
@@ -3407,6 +3408,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 88d40043dd3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> ad71f81955c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d888402e5c2 (Merge branch 'a0x8o' into stag0)
 <<<<<<< HEAD
 =======
 =======
@@ -3907,6 +3910,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 810876750d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e02f74f029 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> e56fd38aa5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> a9f01eaaf5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -4992,8 +4997,11 @@ class MetadataJsonTest extends Specification {
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6bd64e6308 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3e9cee34acf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> d888402e5c2 (Merge branch 'a0x8o' into stag0)
 =======
 =======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -7021,7 +7029,12 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> ff5c21d0c5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> e02f74f029 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> ad71f81955c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> e56fd38aa5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> d888402e5c2 (Merge branch 'a0x8o' into stag0)
 
   "MetadataJson" should {
     "persist and replace system properties (and environment variables)" in {
@@ -8778,6 +8791,7 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 314e6ef1a2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
@@ -8788,7 +8802,12 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 9a1ca2afcc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+<<<<<<< HEAD
 >>>>>>> c0e046d1aa (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 6bd64e6308 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e56fd38aa5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
   "MetadataJson" should {
     "persist and replace system properties (and environment variables)" in {
@@ -12565,6 +12584,7 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6ed35b9ff9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 7c9589b247 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -12760,7 +12780,14 @@ class MetadataJsonTest extends Specification {
 =======
 =======
 >>>>>>> ff5c21d0c5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> e02f74f029 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+>>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6bd64e6308 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> e56fd38aa5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       withPath { context =>
         val prop = "MetadataJsonTest.foo"
         val interpolated = "${" + prop + "}"
