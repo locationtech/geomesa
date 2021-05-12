@@ -100,6 +100,7 @@ class ScriptingFunctionFactoryTest extends Specification {
         whatsup.apply(Array("geomesa")) mustEqual "whatsup: geomesa"
         whatsup.eval(Array("geomesa")) mustEqual "whatsup: geomesa"
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -113,6 +114,12 @@ class ScriptingFunctionFactoryTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
       } finally {
         ScriptingFunctionFactory.ConvertScriptsPath.threadLocalValue.remove()
       }
