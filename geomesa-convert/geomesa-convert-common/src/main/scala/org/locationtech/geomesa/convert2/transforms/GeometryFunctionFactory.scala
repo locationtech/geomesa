@@ -2557,6 +2557,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 45ad5d11f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -3361,6 +3362,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d206a68a13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
     case Array(x: Number, y: Number) => gf.createPoint(new Coordinate(x.doubleValue, y.doubleValue))
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[Point]
@@ -4177,6 +4180,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     case Array(null) | Array(null, null) => null
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6490,6 +6494,9 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c5e1827657 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 269558cf9e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9d708b240a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> d206a68a13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     case args => throw new IllegalArgumentException(s"Invalid point conversion argument: ${args.mkString(",")}")
   }
 
@@ -6506,6 +6513,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6966,6 +6974,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ecddd8c3e7 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -6974,6 +6983,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 036a470d76 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 269558cf9e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> d206a68a13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6eb31fb652 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4cc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -7381,10 +7392,14 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> c5e1827657 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d206a68a13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 9d708b240a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> e29676c9b5 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -8917,6 +8932,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> b00320b6d7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 269558cf9e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> d206a68a13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     case Array(x: java.util.List[_], y: java.util.List[_]) =>
       val coords = Array.ofDim[Coordinate](x.size)
       var i = 0
@@ -8927,6 +8944,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
       gf.createMultiPointFromCoords(coords)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -12609,6 +12627,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6eb31fb652 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> ffe4f9fd41 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -12650,9 +12669,12 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 28e2bfa2dc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 9d708b240a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 67b361c856 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -12754,7 +12776,12 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 =======
 >>>>>>> c5e1827657 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 269558cf9e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 9d708b240a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> d206a68a13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid multipoint conversion argument: ${args.mkString(",")}")
   }
@@ -12766,6 +12793,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -13226,6 +13254,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ecddd8c3e7 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -13234,6 +13263,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 036a470d76 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 269558cf9e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> d206a68a13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6eb31fb652 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4cc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -13641,10 +13672,14 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> c5e1827657 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d206a68a13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 9d708b240a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> e29676c9b5 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -15177,6 +15212,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> b00320b6d7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 269558cf9e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> d206a68a13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     case Array(x: java.util.List[_], y: java.util.List[_]) =>
       val coords = Array.ofDim[Coordinate](x.size)
       var i = 0
@@ -15187,6 +15224,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
       gf.createLineString(coords)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -18869,6 +18907,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6eb31fb652 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> ffe4f9fd41 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -18910,9 +18949,12 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 28e2bfa2dc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 9d708b240a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 67b361c856 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -19014,7 +19056,12 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 =======
 >>>>>>> c5e1827657 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 269558cf9e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 9d708b240a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> d206a68a13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid linestring conversion argument: ${args.mkString(",")}")
   }
