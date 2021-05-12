@@ -34,6 +34,7 @@ package org.locationtech.geomesa.convert2
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -43,10 +44,13 @@ package org.locationtech.geomesa.convert2
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
@@ -67,6 +71,8 @@ package org.locationtech.geomesa.convert2
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -75,6 +81,9 @@ package org.locationtech.geomesa.convert2
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -93,6 +102,7 @@ package org.locationtech.geomesa.convert2
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -119,6 +129,10 @@ package org.locationtech.geomesa.convert2
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 import java.io.{IOException, InputStream}
 import java.nio.charset.{Charset, StandardCharsets}
 import java.util.Date
@@ -140,12 +154,16 @@ import java.util.Date
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -167,6 +185,10 @@ import java.util.Date
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -205,8 +227,11 @@ import java.util.Date
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -247,6 +272,7 @@ import java.util.Date
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -293,6 +319,8 @@ import java.util.Date
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -337,6 +365,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     extends SimpleFeatureConverter with ParsingConverter[T] with LazyLogging {
 
   import AbstractConverter.{IdFieldName, UserDataFieldPrefix}
+<<<<<<< HEAD
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
@@ -433,10 +462,13 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -448,6 +480,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
@@ -472,6 +505,8 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -500,6 +535,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -508,8 +544,13 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -518,6 +559,8 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
@@ -537,6 +580,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -562,6 +606,10 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
@@ -587,10 +635,14 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -607,6 +659,8 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
   private val requiredFields: Array[Field] = {
     val fieldNameMap = fields.map(f => f.name -> f.asInstanceOf[Field]).toMap
     val dag = scala.collection.mutable.Map.empty[Field, Set[Field]]
@@ -663,8 +717,11 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -742,10 +799,14 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -914,6 +975,8 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
   private val requiredFields: Array[Field] = AbstractConverter.requiredFields(this)
 
   private val attributeIndices: Array[(Int, Int)] =
@@ -922,9 +985,18 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
       val j = requiredFields.indexWhere(_.name == d.getLocalName)
       if (j == -1) { None } else { Some(i -> j)}
     }
+<<<<<<< HEAD
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 
 
   private val idIndex: Int = requiredFields.indexWhere(_.name == IdFieldName)
@@ -945,12 +1017,16 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -972,6 +1048,10 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
   private val userDataIndices: Array[(String, Int)] = {
     val builder = Array.newBuilder[(String, Int)]
     builder.sizeHint(requiredFields.count(_.name.startsWith(UserDataFieldPrefix)))
@@ -1008,8 +1088,11 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -1020,6 +1103,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -1047,6 +1131,12 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
   private val userDataIndices: Array[(String, Int)] =
     requiredFields.flatMapWithIndex { case (f, i) =>
       if (f.name.startsWith(UserDataFieldPrefix)) {
@@ -1142,6 +1232,9 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -1154,6 +1247,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -1218,6 +1312,8 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 
   private val metrics = ConverterMetrics(sft, options.reporters)
 
@@ -1438,18 +1534,23 @@ object AbstractConverter {
    * @param message message
    */
   class AbstractApiError(message: String) extends Exception(message, null, false, false)
+<<<<<<< HEAD
 
   object FieldApiError extends AbstractApiError("Field")
   object TransformerFunctionApiError extends AbstractApiError("TransformerFunction")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 
   object FieldApiError extends AbstractApiError("Field")
   object TransformerFunctionApiError extends AbstractApiError("TransformerFunction")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1543,6 +1644,7 @@ object AbstractConverter {
 
   /**
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 
@@ -1551,6 +1653,14 @@ object AbstractConverter {
 =======
 <<<<<<< HEAD
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+
+  /**
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
     * Determines the fields that are actually used for the conversion
     *
     * @param converter converter
@@ -1587,6 +1697,7 @@ object AbstractConverter {
 
     ordered
   }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1646,6 +1757,8 @@ object AbstractConverter {
   }
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -1658,6 +1771,7 @@ object AbstractConverter {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -1687,6 +1801,8 @@ object AbstractConverter {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 
   /**
     * Determines the fields that are actually used for the conversion
