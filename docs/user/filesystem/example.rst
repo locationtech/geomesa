@@ -1895,6 +1895,7 @@ Then download and extract the binary distribution:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     $ cat examples/csv/example.csv
 =======
 =======
@@ -2319,6 +2320,8 @@ Then download and extract the binary distribution:
 >>>>>>> 854a66c94a2 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 79004244d95 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 35faf44c81f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 =======
 >>>>>>> b9c0fc77b9 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -3121,6 +3124,8 @@ Then download and extract the binary distribution:
 >>>>>>> 42adcd38ba (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 72919d0f84 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6570,7 +6575,15 @@ Then download and extract the binary distribution:
 =======
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 28e2bfa2dc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 72919d0f84 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> b4320946b4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     $ cat examples/ingest/csv/example.csv
 >>>>>>> 759250a5978 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
