@@ -26,6 +26,14 @@ object EnrichmentCacheFunctionFactory {
     override def apply(args: Array[AnyRef]): AnyRef = {
       val cache = ec.cache(args(0).asInstanceOf[String])
       cache.get(Array(args(1).asInstanceOf[String], args(2).asInstanceOf[String])).asInstanceOf[AnyRef]
+<<<<<<< HEAD
+=======
+    }
+
+    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
+      val cache = ec.cache(args(0).asInstanceOf[String])
+      cache.get(Array(args(1).asInstanceOf[String], args(2).asInstanceOf[String]))
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
     }
 
     override def withContext(ec: EvaluationContext): TransformerFunction = new CacheLookup(ec)
