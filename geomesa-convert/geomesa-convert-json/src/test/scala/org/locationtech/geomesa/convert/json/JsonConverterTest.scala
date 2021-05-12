@@ -1317,6 +1317,7 @@ class JsonConverterTest extends Specification {
       }
     }
 
+<<<<<<< HEAD
     "create json object attributes" >> {
       val sft = SimpleFeatureTypes.createType("objects", "foobar:String:json=true")
 
@@ -1378,6 +1379,7 @@ class JsonConverterTest extends Specification {
       }
     }
 
+<<<<<<< HEAD
     "return errors in the evaluation context" >> {
       val jsonStr =
         """{ id: 1, number: 123, color: "red", lat: 1, lon: 1 }
@@ -1431,6 +1433,10 @@ class JsonConverterTest extends Specification {
       }
     }
 
+=======
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9ef414565f3 (GEOMESA-3071 Move all converter state into evaluation context)
     "infer schema from geojson files" >> {
       val json =
         """{
