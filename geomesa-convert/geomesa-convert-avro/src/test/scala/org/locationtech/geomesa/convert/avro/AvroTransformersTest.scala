@@ -353,6 +353,7 @@ class AvroTransformersTest extends Specification with AvroUtils {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 34e0106122 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -6082,6 +6083,8 @@ class AvroTransformersTest extends Specification with AvroUtils {
 >>>>>>> 39ae2e950c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b9c5d724c6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 323b1f8f17 (GEOMESA-3071 Move all converter state into evaluation context)
         exp.apply(Array(decoded)) mustEqual " foo "
 =======
 <<<<<<< HEAD
@@ -6171,6 +6174,8 @@ class AvroTransformersTest extends Specification with AvroUtils {
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 91bbd30a52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
 =======
@@ -6510,12 +6515,17 @@ class AvroTransformersTest extends Specification with AvroUtils {
 >>>>>>> 628900700 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
         exp.apply(Array(decoded)) mustEqual " foo "
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
         exp.apply(Array(decoded)) mustEqual " foo "
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6547,6 +6557,8 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 >>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
         exp.apply(Array(decoded)) mustEqual " foo "
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6567,6 +6579,7 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 <<<<<<< HEAD
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 7e68948ac (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -6632,6 +6645,10 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
         exp.eval(Array(decoded)) mustEqual " foo "
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6640,6 +6657,7 @@ class AvroTransformersTest extends Specification with AvroUtils {
 
       "handle compound expressions" >> {
         val exp = Expression("trim(avroPath($0, '/content$type=TObj/kvmap[$k=prop3]/v'))")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7249,6 +7267,8 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 >>>>>>> b9c5d724c6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 323b1f8f17 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -7331,6 +7351,8 @@ class AvroTransformersTest extends Specification with AvroUtils {
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 91bbd30a52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -22946,13 +22968,21 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 =======
 >>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 91bbd30a52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
         exp.apply(Array(decoded)) mustEqual "foo"
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
         exp.apply(Array(decoded)) mustEqual "foo"
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23060,6 +23090,8 @@ class AvroTransformersTest extends Specification with AvroUtils {
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 91bbd30a52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23200,6 +23232,8 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 >>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
         exp.apply(Array(decoded)) mustEqual "foo"
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -23224,6 +23258,7 @@ class AvroTransformersTest extends Specification with AvroUtils {
 >>>>>>> 4f0e2712ab (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 7e68948ac (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -23330,11 +23365,19 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 91bbd30a52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
         exp.eval(Array(decoded)) mustEqual "foo"
       }
 
       "handle null values" >> {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23417,6 +23460,8 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 >>>>>>> 91bbd30a52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -23438,9 +23483,12 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -23735,7 +23783,12 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 91bbd30a52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
         Expression("avroBinaryList(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
         Expression("avroBinaryList(avroPath($0, '/content$type=TObj/foo'))").eval(Array(decoded)) must beNull
         Expression("avroBinaryMap(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
@@ -23759,6 +23812,7 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23879,6 +23933,8 @@ class AvroTransformersTest extends Specification with AvroUtils {
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
         Expression("avroBinaryList(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -24450,12 +24506,31 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 =======
 =======
+=======
+=======
+        Expression("avroBinaryList(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
         Expression("avroBinaryList(avroPath($0, '/content$type=TObj/foo'))").eval(Array(decoded)) must beNull
+        Expression("avroBinaryMap(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
         Expression("avroBinaryMap(avroPath($0, '/content$type=TObj/foo'))").eval(Array(decoded)) must beNull
+<<<<<<< HEAD
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 91bbd30a52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+        Expression("avroBinaryUuid(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
         Expression("avroBinaryUuid(avroPath($0, '/content$type=TObj/foo'))").eval(Array(decoded)) must beNull
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
