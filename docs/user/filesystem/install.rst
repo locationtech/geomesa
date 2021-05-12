@@ -18,7 +18,16 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
+<<<<<<< HEAD
 Download and extract it somewhere convenient:
+=======
+.. note::
+
+  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
+  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
+
+Extract it somewhere convenient:
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 .. code-block:: bash
 
@@ -26,6 +35,11 @@ Download and extract it somewhere convenient:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-fs_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-fs_${VERSION}-bin.tar.gz
     $ cd geomesa-fs_${VERSION}
+<<<<<<< HEAD
+=======
+    $ ls
+    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 .. _fsds_install_source:
 
@@ -83,10 +97,18 @@ Installing GeoMesa FileSystem in GeoServer
 
     See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
 
+<<<<<<< HEAD
 To install the GeoMesa data store, extract the contents of the
 ``geomesa-fs-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-fs_${VERSION}/dist/gs-plugins/``
 in the binary distribution or ``geomesa-fs/geomesa-fs-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
+=======
+The FileSystem GeoServer plugin is bundled by default in the GeoMesa FS binary distribution. To install, extract
+``$GEOMESA_FS_HOME/dist/gs-plugins/geomesa-fs-gs-plugin_${VERSION}-install.tar.gz`` into GeoServer's
+``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with Parquet 1.9.0
+bundled. If you require a different version, modify the ``pom.xml`` and build the GeoMesa FileSystem geoserver plugin
+project from scratch with Maven.
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 .. code-block:: bash
 
