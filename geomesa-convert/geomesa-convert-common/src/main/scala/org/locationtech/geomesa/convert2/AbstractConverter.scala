@@ -14,7 +14,11 @@ import java.io.{IOException, InputStream}
 import java.nio.charset.{Charset, StandardCharsets}
 import java.util.Date
 
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -166,7 +170,11 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
         Seq.empty
       }
     }
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 
   private val metrics = ConverterMetrics(sft, options.reporters)
 
@@ -432,7 +440,11 @@ object AbstractConverter {
 
     ordered
   }
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 
   /**
     * Add the dependencies of a field to a graph
