@@ -3891,9 +3891,11 @@ environment variable to point to the root of your JDK. Example from a Mac:
 
 ### Scala Cross Build
 
+<<<<<<< HEAD
 To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
 
     ./build/change-scala-version.sh 2.13
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -22384,6 +22386,9 @@ To build for a different Scala version (e.g. 2.11), run the following script, th
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> d431497495 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -23524,10 +23529,13 @@ See [CITATION](CITATION)
 >>>>>>> 4319d58858 (Update README.md)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> ddc40c27d6 (Update README.md)
 =======
 =======
 >>>>>>> 0d41ff608d (Update README.md)
+=======
+>>>>>>> 3691fbb777 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -25759,4 +25767,11 @@ See [CITATION](CITATION)
 =======
 =======
 >>>>>>> 13a31518ec (Update README.md)
+<<<<<<< HEAD
 >>>>>>> 0d41ff608d (Update README.md)
+=======
+=======
+=======
+>>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 3691fbb777 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
