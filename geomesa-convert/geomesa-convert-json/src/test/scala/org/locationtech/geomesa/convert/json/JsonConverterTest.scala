@@ -1728,6 +1728,7 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c0f1a31c83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -1873,6 +1874,8 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> dc0485bb65 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 5ff20be1be (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 275e53813f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -8045,6 +8048,7 @@ class JsonConverterTest extends Specification {
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -10460,6 +10464,8 @@ class JsonConverterTest extends Specification {
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
     "create json object attributes" >> {
       val sft = SimpleFeatureTypes.createType("objects", "foobar:String:json=true")
 
@@ -10521,6 +10527,7 @@ class JsonConverterTest extends Specification {
       }
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11808,6 +11815,8 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> 30a377627ed (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> c59caa5de20 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> c347152464e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -12338,6 +12347,8 @@ class JsonConverterTest extends Specification {
 >>>>>>> d9ec67b278 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -19931,11 +19942,14 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d1a2cffc1db (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> c943ba8f7a4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> c59caa5de20 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 7a0d6c11589 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -24419,7 +24433,12 @@ class JsonConverterTest extends Specification {
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 30a377627ed (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> c59caa5de20 (GEOMESA-3071 Move all converter state into evaluation context)
     "infer schema from geojson files" >> {
       val json =
         """{
