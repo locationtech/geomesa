@@ -681,6 +681,7 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d2042eea397 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -1717,6 +1718,8 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 >>>>>>> 5bc9a40702b (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 93b9463a003 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 96ac861bf32 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
 >>>>>>> 8e665b32ac (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -1759,6 +1762,8 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 >>>>>>> 4dcfe983fa (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -1924,8 +1929,11 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 5aaa49b4df0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> 96ac861bf32 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> ae468ad6f1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
@@ -3360,7 +3368,12 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 93b9463a003 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 96ac861bf32 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 =======
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
@@ -17826,6 +17839,7 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithC
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -20016,6 +20030,10 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.utils.text.TextTools
 
 import java.io.Flushable
