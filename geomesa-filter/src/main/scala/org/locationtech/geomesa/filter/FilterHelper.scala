@@ -755,7 +755,9 @@ object FilterHelper {
             // the duplicated filters are an entire clause, so we can ignore the rest of the clauses
             andFilters(duplicates)
           } else {
+<<<<<<< HEAD
             andFilters(orOption(simplified.toSeq).toSeq ++ duplicates)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -788,6 +790,8 @@ object FilterHelper {
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -798,6 +802,7 @@ object FilterHelper {
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -829,6 +834,10 @@ object FilterHelper {
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
             andFilters(orOption(simplified).toSeq ++ duplicates)
 <<<<<<< HEAD
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -875,10 +884,13 @@ object FilterHelper {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 9293965a7d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
             andFilters(orOption(simplified).toSeq ++ duplicates)
@@ -917,6 +929,7 @@ object FilterHelper {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -977,6 +990,10 @@ object FilterHelper {
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
           }
         }
 
