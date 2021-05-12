@@ -29,6 +29,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.geotools.api.data.{DataStoreFinder, Query}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 =======
@@ -66,6 +67,8 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 =======
 >>>>>>> 8fb57d6adc0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> bf730185bcd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7c6dac7c346 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -86,6 +89,8 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 import java.io.InputStream
 import java.util.Collections
@@ -3385,6 +3390,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 64a645069b5 (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -3393,8 +3399,13 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> c06d84c500a (Merge branch 'feature/postgis-fixes')
 =======
 =======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> bf730185bcd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
 import java.io.InputStream
 import java.util.Collections
+<<<<<<< HEAD
 import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 
@@ -6680,7 +6691,16 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> c06d84c500a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+
+import com.codahale.metrics.Counter
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> bf730185bcd (GEOMESA-3071 Move all converter state into evaluation context)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext
