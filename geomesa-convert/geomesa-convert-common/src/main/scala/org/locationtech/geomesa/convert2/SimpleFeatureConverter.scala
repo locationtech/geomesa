@@ -37,6 +37,7 @@ package org.locationtech.geomesa.convert2
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -45,9 +46,12 @@ package org.locationtech.geomesa.convert2
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 import java.io.{Closeable, InputStream}
 
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -287,6 +291,8 @@ import java.io.{Closeable, InputStream}
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
 import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
@@ -432,6 +438,7 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -752,12 +759,17 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
   def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext =
     // TODO remove default impl in next major release
     new DelegatingEvaluationContext(createEvaluationContext(globalParams))(success, failure)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
 
   /**
    * Java API for `createEvaluationContext`
