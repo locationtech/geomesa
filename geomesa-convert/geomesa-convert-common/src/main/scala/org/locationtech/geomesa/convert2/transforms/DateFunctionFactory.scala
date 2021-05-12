@@ -28,6 +28,7 @@ package org.locationtech.geomesa.convert2.transforms
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -47,10 +48,13 @@ package org.locationtech.geomesa.convert2.transforms
 =======
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -77,10 +81,15 @@ package org.locationtech.geomesa.convert2.transforms
 >>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.{Date, Locale}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -108,6 +117,8 @@ import java.util.{Date, Locale}
 >>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -140,6 +151,7 @@ import java.util.{Date, Locale}
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -188,6 +200,8 @@ import java.util.{Date, Locale}
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.convert2.transforms.DateFunctionFactory.{CustomFormatDateParser, DateToString, StandardDateParser}
 import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
