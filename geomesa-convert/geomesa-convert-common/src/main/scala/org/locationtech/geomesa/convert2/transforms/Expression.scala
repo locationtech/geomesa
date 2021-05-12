@@ -684,6 +684,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 65ba54511b (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -1192,6 +1193,8 @@ object Expression {
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> 6b6969a79e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -1318,6 +1321,8 @@ object Expression {
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 78e21a715 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> b1512df467 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -1396,6 +1401,8 @@ object Expression {
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> f7f519540 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -1470,6 +1477,8 @@ object Expression {
 >>>>>>> 849693a12 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> f7f5195405 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2565,6 +2574,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -2642,7 +2652,14 @@ object Expression {
 >>>>>>> 628900700 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 849693a12 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> ade675c0aa (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3995,6 +4012,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3d7a937eae (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -4003,6 +4021,8 @@ object Expression {
 >>>>>>> e0403a237f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 9a1ca2afc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 98e25fe678 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -4066,6 +4086,7 @@ object Expression {
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -4074,6 +4095,10 @@ object Expression {
 =======
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> cb7d3570f (GEOMESA-3071 Move all converter state into evaluation context)
@@ -4409,6 +4434,7 @@ object Expression {
 =======
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -5592,10 +5618,27 @@ object Expression {
 =======
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
   case class FunctionExpression(f: TransformerFunction, arguments: Array[Expression]) extends Expression {
 
     @volatile private var contextDependent: Int = -1
@@ -6035,6 +6078,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d7ab86086c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -6227,6 +6271,8 @@ object Expression {
 >>>>>>> 7733b864f9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -6667,6 +6713,8 @@ object Expression {
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 9064032df (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 1d3562f96d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -6740,6 +6788,8 @@ object Expression {
 >>>>>>> ade675c0aa (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0c38d9736 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> d05e4adb4d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -7250,6 +7300,7 @@ object Expression {
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> e0403a237f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -7274,6 +7325,8 @@ object Expression {
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -10258,10 +10311,13 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d16129f1bd (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1f8411bc8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 2b0ee2792f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -10279,6 +10335,7 @@ object Expression {
 =======
 >>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 364812dd7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -10289,6 +10346,8 @@ object Expression {
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 71edb3b56 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -11612,10 +11671,26 @@ object Expression {
 =======
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
     override def withContext(ec: EvaluationContext): Expression = {
       // this code is thread-safe, in that it will ensure correctness, but does not guarantee
       // that the dependency check is only performed once
@@ -11881,6 +11956,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -12109,6 +12185,8 @@ object Expression {
 >>>>>>> 7733b864f9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
           new FunctionExpression(fwc, awc, 1)
 =======
           FunctionExpression(fwc, awc, 1)
@@ -12659,6 +12737,8 @@ object Expression {
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> fa3a402d4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 3773ac3a73 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -12743,6 +12823,8 @@ object Expression {
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> 84bc7e0e2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -12785,6 +12867,8 @@ object Expression {
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 5e8ce12ec9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -13134,6 +13218,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -13243,10 +13328,18 @@ object Expression {
 =======
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13378,6 +13471,8 @@ object Expression {
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 98e25fe678 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 819897efd9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -13492,6 +13587,8 @@ object Expression {
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 0df4ab56d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> cdc7c0fe7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -13520,6 +13617,7 @@ object Expression {
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -13588,6 +13686,10 @@ object Expression {
 >>>>>>> d16129f1bd (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14268,6 +14370,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 653147a99e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -14276,6 +14379,8 @@ object Expression {
 >>>>>>> 44901ceea1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1084cf5896 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> e734e4d064 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -14287,6 +14392,7 @@ object Expression {
 =======
 >>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> cdf2b37114 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
@@ -14295,6 +14401,8 @@ object Expression {
 >>>>>>> 5d1bb9b74c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 1084cf5896 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15140,6 +15248,7 @@ object Expression {
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -16007,13 +16116,26 @@ object Expression {
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
           new FunctionExpression(fwc, awc, 1)
 =======
           FunctionExpression(fwc, awc, 1)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16433,6 +16555,8 @@ object Expression {
 >>>>>>> 7733b864f9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -16553,6 +16677,8 @@ object Expression {
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 78e21a715 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> b1512df467 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -16622,6 +16748,8 @@ object Expression {
 >>>>>>> ade675c0aa (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -16701,6 +16829,8 @@ object Expression {
 >>>>>>> 849693a12 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> f7f5195405 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -18304,6 +18434,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -18386,7 +18517,14 @@ object Expression {
 =======
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
           new FunctionExpression(fwc, awc, 1)
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -18684,6 +18822,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6b6969a79e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 <<<<<<< HEAD
@@ -18714,6 +18853,8 @@ object Expression {
 >>>>>>> 4c0ecd2967 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
 >>>>>>> 5626ca0b0d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -18741,6 +18882,8 @@ object Expression {
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 8871ac11c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -18757,6 +18900,8 @@ object Expression {
 >>>>>>> 6b6969a79 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -18910,12 +19055,16 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e734e4d06 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -19991,6 +20140,7 @@ object Expression {
 =======
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -21114,9 +21264,21 @@ object Expression {
 =======
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
         } else {
           if (!fwc.eq(f)) {
             contextDependent = 1
@@ -21392,6 +21554,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7c9589b247 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -21614,6 +21777,8 @@ object Expression {
 >>>>>>> 7733b864f9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -21932,6 +22097,8 @@ object Expression {
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> fa3a402d4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 3773ac3a73 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -22142,6 +22309,8 @@ object Expression {
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> 84bc7e0e2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -22201,6 +22370,7 @@ object Expression {
 =======
 >>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> 5e17a3f87 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 54cfc0cf1 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -22407,6 +22577,8 @@ object Expression {
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 5e8ce12ec9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -22463,12 +22635,15 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1b879c8381 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 44901ceea1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -22665,12 +22840,16 @@ object Expression {
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -22793,9 +22972,13 @@ object Expression {
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -22885,6 +23068,8 @@ object Expression {
 >>>>>>> d16129f1bd (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b6c4628dba (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> f3a49e0825 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -26157,6 +26342,8 @@ object Expression {
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 98e25fe678 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 819897efd9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -26197,6 +26384,8 @@ object Expression {
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 0df4ab56d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> cdc7c0fe7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -26216,6 +26405,8 @@ object Expression {
 >>>>>>> 6b6969a79 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -26478,12 +26669,15 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> e734e4d064 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> f4291966d2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 5d1bb9b74c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -27071,8 +27265,16 @@ object Expression {
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
           if (contextDependent == 0) { this } else { new FunctionExpression(fwc, awc, 1) }
         }
       }
@@ -28552,6 +28754,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> eccc16ddf9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -28680,6 +28883,8 @@ object Expression {
 >>>>>>> 955a17fa3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
 =======
@@ -28745,6 +28950,12 @@ object Expression {
 =======
 =======
 =======
+=======
+=======
+=======
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -29804,6 +30015,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b6c4628dba (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> d7ab86086c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -29879,6 +30091,8 @@ object Expression {
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 98e25fe678 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 819897efd9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -29919,6 +30133,8 @@ object Expression {
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 0df4ab56d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> cdc7c0fe7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -29938,6 +30154,8 @@ object Expression {
 >>>>>>> 6b6969a79 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -30265,6 +30483,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> e734e4d064 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> a79eaecf5b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -30274,6 +30493,8 @@ object Expression {
 >>>>>>> f4291966d2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 5d1bb9b74c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -31097,9 +31318,20 @@ object Expression {
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       arguments.flatMap(_.dependencies(stack, fieldMap)).toSet
     override def children(): Seq[Expression] = arguments
@@ -31364,6 +31596,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 65ba54511b (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -31872,6 +32105,8 @@ object Expression {
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> 6b6969a79e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -31998,6 +32233,8 @@ object Expression {
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 78e21a715 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> b1512df467 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -32076,6 +32313,8 @@ object Expression {
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> f7f519540 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -32150,6 +32389,8 @@ object Expression {
 >>>>>>> 849693a12 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> f7f5195405 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -33245,6 +33486,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -33322,7 +33564,14 @@ object Expression {
 >>>>>>> 628900700 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 849693a12 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> ade675c0aa (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -34675,6 +34924,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3d7a937eae (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -34683,6 +34933,8 @@ object Expression {
 >>>>>>> e0403a237f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 9a1ca2afc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 98e25fe678 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -34746,6 +34998,7 @@ object Expression {
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -34754,6 +35007,10 @@ object Expression {
 =======
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> cb7d3570f (GEOMESA-3071 Move all converter state into evaluation context)
@@ -35089,6 +35346,7 @@ object Expression {
 =======
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -36272,10 +36530,27 @@ object Expression {
 =======
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
   case class TryExpression(toTry: Expression, fallback: Expression) extends Expression {
 
     @volatile private var contextDependent: Int = -1
@@ -36715,6 +36990,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d7ab86086c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -36907,6 +37183,8 @@ object Expression {
 >>>>>>> 7733b864f9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -37347,6 +37625,8 @@ object Expression {
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 9064032df (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 1d3562f96d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -37420,6 +37700,8 @@ object Expression {
 >>>>>>> ade675c0aa (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0c38d9736 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> d05e4adb4d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -37930,6 +38212,7 @@ object Expression {
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> e0403a237f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -37954,6 +38237,8 @@ object Expression {
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -40938,10 +41223,13 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d16129f1bd (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1f8411bc8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 2b0ee2792f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -40959,6 +41247,7 @@ object Expression {
 =======
 >>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 364812dd7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -40969,6 +41258,8 @@ object Expression {
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 71edb3b56 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -42292,10 +42583,26 @@ object Expression {
 =======
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
     override def withContext(ec: EvaluationContext): Expression = {
       // this code is thread-safe, in that it will ensure correctness, but does not guarantee
       // that the dependency check is only performed once
@@ -42561,6 +42868,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7c9589b247 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -42783,6 +43091,8 @@ object Expression {
 >>>>>>> 7733b864f9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -43327,6 +43637,8 @@ object Expression {
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> fa3a402d4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 3773ac3a73 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -43411,6 +43723,8 @@ object Expression {
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> 84bc7e0e2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -43453,6 +43767,8 @@ object Expression {
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 5e8ce12ec9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -43804,6 +44120,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -43913,10 +44230,18 @@ object Expression {
 =======
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -44050,6 +44375,8 @@ object Expression {
 =======
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 98e25fe678 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 819897efd9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -44164,6 +44491,8 @@ object Expression {
 =======
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 0df4ab56d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> cdc7c0fe7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -44192,6 +44521,7 @@ object Expression {
 =======
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -44260,6 +44590,10 @@ object Expression {
 >>>>>>> d16129f1bd (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -44946,6 +45280,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 653147a99e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -44954,6 +45289,8 @@ object Expression {
 >>>>>>> 44901ceea1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1084cf5896 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> e734e4d064 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -44965,6 +45302,7 @@ object Expression {
 =======
 >>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> cdf2b37114 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
@@ -44973,6 +45311,8 @@ object Expression {
 >>>>>>> 5d1bb9b74c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 1084cf5896 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -45887,6 +46227,7 @@ object Expression {
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -46833,9 +47174,21 @@ object Expression {
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
           new TryExpression(twc, fwc, 1)
         } else {
           contextDependent = if (twc.eq(toTry) && fwc.eq(fallback)) { 0 } else { 1 }
@@ -49769,6 +50122,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> e4688de07e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -49826,6 +50180,9 @@ object Expression {
 <<<<<<< HEAD
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+<<<<<<< HEAD
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -49837,6 +50194,7 @@ object Expression {
 =======
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -49856,6 +50214,10 @@ object Expression {
 >>>>>>> 7733b864f9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
           new TryExpression(twc, fwc, 1)
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         } else {
@@ -49985,10 +50347,13 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 6df18b1a8f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
           new TryExpression(twc, fwc, 1)
@@ -50147,6 +50512,7 @@ object Expression {
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -52563,10 +52929,33 @@ object Expression {
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 8f88e57ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0088e6eff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> d40b2ba4c8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 665c8e5c85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 8f66972a7c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+=======
+        } else {
+          contextDependent = if (twc.eq(toTry) && fwc.eq(fallback)) { 0 } else { 1 }
+          if (contextDependent == 0) { this } else { TryExpression(twc, fwc, 1) }
+        }
+      }
+    }
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       toTry.dependencies(stack, fieldMap) ++ fallback.dependencies(stack, fieldMap)
     override def children(): Seq[Expression] = Seq(toTry, fallback)
