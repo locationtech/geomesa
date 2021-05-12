@@ -65,7 +65,9 @@ import com.google.common.hash.Hashing
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
+<<<<<<< HEAD
 import org.apache.commons.codec.digest.MurmurHash3
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -74,6 +76,8 @@ import org.apache.commons.codec.digest.MurmurHash3
 <<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -124,7 +128,14 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.digest.MurmurHash3
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -288,6 +299,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
   }
 
   private val md5: TransformerFunction = new NamedTransformerFunction(Seq("md5"), pure = true) {
+<<<<<<< HEAD
     private val hasher = MessageDigest.getInstance("MD5")
     override def apply(args: Array[AnyRef]): AnyRef = {
       val bytes = args(0) match {
@@ -348,6 +360,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -363,6 +376,10 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
     private val hasher = Hashing.md5()
     override def apply(args: Array[AnyRef]): AnyRef =
       hasher.hashBytes(args(0).asInstanceOf[Array[Byte]]).toString
@@ -372,6 +389,9 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
@@ -702,6 +722,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3995,12 +4016,24 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> e49f1355d3 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> e57217a17d (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+  }
+
+  private val murmur3_32: TransformerFunction = new NamedTransformerFunction(Seq("murmur3_32"), pure = true) {
+    private val hasher = Hashing.murmur3_32()
+    override def apply(args: Array[AnyRef]): AnyRef =
+      hasher.hashString(args(0).toString, StandardCharsets.UTF_8)
+  }
+
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
   private val murmur3_128: TransformerFunction =
     new NamedTransformerFunction(Seq("murmur3_128", "murmur3_64"), pure = true) {
       private val hasher = Hashing.murmur3_128()
       override def apply(args: Array[AnyRef]): AnyRef =
         Long.box(hasher.hashString(args(0).toString, StandardCharsets.UTF_8).asLong())
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6201,6 +6234,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 =======
+=======
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -7193,6 +7228,11 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
       }
       sb.toString
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
     }
 }
