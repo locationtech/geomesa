@@ -16,6 +16,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.geotools.api.data.{DataStoreFinder, Query}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 =======
@@ -27,6 +28,8 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 >>>>>>> 15b6bf02d15 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f960fee3bbb (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 86549c8cb31 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 import java.io.InputStream
 import java.util.Collections
@@ -1585,7 +1588,18 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 8dd024f6791 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+import java.io.InputStream
+import java.util.Collections
+
+import com.codahale.metrics.Counter
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 86549c8cb31 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext
