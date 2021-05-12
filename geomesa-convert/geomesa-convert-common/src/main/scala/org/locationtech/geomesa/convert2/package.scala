@@ -11,7 +11,13 @@ package org.locationtech.geomesa
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
+<<<<<<< HEAD
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
+=======
+import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
+import org.locationtech.geomesa.convert2.AbstractConverter.FieldApiError
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
@@ -66,7 +72,17 @@ package object convert2 {
      *
      * @return an optional function to use instead of the args
      */
+<<<<<<< HEAD
     def fieldArg: Option[Array[AnyRef] => AnyRef]
+=======
+    // TODO remove default impl in next major release
+    // this will be caught and handled by the evaluation context
+    def fieldArg: Option[Array[AnyRef] => AnyRef] = throw FieldApiError
+
+    // noinspection ScalaDeprecation
+    @deprecated("Replaced with `fieldArg` for updating the raw input")
+    def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = transforms.map(_.eval(args)).getOrElse(args(0))
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
   }
 
   trait ConverterOptions {
