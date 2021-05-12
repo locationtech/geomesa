@@ -25,11 +25,16 @@ class AvroTransformersTest extends Specification with AvroUtils {
     "handle Avro records" >> {
       "extract an inner value" >> {
         val exp = Expression("avroPath($0, '/content$type=TObj/kvmap[$k=prop3]/v')")
+<<<<<<< HEAD
         exp.apply(Array(decoded)) mustEqual " foo "
+=======
+        exp.eval(Array(decoded)) mustEqual " foo "
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       }
 
       "handle compound expressions" >> {
         val exp = Expression("trim(avroPath($0, '/content$type=TObj/kvmap[$k=prop3]/v'))")
+<<<<<<< HEAD
         exp.apply(Array(decoded)) mustEqual "foo"
       }
 
@@ -37,6 +42,15 @@ class AvroTransformersTest extends Specification with AvroUtils {
         Expression("avroBinaryList(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
         Expression("avroBinaryMap(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
         Expression("avroBinaryUuid(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
+=======
+        exp.eval(Array(decoded)) mustEqual "foo"
+      }
+
+      "handle null values" >> {
+        Expression("avroBinaryList(avroPath($0, '/content$type=TObj/foo'))").eval(Array(decoded)) must beNull
+        Expression("avroBinaryMap(avroPath($0, '/content$type=TObj/foo'))").eval(Array(decoded)) must beNull
+        Expression("avroBinaryUuid(avroPath($0, '/content$type=TObj/foo'))").eval(Array(decoded)) must beNull
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       }
     }
   }
