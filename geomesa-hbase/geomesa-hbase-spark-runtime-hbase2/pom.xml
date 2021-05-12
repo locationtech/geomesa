@@ -194,10 +194,25 @@
                                     <pattern>com.typesafe.scalalogging</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
                                 </relocation>
+                                <!-- we need parquet 1.9.0 in order to do dictionary filtering = 30% speed increase -->
+                                <!-- TODO remove this when spark supports parquet 1.9.0 out of the box -->
+                                <relocation>
+                                    <pattern>org.apache.parquet</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.org.apache.parquet</shadedPattern>
+                                </relocation>
                                 <!-- spark needs json4s to use the jsonpath function -->
                                 <relocation>
                                     <pattern>org.json4s</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.org.json4s</shadedPattern>
+                                </relocation>
+                                <!-- paranamer and jackson conflict with spark 3 -->
+                                <relocation>
+                                    <pattern>com.thoughtworks.paranamer</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.thoughtworks.paranamer</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.fasterxml.jackson</shadedPattern>
                                 </relocation>
                                 <!-- Databricks uses an old version of scalalogging, include it to allow us to run on databricks clusters -->
                                 <relocation>
@@ -214,6 +229,5 @@
             </plugin>
         </plugins>
     </build>
-
 
 </project>
