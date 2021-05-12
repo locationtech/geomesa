@@ -226,13 +226,17 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -254,6 +258,10 @@ rst_epilog = """
 =======
 =======
 >>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
@@ -282,8 +290,11 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -303,10 +314,14 @@ rst_epilog = """
 =======
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 3d5144418e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -337,6 +352,8 @@ rst_epilog = """
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 .. |geoserver_version| replace:: %(geoserver_version)s
 =======
 <<<<<<< HEAD
@@ -5594,7 +5611,9 @@ rst_epilog = """
 >>>>>>> d4c5768cf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 .. |release_version| replace:: %(release_version)s
 
+<<<<<<< HEAD
 .. |release_version_literal| replace:: ``%(release_version)s``
+<<<<<<< HEAD
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5619,6 +5638,11 @@ rst_epilog = """
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 .. |release_version| replace:: %(release_version)s
+=======
+=======
+.. |release_version| replace:: ``%(release_version)s``
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 .. |release_version_literal| replace:: ``%(release_version)s``
 =======
@@ -7431,6 +7455,7 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a5b0374ee2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -7441,6 +7466,8 @@ rst_epilog = """
 >>>>>>> dcc9d7f708 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -7457,6 +7484,7 @@ rst_epilog = """
 >>>>>>> cabde54511 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -7494,6 +7522,10 @@ rst_epilog = """
 >>>>>>> dcc9d7f708 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 .. |release_version| replace:: ``%(release_version)s``
 =======
 <<<<<<< HEAD
@@ -9007,8 +9039,11 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -9039,6 +9074,7 @@ rst_epilog = """
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -9079,6 +9115,8 @@ rst_epilog = """
 =======
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 """ % {"release": release,
        "release_version": release_version,
        "scala_binary_version": scala_binary_version,
@@ -9098,10 +9136,13 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -9112,6 +9153,7 @@ rst_epilog = """
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
@@ -9130,6 +9172,8 @@ rst_epilog = """
 =======
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
        "url_locationtech_release": url_locationtech_release,
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -9159,10 +9203,15 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
        "url_locationtech_release": url_locationtech_release,
@@ -10050,6 +10099,7 @@ rst_epilog = """
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 """ % {"release": release,
        "release_version": release_version,
@@ -10472,6 +10522,8 @@ rst_epilog = """
 >>>>>>> 12e3a588fc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
        "url_github_archive": url_github_archive}
 
 # The language for content autogenerated by Sphinx. Refer to documentation
