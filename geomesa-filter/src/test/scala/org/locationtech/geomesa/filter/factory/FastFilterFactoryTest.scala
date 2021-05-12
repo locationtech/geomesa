@@ -14,8 +14,10 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.expression.{FastPropertyName, OrHashEquality, OrSequentialEquality}
+import org.locationtech.geomesa.filter.expression.{FastPropertyIsEqualTo, FastPropertyName, OrHashEquality, OrSequentialEquality}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.filter.PropertyIsEqualTo
+import org.opengis.filter.expression.Literal
 import org.opengis.filter.spatial.BBOX
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
@@ -89,13 +91,23 @@ class FastFilterFactoryTest extends Specification {
       FastFilterFactory.toFilter(sft, "name like '%abc\\'") must throwA[IllegalArgumentException]
       ok
     }
+    "handle logical erasure of entire clauses" >> {
+      val sft = SimpleFeatureTypes.createType("test", "a:Integer")
+      val ecql = "(a = 0 AND a = 0) OR (a = 0 AND a = 1) OR (a = 0 AND a = 2)"
+      val filter = FastFilterFactory.toFilter(sft, ecql)
+      filter must beAnInstanceOf[FastPropertyIsEqualTo]
+      filter.asInstanceOf[FastPropertyIsEqualTo].getExpression1 must beAnInstanceOf[FastPropertyName]
+      filter.asInstanceOf[FastPropertyIsEqualTo].getExpression1.asInstanceOf[FastPropertyName].getPropertyName mustEqual "a"
+      filter.asInstanceOf[FastPropertyIsEqualTo].getExpression2 must beAnInstanceOf[Literal]
+      filter.asInstanceOf[FastPropertyIsEqualTo].getExpression2.asInstanceOf[Literal].getValue mustEqual 0
+    }
     "create filter containing functions with embedded expressions" >> {
       val sft = SimpleFeatureTypes.createType("test", "f0:Integer,f1:Integer")
       val ecql = "min(f0 + 2, 4) < min(f1, 5)"
       val filterGeoMesa = FastFilterFactory.toFilter(sft, ecql)
       val filterGeoTools = ECQL.toFilter(ecql)
       Result.foreach(1 to 10) { i =>
-        Result.foreach(1 to 10){ j =>
+        Result.foreach(1 to 10) { j =>
           val sf = ScalaSimpleFeature.create(sft, s"${i}_${j}", i, j)
           filterGeoMesa.evaluate(sf) mustEqual filterGeoTools.evaluate(sf)
         }
