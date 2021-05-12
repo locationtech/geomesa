@@ -8,6 +8,13 @@
 
 package org.locationtech.geomesa.convert2
 
+<<<<<<< HEAD
+=======
+import java.io.{IOException, InputStream}
+import java.nio.charset.{Charset, StandardCharsets}
+import java.util.Date
+
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -52,6 +59,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     extends SimpleFeatureConverter with ParsingConverter[T] with LazyLogging {
 
   import AbstractConverter.{IdFieldName, UserDataFieldPrefix}
+<<<<<<< HEAD
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
@@ -127,6 +135,38 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     }
     builder.result
   }
+=======
+  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  import scala.collection.JavaConverters._
+
+  if (fields.exists(f => f.name == IdFieldName || f.name.startsWith(UserDataFieldPrefix))) {
+    throw new IllegalArgumentException(
+      s"Field name(s) conflict with reserved values $IdFieldName and/or $UserDataFieldPrefix")
+  }
+
+  private val requiredFields: Array[Field] = AbstractConverter.requiredFields(this)
+
+  private val attributeIndices: Array[(Int, Int)] =
+    sft.getAttributeDescriptors.asScala.toArray.flatMapWithIndex { case (d, i) =>
+      // note: missing fields are already checked and logged in requiredFields
+      val j = requiredFields.indexWhere(_.name == d.getLocalName)
+      if (j == -1) { None } else { Some(i -> j)}
+    }
+
+
+  private val idIndex: Int = requiredFields.indexWhere(_.name == IdFieldName)
+
+  private val userDataIndices: Array[(String, Int)] =
+    requiredFields.flatMapWithIndex { case (f, i) =>
+      if (f.name.startsWith(UserDataFieldPrefix)) {
+        Seq(f.name.substring(UserDataFieldPrefix.length) -> i)
+      } else {
+        Seq.empty
+      }
+    }
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 
   private val metrics = ConverterMetrics(sft, options.reporters)
 
@@ -347,9 +387,53 @@ object AbstractConverter {
    * @param message message
    */
   class AbstractApiError(message: String) extends Exception(message, null, false, false)
+<<<<<<< HEAD
 
   object FieldApiError extends AbstractApiError("Field")
   object TransformerFunctionApiError extends AbstractApiError("TransformerFunction")
+=======
+
+  object FieldApiError extends AbstractApiError("Field")
+  object TransformerFunctionApiError extends AbstractApiError("TransformerFunction")
+
+  /**
+    * Determines the fields that are actually used for the conversion
+    *
+    * @param converter converter
+    * @tparam T intermediate parsed values binding
+    * @tparam C config binding
+    * @tparam F field binding
+    * @tparam O options binding
+    * @return
+    */
+  private def requiredFields[T, C <: ConverterConfig, F <: Field, O <: ConverterOptions](
+      converter: AbstractConverter[T, C, F, O]): Array[Field] = {
+
+    val fieldNameMap = converter.fields.map(f => f.name -> f).toMap
+    val dag = scala.collection.mutable.Map.empty[Field, Set[Field]]
+
+    // compute only the input fields that we need to deal with to populate the simple feature
+    converter.sft.getAttributeDescriptors.asScala.foreach { ad =>
+      fieldNameMap.get(ad.getLocalName).foreach(addDependencies(_, fieldNameMap, dag))
+    }
+
+    // add id field and user data
+    converter.config.idField.foreach { expression =>
+      addDependencies(BasicField(IdFieldName, Some(expression)), fieldNameMap, dag)
+    }
+    converter.config.userData.foreach { case (key, expression) =>
+      addDependencies(BasicField(UserDataFieldPrefix + key, Some(expression)), fieldNameMap, dag)
+    }
+
+    // use a topological ordering to ensure that dependencies are evaluated before the fields that require them
+    val ordered = topologicalOrder(dag)
+
+    // log warnings for missing/unused fields
+    checkMissingFields(converter, ordered.map(_.name))
+
+    ordered
+  }
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 
   /**
     * Add the dependencies of a field to a graph
