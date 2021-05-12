@@ -494,6 +494,7 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
@@ -3073,6 +3074,8 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 >>>>>>> 77e09b8aaa (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9cd635c105 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> daa600442f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -14909,6 +14912,7 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 =======
 =======
 >>>>>>> a1258aa46 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> ad1c8b98d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 52f1b520cd (GEOMESA-3071 Move all converter state into evaluation context)
@@ -16090,9 +16094,12 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 >>>>>>> f2dc074207 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 =======
+>>>>>>> daa600442f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 5ba418ba6c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -17147,6 +17154,8 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 =======
 >>>>>>> a1258aa46 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 9cd635c105 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> daa600442f (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 =======
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
@@ -17652,6 +17661,11 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithC
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> daa600442f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9cd635c105 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -21270,6 +21284,7 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 97b80a2974 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -21553,6 +21568,8 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 =======
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> d04dc6d34 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> daa600442f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> daa600442f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -24500,6 +24517,7 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> a1258aa46 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -31391,6 +31409,10 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 >>>>>>> 77e09b8aaa (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9cd635c105 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+>>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> daa600442f (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.utils.text.TextTools
 
 import java.io.Flushable
