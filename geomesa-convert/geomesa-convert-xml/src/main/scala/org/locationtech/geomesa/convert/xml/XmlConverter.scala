@@ -91,6 +91,7 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
@@ -129,6 +130,8 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
     val array = Array.ofDim[Any](2)
 =======
     val array = Array.ofDim[Any](1)
@@ -390,6 +393,7 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -398,10 +402,14 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 =======
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
     val array = Array.ofDim[Any](2)
 =======
     val array = Array.ofDim[Any](1)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -728,6 +736,9 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
 
     helper.get.rootPath match {
       case None =>
@@ -738,7 +749,6 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 
       case Some(path) =>
         parsed.flatMap { element =>
-          array(1) = element
           val nodeList = path.evaluate(element, XPathConstants.NODESET).asInstanceOf[NodeList]
           Iterator.tabulate(nodeList.getLength) { i =>
             array(0) = nodeList.item(i)
@@ -850,6 +860,7 @@ object XmlConverter extends StrictLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -863,6 +874,8 @@ object XmlConverter extends StrictLogging {
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
     private val mutableArray = Array.ofDim[Any](1)
 
 =======
@@ -870,13 +883,17 @@ object XmlConverter extends StrictLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
     private val mutableArray = Array.ofDim[Any](1)
 
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -916,6 +933,8 @@ object XmlConverter extends StrictLogging {
 >>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
     private val expression = new ThreadLocal[XPathExpression]() {
       override def initialValue(): XPathExpression = helper.get.xpath.compile(path)
     }
@@ -935,6 +954,7 @@ object XmlConverter extends StrictLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -965,11 +985,16 @@ object XmlConverter extends StrictLogging {
 >>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
       mutableArray(0) = expression.get.evaluate(args(0))
       super.eval(mutableArray)
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -991,6 +1016,8 @@ object XmlConverter extends StrictLogging {
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -1003,6 +1030,7 @@ object XmlConverter extends StrictLogging {
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1056,6 +1084,11 @@ object XmlConverter extends StrictLogging {
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
     private def values(args: Array[AnyRef]): AnyRef = expression.get.evaluate(args(0))
   }
 
