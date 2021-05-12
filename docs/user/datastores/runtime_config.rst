@@ -128,6 +128,22 @@ When the ``geomesa.force.count`` or ``QueryHints.EXACT_COUNT`` is true  and maxF
 GeoMesa will run the query to determine how many records are in the result set.
 Otherwise, GeoMesa will use the Stats API and respect the counting setting.  The default for this setting is 1000.
 
+geomesa.geometry.length.max
++++++++++++++++++++++++++++
+
+This property controls the maximum number of coordinates that will be allowed in a geometry. During deserialization,
+it is possible that corrupted data will cause the length of a geometry to be incorrect, which can lead to attempting
+to allocate space for a large number of coordinates. This property can be used to set an upper limit on the space
+that will be allocated. By default there is no max length.
+
+geomesa.geometry.nesting.max
+++++++++++++++++++++++++++++
+
+This property controls the maximum level of geometry collections recursively containing other geometry collections.
+During deserialization, it is possible that corrupted data will cause the type of a geometry to be incorrect, which
+can lead to creating many nested geometry collections in a recursive loop, causing a stack overflow. This property
+can be used to set an upper limit on the level of recursion. By default 3 levels of recursion are allowed.
+
 geomesa.geometry.processing
 +++++++++++++++++++++++++++
 
