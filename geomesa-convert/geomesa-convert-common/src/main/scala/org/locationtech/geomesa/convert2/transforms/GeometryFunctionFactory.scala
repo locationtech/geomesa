@@ -29,6 +29,7 @@ package org.locationtech.geomesa.convert2.transforms
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.geotools.api.referencing.operation.MathTransform
 =======
 =======
@@ -71,6 +72,8 @@ import org.geotools.api.referencing.operation.MathTransform
 >>>>>>> 9c405d88824 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8fb57d6adc0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> bf730185bcd (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
@@ -97,6 +100,8 @@ import org.geotools.api.referencing.operation.MathTransform
 >>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 import java.util.concurrent.ConcurrentHashMap
 
@@ -193,6 +198,7 @@ import java.util.concurrent.ConcurrentHashMap
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 86549c8cb31 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -201,8 +207,13 @@ import java.util.concurrent.ConcurrentHashMap
 >>>>>>> 8fb57d6adc0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> bf730185bcd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
 import java.util.concurrent.ConcurrentHashMap
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -302,7 +313,14 @@ import java.util.concurrent.ConcurrentHashMap
 =======
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 8fb57d6adc0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> bf730185bcd (GEOMESA-3071 Move all converter state into evaluation context)
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
@@ -323,6 +341,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 
   private val pointParserFn = TransformerFunction.pure("point") {
     case Array(g: Point) => g
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1284,6 +1303,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> fb2218c2fb (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -6334,6 +6355,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -8226,6 +8248,10 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> fb2218c2fb (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
     case Array(x: Number, y: Number) => gf.createPoint(coord(x, y))
     case Array(x: Number, y: Number, z: Number) => gf.createPoint(coordZ(x, y, z))
     case Array(x: Number, y: Number, z: Number, m: Number) => gf.createPoint(coordZM(x, y, z, m))
@@ -22397,6 +22423,11 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
     case Array(x: Float, y: Double) => gf.createPoint(new Coordinate(x, y))
     case Array(x: Double, y: Float) => gf.createPoint(new Coordinate(x, y))
+=======
+    case Array(x: Number, y: Number) => gf.createPoint(new Coordinate(x.doubleValue, y.doubleValue))
+    case Array(g: String) => WKTUtils.read(g).asInstanceOf[Point]
+    case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[Point]
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
     case Array(null) | Array(null, null) => null
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
