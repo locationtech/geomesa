@@ -1825,6 +1825,7 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c0f1a31c83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -2137,6 +2138,8 @@ class JsonConverterTest extends Specification {
 >>>>>>> d73ae82492 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 6b26d19d93 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -2624,6 +2627,7 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e6162be24a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -2768,6 +2772,8 @@ class JsonConverterTest extends Specification {
 >>>>>>> dba8cb28c4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 275e53813f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -3416,6 +3422,7 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> b51d3046a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c14e106409 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -3518,6 +3525,8 @@ class JsonConverterTest extends Specification {
 >>>>>>> acb0053396 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 5d46ff705f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 7ab33423d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> f0e859ddba (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -3526,6 +3535,7 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> 500975957 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> 4c9fb0f6e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 72415e208a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -3664,6 +3674,8 @@ class JsonConverterTest extends Specification {
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> a6710b33bf (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> ee3aea1cd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 7a3d004ad1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -8248,12 +8260,16 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 3b3b527400 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dba8cb28c4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -8269,6 +8285,10 @@ class JsonConverterTest extends Specification {
 >>>>>>> 9514c5eb78 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2d758409cd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -8279,17 +8299,24 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> dba8cb28c4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 2c630f9360 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -8298,6 +8325,8 @@ class JsonConverterTest extends Specification {
 >>>>>>> dce8b0c7f2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9180,12 +9209,17 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dce8b0c7f2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 8a234c7900 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -9197,10 +9231,13 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> b69b6b3ea1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -11047,6 +11084,7 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> 8a234c7900 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dba8cb28c4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -13355,6 +13393,11 @@ class JsonConverterTest extends Specification {
 >>>>>>> d73ae82492 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
     "create json object attributes" >> {
       val sft = SimpleFeatureTypes.createType("objects", "foobar:String:json=true")
 
@@ -13923,6 +13966,7 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2537391cc6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -14071,6 +14115,8 @@ class JsonConverterTest extends Specification {
 >>>>>>> d73ae82492 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -14298,6 +14344,7 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e6162be24a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -14946,6 +14993,8 @@ class JsonConverterTest extends Specification {
 >>>>>>> dba8cb28c4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -15438,6 +15487,8 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> 8a234c7900 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 113b056da (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 6f73f22005 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -15459,6 +15510,9 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 4c9fb0f6e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 72415e208a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -15754,6 +15808,7 @@ class JsonConverterTest extends Specification {
 >>>>>>> 58f72e76c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> dba8cb28c4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -16365,6 +16420,10 @@ class JsonConverterTest extends Specification {
 >>>>>>> d73ae82492 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> e734e4d064 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -20821,12 +20880,16 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 3b3b527400 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dba8cb28c4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -20858,6 +20921,10 @@ class JsonConverterTest extends Specification {
 >>>>>>> 9514c5eb78 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2d758409cd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -20876,6 +20943,7 @@ class JsonConverterTest extends Specification {
 >>>>>>> 8a234c7900 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -20956,6 +21024,8 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> dce8b0c7f2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> d774dc1d12 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 6f2a76d6d7 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -20987,8 +21057,14 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> dba8cb28c4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> 500975957 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -21019,9 +21095,12 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> 344200f1df (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 3b3b527400 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> e0056031ea (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -21057,6 +21136,10 @@ class JsonConverterTest extends Specification {
 >>>>>>> 9514c5eb78 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 344200f1df (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -21066,6 +21149,9 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b51d3046a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -21156,6 +21242,8 @@ class JsonConverterTest extends Specification {
 >>>>>>> 49d3846b23 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d539392ecd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -22415,10 +22503,13 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> b69b6b3ea1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -24939,6 +25030,7 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -28393,6 +28485,8 @@ class JsonConverterTest extends Specification {
 >>>>>>> 8a234c7900 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dba8cb28c4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
     "infer schema from geojson files" >> {
       val json =
         """{
