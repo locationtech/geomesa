@@ -30,7 +30,11 @@ The GeoMesa source distribution may be cloned from GitHub:
     $ cd geomesa
 
 This downloads the latest development version. To check out the code for the latest stable release
+<<<<<<< HEAD
 (``$VERSION`` = |release_version_literal|):
+=======
+(``$VERSION`` = |release_version|):
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 .. code-block:: bash
 
