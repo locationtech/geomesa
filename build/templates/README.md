@@ -408,7 +408,11 @@ To build for a different Scala version (e.g. 2.13), run the following script, th
 >>>>>>> ea7888ab2da (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762)):build/README.md
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD:build/templates/README.md
 >>>>>>> dba413ca3dd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762)):build/README.md
+=======
+<<<<<<< HEAD
+>>>>>>> bd1c2b8d4ce (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762)):build/README.md
 
 ### Building on OS X
 
@@ -438,6 +442,8 @@ docker.client.strategy=org.testcontainers.dockerclient.UnixSocketClientProviderS
 >>>>>>> f9d5739c3e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 3691fbb777 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 0b9fc233eb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> e3667a69c9 (GEOMESA-3254 Add Bloop build support)
@@ -601,4 +607,14 @@ To build for a different Scala version (e.g. 2.11), run the following script, th
 =======
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 3691fbb777 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+To build for a different Scala version (e.g. 2.11), run the following script, then build as normal:
+
+    ./build/change-scala-version.sh 2.11
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 3d5144418e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 0b9fc233eb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
