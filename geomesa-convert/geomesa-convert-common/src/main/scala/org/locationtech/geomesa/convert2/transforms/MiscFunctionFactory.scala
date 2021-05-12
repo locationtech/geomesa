@@ -39,6 +39,11 @@ object MiscFunctionFactory {
   class LineNumber(ec: EvaluationContext) extends NamedTransformerFunction(Seq("lineNo", "lineNumber")) {
     override def apply(args: Array[AnyRef]): AnyRef = Long.box(ec.line)
     override def withContext(ec: EvaluationContext): TransformerFunction = new LineNumber(ec)
+<<<<<<< HEAD
+=======
+    // noinspection ScalaDeprecation
+    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = ec.line
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
   }
 }
 

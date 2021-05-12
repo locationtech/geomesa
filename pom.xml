@@ -189,13 +189,25 @@
         <maven.project.info.reports.plugin.version>3.5.0</maven.project.info.reports.plugin.version>
 
         <!-- testing properties -->
+<<<<<<< HEAD
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
         <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED --illegal-access=warn</maven.test.opens>
         <maven.test.debug>-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.debug>
+<<<<<<< HEAD
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
         <test.fork.count>2</test.fork.count>
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
         <test.accumulo.docker.tag>2.1.2</test.accumulo.docker.tag>
+=======
+        <maven.test.jvmargs>${maven.test.memory}</maven.test.jvmargs> <!--for java 11+: &#45;&#45;add-opens=java.base/java.nio=ALL-UNNAMED-->
+=======
+        <maven.test.jvmargs>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.jvmargs>
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+        <test.fork.count>4</test.fork.count>
+        <test.fork.reuse>true</test.fork.reuse>
+        <!-- arrow tests become extremely slow with assertions enabled-->
+        <test.enable.assertions>false</test.enable.assertions>
+>>>>>>> d2042eea397 (GEOMESA-3071 Move all converter state into evaluation context)
         <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
