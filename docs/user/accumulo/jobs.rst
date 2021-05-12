@@ -20,17 +20,11 @@ GeoMesa provides input and output formats that can be used in Hadoop
 map/reduce jobs. The input/output formats can be used directly in Scala,
 or there are Java interfaces under the ``interop`` package.
 
-The input/output formats have two versions each, for compatibility with
-the 'old' Hadoop api (under the ``mapred`` package) and the 'new' Hadoop
-api (under the ``mapreduce`` package).
-
 There are sample jobs provided that can be used as templates for more
 complex operations. These are:
 
 ::
 
-    org.locationtech.geomesa.jobs.interop.mapred.FeatureCountJob
-    org.locationtech.geomesa.jobs.interop.mapred.FeatureWriterJob
     org.locationtech.geomesa.jobs.interop.mapreduce.FeatureCountJob
     org.locationtech.geomesa.jobs.interop.mapreduce.FeatureWriterJob
 
@@ -73,6 +67,11 @@ Map/Reduce Jobs
 The following instructions require that you use the ``-libjars`` argument to ensure the correct JARs
 are available on the distributed classpath.
 
+.. note::
+
+  In the following examples, replace ``${VERSION}`` with the appropriate Scala plus GeoMesa versions
+  (e.g. |scala_release_version|).
+
 .. _attribute_indexing_job:
 
 Attribute Indexing
@@ -85,12 +84,11 @@ to index additional attributes, you can use the attribute indexing job.
 You only need to run this job once; the job will create attribute indices
 for each attribute listed in ``--geomesa.index.attributes``.
 
-The job can be invoked through Yarn as follows (the JAR version may vary
-slightly):
+The job can be invoked through Yarn as follows:
 
 .. code-block:: shell
 
-    geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_2.11-$VERSION-shaded.jar \
+    geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_${VERSION}.jar \
         org.locationtech.geomesa.jobs.index.AttributeIndexJob \
         --geomesa.input.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \
@@ -123,7 +121,7 @@ slightly):
 
 .. code-block:: shell
 
-    geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_2.11-$VERSION-shaded.jar \
+    geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_${VERSION}.jar \
         org.locationtech.geomesa.jobs.index.SchemaCopyJob \
         --geomesa.input.instanceId <instance> \
         --geomesa.output.instanceId <instance> \

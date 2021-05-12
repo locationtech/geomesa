@@ -9,19 +9,23 @@ Installing from the Binary Distribution
 ---------------------------------------
 
 GeoMesa Accumulo artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version
-(|release|) from `GitHub`__.
+The easiest way to get started is to download the most recent binary version from `GitHub`__.
 
 __ https://github.com/locationtech/geomesa/releases
+
+.. note::
+
+  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
+  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
 
 Extract it somewhere convenient:
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-accumulo_2.11-$VERSION-bin.tar.gz"
-    $ tar xvf geomesa-accumulo_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-accumulo_2.11-$VERSION
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_${TAG}/geomesa-accumulo_${VERSION}-bin.tar.gz"
+    $ tar xvf geomesa-accumulo_${VERSION}-bin.tar.gz
+    $ cd geomesa-accumulo_${VERSION}
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
@@ -43,7 +47,7 @@ More information about developing with GeoMesa may be found in the :doc:`/develo
 Installing the Accumulo Distributed Runtime Library
 ---------------------------------------------------
 
-The ``geomesa-accumulo_2.11-$VERSION/dist/accumulo/`` directory contains the distributed
+The ``geomesa-accumulo_$VERSION/dist/accumulo/`` directory contains the distributed
 runtime JAR that contains server-side code for Accumulo that must be made
 available on each of the Accumulo tablet servers in the cluster. This JAR
 contains GeoMesa code and the Accumulo iterators required for querying GeoMesa data.
@@ -71,7 +75,7 @@ To install the distributed runtime JAR, first copy it into HDFS:
 
     $ hadoop fs -mkdir /accumulo/classpath/myNamespace
     $ hadoop fs -put \
-      geomesa-accumulo_2.11-$VERSION/dist/accumulo/geomesa-accumulo-distributed-runtime_2.11-$VERSION.jar \
+      geomesa-accumulo_${VERSION}/dist/accumulo/geomesa-accumulo-distributed-runtime_${VERSION}.jar \
       /accumulo/classpath/myNamespace/
 
 Then configure the namespace classpath through the Accumulo shell:
@@ -113,7 +117,7 @@ each tablet server.
 .. code-block:: bash
 
     $ for tserver in $(cat $ACCUMULO_HOME/conf/tservers); do \
-        scp dist/accumulo/geomesa-accumulo-distributed-runtime_2.11-$VERSION.jar \
+        scp dist/accumulo/geomesa-accumulo-distributed-runtime_${VERSION}.jar \
         $tserver:$ACCUMULO_HOME/lib/ext; done
 
 .. _setting_up_accumulo_commandline:
@@ -127,7 +131,7 @@ Setting up the Accumulo Command Line Tools
     the distributed runtime first. See :ref:`install_accumulo_runtime`.
 
 GeoMesa comes with a set of command line tools for managing Accumulo features located in
-``geomesa-accumulo_2.11-$VERSION/bin/`` of the binary distribution.
+``geomesa-accumulo_${VERSION}/bin/`` of the binary distribution.
 
 GeoMesa requires ``java`` to be available on the default path.
 
@@ -143,7 +147,7 @@ be prompted to download the appropriate JARs the first time you invoke the tools
 specified in ``conf/*-env.sh`` and dependency versions can be specified in ``conf/dependencies.sh``.
 
 In order to run map/reduce jobs, the Hadoop ``*-site.xml`` configuration files from your Hadoop installation
-must be on the classpath. If ``HADOOP_HOME`` is not set, then copy them into ``geomesa-accumulo_2.11-$VERSION/conf``.
+must be on the classpath. If ``HADOOP_HOME`` is not set, then copy them into ``geomesa-accumulo_${VERSION}/conf``.
 
 GeoMesa also provides the ability to add additional JARs to the classpath using the environmental variable
 ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
@@ -215,21 +219,21 @@ Installing the GeoMesa Accumulo Data Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install the GeoMesa data store, extract the contents of the
-``geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz`` file in ``geomesa-accumulo_2.11-$VERSION/dist/gs-plugins/``
+``geomesa-accumulo-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-accumulo_${VERSION}/dist/gs-plugins/``
 in the binary distribution or ``geomesa-accumulo/geomesa-accumulo-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-accumulo_2.11-$VERSION/dist/gs-plugins/geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz \
+      geomesa-accumulo_${VERSION}/dist/gs-plugins/geomesa-accumulo-gs-plugin_${VERSION}-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 Next, install the JARs for Accumulo and Hadoop. By default, JARs will be downloaded from Maven central. You may
 override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do no have an internet connection
 you can download the JARs manually via http://search.maven.org/.
 
-Edit the file ``geomesa-accumulo_2.11-$VERSION/conf/dependencies.sh`` to set the versions of Accumulo and Hadoop
+Edit the file ``geomesa-accumulo_${VERSION}/conf/dependencies.sh`` to set the versions of Accumulo and Hadoop
 to match the target environment, and then run the script:
 
 .. code-block:: bash

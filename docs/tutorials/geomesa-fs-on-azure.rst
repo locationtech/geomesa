@@ -200,13 +200,14 @@ values. You should now be able to test writing a file and see that file in the A
 Install & Configure GeoMesa Filesystem CLI
 ------------------------------------------
 
-In order to ingest data, we will first need to install and configure the GeoMesa Filesystem CLI tool:
+In order to ingest data, we will first need to install and configure the GeoMesa Filesystem CLI tool. Replace
+``${VERSION}`` with the GeoMesa and Scala versions used (e.g. |scala_release_version|):
 
 .. code-block:: shell
 
   cd /mnt/geomesa
-  wget https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-2.3.1/geomesa-fs_2.11-2.3.1-bin.tar.gz
-  tar -xzvf geomesa-fs_2.11-2.3.1-bin.tar.gz
+  wget https://github.com/locationtech/geomesa/releases/download/geomesa_${VERSION}/geomesa-fs_${VERSION}-bin.tar.gz
+  tar -xzvf geomesa-fs_${VERSION}-bin.tar.gz
 
 .. note::
   You may need to update the GeoMesa version in order to match the latest release.
@@ -227,7 +228,7 @@ Hadoop configuration directory environment variable so your ``core-site.xml`` fi
      hadoop-hdfs-client-2.8.3.jar \
      htrace-core4-4.0.1-incubating.jar \
      jetty-util-6.1.26.jar \
-     /mnt/geomesa/geomesa-fs_2.11-2.3.1/lib
+     /mnt/geomesa/geomesa-fs_${VERSION}/lib
   export HADOOP_CONF_DIR=/home/spark-current/conf
 
 Ingest Data into Azure Blob Storage
@@ -249,7 +250,7 @@ is available from Marine Cadastre, as well as numerous commercial suppliers.
 
 .. code-block:: shell
 
-  cd /mnt/geomesa/geomesa-fs_2.11-2.3.1/bin
+  cd /mnt/geomesa/geomesa-fs_${VERSION}/bin
   ./geomesa-fs convert \
     --spec marinecadastre-ais-csv \
     --converter marinecadastre-ais-csv \
@@ -300,11 +301,11 @@ Back inside the Apache Spark container on your master node run the following:
 
   cd /mnt/geomesa
   pip install toree
-  wget https://repo1.maven.org/maven2/org/locationtech/geomesa/geomesa-jupyter-leaflet_2.11/2.3.1/geomesa-jupyter-leaflet_2.11-2.3.1.jar
+  wget https://repo1.maven.org/maven2/org/locationtech/geomesa/geomesa-jupyter-leaflet_2.12/${VERSION}/geomesa-jupyter-leaflet_${VERSION}.jar
   jupyter toree install \
     --spark_home=/home/spark-current \
     --replace \
-    --spark_opts="--master spark://`hostname -i`:7077 --num-executors 2 --conf spark.dynamicAllocation.enabled=false --jars /mnt/geomesa/geomesa-fs_2.11-2.3.1/dist/spark/geomesa-fs-spark-runtime_2.11-2.3.1.jar,/mnt/geomesa/geomesa-jupyter-leaflet_2.11-2.3.1.jar"
+    --spark_opts="--master spark://`hostname -i`:7077 --num-executors 2 --conf spark.dynamicAllocation.enabled=false --jars /mnt/geomesa/geomesa-fs_${VERSION}/dist/spark/geomesa-fs-spark-runtime_${VERSION}.jar,/mnt/geomesa/geomesa-jupyter-leaflet_${VERSION}.jar"
 
 If you have increased the size of your cluster, you should also increase ``--num-executors`` accordingly. You can also
 set other executor and driver options by editing the ``spark_opts`` contents.

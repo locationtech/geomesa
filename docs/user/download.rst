@@ -5,7 +5,7 @@ Versions and Downloads
 
 .. note::
 
-    The current recommended version of GeoMesa is |release_last|.
+    The current recommended version of GeoMesa is |release_version|.
 
 GeoMesa requires `Java JRE or JDK 8`__ to run.
 
@@ -51,7 +51,7 @@ and then include the desired ``geomesa-*`` dependencies:
 
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
-      <artifactId>geomesa-utils_2.11</artifactId>
+      <artifactId>geomesa-utils_2.12</artifactId>
       <version>3.0.0</version>
     </dependency>
 

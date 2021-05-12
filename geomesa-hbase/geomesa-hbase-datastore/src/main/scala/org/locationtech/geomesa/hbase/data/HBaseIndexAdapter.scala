@@ -400,7 +400,8 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     } else {
       // split and group ranges by region server
       // note: we have to copy the ranges for each table scan anyway
-      val rangesPerTable: Seq[(TableName, collection.Map[String, java.util.List[RowRange]])] = tables.map(t => t -> groupRangesByRegion(t, ranges))
+      val rangesPerTable: Seq[(TableName, collection.Map[String, java.util.List[RowRange]])] =
+        tables.map(t => t -> groupRangesByRegion(t, ranges))
 
       def createGroup(group: java.util.List[RowRange]): Scan = {
         val scan = new Scan(group.get(0).getStartRow, group.get(group.size() - 1).getStopRow)
@@ -489,10 +490,16 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     try {
       val regionInfo = locator.getRegionLocation(range.getStartRow).getRegionInfo
       encodedName = regionInfo.getEncodedName
-      val regionEndKey = regionInfo.getEndKey // Note this is exclusive.
+      val regionEndKey = regionInfo.getEndKey // note: this is exclusive
       if (regionEndKey.nonEmpty &&
           (range.getStopRow.isEmpty || ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) <= 0)) {
-        split = regionEndKey
+        if (ByteArrays.ByteOrdering.compare(range.getStartRow, regionEndKey) < 0) {
+          split = regionEndKey
+        } else {
+          logger.warn(s"HBase region location does not correspond to requested range:\n" +
+              s"  requested row: ${ByteArrays.toHex(range.getStartRow)}\n" +
+              s"  region: $encodedName ${ByteArrays.toHex(regionInfo.getStartKey)} :: ${ByteArrays.toHex(regionEndKey)}")
+        }
       }
     } catch {
       case NonFatal(e) => logger.warn(s"Error checking range location for '$range''", e)

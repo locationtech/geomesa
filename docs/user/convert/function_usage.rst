@@ -649,71 +649,77 @@ Description: Converts a string into a Regex object.
 
 Example: ``'f.*'::r = f.*: scala.util.matching.Regex``
 
-stringToInt or stringToInteger
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+toInt or toInteger
+^^^^^^^^^^^^^^^^^^
 
-Description: Converts a string into a integer, with a default value if
-conversion fails.
+Description: Converts a value into a integer. If the conversion fails, returns null unless a default value is defined.
 
-Usage: ``stringToInt($1, $2)``
+Usage: ``toInt($1, $2)``
 
-Example: ``stringToInt('1', 0) = 1``
+Example: ``toInt('1', 0) = 1``
 
-Example: ``stringToInt('', 0) = 0``
+Example: ``toInt('', 0) = 0``
 
-stringToLong
-^^^^^^^^^^^^
+Example: ``toInt('') = null``
 
-Description: Converts a string into a long, with a default value if
-conversion fails.
+toLong
+^^^^^^
 
-Usage: ``stringToLong($1, $2)``
+Description: Converts a value into a long. If the conversion fails, returns null unless a default value is defined.
 
-Example: ``stringToLong('1', 0L) = 1L``
+Usage: ``toLong($1, $2)``
 
-Example: ``stringToLong('', 0L) = 0L``
+Example: ``toLong('1', 0L) = 1L``
 
-stringToFloat
-^^^^^^^^^^^^^
+Example: ``toLong('', 0L) = 0L``
 
-Description: Converts a string into a float, with a default value if
-conversion fails.
+Example: ``toLong('') = null``
 
-Usage: ``stringToFloat($1, $2)``
+toFloat
+^^^^^^^
 
-Example: ``stringToFloat('1.0', 0.0f) = 1.0f``
+Description: Converts a value into a float. If the conversion fails, returns null unless a default value is defined.
 
-Example: ``stringToFloat('not a float', 0.0f) = 0.0f``
+Usage: ``toFloat($1, $2)``
 
-stringToDouble
-^^^^^^^^^^^^^^
+Example: ``toFloat('1.0', 0.0f) = 1.0f``
 
-Description: Converts a string into a double, with a default value if
-conversion fails.
+Example: ``toFloat('not a float', 0.0f) = 0.0f``
 
-Usage: ``stringToDouble($1, $2)``
+Example: ``toFloat('') = null``
 
-Example: ``stringToDouble('1.0', 0.0) = 1.0d``
+toDouble
+^^^^^^^^
 
-Example: ``stringToDouble(null, 0.0) = 0.0d``
+Description: Converts a value into a double. If the conversion fails, returns null unless a default value is defined.
 
-stringToBoolean
-^^^^^^^^^^^^^^^
+Usage: ``toDouble($1, $2)``
 
-Description: Converts a string into a boolean, with a default value if
-conversion fails.
+Example: ``toDouble('1.0', 0.0) = 1.0d``
 
-Usage: ``stringToBoolean($1, $2)``
+Example: ``toDouble(null, 0.0) = 0.0d``
 
-Example: ``stringToBoolean('true', false) = true``
+Example: ``toDouble('') = null``
 
-Example: ``stringToBoolean('55', false) = false``
+toBoolean
+^^^^^^^^^
+
+Description: Converts a value into a boolean. If the conversion fails, returns null unless a default value is
+defined. If the input is a number, it will evaluate to false if it is equal to zero, and true otherwise.
+
+Usage: ``toBoolean($1, $2)``
+
+Example: ``toBoolean('true', false) = true``
+
+Example: ``toBoolean('foo', false) = false``
+
+Example: ``toBoolean('') = null``
 
 intToBoolean
 ^^^^^^^^^^^^
 
-Description: Converts an int to boolean. Follows the normal rules of conversion, where 0 is false and all other ints
-are true.
+Description: Converts an integer to boolean. Follows the normal rules of conversion, where 0 is false and all
+other values are true.
 
 Usage: ``intToBoolean($1)``
 

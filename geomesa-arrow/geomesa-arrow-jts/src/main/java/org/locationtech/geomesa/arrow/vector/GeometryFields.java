@@ -17,6 +17,12 @@ import org.apache.arrow.vector.types.FloatingPointPrecision;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.MultiLineString;
+import org.locationtech.jts.geom.MultiPoint;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,37 +34,49 @@ public class GeometryFields {
 
   private GeometryFields() {}
 
-  public static GeometryVector<?, ?> wrap(FieldVector vector) {
+  public static GeometryVector<?, ?> wrap(FieldVector vector, Class<?> binding) {
     List<Field> fields = vector.getField().getChildren();
-    if (fields.equals(PointFloatVector.fields)) {
-      return new PointFloatVector((FixedSizeListVector) vector);
-    } else if (fields.equals(LineStringFloatVector.fields)) {
-      return new LineStringFloatVector((ListVector) vector);
-    } else if (fields.equals(PolygonFloatVector.fields)) {
-      return new PolygonFloatVector((ListVector) vector);
-    } else if (fields.equals(MultiPolygonFloatVector.fields)) {
-      return new MultiPolygonFloatVector((ListVector) vector);
-    } else if (fields.equals(MultiLineStringFloatVector.fields)) {
-      return new MultiLineStringFloatVector((ListVector) vector);
-    } else if (fields.equals(MultiPointFloatVector.fields)) {
-      return new MultiPointFloatVector((ListVector) vector);
-    } else if (fields.equals(PointVector.fields)) {
-      return new PointVector((FixedSizeListVector) vector);
-    } else if (fields.equals(LineStringVector.fields)) {
-      return new LineStringVector((ListVector) vector);
-    } else if (fields.equals(PolygonVector.fields)) {
-      return new PolygonVector((ListVector) vector);
-    } else if (fields.equals(MultiPolygonVector.fields)) {
-      return new MultiPolygonVector((ListVector) vector);
-    } else if (fields.equals(MultiLineStringVector.fields)) {
-      return new MultiLineStringVector((ListVector) vector);
-    } else if (fields.equals(MultiPointVector.fields)) {
-      return new MultiPointVector((ListVector) vector);
-    } else if (fields.isEmpty()) {
+    if (fields.isEmpty()) {
       return new WKBGeometryVector((VarBinaryVector) vector);
-    } else {
-      throw new IllegalArgumentException("Vector " + vector + " does not match any geometry type");
+    } else if (Point.class.equals(binding)) {
+      if (fields.equals(PointFloatVector.fields)) {
+        return new PointFloatVector((FixedSizeListVector) vector);
+      } else if (fields.equals(PointVector.fields)) {
+        return new PointVector((FixedSizeListVector) vector);
+      }
+    } else if (LineString.class.equals(binding)) {
+      if (fields.equals(LineStringFloatVector.fields)) {
+        return new LineStringFloatVector((ListVector) vector);
+      } else if (fields.equals(LineStringVector.fields)) {
+        return new LineStringVector((ListVector) vector);
+      }
+    } else if (Polygon.class.equals(binding)) {
+      if (fields.equals(PolygonFloatVector.fields)) {
+        return new PolygonFloatVector((ListVector) vector);
+      } else if (fields.equals(PolygonVector.fields)) {
+        return new PolygonVector((ListVector) vector);
+      }
+    } else if (MultiPolygon.class.equals(binding)) {
+      if (fields.equals(MultiPolygonFloatVector.fields)) {
+        return new MultiPolygonFloatVector((ListVector) vector);
+      } else if (fields.equals(MultiPolygonVector.fields)) {
+        return new MultiPolygonVector((ListVector) vector);
+      }
+    } else if (MultiLineString.class.equals(binding)) {
+      if (fields.equals(MultiLineStringFloatVector.fields)) {
+        return new MultiLineStringFloatVector((ListVector) vector);
+      } else if (fields.equals(MultiLineStringVector.fields)) {
+        return new MultiLineStringVector((ListVector) vector);
+      }
+    } else if (MultiPoint.class.equals(binding)) {
+      if (fields.equals(MultiPointFloatVector.fields)) {
+        return new MultiPointFloatVector((ListVector) vector);
+      } else if (fields.equals(MultiPointVector.fields)) {
+        return new MultiPointVector((ListVector) vector);
+      }
     }
+
+    throw new IllegalArgumentException("Vector " + vector + " does not match any geometry type");
   }
 
   /**

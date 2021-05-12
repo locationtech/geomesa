@@ -23,33 +23,41 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
   private val defaultKVDelim   = "->"
 
   private val listParserFn = TransformerFunction.pure("parseList") { args =>
-    val clazz = determineClazz(args(0).asInstanceOf[String])
-    val s = args(1).asInstanceOf[String]
-    val delim = if (args.length >= 3) args(2).asInstanceOf[String] else defaultListDelim
+    args(1) match {
+      case s: String if s.nonEmpty =>
+        val clazz = determineClazz(args(0).asInstanceOf[String])
+        val delim = if (args.length >= 3) { args(2).asInstanceOf[String] } else { defaultListDelim }
+        s.split(delim).map(i => convert(i.trim(), clazz)).toList.asJava
 
-    if (s.isEmpty) {
-      Collections.emptyList()
-    } else {
-      s.split(delim).map(_.trim).map(convert(_, clazz)).toList.asJava
+      case "" => Collections.emptyList()
+
+      case null => null
+
+      case s => throw new IllegalArgumentException(s"Expected a String but got $s:${s.getClass.getName}")
     }
   }
 
   private val mapParserFn = TransformerFunction.pure("parseMap") { args =>
-    val kv = args(0).asInstanceOf[String].split("->").map(_.trim)
-    val keyClazz = determineClazz(kv(0))
-    val valueClazz = determineClazz(kv(1))
-    val s: String = args(1).toString
-    val kvDelim: String = if (args.length >= 3) args(2).asInstanceOf[String] else defaultKVDelim
-    val pairDelim: String = if (args.length >= 4) args(3).asInstanceOf[String] else defaultListDelim
+    args(1) match {
+      case s: String if s.nonEmpty =>
+        val types = args(0).asInstanceOf[String].split("->").map(_.trim)
+        val keyClazz = determineClazz(types(0))
+        val valueClazz = determineClazz(types(1))
+        val kvDelim = if (args.length >= 3) { args(2).asInstanceOf[String] } else { defaultKVDelim }
+        val pairDelim = if (args.length >= 4) { args(3).asInstanceOf[String] } else { defaultListDelim }
+        val pairs = s.split(pairDelim).map { pair =>
+          pair.split(kvDelim) match {
+            case Array(key, value) => (convert(key.trim(), keyClazz), convert(value.trim(), valueClazz))
+            case _ => throw new IllegalArgumentException(s"Unexpected key/value pair: $pair")
+          }
+        }
+        pairs.toMap.asJava
 
-    if (s.isEmpty) {
-      Collections.emptyMap()
-    } else {
-      s.split(pairDelim)
-          .map(_.split(kvDelim).map(_.trim))
-          .map { case Array(key, value) =>
-            (convert(key, keyClazz), convert(value, valueClazz))
-          }.toMap.asJava
+      case "" => Collections.emptyMap()
+
+      case null => null
+
+      case s => throw new IllegalArgumentException(s"Expected a String but got $s:${s.getClass.getName}")
     }
   }
 
@@ -57,10 +65,13 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
     args.toList.asJava
   }
 
-  private val mapValueFunction = TransformerFunction.pure("mapValue") {
-    args => args(0).asInstanceOf[java.util.Map[Any, Any]].get(args(1))
+  private val mapValueFunction = TransformerFunction.pure("mapValue") { args =>
+    args(0) match {
+      case m: java.util.Map[Any, Any] => m.get(args(1))
+      case null => null
+      case m => throw new IllegalArgumentException(s"Expected a java.util.Map but got $m:${m.getClass.getName}")
+    }
   }
-
 }
 
 object CollectionFunctionFactory {

@@ -8,10 +8,15 @@
 
 package org.locationtech.geomesa.features
 
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+
 package object serialization {
 
   val NULL_BYTE    : Byte = 0
   val NOT_NULL_BYTE: Byte = 1
+
+  val GeometryNestingThreshold: SystemProperty = SystemProperty("geomesa.geometry.nesting.max", "3")
+  val GeometryLengthThreshold : SystemProperty = SystemProperty("geomesa.geometry.length.max")
 
   type PrimitiveWriter = AnyRef {
     def writeInt(value: Int): Unit

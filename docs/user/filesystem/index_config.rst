@@ -181,6 +181,11 @@ Metadata persistence can be specified through the user data key ``geomesa.fs.met
         sft.getUserData.put("geomesa.fs.metadata",
             """{ "name": "jdbc", "options": { "jdbc.url": "jdbc:postgresql://localhost/geomesa" } }""")
 
+.. note::
+
+  The metadata configuration supports property substitution using environment variables and Java system
+  properties. Property substitutions are specified using ``${}`` syntax, e.g. ``${HOME}`` or ``${user.home}``.
+
 Configuring Custom Observer Callbacks
 -------------------------------------
 

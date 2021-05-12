@@ -42,19 +42,23 @@ Installing from the Binary Distribution
 ---------------------------------------
 
 GeoMesa Cassandra artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version
-(|release|) from `GitHub`__.
+The easiest way to get started is to download the most recent binary version from `GitHub`__.
 
 __ https://github.com/locationtech/geomesa/releases
+
+.. note::
+
+  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
+  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
 
 Extract it somewhere convenient:
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-cassandra_2.11-$VERSION-bin.tar.gz"
-    $ tar xvf geomesa-cassandra_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-cassandra_2.11-$VERSION
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-cassandra_${VERSION}-bin.tar.gz"
+    $ tar xvf geomesa-cassandra_${VERSION}-bin.tar.gz
+    $ cd geomesa-cassandra_${VERSION}
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
@@ -77,11 +81,11 @@ Setting up the Cassandra Command Line Tools
 -------------------------------------------
 
 GeoMesa Cassandra comes with a set of command line tools for managing Cassandra features located in
-``geomesa-cassandra_2.11-$VERSION/bin/`` of the binary distribution.
+``geomesa-cassandra_${VERSION}/bin/`` of the binary distribution.
 
 .. note::
 
-    You can configure environment variables and classpath settings in ``geomesa-cassandra_2.11-$VERSION/conf/*-env.sh``.
+    You can configure environment variables and classpath settings in ``geomesa-cassandra_${VERSION}/conf/*-env.sh``.
 
 .. note::
 
@@ -124,7 +128,7 @@ Installing GeoMesa Cassandra in GeoServer
 
 The GeoMesa Cassandra distribution includes a GeoServer plugin for including
 Cassandra data stores in GeoServer. The plugin files are in the
-``dist/gs-plugins/geomesa-cassandra-gs-plugin_2.11-$VERSION-install.tar.gz`` archive within the
+``dist/gs-plugins/geomesa-cassandra-gs-plugin_${VERSION}-install.tar.gz`` archive within the
 GeoMesa Cassandra distribution directory.
 
 To install the plugins, extract the archive and copy the contents to the ``WEB-INF/lib``

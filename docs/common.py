@@ -61,7 +61,7 @@ author = u''
 #
 # Warning: current version numbers are handled in versions.py, which is preprocessed
 # by Maven. Do not hardcode current GeoMesa version numbers here!
-from target.versions import release,version,version_devel,release_last
+from target.versions import release,version,release_version,scala_binary_version
 
 # Other versions and variables unlikely to change on every point release
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
@@ -79,17 +79,15 @@ rst_epilog = """
 
 .. _Java JDK 8: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
-.. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_2.11/%(release_last)s/geomesa-accumulo_2.11-%(release_last)s-bin.tar.gz
+.. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_%(scala_binary_version)s/%(release_version)s/geomesa-accumulo_%(scala_binary_version)s-%(release_version)s-bin.tar.gz
 
-.. |release_tarball_kafka| replace:: %(url_locationtech_release)s/geomesa-kafka-dist_2.11/%(release_last)s/geomesa-kafka_2.11-%(release_last)s-bin.tar.gz
+.. |release_tarball_kafka| replace:: %(url_locationtech_release)s/geomesa-kafka-dist_%(scala_binary_version)s/%(release_version)s/geomesa-kafka_%(scala_binary_version)s-%(release_version)s-bin.tar.gz
 
-.. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_2.11/%(release_last)s/geomesa-hbase_2.11-%(release_last)s-bin.tar.gz
+.. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_%(scala_binary_version)s/%(release_version)s/geomesa-hbase_%(scala_binary_version)s-%(release_version)s-bin.tar.gz
 
-.. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_2.11/%(release_last)s/geomesa-cassandra_2.11-%(release_last)s-bin.tar.gz
+.. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_%(scala_binary_version)s/%(release_version)s/geomesa-cassandra_%(scala_binary_version)s-%(release_version)s-bin.tar.gz
 
-.. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_2.11-%(release_last)s.tar.gz
-
-.. |development| replace:: %(version_devel)s
+.. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_%(scala_binary_version)s-%(release_version)s.tar.gz
 
 .. |maven_version| replace:: 3.5.2 or later
 
@@ -125,11 +123,15 @@ rst_epilog = """
 
 .. |spark_supported_versions| replace:: versions 2.4.x, 3.0.x and 3.1.x
 
-.. |release_last| replace:: %(release_last)s
+.. |release_version| replace:: ``%(release_version)s``
+
+.. |scala_binary_version| replace:: %(scala_binary_version)s
+
+.. |scala_release_version| replace:: ``%(scala_binary_version)s-%(release_version)s``
 
 """ % {"release": release,
-       "release_last": release_last,
-       "version_devel": version_devel,
+       "release_version": release_version,
+       "scala_binary_version": scala_binary_version,
        "url_locationtech_release": url_locationtech_release,
        "url_github_archive": url_github_archive}
 

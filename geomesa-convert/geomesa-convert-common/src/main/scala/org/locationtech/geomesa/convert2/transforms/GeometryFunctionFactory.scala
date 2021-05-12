@@ -34,6 +34,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[Point]
     case Array(x: Float, y: Double) => gf.createPoint(new Coordinate(x, y))
     case Array(x: Double, y: Float) => gf.createPoint(new Coordinate(x, y))
+    case Array(null) | Array(null, null) => null
     case args => throw new IllegalArgumentException(s"Invalid point conversion argument: ${args.mkString(",")}")
   }
 
@@ -41,6 +42,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     case Array(g: MultiPoint) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[MultiPoint]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[MultiPoint]
+    case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid multipoint conversion argument: ${args.mkString(",")}")
   }
 
@@ -48,6 +50,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     case Array(g: LineString) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[LineString]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[LineString]
+    case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid linestring conversion argument: ${args.mkString(",")}")
   }
 
@@ -55,6 +58,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     case Array(g: MultiLineString) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[MultiLineString]
     case Array(g: Array[Byte]) => WKBUtils.read(g)
+    case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid multilinestring conversion argument: ${args.mkString(",")}")
   }
 
@@ -62,6 +66,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     case Array(g: Polygon) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[Polygon]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[Polygon]
+    case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid polygon conversion argument: ${args.mkString(",")}")
   }
 
@@ -69,6 +74,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     case Array(g: MultiPolygon) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[MultiPolygon]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[MultiPolygon]
+    case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid multipolygon conversion argument: ${args.mkString(",")}")
   }
 
@@ -76,6 +82,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     case Array(g: GeometryCollection) => g.asInstanceOf[GeometryCollection]
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[GeometryCollection]
     case Array(g: Array[Byte]) => WKBUtils.read(g)
+    case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid geometrycollection conversion argument: ${args.mkString(",")}")
   }
 
@@ -83,6 +90,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     case Array(g: Geometry) => g
     case Array(g: String) => WKTUtils.read(g)
     case Array(g: Array[Byte]) => WKBUtils.read(g)
+    case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid geometry conversion argument: ${args.mkString(",")}")
   }
 
@@ -95,13 +103,15 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 
-      val epsg = args(0).asInstanceOf[String]
       val geom = args(1).asInstanceOf[Geometry]
-      val lenient = if (args.length > 2) { java.lang.Boolean.parseBoolean(args(2).toString) } else { true }
-      // transforms should be thread safe according to https://sourceforge.net/p/geotools/mailman/message/32123017/
-      val transform = cache.getOrElseUpdate(s"$epsg:$lenient",
-        CRS.findMathTransform(CRS.decode(epsg), CRS_EPSG_4326, lenient))
-      JTS.transform(geom, transform)
+      if (geom == null) { null } else {
+        val epsg = args(0).asInstanceOf[String]
+        val lenient = if (args.length > 2) { java.lang.Boolean.parseBoolean(args(2).toString) } else { true }
+        // transforms should be thread safe according to https://sourceforge.net/p/geotools/mailman/message/32123017/
+        val transform = cache.getOrElseUpdate(s"$epsg:$lenient",
+          CRS.findMathTransform(CRS.decode(epsg), CRS_EPSG_4326, lenient))
+        JTS.transform(geom, transform)
+      }
     }
   }
 }

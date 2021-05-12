@@ -132,7 +132,7 @@ GeoMesa ``DataStore``. The module is available through maven:
 
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-geojson-api_2.11</artifactId>
+            <artifactId>geomesa-geojson-api_2.12</artifactId>
             <version>1.3.0</version>
         </dependency>
 
@@ -179,7 +179,7 @@ in GeoServer by extracting the install file into ``geoserver/WEB-INF/lib``:
 
 .. code-block:: bash
 
-    $ tar -xf geomesa-geojson/geomesa-geojson-gs-plugin/target/geomesa-geojson-gs-plugin_2.11-$VERSION-install.tar.gz -C <dest>
+    $ tar -xf geomesa-geojson/geomesa-geojson-gs-plugin/target/geomesa-geojson-gs-plugin_2.12-$VERSION-install.tar.gz -C <dest>
 
 Note that this also requires the AccumuloDataStore to be installed. See :ref:`install_accumulo_geoserver`.
 

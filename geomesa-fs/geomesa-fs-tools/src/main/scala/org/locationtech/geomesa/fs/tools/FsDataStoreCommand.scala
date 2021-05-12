@@ -17,6 +17,7 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
+import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesValidator, KeyValueConverter}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
@@ -86,7 +87,12 @@ object FsDataStoreCommand {
     @Parameter(names = Array("--leaf-storage"), description = "Use Leaf Storage for Partition Scheme", arity = 1)
     var leafStorage: java.lang.Boolean = true
 
-    @Parameter(names = Array("--storage-opt"), variableArity = true, description = "Additional storage opts (k=v)", converter = classOf[KeyValueConverter])
+    @Parameter(
+      names = Array("--storage-opt"),
+      description = "Additional storage options to set as SimpleFeatureType user data, in the form key=value",
+      variableArity = true,
+      converter = classOf[KeyValueConverter],
+      splitter = classOf[NoopParameterSplitter])
     var storageOpts: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()
 
     @Parameter(
