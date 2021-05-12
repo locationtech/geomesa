@@ -29,7 +29,11 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 =======
       <artifactId>geomesa-spark-jts_2.12</artifactId>
       // version, etc.
+<<<<<<< HEAD
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     </dependency>
 
 Example
