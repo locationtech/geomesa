@@ -4024,8 +4024,11 @@ import java.io.InputStream
 import java.util.Collections
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0fd022c963 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> a6710b33bf (GEOMESA-3071 Move all converter state into evaluation context)
 import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 
@@ -4396,6 +4399,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6984,9 +6988,24 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a6710b33bf (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+
+import com.codahale.metrics.Counter
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 7a670e5d35 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 0a486b23ef (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a6710b33bf (GEOMESA-3071 Move all converter state into evaluation context)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
