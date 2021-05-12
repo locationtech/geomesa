@@ -7,9 +7,13 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-hbase-spark-runtime-hbase2_2.12</artifactId>
-    <name>GeoMesa HBase Spark Runtime, HBase 2.x</name>
+    <artifactId>geomesa-hbase-spark-runtime-hbase1_2.12</artifactId>
+    <name>GeoMesa HBase Spark Runtime, HBase 1.x</name>
     <description>Single shaded jar providing HBase Spark integration</description>
+
+    <properties>
+        <hbase.version>${hbase-1.version}</hbase.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -56,13 +60,17 @@
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-mapreduce</artifactId>
+            <artifactId>hbase-server</artifactId>
             <version>${hbase.version}</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>org.xerial.snappy</groupId>
-                    <artifactId>snappy-java</artifactId>
+                    <groupId>tomcat</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.mortbay.jetty</groupId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -103,7 +111,6 @@
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
-
 
         <!-- test dependencies -->
         <dependency>
