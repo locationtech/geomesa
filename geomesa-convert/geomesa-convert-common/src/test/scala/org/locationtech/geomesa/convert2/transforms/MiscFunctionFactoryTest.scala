@@ -42,6 +42,7 @@ class MiscFunctionFactoryTest extends Specification {
       }
       "return the default if the first argument is null" >> {
         MiscFunctionFactory.withDefault(Array(null, Int.box(1))) mustEqual 1
+<<<<<<< HEAD
       }
       "return the first non-null argument" >> {
         MiscFunctionFactory.withDefault(Array("a", "b", "c", "d")) mustEqual "a"
@@ -49,6 +50,8 @@ class MiscFunctionFactoryTest extends Specification {
         MiscFunctionFactory.withDefault(Array(null, null, "c", "d")) mustEqual "c"
         MiscFunctionFactory.withDefault(Array(null, null, null, "d")) mustEqual "d"
         MiscFunctionFactory.withDefault(Array(null, null, null, null)) must beNull
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
       }
     }
 
