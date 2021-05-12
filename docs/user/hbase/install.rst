@@ -511,6 +511,7 @@ __ https://github.com/locationtech/geomesa/releases
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0753bfcbe4 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -533,6 +534,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> b046434188 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -606,6 +609,7 @@ __ https://github.com/locationtech/geomesa/releases
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> ffe4f9fd41 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -968,6 +972,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> 4c361f07da (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c22ecd64c3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> f71fa3c0e1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> cdb4102515 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -975,6 +981,9 @@ __ https://github.com/locationtech/geomesa/releases
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 90ec70f559 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -4253,6 +4262,7 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> f71fa3c0e1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -5469,6 +5479,10 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 Download and extract it somewhere convenient:
 =======
 .. note::
@@ -5502,10 +5516,14 @@ Extract it somewhere convenient:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -5536,6 +5554,8 @@ Extract it somewhere convenient:
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 Download and extract it somewhere convenient:
@@ -10839,12 +10859,16 @@ Download and extract it somewhere convenient:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> cdb4102515 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -12206,6 +12230,8 @@ Download and extract it somewhere convenient:
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 .. code-block:: bash
 
@@ -12516,10 +12542,13 @@ Download and extract it somewhere convenient:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -12531,6 +12560,7 @@ Download and extract it somewhere convenient:
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> ffe4f9fd41 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -12933,6 +12963,8 @@ Download and extract it somewhere convenient:
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -12955,6 +12987,9 @@ Download and extract it somewhere convenient:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> cdb4102515 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 90ec70f559 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -20396,12 +20431,25 @@ Download and extract it somewhere convenient:
 >>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
+=======
+>>>>>>> cdb4102515 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> f71fa3c0e1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> cdb4102515 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 .. _hbase_install_source:
 
@@ -20737,10 +20785,14 @@ this directory as follows:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -21105,6 +21157,8 @@ this directory as follows:
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       $ hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar ${hbase.dynamic.jars.dir}/
 =======
 =======
@@ -26219,10 +26273,13 @@ this directory as follows:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 31ac28fff4 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
       $ hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar ${hbase.dynamic.jars.dir}/
@@ -30969,6 +31026,7 @@ this directory as follows:
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -32325,6 +32383,8 @@ this directory as follows:
 >>>>>>> f71fa3c0e1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
   .. group-tab:: HBase 1.x
 
@@ -32633,10 +32693,14 @@ this directory as follows:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -33001,6 +33065,8 @@ this directory as follows:
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       $ hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar ${hbase.dynamic.jars.dir}/
 =======
 =======
@@ -38125,6 +38191,7 @@ this directory as follows:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 10515a5e00b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -38135,10 +38202,14 @@ this directory as follows:
 =======
 >>>>>>> 35aa8f85a2f (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
+>>>>>>> 348941e5410 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 37ed3a85a57 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 31ac28fff4 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
       $ hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar ${hbase.dynamic.jars.dir}/
@@ -43389,8 +43460,11 @@ this directory as follows:
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 02b8f16a86b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> 348941e5410 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD
@@ -45341,7 +45415,12 @@ this directory as follows:
 >>>>>>> f71fa3c0e1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> b278ae8865c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 348941e5410 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 If running on top of Amazon S3, you will need to use the ``aws s3`` command line tool.
 
@@ -45657,10 +45736,14 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -46025,6 +46108,8 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       $ aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
 =======
 =======
@@ -51139,10 +51224,13 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 31ac28fff4 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
       $ aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
@@ -55889,6 +55977,7 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -57245,6 +57334,8 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 >>>>>>> f71fa3c0e1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
   .. group-tab:: HBase 1.x
 
@@ -57553,10 +57644,14 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -57921,6 +58016,8 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
       $ aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
 =======
 =======
@@ -63045,6 +63142,7 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 10515a5e00b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -63055,10 +63153,14 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 =======
 >>>>>>> 35aa8f85a2f (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
+>>>>>>> 348941e5410 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 37ed3a85a57 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 31ac28fff4 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
       $ aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
@@ -68309,8 +68411,11 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 02b8f16a86b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> 348941e5410 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD
@@ -70261,7 +70366,12 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 >>>>>>> f71fa3c0e1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> b278ae8865c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 348941e5410 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 If required, you may disable distributed processing by setting the system property ``geomesa.hbase.remote.filtering``
 to ``false``. Note that this may have an adverse effect on performance.
@@ -70713,6 +70823,7 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b9c0fc77b9 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -70755,6 +70866,8 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 >>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> 338d952d43 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -71871,6 +71984,7 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> ffe4f9fd41 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -72003,6 +72117,8 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     /path/to/geomesa-hbase_${VERSION}/bin/geomesa-hbase
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -72033,12 +72149,17 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 7bdbfa5524 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
     /path/to/geomesa-hbase_${VERSION}/bin/geomesa-hbase
@@ -72048,6 +72169,9 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> 6eb31fb652 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -74984,6 +75108,7 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -77295,6 +77420,10 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 >>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> b8be7d30a1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> e7d6b701c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 Running Commands
 ^^^^^^^^^^^^^^^^
