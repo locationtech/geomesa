@@ -7750,6 +7750,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Development version: 4.0.0-SNAPSHOT**
 =======
 =======
@@ -7810,6 +7811,8 @@ libraryDependencies ++= Seq(
 >>>>>>> 2024fa80f3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> a801bb2986 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 60b2734c49 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 **Development version: 4.1.0-SNAPSHOT**
 =======
@@ -7879,6 +7882,8 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> a0c34ab601 ([maven-release-plugin] prepare for next development iteration)
 =======
+>>>>>>> 243797ba3c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 947a867d1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 **Development version: 3.4.0-SNAPSHOT**
@@ -8029,10 +8034,15 @@ libraryDependencies ++= Seq(
 >>>>>>> aada4d63c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> f3dd0ac67 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 **Development version: 3.5.0-SNAPSHOT**
 =======
 **Development version: 4.0.0-SNAPSHOT**
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8059,6 +8069,8 @@ libraryDependencies ++= Seq(
 >>>>>>> 08ec6e9fa0 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
+=======
+>>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -8116,6 +8128,7 @@ libraryDependencies ++= Seq(
 =======
 **Development version: 3.4.0-SNAPSHOT**
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8444,8 +8457,18 @@ libraryDependencies ++= Seq(
 **Development version: 3.4.0-SNAPSHOT**
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> f3dd0ac67 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> a0c34ab601 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> a801bb2986 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+=======
+>>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 243797ba3c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 60b2734c49 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
