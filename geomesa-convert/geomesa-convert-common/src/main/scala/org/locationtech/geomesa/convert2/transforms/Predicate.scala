@@ -21,7 +21,11 @@ sealed trait Predicate extends ContextDependent[Predicate] {
   @deprecated("Use `withContext` and `evaluate`")
   def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
     withContext(ctx).apply(args.asInstanceOf[Array[AnyRef]])
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 }
 
 object Predicate {
