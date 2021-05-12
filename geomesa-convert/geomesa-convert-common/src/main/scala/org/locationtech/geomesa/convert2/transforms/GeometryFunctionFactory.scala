@@ -913,6 +913,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6d51efa18f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -1041,6 +1042,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 6e608a73fb (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 300c3c3f15 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 9ae0443a91 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 914d29005e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -1238,6 +1241,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 2486842735 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> ff0dbfcfb7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 622d048a77 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -1852,6 +1856,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 6b6227eac7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 300c3c3f15 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 9ae0443a91 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9cdd96d1c0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -3014,6 +3020,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> a3acfc6a17 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> 66cba04aa1 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 30d431265 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 98a03c5861 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -3857,9 +3865,12 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 1cc1e5df3 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> a27f5014e (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3966,6 +3977,9 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9ae0443a91 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 66cba04aa1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -4242,7 +4256,14 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 =======
 >>>>>>> 6b6227eac7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 300c3c3f15 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 66cba04aa1 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 2486842735 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9ae0443a91 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 98a03c586 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9e8a3c11c3 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -6960,12 +6981,17 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2486842735 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1d7198eed4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 300c3c3f15 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 2486842735 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9ae0443a91 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> a3acfc6a17 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
@@ -6977,10 +7003,13 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ff0dbfcfb7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 6312e4ce37 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 9ae0443a91 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 66cba04aa1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -8174,6 +8203,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 66cba04aa1 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2486842735 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 674c8f43c2 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> ff0dbfcfb7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -10114,6 +10144,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> a3acfc6a17 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 6b6227eac7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 300c3c3f15 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 9ae0443a91 (GEOMESA-3071 Move all converter state into evaluation context)
     case Array(x: Number, y: Number) => gf.createPoint(coord(x, y))
     case Array(x: Number, y: Number, z: Number) => gf.createPoint(coordZ(x, y, z))
     case Array(x: Number, y: Number, z: Number, m: Number) => gf.createPoint(coordZM(x, y, z, m))
@@ -11218,6 +11250,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 45ad5d11f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -11326,6 +11359,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> a3506f6924 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 4f51687745 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9ae0443a91 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 45ad5d11f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -11673,7 +11708,12 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 8c9ca1211a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 >>>>>>> 4f51687745 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 2486842735 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9ae0443a91 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f3a49e082 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -11978,6 +12018,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 8c9ca1211a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -12079,6 +12120,15 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 8c9ca1211a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 4f51687745 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 8c9ca1211a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a27f5014e (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 2486842735 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 9ae0443a91 (GEOMESA-3071 Move all converter state into evaluation context)
     case Array(x: Number, y: Number) => gf.createPoint(new Coordinate(x.doubleValue, y.doubleValue))
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[Point]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[Point]
