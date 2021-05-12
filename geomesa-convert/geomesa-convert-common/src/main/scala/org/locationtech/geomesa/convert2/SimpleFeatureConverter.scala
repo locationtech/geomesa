@@ -10,8 +10,10 @@ package org.locationtech.geomesa.convert2
 
 import java.io.{Closeable, InputStream}
 
+import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
+import org.locationtech.geomesa.convert.EvaluationContext.DelegatingEvaluationContext
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -20,8 +22,9 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
-  * Converts input streams into simple features
-  */
+ * Converts input streams into simple features. SimpleFeatureConverters should be thread-safe. However,
+ * a given EvaluationContext should only be used in a single thread at once.
+ */
 trait SimpleFeatureConverter extends Closeable with LazyLogging {
 
   import scala.collection.JavaConverters._
@@ -32,28 +35,44 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
   def targetSft: SimpleFeatureType
 
   /**
-    * Process an input stream into simple features
-    *
-    * @param is input
-    * @param ec evaluation context
-    * @return
-    */
+   * Process an input stream into simple features.
+   *
+   * This method should be thread-safe, as long as different evaluation contexts are used for each request.
+   *
+   * @param is input
+   * @param ec evaluation context
+   * @return
+   */
   def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): CloseableIterator[SimpleFeature]
 
   /**
-    * Create a context used for local state while processing
-    *
-    * @param globalParams global key-values to make accessible through the evaluation context
-    * @return
-    */
+   * Create a context used for local state while processing. A context object is not thread-safe, and should
+   * only be used in one thread at a time.
+   *
+   * @param globalParams global key-values to make accessible through the evaluation context
+   * @return
+   */
   def createEvaluationContext(globalParams: Map[String, Any] = Map.empty): EvaluationContext
 
   /**
-    * Java API for `createEvaluationContext`
-    *
-    * @param globalParams global params, accessible in the converter for each input
-    * @return
-    */
+   * Create a context used for local state while processing. A context object is not thread-safe, and should
+   * only be used in one thread at a time.
+   *
+   * @param globalParams global key-values to make accessible through the evaluation context
+   * @param success counter for tracking successful conversions
+   * @param failure counter for tracking failed conversions
+   * @return
+   */
+  def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext =
+    // TODO remove default impl in next major release
+    new DelegatingEvaluationContext(createEvaluationContext(globalParams))(success, failure)
+
+  /**
+   * Java API for `createEvaluationContext`
+   *
+   * @param globalParams global key-values to make accessible through the evaluation context
+   * @return
+   */
   final def createEvaluationContext(globalParams: java.util.Map[String, Any]): EvaluationContext =
     createEvaluationContext(globalParams.asScala.toMap)
 }

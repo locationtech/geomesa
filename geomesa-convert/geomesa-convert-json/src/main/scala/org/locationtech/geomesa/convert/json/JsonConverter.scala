@@ -75,71 +75,72 @@ object JsonConverter extends GeoJsonParsing {
 
   sealed trait JsonField extends Field
 
-  case class DerivedField(name: String, transforms: Option[Expression]) extends JsonField
+  case class DerivedField(name: String, transforms: Option[Expression]) extends JsonField {
+    override val fieldArg: Option[Array[AnyRef] => AnyRef] = None
+  }
 
-  abstract class TypedJsonField(val name: String,
-                                val jsonType: String,
-                                val path: String,
-                                val pathIsRoot: Boolean,
-                                val transforms: Option[Expression]) extends JsonField {
+  abstract class TypedJsonField(val jsonType: String) extends JsonField {
+
+    def path: String
+    def pathIsRoot: Boolean
 
     private val i = if (pathIsRoot) { 1 } else { 0 }
-    private val mutableArray = Array.ofDim[Any](1)
     private val jsonPath = JsonPath.compile(path)
 
     protected def unwrap(elem: JsonElement): AnyRef
 
-    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
+    override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
+
+    private def values(args: Array[AnyRef]): AnyRef = {
       val e = try { jsonPath.read[JsonElement](args(i), JsonConfiguration) } catch {
         case _: PathNotFoundException => JsonNull.INSTANCE
       }
-      mutableArray(0) = if (e.isJsonNull) { null } else { unwrap(e) }
-      super.eval(mutableArray)
+      if (e.isJsonNull) { null } else { unwrap(e) }
     }
   }
 
-  class StringJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
-      extends TypedJsonField(name, "string", path, pathIsRoot, transforms) {
+  case class StringJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
+      extends TypedJsonField("string") {
     override def unwrap(elem: JsonElement): AnyRef = elem.getAsString
   }
 
-  class FloatJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
-      extends TypedJsonField(name, "float", path, pathIsRoot, transforms) {
+  case class FloatJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
+      extends TypedJsonField("float") {
     override def unwrap(elem: JsonElement): AnyRef = Float.box(elem.getAsFloat)
   }
 
-  class DoubleJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
-      extends TypedJsonField(name, "double", path, pathIsRoot, transforms) {
+  case class DoubleJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
+      extends TypedJsonField("double") {
     override def unwrap(elem: JsonElement): AnyRef = Double.box(elem.getAsDouble)
   }
 
-  class IntJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
-      extends TypedJsonField(name, "int", path, pathIsRoot, transforms) {
+  case class IntJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
+      extends TypedJsonField("int") {
     override def unwrap(elem: JsonElement): AnyRef = Int.box(elem.getAsInt)
   }
 
-  class BooleanJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
-      extends TypedJsonField(name, "boolean", path, pathIsRoot, transforms) {
+  case class BooleanJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
+      extends TypedJsonField("boolean") {
     override def unwrap(elem: JsonElement): AnyRef = Boolean.box(elem.getAsBoolean)
   }
 
-  class LongJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
-      extends TypedJsonField(name, "long", path, pathIsRoot, transforms) {
+  case class LongJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
+      extends TypedJsonField("long") {
     override def unwrap(elem: JsonElement): AnyRef = Long.box(elem.getAsBigInteger.longValue())
   }
 
-  class GeometryJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
-      extends TypedJsonField(name, "geometry", path, pathIsRoot, transforms) {
+  case class GeometryJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
+      extends TypedJsonField("geometry") {
     override def unwrap(elem: JsonElement): AnyRef = parseGeometry(elem)
   }
 
-  class ArrayJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
-      extends TypedJsonField(name, "array", path, pathIsRoot, transforms) {
+  case class ArrayJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
+      extends TypedJsonField("array") {
     override def unwrap(elem: JsonElement): AnyRef = elem.getAsJsonArray
   }
 
-  class ObjectJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
-      extends TypedJsonField(name, "object", path, pathIsRoot, transforms) {
+  case class ObjectJsonField(name: String, path: String, pathIsRoot: Boolean, transforms: Option[Expression])
+      extends TypedJsonField("object") {
     override def unwrap(elem: JsonElement): AnyRef = elem.getAsJsonObject
   }
 

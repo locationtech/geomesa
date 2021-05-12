@@ -9,20 +9,31 @@
 package org.locationtech.geomesa.convert2.transforms
 
 import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert.EvaluationContext.{ContextDependent, FieldAccessor, NullFieldAccessor}
 import org.locationtech.geomesa.convert2.Field
 
 import scala.util.Try
 
-trait Expression {
+sealed trait Expression extends ContextDependent[Expression] {
+
+  /**
+   * Evaluate the expression against an input row
+   *
+   * @param args arguments
+   * @return
+   */
+  def apply(args: Array[_ <: AnyRef]): AnyRef
 
   /**
     * Evaluate the expression against an input
     *
     * @param args arguments
-    * @param ctx evaluation context
+    * @param ec evaluation context
     * @return
     */
-  def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any
+  @deprecated("Use `withContext` and `apply`")
+  def eval(args: Array[Any])(implicit ec: EvaluationContext): Any =
+    withContext(ec).apply(args.asInstanceOf[Array[AnyRef]])
 
   /**
     * Gets the field dependencies that this expr relies on
@@ -63,9 +74,10 @@ object Expression {
     result.toSeq
   }
 
-  sealed trait Literal[T <: Any] extends Expression {
+  sealed trait Literal[T <: AnyRef] extends Expression {
     def value: T
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = value
+    override def apply(args: Array[_ <: AnyRef]): AnyRef = value
+    override def withContext(ec: EvaluationContext): Expression = this
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty
     override def toString: String = String.valueOf(value)
   }
@@ -84,7 +96,7 @@ object Expression {
 
   case class LiteralBoolean(value: java.lang.Boolean) extends Literal[java.lang.Boolean]
 
-  case class LiteralAny(value: Any) extends Literal[Any]
+  case class LiteralAny(value: AnyRef) extends Literal[AnyRef]
 
   case object LiteralNull extends Literal[AnyRef] { override def value: AnyRef = null }
 
@@ -96,89 +108,108 @@ object Expression {
   }
 
   case class CastToInt(e: Expression) extends CastExpression(e, "int") {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Int =
-      e.eval(args) match {
-        case n: Int    => n
-        case n: Double => n.toInt
-        case n: Float  => n.toInt
-        case n: Long   => n.toInt
-        case n: Any    => n.toString.toInt
-        case null      => throw new NullPointerException("Trying to cast 'null' to int")
+    override def apply(args: Array[_ <: AnyRef]): Integer = {
+      e.apply(args) match {
+        case n: Integer          => n
+        case n: java.lang.Number => n.intValue()
+        case n: String           => n.toInt
+        case n: AnyRef           => n.toString.toInt
+        case null                => throw new NullPointerException("Trying to cast 'null' to int")
       }
+    }
+    override def withContext(ec: EvaluationContext): Expression = {
+      val ewc = e.withContext(ec)
+      if (e.eq(ewc)) { this } else { CastToInt(ewc) }
+    }
   }
 
   case class CastToLong(e: Expression) extends CastExpression(e, "long") {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Long =
-      e.eval(args) match {
-        case n: Int    => n.toLong
-        case n: Double => n.toLong
-        case n: Float  => n.toLong
-        case n: Long   => n
-        case n: Any    => n.toString.toLong
-        case null      => throw new NullPointerException("Trying to cast 'null' to long")
+    override def apply(args: Array[_ <: AnyRef]): java.lang.Long = {
+      e.apply(args) match {
+        case n: java.lang.Long   => n
+        case n: java.lang.Number => n.longValue()
+        case n: String           => n.toLong
+        case n: AnyRef           => n.toString.toLong
+        case null                => throw new NullPointerException("Trying to cast 'null' to long")
       }
+    }
+    override def withContext(ec: EvaluationContext): Expression = {
+      val ewc = e.withContext(ec)
+      if (e.eq(ewc)) { this } else { CastToLong(ewc) }
+    }
   }
 
   case class CastToFloat(e: Expression) extends CastExpression(e, "float") {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Float =
-      e.eval(args) match {
-        case n: Int    => n.toFloat
-        case n: Double => n.toFloat
-        case n: Float  => n
-        case n: Long   => n.toFloat
-        case n: Any    => n.toString.toFloat
-        case null      => throw new NullPointerException("Trying to cast 'null' to float")
+    override def apply(args: Array[_ <: AnyRef]): java.lang.Float = {
+      e.apply(args) match {
+        case n: java.lang.Float  => n
+        case n: java.lang.Number => n.floatValue()
+        case n: String           => n.toFloat
+        case n: AnyRef           => n.toString.toFloat
+        case null                => throw new NullPointerException("Trying to cast 'null' to float")
       }
+    }
+    override def withContext(ec: EvaluationContext): Expression = {
+      val ewc = e.withContext(ec)
+      if (e.eq(ewc)) { this } else { CastToFloat(ewc) }
+    }
   }
 
   case class CastToDouble(e: Expression) extends CastExpression(e, "double") {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Double =
-      e.eval(args) match {
-        case n: Int    => n.toDouble
-        case n: Double => n
-        case n: Float  => n.toDouble
-        case n: Long   => n.toDouble
-        case n: Any    => n.toString.toDouble
-        case null      => throw new NullPointerException("Trying to cast 'null' to double")
+    override def apply(args: Array[_ <: AnyRef]): java.lang.Double = {
+      e.apply(args) match {
+        case n: java.lang.Double => n
+        case n: java.lang.Number => n.doubleValue()
+        case n: String           => n.toDouble
+        case n: AnyRef           => n.toString.toDouble
+        case null                => throw new NullPointerException("Trying to cast 'null' to double")
       }
+    }
+    override def withContext(ec: EvaluationContext): Expression = {
+      val ewc = e.withContext(ec)
+      if (e.eq(ewc)) { this } else { CastToDouble(ewc) }
+    }
   }
 
   case class CastToBoolean(e: Expression) extends CastExpression(e, "boolean") {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean = {
-      e.eval(args) match {
-        case b: Boolean => b
-        case b: Any     => b.toString.toBoolean
-        case null       => throw new NullPointerException("Trying to cast 'null' to boolean")
+    override def apply(args: Array[_ <: AnyRef]): java.lang.Boolean = {
+      e.apply(args) match {
+        case b: java.lang.Boolean => b
+        case b: String            => b.toBoolean
+        case b: AnyRef            => b.toString.toBoolean
+        case null                 => throw new NullPointerException("Trying to cast 'null' to boolean")
       }
+    }
+    override def withContext(ec: EvaluationContext): Expression = {
+      val ewc = e.withContext(ec)
+      if (e.eq(ewc)) { this } else { CastToBoolean(ewc) }
     }
   }
 
   case class CastToString(e: Expression) extends CastExpression(e, "string") {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): String = {
-      e.eval(args) match {
+    override def apply(args: Array[_ <: AnyRef]): String = {
+      e.apply(args) match {
         case s: String => s
-        case s: Any    => s.toString
+        case s: AnyRef => s.toString
         case null      => throw new NullPointerException("Trying to cast 'null' to String")
       }
+    }
+    override def withContext(ec: EvaluationContext): Expression = {
+      val ewc = e.withContext(ec)
+      if (e.eq(ewc)) { this } else { CastToString(ewc) }
     }
   }
 
   case class Column(i: Int) extends Expression {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = args(i)
+    override def apply(args: Array[_ <: AnyRef]): AnyRef = args(i)
+    override def withContext(ec: EvaluationContext): Expression = this
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty
     override def toString: String = s"$$$i"
   }
 
-  case class FieldLookup(n: String) extends Expression {
-    private var doEval: EvaluationContext => Any = ctx => {
-      val idx = ctx.indexOf(n)
-      // rewrite the eval to lookup by index
-      doEval = if (idx < 0) { _  => null } else { ec => ec.get(idx) }
-      doEval(ctx)
-    }
-
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = doEval(ctx)
-
+  case class FieldLookup(n: String, accessor: FieldAccessor = NullFieldAccessor) extends Expression {
+    override def apply(args: Array[_ <: AnyRef]): AnyRef = accessor.apply()
+    override def withContext(ec: EvaluationContext): Expression = FieldLookup(n, ec.accessor(n))
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = {
       fieldMap.get(n) match {
         case None => Set.empty
@@ -190,29 +221,78 @@ object Expression {
           }
       }
     }
-
     override def toString: String = s"$$$n"
   }
 
   case class RegexExpression(s: String) extends Expression {
     private val compiled = s.r
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = compiled
+    override def apply(args: Array[_ <: AnyRef]): AnyRef = compiled
+    override def withContext(ec: EvaluationContext): Expression = this
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty
     override def toString: String = s"$s::r"
   }
 
-  case class FunctionExpression(f: TransformerFunction, arguments: Array[Expression]) extends Expression {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      f.eval(arguments.map(_.eval(args)))
+  case class FunctionExpression(
+      f: TransformerFunction,
+      arguments: Array[Expression],
+      @volatile private var contextDependent: Int = -1
+    ) extends Expression {
+    override def apply(args: Array[_ <: AnyRef]): AnyRef = f.apply(arguments.map(_.apply(args)))
+    override def withContext(ec: EvaluationContext): Expression = {
+      // this code is thread-safe, in that it will ensure correctness, but does not guarantee
+      // that the dependency check is only performed once
+      if (contextDependent == 0) { this } else {
+        lazy val fwc = f.withContext(ec)
+        lazy val awc = arguments.map(_.withContext(ec))
+        if (contextDependent == 1) {
+          FunctionExpression(fwc, awc, 1)
+        } else {
+          if (!fwc.eq(f)) {
+            contextDependent = 1
+          } else {
+            var i = 0
+            while (i < arguments.length) {
+              if (!awc(i).eq(arguments(i))) {
+                contextDependent = 1
+                i = Int.MaxValue
+              } else {
+                i += 1
+              }
+            }
+            if (i == arguments.length) {
+              contextDependent = 0
+            }
+          }
+          if (contextDependent == 0) { this } else { FunctionExpression(fwc, awc, 1) }
+        }
+      }
+    }
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       arguments.flatMap(_.dependencies(stack, fieldMap)).toSet
     override def children(): Seq[Expression] = arguments
     override def toString: String = s"${f.names.head}${arguments.mkString("(", ",", ")")}"
   }
 
-  case class TryExpression(toTry: Expression, fallback: Expression) extends Expression {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      Try(toTry.eval(args)).getOrElse(fallback.eval(args))
+  case class TryExpression(
+      toTry: Expression,
+      fallback: Expression,
+      @volatile private var contextDependent: Int = -1
+    ) extends Expression {
+    override def apply(args: Array[_ <: AnyRef]): AnyRef = Try(toTry.apply(args)).getOrElse(fallback.apply(args))
+    override def withContext(ec: EvaluationContext): Expression = {
+      // this code is thread-safe, in that it will ensure correctness, but does not guarantee
+      // that the dependency check is only performed once
+      if (contextDependent == 0) { this } else {
+        lazy val twc = toTry.withContext(ec)
+        lazy val fwc = fallback.withContext(ec)
+        if (contextDependent == 1) {
+          TryExpression(twc, fwc, 1)
+        } else {
+          contextDependent = if (twc.eq(toTry) && fwc.eq(fallback)) { 0 } else { 1 }
+          if (contextDependent == 0) { this } else { TryExpression(twc, fwc, 1) }
+        }
+      }
+    }
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       toTry.dependencies(stack, fieldMap) ++ fallback.dependencies(stack, fieldMap)
     override def children(): Seq[Expression] = Seq(toTry, fallback)

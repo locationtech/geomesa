@@ -10,12 +10,11 @@ package org.locationtech.geomesa.convert2.transforms
 
 import java.util.concurrent.ConcurrentHashMap
 
-import org.locationtech.jts.geom._
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.CRS
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
+import org.locationtech.jts.geom._
 import org.opengis.referencing.operation.MathTransform
 
 class GeometryFunctionFactory extends TransformerFunctionFactory {
@@ -28,12 +27,9 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 
   private val pointParserFn = TransformerFunction.pure("point") {
     case Array(g: Point) => g
-    case Array(x: Float, y: Float) => gf.createPoint(new Coordinate(x, y))
-    case Array(x: Double, y: Double) => gf.createPoint(new Coordinate(x, y))
+    case Array(x: Number, y: Number) => gf.createPoint(new Coordinate(x.doubleValue, y.doubleValue))
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[Point]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[Point]
-    case Array(x: Float, y: Double) => gf.createPoint(new Coordinate(x, y))
-    case Array(x: Double, y: Float) => gf.createPoint(new Coordinate(x, y))
     case Array(null) | Array(null, null) => null
     case args => throw new IllegalArgumentException(s"Invalid point conversion argument: ${args.mkString(",")}")
   }
@@ -100,7 +96,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 
     private val cache = new ConcurrentHashMap[String, MathTransform].asScala
 
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
+    override def apply(args: Array[AnyRef]): AnyRef = {
       import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 
       val geom = args(1).asInstanceOf[Geometry]

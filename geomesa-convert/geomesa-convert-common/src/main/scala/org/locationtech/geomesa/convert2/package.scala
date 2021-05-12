@@ -13,8 +13,9 @@ import java.nio.charset.Charset
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
+import org.locationtech.geomesa.convert2.AbstractConverter.FieldApiError
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
@@ -30,8 +31,22 @@ package object convert2 {
   }
 
   trait Field {
+
     def name: String
     def transforms: Option[Expression]
+
+    /**
+     * Provides a chance for the field to select and filter the raw input values,
+     * e.g. by applying an x-path expression or taking a sub-section of the input
+     *
+     * @return an optional function to use instead of the args
+     */
+    // TODO remove default impl in next major release
+    // this will be caught and handled by the evaluation context
+    def fieldArg: Option[Array[AnyRef] => AnyRef] = throw FieldApiError
+
+    // noinspection ScalaDeprecation
+    @deprecated("Replaced with `fieldArg` for updating the raw input")
     def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = transforms.map(_.eval(args)).getOrElse(args(0))
   }
 

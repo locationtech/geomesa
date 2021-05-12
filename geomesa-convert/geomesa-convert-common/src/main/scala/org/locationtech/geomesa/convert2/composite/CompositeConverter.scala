@@ -11,9 +11,10 @@ package org.locationtech.geomesa.convert2.composite
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 
+import com.codahale.metrics.Counter
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.EvaluationContext
-import org.locationtech.geomesa.convert2.AbstractCompositeConverter.CompositeEvaluationContext
+import org.locationtech.geomesa.convert2.AbstractCompositeConverter.{CompositeEvaluationContext, PredicateContext}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -26,25 +27,30 @@ import scala.util.Try
 class CompositeConverter(val targetSft: SimpleFeatureType, delegates: Seq[(Predicate, SimpleFeatureConverter)])
     extends SimpleFeatureConverter {
 
-  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableLike
-
-  private val predicates = delegates.mapWithIndex { case ((p, _), i) => (p, i) }.toIndexedSeq
-  private val converters = delegates.map(_._2).toIndexedSeq
-
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
-    new CompositeEvaluationContext(converters.map(_.createEvaluationContext(globalParams)))
+    CompositeEvaluationContext(delegates.map(_._2), globalParams)
+
+  override def createEvaluationContext(
+      globalParams: Map[String, Any],
+      success: Counter,
+      failure: Counter): EvaluationContext = {
+    CompositeEvaluationContext(delegates.map(_._2), globalParams, success, failure)
+  }
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
-    val setEc: Int => Unit = ec match {
-      case c: CompositeEvaluationContext => i => c.setCurrent(i)
-      case _ => _ => Unit
+    val contexts = ec match {
+      case cec: CompositeEvaluationContext => cec.contexts.iterator
+      case _ => Iterator.continually(ec)
     }
-    val toEval = Array.ofDim[Any](1)
+    val predicates = delegates.map { case (predicate, converter) =>
+      if (!contexts.hasNext) {
+        throw new IllegalArgumentException(s"Invalid evaluation context doesn't match this converter: $ec")
+      }
+      val context = contexts.next()
+      PredicateContext(predicate.withContext(context), converter, context)
+    }
 
-    def evalPred(pi: (Predicate, Int)): Boolean = {
-      setEc(pi._2)
-      Try(pi._1.eval(toEval)(ec)).getOrElse(false)
-    }
+    val toEval = Array.ofDim[AnyRef](1)
 
     val lines = IOUtils.lineIterator(is, StandardCharsets.UTF_8)
 
@@ -58,16 +64,20 @@ class CompositeConverter(val targetSft: SimpleFeatureType, delegates: Seq[(Predi
           false
         } else {
           toEval(0) = lines.next()
+          ec.line += 1
           delegate.close()
-          delegate = predicates.find(evalPred).map(_._2) match {
-            case None =>
-              ec.line += 1
-              ec.failure.inc()
-              CloseableIterator.empty
-
-            case Some(i) =>
-              val in = new ByteArrayInputStream(toEval(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8))
-              converters(i).process(in, ec)
+          delegate = null
+          lazy val in = new ByteArrayInputStream(toEval(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8))
+          predicates.foreach { p =>
+            if (delegate == null && Try(p.predicate(toEval)).getOrElse(false)) {
+              delegate = p.converter.process(in, p.context)
+            } else {
+              p.context.line += 1
+            }
+          }
+          if (delegate == null) {
+            ec.failure.inc()
+            delegate = CloseableIterator.empty
           }
           hasNext
         }
@@ -82,5 +92,5 @@ class CompositeConverter(val targetSft: SimpleFeatureType, delegates: Seq[(Predi
     }
   }
 
-  override def close(): Unit = CloseWithLogging(converters)
+  override def close(): Unit = CloseWithLogging(delegates.map(_._2))
 }

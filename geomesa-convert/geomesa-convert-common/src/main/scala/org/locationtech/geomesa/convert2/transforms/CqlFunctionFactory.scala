@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.CqlFunctionFactory.{CqlTransformerFunction, arrayIndexProperty}
 import org.locationtech.geomesa.convert2.transforms.Expression.Literal
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
@@ -60,7 +59,7 @@ object CqlFunctionFactory {
 
     private val fn = ff.function(name, expressions: _*)
 
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = fn.evaluate(args)
+    override def apply(args: Array[AnyRef]): AnyRef = fn.evaluate(args)
 
     override def getInstance(args: List[Expression]): CqlTransformerFunction = {
       // remap literals to cql literals so that they can be optimized (e.g. prepared geometries, etc)

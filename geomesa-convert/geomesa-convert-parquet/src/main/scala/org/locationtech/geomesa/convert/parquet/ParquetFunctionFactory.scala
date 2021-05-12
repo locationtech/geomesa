@@ -10,7 +10,6 @@ package org.locationtech.geomesa.convert.parquet
 
 import org.apache.avro.generic.GenericRecord
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.avro.AvroPath
 import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
@@ -45,7 +44,7 @@ class ParquetFunctionFactory extends TransformerFunctionFactory {
 
     import SimpleFeatureParquetSchema.{GeometryColumnX, GeometryColumnY}
 
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
+    override def apply(args: Array[AnyRef]): AnyRef = {
       path.eval(args(0).asInstanceOf[GenericRecord]).collect {
         case r: GenericRecord => eval(r.get(GeometryColumnX).asInstanceOf[U], r.get(GeometryColumnY).asInstanceOf[U])
       }.orNull

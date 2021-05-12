@@ -24,9 +24,9 @@ import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BOMInputStream
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, LineMode, ParseMode}
 import org.locationtech.geomesa.convert._
-import org.locationtech.geomesa.convert.xml.XmlConverter.{DocParser, XmlConfig, XmlField, XmlOptions}
+import org.locationtech.geomesa.convert.xml.XmlConverter.{XmlConfig, XmlField, XmlHelper, XmlOptions}
+import org.locationtech.geomesa.convert2._
 import org.locationtech.geomesa.convert2.transforms.Expression
-import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig, ConverterOptions, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.TextTools
@@ -39,25 +39,25 @@ import scala.util.control.NonFatal
 class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlField], options: XmlOptions)
     extends AbstractConverter[Element, XmlConfig, XmlField, XmlOptions](sft, config, fields, options) {
 
-  private val parser = new DocParser(config.xsd)
+  private val helper = new ThreadLocal[XmlHelper]() {
+    override def initialValue: XmlHelper =
+      new XmlHelper(config.xpathFactory, config.xmlNamespaces, config.xsd, config.featurePath)
+  }
 
-  private val xpath = XmlConverter.createXPath(config.xpathFactory, config.xmlNamespaces)
-
-  private val rootPath = config.featurePath.map(xpath.compile)
-
-  fields.foreach(_.compile(xpath))
+  fields.foreach(_.compile(helper))
 
   // TODO GEOMESA-1039 more efficient InputStream processing for multi mode
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[Element] =
-    XmlConverter.iterator(parser, is, options.encoding, options.lineMode, ec)
+    XmlConverter.iterator(helper.get.parser, is, options.encoding, options.lineMode, ec)
 
   override protected def values(
       parsed: CloseableIterator[Element],
       ec: EvaluationContext): CloseableIterator[Array[Any]] = {
 
-    val array = Array.ofDim[Any](2)
-    rootPath match {
+    val array = Array.ofDim[Any](1)
+
+    helper.get.rootPath match {
       case None =>
         parsed.map { element =>
           array(0) = element
@@ -66,7 +66,6 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 
       case Some(path) =>
         parsed.flatMap { element =>
-          array(1) = element
           val nodeList = path.evaluate(element, XPathConstants.NODESET).asInstanceOf[NodeList]
           Iterator.tabulate(nodeList.getLength) { i =>
             array(0) = nodeList.item(i)
@@ -144,25 +143,34 @@ object XmlConverter extends StrictLogging {
     ) extends ConverterConfig
 
   sealed trait XmlField extends Field {
-    def compile(xpath: XPath): Unit
+    def compile(helper: ThreadLocal[XmlHelper]): Unit
   }
 
   case class DerivedField(name: String, transforms: Option[Expression]) extends XmlField {
-    override def compile(xpath: XPath): Unit = {}
+    override def compile(helper: ThreadLocal[XmlHelper]): Unit = {}
+    override val fieldArg: Option[Array[AnyRef] => AnyRef] = None
   }
 
   case class XmlPathField(name: String, path: String, transforms: Option[Expression]) extends XmlField {
 
-    private var expression: XPathExpression = _
+    private var helper: ThreadLocal[XmlHelper] = _
 
     private val mutableArray = Array.ofDim[Any](1)
 
-    override def compile(xpath: XPath): Unit = expression = xpath.compile(path)
+    private val expression = new ThreadLocal[XPathExpression]() {
+      override def initialValue(): XPathExpression = helper.get.xpath.compile(path)
+    }
+
+    override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
+
+    override def compile(helper: ThreadLocal[XmlHelper]): Unit = this.helper = helper
 
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-      mutableArray(0) = expression.evaluate(args(0))
+      mutableArray(0) = expression.get.evaluate(args(0))
       super.eval(mutableArray)
     }
+
+    private def values(args: Array[AnyRef]): AnyRef = expression.get.evaluate(args(0))
   }
 
   case class XmlOptions(
@@ -175,10 +183,28 @@ object XmlConverter extends StrictLogging {
     ) extends ConverterOptions
 
   /**
-    * Document parser helper
-    *
-    * @param xsd path to an xsd used to validate parsed documents
-    */
+   * XML parser helper - holds non-thread-safe classes
+   *
+   * @param xpathFactory class name to use for creating xpaths
+   * @param namespaces xml namespaces
+   * @param xsd xsd path to an xsd used to validate parsed documents
+   * @param featurePath path to features in the xml doc
+   */
+  class XmlHelper(
+      xpathFactory: String,
+      namespaces: Map[String, String],
+      xsd: Option[String],
+      featurePath: Option[String]) {
+    val parser = new DocParser(xsd)
+    val xpath: XPath = createXPath(xpathFactory, namespaces)
+    val rootPath: Option[XPathExpression] = featurePath.map(xpath.compile)
+  }
+
+  /**
+   * Document parser helper
+   *
+   * @param xsd xsd path to an xsd used to validate parsed documents
+   */
   class DocParser(xsd: Option[String]) {
 
     private val builder = {

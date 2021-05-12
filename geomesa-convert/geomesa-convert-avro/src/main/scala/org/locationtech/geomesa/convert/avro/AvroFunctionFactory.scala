@@ -60,7 +60,7 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
       new AvroPathFn(path)
     }
 
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
-      path.eval(args(0).asInstanceOf[GenericRecord]).orNull
+    override def apply(args: Array[AnyRef]): AnyRef =
+      path.eval(args(0).asInstanceOf[GenericRecord]).orNull.asInstanceOf[AnyRef]
   }
 }
