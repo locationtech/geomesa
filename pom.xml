@@ -22551,6 +22551,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <geomesa.release.version>5.0.1</geomesa.release.version>
 =======
 =======
@@ -23705,6 +23706,8 @@
 >>>>>>> 5b2416d719f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b2ce8565bb1 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 716d8c039ac (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
         <geomesa.release.version>5.0.0</geomesa.release.version>
 >>>>>>> f65c0d8670f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -24862,6 +24865,8 @@
 >>>>>>> 4d7b9dd6386 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d4553d3932b ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 85a6f8526fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
         <geomesa.release.version>4.0.5</geomesa.release.version>
 =======
@@ -26020,6 +26025,8 @@
 >>>>>>> f1aac6d795f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> a9632108cb2 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> de91b7b58f5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
         <geomesa.release.version>4.0.4</geomesa.release.version>
 <<<<<<< HEAD
@@ -27109,6 +27116,8 @@
 >>>>>>> 31f06f6e7c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e8d9b12d53 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 99a32a726d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.release.version>4.0.2</geomesa.release.version>
 =======
 =======
@@ -27228,6 +27237,8 @@
 >>>>>>> 02eb35f232 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 32315ad654 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> ad7067b815 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.release.version>4.0.1</geomesa.release.version>
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
@@ -38307,6 +38318,8 @@
 >>>>>>> 9990cd7dc7 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6113b1721c ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 5f428db977 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.release.version>3.5.0</geomesa.release.version>
         <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
 =======
@@ -38324,10 +38337,24 @@
 >>>>>>> 7e68948ac (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
+>>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+        <geomesa.release.version>3.3.0</geomesa.release.version>
+        <geomesa.devel.version>3.4.0-SNAPSHOT</geomesa.devel.version>
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.release.version>3.4.0</geomesa.release.version>
         <geomesa.devel.version>3.5.0-SNAPSHOT</geomesa.devel.version>
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -38336,6 +38363,9 @@
         <geomesa.release.version>3.2.0</geomesa.release.version>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.devel.version>3.3.0-SNAPSHOT</geomesa.devel.version>
 =======
         <geomesa.release.version>3.3.0</geomesa.release.version>
@@ -38344,6 +38374,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -38384,6 +38417,7 @@
         <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
 >>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
         <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -38406,6 +38440,8 @@
 =======
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <copyright.year>2021</copyright.year>
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
