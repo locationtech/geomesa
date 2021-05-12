@@ -20,12 +20,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 import java.io.InputStream
 import java.util.Collections
@@ -674,10 +677,13 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 import java.io.InputStream
 import java.util.Collections
 <<<<<<< HEAD
@@ -1476,6 +1482,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -2901,9 +2908,27 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+=======
+import java.io.InputStream
+import java.util.Collections
+
+import com.codahale.metrics.Counter
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
@@ -2934,6 +2959,16 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
     // inject placeholders for shapefile attributes into the evaluation context
     // used for accessing shapefile properties by name in ShapefileFunctionFactory
     val shpParams = Map(InputSchemaKey -> ArrayBuffer.empty[String], InputValuesKey -> ArrayBuffer.empty[AnyRef])
+    super.createEvaluationContext(globalParams ++ shpParams, success, failure)
+  }
+
+  override def createEvaluationContext(
+      globalParams: Map[String, Any],
+      success: Counter,
+      failure: Counter): EvaluationContext = {
+    // inject placeholders for shapefile attributes into the evaluation context
+    // used for accessing shapefile properties by name in ShapefileFunctionFactory
+    val shpParams = Map(InputSchemaKey -> Array.empty[String], InputValuesKey -> Array.empty[Any])
     super.createEvaluationContext(globalParams ++ shpParams, success, failure)
   }
 
