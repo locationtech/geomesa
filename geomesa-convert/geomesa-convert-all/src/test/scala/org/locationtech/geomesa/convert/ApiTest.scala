@@ -11,6 +11,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -35,6 +36,8 @@
 >>>>>>> 823f734cb8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 19d32c00e2 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 783e0c63c1 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
@@ -59,6 +62,8 @@
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 7a670e5d35 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 8cb3591e39 (GEOMESA-3071 Move all converter state into evaluation context)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -140,7 +145,12 @@
 =======
 =======
 =======
+=======
+>>>>>>> e014d8c87 (GEOMESA-3071 Move all converter state into evaluation context)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
