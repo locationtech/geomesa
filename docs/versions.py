@@ -7,6 +7,7 @@ version = '${project.version}'
 release = '${geomesa.release.version}'
 release_version = '${geomesa.release.version}'
 scala_binary_version = '${scala.binary.version}'
+<<<<<<< HEAD
 
 copyright_year = '${copyright.year}'
 
@@ -23,3 +24,5 @@ accumulo_version_full = '${accumulo.version}'
 accumulo_version = accumulo_version_full[:accumulo_version_full.rindex('.')]
 accumulo_version_recommended_full = '${accumulo.version.recommended}'
 accumulo_version_recommended = accumulo_version_recommended_full[:accumulo_version_recommended_full.rindex('.')]
+=======
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
