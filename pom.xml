@@ -20521,9 +20521,11 @@
         <!-- *** maven build configuration *** -->
 
         <!-- testing properties -->
+<<<<<<< HEAD
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
         <maven.test.debug>-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.debug>
         <maven.test.jvmargs>${maven.test.memory}</maven.test.jvmargs> <!--for java 11+: &#45;&#45;add-opens=java.base/java.nio=ALL-UNNAMED-->
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -20556,6 +20558,8 @@
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -20566,6 +20570,7 @@
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -20597,6 +20602,10 @@
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
         <maven.test.jvmargs>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.jvmargs>
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -20643,10 +20652,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
         <maven.test.jvmargs>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.jvmargs>
@@ -20685,6 +20697,7 @@
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -20745,6 +20758,10 @@
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
         <test.fork.count>4</test.fork.count>
         <test.fork.reuse>true</test.fork.reuse>
         <!-- arrow tests become extremely slow with assertions enabled-->
