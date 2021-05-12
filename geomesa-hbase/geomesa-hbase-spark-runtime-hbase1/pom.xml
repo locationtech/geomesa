@@ -1,31 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-fs_2.12</artifactId>
+        <artifactId>geomesa-hbase_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>5.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>GeoMesa Filesystem Spark Runtime</name>
-    <artifactId>geomesa-fs-spark-runtime_2.12</artifactId>
+    <artifactId>geomesa-hbase-spark-runtime-hbase1_2.12</artifactId>
+    <name>GeoMesa HBase Spark Runtime, HBase 1.x</name>
+    <description>Single shaded jar providing HBase Spark integration</description>
+
+    <properties>
+        <hbase.version>${hbase-1.version}</hbase.version>
+    </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-spark_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-datastore_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-hbase-spark_${scala.binary.version}</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- explicitly mark provided so its not in the shaded jar -->
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-compiler</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--Mark dependency as provided to avoid Spark 2.2.x conflicts-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+            <version>${hbase.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-common</artifactId>
+            <version>${hbase.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-protocol</artifactId>
+            <version>${hbase.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-server</artifactId>
+            <version>${hbase.version}</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>tomcat</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.mortbay.jetty</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${hbase.guava.version}</version>
+            <scope>compile</scope>
         </dependency>
 
         <!-- only needed for packaging into the shaded jar -->
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-spark-core_${scala.binary.version}</artifactId>
-            <scope>runtime</scope>
-        </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-spark-sql_${scala.binary.version}</artifactId>
@@ -36,51 +92,24 @@
             <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-spark-jupyter-leaflet_${scala.binary.version}</artifactId>
-            <scope>runtime</scope>
-        </dependency>
+
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-cqengine-datastore_${scala.binary.version}</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- bring in guava and relocate it -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
-
-        <!-- bring in guava and relocate it -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-        <!--Mark dependency as provided to avoid Spark 2.2.x conflicts-->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- provided dependencies -->
 
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.binary.version}</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-client</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- test dependencies -->
@@ -100,17 +129,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-datastore_${scala.binary.version}</artifactId>
-            <classifier>tests</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geomesa.testcontainers</groupId>
-            <artifactId>testcontainers-accumulo</artifactId>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-testing-util</artifactId>
+            <version>${hbase.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -167,14 +189,13 @@
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
                                 </relocation>
                                 <!-- we need parquet 1.9.0 in order to do dictionary filtering = 30% speed increase -->
+<<<<<<< HEAD
+=======
+                                <!-- TODO remove this when spark supports parquet 1.9.0 out of the box -->
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
                                 <relocation>
                                     <pattern>org.apache.parquet</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.org.apache.parquet</shadedPattern>
-                                </relocation>
-                                <!-- spark also includes orc/hive, relocate to avoid version conflicts -->
-                                <relocation>
-                                    <pattern>org.apache.orc</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.shaded.org.apache.orc</shadedPattern>
                                 </relocation>
                                 <!-- spark needs json4s to use the jsonpath function -->
                                 <relocation>
