@@ -426,6 +426,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 914d29005e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -724,6 +725,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> e72d6905dd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8139d78b86 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 89bb58cf10 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -4231,6 +4234,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 98a03c5861 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> bb7e8ccf4a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
@@ -5151,6 +5155,10 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> e72d6905dd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8139d78b86 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 0f4c829f25 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 89bb58cf10 (GEOMESA-3071 Move all converter state into evaluation context)
     case Array(x: Number, y: Number) => gf.createPoint(coord(x, y))
     case Array(x: Number, y: Number, z: Number) => gf.createPoint(coordZ(x, y, z))
     case Array(x: Number, y: Number, z: Number, m: Number) => gf.createPoint(coordZM(x, y, z, m))
@@ -5246,6 +5254,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 0d80bae0c6 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -5275,6 +5284,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 89bb58cf10 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 0d80bae0c6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f3a49e0825 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -5289,6 +5300,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 149b7a7809 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5320,9 +5332,14 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> e8b736ee96 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b71ceab97a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 0f4c829f25 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 89bb58cf10 (GEOMESA-3071 Move all converter state into evaluation context)
     case Array(x: Number, y: Number) => gf.createPoint(new Coordinate(x.doubleValue, y.doubleValue))
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[Point]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[Point]
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5348,6 +5365,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 915bd11f55 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> edc23fb02f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 89bb58cf10 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
     case Array(null) | Array(null, null) => null
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -5459,8 +5478,11 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7f7bfc7004 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 89bb58cf10 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0f4c829f25 (GEOMESA-3071 Move all converter state into evaluation context)
