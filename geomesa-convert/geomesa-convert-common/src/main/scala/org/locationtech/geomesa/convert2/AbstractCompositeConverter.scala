@@ -98,12 +98,15 @@ object AbstractCompositeConverter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
   // noinspection ScalaDeprecation
   case class CompositeEvaluationContext(contexts: Seq[EvaluationContext], success: Counter, failure: Counter)
@@ -112,6 +115,7 @@ object AbstractCompositeConverter {
     override def set(i: Int, v: Any): Unit = throw new NotImplementedError()
     override def indexOf(n: String): Int = throw new NotImplementedError()
     override def clear(): Unit = throw new NotImplementedError()
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -137,6 +141,9 @@ object AbstractCompositeConverter {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
     override def cache: Map[String, EnrichmentCache] = throw new NotImplementedError()
     override def metrics: ConverterMetrics = throw new NotImplementedError()
     override def accessor(name: String): FieldAccessor = throw new NotImplementedError()
