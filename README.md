@@ -162,7 +162,19 @@ libraryDependencies ++= Seq(
 
 ## Building from Source
 
+<<<<<<< HEAD
 **Development version: 5.1.0-SNAPSHOT**
+=======
+<<<<<<< HEAD
+**Development version: 5.0.0-SNAPSHOT**
+=======
+<<<<<<< HEAD
+**Development version: 4.1.0-SNAPSHOT**
+=======
+**Development version: 4.0.0-SNAPSHOT**
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 3201fcba52a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 42b338fc98c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
@@ -219,9 +231,15 @@ environment variable to point to the root of your JDK. Example from a Mac:
 
 ### Scala Cross Build
 
+<<<<<<< HEAD
 To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
 
+<<<<<<< HEAD
     ./build/scripts/change-scala-version.sh 2.13
+=======
+    ./build/change-scala-version.sh 2.13
+<<<<<<< HEAD
+>>>>>>> f65c0d8670f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 ### Building on OS X
 
@@ -230,3 +248,10 @@ When building on OS X and using Docker Desktop in a non-default configuration, y
 ```
 docker.client.strategy=org.testcontainers.dockerclient.UnixSocketClientProviderStrategy
 ```
+=======
+=======
+To build for a different Scala version (e.g. 2.11), run the following script, then build as normal:
+
+    ./build/change-scala-version.sh 2.11
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> c10b379d14 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
