@@ -27,6 +27,7 @@ sealed trait Expression extends ContextDependent[Expression] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
   /**
    * Evaluate the expression against an input row
@@ -103,6 +104,8 @@ sealed trait Expression extends ContextDependent[Expression] {
 >>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 
   /**
    * Evaluate the expression against an input row
@@ -114,9 +117,33 @@ sealed trait Expression extends ContextDependent[Expression] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
+=======
+=======
+
+  /**
+   * Evaluate the expression against an input row
+   *
+   * @param args arguments
+   * @return
+   */
+  def apply(args: Array[_ <: AnyRef]): AnyRef
+
+  /**
+    * Evaluate the expression against an input
+    *
+    * @param args arguments
+    * @param ec evaluation context
+    * @return
+    */
+  @deprecated("Use `withContext` and `apply`")
+  def eval(args: Array[Any])(implicit ec: EvaluationContext): Any =
+    withContext(ec).apply(args.asInstanceOf[Array[AnyRef]])
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 
   /**
    * Evaluate the expression against an input row
@@ -523,6 +550,7 @@ object Expression {
     override def toString: String = s"$s::r"
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1992,6 +2020,8 @@ object Expression {
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> 6b6969a79e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -2094,6 +2124,8 @@ object Expression {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 78e21a715 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> b1512df467 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -2148,6 +2180,8 @@ object Expression {
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -6448,6 +6482,7 @@ object Expression {
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -8897,9 +8932,21 @@ object Expression {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
   case class FunctionExpression(f: TransformerFunction, arguments: Array[Expression]) extends Expression {
 
     @volatile private var contextDependent: Int = -1
@@ -8911,6 +8958,7 @@ object Expression {
 
     override def apply(args: Array[_ <: AnyRef]): AnyRef = f.apply(arguments.map(_.apply(args)))
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9005,6 +9053,8 @@ object Expression {
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
@@ -9057,6 +9107,8 @@ object Expression {
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 7a670e5d35 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -9183,12 +9235,19 @@ object Expression {
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
   case class FunctionExpression(
       f: TransformerFunction,
       arguments: Array[Expression],
@@ -14765,6 +14824,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 50e677e046 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -14898,6 +14958,8 @@ object Expression {
 =======
 >>>>>>> 90704d8cb5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 9064032df (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 1d3562f96d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -14947,6 +15009,8 @@ object Expression {
 >>>>>>> 74df8be7bc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> cdc7c0fe7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0c38d9736 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> d05e4adb4d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -17988,9 +18052,20 @@ object Expression {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
     override def withContext(ec: EvaluationContext): Expression = {
       // this code is thread-safe, in that it will ensure correctness, but does not guarantee
       // that the dependency check is only performed once
@@ -18388,6 +18463,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -18880,6 +18956,8 @@ object Expression {
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
           new FunctionExpression(fwc, awc, 1)
 =======
           FunctionExpression(fwc, awc, 1)
@@ -19780,6 +19858,8 @@ object Expression {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> fa3a402d4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 3773ac3a73 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -19841,6 +19921,8 @@ object Expression {
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8caee7452 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6d0e01a084 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -23437,6 +23519,7 @@ object Expression {
 >>>>>>> 0df4ab56d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cdc7c0fe7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 90704d8cb5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -25191,13 +25274,26 @@ object Expression {
 =======
 >>>>>>> 9a1ca2afc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 0df4ab56d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> cdc7c0fe7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 90704d8cb5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> f87300d519 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
           new FunctionExpression(fwc, awc, 1)
 =======
           FunctionExpression(fwc, awc, 1)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -25957,6 +26053,8 @@ object Expression {
 >>>>>>> 9f003510b7 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f87300d519 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -26053,6 +26151,8 @@ object Expression {
 =======
 >>>>>>> 90704d8cb5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 78e21a715 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> b1512df467 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -26101,6 +26201,8 @@ object Expression {
 >>>>>>> 74df8be7bc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> cdc7c0fe7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -31132,6 +31234,7 @@ object Expression {
 =======
           new FunctionExpression(fwc, awc, 1)
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
@@ -33394,9 +33497,21 @@ object Expression {
 =======
           new FunctionExpression(fwc, awc, 1)
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
         } else {
           if (!fwc.eq(f)) {
             contextDependent = 1
@@ -33804,6 +33919,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7c9589b247 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -34285,6 +34401,8 @@ object Expression {
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6ed35b9ff9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -34727,6 +34845,8 @@ object Expression {
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> fa3a402d4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 3773ac3a73 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -38598,6 +38718,8 @@ object Expression {
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8caee7452 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6d0e01a084 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -43087,8 +43209,16 @@ object Expression {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
           if (contextDependent == 0) { this } else { new FunctionExpression(fwc, awc, 1) }
         }
       }
@@ -43105,7 +43235,11 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cb80b4663c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+<<<<<<< HEAD
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
@@ -43179,6 +43313,8 @@ object Expression {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 7a670e5d35 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -43189,10 +43325,14 @@ object Expression {
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
           if (contextDependent == 0) { this } else { FunctionExpression(fwc, awc, 1) }
         }
@@ -43849,6 +43989,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 67d0823d3f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -44075,6 +44216,8 @@ object Expression {
 >>>>>>> 9f003510b7 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f87300d519 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> eccc16ddf9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -44486,6 +44629,8 @@ object Expression {
 >>>>>>> 868c873f5c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 90704d8cb5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
 =======
@@ -44535,6 +44680,8 @@ object Expression {
 >>>>>>> 74df8be7bc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> cdc7c0fe7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -49619,9 +49766,20 @@ object Expression {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       arguments.flatMap(_.dependencies(stack, fieldMap)).toSet
     override def children(): Seq[Expression] = arguments
@@ -50018,6 +50176,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f2a21c06dd (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -51097,6 +51256,8 @@ object Expression {
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 =======
 >>>>>>> 6b6969a79e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -51199,6 +51360,8 @@ object Expression {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 78e21a715 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> b1512df467 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -51253,6 +51416,8 @@ object Expression {
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -55553,6 +55718,7 @@ object Expression {
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -58002,9 +58168,21 @@ object Expression {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
   case class TryExpression(toTry: Expression, fallback: Expression) extends Expression {
 
     @volatile private var contextDependent: Int = -1
@@ -58016,6 +58194,7 @@ object Expression {
 
     override def apply(args: Array[_ <: AnyRef]): AnyRef = Try(toTry.apply(args)).getOrElse(fallback.apply(args))
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -58110,6 +58289,8 @@ object Expression {
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
@@ -58162,6 +58343,8 @@ object Expression {
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 7a670e5d35 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -58288,12 +58471,19 @@ object Expression {
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
   case class TryExpression(
       toTry: Expression,
       fallback: Expression,
@@ -63870,6 +64060,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 50e677e046 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -64003,6 +64194,8 @@ object Expression {
 =======
 >>>>>>> 90704d8cb5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> 9064032df (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 1d3562f96d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -64052,6 +64245,8 @@ object Expression {
 >>>>>>> 74df8be7bc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> cdc7c0fe7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 0c38d9736 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> d05e4adb4d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -67093,9 +67288,20 @@ object Expression {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
     override def withContext(ec: EvaluationContext): Expression = {
       // this code is thread-safe, in that it will ensure correctness, but does not guarantee
       // that the dependency check is only performed once
@@ -67493,6 +67699,7 @@ object Expression {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7c9589b247 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -67973,6 +68180,8 @@ object Expression {
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -68865,6 +69074,8 @@ object Expression {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> fa3a402d4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 3773ac3a73 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -68926,6 +69137,8 @@ object Expression {
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8caee7452 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6d0e01a084 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -72631,6 +72844,7 @@ object Expression {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
@@ -74558,9 +74772,21 @@ object Expression {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
           new TryExpression(twc, fwc, 1)
         } else {
           contextDependent = if (twc.eq(toTry) && fwc.eq(fallback)) { 0 } else { 1 }
@@ -74569,6 +74795,7 @@ object Expression {
       }
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -74664,6 +74891,8 @@ object Expression {
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
           TryExpression(twc, fwc, 1)
 <<<<<<< HEAD
@@ -75045,6 +75274,8 @@ object Expression {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
@@ -75079,6 +75310,8 @@ object Expression {
 =======
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
@@ -78484,6 +78717,7 @@ object Expression {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
@@ -83731,9 +83965,30 @@ object Expression {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+=======
+          TryExpression(twc, fwc, 1)
+        } else {
+          contextDependent = if (twc.eq(toTry) && fwc.eq(fallback)) { 0 } else { 1 }
+          if (contextDependent == 0) { this } else { TryExpression(twc, fwc, 1) }
+        }
+      }
+    }
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5af7c15be6 (GEOMESA-3071 Move all converter state into evaluation context)
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       toTry.dependencies(stack, fieldMap) ++ fallback.dependencies(stack, fieldMap)
     override def children(): Seq[Expression] = Seq(toTry, fallback)
