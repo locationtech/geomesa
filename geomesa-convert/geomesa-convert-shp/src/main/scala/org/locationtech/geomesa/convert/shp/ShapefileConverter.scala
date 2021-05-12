@@ -7894,6 +7894,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -9010,6 +9011,12 @@ import com.codahale.metrics.Counter
 >>>>>>> bfd6e79fa4 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 8cdf811be4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+import com.typesafe.scalalogging.LazyLogging
+=======
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 1c242b79a1 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
@@ -9043,11 +9050,14 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 77e09b8aaa (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 81f137be74 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
+=======
+>>>>>>> db69c99cee (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -9111,8 +9121,16 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 =======
 >>>>>>> 628900700 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 41b057b6f8 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 8cdf811be4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> db69c99cee (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 1c242b79a1 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
