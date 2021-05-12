@@ -73,9 +73,22 @@
             <artifactId>accumulo-core</artifactId>
             <scope>compile</scope>
         </dependency>
+<<<<<<< HEAD
+=======
 
         <!-- bring in guava and relocate it -->
         <dependency>
+<<<<<<< HEAD
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-hadoop-mapreduce</artifactId>
+            <scope>compile</scope>
+        </dependency>
+>>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+
+        <!-- bring in guava and relocate it -->
+        <dependency>
+=======
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <scope>compile</scope>
@@ -200,7 +213,14 @@
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
                                 </relocation>
                                 <!-- we need parquet 1.9.0 in order to do dictionary filtering = 30% speed increase -->
+<<<<<<< HEAD
                                 <!-- TODO remove this when spark supports parquet 1.9.0 out of the box -->
+=======
+<<<<<<< HEAD
+=======
+                                <!-- TODO remove this when spark supports parquet 1.9.0 out of the box -->
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
                                 <relocation>
                                     <pattern>org.apache.parquet</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.org.apache.parquet</shadedPattern>
