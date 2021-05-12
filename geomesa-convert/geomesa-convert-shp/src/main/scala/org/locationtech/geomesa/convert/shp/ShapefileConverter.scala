@@ -2578,6 +2578,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
@@ -2627,6 +2628,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 0850f4f171 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> b47a69821b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> eab43d23c8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 =======
@@ -2938,6 +2941,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5631,6 +5635,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 5ba418ba6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 55873b0ace (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b47a69821b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9ddbf4df0c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> eab43d23c8 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
