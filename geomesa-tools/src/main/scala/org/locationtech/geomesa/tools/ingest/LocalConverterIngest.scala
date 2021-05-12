@@ -735,6 +735,7 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8e665b32ac (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -819,6 +820,8 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -949,6 +952,7 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 >>>>>>> 76e4fe0b29 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -1559,6 +1563,8 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 =======
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
@@ -17223,16 +17229,23 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 =======
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -19453,6 +19466,9 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
