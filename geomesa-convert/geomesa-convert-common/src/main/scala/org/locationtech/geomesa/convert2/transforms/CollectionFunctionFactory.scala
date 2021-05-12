@@ -76,6 +76,7 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
       case m => throw new IllegalArgumentException(s"Expected a java.util.Map but got $m:${m.getClass.getName}")
     }
   }
+<<<<<<< HEAD
 
   private val listItem = TransformerFunction.pure("listItem") { args =>
     args(0) match {
@@ -86,6 +87,8 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
   }
 
   private val transformList = new TransformList(null)
+=======
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 }
 
 object CollectionFunctionFactory {

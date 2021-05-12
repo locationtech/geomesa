@@ -22,14 +22,30 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
+<<<<<<< HEAD
 Download and extract it somewhere convenient:
+=======
+.. note::
+
+  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
+  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
+
+Extract it somewhere convenient:
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-kafka_${VERSION}-bin.tar.gz"
+<<<<<<< HEAD
     $ tar xvf geomesa-kafka_${VERSION}-bin.tar.gz
     $ cd geomesa-kafka_${VERSION}
+=======
+    $ tar xzvf geomesa-kafka_${VERSION}-bin.tar.gz
+    $ cd geomesa-kafka_${VERSION}
+    $ ls
+    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 .. _kafka_install_source:
 
@@ -127,7 +143,11 @@ Installing the GeoMesa Kafka Data Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install the GeoMesa data store, extract the contents of the
+<<<<<<< HEAD
 ``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/gs-plugins/``
+=======
+``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/geoserver/``
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 in the binary distribution or ``geomesa-kafka/geomesa-kafka-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
@@ -150,6 +170,41 @@ to match the target environment, and then run the script:
 
 .. warning::
 
+<<<<<<< HEAD
     Ensure that the Scala version of both GeoMesa and Kafka match to avoid compatibility errors.
+=======
+    Ensure that the Scala version (either ``_2.11`` or ``_2.12``) of both GeoMesa and Kafka match to avoid
+    compatibility issues.
+
+The specific JARs needed for some common configurations are listed below:
+
+.. tabs::
+
+    .. tab:: Kafka 2.0.0
+
+        * kafka-clients-2.0.0.jar
+        * kafka_2.11-2.0.0.jar
+        * zkclient-0.10.jar
+        * zookeeper-3.4.10.jar
+        * metrics-core-2.2.0.jar
+        * jopt-simple-5.0.4.jar
+
+    .. tab:: Kafka 1.0.1
+
+        * kafka-clients-1.0.1.jar
+        * kafka_2.11-1.0.1.jar
+        * zkclient-0.10.jar
+        * zookeeper-3.4.10.jar
+        * metrics-core-2.2.0.jar
+        * jopt-simple-5.0.4.jar
+
+    .. tab:: Kafka 0.10
+
+        * kafka-clients-0.10.2.1.jar
+        * kafka_2.11-0.10.2.1.jar
+        * zkclient-0.10.jar
+        * zookeeper-3.4.10.jar
+        * metrics-core-2.2.0.jar
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 Restart GeoServer after the JARs are installed.

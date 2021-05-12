@@ -44,7 +44,10 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+<<<<<<< HEAD
             <version>${geotools.guava.version}</version>
+=======
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
             <scope>compile</scope>
         </dependency>
 
@@ -138,6 +141,10 @@
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
                                 </relocation>
                                 <!-- we need parquet 1.9.0 in order to do dictionary filtering = 30% speed increase -->
+<<<<<<< HEAD
+=======
+                                <!-- TODO remove this when spark supports parquet 1.9.0 out of the box -->
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
                                 <relocation>
                                     <pattern>org.apache.parquet</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.org.apache.parquet</shadedPattern>
