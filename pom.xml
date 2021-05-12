@@ -20867,6 +20867,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <geomesa.release.version>5.0.1</geomesa.release.version>
 =======
 =======
@@ -21953,6 +21954,8 @@
 >>>>>>> d9dfbcacc54 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> c1c5385a1bb (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d4930ba8bea (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
         <geomesa.release.version>5.0.0</geomesa.release.version>
 >>>>>>> f65c0d8670f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -23042,6 +23045,8 @@
 >>>>>>> ea8fa9ca9fe ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 5f8ddaaf774 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f92842c1850 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
         <geomesa.release.version>4.0.5</geomesa.release.version>
 =======
@@ -24132,6 +24137,8 @@
 >>>>>>> a6683705ab4 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 34b8870585e (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e52cb39e384 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
         <geomesa.release.version>4.0.4</geomesa.release.version>
 <<<<<<< HEAD
@@ -25153,6 +25160,8 @@
 >>>>>>> 5eef4c89cf ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.release.version>4.0.2</geomesa.release.version>
 =======
 =======
@@ -25205,6 +25214,9 @@
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
         <geomesa.release.version>4.0.0</geomesa.release.version>
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+        <geomesa.release.version>4.0.1</geomesa.release.version>
+>>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
 =======
 <<<<<<< HEAD
@@ -25351,6 +25363,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> c9c24ca3d7 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -25381,6 +25394,8 @@
 =======
 <<<<<<< HEAD
 >>>>>>> 2bce465a3f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.release.version>3.2.0</geomesa.release.version>
         <geomesa.devel.version>3.3.0-SNAPSHOT</geomesa.devel.version>
 =======
@@ -29234,6 +29249,7 @@
 =======
 =======
         <geomesa.release.version>3.2.0</geomesa.release.version>
+<<<<<<< HEAD
         <geomesa.devel.version>3.3.0-SNAPSHOT</geomesa.devel.version>
 =======
 =======
@@ -35621,7 +35637,16 @@
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 7d0389c9d2 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+        <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
+        <copyright.year>2021</copyright.year>
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 1a2e12ecc0 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
         <!-- recommended installation versions -->
 <<<<<<< HEAD
