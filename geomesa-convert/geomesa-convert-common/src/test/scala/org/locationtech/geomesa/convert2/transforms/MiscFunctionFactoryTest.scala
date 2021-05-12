@@ -76,6 +76,7 @@ class MiscFunctionFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -84,6 +85,8 @@ class MiscFunctionFactoryTest extends Specification {
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -94,6 +97,8 @@ class MiscFunctionFactoryTest extends Specification {
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -168,6 +173,7 @@ class MiscFunctionFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -176,11 +182,18 @@ class MiscFunctionFactoryTest extends Specification {
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 <<<<<<< HEAD
@@ -216,6 +229,7 @@ class MiscFunctionFactoryTest extends Specification {
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -273,6 +287,8 @@ class MiscFunctionFactoryTest extends Specification {
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
       }
     }
 
