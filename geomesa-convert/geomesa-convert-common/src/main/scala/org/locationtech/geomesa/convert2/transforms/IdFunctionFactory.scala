@@ -1251,6 +1251,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -1552,6 +1553,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 07e49471e8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 5d6a8a22c8 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
   private val murmur3_128: TransformerFunction =
     new NamedTransformerFunction(Seq("murmur3_128", "murmur3_64"), pure = true) {
       private val hasher = Hashing.murmur3_128()
@@ -6421,7 +6424,12 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 >>>>>>> 9c337194ec (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 5d6a8a22c8 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
   private val murmur3_128: TransformerFunction =
     new NamedTransformerFunction(Seq("murmur3_128", "murmur3_64"), pure = true) {
       private val hasher = Hashing.murmur3_128()
@@ -6717,6 +6725,12 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 9759ddc1b (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
   // we've had some confusion around the names of these functions - the original function was murmur3_64,
   // which was then incorrectly renamed to murmur3_128. currently both these functions only return the first 64
   // bits of a 128 bit hash. the full 128-bit hash is now called murmurHash3 to avoid name conflicts
@@ -6753,6 +6767,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
@@ -6760,6 +6775,10 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 6d1dac8a25 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
+=======
+=======
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9759ddc1b (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -6820,6 +6839,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
       override def apply(args: Array[AnyRef]): AnyRef =
         Long.box(hasher.hashString(args(0).toString, StandardCharsets.UTF_8).asLong())
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7030,7 +7050,19 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 9759ddc1b (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 9c337194ec (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 5d6a8a22c8 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
     }
 }
