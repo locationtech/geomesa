@@ -8805,6 +8805,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Development version: 4.0.0-SNAPSHOT**
 =======
 =======
@@ -10616,6 +10617,12 @@ libraryDependencies ++= Seq(
 =======
 **Development version: 4.1.0-SNAPSHOT**
 >>>>>>> 7fd730a88a (Set release version)
+=======
+**Development version: 4.1.0-SNAPSHOT**
+=======
+**Development version: 4.0.0-SNAPSHOT**
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 1bb69524c2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
@@ -10674,9 +10681,13 @@ environment variable to point to the root of your JDK. Example from a Mac:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1bb69524c2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
 
     ./build/change-scala-version.sh 2.13
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14028,6 +14039,8 @@ To build for a different Scala version (e.g. 2.13), run the following script, th
 <<<<<<< HEAD
 =======
 >>>>>>> 44403206c5 (Update README.md)
+=======
+>>>>>>> 1bb69524c2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 **Current release: [3.5.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.5.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -40963,6 +40976,9 @@ To build for a different Scala version (e.g. 2.11), run the following script, th
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a5b0374ee2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -40985,6 +41001,9 @@ See [CITATION](CITATION)
 >>>>>>> 1f3b009e30 (Update README.md)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a5b0374ee2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 44403206c5 (Update README.md)
 <<<<<<< HEAD
 >>>>>>> 0414a3826b (Update README.md)
@@ -40992,6 +41011,7 @@ See [CITATION](CITATION)
 =======
 =======
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 1bb69524c2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -45484,4 +45504,10 @@ See [CITATION](CITATION)
 =======
 >>>>>>> 44403206c5 (Update README.md)
 >>>>>>> 8f48345a6c (Update README.md)
+<<<<<<< HEAD
 >>>>>>> 752f581c36 (Update README.md)
+=======
+=======
+>>>>>>> 1bb69524c2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> a5b0374ee2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6dc3388a9e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
