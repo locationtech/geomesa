@@ -20,7 +20,11 @@ import org.locationtech.geomesa.convert.EvaluationContext.ContextDependent
 import org.locationtech.geomesa.convert2.AbstractConverter.TransformerFunctionApiError
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.DelegateFunction
 
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 trait TransformerFunction extends ContextDependent[TransformerFunction] {
 
   /**
@@ -48,7 +52,11 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
   def apply(args: Array[AnyRef]): AnyRef =
     // this error will be caught and handled by the evaluation context
     throw TransformerFunctionApiError // TODO remove default impl in next major release
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 
   /**
     * Returns an uninitialized instance of this function
@@ -92,7 +100,11 @@ object TransformerFunction {
 <<<<<<< HEAD
 =======
       override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
       override def apply(args: Array[AnyRef]): AnyRef = f(args.asInstanceOf[Array[Any]]).asInstanceOf[AnyRef]
     }
   }
@@ -102,7 +114,11 @@ object TransformerFunction {
 <<<<<<< HEAD
 =======
       override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
       override def apply(args: Array[AnyRef]): AnyRef = f(args.asInstanceOf[Array[Any]]).asInstanceOf[AnyRef]
     }
   }
@@ -125,6 +141,10 @@ object TransformerFunction {
       new DelegateFunction(delegate.getInstance(args), ec)
     override def pure: Boolean = delegate.pure
     override def withContext(ec: EvaluationContext): TransformerFunction = new DelegateFunction(delegate, ec)
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
   }
 }
