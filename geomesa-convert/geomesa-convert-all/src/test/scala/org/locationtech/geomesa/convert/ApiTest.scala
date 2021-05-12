@@ -37,6 +37,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -65,6 +66,8 @@
 >>>>>>> 9a8065c960 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 2486842735 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 622d048a77 (GEOMESA-3071 Move all converter state into evaluation context)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -146,6 +149,8 @@
 >>>>>>> 8cb3591e39 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 66cba04aa1 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 3773ac3a73 (GEOMESA-3071 Move all converter state into evaluation context)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -410,6 +415,8 @@
 >>>>>>> e014d8c87 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> a27f5014e (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> fa3a402d4 (GEOMESA-3071 Move all converter state into evaluation context)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
@@ -417,6 +424,9 @@
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> f3a49e082 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
