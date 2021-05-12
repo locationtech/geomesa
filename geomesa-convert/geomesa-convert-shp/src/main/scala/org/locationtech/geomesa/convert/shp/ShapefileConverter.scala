@@ -31,6 +31,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.geotools.api.data.{DataStoreFinder, Query}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 =======
@@ -72,11 +73,16 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 =======
 >>>>>>> 37636fb3b99 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> ca54ac65b4e (GEOMESA-3071 Move all converter state into evaluation context)
+=======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7c6dac7c346 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -99,6 +105,8 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 import java.io.InputStream
 import java.util.Collections
 <<<<<<< HEAD
@@ -1734,6 +1742,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -4524,10 +4535,13 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 7c6dac7c346 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 37636fb3b99 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> ca54ac65b4e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 import java.io.InputStream
 import java.util.Collections
@@ -7823,7 +7837,20 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 37636fb3b99 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+import java.io.InputStream
+import java.util.Collections
+
+import com.codahale.metrics.Counter
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> ca54ac65b4e (GEOMESA-3071 Move all converter state into evaluation context)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -7852,6 +7879,16 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
     // inject placeholders for shapefile attributes into the evaluation context
     // used for accessing shapefile properties by name in ShapefileFunctionFactory
     val shpParams = Map(InputSchemaKey -> ArrayBuffer.empty[String], InputValuesKey -> ArrayBuffer.empty[AnyRef])
+    super.createEvaluationContext(globalParams ++ shpParams, success, failure)
+  }
+
+  override def createEvaluationContext(
+      globalParams: Map[String, Any],
+      success: Counter,
+      failure: Counter): EvaluationContext = {
+    // inject placeholders for shapefile attributes into the evaluation context
+    // used for accessing shapefile properties by name in ShapefileFunctionFactory
+    val shpParams = Map(InputSchemaKey -> Array.empty[String], InputValuesKey -> Array.empty[Any])
     super.createEvaluationContext(globalParams ++ shpParams, success, failure)
   }
 
