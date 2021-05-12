@@ -547,7 +547,9 @@ object FilterHelper {
             // the duplicated filters are an entire clause, so we can ignore the rest of the clauses
             andFilters(duplicates)
           } else {
+<<<<<<< HEAD
             andFilters(orOption(simplified.toSeq).toSeq ++ duplicates)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -561,6 +563,11 @@ object FilterHelper {
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+            andFilters(orOption(simplified).toSeq ++ duplicates)
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
           }
         }
 
