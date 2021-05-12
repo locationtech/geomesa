@@ -90,8 +90,18 @@ abstract class AbstractCompositeConverter[T <: AnyRef](
 
 object AbstractCompositeConverter {
 
+<<<<<<< HEAD
   case class CompositeEvaluationContext(contexts: Seq[EvaluationContext], success: Counter, failure: Counter)
       extends EvaluationContext {
+=======
+  // noinspection ScalaDeprecation
+  case class CompositeEvaluationContext(contexts: Seq[EvaluationContext], success: Counter, failure: Counter)
+      extends EvaluationContext {
+    override def get(i: Int): Any = throw new NotImplementedError()
+    override def set(i: Int, v: Any): Unit = throw new NotImplementedError()
+    override def indexOf(n: String): Int = throw new NotImplementedError()
+    override def clear(): Unit = throw new NotImplementedError()
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
     override def cache: Map[String, EnrichmentCache] = throw new NotImplementedError()
     override def metrics: ConverterMetrics = throw new NotImplementedError()
     override def accessor(name: String): FieldAccessor = throw new NotImplementedError()

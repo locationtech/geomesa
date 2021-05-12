@@ -19,7 +19,16 @@ import java.net.URI
 import java.nio.file.FileSystems
 import java.util.Collections
 import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
+<<<<<<< HEAD
 import scala.collection.JavaConverters._
+=======
+import org.apache.commons.io.filefilter.TrueFileFilter
+import org.apache.commons.io.{FileUtils, FilenameUtils, IOUtils}
+import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+
+import scala.collection.JavaConversions._
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 
 /**
   * Provides TransformerFunctions that execute javax.scripts compatible functions defined
