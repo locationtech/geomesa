@@ -640,6 +640,7 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d2042eea397 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -1624,6 +1625,8 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 >>>>>>> 10fdd31aeda (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 90d835b0a32 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> dbe7b7459e0 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3014,7 +3017,12 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 =======
 =======
 >>>>>>> 8de258c229 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> 90d835b0a32 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+>>>>>>> eab43d23c8 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> dbe7b7459e0 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 =======
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
@@ -4063,6 +4071,8 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 >>>>>>> 55873b0ace (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f54609b8f8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 9ddbf4df0c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> c6444c154 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -7018,6 +7028,7 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 16b6057491 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -7048,6 +7059,8 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 >>>>>>> 8b77cdcb23 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8de258c229 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> eab43d23c8 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> f5c61cc655 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 =======
@@ -8284,6 +8297,7 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 =======
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 9ddbf4df0c (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -10029,10 +10043,13 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 =======
 >>>>>>> f54609b8f8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 8de258c229 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> eab43d23c8 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 =======
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10883,6 +10900,8 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithC
 >>>>>>> b47a69821b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8de258c229 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> eab43d23c8 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -12202,6 +12221,8 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 >>>>>>> a53589eff3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 3f711e2dab (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 9ddbf4df0c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d04dc6d34 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -16662,12 +16683,16 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 44568bdad8 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> eab43d23c8 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> f54609b8f8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 =======
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18893,6 +18918,9 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 =======
 >>>>>>> f54609b8f8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 8de258c229 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 9ddbf4df0c (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> eab43d23c8 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.utils.text.TextTools
 
 import java.io.Flushable
