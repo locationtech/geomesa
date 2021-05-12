@@ -12,11 +12,11 @@ Type Conversions
 -  ``::double``
 -  ``::boolean``
 -  ``::r``
--  ``stringToInt`` or ``stringToInteger``
--  ``stringToLong``
--  ``stringToFloat``
--  ``stringToDouble``
--  ``stringToBoolean``
+-  ``toInt`` or ``toInteger``
+-  ``toLong``
+-  ``toFloat``
+-  ``toDouble``
+-  ``toBoolean``
 -  ``intToBoolean``
 
 String Functions
