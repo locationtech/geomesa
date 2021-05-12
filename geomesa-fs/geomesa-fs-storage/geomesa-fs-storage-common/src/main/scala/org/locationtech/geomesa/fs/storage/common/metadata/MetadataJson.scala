@@ -116,6 +116,7 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -205,6 +206,12 @@ object MetadataJson extends MethodProfiling {
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+      pureconfig.loadConfigOrThrow[NamedOptions](
+        ConfigFactory.load(ConfigFactory.parseString(interpolated, ParseOptions)))
+>>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 3d5144418e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     }
     cache.put(context.root.toUri.toString, toCache)
     PathCache.register(context.fc, file)
