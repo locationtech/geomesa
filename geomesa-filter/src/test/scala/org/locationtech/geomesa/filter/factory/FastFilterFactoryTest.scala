@@ -351,6 +351,7 @@ class FastFilterFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> f302a54949 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -539,6 +540,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> e8b736ee96 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e31a4215c4 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+=======
+>>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -2281,12 +2284,16 @@ class FastFilterFactoryTest extends Specification {
 =======
 >>>>>>> 908ad4071d (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 49f2a1c310 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
+=======
+>>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b4320946b4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> a16b64a4d1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -2805,6 +2812,8 @@ class FastFilterFactoryTest extends Specification {
 =======
 >>>>>>> 908ad4071d (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 >>>>>>> e31a4215c4 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+=======
+>>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     "handle logical erasure of entire clauses" >> {
       val sft = SimpleFeatureTypes.createType("test", "a:Integer")
       val ecql = "(a = 0 AND a = 0) OR (a = 0 AND a = 1) OR (a = 0 AND a = 2)"
@@ -2971,6 +2980,7 @@ class FastFilterFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -3133,6 +3143,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> e8b736ee96 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e31a4215c4 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+=======
+>>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 7acc3ea465 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
@@ -5385,14 +5397,18 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> 908ad4071d (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 49f2a1c310 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
+=======
+>>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> 7acc3ea46 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b4320946b4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> a16b64a4d1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
@@ -5902,6 +5918,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> e8b736ee96 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e31a4215c4 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+=======
+>>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     "create filter containing functions with embedded expressions" >> {
       val sft = SimpleFeatureTypes.createType("test", "f0:Integer,f1:Integer")
       val ecql = "min(f0 + 2, 4) < min(f1, 5)"
@@ -6065,6 +6083,7 @@ class FastFilterFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 32d312dc48 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
@@ -6231,6 +6250,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> e8b736ee96 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e31a4215c4 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+=======
+>>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         Result.foreach(1 to 10) { j =>
 =======
         Result.foreach(1 to 10){ j =>
@@ -7500,6 +7521,7 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> 67b361c856 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> f7cef54062 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -7900,10 +7922,15 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> 657a38673a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> e8b736ee96 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> b4320946b4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         Result.foreach(1 to 10) { j =>
 =======
         Result.foreach(1 to 10){ j =>
 >>>>>>> 7acc3ea46 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8138,6 +8165,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> 657a38673a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> e8b736ee96 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> f36b0e8b9a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 =======
@@ -10494,7 +10523,15 @@ class FastFilterFactoryTest extends Specification {
         Result.foreach(1 to 10){ j =>
 >>>>>>> 7acc3ea46 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 >>>>>>> 908ad4071d (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+<<<<<<< HEAD
 >>>>>>> e31a4215c4 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+=======
+=======
+=======
+        Result.foreach(1 to 10) { j =>
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> b4320946b4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 0efbfe547e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
           val sf = ScalaSimpleFeature.create(sft, s"${i}_${j}", i, j)
           filterGeoMesa.evaluate(sf) mustEqual filterGeoTools.evaluate(sf)
         }
