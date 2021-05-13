@@ -64,8 +64,6 @@ Coding Standards
 * The commit message must consist of a JIRA ticket number followed by a short description, with additional
   information in bullets below as required.
   * See e.g. https://github.com/locationtech/geomesa/commit/1f345132a717816d5a4951f73b2b73537fce305b
-* The commit must be signed-off, which indicates that you are taking responsibility for all code contained
-  in the commit. This can be done with the `git commit -s` flag.
 * Code must be reasonably formatted. Scala does not conform well to automatic formatting, but in general
   GeoMesa tries to adhere to the official Scala style guide: http://docs.scala-lang.org/style/
 * Code should include unit tests when appropriate.
