@@ -232,12 +232,17 @@ object Expression {
     override def toString: String = s"$s::r"
   }
 
-  case class FunctionExpression(
-      f: TransformerFunction,
-      arguments: Array[Expression],
-      @volatile private var contextDependent: Int = -1
-    ) extends Expression {
+  case class FunctionExpression(f: TransformerFunction, arguments: Array[Expression]) extends Expression {
+
+    @volatile private var contextDependent: Int = -1
+
+    private def this(f: TransformerFunction, arguments: Array[Expression], contextDependent: Int) = {
+      this(f, arguments)
+      this.contextDependent = contextDependent
+    }
+
     override def apply(args: Array[_ <: AnyRef]): AnyRef = f.apply(arguments.map(_.apply(args)))
+
     override def withContext(ec: EvaluationContext): Expression = {
       // this code is thread-safe, in that it will ensure correctness, but does not guarantee
       // that the dependency check is only performed once
@@ -245,7 +250,7 @@ object Expression {
         lazy val fwc = f.withContext(ec)
         lazy val awc = arguments.map(_.withContext(ec))
         if (contextDependent == 1) {
-          FunctionExpression(fwc, awc, 1)
+          new FunctionExpression(fwc, awc, 1)
         } else {
           if (!fwc.eq(f)) {
             contextDependent = 1
@@ -263,22 +268,28 @@ object Expression {
               contextDependent = 0
             }
           }
-          if (contextDependent == 0) { this } else { FunctionExpression(fwc, awc, 1) }
+          if (contextDependent == 0) { this } else { new FunctionExpression(fwc, awc, 1) }
         }
       }
     }
+
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       arguments.flatMap(_.dependencies(stack, fieldMap)).toSet
     override def children(): Seq[Expression] = arguments
     override def toString: String = s"${f.names.head}${arguments.mkString("(", ",", ")")}"
   }
 
-  case class TryExpression(
-      toTry: Expression,
-      fallback: Expression,
-      @volatile private var contextDependent: Int = -1
-    ) extends Expression {
+  case class TryExpression(toTry: Expression, fallback: Expression) extends Expression {
+
+    @volatile private var contextDependent: Int = -1
+
+    private def this(toTry: Expression, fallback: Expression, contextDependent: Int) = {
+      this(toTry, fallback)
+      this.contextDependent = contextDependent
+    }
+
     override def apply(args: Array[_ <: AnyRef]): AnyRef = Try(toTry.apply(args)).getOrElse(fallback.apply(args))
+
     override def withContext(ec: EvaluationContext): Expression = {
       // this code is thread-safe, in that it will ensure correctness, but does not guarantee
       // that the dependency check is only performed once
@@ -286,13 +297,14 @@ object Expression {
         lazy val twc = toTry.withContext(ec)
         lazy val fwc = fallback.withContext(ec)
         if (contextDependent == 1) {
-          TryExpression(twc, fwc, 1)
+          new TryExpression(twc, fwc, 1)
         } else {
           contextDependent = if (twc.eq(toTry) && fwc.eq(fallback)) { 0 } else { 1 }
-          if (contextDependent == 0) { this } else { TryExpression(twc, fwc, 1) }
+          if (contextDependent == 0) { this } else { new TryExpression(twc, fwc, 1) }
         }
       }
     }
+
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       toTry.dependencies(stack, fieldMap) ++ fallback.dependencies(stack, fieldMap)
     override def children(): Seq[Expression] = Seq(toTry, fallback)
