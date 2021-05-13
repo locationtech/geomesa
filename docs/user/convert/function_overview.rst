@@ -99,9 +99,11 @@ List and Map Functions
 ~~~~~~~~~~~~~~~~~~~~~~
 
 -  ``list``
+-  ``listItem``
 -  ``mapValue``
 -  ``parseList``
 -  ``parseMap``
+-  ``transformListItems``
 
 Control Functions
 ~~~~~~~~~~~~~~~~~

@@ -432,20 +432,24 @@ Example: Parsing WKT as a point
 multipoint
 ^^^^^^^^^^
 
-Description: Parse a multi-point from a WKT string or WKB byte array.
+Description: Parse a multi-point from a WKT string, WKB byte array, or two lists of coordinates.
 
 Usage: ``multipoint($0)``
 
 Example: ``multipoint('MULTIPOINT ((10 40), (40 30), (20 20), (30 10))')``
 
+Example: ``multipoint(list(10,40,20,30),list(40,30,20,10))``
+
 linestring
 ^^^^^^^^^^
 
-Description: Parse a linestring from a WKT string or WKB byte array.
+Description: Parse a linestring from a WKT string, WKB byte array, or two lists of coordinates.
 
 Usage: ``linestring($0)``
 
 Example: ``linestring('LINESTRING(102 0, 103 1, 104 0, 105 1)')``
+
+Example: ``linestring(list(102,103,104,105),list(0,1,0,1))``
 
 multilinestring
 ^^^^^^^^^^^^^^^
@@ -732,8 +736,12 @@ Math Functions
 
 Usage:
 
-All math functions accept: Integers, Doubles, Floats, Longs and parsable Strings.
-All math functions return: Doubles. If another data type is needed, convert the value afterwards. e.g. ``add($1,$2)::long``
+The arguments to a math functions must be numbers - Integers, Doubles, Floats, Longs or numeric Strings.
+
+All math functions return Doubles. If another data type is needed, convert the value afterwards,
+e.g. ``add($1,$2)::long``
+
+Math functions accept multiple arguments, or will accept a single java.util.List containing the arguments.
 
 Example:
 
@@ -750,14 +758,18 @@ Example: ``add($1,$2)``
 
 Example: ``add($1,$2,"10")``
 
+Example: ``add(list(1,2,3))``
+
 subtract
 ^^^^^^^^
 
-Description: Subtracts two or more values.
+Description: Subtracts two or more values sequentially.
 
 Example: ``subtract($1,$2)``
 
-Example: ``subtract($1,$2,1.0f)``
+Example: ``subtract($1,$2,1.0f)`` is equivalent to ``($1 - $2) - 1.0f``
+
+Example: ``subtract(list(3,1))``
 
 multiply
 ^^^^^^^^
@@ -768,6 +780,8 @@ Example: ``multiply($1,$2)``
 
 Example: ``multiply($1,$2,0.01d)``
 
+Example: ``multiply(list(3,2))``
+
 divide
 ^^^^^^
 
@@ -777,12 +791,16 @@ Example: ``divide($1,$2)``
 
 Example: ``divide($1,$2,"15")`` is equivalent to ``($1/$2)/"15"``
 
+Example: ``divide(list(3,2))``
+
 mean
 ^^^^
 
 Description: Takes the mean (average) of two or more numbers.
 
 Example: ``mean($1,$2,$3)``
+
+Example: ``mean(list(1,2,3))``
 
 min
 ^^^
@@ -791,12 +809,16 @@ Description: Finds the minimum of two or more numbers.
 
 Example: ``min($1,$2,$3)``
 
+Example: ``min(list(1,2,3))``
+
 max
 ^^^
 
 Description: Finds the maximum of two or more numbers.
 
 Example: ``max($1,$2,$3)``
+
+Example: ``max(list(1,2,3))``
 
 List and Map Functions
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -807,6 +829,13 @@ list
 Description: Creates a list from the input arguments
 
 Example: ``list(1,2,3)``
+
+listItem
+^^^^^^^^
+
+Description: Selects an element out of a list
+
+Example: ``listItem(list('1','2','3'),0)``
 
 mapValue
 ^^^^^^^^
@@ -884,6 +913,16 @@ delimiters for a map:
 ::
 
     { name = "numbers", transform = "parseMap('int -> string', $2, '->', ',')" }
+
+transformListItems
+^^^^^^^^^^^^^^^^^^
+
+Description: Applies a transform expression to every element of a list
+
+Example: ``transformListItems(list('1','2','3'),'stringToDouble($0)')``
+
+The expression to apply must be defined as a string. In the example shown, the list will be converted
+from ``List[String]`` to ``List[Double]``.
 
 State Functions
 ~~~~~~~~~~~~~~~
