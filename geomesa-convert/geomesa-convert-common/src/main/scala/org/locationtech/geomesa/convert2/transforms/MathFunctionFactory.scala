@@ -10,49 +10,103 @@ package org.locationtech.geomesa.convert2.transforms
 
 class MathFunctionFactory extends TransformerFunctionFactory {
 
+  import scala.collection.JavaConverters._
+
   override def functions: Seq[TransformerFunction] = Seq(add, subtract, multiply, divide, mean, min, max)
 
   private val add = TransformerFunction.pure("add") { args =>
     var s: Double = 0.0
-    args.foreach(s += parseDouble(_))
+    if (args.length != 0) {
+      val numbers: scala.collection.Seq[Any] = args(0) match {
+        case list: java.util.List[_] => list.asScala
+        case _ => args
+      }
+      numbers.foreach(s += parseDouble(_))
+    }
     s
   }
 
   private val multiply = TransformerFunction.pure("multiply") { args =>
     var s: Double = 1.0
-    args.foreach(s *= parseDouble(_))
+    if (args.length != 0) {
+      val numbers: scala.collection.Seq[Any] = args(0) match {
+        case list: java.util.List[_] => list.asScala
+        case _ => args
+      }
+      numbers.foreach(s *= parseDouble(_))
+    }
     s
   }
 
   private val subtract = TransformerFunction.pure("subtract") { args =>
-    var s: Double = parseDouble(args(0))
-    args.drop(1).foreach(s -= parseDouble(_))
+    if (args.length == 0) {
+      throw new IllegalArgumentException("Subtract called without any arguments")
+    }
+    val numbers: scala.collection.Seq[Any] = args(0) match {
+      case list: java.util.List[_] => list.asScala
+      case _ => args
+    }
+    var s: Double = parseDouble(numbers.head)
+    numbers.drop(1).foreach(s -= parseDouble(_))
     s
   }
 
   private val divide = TransformerFunction.pure("divide") { args =>
-    var s: Double = parseDouble(args(0))
-    args.drop(1).foreach(s /= parseDouble(_))
+    if (args.length == 0) {
+      throw new IllegalArgumentException("Divide called without any arguments")
+    }
+    val numbers: scala.collection.Seq[Any] = args(0) match {
+      case list: java.util.List[_] => list.asScala
+      case _ => args
+    }
+    var s: Double = parseDouble(numbers.head)
+    numbers.drop(1).foreach(s /= parseDouble(_))
     s
   }
 
   private val mean = TransformerFunction.pure("mean") { args =>
     if (args.length == 0) { 0d } else {
       var count = 0d
-      args.map(parseDouble).foreach(d => count += d)
-      count / args.length
+      val numbers: scala.collection.Seq[Any] = args(0) match {
+        case list: java.util.List[_] => list.asScala
+        case _ => args
+      }
+      numbers.foreach(n => count += parseDouble(n))
+      count / numbers.length
     }
   }
 
   private val min = TransformerFunction.pure("min") { args =>
-    var min = java.lang.Double.POSITIVE_INFINITY
-    args.map(parseDouble).foreach(d => if (min > d) { min = d })
+    if (args.length == 0) {
+      throw new IllegalArgumentException("Min called without any arguments")
+    }
+    val numbers: scala.collection.Seq[Any] = args(0) match {
+      case list: java.util.List[_] => list.asScala
+      case _ => args
+    }
+    var min = numbers.head.asInstanceOf[Comparable[Any]]
+    numbers.drop(1).foreach { n =>
+      if (min.compareTo(n) > 0) {
+        min = n.asInstanceOf[Comparable[Any]]
+      }
+    }
     min
   }
 
   private val max = TransformerFunction.pure("max") { args =>
-    var max = java.lang.Double.NEGATIVE_INFINITY
-    args.map(parseDouble).foreach(d => if (max < d) { max = d })
+    if (args.length == 0) {
+      throw new IllegalArgumentException("Max called without any arguments")
+    }
+    val numbers: scala.collection.Seq[Any] = args(0) match {
+      case list: java.util.List[_] => list.asScala
+      case _ => args
+    }
+    var max = numbers.head.asInstanceOf[Comparable[Any]]
+    numbers.drop(1).foreach { n =>
+      if (max.compareTo(n) < 0) {
+        max = n.asInstanceOf[Comparable[Any]]
+      }
+    }
     max
   }
 

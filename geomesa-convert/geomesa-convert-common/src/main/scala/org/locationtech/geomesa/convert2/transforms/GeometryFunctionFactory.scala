@@ -38,6 +38,14 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     case Array(g: MultiPoint) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[MultiPoint]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[MultiPoint]
+    case Array(x: java.util.List[_], y: java.util.List[_]) =>
+      val coords = Array.ofDim[Coordinate](x.size)
+      var i = 0
+      while (i < coords.length) {
+        coords(i) = new Coordinate(x.get(i).asInstanceOf[Number].doubleValue, y.get(i).asInstanceOf[Number].doubleValue)
+        i += 1
+      }
+      gf.createMultiPointFromCoords(coords)
     case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid multipoint conversion argument: ${args.mkString(",")}")
   }
@@ -46,6 +54,14 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     case Array(g: LineString) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[LineString]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[LineString]
+    case Array(x: java.util.List[_], y: java.util.List[_]) =>
+      val coords = Array.ofDim[Coordinate](x.size)
+      var i = 0
+      while (i < coords.length) {
+        coords(i) = new Coordinate(x.get(i).asInstanceOf[Number].doubleValue, y.get(i).asInstanceOf[Number].doubleValue)
+        i += 1
+      }
+      gf.createLineString(coords)
     case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid linestring conversion argument: ${args.mkString(",")}")
   }
