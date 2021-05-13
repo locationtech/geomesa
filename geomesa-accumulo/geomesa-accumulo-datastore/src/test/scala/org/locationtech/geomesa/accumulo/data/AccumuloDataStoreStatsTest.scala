@@ -26,6 +26,7 @@ import org.locationtech.geomesa.index.conf.QueryHints.{EXACT_COUNT, QUERY_INDEX}
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelope}
+import org.locationtech.geomesa.utils.stats.MinMax
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -50,6 +51,11 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
   }
 
   val dayInMillis = ZonedDateTime.ofInstant(Instant.ofEpochMilli(baseMillis), ZoneOffset.UTC).plusDays(1).toInstant.toEpochMilli - baseMillis
+
+  // cardinality in MinMax is slightly inaccurate, so we do inexact checking for it
+  def beCloseToMinMax[T](min: T, max: T, cardinality: Long, delta: Long = 1) =
+      ((s: MinMax[T]) => (s.min, s.max)) ^^ beEqualTo(min, max) and
+      ((_:MinMax[T]).cardinality) ^^ beCloseTo(cardinality, delta)
 
   "AccumuloDataStore" should {
     "track stats for ingested features" >> {
@@ -119,8 +125,8 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         ds.stats.getCount(sft) must beSome(2L)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 10, 0, 10, CRS_EPSG_4326)
         ds.stats.getMinMax[String](sft, "name").map(_.tuple) must beSome(("alpha", "cappa", 2L))
-        ds.stats.getMinMax[Date](sft, "dtg").map(_.tuple) must
-            beSome((new Date(baseMillis), new Date(baseMillis + dayInMillis / 2), 2L))
+        ds.stats.getMinMax[Date](sft, "dtg") must
+            beSome(beCloseToMinMax(new Date(baseMillis), new Date(baseMillis + dayInMillis / 2), 2L))
       }
 
       "through feature source add features" >> {
@@ -140,8 +146,8 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         ds.stats.getCount(sft) must beSome(3L)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(-10, 10, -10, 10, CRS_EPSG_4326)
         ds.stats.getMinMax[String](sft, "name").map(_.tuple) must beSome (("alpha", "gamma", 3L))
-        ds.stats.getMinMax[Date](sft, "dtg").map(_.tuple) must
-            beSome((new Date(baseMillis), new Date(baseMillis + dayInMillis), 3L))
+        ds.stats.getMinMax[Date](sft, "dtg") must
+            beSome(beCloseToMinMax(new Date(baseMillis), new Date(baseMillis + dayInMillis), 3L))
       }
 
       "not expand bounds when not necessary" >> {
@@ -159,8 +165,8 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         ds.stats.getCount(sft) must beSome(4L)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(-10, 10, -10, 10, CRS_EPSG_4326)
         ds.stats.getMinMax[String](sft, "name").map(_.tuple) must beSome(("alpha", "gamma", 4L))
-        ds.stats.getMinMax[Date](sft, "dtg").map(_.tuple) must
-            beSome((new Date(baseMillis), new Date(baseMillis + dayInMillis), 3L))
+        ds.stats.getMinMax[Date](sft, "dtg") must
+            beSome(beCloseToMinMax(new Date(baseMillis), new Date(baseMillis + dayInMillis), 3L))
       }
 
       "through feature source set features" >> {
@@ -232,7 +238,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         ds.stats.getMinMax[String](sft, "name").map(_.tuple) must beSome(("0", "9", 10L))
         ds.stats.getMinMax[Int](sft, "age").map(_.tuple) must beSome((1, 2, 2L))
         ds.stats.getMinMax[Int](sft, "height") must beNone
-        ds.stats.getMinMax[Date](sft, "dtg").map(_.tuple) must beSome((minDate, maxDate, 10L))
+        ds.stats.getMinMax[Date](sft, "dtg") must beSome(beCloseToMinMax(minDate, maxDate, 10L))
 
         val nameTopK = ds.stats.getTopK[String](sft, "name")
         nameTopK must beSome
