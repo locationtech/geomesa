@@ -16,10 +16,11 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.sources._
-import org.apache.spark.sql.types.{DataTypes, StructField, StructType, TimestampType}
+import org.apache.spark.sql.types._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.{ListAttributeSpec, MapAttributeSpec}
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.uuid.TimeSortedUuidGenerator
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -48,19 +49,53 @@ object SparkUtils extends LazyLogging {
         val index = requiredAttributes.indexOf(col)
         val schemaIndex = schema.fieldIndex(col)
         val fieldType = schema.fields(schemaIndex).dataType
-        if (fieldType == TimestampType) {
-          sf: SimpleFeature => {
-            val attr = sf.getAttribute(index)
-            if (attr == null) { null } else {
-              new Timestamp(attr.asInstanceOf[Date].getTime)
+        fieldType match {
+          case _: TimestampType =>
+            sf: SimpleFeature => {
+              val attr = sf.getAttribute(index)
+              if (attr == null) { null } else {
+                new Timestamp(attr.asInstanceOf[Date].getTime)
+              }
             }
-          }
-        } else {
-          sf: SimpleFeature => sf.getAttribute(index)
+
+          case arrayType: ArrayType =>
+            val elementType = arrayType.elementType
+            sf: SimpleFeature => {
+              val attr = sf.getAttribute(index)
+              if (attr == null) { null } else {
+                val array = attr.asInstanceOf[java.util.List[_]].asScala.toList
+                if (elementType != TimestampType) { array } else {
+                  array.map(d => new Timestamp(d.asInstanceOf[Date].getTime))
+                }
+              }
+            }
+
+          case mapType: MapType =>
+            val keyType = mapType.keyType
+            val valueType = mapType.valueType
+            sf: SimpleFeature => {
+              val attr = sf.getAttribute(index)
+              if (attr == null) { null } else {
+                val map = attr.asInstanceOf[java.util.Map[_, _]].asScala.toMap
+                if (keyType != TimestampType && valueType != TimestampType) { map } else {
+                  map.map {
+                    case (key, value) =>
+                      val newKey = if (keyType == TimestampType) {
+                        new Timestamp(key.asInstanceOf[Date].getTime)
+                      } else key
+                      val newValue = if (valueType == TimestampType) {
+                        new Timestamp(value.asInstanceOf[Date].getTime)
+                      } else value
+                      (newKey, newValue)
+                  }
+                }
+              }
+            }
+
+          case _ => sf: SimpleFeature => sf.getAttribute(index)
         }
     }
   }
-
 
   def sparkFilterToCQLFilter(filt: org.apache.spark.sql.sources.Filter): Option[org.opengis.filter.Filter] = filt match {
     case GreaterThanOrEqual(attribute, v) => Some(ff.greaterOrEqual(ff.property(attribute), ff.literal(v)))
@@ -86,23 +121,65 @@ object SparkUtils extends LazyLogging {
     val builder = new SimpleFeatureTypeBuilder
     builder.setName(name)
 
-    struct.fields.filter( _.name != "__fid__").foreach { field =>
-      val binding = field.dataType match {
-        case DataTypes.StringType              => classOf[java.lang.String]
-        case DataTypes.DateType                => classOf[java.util.Date]
-        case DataTypes.TimestampType           => classOf[java.util.Date]
-        case DataTypes.IntegerType             => classOf[java.lang.Integer]
-        case DataTypes.LongType                => classOf[java.lang.Long]
-        case DataTypes.FloatType               => classOf[java.lang.Float]
-        case DataTypes.DoubleType              => classOf[java.lang.Double]
-        case DataTypes.BooleanType             => classOf[java.lang.Boolean]
-        case JTSTypes.PointTypeInstance        => classOf[org.locationtech.jts.geom.Point]
-        case JTSTypes.LineStringTypeInstance   => classOf[org.locationtech.jts.geom.LineString]
-        case JTSTypes.PolygonTypeInstance      => classOf[org.locationtech.jts.geom.Polygon]
-        case JTSTypes.MultipolygonTypeInstance => classOf[org.locationtech.jts.geom.MultiPolygon]
-        case JTSTypes.GeometryTypeInstance     => classOf[org.locationtech.jts.geom.Geometry]
+    def basicTypeBinding(dataType: DataType): Class[_] = dataType match {
+      case DataTypes.StringType              => classOf[java.lang.String]
+      case DataTypes.DateType                => classOf[java.util.Date]
+      case DataTypes.TimestampType           => classOf[java.util.Date]
+      case DataTypes.IntegerType             => classOf[java.lang.Integer]
+      case DataTypes.LongType                => classOf[java.lang.Long]
+      case DataTypes.FloatType               => classOf[java.lang.Float]
+      case DataTypes.DoubleType              => classOf[java.lang.Double]
+      case DataTypes.BooleanType             => classOf[java.lang.Boolean]
+      case DataTypes.BinaryType              => classOf[Array[Byte]]
+      case _                                 => null
+    }
+
+    def geomTypeBinding(dataType: DataType): Class[_] = dataType match {
+      case JTSTypes.PointTypeInstance        => classOf[org.locationtech.jts.geom.Point]
+      case JTSTypes.MultiPointTypeInstance   => classOf[org.locationtech.jts.geom.MultiPoint]
+      case JTSTypes.LineStringTypeInstance   => classOf[org.locationtech.jts.geom.LineString]
+      case JTSTypes.MultiLineStringTypeInstance => classOf[org.locationtech.jts.geom.MultiLineString]
+      case JTSTypes.PolygonTypeInstance      => classOf[org.locationtech.jts.geom.Polygon]
+      case JTSTypes.MultipolygonTypeInstance => classOf[org.locationtech.jts.geom.MultiPolygon]
+      case JTSTypes.GeometryCollectionTypeInstance => classOf[org.locationtech.jts.geom.GeometryCollection]
+      case JTSTypes.GeometryTypeInstance     => classOf[org.locationtech.jts.geom.Geometry]
+      case _                                 => null
+    }
+
+    struct.fields.filter(_.name != "__fid__").foreach { field =>
+      field.dataType match {
+        case ArrayType(elementType, _) =>
+          val elementBinding = basicTypeBinding(elementType)
+          if (elementBinding == null) {
+            throw new IllegalArgumentException(
+              s"list element in field ${field.name} is not basic type: ${elementType.typeName}")
+          }
+          val attributeSpec = ListAttributeSpec(field.name, elementBinding, Map.empty)
+          builder.add(attributeSpec.toDescriptor)
+
+        case MapType(keyType, valueType, _) =>
+          val keyBinding = basicTypeBinding(keyType)
+          if (keyBinding == null) {
+            throw new IllegalArgumentException(
+              s"map key in field ${field.name} is not basic type: ${keyType.typeName}")
+          }
+          val valueBinding = basicTypeBinding(valueType)
+          if (valueBinding == null) {
+            throw new IllegalArgumentException(
+              s"map value in field ${field.name} is not basic type: ${valueType.typeName}")
+          }
+          val attributeSpec = MapAttributeSpec(field.name, keyBinding, valueBinding, Map.empty)
+          builder.add(attributeSpec.toDescriptor)
+
+        case _ =>
+          var binding = basicTypeBinding(field.dataType)
+          if (binding == null) binding = geomTypeBinding(field.dataType)
+          if (binding == null) {
+            throw new IllegalArgumentException(
+              s"Unexpected data type for field ${field.name}: ${field.dataType.typeName}")
+          }
+          builder.add(field.name, binding)
       }
-      builder.add(field.name, binding)
     }
 
     builder.buildFeatureType()
@@ -114,34 +191,61 @@ object SparkUtils extends LazyLogging {
   }
 
   private def createStructField(ad: AttributeDescriptor): Option[StructField] = {
-    val bindings = Try(ObjectType.selectType(ad)).getOrElse(Seq.empty)
-    val dt = bindings.head match {
-      case ObjectType.STRING   => DataTypes.StringType
-      case ObjectType.INT      => DataTypes.IntegerType
-      case ObjectType.LONG     => DataTypes.LongType
-      case ObjectType.FLOAT    => DataTypes.FloatType
-      case ObjectType.DOUBLE   => DataTypes.DoubleType
-      case ObjectType.BOOLEAN  => DataTypes.BooleanType
-      case ObjectType.DATE     => DataTypes.TimestampType
-      case ObjectType.UUID     => null // not supported
-      case ObjectType.BYTES    => null // not supported
-      case ObjectType.LIST     => null // not supported
-      case ObjectType.MAP      => null // not supported
-      case ObjectType.GEOMETRY =>
-        bindings.last match {
-          case ObjectType.POINT               => JTSTypes.PointTypeInstance
-          case ObjectType.LINESTRING          => JTSTypes.LineStringTypeInstance
-          case ObjectType.POLYGON             => JTSTypes.PolygonTypeInstance
-          case ObjectType.MULTIPOINT          => JTSTypes.MultiPointTypeInstance
-          case ObjectType.MULTILINESTRING     => JTSTypes.MultiLineStringTypeInstance
-          case ObjectType.MULTIPOLYGON        => JTSTypes.MultipolygonTypeInstance
-          case ObjectType.GEOMETRY_COLLECTION => JTSTypes.GeometryTypeInstance
-          case _                              => JTSTypes.GeometryTypeInstance
-        }
-
-      case _ => logger.warn(s"Unexpected bindings for descriptor $ad: ${bindings.mkString(", ")}"); null
+    def basicTypeToSQLType(bindings: Seq[ObjectType.ObjectType]): Option[DataType] = {
+      bindings.head match {
+        case ObjectType.STRING   => Some(DataTypes.StringType)
+        case ObjectType.INT      => Some(DataTypes.IntegerType)
+        case ObjectType.LONG     => Some(DataTypes.LongType)
+        case ObjectType.FLOAT    => Some(DataTypes.FloatType)
+        case ObjectType.DOUBLE   => Some(DataTypes.DoubleType)
+        case ObjectType.BOOLEAN  => Some(DataTypes.BooleanType)
+        case ObjectType.DATE     => Some(DataTypes.TimestampType)
+        case ObjectType.BYTES    => Some(DataTypes.BinaryType)
+        case ObjectType.UUID     => None // not supported
+        case _                   => None // not basic type
+      }
     }
-    Option(dt).map(StructField(ad.getLocalName, _))
+
+    def geomTypeToSQLType(bindings: Seq[ObjectType.ObjectType]): DataType = {
+      bindings.last match {
+        case ObjectType.POINT               => JTSTypes.PointTypeInstance
+        case ObjectType.LINESTRING          => JTSTypes.LineStringTypeInstance
+        case ObjectType.POLYGON             => JTSTypes.PolygonTypeInstance
+        case ObjectType.MULTIPOINT          => JTSTypes.MultiPointTypeInstance
+        case ObjectType.MULTILINESTRING     => JTSTypes.MultiLineStringTypeInstance
+        case ObjectType.MULTIPOLYGON        => JTSTypes.MultipolygonTypeInstance
+        case ObjectType.GEOMETRY_COLLECTION => JTSTypes.GeometryCollectionTypeInstance
+        case _                              => JTSTypes.GeometryTypeInstance
+      }
+    }
+
+    def listTypeToSQLType(bindings: Seq[ObjectType.ObjectType]): Option[DataType] =
+      basicTypeToSQLType(bindings.tail).map(ArrayType(_))
+
+    def mapTypeToSQLType(bindings: Seq[ObjectType.ObjectType]): Option[DataType] = {
+      (basicTypeToSQLType(bindings.tail), basicTypeToSQLType(bindings.tail.tail)) match {
+        case (Some(keyType), Some(valueType)) => Some(MapType(keyType, valueType))
+        case _ => None
+      }
+    }
+
+    val bindings = ObjectType.selectType(ad)
+    val dt = bindings.head match {
+      case ObjectType.STRING   |
+           ObjectType.INT      |
+           ObjectType.LONG     |
+           ObjectType.FLOAT    |
+           ObjectType.DOUBLE   |
+           ObjectType.BOOLEAN  |
+           ObjectType.DATE     |
+           ObjectType.UUID     |
+           ObjectType.BYTES    => basicTypeToSQLType(bindings)
+      case ObjectType.LIST     => listTypeToSQLType(bindings)
+      case ObjectType.MAP      => mapTypeToSQLType(bindings)
+      case ObjectType.GEOMETRY => Some(geomTypeToSQLType(bindings))
+      case _ => logger.warn(s"Unexpected bindings for descriptor $ad: ${bindings.mkString(", ")}"); None
+    }
+    dt.map(StructField(ad.getLocalName, _))
   }
 
   /**
@@ -156,7 +260,12 @@ object SparkUtils extends LazyLogging {
     * @return
     */
   def rowsToFeatures(sft: SimpleFeatureType, schema: StructType): SimpleFeatureRowMapping = {
-    val mappings = Seq.tabulate(sft.getAttributeCount)(i => i -> schema.fieldIndex(sft.getDescriptor(i).getLocalName))
+    val mappings = Seq.tabulate(sft.getAttributeCount) { i =>
+      val descriptor = sft.getDescriptor(i)
+      val binding = descriptor.getType.getBinding
+      val needConversion = (binding == classOf[java.util.List[_]] || binding == classOf[java.util.Map[_, _]])
+      (i, schema.fieldIndex(descriptor.getLocalName), needConversion)
+    }
     val fid: Row => String = schema.fields.indexWhere(_.name == "__fid__") match {
       case -1 => _ => TimeSortedUuidGenerator.createUuid().toString
       case i  => r => r.getString(i)
@@ -203,10 +312,13 @@ object SparkUtils extends LazyLogging {
     new GenericRowWithSchema(res, schema)
   }
 
-  case class SimpleFeatureRowMapping(sft: SimpleFeatureType, mappings: Seq[(Int, Int)], id: Row => String) {
+  case class SimpleFeatureRowMapping(sft: SimpleFeatureType, mappings: Seq[(Int, Int, Boolean)], id: Row => String) {
     def apply(row: Row): SimpleFeature = {
       val feature = new ScalaSimpleFeature(sft, id(row))
-      mappings.foreach { case (to, from) => feature.setAttributeNoConvert(to, row.getAs[Object](from)) }
+      mappings.foreach { case (to, from, needConversion) =>
+        if (needConversion) feature.setAttribute(to, row.getAs[Object](from))
+        else feature.setAttributeNoConvert(to, row.getAs[Object](from))
+      }
       feature
     }
   }
