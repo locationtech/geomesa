@@ -10,6 +10,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
 =======
@@ -20,6 +21,8 @@
 >>>>>>> 554f4609770 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 6aa7e62b7f9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 02aed82567f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
@@ -31,16 +34,21 @@
 >>>>>>> a1ab6c44ffe ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 18a3d82b732 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> c9931fffaa9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 =======
 >>>>>>> 009ad2a267 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
+=======
+>>>>>>> 16a2ad178c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 1108247cc5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-arrow/geomesa-arrow-gs-plugin/pom.xml
 <<<<<<< HEAD
@@ -158,8 +166,17 @@
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration):geomesa-arrow/geomesa-arrow-gs-plugin/pom.xml
 >>>>>>> 2f1de77874 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> b468fcf5ad5 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 331fadea16b ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+>>>>>>> 1108247cc5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-arrow/geomesa-arrow-gs-plugin/pom.xml
+>>>>>>> 16a2ad178c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> c9931fffaa9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 02aed82567f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <relativePath>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/pom.xml</relativePath>
     </parent>
 
