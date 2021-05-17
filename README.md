@@ -9366,6 +9366,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9644,10 +9645,13 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> 6094f098d8 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 64560e28d2 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 06775f0442 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 **Development version: 4.1.0-SNAPSHOT**
 =======
 **Development version: 3.3.0-SNAPSHOT**
 >>>>>>> cf42b98f8f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -10772,6 +10776,8 @@ libraryDependencies ++= Seq(
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 06775f0442 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)

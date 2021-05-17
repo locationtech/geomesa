@@ -120,6 +120,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -180,10 +181,13 @@
 =======
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 79bf541ac8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 06775f0442 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     <version>4.1.0-SNAPSHOT</version>
 =======
     <version>3.3.0-SNAPSHOT</version>
 >>>>>>> cf42b98f8f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 =======
 >>>>>>> d0052cffb4 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 6ea4f177c7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -28564,7 +28568,12 @@
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 79bf541ac8 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> c923bf1e4ea (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 06775f0442 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 5fc5417995a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 
     <licenses>
         <license>
@@ -41629,7 +41638,7 @@
         <copyright.year>2022</copyright.year>
 =======
         <geomesa.release.version>3.2.0</geomesa.release.version>
-        <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
+        <geomesa.devel.version>3.3.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2021</copyright.year>
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
