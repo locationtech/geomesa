@@ -4,8 +4,11 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/pom.xml
+<<<<<<< HEAD
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/pom.xml
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/pom.xml
+=======
+>>>>>>> 009ad2a267 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <artifactId>geomesa-utils-parent_2.12</artifactId>
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -19,6 +22,7 @@
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
+<<<<<<< HEAD
 >>>>>>> 1108247cc5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-features/geomesa-feature-nio/pom.xml
 <<<<<<< HEAD
 >>>>>>> 8367a36725d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -58,7 +62,13 @@
 =======
         <version>4.1.0-SNAPSHOT</version>
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> a1ab6c44ffe ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-features/geomesa-feature-nio/pom.xml
+>>>>>>> 009ad2a267 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 18a3d82b732 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
