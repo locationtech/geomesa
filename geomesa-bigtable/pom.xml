@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>geomesa_2.12</artifactId>
+        <groupId>org.locationtech.geomesa</groupId>
+        <version>3.3.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>geomesa-bigtable_2.12</artifactId>
+    <name>GeoMesa Bigtable Parent</name>
+
+    <packaging>pom</packaging>
+
+    <properties>
+        <bigtable.version>1.9.0</bigtable.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.cloud.bigtable</groupId>
+                <artifactId>bigtable-hbase-1.x-hadoop</artifactId>
+                <version>${bigtable.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.cloud.bigtable</groupId>
+                <artifactId>bigtable-hbase-1.x-mapreduce</artifactId>
+                <version>${bigtable.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <profiles>
+        <profile>
+            <id>bigtable</id>
+            <modules>
+                <module>geomesa-bigtable-datastore</module>
+                <module>geomesa-bigtable-dist</module>
+                <module>geomesa-bigtable-gs-plugin</module>
+                <module>geomesa-bigtable-tools</module>
+                <module>geomesa-bigtable-spark</module>
+                <module>geomesa-bigtable-spark-runtime</module>
+            </modules>
+        </profile>
+    </profiles>
+
+</project>

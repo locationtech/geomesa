@@ -2,8 +2,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-zk-utils/pom.xml
         <artifactId>geomesa-utils-parent_2.12</artifactId>
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
+=======
+        <version>4.1.0-SNAPSHOT</version>
+=======
+        <artifactId>geomesa_2.12</artifactId>
+        <version>3.3.0-SNAPSHOT</version>
+>>>>>>> 1108247cc5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-zk-utils/pom.xml
+>>>>>>> 8367a36725d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
