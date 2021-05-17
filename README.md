@@ -6910,6 +6910,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Development version: 4.0.0-SNAPSHOT**
 =======
 =======
@@ -7758,6 +7759,8 @@ libraryDependencies ++= Seq(
 >>>>>>> d251393014 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e02f74f029 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 **Development version: 4.1.0-SNAPSHOT**
 =======
 **Development version: 4.0.0-SNAPSHOT**
@@ -31528,6 +31531,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b6bdff036c3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
@@ -31538,6 +31542,10 @@ libraryDependencies ++= Seq(
 >>>>>>> c29823dbe74 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 0d93a21f692 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> c3b7e5787a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 2a24b140b3e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 **Development version: 3.4.0-SNAPSHOT**
 >>>>>>> f9c85b7d56 ([maven-release-plugin] prepare for next development iteration)
@@ -32179,10 +32187,13 @@ libraryDependencies ++= Seq(
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> fc25f2f36fd (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 0184ff5e3ef (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 2a24b140b3e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> e02f74f029 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -32803,7 +32814,14 @@ libraryDependencies ++= Seq(
 =======
 =======
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 0184ff5e3ef (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> e02f74f029 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> c3b7e5787a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 2a24b140b3e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
