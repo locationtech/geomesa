@@ -105,6 +105,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-zk-utils/pom.xml
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-zk-utils/pom.xml
 =======
@@ -113,6 +114,8 @@
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-zk-utils/pom.xml
 =======
 >>>>>>> edeedf7fc4 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 8809dc9b7e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-zk-utils/pom.xml
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-zk-utils/pom.xml
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-zk-utils/pom.xml
@@ -6439,8 +6442,18 @@
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes'):geomesa-zk-utils/pom.xml
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 7dab3f6de0d (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+        <version>3.3.0-SNAPSHOT</version>
+>>>>>>> 1108247cc5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-zk-utils/pom.xml
+>>>>>>> 16a2ad178c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 8809dc9b7e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> e92440e9de1 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
