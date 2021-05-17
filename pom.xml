@@ -31,6 +31,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -249,6 +250,12 @@
 =======
     <version>4.1.0-SNAPSHOT</version>
 >>>>>>> 1b97445cb ([maven-release-plugin] prepare for next development iteration)
+=======
+    <version>4.1.0-SNAPSHOT</version>
+=======
+    <version>3.3.0-SNAPSHOT</version>
+>>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 55f794c0f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 
     <licenses>
         <license>
@@ -821,7 +828,7 @@
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 =======
         <geomesa.release.version>3.2.0</geomesa.release.version>
-        <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
+        <geomesa.devel.version>3.3.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2021</copyright.year>
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
