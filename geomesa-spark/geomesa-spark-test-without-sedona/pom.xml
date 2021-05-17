@@ -460,10 +460,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9a71b222e1 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 640618f453 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 82252ce940 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -476,6 +479,7 @@
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 30fe3aeee3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 =======
 >>>>>>> 85e40e98d0 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -490,6 +494,8 @@
 =======
 >>>>>>> 90c964b1a1 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 640618f453 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 82252ce940 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <version>3.5.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
@@ -506,6 +512,7 @@
 >>>>>>> 9a71b222e1 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 640618f453 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD:geomesa-spark/geomesa-spark-test-without-sedona/pom.xml
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-test-without-sedona/pom.xml
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-test-without-sedona/pom.xml
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-kudu/geomesa-kudu-spark/pom.xml
@@ -549,8 +556,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c88c49d289 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 82252ce940 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-kudu/geomesa-kudu-spark/pom.xml
 >>>>>>> 6d9ef35086 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -755,6 +765,7 @@
 >>>>>>> 6d9ef35086 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 30fe3aeee3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 54e53026d4e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 96b6789c902 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -763,6 +774,8 @@
 =======
 =======
 =======
+=======
+>>>>>>> d7226654875 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 1108247cc5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-kudu/geomesa-kudu-spark/pom.xml
 >>>>>>> 2b2e6e26ab (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -1077,9 +1090,20 @@
 >>>>>>> 2f1de77874 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 90c964b1a1 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 640618f453 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 33b810fe965 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> bc9192c675a ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> b8097105d6a ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+=======
+>>>>>>> 82252ce940 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> d7226654875 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> e7077f95226 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 49bd2c76231 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
