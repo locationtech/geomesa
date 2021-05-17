@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>geomesa_2.12</artifactId>
+        <groupId>org.locationtech.geomesa</groupId>
+        <version>3.3.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>geomesa-kudu_2.12</artifactId>
+    <name>GeoMesa Kudu</name>
+
+    <packaging>pom</packaging>
+
+    <properties>
+        <kudu.version>1.7.0</kudu.version>
+    </properties>
+
+    <modules>
+        <module>geomesa-kudu-datastore</module>
+        <module>geomesa-kudu-dist</module>
+        <module>geomesa-kudu-gs-plugin</module>
+        <module>geomesa-kudu-spark</module>
+        <module>geomesa-kudu-spark-runtime</module>
+        <module>geomesa-kudu-tools</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.kudu</groupId>
+                <artifactId>kudu-client</artifactId>
+                <version>${kudu.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kudu</groupId>
+                <artifactId>kudu-mapreduce</artifactId>
+                <version>${kudu.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>
