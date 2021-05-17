@@ -8,6 +8,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/pom.xml
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/pom.xml
 <<<<<<< HEAD
@@ -30,6 +31,12 @@
 >>>>>>> 315436b799 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 7c9589b247 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/pom.xml
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/pom.xml
+=======
+>>>>>>> 009ad2a267 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 9d6c1c1c4e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <artifactId>geomesa-utils-parent_2.12</artifactId>
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -57,6 +64,9 @@
         <version>3.3.0-SNAPSHOT</version>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9d6c1c1c4e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 1108247cc5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-features/geomesa-feature-nio/pom.xml
 <<<<<<< HEAD
 >>>>>>> 8367a36725d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -230,8 +240,17 @@
 =======
         <version>4.1.0-SNAPSHOT</version>
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+>>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-features/geomesa-feature-nio/pom.xml
+>>>>>>> 009ad2a267 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 9d6c1c1c4e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 36da504cb44 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
