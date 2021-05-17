@@ -183,6 +183,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> d71f72fae9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -240,6 +241,8 @@
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 59f2d1324f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 8a9771c7fb ([maven-release-plugin] prepare for next development iteration)
@@ -848,7 +851,12 @@
 =======
 =======
 >>>>>>> a0515b7519 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 64d5739f45 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 59d9fe5f6a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 59f2d1324f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <version>3.5.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
@@ -911,6 +919,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 59f2d1324f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
 >>>>>>> 8a9771c7fb ([maven-release-plugin] prepare for next development iteration)
@@ -3856,7 +3867,12 @@
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 59d9fe5f6a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 59f2d1324f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -3893,6 +3909,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -3903,6 +3920,9 @@
 >>>>>>> aa56a72f33 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 2636e66fad (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 59f2d1324f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
         </dependency>
@@ -3911,6 +3931,7 @@
             <artifactId>log4j</artifactId>
         </dependency>
         <dependency>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3931,6 +3952,9 @@
 >>>>>>> 2636e66fad (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 59d9fe5f6a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 59f2d1324f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
             <groupId>org.specs2</groupId>
             <artifactId>specs2-core_${scala.binary.version}</artifactId>
         </dependency>
@@ -3947,6 +3971,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 
@@ -3973,4 +3998,9 @@
 =======
 
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+
+=======
+>>>>>>> 59d9fe5f6a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 59f2d1324f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 </project>
