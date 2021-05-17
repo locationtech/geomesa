@@ -20,6 +20,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -51,6 +52,8 @@
 >>>>>>> d032d6a8377 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 26e95dbc3fb (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 8b69ffe845f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 00aea531e3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -90,7 +93,12 @@
 =======
 =======
 >>>>>>> 609c01ac0d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 26e95dbc3fb (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 593836a21e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 8b69ffe845f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <artifactId>geomesa_2.12</artifactId>
@@ -7093,8 +7101,24 @@
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> b51968dc4dd (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+        <version>4.1.0-SNAPSHOT</version>
+=======
+        <version>4.0.0-SNAPSHOT</version>
+=======
+        <artifactId>geomesa_2.12</artifactId>
+        <version>3.3.0-SNAPSHOT</version>
+>>>>>>> ff5c21d0c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-utils/pom.xml
+>>>>>>> cf42b98f8f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> dca5d74b69 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 593836a21e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 8b69ffe845f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
