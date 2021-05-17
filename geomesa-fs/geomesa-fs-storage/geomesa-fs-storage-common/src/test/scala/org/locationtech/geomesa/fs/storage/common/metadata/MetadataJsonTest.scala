@@ -3559,6 +3559,7 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9d1506029d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -3647,6 +3648,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> f0e34e448d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 57e3397386 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 3d7a937eae (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
 >>>>>>> 23c0241798 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -3924,6 +3927,8 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 18facc39d8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 357511344f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
 =======
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 69d749947 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -3964,6 +3969,7 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> f8e2dfa5c2 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+<<<<<<< HEAD
 >>>>>>> f9f6fde40b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -4172,6 +4178,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> fdaa0e12fd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 57e3397386 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 3d7a937eae (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -7250,6 +7258,7 @@ class MetadataJsonTest extends Specification {
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6bd64e630 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> fdaa0e12fd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 18facc39d8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -8479,9 +8488,25 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6bd64e630 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 3d7a937eae (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> fdaa0e12fd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 18facc39d8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 57e3397386 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 3605e1a51 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> f8e2dfa5c2 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 357511344f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 3d7a937eae (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 
   "MetadataJson" should {
     "persist and replace system properties (and environment variables)" in {
@@ -9733,6 +9758,7 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d206a68a13 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -9867,6 +9893,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> f0e34e448d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 57e3397386 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 3d7a937eae (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 314e6ef1a2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
@@ -10835,6 +10863,8 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 18facc39d8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 357511344f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> f39309c33 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -10849,6 +10879,12 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 562f547289 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+=======
+=======
+=======
+>>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 3605e1a51 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> f8e2dfa5c2 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 6bd64e630 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> fdaa0e12fd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -15324,6 +15360,7 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6ed35b9ff9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 7c9589b247 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -15392,6 +15429,8 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 18facc39d8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 357511344f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
 =======
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 69d749947 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -15412,6 +15451,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 562f547289 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> fdaa0e12fd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> f8e2dfa5c2 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -16758,9 +16799,24 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6bd64e630 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> fdaa0e12fd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 18facc39d8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 57e3397386 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 3605e1a51 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> f8e2dfa5c2 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 357511344f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 3d7a937eae (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
       withPath { context =>
         val prop = "MetadataJsonTest.foo"
         val interpolated = "${" + prop + "}"
