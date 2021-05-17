@@ -4022,6 +4022,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Development version: 4.0.0-SNAPSHOT**
 =======
 =======
@@ -4912,6 +4913,8 @@ libraryDependencies ++= Seq(
 >>>>>>> e3976d40bc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6cd1151639 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 5cdcca83a7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 **Development version: 4.1.0-SNAPSHOT**
 =======
 **Development version: 4.0.0-SNAPSHOT**
@@ -4973,6 +4976,8 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> c8a325e13c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 0c38d97369 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c5e1827657 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 **Development version: 3.4.0-SNAPSHOT**
@@ -4982,6 +4987,8 @@ libraryDependencies ++= Seq(
 >>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -5279,12 +5286,21 @@ libraryDependencies ++= Seq(
 =======
 =======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> c8a325e13c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> 059393960 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 0c38d97369 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 **Development version: 3.5.0-SNAPSHOT**
 =======
 **Development version: 4.0.0-SNAPSHOT**
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12057,6 +12073,7 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> c8a325e13c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0c38d97369 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -12111,6 +12128,10 @@ libraryDependencies ++= Seq(
 >>>>>>> e3976d40bc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6cd1151639 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 0c38d97369 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 5cdcca83a7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12146,6 +12167,7 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+<<<<<<< HEAD
 >>>>>>> d6616d893 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -12156,6 +12178,8 @@ libraryDependencies ++= Seq(
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6cd1151639 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 5cdcca83a7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 7e68948ac (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -12465,8 +12489,11 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6cd1151639 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 5cdcca83a7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 67b361c856 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> e5456f2bdae (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -12486,12 +12513,19 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> 6cd1151639 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 0c38d97369 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
 **Development version: 3.3.0-SNAPSHOT**
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 059393960 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 5cdcca83a7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 7cd2c4188b (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 991c94ad621 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -12766,6 +12800,7 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> 0c38d97369 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+<<<<<<< HEAD
 >>>>>>> ac4540264d ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
@@ -12773,6 +12808,8 @@ libraryDependencies ++= Seq(
 =======
 =======
 >>>>>>> d9e6418ab7 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 5cdcca83a7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 **Development version: 3.4.0-SNAPSHOT**
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
@@ -12993,6 +13030,9 @@ libraryDependencies ++= Seq(
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 5cdcca83a7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> c8a325e13c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> da23b43f598 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -13003,6 +13043,7 @@ libraryDependencies ++= Seq(
 =======
 =======
 >>>>>>> 7cd2c4188 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 0c38d97369 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -13435,8 +13476,17 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> c8a325e13c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6cd1151639 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 0783aaccaa9 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> b357ebe8333 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> 0c38d97369 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 5cdcca83a7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 5e7cfd1c9ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> b92a83e6c41 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
