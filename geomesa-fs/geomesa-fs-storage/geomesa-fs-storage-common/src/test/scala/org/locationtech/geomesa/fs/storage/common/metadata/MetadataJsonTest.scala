@@ -49,7 +49,11 @@ class MetadataJsonTest extends Specification {
 =======
   lazy val fc = FileContext.getFileContext(conf)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> a07496c758d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+<<<<<<< HEAD
+>>>>>>> cb9acf4766e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 
   "MetadataJson" should {
     "persist and replace system properties (and environment variables)" in {
@@ -60,6 +64,12 @@ class MetadataJsonTest extends Specification {
   "MetadataJson" should {
     "persist and replace system properties (and environment variables)" in {
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+
+  "MetadataJson" should {
+    "persist and replace system properties (and environment variables)" in {
+      skipped("fails in github actions")
+>>>>>>> 1108247cc5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
       withPath { context =>
         val prop = "MetadataJsonTest.foo"
         val interpolated = "${" + prop + "}"
