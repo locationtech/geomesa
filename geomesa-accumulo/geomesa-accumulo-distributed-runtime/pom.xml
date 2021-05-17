@@ -596,6 +596,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -1781,6 +1782,8 @@
 >>>>>>> 663ac5f6665 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 2e10de9c5f5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1506e448521 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 =======
 >>>>>>> 67c850bb2f ([maven-release-plugin] prepare for next development iteration)
@@ -2119,6 +2122,8 @@
 >>>>>>> 46c6d5a4e3 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5c87845c27 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 3a2e956065 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -3347,10 +3352,13 @@
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1be0e8546b7 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 2e10de9c5f5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1506e448521 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> c107a1f0ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -5016,7 +5024,14 @@
 =======
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 2e10de9c5f5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> c107a1f0ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 5c87845c27 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 1506e448521 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.4.0-SNAPSHOT</version>
@@ -21372,12 +21387,16 @@
 =======
 =======
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 86fd3375c0 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 5c87845c27 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> cf42b98f8f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> dca5d74b69 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -26058,7 +26077,14 @@
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 2e10de9c5f5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> dca5d74b69 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> c107a1f0ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 5c87845c27 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 1506e448521 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     </parent>
 
     <artifactId>geomesa-accumulo-distributed-runtime_2.12</artifactId>
