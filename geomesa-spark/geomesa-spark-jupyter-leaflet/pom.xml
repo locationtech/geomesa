@@ -11,6 +11,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> f8e2dfa5c2 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -18,6 +19,8 @@
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b9ad16da06 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
@@ -282,7 +285,13 @@
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+        <version>3.3.0-SNAPSHOT</version>
+>>>>>>> cf42b98f8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> b9ad16da06 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

@@ -7,6 +7,7 @@
         <artifactId>geomesa-utils-parent_2.12</artifactId>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>4.0.0-SNAPSHOT</version>
 =======
         <artifactId>geomesa_2.12</artifactId>
@@ -329,6 +330,8 @@
         <version>4.0.0</version>
 >>>>>>> f9651a99a ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
+=======
+>>>>>>> b9ad16da06 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <version>4.1.0-SNAPSHOT</version>
 <<<<<<< HEAD
 >>>>>>> 1b97445cb ([maven-release-plugin] prepare for next development iteration)
@@ -559,7 +562,17 @@
 =======
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 8a73cc043 ([maven-release-plugin] prepare for next development iteration):geomesa-utils/pom.xml
+<<<<<<< HEAD
 >>>>>>> ff6b69c1b ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+        <version>4.0.0-SNAPSHOT</version>
+=======
+        <artifactId>geomesa_2.12</artifactId>
+        <version>3.3.0-SNAPSHOT</version>
+>>>>>>> ff5c21d0c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-utils/pom.xml
+>>>>>>> cf42b98f8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> b9ad16da06 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
