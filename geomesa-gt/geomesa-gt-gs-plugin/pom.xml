@@ -14,6 +14,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.2.0-SNAPSHOT</version>
 =======
 =======
@@ -32,6 +33,8 @@
 >>>>>>> 4ad20fc8233 ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
 >>>>>>> 6e06812eee4 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 7c06c420340 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
@@ -51,6 +54,8 @@
 >>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
 >>>>>>> 72fc4dba33b ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> e465896d8fe (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
@@ -70,6 +75,8 @@
 >>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
 >>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 36da504cb44 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 =======
@@ -84,14 +91,21 @@
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
 >>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 9d6c1c1c4e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
+=======
+>>>>>>> 009ad2a267 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9d6c1c1c4e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 1108247cc5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-arrow/geomesa-arrow-gs-plugin/pom.xml
 <<<<<<< HEAD
 >>>>>>> 8367a36725d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -193,6 +207,7 @@
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> a1ab6c44ffe ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> 554f4609770 ([maven-release-plugin] prepare for next development iteration)
@@ -203,6 +218,8 @@
 =======
 =======
 >>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 36da504cb44 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-arrow/geomesa-arrow-gs-plugin/pom.xml
 <<<<<<< HEAD
@@ -350,9 +367,23 @@
 =======
 =======
 >>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 72fc4dba33b ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 6e06812eee4 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-arrow/geomesa-arrow-gs-plugin/pom.xml
+>>>>>>> 009ad2a267 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 9d6c1c1c4e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 36da504cb44 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> e465896d8fe (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 7c06c420340 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <relativePath>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/pom.xml</relativePath>
     </parent>
 
