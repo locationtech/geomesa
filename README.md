@@ -16437,7 +16437,7 @@ libraryDependencies ++= Seq(
 
 ## Building from Source
 
-**Development version: 4.0.0-SNAPSHOT**
+**Development version: 3.3.0-SNAPSHOT**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
