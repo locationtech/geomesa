@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>geomesa-accumulo_2.12</artifactId>
+        <groupId>org.locationtech.geomesa</groupId>
+<<<<<<< HEAD
+        <version>3.5.0-SNAPSHOT</version>
+=======
+        <version>3.3.0-SNAPSHOT</version>
+>>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <name>GeoMesa Accumulo Spark Runtime, Accumulo 2.x</name>
+    <artifactId>geomesa-accumulo-spark-runtime-accumulo2_2.12</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-jobs_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-spark_${scala.binary.version}</artifactId>
+        </dependency>
+
+        <!-- only needed for packaging into the shaded jar -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-spark-sql_${scala.binary.version}</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-jupyter-leaflet_${scala.binary.version}</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-core</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- bring in guava and relocate it -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_${scala.binary.version}</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_${scala.binary.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-cqengine-datastore_${scala.binary.version}</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--Mark dependency as provided to avoid Spark 2.2.x conflicts-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- test dependencies -->
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-core_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-junit_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-spark-sql_${scala.binary.version}</artifactId>
+            <classifier>tests</classifier>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
+            <classifier>tests</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-minicluster</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.locationtech.geomesa:geomesa-*-runtime*</exclude>
+                                    <exclude>io.netty:*</exclude>
+                                    <exclude>org.slf4j:*</exclude>
+                                    <exclude>org.geotools:gt-render:*</exclude>
+                                    <exclude>org.geotools:gt-coverage:*</exclude>
+                                    <exclude>it.geosolutions.jaiext.*</exclude>
+                                    <exclude>com.esotericsoftware.kryo:*</exclude>
+                                    <exclude>org.ow2.asm:*</exclude>
+                                    <exclude>org.scala-lang:*</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>org/objectweb/asm/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.google.common</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.commons.codec</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.org.apache.commons.codec</shadedPattern>
+                                </relocation>
+                                <!-- relocate thrift because spark depends on 0.9.2 and accumulo 1.8 depends on 0.9.3 -->
+                                <relocation>
+                                    <pattern>org.apache.thrift</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.org.apache.thrift</shadedPattern>
+                                </relocation>
+                                <!-- spark also includes shapeless, relocate to avoid version conflicts -->
+                                <relocation>
+                                    <pattern>shapeless</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.shapeless</shadedPattern>
+                                </relocation>
+                                <!-- avoid conflicts with zeppelin -->
+                                <relocation>
+                                    <pattern>pureconfig</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.pureconfig</shadedPattern>
+                                </relocation>
+                                <!-- Databricks uses an old version of scalalogging, include it to allow us to run on databricks clusters -->
+                                <relocation>
+                                    <pattern>com.typesafe.scalalogging</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
+                                </relocation>
+                                <!-- we need parquet 1.9.0 in order to do dictionary filtering = 30% speed increase -->
+                                <!-- TODO remove this when spark supports parquet 1.9.0 out of the box -->
+                                <relocation>
+                                    <pattern>org.apache.parquet</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.org.apache.parquet</shadedPattern>
+                                </relocation>
+                                <!-- spark needs json4s to use the jsonpath function -->
+                                <relocation>
+                                    <pattern>org.json4s</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.org.json4s</shadedPattern>
+                                </relocation>
+                                <!-- paranamer and jackson conflict with spark 3 -->
+                                <relocation>
+                                    <pattern>com.thoughtworks.paranamer</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.thoughtworks.paranamer</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.fasterxml.jackson</shadedPattern>
+                                </relocation>
+                                <!-- Databricks uses an old version of scalalogging, include it to allow us to run on databricks clusters -->
+                                <relocation>
+                                    <pattern>com.typesafe.scalalogging</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
