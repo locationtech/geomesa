@@ -128,6 +128,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5e17a3f871 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -4150,6 +4151,9 @@
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+=======
+        <version>3.3.0-SNAPSHOT</version>
+>>>>>>> dca5d74b69 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
