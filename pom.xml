@@ -513,6 +513,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -1522,6 +1523,8 @@
 >>>>>>> 40423f41e64 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 21338adb2fa (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9446f0a84bf (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 =======
 >>>>>>> 67c850bb2f ([maven-release-plugin] prepare for next development iteration)
@@ -1684,6 +1687,8 @@
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 641e7c45f9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 3a2e956065 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -2223,8 +2228,11 @@
 =======
 >>>>>>> 00aea531e3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6c817843d31 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+=======
+>>>>>>> 9446f0a84bf (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 30bf8d4d94 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
@@ -3799,7 +3807,12 @@
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 21338adb2fa (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 641e7c45f9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 9446f0a84bf (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
     <version>4.1.0-SNAPSHOT</version>
 =======
     <version>3.4.0-SNAPSHOT</version>
@@ -9416,6 +9429,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 038b27c4861 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
@@ -9426,6 +9440,10 @@
 >>>>>>> 8aa42618d3a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 5b9200770a4 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 641e7c45f9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 9446f0a84bf (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
     <version>3.4.0-SNAPSHOT</version>
 >>>>>>> a084f35ebb ([maven-release-plugin] prepare for next development iteration)
@@ -15239,10 +15257,13 @@
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 21338adb2fa (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9446f0a84bf (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 00aea531e3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -19764,7 +19785,14 @@
 =======
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 21338adb2fa (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> 00aea531e3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 641e7c45f9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 9446f0a84bf (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 
     <licenses>
         <license>
@@ -35236,7 +35264,7 @@
         <copyright.year>2022</copyright.year>
 =======
         <geomesa.release.version>3.2.0</geomesa.release.version>
-        <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
+        <geomesa.devel.version>3.3.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2021</copyright.year>
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
