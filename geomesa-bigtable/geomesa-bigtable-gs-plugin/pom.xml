@@ -171,6 +171,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5e17a3f871 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -790,6 +791,8 @@
 >>>>>>> d251393014 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e02f74f029 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -3520,6 +3523,7 @@
         <version>3.5.0-SNAPSHOT</version>
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> ff5c21d0c5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -5009,6 +5013,11 @@
 >>>>>>> d251393014 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+        <version>3.3.0-SNAPSHOT</version>
+>>>>>>> ff5c21d0c5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> e02f74f029 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <relativePath>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/pom.xml</relativePath>
     </parent>
 
@@ -5032,6 +5041,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5090,6 +5100,8 @@
 >>>>>>> e1c99f18f0 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> 6972876138 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> e02f74f029 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-avro_${scala.binary.version}</artifactId>
@@ -5105,6 +5117,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5180,6 +5193,10 @@
 >>>>>>> 16a2ad178c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 6972876138 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+=======
+>>>>>>> ff5c21d0c5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> e02f74f029 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 
         <!-- provided dependencies -->
         <dependency>
