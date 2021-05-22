@@ -263,7 +263,8 @@ object SparkUtils extends LazyLogging {
     val mappings = Seq.tabulate(sft.getAttributeCount) { i =>
       val descriptor = sft.getDescriptor(i)
       val binding = descriptor.getType.getBinding
-      val needConversion = (binding == classOf[java.util.List[_]] || binding == classOf[java.util.Map[_, _]])
+      val needConversion = (classOf[java.util.List[_]].isAssignableFrom(binding) ||
+        classOf[java.util.Map[_, _]].isAssignableFrom(binding))
       (i, schema.fieldIndex(descriptor.getLocalName), needConversion)
     }
     val fid: Row => String = schema.fields.indexWhere(_.name == "__fid__") match {

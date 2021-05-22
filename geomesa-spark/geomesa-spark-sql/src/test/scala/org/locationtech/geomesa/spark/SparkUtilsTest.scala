@@ -90,7 +90,11 @@ class SparkUtilsTest extends Specification with LazyLogging {
         sf.getAttribute(f).asInstanceOf[java.util.List[_]].toArray mustEqual
           sf2.getAttribute(f).asInstanceOf[java.util.List[_]].toArray
       } else if (attrType.getBinding == classOf[java.util.Map[_, _]]) {
-        ok
+        val sfMap = sf.getAttribute(f).asInstanceOf[java.util.Map[_, _]].asScala
+        val sf2Map = sf2.getAttribute(f).asInstanceOf[java.util.Map[_, _]].asScala
+        sfMap.size mustEqual sf2Map.size
+        sfMap.keys.toArray mustEqual sf2Map.keys.toArray
+        sfMap.values.toArray mustEqual sf2Map.values.toArray
       } else {
         sf.getAttribute(f) mustEqual sf2.getAttribute(f)
       }
