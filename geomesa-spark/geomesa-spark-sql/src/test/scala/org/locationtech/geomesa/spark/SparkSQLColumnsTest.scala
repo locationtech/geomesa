@@ -12,7 +12,7 @@ import java.util.{Collections, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.jts.JTSTypes
-import org.apache.spark.sql.types.DataTypes
+import org.apache.spark.sql.types.{ArrayType, DataTypes, MapType}
 import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{DataStore, DataStoreFinder, Transaction}
 import org.junit.runner.RunWith
@@ -21,6 +21,7 @@ import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.execute.Result
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLColumnsTest extends Specification with LazyLogging {
@@ -128,17 +129,20 @@ class SparkSQLColumnsTest extends Specification with LazyLogging {
         "boolean" -> DataTypes.BooleanType,
         "dtg"     -> DataTypes.TimestampType,
         "time"    -> DataTypes.TimestampType,
+        "bytes"   -> DataTypes.BinaryType,
+        "list"    -> ArrayType(DataTypes.StringType),
+        "map"     -> MapType(DataTypes.StringType, DataTypes.IntegerType),
         "line"    -> JTSTypes.LineStringTypeInstance,
         "poly"    -> JTSTypes.PolygonTypeInstance,
         "points"  -> JTSTypes.MultiPointTypeInstance,
         "lines"   -> JTSTypes.MultiLineStringTypeInstance,
         "polys"   -> JTSTypes.MultipolygonTypeInstance,
-        "geoms"   -> JTSTypes.GeometryTypeInstance,
+        "geoms"   -> JTSTypes.GeometryCollectionTypeInstance,
         "point"   -> JTSTypes.PointTypeInstance
       )
 
       val schema = df.schema
-      schema must haveLength(16) // note: bytes, list, map not supported
+      schema must haveLength(expected.length) // note: uuid was not supported
       schema.map(_.name) mustEqual expected.map(_._1)
       schema.map(_.dataType) mustEqual expected.map(_._2)
 
@@ -148,8 +152,17 @@ class SparkSQLColumnsTest extends Specification with LazyLogging {
       val row = result.head
 
       // note: have to compare backwards so that java.util.Date == java.sql.Timestamp
-      Seq(sf.getID) ++ expected.drop(1).map { case (n, _) => sf.getAttribute(n) } mustEqual
-          Seq.tabulate(16)(i => row.get(i))
+      sf.getID mustEqual row.get(0)
+      Result.foreach(expected.drop(1)) { case (f, _) =>
+        val attrType = sft.getDescriptor(f).getType
+        if (attrType.getBinding == classOf[java.util.List[_]]) {
+          sf.getAttribute(f).asInstanceOf[java.util.List[_]].toArray() mustEqual row.getAs[Seq[_]](f).toArray
+        } else if (attrType.getBinding == classOf[java.util.Map[_, _]]) {
+          sf.getAttribute(f).asInstanceOf[java.util.Map[_, _]].asScala mustEqual row.getAs[Map[_, _]](f)
+        } else {
+          sf.getAttribute(f) mustEqual row.getAs[AnyRef](f)
+        }
+      }
     }
   }
 
