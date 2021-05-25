@@ -11,7 +11,9 @@ package org.locationtech.geomesa.spark
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.types.{ArrayType, DataTypes, MapType}
+<<<<<<< HEAD
 import org.apache.spark.sql.{SQLContext, SparkSession}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -63,6 +65,8 @@ import org.geotools.api.data.{DataStore, DataStoreFinder, Transaction}
 =======
 >>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 529f1b209b9 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7c6dac7c346 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -79,6 +83,8 @@ import org.geotools.api.data.{DataStore, DataStoreFinder, Transaction}
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> dcaad7e3f9 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
 <<<<<<< HEAD
@@ -99,6 +105,7 @@ import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
 import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
 >>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> f4e2dcfd14 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -164,6 +171,8 @@ import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> dcaad7e3f9 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 import org.geotools.data.{DataStore, DataStoreFinder, Transaction}
 >>>>>>> 10b992fa94b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 import org.junit.runner.RunWith
@@ -174,6 +183,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.execute.Result
 
 import java.util.{Collections, UUID}
 
