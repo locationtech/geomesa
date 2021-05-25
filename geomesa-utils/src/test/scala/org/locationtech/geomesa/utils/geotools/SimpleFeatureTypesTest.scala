@@ -147,6 +147,18 @@ class SimpleFeatureTypesTest extends Specification {
       indexed mustEqual List("dtg")
     }
 
+    "handle bytes bytes" >> {
+      "with no values specified" >> {
+        val sft = SimpleFeatureTypes.createType("testing", "id:Integer,payload:Bytes,dtg:Date,*geom:Point:srid=4326")
+        sft.getAttributeCount mustEqual(4)
+        sft.getDescriptor("payload") must not beNull
+        val binding = sft.getDescriptor("payload").getType.getBinding
+        binding mustEqual(classOf[Array[Byte]])
+        val spec = SimpleFeatureTypes.encodeType(sft)
+        spec mustEqual s"id:Integer,payload:Bytes,dtg:Date,*geom:Point:srid=4326"
+      }
+    }
+
     "handle list types" >> {
 
       "with no values specified" >> {
