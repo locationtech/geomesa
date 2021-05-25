@@ -26,6 +26,7 @@ import org.apache.spark.sql.{SQLContext, SparkSession}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -103,6 +104,11 @@ import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 3820b86465 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
+>>>>>>> 544d6f2353 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 6b6a8cecec (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 import org.geotools.data.{DataStore, DataStoreFinder, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
