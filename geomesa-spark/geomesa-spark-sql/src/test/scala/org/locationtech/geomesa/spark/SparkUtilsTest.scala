@@ -56,6 +56,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6255df1e67 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -126,6 +127,8 @@
 >>>>>>> 2bdaeeeea1 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> c1b95cc59a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> d3d481a7c7 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -171,6 +174,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e11efa4939 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -229,6 +233,10 @@
 >>>>>>> 2bdaeeeea1 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> c1b95cc59a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> e11efa4939 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> d3d481a7c7 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -768,6 +776,8 @@
 >>>>>>> 0061c3f6c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 743592405 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> cf26c8904 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
@@ -775,6 +785,9 @@
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 019a35a72 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 25dfeecf1 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
