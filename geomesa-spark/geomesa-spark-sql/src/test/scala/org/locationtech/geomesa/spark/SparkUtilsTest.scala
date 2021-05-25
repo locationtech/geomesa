@@ -88,6 +88,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locationtech-main
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+=======
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+>>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
 >>>>>>> 81a5a4c61f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> a5ff5763ba (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -960,6 +969,17 @@
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> location-main
+=======
+>>>>>>> locationtech-main
+=======
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+>>>>>>> f7e376a051 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -967,6 +987,17 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> location-main
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+>>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> f4e2dcfd1 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -1214,6 +1245,7 @@
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 6b6a8cecec (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -1616,6 +1648,12 @@
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> f7e376a051 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -1654,7 +1692,10 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> f4e2dcfd14 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> dcaad7e3f9 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -1895,6 +1936,7 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 <<<<<<< HEAD
 =======
 >>>>>>> 3820b86465 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
@@ -1963,6 +2005,16 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 =======
 >>>>>>> 3820b86465 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 96b3033c39 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locationtech-main
+=======
+=======
+import org.apache.spark.sql.{Row, SQLContext, SQLTypes, SparkSession}
+import org.junit.runner.RunWith
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+>>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> f7e376a051 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.opengis.feature.simple.SimpleFeature
