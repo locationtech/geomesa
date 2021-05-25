@@ -42,6 +42,7 @@ import org.apache.spark.sql.{SQLContext, SparkSession}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.geotools.api.data.{DataStore, DataStoreFinder, Transaction}
 =======
 =======
@@ -98,6 +99,8 @@ import org.geotools.api.data.{DataStore, DataStoreFinder, Transaction}
 >>>>>>> 7ea869a79f7 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 9cecede2ff0 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> fb5732bd615 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
@@ -338,6 +341,11 @@ import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
 >>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> f7e376a051 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
+>>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> f7e376a051 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 import org.geotools.data.{DataStore, DataStoreFinder, Transaction}
 >>>>>>> 10b992fa94b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 import org.junit.runner.RunWith
