@@ -18,7 +18,11 @@ import org.geotools.api.data.{DataStore, DataStoreFinder, Transaction}
 =======
 =======
 import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
+<<<<<<< HEAD
 >>>>>>> 544d6f2353 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 7f520da00a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 import org.geotools.data.{DataStore, DataStoreFinder, Transaction}
 >>>>>>> 10b992fa94b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 import org.junit.runner.RunWith
