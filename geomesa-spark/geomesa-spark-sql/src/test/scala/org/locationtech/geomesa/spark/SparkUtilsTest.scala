@@ -75,6 +75,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 81a5a4c61f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -93,6 +94,8 @@
 >>>>>>> c94b71d579 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c1f81bc268 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 6255df1e67 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -121,6 +124,7 @@
 >>>>>>> 962cfa7e50 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 6f390d7f70 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -220,6 +224,10 @@
 >>>>>>> c94b71d579 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 6f390d7f70 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> c1f81bc268 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -282,6 +290,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c1f81bc268 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> b460e547a0 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -318,6 +329,7 @@
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 6f390d7f70 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> b460e547a0 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -376,6 +388,8 @@
 =======
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c1f81bc268 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -639,8 +653,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c1f81bc268 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -849,10 +866,14 @@
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c1f81bc268 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 0061c3f6c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -1225,6 +1246,15 @@
 >>>>>>> c94b71d579 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+>>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> dc3086390 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 3571af2793 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 6f390d7f70 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> c1f81bc268 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
