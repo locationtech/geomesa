@@ -384,9 +384,10 @@ Geometry Functions
 point
 ^^^^^
 
-Description: Parse a Point geometry from lon/lat, WKT or WKB.
+Description: Parse a Point geometry from lon/lat/z/m, WKT or WKB. To create a point with measure but no z,
+use ``pointM``.
 
-Usage: ``point($lon, $lat)`` or ``point($wkt)``
+Usage: ``point($lon, $lat)``, ``point($lon, $lat, $z)``, ``point($lon, $lat, $z, $m)`` or ``point($wkt)``
 
 Note: Ordering is important here...GeoMesa defaults to longitude first
 
@@ -428,6 +429,15 @@ Example: Parsing WKT as a point
     # data
     ID,wkt,date
     1,POINT(2 3),2015-01-02
+
+pointM
+^^^^^^
+
+Description: Parse a Point geometry from lon/lat and measure
+
+Usage: ``pointM($lon, $lat, $measure)``
+
+Example: ``pointM(10::double,20::double,30::double)``
 
 multipoint
 ^^^^^^^^^^

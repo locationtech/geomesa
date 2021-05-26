@@ -63,6 +63,7 @@ Geometry Functions
 ~~~~~~~~~~~~~~~~~~
 
 -  ``point``
+-  ``pointM``
 -  ``multipoint``
 -  ``linestring``
 -  ``multilinestring``
