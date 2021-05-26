@@ -19,11 +19,13 @@ import org.joda.time.{DateTime, DateTimeZone, Period}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -82,7 +84,11 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
         // Create a new IS using the existing options.
         val is = new IteratorSetting(5, "dtg-age-off", classOf[DtgAgeOffIterator])
         is.addOptions(oldIS.getOptions)
-        is.addOption("dtg", "0")  // it was "1" before
+
+        // Compute and set the correct index for the attribute index
+        val indexSft: SimpleFeatureType = IndexValueEncoder.getIndexSft(sft)
+        val newIndex = indexSft.indexOf(sft.getDtgField.get)
+        is.addOption("dtg", newIndex.toString)  // it was "1" before.  New value is "0"
 
         // The old IS must be removed before a new one can be added.
         tableOps.removeIterator(attrTable, "dtg-age-off", util.EnumSet.allOf(classOf[IteratorScope]))
