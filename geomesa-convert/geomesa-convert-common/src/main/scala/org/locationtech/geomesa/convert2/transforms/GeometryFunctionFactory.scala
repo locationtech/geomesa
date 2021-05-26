@@ -19,19 +19,29 @@ import org.opengis.referencing.operation.MathTransform
 
 class GeometryFunctionFactory extends TransformerFunctionFactory {
 
+  import GeometryFunctionFactory.{coord, coordM, coordZ, coordZM}
+
   override def functions: Seq[TransformerFunction] =
-    Seq(pointParserFn, multiPointParserFn, lineStringParserFn, multiLineStringParserFn, polygonParserFn,
-      multiPolygonParserFn, geometryCollectionParserFn, geometryParserFn, projectFromParserFn)
+    Seq(pointParserFn, pointMParserFn, multiPointParserFn, lineStringParserFn, multiLineStringParserFn,
+      polygonParserFn, multiPolygonParserFn, geometryCollectionParserFn, geometryParserFn, projectFromParserFn)
 
   private val gf = JTSFactoryFinder.getGeometryFactory
 
   private val pointParserFn = TransformerFunction.pure("point") {
     case Array(g: Point) => g
-    case Array(x: Number, y: Number) => gf.createPoint(new Coordinate(x.doubleValue, y.doubleValue))
+    case Array(x: Number, y: Number) => gf.createPoint(coord(x, y))
+    case Array(x: Number, y: Number, z: Number) => gf.createPoint(coordZ(x, y, z))
+    case Array(x: Number, y: Number, z: Number, m: Number) => gf.createPoint(coordZM(x, y, z, m))
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[Point]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[Point]
-    case Array(null) | Array(null, null) => null
+    case args if args.nonEmpty && args.lengthCompare(4) <= 0 && args.forall(_ == null) => null
     case args => throw new IllegalArgumentException(s"Invalid point conversion argument: ${args.mkString(",")}")
+  }
+
+  private val pointMParserFn = TransformerFunction.pure("pointM") {
+    case Array(x: Number, y: Number, m: Number) => gf.createPoint(coordM(x, y, m))
+    case Array(null, null, null) => null
+    case args => throw new IllegalArgumentException(s"Invalid pointM conversion argument: ${args.mkString(",")}")
   }
 
   private val multiPointParserFn = TransformerFunction.pure("multipoint") {
@@ -126,4 +136,18 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
       }
     }
   }
+}
+
+object GeometryFunctionFactory {
+
+  private def coord(x: Number, y: Number): Coordinate = new CoordinateXY(x.doubleValue, y.doubleValue)
+
+  private def coordZ(x: Number, y: Number, z: Number): Coordinate =
+    new Coordinate(x.doubleValue, y.doubleValue, z.doubleValue)
+
+  private def coordM(x: Number, y: Number, m: Number): Coordinate =
+    new CoordinateXYM(x.doubleValue, y.doubleValue, m.doubleValue)
+
+  private def coordZM(x: Number, y: Number, z: Number, m: Number): Coordinate =
+    new CoordinateXYZM(x.doubleValue, y.doubleValue, z.doubleValue, m.doubleValue)
 }

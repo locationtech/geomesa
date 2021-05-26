@@ -412,21 +412,30 @@ class ExpressionTest extends Specification {
     }
     "parse point geometries" >> {
       val exp = Expression("point($1, $2)")
-      exp.apply(Array("", Double.box(45.0), Double.box(45.0))).asInstanceOf[Point].getCoordinate mustEqual new Coordinate(45.0, 45.0)
-      exp.eval(Array("", 45.0, 45.0)).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(45.0, 45.0)
+      exp.apply(Array("", Double.box(45.0), Double.box(46.0))) mustEqual WKTUtils.read("POINT(45 46)")
+      exp.eval(Array("", 45.0, 46.0)) mustEqual WKTUtils.read("POINT(45 46)")
 
       val trans = Expression("point($0)")
-      trans.apply(Array("POINT(50 52)")).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(50, 52)
-      trans.eval(Array("POINT(50 52)")).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(50, 52)
+      trans.apply(Array("POINT(50 52)")) mustEqual WKTUtils.read("POINT(50 52)")
+      trans.eval(Array("POINT(50 52)")) mustEqual WKTUtils.read("POINT(50 52)")
 
-      // turn "Geometry" into "Point"
-      val geoFac = new GeometryFactory()
-      val geom = geoFac.createPoint(new Coordinate(55, 56)).asInstanceOf[Geometry]
-      foreach(Seq(trans.apply(Array(geom)), trans.eval(Array(geom)))) { res =>
-        res must not(beNull)
-        res.getClass mustEqual classOf[Point]
-        res.asInstanceOf[Point] mustEqual geoFac.createPoint(new Coordinate(55, 56))
-      }
+      val z = Expression("point($1,$2,$3)")
+      z.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47))).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new Coordinate(45.0, 46.0, 47).toString
+      z.eval(Array("", 45.0, 46.0, 47.0)).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new Coordinate(45.0, 46.0, 47).toString
+
+      val zm = Expression("point($1,$2,$3,$4)")
+      zm.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47), Double.box(48))).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new CoordinateXYZM(45.0, 46.0, 47, 48).toString
+      zm.eval(Array("", 45.0, 46.0, 47.0, 48)).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new CoordinateXYZM(45.0, 46.0, 47, 48).toString
+
+      val m = Expression("pointM($1,$2,$3)")
+      m.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47))).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
+      m.eval(Array("", 45.0, 46.0, 47.0)).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
     }
     "parse multipoint wkt and objects" >> {
       val geoFac = new GeometryFactory()
