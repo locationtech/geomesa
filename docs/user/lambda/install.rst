@@ -187,7 +187,6 @@ Hadoop 2.2
 
 * commons-configuration-1.6.jar
 * hadoop-auth-2.2.0.jar
-* hadoop-client-2.2.0.jar
 * hadoop-common-2.2.0.jar
 * hadoop-hdfs-2.2.0.jar
 
@@ -195,7 +194,6 @@ Hadoop 2.4-2.7 (adjust versions as needed)
 
 * commons-configuration-1.6.jar
 * hadoop-auth-2.6.4.jar
-* hadoop-client-2.6.4.jar
 * hadoop-common-2.6.4.jar
 * hadoop-hdfs-2.6.4.jar
 
