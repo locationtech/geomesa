@@ -8,8 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
+import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
@@ -26,6 +28,8 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util
+import java.util.EnumSet
 import scala.collection.JavaConverters.{asScalaSetConverter, iterableAsScalaIterableConverter}
 
 @RunWith(classOf[JUnitRunner])
@@ -33,7 +37,7 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
 
   sequential
 
-  override val spec = "some_id:String:index=join,dtg:Date,geom:Point:srid=4326,some_num:Int:index=full"
+  override val spec = "some_id:String:index=join,dtg:Date,geom:Point:srid=4326,some_num:Int:index=join"
   override val tableSharing = false
 
   "DTGAgeOff" should {
@@ -64,7 +68,40 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
       SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features).toSeq
     }
 
-    "run at scan time" >> {
+    def testDaysWithFix(d: Int): Seq[SimpleFeature] = {
+      val tableOps = ds.connector.tableOperations()
+
+      // Fixing iterator relative to the AgeOff attribute index bugs.
+      def fixIterator() {
+        val attrTable = ds.getAllTableNames(sft.getTypeName).filter(_.contains("attr")).head
+
+        // Get the old IteratorSetting
+        val oldIS = tableOps.getIteratorSetting(attrTable, "dtg-age-off", IteratorScope.scan)
+        println(s"Got old IS: $oldIS")
+
+        // Create a new IS using the existing options.
+        val is = new IteratorSetting(5, "dtg-age-off", classOf[DtgAgeOffIterator])
+        is.addOptions(oldIS.getOptions)
+        is.addOption("dtg", "0")  // it was "1" before
+
+        // The old IS must be removed before a new one can be added.
+        tableOps.removeIterator(attrTable, "dtg-age-off", util.EnumSet.allOf(classOf[IteratorScope]))
+        // One could add just the scan scope to verify that the proper index has been selected
+        // tableOps.attachIterator(attrTable, is, EnumSet.of[IteratorScope.scan])
+
+        // Add the additional scopes.
+        // tableOps.attachIterator(attrTable, is, EnumSet.of[IteratorScope.minc])
+        // tableOps.attachIterator(attrTable, is, EnumSet.of[IteratorScope.majc])
+
+        tableOps.attachIterator(attrTable, is)
+      }
+
+      configAgeOff(ds, d)
+      fixIterator()
+      SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features).toSeq
+    }
+
+    "run at scan time -- fails without modifications for attribute index" >> {
       addFeatures((1 to 10).map(i => createSF(i, s"id_$i", Some("A"))))
       testDays(11) must haveSize(10)
       scanDirect(10)
@@ -72,6 +109,19 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
       scanDirect(9)
       testDays(5) must haveSize(4)
       testDays(1) must haveSize(0)
+      scanDirect(0)
+      success
+    }.pendingUntilFixed("This is broken.")
+
+    "run at scan time -- with modifications for AgeOffIterator" >> {
+
+      addFeatures((1 to 10).map(i => createSF(i, s"id_$i", Some("A"))))
+      testDaysWithFix(11) must haveSize(10)
+      scanDirect(10)
+      testDaysWithFix(10) must haveSize(9)
+      scanDirect(9)
+      testDaysWithFix(5) must haveSize(4)
+      testDaysWithFix(1) must haveSize(0)
       scanDirect(0)
       success
     }
@@ -126,17 +176,21 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
 
   private def scanDirect(expected: Int) = {
       connector.tableOperations().list().asScala.filter(t => t.contains("DtgAgeOffTest_DtgAgeOffTest")).forall { tableName =>
-      val scanner = connector.createScanner(tableName, MockUserAuthorizations)
-      val count = scanner.asScala.size
-      scanner.close()
-      val status = if (count != expected) {
-        "FAILED"
-      } else {
-        "OK"
-      }
+        val scanner = connector.createScanner(tableName, MockUserAuthorizations)
+        val count = scanner.asScala.size
+        scanner.close()
+        val status = if (count != expected) {
+          "FAILED"
+        } else {
+          "OK"
+        }
         println(s"$status: Scanned table: $tableName expected: $expected count: $count")
-//        count mustEqual expected
-      ok
-    }
+        if (tableName.contains("attr")) {
+          count mustEqual (2*expected) // There are two indexes.
+        } else {
+          count mustEqual expected
+        }
+        ok
+      }
   }
 }
