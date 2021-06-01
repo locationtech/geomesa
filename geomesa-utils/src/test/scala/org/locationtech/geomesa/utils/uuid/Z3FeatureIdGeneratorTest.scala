@@ -10,14 +10,14 @@ package org.locationtech.geomesa.utils.uuid
 
 import java.util.Date
 
-import org.locationtech.jts.geom.{Geometry, Point, Polygon}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeature
+import org.locationtech.jts.geom.{Geometry, Point, Polygon}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -34,9 +34,10 @@ class Z3FeatureIdGeneratorTest extends Specification {
 
   val time = 1435598908099L // System.currentTimeMillis()
 
-  val sft = SimpleFeatureTypes.createType("dummyTypeName", "*geom:Point:srid=4326,dtg:Date,name:String")
+  val pointSft = SimpleFeatureTypes.createType("dummyTypeName", "*geom:Point:srid=4326,dtg:Date,name:String")
+  val polySft = SimpleFeatureTypes.createType("dummyTypeName", "*geom:Polygon:srid=4326,dtg:Date,name:String")
 
-  def makeFeature(geom: Geometry, dtg: Date, name: String): SimpleFeature = {
+  def makeFeature(sft: SimpleFeatureType, geom: Geometry, dtg: Date, name: String): SimpleFeature = {
     val builder = new SimpleFeatureBuilder(sft)
     builder.addAll(Array[Object](geom, dtg.asInstanceOf[Object], name))
     builder.buildFeature("id1")
@@ -66,23 +67,32 @@ class Z3FeatureIdGeneratorTest extends Specification {
     }
 
     "return a reasonable UUID from a full feature" >> {
-      val feature = makeFeature(point, new Date(time), "")
-      Z3UuidGenerator.createUuid(sft, feature) must not(beNull)
+      val feature = makeFeature(pointSft, point, new Date(time), "")
+      Z3UuidGenerator.createUuid(pointSft, feature) must not(beNull)
     }
 
     "return a reasonable UUID from a feature missing time" >> {
-      val feature = makeFeature(point, null, "")
-      Z3UuidGenerator.createUuid(sft, feature) must not(beNull)
+      val feature = makeFeature(pointSft, point, null, "")
+      Z3UuidGenerator.createUuid(pointSft, feature) must not(beNull)
+    }
+
+    "return a reasonable UUID from a feature with an empty geometry" >> {
+      foreach(Seq(("POINT EMPTY", pointSft), ("POLYGON EMPTY", polySft))) { case (wkt, sft) =>
+        val feature = makeFeature(sft, WKTUtils.read(wkt), new Date(time), "")
+        Z3UuidGenerator.createUuid(sft, feature) must not(beNull)
+      }
     }
 
     "NOT return a reasonable UUID from a feature missing location" >> {
-      val feature = makeFeature(null, new Date(time), "")
-      Z3UuidGenerator.createUuid(sft, feature) must throwAn[IllegalArgumentException]
+      foreach(Seq(pointSft, polySft)) { sft =>
+        val feature = makeFeature(sft, null, new Date(time), "")
+        Z3UuidGenerator.createUuid(sft, feature) must throwAn[IllegalArgumentException]
+      }
     }
 
     "recover the time bin from the UUID" >> {
-      val uuid = Z3UuidGenerator.createUuid(sft, makeFeature(point, new Date(time), ""))
-      val bin = BinnedTime.timeToBinnedTime(sft.getZ3Interval).apply(time).bin
+      val uuid = Z3UuidGenerator.createUuid(pointSft, makeFeature(pointSft, point, new Date(time), ""))
+      val bin = BinnedTime.timeToBinnedTime(pointSft.getZ3Interval).apply(time).bin
       val uuidBytes = ByteArrays.uuidToBytes(uuid.getMostSignificantBits, uuid.getLeastSignificantBits)
       Z3UuidGenerator.timeBin(uuidBytes) mustEqual bin
     }
