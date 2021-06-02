@@ -9,13 +9,6 @@
 
 package org.locationtech.geomesa.jobs.mapreduce
 
-import java.io._
-import java.net.{URL, URLClassLoader}
-import java.nio.charset.StandardCharsets
-import java.util.AbstractMap.SimpleImmutableEntry
-import java.util.Collections
-import java.util.Map.Entry
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.ClientConfiguration
 import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase, RangeInputSplit}
@@ -40,6 +33,12 @@ import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
+import java.io._
+import java.net.{URL, URLClassLoader}
+import java.nio.charset.StandardCharsets
+import java.util.AbstractMap.SimpleImmutableEntry
+import java.util.Collections
+import java.util.Map.Entry
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -134,6 +133,22 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
    * @param plan query plan
    */
   def configure(conf: Configuration, params: java.util.Map[String, _], plan: AccumuloQueryPlan): Unit = {
+    val auths = AccumuloDataStoreParams.AuthsParam.lookupOpt(params).map(a => new Authorizations(a.split(","): _*))
+    configure(conf, params, plan, auths)
+  }
+
+  /**
+   * Configure the input format based on a query plan
+   *
+   * @param conf configuration to update
+   * @param params data store parameters
+   * @param plan query plan
+   */
+  def configure(
+      conf: Configuration,
+      params: java.util.Map[String, _],
+      plan: AccumuloQueryPlan,
+      auths: Option[Authorizations]): Unit = {
     // assertion: all accumulo input config requires a job, but really just updates the job conf
     val job = new Job(conf)
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
@@ -162,9 +177,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     // note: for Kerberos, this will create a DelegationToken for us and add it to the Job credentials
     AbstractInputFormat.setConnectorInfo(job, user, token)
 
-    AccumuloDataStoreParams.AuthsParam.lookupOpt(params).foreach { auths =>
-      AbstractInputFormat.setScanAuthorizations(job, new Authorizations(auths.split(","): _*))
-    }
+    auths.foreach(AbstractInputFormat.setScanAuthorizations(job, _))
 
     // use the query plan to set the accumulo input format options
     require(plan.tables.lengthCompare(1) == 0, s"Can only query from a single table: ${plan.tables.mkString(", ")}")
