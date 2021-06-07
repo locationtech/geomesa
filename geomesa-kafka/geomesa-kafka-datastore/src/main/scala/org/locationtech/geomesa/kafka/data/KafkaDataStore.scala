@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import java.io.{Closeable, IOException}
-import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
-import java.util.{Collections, Properties, UUID}
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, Ticker}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
@@ -25,6 +21,7 @@ import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySe
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore}
 import org.geotools.data.{Query, Transaction}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
@@ -45,11 +42,16 @@ import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TableSharing
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.TableSharingPrefix
+import org.locationtech.geomesa.utils.geotools.Transform.Transforms
+import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, Transform}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.io.{Closeable, IOException}
+import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
+import java.util.{Collections, Properties, UUID}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
@@ -70,6 +72,7 @@ class KafkaDataStore(
   // note: sharing a single producer is generally faster
   // http://kafka.apache.org/0110/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html
 
+  @volatile
   private var producerInitialized = false
 
   // only instantiate the producer if needed
@@ -78,17 +81,22 @@ class KafkaDataStore(
     KafkaDataStore.producer(config)
   }
 
+  // view type name -> actual type name
+  private val layerViewLookup =
+    config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
+
   private val cleared = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]())
 
-  private val caches = Caffeine.newBuilder().build(new CacheLoader[String, KafkaCacheLoader] {
+  private val caches = Caffeine.newBuilder().build[String, KafkaCacheLoader](new CacheLoader[String, KafkaCacheLoader] {
     override def load(key: String): KafkaCacheLoader = {
       if (config.consumers.count < 1) {
         logger.info("Kafka consumers disabled for this data store instance")
         KafkaCacheLoader.NoOpLoader
       } else {
-        val sft = getSchema(key)
+        val sft = KafkaDataStore.super.getSchema(key)
+        val views = config.layerViewsConfig.getOrElse(key, Seq.empty).map(KafkaDataStore.createLayerView(sft, _))
         // if the expiry is zero, this will return a NoOpFeatureCache
-        val cache = KafkaFeatureCache(sft, config.indices, config.metrics)
+        val cache = KafkaFeatureCache(sft, config.indices, views, config.metrics)
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config.brokers, topic, config.consumers)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
@@ -100,7 +108,7 @@ class KafkaDataStore(
     }
   })
 
-  private val runner = new KafkaQueryRunner(this, caches)
+  private val runner = new KafkaQueryRunner(this, cache)
 
   // migrate old schemas, if any
   if (!metadata.read("migration", "check").exists(_.toBoolean)) {
@@ -112,7 +120,7 @@ class KafkaDataStore(
     * Start consuming from all topics. Consumers are normally only started for a simple feature type
     * when it is first queried - this will start them immediately.
     */
-  def startAllConsumers(): Unit = getTypeNames.foreach(caches.get)
+  def startAllConsumers(): Unit = super.getTypeNames.foreach(caches.get)
 
   /**
    * Create a message consumer for the given feature type. This can be used for guaranteed at-least-once
@@ -147,6 +155,26 @@ class KafkaDataStore(
     consumer
   }
 
+  override def getSchema(typeName: String): SimpleFeatureType = {
+    layerViewLookup.get(typeName) match {
+      case None => super.getSchema(typeName)
+      case Some(orig) =>
+        val parent = super.getSchema(orig)
+        if (parent == null) { null } else {
+          val view = config.layerViewsConfig.get(orig).flatMap(_.find(_.typeName == typeName)).getOrElse {
+            // this should be impossible since we created the lookup from the view config
+            throw new IllegalStateException("Inconsistent layer view config")
+          }
+          KafkaDataStore.createLayerView(parent, view).viewSft
+        }
+    }
+  }
+
+  override def getTypeNames: Array[String] = {
+    val nonViews = super.getTypeNames
+    nonViews ++ layerViewLookup.collect { case (k, v) if nonViews.contains(v) => k }
+  }
+
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
     // note: kafka doesn't allow slashes in topic names
@@ -162,6 +190,10 @@ class KafkaDataStore(
 
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+    if (layerViewLookup.contains(sft.getTypeName)) {
+      throw new IllegalArgumentException(
+        s"Schema '${sft.getTypeName}' is a read-only view of '${layerViewLookup(sft.getTypeName)}'")
+    }
     val topic = KafkaDataStore.topic(sft)
     if (topic == null) {
       throw new IllegalArgumentException(s"Topic must be defined in user data under '$TopicKey'")
@@ -201,6 +233,10 @@ class KafkaDataStore(
 
   // stop consumers and delete kafka topic
   override protected def onSchemaDeleted(sft: SimpleFeatureType): Unit = {
+    if (layerViewLookup.contains(sft.getTypeName)) {
+      throw new IllegalArgumentException(
+        s"Schema '${sft.getTypeName}' is a read-only view of '${layerViewLookup(sft.getTypeName)}'")
+    }
     Option(caches.getIfPresent(sft.getTypeName)).foreach { cache =>
       cache.close()
       caches.invalidate(sft.getTypeName)
@@ -229,7 +265,7 @@ class KafkaDataStore(
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new KafkaFeatureStore(this, sft, runner, caches.get(typeName))
+    new KafkaFeatureStore(this, sft, runner, cache(typeName))
   }
 
   override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader = {
@@ -237,7 +273,8 @@ class KafkaDataStore(
     if (sft == null) {
       throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
     }
-    caches.get(query.getTypeName) // kick off the kafka consumers for this sft, if not already started
+    // kick off the kafka consumers for this sft, if not already started
+    caches.get(layerViewLookup.getOrElse(query.getTypeName, query.getTypeName))
     GeoMesaFeatureReader(sft, query, runner, None, config.audit)
   }
 
@@ -245,6 +282,8 @@ class KafkaDataStore(
     val sft = getSchema(typeName)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
+    } else if (layerViewLookup.contains(typeName)) {
+      throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
     }
     val producer = getTransactionalProducer(transaction)
     val writer =
@@ -263,6 +302,8 @@ class KafkaDataStore(
     val sft = getSchema(typeName)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
+    } else if (layerViewLookup.contains(typeName)) {
+      throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
     }
     val producer = getTransactionalProducer(transaction)
     val writer =
@@ -310,6 +351,23 @@ class KafkaDataStore(
         case p: KafkaTransactionState => p
         case _ => throw new IllegalArgumentException(s"Found non-kafka state in transaction: $state")
       }
+    }
+  }
+
+  /**
+   * Get the feature cache for the type name, which may be a real feature type or a view
+   *
+   * @param typeName type name
+   * @return
+   */
+  private def cache(typeName: String): KafkaFeatureCache = {
+    layerViewLookup.get(typeName) match {
+      case None => caches.get(typeName).cache
+      case Some(orig) =>
+        caches.get(orig).cache.views.find(_.sft.getTypeName == typeName).getOrElse {
+          throw new IllegalStateException(
+            s"Could not find layer view for typeName '$typeName' in cache ${caches.get(orig)}")
+        }
     }
   }
 }
@@ -387,6 +445,21 @@ object KafkaDataStore extends LazyLogging {
   }
 
   /**
+   * Create a layer view based on a config and the actual feature type
+   *
+   * @param sft simple feature type the view is based on
+   * @param config layer view config
+   * @return
+   */
+  private[kafka] def createLayerView(sft: SimpleFeatureType, config: LayerViewConfig): LayerView = {
+    val viewSft = SimpleFeatureTypes.renameSft(sft, config.typeName)
+    val filter = config.filter.map(FastFilterFactory.optimize(viewSft, _))
+    val transform = config.transform.map(Transforms(viewSft, _))
+    val finalSft = transform.map(Transforms.schema(viewSft, _)).getOrElse(viewSft)
+    LayerView(finalSft, filter, transform)
+  }
+
+  /**
     * Rebalance listener that seeks the consumer to the an offset based on a read-back duration
     *
     * @param consumer consumer
@@ -448,6 +521,7 @@ object KafkaDataStore extends LazyLogging {
       serialization: SerializationType,
       indices: IndexConfig,
       looseBBox: Boolean,
+      layerViewsConfig: Map[String, Seq[LayerViewConfig]],
       authProvider: AuthorizationsProvider,
       audit: Option[(AuditWriter, AuditProvider, String)],
       metrics: Option[GeoMesaMetrics],
@@ -476,4 +550,7 @@ object KafkaDataStore extends LazyLogging {
   case class IngestTimeConfig(expiry: Duration) extends ExpiryTimeConfig
   case class EventTimeConfig(expiry: Duration, expression: String, ordered: Boolean) extends ExpiryTimeConfig
   case class FilteredExpiryConfig(expiry: Seq[(String, ExpiryTimeConfig)]) extends ExpiryTimeConfig
+
+  case class LayerViewConfig(typeName: String, filter: Option[Filter], transform: Option[Seq[String]])
+  case class LayerView(viewSft: SimpleFeatureType, filter: Option[Filter], transform: Option[Seq[Transform]])
 }
