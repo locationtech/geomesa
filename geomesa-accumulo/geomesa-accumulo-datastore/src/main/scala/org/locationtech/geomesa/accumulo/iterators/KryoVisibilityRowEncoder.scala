@@ -1,5 +1,6 @@
 /***********************************************************************
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2021 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -68,22 +69,31 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     * @return
     */
   private def encodeV3(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
-    // 1 byte for version + 2 bytes for count + 1 byte for size + 4 bytes per attribute for offsets
-    // + 4 bytes for user data offset + null bit set bytes
-    var length = (count + 2 + IntBitSet.size(count)) * 4
 
-    var valueCursor = length // tracks our output position for copying bytes
+    // Calculate length of serialised attributes, excluding attribute values themselves
+    var length = 1 +            // version
+      2 +                       // attribute count
+      1 +                       // offset size
+      count * 4 +               // attribute offsets (will use 4 bytes each) <--- offsets relative to first byte here
+      1 * 4 +                   // user data offset (will use 4 bytes)
+      IntBitSet.size(count) * 4 // null bit set, written in units of ints
+
+    // Tracks our output position for copying attribute value bytes
+    // Begins immediately after the above
+    var valueCursor = length
 
     var i = 0
     while (i < keys.size) {
       val bytes = values.get(i).get
       val input = KryoFeatureDeserialization.getInput(bytes, 1, bytes.length - 1) // skip the version byte
       val metadata = Metadata(input) // read count, size, etc
+      // Column qualifiers tell us which attributes are intended to be populated given visibilities
       keys.get(i).getColumnQualifier.getBytes.foreach { unsigned =>
         val index = java.lang.Byte.toUnsignedInt(unsigned)
         val pos = metadata.setPosition(index)
         val len = metadata.setPosition(index + 1) - pos
-        attributes(index) = (bytes, 4 + pos, len) // the offset is always 4 since we're copying into a new byte array
+        attributes(index) = (bytes, 4 + pos, len) // pos is relative to first byte of attribute offsets, see length calc
+        assert((metadata.nulls.contains(index) && len==0) || (!metadata.nulls.contains(index) && len!=0), s"Metadata null bitset (${metadata.nulls.toString}) and value length ($len) are inconsistent")
         length += len
       }
       i += 1
@@ -93,23 +103,29 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     val output = new Output(value)
     output.writeByte(KryoFeatureSerializer.Version3)
     output.writeShort(count)
-    output.write(4) // size of each offset, we just use 4 so we know we have enough space
+    output.write(4) // size of each offset, we always use 4 (vs 2) so we are sure to have enough space
 
     val nulls = IntBitSet(count)
 
     i = 0
     while (i < count) {
-      output.writeInt(valueCursor - 4) // offset relative to version + count + size
+      // Write attribute offset relative to (version + count + size) = 4 bytes
+      output.writeInt(valueCursor - 4)
       val attribute = attributes(i)
-      if (attribute == null) { nulls.add(i) } else {
+      if (attribute == null /* Attribute value not provided by any values */ ||
+        attribute._3 == 0 /* Attribute value is provided but is null (size==0) */ ) {
+        // Attribute value must be null, no data to copy in
+        nulls.add(i)
+      } else {
+        // Attribute has a value so copy it in
         val (bytes, offset, len) = attribute
         System.arraycopy(bytes, offset, value, valueCursor, len)
         valueCursor += len
-        attributes(i) = null // reset for next time through
       }
+      attributes(i) = null // reset for next time through with new keys/values
       i += 1
     }
-    output.writeInt(valueCursor - 4) // user-data position
+    output.writeInt(valueCursor - 4) // user-data offset. Note no user data has actually been copied in.
 
     // write nulls - we should already be in the right position
     nulls.serialize(output)
