@@ -507,8 +507,8 @@ object ExportCommand extends LazyLogging {
   /**
     * Export parameters
     */
-  trait ExportParams extends OptionalCqlFilterParam
-      with QueryHintsParams with DistributedRunParam with TypeNameParam with OptionalForceParam {
+  trait ExportParams extends OptionalCqlFilterParam with QueryHintsParams
+      with DistributedRunParam with TypeNameParam with NumReducersParam with OptionalForceParam {
     @Parameter(names = Array("-o", "--output"), description = "Output to a file instead of std out")
     var file: String = _
 
@@ -549,12 +549,6 @@ object ExportCommand extends LazyLogging {
       description = "Sort in descending order, instead of ascending",
       arity = 0)
     var sortDescending: Boolean = false
-
-    @Parameter(
-      names = Array("--num-reducers"),
-      description = "Number of reducers to use when sorting or merging (for distributed export)",
-      validateWith = Array(classOf[PositiveInteger]))
-    var reducers: java.lang.Integer = _
 
     @Parameter(
       names = Array("--chunk-size"),

@@ -31,6 +31,7 @@ import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters
+import org.locationtech.geomesa.tools.utils.StorageJobUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 abstract class FileSystemConverterJob(

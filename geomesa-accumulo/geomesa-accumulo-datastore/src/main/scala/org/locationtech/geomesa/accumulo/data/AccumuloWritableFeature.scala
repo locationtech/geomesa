@@ -8,10 +8,11 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.locationtech.geomesa.accumulo.index.IndexValueEncoder
+import org.locationtech.geomesa.accumulo.index.{AccumuloJoinIndex, IndexValueEncoder}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.index.api.WritableFeature.{AttributeLevelWritableFeature, FeatureWrapper}
-import org.locationtech.geomesa.index.api.{KeyValue, WritableFeature}
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, KeyValue, WritableFeature}
+import org.locationtech.geomesa.index.conf.ColumnGroups
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -35,12 +36,17 @@ object AccumuloWritableFeature {
 
   def wrapper(
       sft: SimpleFeatureType,
-      delegate: FeatureWrapper[WritableFeature]): FeatureWrapper[AccumuloWritableFeature] = {
-    val serializer = IndexValueEncoder(sft)
-    if (sft.getVisibilityLevel == VisibilityLevel.Attribute) {
-      new AccumuloAttributeLevelFeatureWrapper(delegate, serializer)
-    } else {
-      new AccumuloFeatureLevelFeatureWrapper(delegate, serializer)
+      groups: ColumnGroups,
+      indices: Seq[GeoMesaFeatureIndex[_, _]]): FeatureWrapper[WritableFeature] = {
+    // make sure to provide our index values for attribute join indices if we need them
+    val base = WritableFeature.wrapper(sft, groups)
+    if (indices.forall(i => !i.isInstanceOf[AccumuloJoinIndex])) { base } else {
+      val serializer = IndexValueEncoder(sft)
+      if (sft.getVisibilityLevel == VisibilityLevel.Attribute) {
+        new AccumuloAttributeLevelFeatureWrapper(base, serializer)
+      } else {
+        new AccumuloFeatureLevelFeatureWrapper(base, serializer)
+      }
     }
   }
 
