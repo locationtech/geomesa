@@ -12,11 +12,9 @@ import java.nio.charset.StandardCharsets
 import java.util.Collections
 import java.util.Map.Entry
 
-import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
-import org.apache.accumulo.core.iterators.user.ReqVisFilter
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.{AccumuloIndexWriter, AccumuloResultsToFeatures, ZIterPriority}
@@ -280,15 +278,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
       sft: SimpleFeatureType,
       indices: Seq[GeoMesaFeatureIndex[_, _]],
       partition: Option[String]): AccumuloIndexWriter = {
-    // make sure to provide our index values for attribute join indices if we need them
-    val base = WritableFeature.wrapper(sft, groups)
-    val wrapper =
-      if (indices.exists(_.isInstanceOf[AccumuloJoinIndex])) {
-        AccumuloWritableFeature.wrapper(sft, base)
-      } else {
-        base
-      }
-
+    val wrapper = AccumuloWritableFeature.wrapper(sft, groups, indices)
     if (sft.isVisibilityRequired) {
       new AccumuloIndexWriter(ds, indices, wrapper, partition) with RequiredVisibilityWriter
     } else {
@@ -386,9 +376,7 @@ object AccumuloIndexAdapter {
 
     private val colFamilyMappings = indices.map(mapColumnFamily).toArray
     private val timestamps = indices.exists(i => !i.sft.isLogicalTime)
-
-    private val defaultVisibility = new ColumnVisibility()
-    private val visibilities = new java.util.HashMap[VisHolder, ColumnVisibility]()
+    private val visCache = new VisibilityCache()
 
     private var i = 0
 
@@ -404,16 +392,7 @@ object AccumuloIndexAdapter {
           case kv: SingleRowKeyValue[_] =>
             val mutation = new Mutation(kv.row)
             kv.values.foreach { v =>
-              val vis = if (v.vis.isEmpty) { defaultVisibility } else {
-                val lookup = new VisHolder(v.vis)
-                var cached = visibilities.get(lookup)
-                if (cached == null) {
-                  cached = new ColumnVisibility(v.vis)
-                  visibilities.put(lookup, cached)
-                }
-                cached
-              }
-              mutation.put(colFamilyMappings(i)(v.cf), v.cq, vis, v.value)
+              mutation.put(colFamilyMappings(i)(v.cf), v.cq, visCache(v.vis), v.value)
             }
             writers(i).addMutation(mutation)
 
@@ -421,16 +400,7 @@ object AccumuloIndexAdapter {
             mkv.rows.foreach { row =>
               val mutation = new Mutation(row)
               mkv.values.foreach { v =>
-                val vis = if (v.vis.isEmpty) { defaultVisibility } else {
-                  val lookup = new VisHolder(v.vis)
-                  var cached = visibilities.get(lookup)
-                  if (cached == null) {
-                    cached = new ColumnVisibility(v.vis)
-                    visibilities.put(lookup, cached)
-                  }
-                  cached
-                }
-                mutation.put(colFamilyMappings(i)(v.cf), v.cq, vis, v.value)
+                mutation.put(colFamilyMappings(i)(v.cf), v.cq, visCache(v.vis), v.value)
               }
               writers(i).addMutation(mutation)
             }
@@ -446,16 +416,7 @@ object AccumuloIndexAdapter {
           case SingleRowKeyValue(row, _, _, _, _, _, vals) =>
             val mutation = new Mutation(row)
             vals.foreach { v =>
-              val vis = if (v.vis.isEmpty) { defaultVisibility } else {
-                val lookup = new VisHolder(v.vis)
-                var cached = visibilities.get(lookup)
-                if (cached == null) {
-                  cached = new ColumnVisibility(v.vis)
-                  visibilities.put(lookup, cached)
-                }
-                cached
-              }
-              mutation.putDelete(colFamilyMappings(i)(v.cf), v.cq, vis)
+              mutation.putDelete(colFamilyMappings(i)(v.cf), v.cq, visCache(v.vis))
             }
             writers(i).addMutation(mutation)
 
@@ -463,16 +424,7 @@ object AccumuloIndexAdapter {
             rows.foreach { row =>
               val mutation = new Mutation(row)
               vals.foreach { v =>
-                val vis = if (v.vis.isEmpty) { defaultVisibility } else {
-                  val lookup = new VisHolder(v.vis)
-                  var cached = visibilities.get(lookup)
-                  if (cached == null) {
-                    cached = new ColumnVisibility(v.vis)
-                    visibilities.put(lookup, cached)
-                  }
-                  cached
-                }
-                mutation.putDelete(colFamilyMappings(i)(v.cf), v.cq, vis)
+                mutation.putDelete(colFamilyMappings(i)(v.cf), v.cq, visCache(v.vis))
               }
               writers(i).addMutation(mutation)
             }
@@ -528,6 +480,27 @@ object AccumuloIndexAdapter {
         val sf = serializer.deserialize(result.getValue.get)
         AccumuloIndexAdapter.applyVisibility(sf, result.getKey)
         sf
+      }
+    }
+  }
+
+  /**
+   * Cache for storing column visibilities - not thread safe
+   */
+  class VisibilityCache {
+
+    private val defaultVisibility = new ColumnVisibility()
+    private val visibilities = new java.util.HashMap[VisHolder, ColumnVisibility]()
+
+    def apply(vis: Array[Byte]): ColumnVisibility = {
+      if (vis.isEmpty) { defaultVisibility } else {
+        val lookup = new VisHolder(vis)
+        var cached = visibilities.get(lookup)
+        if (cached == null) {
+          cached = new ColumnVisibility(vis)
+          visibilities.put(lookup, cached)
+        }
+        cached
       }
     }
   }

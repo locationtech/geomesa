@@ -1,7 +1,9 @@
 accumulo-core
 accumulo-fate
+accumulo-hadoop-mapreduce
 accumulo-start
 accumulo-trace
+commons-collections4
 curator-client
 curator-framework
 curator-recipes
