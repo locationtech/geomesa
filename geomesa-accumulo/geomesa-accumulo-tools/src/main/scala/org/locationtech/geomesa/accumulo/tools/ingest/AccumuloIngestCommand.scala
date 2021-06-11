@@ -18,6 +18,7 @@ import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 
 class AccumuloIngestCommand extends IngestCommand[AccumuloDataStore] with AccumuloDistributedCommand {
+
   override val params = new AccumuloIngestParams()
 
   override def execute(): Unit = {

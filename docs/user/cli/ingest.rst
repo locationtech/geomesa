@@ -41,8 +41,10 @@ Argument                   Description
 ``--converter-error-mode`` Override the error mode defined by the converter
 ``-t, --threads``          Number of parallel threads used
 ``--input-format``         Format of input files (csv, tsv, avro, shp, json, etc)
+```--index``               Specify a particular GeoMesa index to write to, instead of all indices
 ``--no-tracking``          This application closes when ingest job is submitted. Useful for launching jobs with a script
-``--run-mode``             Must be one of ``local``, ``distributed``, or ``distributedcombine``
+``--run-mode``             Must be one of ``local`` or ``distributed`` (for map/reduce ingest)
+``--combine-inputs``       Combine multiple input files into a single input split (distributed jobs only)
 ``--split-max-size``       Maximum size of a split in bytes (distributed jobs)
 ``--src-list``             Input files are text files with lists of files, one per line, to ingest
 ``--force``                Suppress any confirmation prompts
@@ -93,8 +95,8 @@ still provide information about the status of the job submission.
 
 The ``--run-mode`` argument can be used to run ingestion locally or distributed (using map/reduce). Note that in
 order to run in distributed mode, the input files must be in HDFS. By default, input files on the local filesystem
-will be ingested in local mode, and input files in HDFS will be ingested in distributed mode. If using the
-``distributedcombine`` mode, multiple files will be processes by each mapper up to the limit specified by
+will be ingested in local mode, and input files in HDFS will be ingested in distributed mode. The
+``--combine-inputs`` flag can be used to process multiple files in each mapper up to the limit specified by
 ``--split-max-size``.
 
 The ``--threads`` argument can be used to increase local ingest speed. However, there can not be more threads

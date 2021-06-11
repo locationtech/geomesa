@@ -17,8 +17,9 @@ import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.tools.AccumuloDataStoreCommand.AccumuloDistributedCommand
+import org.locationtech.geomesa.accumulo.tools.AccumuloDataStoreParams
 import org.locationtech.geomesa.accumulo.tools.ingest.AccumuloBulkIngestCommand.AccumuloBulkIngestParams
-import org.locationtech.geomesa.accumulo.tools.ingest.AccumuloIngestCommand.AccumuloIngestParams
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.accumulo.mapreduce.GeoMesaAccumuloFileOutputFormat
@@ -26,7 +27,7 @@ import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
 import org.locationtech.geomesa.jobs.{Awaitable, JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
-import org.locationtech.geomesa.tools.ingest.IngestCommand.Inputs
+import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.tools.{Command, OptionalCqlFilterParam, OptionalIndexParam, OutputPathParam}
@@ -34,7 +35,7 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.fs.HadoopDelegate.HiddenFileFilter
 import org.opengis.feature.simple.SimpleFeatureType
 
-class AccumuloBulkIngestCommand extends AccumuloIngestCommand {
+class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with AccumuloDistributedCommand {
 
   override val name = "bulk-ingest"
   override val params = new AccumuloBulkIngestParams()
@@ -51,9 +52,6 @@ class AccumuloBulkIngestCommand extends AccumuloIngestCommand {
 
     // validate index param now that we have a datastore and the sft has been created
     val index = params.loadIndex(ds, sft.getTypeName, IndexMode.Write).map(_.identifier)
-
-    // disable compaction since we're bulk loading
-    params.compact = false
 
     val partitions = TablePartition(ds, sft).map { tp =>
       if (params.cqlFilter == null) {
@@ -153,7 +151,7 @@ object AccumuloBulkIngestCommand {
     "\nFiles may be imported for each table through the Accumulo shell with the `importdirectory` command"
 
   @Parameters(commandDescription = "Convert various file formats into bulk loaded Accumulo RFiles")
-  class AccumuloBulkIngestParams extends AccumuloIngestParams
+  class AccumuloBulkIngestParams extends IngestParams with AccumuloDataStoreParams
       with OutputPathParam with OptionalIndexParam with OptionalCqlFilterParam {
     @Parameter(names = Array("--skip-import"), description = "Generate the files but skip the bulk import into Accumulo")
     var skipImport: Boolean = false
