@@ -122,8 +122,11 @@ Argument                   Description
 ``-t, --threads``          Number of parallel threads used
 ``--input-format``         Format of input files (csv, tsv, avro, shp, json, etc)
 ```--index``               Specify a particular GeoMesa index to write to, instead of all indices
-``--no-tracking``          This application closes when ingest job is submitted. Useful for launching jobs with a script
-``--run-mode``             Must be one of ``local`` or ``distributed`` (for map/reduce ingest)
+``--temp-path``            A temporary path to write the output. When using Accumulo on S3, it may be faster to write the
+                           output to HDFS first using this parameter
+``--no-tracking``          This application closes when ingest job is submitted. Note that this will require manual import
+                           of the resulting RFiles.
+``--run-mode``             Must be ``distributed`` for bulk ingest
 ``--split-max-size``       Maximum size of a split in bytes (distributed jobs)
 ``--src-list``             Input files are text files with lists of files, one per line, to ingest
 ``--skip-import``          Generate the RFiles but skip the bulk import into Accumulo

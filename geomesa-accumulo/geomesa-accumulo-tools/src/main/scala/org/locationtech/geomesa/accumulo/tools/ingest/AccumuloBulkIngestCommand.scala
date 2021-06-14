@@ -27,10 +27,10 @@ import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
 import org.locationtech.geomesa.jobs.{Awaitable, JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
+import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
 import org.locationtech.geomesa.tools.ingest._
-import org.locationtech.geomesa.tools.utils.Prompt
-import org.locationtech.geomesa.tools.{Command, OptionalCqlFilterParam, OptionalIndexParam, OutputPathParam}
+import org.locationtech.geomesa.tools.utils.{Prompt, StorageJobUtils}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.fs.HadoopDelegate.HiddenFileFilter
 import org.opengis.feature.simple.SimpleFeatureType
@@ -66,14 +66,16 @@ class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with Ac
       }
     }
 
+
     mode match {
       case RunModes.Local =>
         throw new IllegalArgumentException("Bulk ingest must be run in distributed mode")
 
       case RunModes.Distributed =>
+        val conf = new Configuration()
         // file output format doesn't let you write to an existing directory
         val output = new Path(params.outputPath)
-        val context = FileContext.getFileContext(output.toUri, new Configuration())
+        val context = FileContext.getFileContext(output.toUri, conf)
         if (context.util.exists(output)) {
           val warning = s"Output directory '$output' exists"
           if (params.force) {
@@ -84,8 +86,20 @@ class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with Ac
           context.delete(output, true)
         }
 
+        val tempPath = Option(params.tempPath).map { temp =>
+          val path = new Path(temp)
+          // get a new file context as this is likely to be a different filesystem (i.e. hdfs vs s3)
+          val tempContext = FileContext.getFileContext(path.toUri, conf)
+          val dir = tempContext.makeQualified(path)
+          if (tempContext.util.exists(dir)) {
+            Command.user.info(s"Deleting temp output path $dir")
+            tempContext.delete(dir, true)
+          }
+          dir
+        }
+
         Command.user.info(s"Running bulk ingestion in distributed ${if (params.combineInputs) "combine " else "" }mode")
-        new BulkConverterIngest(ds, connection, sft, converter, inputs.paths, params.outputPath, maxSplitSize,
+        new BulkConverterIngest(ds, connection, sft, converter, inputs.paths, output, tempPath, maxSplitSize,
           index, partitions, libjarsFiles, libjarsPaths)
 
       case _ =>
@@ -99,7 +113,8 @@ class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with Ac
       sft: SimpleFeatureType,
       converterConfig: Config,
       paths: Seq[String],
-      output: String,
+      output: Path,
+      tempOutput: Option[Path],
       maxSplitSize: Option[Int],
       index: Option[String],
       partitions: Option[Seq[String]],
@@ -107,22 +122,40 @@ class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with Ac
       libjarsPaths: Iterator[() => Seq[File]]
     ) extends ConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths) {
 
+    private var libjars: String = _
+
     override def configureJob(job: Job): Unit = {
       super.configureJob(job)
-      GeoMesaAccumuloFileOutputFormat.configure(job, ds, dsParams, sft, new Path(output), index, partitions)
+      val dest = tempOutput.getOrElse(output)
+      GeoMesaAccumuloFileOutputFormat.configure(job, ds, dsParams, sft, dest, index, partitions)
       maxSplitSize.foreach { max =>
         job.setInputFormatClass(classOf[ConverterCombineInputFormat])
         if (max > 0) {
           FileInputFormat.setMaxInputSplitSize(job, max.toLong)
         }
       }
+      this.libjars = job.getConfiguration.get("tmpjars")
     }
 
     override def await(reporter: StatusCallback): JobResult = {
       super.await(reporter).merge {
+        tempOutput.map { dir =>
+          reporter.reset()
+          val conf = new Configuration()
+          conf.set("tmpjars", this.libjars) // copy over out libjars so s3 apis are on the classpath
+          StorageJobUtils.distCopy(dir, output, reporter, conf) match {
+            case JobSuccess(message, counts) =>
+              Command.user.info(message)
+              JobSuccess("", counts)
+
+            case j => j
+          }
+        }
+      }.merge {
         if (params.skipImport) {
           Command.user.info("Skipping import of RFiles into Accumulo")
-          Some(JobSuccess(AccumuloBulkIngestCommand.ImportMessage, Map.empty))
+          Command.user.info(
+            "Files may be imported for each table through the Accumulo shell with the `importdirectory` command")
         } else {
           Command.user.info("Importing RFiles into Accumulo")
           val tableOps = ds.connector.tableOperations()
@@ -138,21 +171,17 @@ class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with Ac
               tableOps.importDirectory(path.toString).to(table).load()
             }
           }
-          Some(JobSuccess("", Map.empty))
         }
+        None
       }
     }
   }
 }
 
 object AccumuloBulkIngestCommand {
-
-  private val ImportMessage =
-    "\nFiles may be imported for each table through the Accumulo shell with the `importdirectory` command"
-
   @Parameters(commandDescription = "Convert various file formats into bulk loaded Accumulo RFiles")
   class AccumuloBulkIngestParams extends IngestParams with AccumuloDataStoreParams
-      with OutputPathParam with OptionalIndexParam with OptionalCqlFilterParam {
+      with OutputPathParam with OptionalIndexParam with OptionalCqlFilterParam with TempPathParam {
     @Parameter(names = Array("--skip-import"), description = "Generate the files but skip the bulk import into Accumulo")
     var skipImport: Boolean = false
   }

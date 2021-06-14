@@ -272,6 +272,12 @@ trait OutputPathParam {
   var outputPath: String = _
 }
 
+trait TempPathParam {
+  @Parameter(names = Array("--temp-path"), description = "Path to temp dir for writing output. " +
+      "Note that this may be useful when using s3 since it is slow as a sink", required = false)
+  var tempPath: String = _
+}
+
 trait NumReducersParam {
   @Parameter(
     names = Array("--num-reducers"),

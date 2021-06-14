@@ -6,7 +6,9 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.tools.ingest
+package org.locationtech.geomesa.tools.utils
+
+import java.util.Collections
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
@@ -15,19 +17,20 @@ import org.apache.hadoop.tools.{DistCp, DistCpOptions}
 import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.utils.JobRunner
-
-import java.util.Collections
 
 object StorageJobUtils extends LazyLogging {
 
-  def distCopy(srcRoot: Path, destRoot: Path, statusCallback: StatusCallback): JobResult = {
+  def distCopy(
+      srcRoot: Path,
+      destRoot: Path,
+      statusCallback: StatusCallback,
+      conf: Configuration = new Configuration()): JobResult = {
     statusCallback.reset()
 
     Command.user.info("Submitting job 'DistCp' - please wait...")
 
     val opts = distCpOptions(srcRoot, destRoot)
-    val job = new DistCp(new Configuration, opts).execute()
+    val job = new DistCp(conf, opts).execute()
 
     Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
 
@@ -41,11 +44,12 @@ object StorageJobUtils extends LazyLogging {
 
   // hadoop 3 API
   private def distCpOptions3(src: Path, dest: Path): DistCpOptions = {
-    val clas = Class.forName("org.apache.hadoop.tools.DistCpOptions.Builder")
+    val clas = Class.forName("org.apache.hadoop.tools.DistCpOptions$Builder")
     val constructor = clas.getConstructor(classOf[java.util.List[Path]], classOf[Path])
     val builder = constructor.newInstance(Collections.singletonList(src), dest)
     clas.getMethod("withAppend", classOf[Boolean]).invoke(builder, java.lang.Boolean.FALSE)
     clas.getMethod("withOverwrite", classOf[Boolean]).invoke(builder, java.lang.Boolean.TRUE)
+    clas.getMethod("withBlocking", classOf[Boolean]).invoke(builder, java.lang.Boolean.FALSE)
     clas.getMethod("withCopyStrategy", classOf[String]).invoke(builder, "dynamic")
     clas.getMethod("build").invoke(builder).asInstanceOf[DistCpOptions]
   }
