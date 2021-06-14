@@ -1,3 +1,4 @@
+aws-java-sdk
 accumulo-core
 accumulo-fate
 accumulo-hadoop-mapreduce
@@ -7,5 +8,6 @@ commons-collections4
 curator-client
 curator-framework
 curator-recipes
+hadoop-aws
 htrace
 libthrift
