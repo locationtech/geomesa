@@ -28,6 +28,7 @@ import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, RunnableStats}
 import org.locationtech.geomesa.index.utils._
+import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
@@ -161,15 +162,21 @@ class HBaseDataStore(con: ConnectionWrapper, override val config: HBaseDataStore
     }
   }
 
-  private def authOpt: Option[Authorizations] =
-    config.authProvider.map { provider =>
-      val auths = provider.getAuthorizations
+  private def authOpt: Option[Authorizations] = {
+    Option(config.authProvider.getAuthorizations).map { auths =>
       // HBase seems to treat and empty collection as no auths
       // which forces it to default to the user's full set of auths
       new Authorizations(if (auths.isEmpty) { HBaseDataStore.EmptyAuths } else { auths })
     }
+  }
 }
 
 object HBaseDataStore {
+
   val EmptyAuths: java.util.List[String] = Collections.singletonList("")
+
+  object NoAuthsProvider extends AuthorizationsProvider {
+    override def getAuthorizations: java.util.List[String] = null
+    override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
+  }
 }

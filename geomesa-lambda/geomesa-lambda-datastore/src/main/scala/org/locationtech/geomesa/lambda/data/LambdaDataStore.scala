@@ -17,8 +17,7 @@ import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureSource, SimpleFeatureWriter}
 import org.geotools.feature.FeatureTypes
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, GeoMesaFeatureStore}
+import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureReader, GeoMesaFeatureStore}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, NoopStats}
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.data.LambdaFeatureWriter.{AppendLambdaFeatureWriter, ModifyLambdaFeatureWriter, RequiredVisibilityWriter}
@@ -35,29 +34,22 @@ import org.opengis.filter.Filter
 
 import scala.concurrent.duration.Duration
 
-class LambdaDataStore(
-    val persistence: DataStore,
-    producerConfig: Map[String, String],
-    consumerConfig: Map[String, String],
-    offsetManager: OffsetManager,
-    config: LambdaConfig)
-   (implicit clock: Clock = Clock.systemUTC()
-   ) extends DataStore with HasGeoMesaStats with LazyLogging {
+class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit clock: Clock = Clock.systemUTC())
+    extends DataStore with HasGeoMesaStats with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
 
   private val authProvider: Option[AuthorizationsProvider] = persistence match {
-    case ds: AccumuloDataStore => Some(ds.config.authProvider)
+    // this is a bit of a hack to work around hbase null vs empty auths
+    case ds: GeoMesaDataStore[_] if ds.config.authProvider.getAuthorizations != null => Some(ds.config.authProvider)
     case _ => None
   }
 
   private [lambda] val transients = Caffeine.newBuilder().build(new CacheLoader[String, TransientStore] {
-    override def load(key: String): TransientStore = {
-      val sft = persistence.getSchema(key)
-      new KafkaStore(persistence, sft, authProvider, offsetManager, producerConfig, consumerConfig, config)
-    }
+    override def load(key: String): TransientStore =
+      new KafkaStore(persistence, persistence.getSchema(key), authProvider, config)
   })
 
   override val stats: GeoMesaStats = persistence match {
@@ -79,7 +71,7 @@ class LambdaDataStore(
     // transients.get(sft.getTypeName).createSchema()
     val topic = KafkaStore.topic(config.zkNamespace, sft)
     val props = new Properties()
-    producerConfig.foreach { case (k, v) => props.put(k, v) }
+    config.producerConfig.foreach { case (k, v) => props.put(k, v) }
 
     WithClose(AdminClient.create(props)) { admin =>
       if (admin.listTopics().names().get.contains(topic)) {
@@ -173,7 +165,7 @@ class LambdaDataStore(
   override def dispose(): Unit = {
     CloseWithLogging(transients.asMap.asScala.values)
     transients.invalidateAll()
-    CloseWithLogging(offsetManager)
+    CloseWithLogging(config.offsetManager)
     persistence.dispose()
   }
 
@@ -188,10 +180,15 @@ class LambdaDataStore(
 }
 
 object LambdaDataStore {
-  case class LambdaConfig(zookeepers: String,
-                          zkNamespace: String,
-                          partitions: Int,
-                          consumers: Int,
-                          expiry: Duration,
-                          persist: Boolean)
+  case class LambdaConfig(
+      zookeepers: String,
+      zkNamespace: String,
+      producerConfig: Map[String, String],
+      consumerConfig: Map[String, String],
+      partitions: Int,
+      consumers: Int,
+      expiry: Duration,
+      persist: Boolean,
+      offsetManager: OffsetManager
+    )
 }

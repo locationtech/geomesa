@@ -46,14 +46,13 @@ class KafkaStore(
     ds: DataStore,
     val sft: SimpleFeatureType,
     authProvider: Option[AuthorizationsProvider],
-    offsetManager: OffsetManager,
-    producerConfig: Map[String, String],
-    consumerConfig: Map[String, String],
     config: LambdaConfig)
    (implicit clock: Clock = Clock.systemUTC()
    ) extends TransientStore with Flushable with LazyLogging {
 
-  private val producer = KafkaStore.producer(producerConfig)
+  private val offsetManager = config.offsetManager
+
+  private val producer = KafkaStore.producer(config.producerConfig)
 
   private val topic = KafkaStore.topic(config.zkNamespace, sft)
 
@@ -71,7 +70,7 @@ class KafkaStore(
   private val queryRunner = new KafkaQueryRunner(cache, stats, authProvider, interceptors)
 
   private val loader = {
-    val consumers = KafkaStore.consumers(consumerConfig, topic, offsetManager, config.consumers, cache.partitionAssigned)
+    val consumers = KafkaStore.consumers(config.consumerConfig, topic, offsetManager, config.consumers, cache.partitionAssigned)
     val frequency = KafkaStore.LoadIntervalProperty.toDuration.get.toMillis
     new KafkaCacheLoader(consumers, topic, frequency, serializer, cache)
   }
@@ -85,7 +84,7 @@ class KafkaStore(
 
   override def createSchema(): Unit = {
     val props = new Properties()
-    producerConfig.foreach { case (k, v) => props.put(k, v) }
+    config.producerConfig.foreach { case (k, v) => props.put(k, v) }
 
     WithClose(AdminClient.create(props)) { admin =>
       if (admin.listTopics().names().get.contains(topic)) {
@@ -101,7 +100,7 @@ class KafkaStore(
   override def removeSchema(): Unit = {
     offsetManager.deleteOffsets(topic)
     val props = new Properties()
-    producerConfig.foreach { case (k, v) => props.put(k, v) }
+    config.producerConfig.foreach { case (k, v) => props.put(k, v) }
 
     WithClose(AdminClient.create(props)) { admin =>
       if (admin.listTopics().names().get.contains(topic)) {
