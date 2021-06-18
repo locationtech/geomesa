@@ -90,11 +90,12 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       // Column qualifiers tell us which attributes are intended to be populated given visibilities
       keys.get(i).getColumnQualifier.getBytes.foreach { unsigned =>
         val index = java.lang.Byte.toUnsignedInt(unsigned)
-        val pos = metadata.setPosition(index)
-        val len = metadata.setPosition(index + 1) - pos
-        attributes(index) = (bytes, 4 + pos, len) // pos is relative to first byte of attribute offsets, see length calc
-        assert((metadata.nulls.contains(index) && len==0) || (!metadata.nulls.contains(index) && len!=0), s"Metadata null bitset (${metadata.nulls.toString}) and value length ($len) are inconsistent")
-        length += len
+        if(!metadata.nulls.contains(index)) {
+          val pos = metadata.setPosition(index)
+          val len = metadata.setPosition(index + 1) - pos
+          attributes(index) = (bytes, 4 + pos, len) // pos is relative to first byte of attribute offsets, see length calc
+          length += len
+        }
       }
       i += 1
     }
