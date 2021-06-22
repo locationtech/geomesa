@@ -61,11 +61,14 @@ function start_nailgun() {
   load_classpath
   get_nailgun_options # need to use global state to pass the array for correctly handling quotes
   echo -n "Starting Nailgun server... " >&2
-   # create a named pipe to read our nailgun startup output
+  # create a named pipe to read our nailgun startup output
   fd="$(mktemp --tmpdir ngfdXXXX)" && rm "$fd" && mkfifo "$fd"
-  (nohup java $GEOMESA_OPTS -cp $CLASSPATH $NG_RUNNER "${NG_OPTS[@]}" >"$fd" 2>&1 ; rm "$fd") &
+  exec 3<>$fd # tie the pipe to output 3
+  rm $fd # remove the pipe so that the process can exit normally
+  # start nailgun in the background and redirect output to the pipe
+  nohup java $GEOMESA_OPTS -cp $CLASSPATH $NG_RUNNER "${NG_OPTS[@]}" >&3 2>&1 </dev/null &
   # read the output from the nailgun start up, timeout after 60 seconds
-  read -t 60 -r ng_output <$fd
+  read -t 60 -r ng_output <&3
   echo $ng_output >&2
   if [[ -z $(echo $ng_output | grep started) ]]; then
     echo "Error starting Nailgun server" >&2
