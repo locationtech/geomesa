@@ -43,6 +43,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2024 Dstl
 =======
@@ -135,6 +136,8 @@
 >>>>>>> 8b6c6d5923 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 3689edc98a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 44b956e093 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 =======
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -240,7 +243,12 @@
 =======
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 3689edc98a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 5369b95fd8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 44b956e093 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2023 Dstl
 =======
@@ -250,12 +258,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1913317092 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 =======
 >>>>>>> 838b7e581b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 6f57a76c5d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 44b956e093 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 =======
 >>>>>>> 21f7547af3 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -951,7 +962,12 @@
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 3689edc98a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 5369b95fd8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 44b956e093 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -1053,6 +1069,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6b41bcc08d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -1337,6 +1354,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5369b95fd8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
     // Calculate length of serialised attributes, excluding attribute values themselves
     var length = 1 +            // version
       2 +                       // attribute count
@@ -1345,6 +1364,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       1 * 4 +                   // user data offset (will use 4 bytes)
       IntBitSet.size(count) * 4 // null bit set, written in units of ints
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1536,6 +1556,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 5369b95fd8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 
     // Calculate length of serialised attributes, excluding attribute values themselves
     var length = 1 +            // version
@@ -1545,6 +1568,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       1 * 4 +                   // user data offset (will use 4 bytes)
       IntBitSet.size(count) * 4 // null bit set, written in units of ints
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1880,6 +1904,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 5369b95fd8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
     // Tracks our output position for copying attribute value bytes
     // Begins immediately after the above
     var valueCursor = length
@@ -1922,6 +1949,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -2131,10 +2159,13 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5369b95fd8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
       val key = keys.get(i)
       key.getColumnQualifier.getBytes.foreach { unsigned =>
 =======
       keys.get(i).getColumnQualifier.getBytes.foreach { unsigned =>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2542,6 +2573,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 5369b95fd8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
         val index = java.lang.Byte.toUnsignedInt(unsigned)
         if(!metadata.nulls.contains(index)) {
           val pos = metadata.setPosition(index)
@@ -2579,6 +2613,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
@@ -3044,6 +3079,11 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+          attributeVis(index) = key.getColumnVisibility.toString
+=======
+>>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 5369b95fd8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
           length += len
         }
       }
@@ -3110,6 +3150,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -3319,11 +3360,14 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5369b95fd8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
       // reset for next time through with new keys/values
       attributes(i) = null
       attributeVis(i) = ""
 =======
       attributes(i) = null // reset for next time through with new keys/values
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3721,6 +3765,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 5369b95fd8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
       i += 1
     }
     output.writeInt(valueCursor - 4) // user-data offset. Note no user data has actually been copied in.
