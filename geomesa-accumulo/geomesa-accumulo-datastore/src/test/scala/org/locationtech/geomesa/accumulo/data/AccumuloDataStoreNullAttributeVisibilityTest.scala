@@ -14,6 +14,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
  * Crown Copyright (c) 2016-2023 Dstl
@@ -535,11 +536,16 @@
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
+=======
+ * Crown Copyright (c) 2016-2023 Dstl
+=======
+>>>>>>> d15e309d98 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
  * Crown Copyright (c) 2016-2022 Dstl
 =======
  * Crown Copyright (c) 2016-2021 Dstl
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -789,6 +795,9 @@
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locationtech-main
+=======
+>>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> d15e309d98 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -817,6 +826,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 
 <<<<<<< HEAD
   import scala.collection.JavaConverters._
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -933,6 +943,11 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> locationtech-main
+=======
+=======
+  import scala.collection.JavaConversions._
+>>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> d15e309d98 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 
   sequential
 
@@ -974,6 +989,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
     val ds = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asJava).asInstanceOf[AccumuloDataStore]
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -1088,6 +1104,11 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> locationtech-main
+=======
+=======
+    val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
+>>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> d15e309d98 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
     val query = new Query(sftName, ECQL.toFilter(filter))
     SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
   }
