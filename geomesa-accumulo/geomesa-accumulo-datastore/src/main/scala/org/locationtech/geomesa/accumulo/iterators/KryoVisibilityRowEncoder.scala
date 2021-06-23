@@ -66,10 +66,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 71dfaa45da (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -158,6 +162,8 @@
 =======
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2023 Dstl
 =======
@@ -169,8 +175,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 =======
 >>>>>>> 21f7547af3 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -256,6 +265,7 @@
 =======
 =======
 >>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 71dfaa45da (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -384,12 +394,15 @@
 >>>>>>> 7b0a7b3644 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> fae05f2711 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2022 Dstl
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2021 Dstl
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -444,6 +457,8 @@
 >>>>>>> fae05f2711 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 21f7547af3 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -680,6 +695,7 @@
 =======
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -1063,6 +1079,11 @@
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -1944,6 +1965,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9838ac675d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -1962,6 +1984,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> fae05f2711 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2235,14 +2259,18 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 71dfaa45da (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> fa485325b8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2478,6 +2506,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
     // Tracks our output position for copying attribute value bytes
     // Begins immediately after the above
     var valueCursor = length
@@ -2915,6 +2946,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9838ac675d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -2933,6 +2965,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> fae05f2711 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3332,15 +3366,20 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 71dfaa45da (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> fa485325b8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3563,6 +3602,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
         val index = java.lang.Byte.toUnsignedInt(unsigned)
         if(!metadata.nulls.contains(index)) {
           val pos = metadata.setPosition(index)
@@ -4371,9 +4413,19 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
           attributeVis(index) = key.getColumnVisibility.toString
 =======
+<<<<<<< HEAD
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 >>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+=======
+>>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
           length += len
         }
       }
@@ -4836,6 +4888,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9838ac675d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -4854,6 +4907,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> fae05f2711 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -5226,15 +5281,20 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 71dfaa45da (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> fa485325b8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -5459,6 +5519,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
       i += 1
     }
     output.writeInt(valueCursor - 4) // user-data offset. Note no user data has actually been copied in.
