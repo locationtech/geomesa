@@ -83,6 +83,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -117,6 +118,8 @@
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -169,6 +172,7 @@
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -276,6 +280,10 @@
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2023 Dstl
 =======
@@ -396,6 +404,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
@@ -597,6 +608,8 @@
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2023 Dstl
 =======
@@ -1049,8 +1062,11 @@
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2023 Dstl
 =======
@@ -1072,6 +1088,7 @@
  * Portions Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
@@ -1079,6 +1096,11 @@
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2023 Dstl
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2022 Dstl
@@ -1092,6 +1114,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> 42fbaa6c7a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -1106,8 +1131,11 @@
 =======
 >>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1151,6 +1179,7 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -1532,10 +1561,26 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+=======
+>>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> e22b6ade6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -1664,6 +1709,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> fa71a7935f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -1717,6 +1763,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
 >>>>>>> 6b41bcc08d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 58065d3fec (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -1737,6 +1785,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1778,6 +1828,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
@@ -1790,6 +1841,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -1812,12 +1867,17 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -1840,6 +1900,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -1937,9 +1998,21 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+>>>>>>> e22b6ade6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
     // Calculate length of serialised attributes, excluding attribute values themselves
     var length = 1 +            // version
       2 +                       // attribute count
@@ -1949,6 +2022,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       IntBitSet.size(count) * 4 // null bit set, written in units of ints
 
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1994,6 +2068,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e980963df5 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -2427,6 +2503,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
 >>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 42fbaa6c7a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -2459,6 +2537,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -2475,6 +2556,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -2486,6 +2568,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 3a3424a161 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -2494,8 +2580,11 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e22b6ade6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
@@ -2538,10 +2627,14 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e22b6ade6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -2669,6 +2762,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 
     // Calculate length of serialised attributes, excluding attribute values themselves
     var length = 1 +            // version
@@ -2778,6 +2873,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -2788,6 +2884,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -2804,6 +2902,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 59746cdccd (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2847,6 +2946,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2958,6 +3061,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -2970,6 +3076,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2993,6 +3100,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3026,10 +3137,14 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -3040,6 +3155,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3069,6 +3186,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -3226,6 +3346,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -3477,10 +3598,25 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+=======
+>>>>>>> e22b6ade6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
     // Tracks our output position for copying attribute value bytes
     // Begins immediately after the above
     var valueCursor = length
@@ -3551,6 +3687,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -3567,6 +3704,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -3596,6 +3735,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3662,6 +3802,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e980963df5 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
@@ -3733,6 +3875,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -3745,6 +3890,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3768,6 +3914,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
@@ -3801,10 +3951,13 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3893,6 +4046,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -4059,13 +4213,31 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+=======
+>>>>>>> e22b6ade6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
       val key = keys.get(i)
       key.getColumnQualifier.getBytes.foreach { unsigned =>
 =======
@@ -4170,6 +4342,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -4180,6 +4353,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -4196,6 +4371,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 59746cdccd (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -4239,6 +4415,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -4340,6 +4520,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
@@ -4361,8 +4543,11 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
@@ -4370,6 +4555,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -4381,6 +4567,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
@@ -4659,6 +4848,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -4804,6 +4996,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -5035,10 +5228,25 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       val key = keys.get(i)
       key.getColumnQualifier.getBytes.foreach { unsigned =>
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+=======
+>>>>>>> e22b6ade6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
         val index = java.lang.Byte.toUnsignedInt(unsigned)
         if(!metadata.nulls.contains(index)) {
           val pos = metadata.setPosition(index)
@@ -5104,6 +5312,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 58065d3fec (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -5124,6 +5333,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
@@ -5158,6 +5369,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -5230,6 +5442,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
           attributeVis(index) = key.getColumnVisibility.toString
 =======
 <<<<<<< HEAD
@@ -5408,12 +5622,17 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3a3424a161 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -5462,6 +5681,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -5520,6 +5740,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
@@ -5824,6 +6048,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -5988,6 +6215,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -6239,10 +6467,28 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
           attributeVis(index) = key.getColumnVisibility.toString
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+=======
+          attributeVis(index) = key.getColumnVisibility.toString
+=======
+>>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> e22b6ade6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
           length += len
         }
       }
@@ -6337,6 +6583,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -6353,6 +6600,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -6382,6 +6631,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -6448,6 +6698,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e980963df5 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
@@ -6519,6 +6771,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -6531,6 +6786,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -6554,6 +6810,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
@@ -6587,10 +6847,13 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -6679,6 +6942,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -6845,13 +7109,31 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+=======
+>>>>>>> e22b6ade6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
       // reset for next time through with new keys/values
       attributes(i) = null
       attributeVis(i) = ""
@@ -6957,6 +7239,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -6967,6 +7250,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -6983,6 +7268,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 59746cdccd (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -7026,6 +7312,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -7157,11 +7447,15 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3a3424a161 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+=======
+>>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
@@ -7393,6 +7687,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -7535,6 +7832,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -7769,10 +8067,25 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       attributes(i) = null
       attributeVis(i) = ""
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+=======
+>>>>>>> e22b6ade6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
       i += 1
     }
     output.writeInt(valueCursor - 4) // user-data offset. Note no user data has actually been copied in.
