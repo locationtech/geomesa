@@ -2,6 +2,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Crown Copyright (c) 2016-2023 Dstl
 =======
 =======
@@ -19,7 +20,12 @@
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 951b61baf (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * Crown Copyright (c) 2016-2023 Dstl
+=======
+ * Crown Copyright (c) 2016-2022 Dstl
+>>>>>>> 0e7ab435a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
  * Crown Copyright (c) 2016-2021 Dstl
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
