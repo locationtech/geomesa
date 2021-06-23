@@ -4,6 +4,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Crown Copyright (c) 2016-2023 Dstl
 =======
 =======
@@ -25,6 +26,8 @@
 >>>>>>> 951b61baf (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 4ccb35072 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> c8b485118 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * Crown Copyright (c) 2016-2023 Dstl
 =======
  * Crown Copyright (c) 2016-2022 Dstl
@@ -32,6 +35,9 @@
 =======
  * Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> 21f7547af (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+ * Crown Copyright (c) 2016-2022 Dstl
+>>>>>>> d1ecc0df1 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
  * Crown Copyright (c) 2016-2021 Dstl
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))

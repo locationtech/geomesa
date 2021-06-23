@@ -4,6 +4,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2023 Dstl
 =======
@@ -29,6 +30,8 @@
 >>>>>>> 951b61baf (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 4ccb35072 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> c8b485118 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2023 Dstl
 =======
@@ -39,6 +42,10 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> 21f7547af (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2022 Dstl
+>>>>>>> d1ecc0df1 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2021 Dstl
