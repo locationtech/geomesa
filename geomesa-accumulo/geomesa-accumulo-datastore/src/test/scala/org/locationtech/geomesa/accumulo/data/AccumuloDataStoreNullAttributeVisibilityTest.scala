@@ -83,6 +83,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Crown Copyright (c) 2016-2024 Dstl
 =======
 =======
@@ -254,6 +255,8 @@
 >>>>>>> ba6eae3c37 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 5f2481dae6 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e536414d08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 =======
 >>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -290,6 +293,8 @@
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -424,10 +429,13 @@
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 2d904e5c26 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 5f2481dae6 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e536414d08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
@@ -663,7 +671,14 @@
 =======
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 5f2481dae6 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> e536414d08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * Crown Copyright (c) 2016-2023 Dstl
 =======
  * Crown Copyright (c) 2016-2021 Dstl
@@ -797,6 +812,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 =======
@@ -833,6 +851,7 @@
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -892,6 +911,10 @@
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * Crown Copyright (c) 2016-2023 Dstl
 =======
 =======
@@ -1257,8 +1280,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -1272,6 +1298,7 @@
 =======
 >>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1286,6 +1313,8 @@
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * Crown Copyright (c) 2016-2023 Dstl
 =======
  * Crown Copyright (c) 2016-2022 Dstl
@@ -1363,6 +1392,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -1651,6 +1683,7 @@
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -2152,11 +2185,37 @@
 =======
  * Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 5f2481dae6 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+=======
+=======
+ * Crown Copyright (c) 2016-2023 Dstl
+=======
+<<<<<<< HEAD
+ * Crown Copyright (c) 2016-2022 Dstl
+=======
+ * Crown Copyright (c) 2016-2021 Dstl
+>>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> e22b6ade6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 1fc2df91c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> e536414d08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -2183,7 +2242,9 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 
+<<<<<<< HEAD
   import scala.collection.JavaConverters._
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2216,6 +2277,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -2226,6 +2289,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -2257,6 +2321,10 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 6eac7f1faa (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
   import scala.collection.JavaConversions._
 <<<<<<< HEAD
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2303,10 +2371,13 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> fae05f2711 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 =======
   import scala.collection.JavaConversions._
@@ -2345,6 +2416,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2405,6 +2477,10 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 6eac7f1faa (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 
   override val spec = "some_id:String,dtg:Date,*geo_location:Point:srid=4326,number:Integer,text:String;geomesa.visibility.level='attribute'"
 
@@ -2440,7 +2516,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
   }
 
   def queryByAuths(auths: String, filter: String): Seq[SimpleFeature] = {
+<<<<<<< HEAD
     val ds = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asJava).asInstanceOf[AccumuloDataStore]
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2473,6 +2551,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -2483,6 +2563,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -2514,6 +2595,10 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 6eac7f1faa (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
     val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
 <<<<<<< HEAD
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2560,10 +2645,13 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> fae05f2711 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 =======
     val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
@@ -2602,6 +2690,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2662,6 +2751,10 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 6eac7f1faa (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
     val query = new Query(sftName, ECQL.toFilter(filter))
     SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
   }
