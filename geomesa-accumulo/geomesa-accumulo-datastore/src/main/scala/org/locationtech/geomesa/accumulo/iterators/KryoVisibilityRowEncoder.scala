@@ -1,6 +1,7 @@
 /***********************************************************************
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2023 Dstl
 =======
@@ -21,6 +22,14 @@
  * Portions Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2023 Dstl
+=======
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2021 Dstl
+>>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -92,8 +101,11 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
   private def encodeV3(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
     // Calculate length of serialised attributes, excluding attribute values themselves
     var length = 1 +            // version
       2 +                       // attribute count
@@ -103,6 +115,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       IntBitSet.size(count) * 4 // null bit set, written in units of ints
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 
     // Calculate length of serialised attributes, excluding attribute values themselves
@@ -114,8 +129,11 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       IntBitSet.size(count) * 4 // null bit set, written in units of ints
 
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
     // Tracks our output position for copying attribute value bytes
     // Begins immediately after the above
     var valueCursor = length
@@ -128,15 +146,21 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       // Column qualifiers tell us which attributes are intended to be populated given visibilities
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
       val key = keys.get(i)
       key.getColumnQualifier.getBytes.foreach { unsigned =>
 =======
       keys.get(i).getColumnQualifier.getBytes.foreach { unsigned =>
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
       val key = keys.get(i)
       key.getColumnQualifier.getBytes.foreach { unsigned =>
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
         val index = java.lang.Byte.toUnsignedInt(unsigned)
         if(!metadata.nulls.contains(index)) {
           val pos = metadata.setPosition(index)
@@ -144,12 +168,18 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
           attributes(index) = (bytes, 4 + pos, len) // pos is relative to first byte of attribute offsets, see length calc
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
           attributeVis(index) = key.getColumnVisibility.toString
 =======
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
           attributeVis(index) = key.getColumnVisibility.toString
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+          attributeVis(index) = key.getColumnVisibility.toString
+=======
+>>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
           length += len
         }
       }
@@ -186,17 +216,23 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
       // reset for next time through with new keys/values
       attributes(i) = null
       attributeVis(i) = ""
 =======
       attributes(i) = null // reset for next time through with new keys/values
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
       // reset for next time through with new keys/values
       attributes(i) = null
       attributeVis(i) = ""
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
       i += 1
     }
     output.writeInt(valueCursor - 4) // user-data offset. Note no user data has actually been copied in.
