@@ -112,14 +112,18 @@ object FeatureUtils {
 
   def copyToWriter(writer: FeatureWriter[SimpleFeatureType, SimpleFeature],
                    sf: SimpleFeature,
-                   useProvidedFid: Boolean = false): SimpleFeature =
+                   useProvidedFid: Boolean = false): SimpleFeature = {
     copyToFeature(writer.next(), sf, useProvidedFid)
+  }
 
   def copyToFeature(toWrite: SimpleFeature, sf: SimpleFeature, useProvidedFid: Boolean = false): SimpleFeature = {
     toWrite.setAttributes(sf.getAttributes)
     toWrite.getUserData.putAll(sf.getUserData)
     if (useProvidedFid || jBoolean.TRUE == sf.getUserData.get(Hints.USE_PROVIDED_FID).asInstanceOf[jBoolean]) {
-      toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
+      toWrite.getIdentifier match {
+        case id: FeatureIdImpl => id.setID(sf.getID)
+        case _ => toWrite.getUserData.put(Hints.PROVIDED_FID, sf.getID)
+      }
       toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     }
     toWrite
