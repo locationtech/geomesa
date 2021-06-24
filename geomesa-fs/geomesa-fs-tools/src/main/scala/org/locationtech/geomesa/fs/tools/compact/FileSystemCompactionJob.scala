@@ -23,14 +23,13 @@ import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcStorageConfiguration
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.CompactionMapper
-import org.locationtech.geomesa.fs.tools.ingest.StorageJobUtils
 import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
 import org.locationtech.geomesa.jobs.mapreduce.JobWithLibJars
 import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.utils.JobRunner
+import org.locationtech.geomesa.tools.utils.{JobRunner, StorageJobUtils}
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.SimpleFeature
 

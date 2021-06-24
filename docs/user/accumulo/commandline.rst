@@ -88,6 +88,64 @@ Argument                 Description
 
 For a description of index coverage, see :ref:`accumulo_attribute_indices`.
 
+``bulk-ingest``
+^^^^^^^^^^^^^^^
+
+The bulk ingest command will ingest directly to Accumulo RFiles and then import the RFiles into Accumulo, bypassing
+the normal write path. See `Bulk Ingest <https://accumulo.apache.org/docs/2.x/development/high_speed_ingest#bulk-ingest>`__
+in the Accumulo documentation for additional details.
+
+.. note::
+
+  Bulk ingest is currently only implemented for Accumulo 2.0.
+
+The data to be ingested must be in the same distributed file system that Accumulo is using, and the ingest
+must run in ``distributed`` mode as a map/reduce job.
+
+In order to run efficiently, you should ensure that the data tables have appropriate splits, based on
+your input. This will avoid creating extremely large files during the ingest, and will also prevent the cluster
+from having to subsequently split the RFiles. See :ref:`table_split_config` for more information.
+
+Note that some of the below options are inherited from the regular ``ingest`` command, but are not relevant
+to bulk ingest. See :ref:`cli_ingest` for additional details on the available options.
+
+========================== ==================================================================================================
+Argument                   Description
+========================== ==================================================================================================
+``-c, --catalog *``        The catalog table containing schema metadata
+``--output *``             The output directory used to write out RFiles
+``-f, --feature-name``     The name of the schema
+``-s, --spec``             The ``SimpleFeatureType`` specification to create
+``-C, --converter``        The GeoMesa converter used to create ``SimpleFeature``\ s
+``--converter-error-mode`` Override the error mode defined by the converter
+``-q, --cql``              If using a partitioned store, a filter that covers the ingest data
+``-t, --threads``          Number of parallel threads used
+``--input-format``         Format of input files (csv, tsv, avro, shp, json, etc)
+```--index``               Specify a particular GeoMesa index to write to, instead of all indices
+``--temp-path``            A temporary path to write the output. When using Accumulo on S3, it may be faster to write the
+                           output to HDFS first using this parameter
+``--no-tracking``          This application closes when ingest job is submitted. Note that this will require manual import
+                           of the resulting RFiles.
+``--run-mode``             Must be ``distributed`` for bulk ingest
+``--split-max-size``       Maximum size of a split in bytes (distributed jobs)
+``--src-list``             Input files are text files with lists of files, one per line, to ingest
+``--skip-import``          Generate the RFiles but skip the bulk import into Accumulo
+``--force``                Suppress any confirmation prompts
+``<files>...``             Input files to ingest
+========================== ==================================================================================================
+
+The ``--output`` directory will be interpreted as a distributed file system path. If it already exists, the user will
+be prompted to delete it before running the ingest.
+
+The ``--cql`` parameter is required if using a partitioned schema (see :ref:`partitioned_indices` for details).
+The filter must cover the partitions for all the input data, so that the partition tables can be
+created appropriately. Any feature which doesn't match the filter or correspond to a an existing
+table will fail to be ingested.
+
+``--skip-import`` can be used to skip the import of the RFiles into Accumulo. The files can be imported later
+through the ``importdirectory`` command in the Accumulo shell. Note that if ``--no-tracking`` is specified,
+the import will be skipped regardless.
+
 .. _compact_command:
 
 ``compact``
