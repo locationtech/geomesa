@@ -23,7 +23,7 @@ import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.FsIngestParams
 import org.locationtech.geomesa.jobs.Awaitable
 import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
-import org.locationtech.geomesa.tools.Command
+import org.locationtech.geomesa.tools.{Command, TempPathParam}
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
@@ -53,7 +53,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
           throw new ParameterException("Please specify --num-reducers for distributed ingest")
         }
         val storage = ds.storage(sft.getTypeName)
-        val tmpPath = Option(params.tempDir).map(d => storage.context.fc.makeQualified(new Path(d)))
+        val tmpPath = Option(params.tempPath).map(d => storage.context.fc.makeQualified(new Path(d)))
         val targetFileSize = storage.metadata.get(Metadata.TargetFileSize).map(_.toLong)
 
         tmpPath.foreach { tp =>
@@ -101,16 +101,13 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
 }
 
 object FsIngestCommand {
-
   @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-  class FsIngestParams extends IngestParams with FsParams with OptionalEncodingParam with OptionalSchemeParams with TempDirParam {
-    @Parameter(names = Array("--num-reducers"), description = "Num reducers (required for distributed ingest)", required = false)
+  class FsIngestParams extends IngestParams
+      with FsParams with OptionalEncodingParam with OptionalSchemeParams with TempPathParam {
+    @Parameter(
+      names = Array("--num-reducers"),
+      description = "Num reducers (required for distributed ingest)",
+      required = false)
     var reducers: java.lang.Integer = _
-  }
-
-  trait TempDirParam {
-    @Parameter(names = Array("--temp-path"), description = "Path to temp dir for writing output. " +
-        "Note that this may be useful when using s3 since it is slow as a sink", required = false)
-    var tempDir: String = _
   }
 }

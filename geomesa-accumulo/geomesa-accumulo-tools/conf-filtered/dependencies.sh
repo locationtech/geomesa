@@ -61,6 +61,11 @@ function dependencies() {
       "org.apache.accumulo:accumulo-fate:${accumulo_version}:jar"
       "org.apache.accumulo:accumulo-trace:${accumulo_version}:jar"
     )
+  else
+    gavs+=(
+      "org.apache.commons:commons-collections4:4.3:jar"
+      "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
+    )
   fi
 
   # add hadoop 3+ jars if needed

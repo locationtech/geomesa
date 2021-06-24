@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools
 import java.util
 import java.util.regex.Pattern
 
+import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.locationtech.geomesa.convert.Modes.ErrorMode
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -269,4 +270,18 @@ trait DistributedCombineParam {
 trait OutputPathParam {
   @Parameter(names = Array("--output"), description = "Path to use for writing output", required = true)
   var outputPath: String = _
+}
+
+trait TempPathParam {
+  @Parameter(names = Array("--temp-path"), description = "Path to temp dir for writing output. " +
+      "Note that this may be useful when using s3 since it is slow as a sink", required = false)
+  var tempPath: String = _
+}
+
+trait NumReducersParam {
+  @Parameter(
+    names = Array("--num-reducers"),
+    description = "Number of reducers to use when sorting or merging (for distributed jobs)",
+    validateWith = Array(classOf[PositiveInteger]))
+  var reducers: java.lang.Integer = _
 }

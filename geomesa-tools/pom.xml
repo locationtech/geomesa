@@ -53,10 +53,6 @@
             <artifactId>geomesa-fs-storage-parquet_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-client</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-filter_2.12</artifactId>
         </dependency>
@@ -110,6 +106,14 @@
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-compiler</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-distcp</artifactId>
         </dependency>
 
         <!-- test dependencies -->
