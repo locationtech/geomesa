@@ -20,8 +20,8 @@ import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
+import org.locationtech.geomesa.hbase.data.HBaseDataStore.NoAuthsProvider
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.CacheConnectionsParam
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo}
 import org.locationtech.geomesa.security
@@ -46,8 +46,8 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     val audit = if (!AuditQueriesParam.lookup(params)) { None } else {
       Some(AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "hbase")
     }
-    val auths = if (!EnableSecurityParam.lookup(params)) { None } else {
-      Some(HBaseDataStoreFactory.buildAuthsProvider(connection.connection, params))
+    val auths = if (!EnableSecurityParam.lookup(params)) { NoAuthsProvider } else {
+      HBaseDataStoreFactory.buildAuthsProvider(connection.connection, params)
     }
     val queries = HBaseQueryConfig(
       threads = QueryThreadsParam.lookup(params),
@@ -180,7 +180,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       generateStats: Boolean,
       queries: HBaseQueryConfig,
       coprocessors: CoprocessorConfig,
-      authProvider: Option[AuthorizationsProvider],
+      authProvider: AuthorizationsProvider,
       audit: Option[(AuditWriter, AuditProvider, String)],
       namespace: Option[String]
     ) extends GeoMesaDataStoreConfig

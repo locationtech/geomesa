@@ -70,8 +70,11 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
       try {
         ds.createSchema(sft)
         val om = new InMemoryOffsetManager
-        def newStore(): KafkaStore =
-          new KafkaStore(ds, sft, None, om, config, config, LambdaConfig(zookeepers, ns, 2, 1, Duration(1000, "ms"), persist = true))
+        def newStore(): KafkaStore = {
+          new KafkaStore(ds, sft, None,
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms"), persist = true, om))
+        }
+
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature)
           store1.flush()
@@ -102,8 +105,10 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
       try {
         ds.createSchema(sft)
         val om = new InMemoryOffsetManager
-        def newStore(): KafkaStore =
-          new KafkaStore(ds, sft, None, om, config, config, LambdaConfig(zookeepers, ns, 2, 1, Duration(1000, "ms"), persist = true))
+        def newStore(): KafkaStore = {
+          new KafkaStore(ds, sft, None,
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms"), persist = true, om))
+        }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature)
           store1.flush()
@@ -146,8 +151,10 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
       try {
         ds.createSchema(sft)
         val om = new InMemoryOffsetManager
-        def newStore(): KafkaStore =
-          new KafkaStore(ds, sft, None, om, config, config, LambdaConfig(zookeepers, ns, 2, 1, Duration(1000, "ms"), persist = true))
+        def newStore(): KafkaStore = {
+          new KafkaStore(ds, sft, None,
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms"), persist = true, om))
+        }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature1)
           store2.write(feature2)
@@ -209,8 +216,10 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
       try {
         ds.createSchema(sft)
         val om = new InMemoryOffsetManager
-        def newStore(): KafkaStore =
-          new KafkaStore(ds, sft, None, om, config, config, LambdaConfig(zookeepers, ns, 2, 1, Duration(1000, "ms"), persist = true))
+        def newStore(): KafkaStore = {
+          new KafkaStore(ds, sft, None,
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms"), persist = true, om))
+        }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature1)
           store1.flush()
