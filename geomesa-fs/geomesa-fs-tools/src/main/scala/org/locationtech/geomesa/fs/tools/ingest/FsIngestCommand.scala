@@ -47,13 +47,17 @@ import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 60be59afe8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -83,6 +87,10 @@ import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
 =======
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 60be59afe8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.{Command, TempPathParam}
 <<<<<<< HEAD
@@ -114,6 +122,9 @@ import org.locationtech.geomesa.tools.{Command, TempPathParam}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -166,6 +177,7 @@ import org.locationtech.geomesa.tools.{Command, TempPathParam}
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 60be59afe8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -225,6 +237,10 @@ import org.locationtech.geomesa.tools.{Command, TempPathParam}
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 60be59afe8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
