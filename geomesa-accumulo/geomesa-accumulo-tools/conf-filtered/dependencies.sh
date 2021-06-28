@@ -76,6 +76,7 @@ function dependencies() {
     gavs+=(
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       "org.apache.thrift:libthrift:0.12.0:jar"
 =======
 =======
@@ -83,6 +84,20 @@ function dependencies() {
 <<<<<<< HEAD
       "org.apache.thrift:libthrift:%%thrift.version%%:jar"
 >>>>>>> 276558f47d3 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+      "org.apache.thrift:libthrift:%%thrift.version%%:jar"
+=======
+<<<<<<< HEAD
+      "org.apache.commons:commons-collections4:4.4:jar"
+=======
+      "org.apache.commons:commons-collections4:4.3:jar"
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+      "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
+>>>>>>> 120815d0b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> a76720eebac (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     )
   else
     gavs+=(
