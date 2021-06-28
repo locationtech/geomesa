@@ -28080,6 +28080,7 @@
                 <artifactId>accumulo-hadoop-mapreduce</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
+<<<<<<< HEAD
                 <exclusions>
                     <!-- exclude hadoop 3+ only jars, and manage them separately -->
                     <exclusion>
@@ -28095,6 +28096,7 @@
                         <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -28128,6 +28130,8 @@
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -28145,6 +28149,7 @@
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -28206,6 +28211,8 @@
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
             </dependency>
             <dependency>
                 <groupId>org.apache.thrift</groupId>
