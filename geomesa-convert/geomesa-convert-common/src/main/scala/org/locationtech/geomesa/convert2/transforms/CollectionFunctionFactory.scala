@@ -153,11 +153,16 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   }
 <<<<<<< HEAD
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> b36757a53 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
   private val listItem = TransformerFunction.pure("listItem") { args =>
     args(0) match {
@@ -168,6 +173,7 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
   }
 
   private val transformList = new TransformList(null)
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2508,6 +2514,7 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 672d32118c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -3007,6 +3014,8 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
 >>>>>>> 73e8d8dfc3 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 2586fa6a40 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 5a4980301e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9cdd96d1c0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
@@ -3028,6 +3037,8 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
 =======
 =======
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> a83aceac86 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 98a03c586 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 8170c2c54a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -4792,6 +4803,9 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 5a4980301e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -4989,10 +5003,14 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 5a4980301e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> b36757a53 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> a83aceac86 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> a9e41bce3a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -6194,6 +6212,8 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
 >>>>>>> 2586fa6a40 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0fc6650ecf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 5a4980301e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 }
 
 object CollectionFunctionFactory {
