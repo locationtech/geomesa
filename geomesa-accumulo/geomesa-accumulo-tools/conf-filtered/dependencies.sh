@@ -164,6 +164,11 @@ function dependencies() {
 =======
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     )
+  else
+    gavs+=(
+      "org.apache.commons:commons-collections4:4.3:jar"
+      "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
+    )
   fi
 
   # add hadoop 3+ jars if needed
