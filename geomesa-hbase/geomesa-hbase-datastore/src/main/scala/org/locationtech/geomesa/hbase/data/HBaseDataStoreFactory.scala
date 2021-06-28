@@ -22,6 +22,7 @@ import org.geotools.data.{DataStore, DataStoreFactorySpi}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 =======
 import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
@@ -42,12 +43,23 @@ import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
+>>>>>>> 16f912e1ef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 >>>>>>> 8c776df44 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+<<<<<<< HEAD
 >>>>>>> 585c5638c0 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+=======
+import org.locationtech.geomesa.hbase.HBaseSystemProperties
+=======
+import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 468ab7139 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 16f912e1ef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.hbase.data.HBaseDataStore.NoAuthsProvider
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
