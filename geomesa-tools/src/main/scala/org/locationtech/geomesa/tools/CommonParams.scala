@@ -22,6 +22,7 @@ package org.locationtech.geomesa.tools
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -124,6 +125,13 @@ import java.util.regex.Pattern
 >>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+import java.util
+import java.util.regex.Pattern
+
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 4a51affd9e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.geotools.api.filter.Filter
