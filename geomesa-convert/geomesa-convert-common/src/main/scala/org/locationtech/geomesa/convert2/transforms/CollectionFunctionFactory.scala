@@ -8,6 +8,11 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
+<<<<<<< HEAD
+=======
+import java.util.{Collections, UUID}
+
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.CollectionFunctionFactory.{CollectionParsing, TransformList}
 import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
@@ -77,6 +82,9 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
     }
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
   private val listItem = TransformerFunction.pure("listItem") { args =>
     args(0) match {
@@ -87,8 +95,11 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
   }
 
   private val transformList = new TransformList(null)
+<<<<<<< HEAD
 =======
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 }
 
 object CollectionFunctionFactory {
