@@ -19,6 +19,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -55,6 +56,8 @@
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -122,6 +125,8 @@
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> d79d99099b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
@@ -182,8 +187,24 @@
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 120815d0b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 234aacdc1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> d79d99099b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -197,12 +218,16 @@ package org.locationtech.geomesa.lambda.data
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 import java.time.Clock
 import java.util.Properties
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -218,14 +243,19 @@ import java.util.Properties
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, ZookeeperOffsetManager}
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
+<<<<<<< HEAD
 import java.time.Clock
 import java.util.Properties
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -246,6 +276,10 @@ import java.util.Properties
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import scala.concurrent.duration.Duration
 
 object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
