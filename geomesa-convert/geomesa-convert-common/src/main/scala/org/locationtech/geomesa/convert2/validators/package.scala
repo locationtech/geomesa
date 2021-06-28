@@ -8,6 +8,9 @@
 
 package org.locationtech.geomesa.convert2
 
+import java.time.Instant
+import java.util.Date
+
 import com.codahale.metrics.Counter
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
