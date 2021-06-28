@@ -52,7 +52,11 @@ class KafkaStore(
 
   private val offsetManager = config.offsetManager
 
+<<<<<<< HEAD
   private val producer = KafkaStore.producer(sft, config.producerConfig)
+=======
+  private val producer = KafkaStore.producer(config.producerConfig)
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
   private val topic = LambdaDataStore.topic(sft, config.zkNamespace)
 
