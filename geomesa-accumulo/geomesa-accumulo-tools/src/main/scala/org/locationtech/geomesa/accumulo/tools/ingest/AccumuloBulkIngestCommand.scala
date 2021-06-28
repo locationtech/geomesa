@@ -82,6 +82,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -251,6 +252,8 @@
 >>>>>>> 7c6de6e74a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 7b836ea2c1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 =======
 >>>>>>> e6ede6713f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -273,6 +276,8 @@
 >>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 04aa3548a9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -358,8 +363,11 @@
 =======
 >>>>>>> 7edcee4732 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> f02e2df352 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+=======
+>>>>>>> 7b836ea2c1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 6b6227eac7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
@@ -604,7 +612,12 @@
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 04aa3548a9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 7b836ea2c1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -737,6 +750,7 @@
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 16f912e1ef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> a3acfc6a17 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -757,6 +771,8 @@
 >>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 04aa3548a9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -1098,8 +1114,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 04aa3548a9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 823f734cb8 (Merge branch 'feature/postgis-fixes')
@@ -1395,14 +1414,20 @@
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b71b0e3cfc (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 04aa3548a9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 7b836ea2c1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 1cc1e5df3 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -1909,7 +1934,19 @@
 =======
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 468ab7139 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 16f912e1ef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 7edcee4732 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 04aa3548a9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 7b836ea2c1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -2679,6 +2716,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -2705,6 +2743,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 =======
 =======
 >>>>>>> 7edcee4732 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -2718,6 +2757,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 =======
 >>>>>>> b54485f5a2 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 666589fa84 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 04aa3548a9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.fs.HadoopDelegate.HiddenFileFilter
 import org.opengis.feature.simple.SimpleFeatureType
@@ -2730,6 +2771,9 @@ import org.opengis.feature.simple.SimpleFeatureType
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 04aa3548a9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 468ab7139 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
@@ -2740,6 +2784,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 =======
 >>>>>>> 468ab7139 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 7edcee4732 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -2765,6 +2810,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 >>>>>>> 120815d0b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> b54485f5a2 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 666589fa84 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 04aa3548a9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -3070,12 +3117,17 @@ class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with Ac
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7edcee4732 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 04cf999171 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 7edcee4732 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 04aa3548a9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -3083,11 +3135,15 @@ class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with Ac
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 04aa3548a9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 7edcee4732 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 4a51affd9e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -3098,6 +3154,8 @@ class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with Ac
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 04aa3548a9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
               Command.user.info(s"Importing $table")
               tableOps.importDirectory(path.toString).to(table).load()
             }
