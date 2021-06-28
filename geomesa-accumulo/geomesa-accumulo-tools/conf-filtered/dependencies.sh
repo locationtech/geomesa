@@ -76,6 +76,11 @@ function dependencies() {
     gavs+=(
       "org.apache.thrift:libthrift:0.12.0:jar"
     )
+  else
+    gavs+=(
+      "org.apache.commons:commons-collections4:4.3:jar"
+      "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
+    )
   fi
 
   # add hadoop 3+ jars if needed

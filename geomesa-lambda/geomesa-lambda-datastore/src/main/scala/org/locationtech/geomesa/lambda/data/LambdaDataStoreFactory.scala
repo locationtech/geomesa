@@ -8,22 +8,41 @@
 
 package org.locationtech.geomesa.lambda.data
 
+<<<<<<< HEAD
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
+=======
+<<<<<<< HEAD
+=======
+import java.awt.RenderingHints.Key
+import java.io.Serializable
+import java.time.Clock
+
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+import org.geotools.data.DataAccessFactory.Param
+import org.geotools.data.{DataStore, DataStoreFactorySpi}
+>>>>>>> 69a1e5094b5 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
+<<<<<<< HEAD
 import java.awt.RenderingHints.Key
 import java.time.Clock
+=======
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import scala.reflect.ClassTag
 
 class LambdaDataStoreFactory extends DataStoreFactorySpi {
 
   import LambdaDataStoreParams.{ClockParam, NamespaceParam}
 
+<<<<<<< HEAD
   override def createDataStore(params: java.util.Map[String, _]): DataStore = {
+=======
+  override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     // TODO GEOMESA-1891 attribute level vis
     val persistence = new AccumuloDataStoreFactory().createDataStore(LambdaDataStoreFactory.filter(params))
     val config = LambdaDataStoreParams.parse(params, persistence.config.catalog)
@@ -99,6 +118,30 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
       val WriteThreadsParam  = copy(AccumuloDataStoreParams.WriteThreadsParam)
       val CatalogParam       = copy(AccumuloDataStoreParams.CatalogParam)
     }
+<<<<<<< HEAD
+=======
+
+    @deprecated("replaced with LambdaDataStoreParams")
+    object Kafka {
+      val BrokersParam      = LambdaDataStoreParams.BrokersParam
+      val ZookeepersParam   = LambdaDataStoreParams.ZookeepersParam
+      val PartitionsParam   = LambdaDataStoreParams.PartitionsParam
+      val ConsumersParam    = LambdaDataStoreParams.ConsumersParam
+      val ProducerOptsParam = LambdaDataStoreParams.ProducerOptsParam
+      val ConsumerOptsParam = LambdaDataStoreParams.ConsumerOptsParam
+    }
+
+    @deprecated("replaced with LambdaDataStoreParams")
+    val ExpiryParam        = LambdaDataStoreParams.ExpiryParam
+    @deprecated("replaced with LambdaDataStoreParams")
+    val PersistParam       = LambdaDataStoreParams.PersistParam
+
+    // test params
+    @deprecated("replaced with LambdaDataStoreParams")
+    val ClockParam         = LambdaDataStoreParams.ClockParam
+    @deprecated("replaced with LambdaDataStoreParams")
+    val OffsetManagerParam = LambdaDataStoreParams.OffsetManagerParam
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
   }
 
   private def copy[T <: AnyRef](p: GeoMesaParam[T])(implicit ct: ClassTag[T]): GeoMesaParam[T] = {
@@ -112,6 +155,10 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
     import scala.collection.JavaConverters._
     Map[String, Any](params.asScala.toSeq: _ *)
         .map { case (k, v) => (if (k.startsWith("lambda.")) { k.substring(7) } else { k }, v) }
+<<<<<<< HEAD
         .asJava
+=======
+        .asJava.asInstanceOf[java.util.Map[String, Serializable]]
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
   }
 }
