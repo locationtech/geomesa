@@ -24,6 +24,11 @@ import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{OrcConve
 import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.FsIngestParams
 import org.locationtech.geomesa.jobs.Awaitable
 import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
+<<<<<<< HEAD
+=======
+import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
+import org.locationtech.geomesa.tools.{Command, TempPathParam}
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
