@@ -25,6 +25,7 @@ package org.locationtech.geomesa.accumulo.data
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import com.typesafe.scalalogging.LazyLogging
 =======
 =======
@@ -60,6 +61,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> fb03d0d6b11 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 3b4fb8448f1 (GEOMESA-3254 Add Bloop build support)
@@ -117,6 +125,7 @@ import java.util.Map.Entry
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -127,6 +136,8 @@ import java.util.Map.Entry
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> a154b4927b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -139,6 +150,7 @@ import java.util.Map.Entry
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -192,6 +204,11 @@ import java.util.Map.Entry
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.apache.accumulo.core.conf.Property
 >>>>>>> 3b1d8cccf25 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.apache.accumulo.core.data.{Key, Range, Value}

@@ -379,6 +379,7 @@ class KafkaStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -749,6 +750,8 @@ class KafkaStore(
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 =======
   private val producer = KafkaStore.producer(config.producerConfig)
@@ -10756,14 +10759,18 @@ class KafkaStore(
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 =======
   private val producer = KafkaStore.producer(config.producerConfig)
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 60be59afe8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 76e4fe0b29 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -11809,6 +11816,8 @@ class KafkaStore(
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
   private val topic = LambdaDataStore.topic(sft, config.zkNamespace)
 
