@@ -176,6 +176,10 @@ object HBaseDataStore {
 
   object NoAuthsProvider extends AuthorizationsProvider {
     override def getAuthorizations: java.util.List[String] = null
+<<<<<<< HEAD
     override def configure(params: java.util.Map[String, _]): Unit = {}
+=======
+    override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
   }
 }
