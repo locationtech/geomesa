@@ -1452,6 +1452,7 @@ from ``List[String]`` to ``List[Double]``.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7048ab588f (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -1776,6 +1777,8 @@ from ``List[String]`` to ``List[Double]``.
 >>>>>>> 7a9bd1ebef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d58a385c84 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> 01daab72fe (GEOMESA-3109 Json array to object converter function (#2788))
@@ -2281,6 +2284,7 @@ from ``List[String]`` to ``List[Double]``.
 =======
 >>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 >>>>>>> 30dfb4b4a4 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> ffc41999a5 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -2432,6 +2436,8 @@ from ``List[String]`` to ``List[Double]``.
 =======
 >>>>>>> d58a385c84 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 >>>>>>> 1bc88f7e23 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> b23b68a157 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -2510,6 +2516,7 @@ from ``List[String]`` to ``List[Double]``.
 =======
 >>>>>>> 2cb3139392 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 >>>>>>> 7558f8f4ee (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 287eacef52 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -2606,6 +2613,8 @@ from ``List[String]`` to ``List[Double]``.
 >>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> d58a385c84 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> e7b61a536 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 448369e575 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -2631,6 +2640,7 @@ from ``List[String]`` to ``List[Double]``.
 =======
 >>>>>>> dd53c5e670 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 >>>>>>> 2db4ecdc72 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
@@ -2761,6 +2771,8 @@ from ``List[String]`` to ``List[Double]``.
 >>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> d58a385c84 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> c44517c36 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 6938112d54 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -9232,6 +9244,9 @@ from ``List[String]`` to ``List[Double]``.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -10895,6 +10910,7 @@ from ``List[String]`` to ``List[Double]``.
 >>>>>>> 0d4c68bda (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -13211,10 +13227,29 @@ from ``List[String]`` to ``List[Double]``.
 =======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 0d4c68bda (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> d58a385c84 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 6f7e363c7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> dd53c5e670 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 2cb3139392 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
 
@@ -13750,6 +13785,7 @@ Example: ``base64Decode('Zm9v')``
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e6ede6713f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -13910,6 +13946,8 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> 7a9bd1ebef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d58a385c84 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -14155,6 +14193,7 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 >>>>>>> 30dfb4b4a4 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> ffc41999a5 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -14809,6 +14848,8 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> d58a385c84 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -15313,6 +15354,8 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 2cb3139392 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 >>>>>>> 008feb67a (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 7982d54d93 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -15376,6 +15419,9 @@ Example: ``base64Decode('Zm9v')``
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 2db4ecdc72 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> b603094de2 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -15671,6 +15717,7 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -16282,6 +16329,10 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> 7a9bd1ebef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d58a385c84 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 99fd8486a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> a7ca1d57e6 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -21132,10 +21183,14 @@ Example: ``base64Decode('Zm9v')``
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 9738e164f5 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> b3bdbc9f8d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -21146,6 +21201,8 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 9738e164f5 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 1cc1e5df3 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
@@ -21171,8 +21228,11 @@ Example: ``base64Decode('Zm9v')``
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 6f7e363c7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -21215,6 +21275,7 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> 6f7e363c7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> dd53c5e670 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 >>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -21270,9 +21331,14 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 9738e164f5 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> dd53c5e670 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -21321,6 +21387,10 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+=======
+>>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 >>>>>>> 04d469083d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> dd53c5e670 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -21328,6 +21398,9 @@ Example: ``base64Decode('Zm9v')``
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 2db4ecdc72 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -21346,6 +21419,7 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 04d469083d (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 9738e164f5 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -21379,6 +21453,10 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> fd363ff8dc (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9759ddc1b (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 9c337194ec (GEOMESA-3109 Json array to object converter function (#2788))
@@ -21607,6 +21685,7 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 6f7e363c7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 >>>>>>> 94213b24a (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
@@ -21725,6 +21804,7 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> 9738e164f5 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 94213b24a (GEOMESA-3109 Json array to object converter function (#2788))
@@ -21783,8 +21863,13 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> fd363ff8dc (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -21898,6 +21983,8 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 >>>>>>> dd53c5e670 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 2db4ecdc72 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -21915,10 +22002,14 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 9738e164f5 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> dd53c5e670 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> 30dfb4b4a4 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -21947,6 +22038,8 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> fd363ff8dc (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> b5c172e61 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 >>>>>>> ae5490a34b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -28483,10 +28576,24 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 0d4c68bda (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> d58a385c84 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 6f7e363c7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> dd53c5e670 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 2cb3139392 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 5ee93d9232 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 457d31635c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 State Functions
 ~~~~~~~~~~~~~~~
 
