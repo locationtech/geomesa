@@ -66,6 +66,9 @@ function dependencies() {
     gavs+=(
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 234aacdc1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
       "org.apache.thrift:libthrift:%%thrift.version%%:jar"
 =======
 <<<<<<< HEAD
