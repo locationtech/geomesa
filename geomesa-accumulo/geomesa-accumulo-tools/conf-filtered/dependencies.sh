@@ -198,6 +198,7 @@ function dependencies() {
 =======
       "org.apache.commons:commons-collections4:4.3:jar"
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
       "org.apache.commons:commons-collections4:4.4:jar"
@@ -208,6 +209,9 @@ function dependencies() {
 =======
       "org.apache.commons:commons-collections4:4.3:jar"
 >>>>>>> 16f912e1ef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 120815d0b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> fd675cc6b6 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
       "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
     )
   fi
