@@ -45,6 +45,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFe
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -53,6 +54,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFe
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -63,6 +66,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFe
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 <<<<<<< HEAD
 >>>>>>> 60be59afe8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -137,6 +142,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFe
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -145,11 +151,18 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFe
 >>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
+>>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 <<<<<<< HEAD
@@ -185,6 +198,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFe
 >>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -242,6 +256,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFe
 =======
 >>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureReader, GeoMesaFeatureStore}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, NoopStats}
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
@@ -287,6 +303,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -295,6 +312,8 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -312,6 +331,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -342,6 +362,8 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     extends DataStore with HasGeoMesaStats with LazyLogging {
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -389,6 +411,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -397,12 +420,19 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
+>>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
     extends DataStore with HasGeoMesaStats with LazyLogging {
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
     extends DataStore with HasGeoMesaStats with LazyLogging {
@@ -439,6 +469,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 =======
     extends DataStore with HasGeoMesaStats with LazyLogging {
@@ -498,6 +529,8 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 =======
 >>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -1064,6 +1097,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c0f1a31c83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -1471,6 +1505,8 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 =======
 >>>>>>> 6b26d19d93 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -1512,6 +1548,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 215d6881a1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -1534,6 +1571,8 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> 30bb31e5b4 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 33b2e8d04f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 275e53813f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -11062,10 +11101,13 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 4010468d90 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -12650,6 +12692,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -15100,6 +15143,8 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
   private [lambda] val transients = Caffeine.newBuilder().build[String, TransientStore](
     new CacheLoader[String, TransientStore] {
       override def load(key: String): TransientStore =
@@ -15660,6 +15705,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> ba2e891f3d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -15943,6 +15989,8 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> 9dd4a005eb (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> 917dff0811 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -16583,6 +16631,8 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 =======
 >>>>>>> 38876e069f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 4010468d90 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> 0da1bb22c5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -24974,10 +25024,13 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 32b12d8c0f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 5b94153fb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -25774,6 +25827,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> 9e74e1d9b4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> 32b12d8c0f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -27143,6 +27197,8 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> 260d67442f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 9e74e1d9b4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 9dd4a005eb (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
   private [lambda] val transients = Caffeine.newBuilder().build(new CacheLoader[String, TransientStore] {
     override def load(key: String): TransientStore =
       new KafkaStore(persistence, persistence.getSchema(key), authProvider, config)
@@ -27177,12 +27233,15 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a00c7a6183 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 9ab62f6a78 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -27193,6 +27252,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 60be59afe8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -27224,6 +27284,10 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -38112,10 +38176,13 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 4010468d90 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -39565,6 +39632,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -42010,6 +42078,8 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
   override val stats: GeoMesaStats = persistence match {
     case p: HasGeoMesaStats => new LambdaStats(p.stats, transients)
