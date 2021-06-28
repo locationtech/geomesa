@@ -10224,14 +10224,18 @@ class ExpressionTest extends Specification {
     }
     "parse point geometries" >> {
       val exp = Expression("point($1, $2)")
-      exp.apply(Array("", Double.box(45.0), Double.box(45.0))).asInstanceOf[Point].getCoordinate mustEqual new Coordinate(45.0, 45.0)
-      exp.eval(Array("", 45.0, 45.0)).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(45.0, 45.0)
+      exp.apply(Array("", Double.box(45.0), Double.box(46.0))) mustEqual WKTUtils.read("POINT(45 46)")
+      exp.eval(Array("", 45.0, 46.0)) mustEqual WKTUtils.read("POINT(45 46)")
 
       val trans = Expression("point($0)")
-      trans.apply(Array("POINT(50 52)")).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(50, 52)
-      trans.eval(Array("POINT(50 52)")).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(50, 52)
+      trans.apply(Array("POINT(50 52)")) mustEqual WKTUtils.read("POINT(50 52)")
+      trans.eval(Array("POINT(50 52)")) mustEqual WKTUtils.read("POINT(50 52)")
 
+<<<<<<< HEAD
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+<<<<<<< HEAD
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
       // turn "Geometry" into "Point"
       val geoFac = new GeometryFactory()
       val geom = geoFac.createPoint(new Coordinate(55, 56)).asInstanceOf[Geometry]
@@ -10244,6 +10248,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10282,6 +10287,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 92dccb4d7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+=======
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
       val z = Expression("point($1,$2,$3)")
       z.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47))).asInstanceOf[Point]
           .getCoordinate.toString mustEqual new Coordinate(45.0, 46.0, 47).toString
@@ -10299,6 +10306,7 @@ class ExpressionTest extends Specification {
           .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
       m.eval(Array("", 45.0, 46.0, 47.0)).asInstanceOf[Point]
           .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14731,6 +14739,9 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     }
     "parse multipoint wkt and objects" >> {
       val geoFac = new GeometryFactory()
@@ -16197,6 +16208,15 @@ class ExpressionTest extends Specification {
       trans.apply(Array(x, y)) mustEqual expected
       trans.eval(Array(x, y)) mustEqual expected
     }
+    "parse multipoint from x/y coords" >> {
+      val expected = WKTUtils.read("MultiPoint((45.0 45.0), (50 52))")
+      expected must not(beNull)
+      val trans = Expression("multipoint($0, $1)")
+      val x = Seq(45, 50).asJava
+      val y = Seq(45, 52).asJava
+      trans.apply(Array(x, y)) mustEqual expected
+      trans.eval(Array(x, y)) mustEqual expected
+    }
     "parse linestring wkt and objects" >> {
       val geoFac = new GeometryFactory()
       val lineStr = geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
@@ -17652,6 +17672,15 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+    }
+    "parse linestring from x/y coords" >> {
+      val expected = WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
+      expected must not(beNull)
+      val trans = Expression("linestring($0, $1)")
+      val x = Seq(102, 103, 104, 105).asJava
+      val y = Seq(0, 1, 0, 1).asJava
+      trans.apply(Array(x, y)) mustEqual expected
+      trans.eval(Array(x, y)) mustEqual expected
     }
     "parse linestring from x/y coords" >> {
       val expected = WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
@@ -31658,6 +31687,11 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
     }
+    "add a list" >> {
+      val exp = Expression("add($0)")
+      exp.apply(Array(Seq("2","3").asJava)) mustEqual 5.0
+      exp.eval(Array(Seq("2","3").asJava)) mustEqual 5.0
+    }
     "multiply" >> {
       val exp1 = Expression("multiply($1,$2)")
       exp1.apply(Array("","1","2")) mustEqual 2.0
@@ -31831,6 +31865,11 @@ class ExpressionTest extends Specification {
       exp2.eval(Array("","-1","2","3.0")) mustEqual -6.0
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+    }
+    "multiply a list" >> {
+      val exp = Expression("multiply($0)")
+      exp.apply(Array(Seq("2","3").asJava)) mustEqual 6.0
+      exp.eval(Array(Seq("2","3").asJava)) mustEqual 6.0
     }
     "subtract" >> {
       val exp1 = Expression("subtract($1,$2)")
@@ -32006,6 +32045,11 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
     }
+    "subtract a list" >> {
+      val exp = Expression("subtract($0)")
+      exp.apply(Array(Seq("2","1").asJava)) mustEqual 1.0
+      exp.eval(Array(Seq("2","1").asJava)) mustEqual 1.0
+    }
     "divide" >> {
       val exp1 = Expression("divide($1,$2)")
       exp1.apply(Array("","2","1")) mustEqual 2.0
@@ -32180,6 +32224,11 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
     }
+    "divide a list" >> {
+      val exp = Expression("divide($0)")
+      exp.apply(Array(Seq("2","1").asJava)) mustEqual 2.0
+      exp.eval(Array(Seq("2","1").asJava)) mustEqual 2.0
+    }
     "find mean" >> {
       val exp1 = Expression("mean($1,$2,$3,$4)")
       exp1.apply(Array("","1","2","3","4")) mustEqual 2.5
@@ -32294,6 +32343,11 @@ class ExpressionTest extends Specification {
       exp1.eval(Array("","1","2","3","4")) mustEqual 2.5
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+    }
+    "find mean of list" >> {
+      val exp1 = Expression("mean($0)")
+      exp1.apply(Array(Seq("1","2","3","4").asJava)) mustEqual 2.5
+      exp1.eval(Array(Seq("1","2","3","4").asJava)) mustEqual 2.5
     }
     "find min" >> {
       val exp1 = Expression("min($1,$2,$3,$4)::int")
@@ -32447,6 +32501,16 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
     }
+    "find min of list" >> {
+      val exp1 = Expression("min($0)::int")
+      exp1.apply(Array(Seq("1","2","3","4").asJava)) mustEqual 1
+      exp1.eval(Array(Seq("1","2","3","4").asJava)) mustEqual 1
+    }
+    "find min of dates" >> {
+      val exp1 = Expression("min($0,$1,$2)")
+      exp1.apply(Array.tabulate(3)(i => new Date(i))) mustEqual new Date(0)
+      exp1.eval(Array.tabulate(3)(i => new Date(i))) mustEqual new Date(0)
+    }
     "find max" >> {
       val exp1 = Expression("max($1,$2,$3,$4)::int")
       exp1.apply(Array("","1","2","3","4")) mustEqual 4
@@ -32598,6 +32662,16 @@ class ExpressionTest extends Specification {
       exp1.eval(Array("","1","2","3","4")) mustEqual 4
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+    }
+    "find max of list" >> {
+      val exp1 = Expression("max($0)::int")
+      exp1.apply(Array(Seq("1","2","3","4").asJava)) mustEqual 4
+      exp1.eval(Array(Seq("1","2","3","4").asJava)) mustEqual 4
+    }
+    "find max of dates" >> {
+      val exp1 = Expression("max($0,$1,$2)")
+      exp1.apply(Array.tabulate(3)(i => new Date(i))) mustEqual new Date(2)
+      exp1.eval(Array.tabulate(3)(i => new Date(i))) mustEqual new Date(2)
     }
     "allow for number formatting using printf" >> {
       val exp = Expression("printf('%.2f', divide($1,$2,$3))")
@@ -39619,6 +39693,16 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+    }
+    "select a list item" >> {
+      val exp = Expression("listItem($0,1)")
+      exp.apply(Array(Seq(1000, 2000).asJava)) mustEqual 2000
+      exp.eval(Array(Seq(1000, 2000).asJava)) mustEqual 2000
+    }
+    "map a list" >> {
+      val exp = Expression("transformListItems($0,'millisToDate($0)')")
+      exp.apply(Array(Seq(1000, 2000).asJava)) mustEqual Seq(new Date(1000), new Date(2000)).asJava
+      exp.eval(Array(Seq(1000, 2000).asJava)) mustEqual Seq(new Date(1000), new Date(2000)).asJava
     }
   }
 }
