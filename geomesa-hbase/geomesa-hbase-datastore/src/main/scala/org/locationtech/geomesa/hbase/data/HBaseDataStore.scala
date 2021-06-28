@@ -176,7 +176,9 @@ object HBaseDataStore {
 
   object NoAuthsProvider extends AuthorizationsProvider {
     override def getAuthorizations: java.util.List[String] = null
+<<<<<<< HEAD
     override def configure(params: java.util.Map[String, _]): Unit = {}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -196,6 +198,8 @@ object HBaseDataStore {
 >>>>>>> 60be59afe8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
     override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
 <<<<<<< HEAD
@@ -223,6 +227,7 @@ object HBaseDataStore {
     override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 =======
     override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
@@ -252,5 +257,7 @@ object HBaseDataStore {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
   }
 }
