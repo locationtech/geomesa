@@ -2004,6 +2004,7 @@
                 <artifactId>accumulo-hadoop-mapreduce</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
+<<<<<<< HEAD
                 <exclusions>
                     <!-- exclude hadoop 3+ only jars, and manage them separately -->
                     <exclusion>
@@ -2019,6 +2020,8 @@
                         <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
+=======
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
             </dependency>
             <dependency>
                 <groupId>org.apache.thrift</groupId>
