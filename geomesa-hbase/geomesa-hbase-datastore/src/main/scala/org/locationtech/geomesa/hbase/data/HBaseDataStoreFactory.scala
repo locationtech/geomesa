@@ -64,6 +64,9 @@ import org.geotools.data.{DataStore, DataStoreFactorySpi}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1b3a148b37 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -237,9 +240,15 @@ import org.locationtech.geomesa.hbase.HBaseSystemProperties
 <<<<<<< HEAD
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+import org.locationtech.geomesa.hbase.HBaseSystemProperties
+=======
+<<<<<<< HEAD
+>>>>>>> 1a04676d44 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -456,6 +465,7 @@ import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4a51affd9e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -653,6 +663,11 @@ import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 >>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 1a04676d44 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 1b3a148b37 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.hbase.data.HBaseDataStore.NoAuthsProvider
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
