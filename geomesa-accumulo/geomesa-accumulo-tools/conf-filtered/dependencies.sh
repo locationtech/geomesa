@@ -95,6 +95,7 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       "org.apache.thrift:libthrift:0.12.0:jar"
 =======
 =======
@@ -131,6 +132,8 @@ function dependencies() {
 >>>>>>> 9f1e983c633 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> de3e5a3cc80 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> bde70962716 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -143,6 +146,8 @@ function dependencies() {
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 991f10e2a4 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> ce026b5c8a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -159,6 +164,7 @@ function dependencies() {
 =======
 >>>>>>> 234aacdc1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -192,6 +198,10 @@ function dependencies() {
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 991f10e2a4 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> ce026b5c8a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
       "org.apache.thrift:libthrift:%%thrift.version%%:jar"
 =======
 <<<<<<< HEAD
@@ -201,6 +211,7 @@ function dependencies() {
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
       "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
 >>>>>>> 120815d0b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -218,6 +229,9 @@ function dependencies() {
 =======
 <<<<<<< HEAD
 >>>>>>> e4edd3d6ceb (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+<<<<<<< HEAD
+>>>>>>> bde70962716 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     )
   else
     gavs+=(
@@ -312,6 +326,8 @@ function dependencies() {
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> ce026b5c8a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     )
   else
     gavs+=(
@@ -354,6 +370,8 @@ function dependencies() {
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
       "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
+=======
+>>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     )
   fi
 
