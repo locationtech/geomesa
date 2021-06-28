@@ -17083,6 +17083,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 8a671ae630 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -17205,6 +17206,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> e4688de07e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> de8cb22987 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 =======
 >>>>>>> 9e8a3c11c3 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -17287,6 +17290,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> ca34f46df7 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 0e18131667 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 >>>>>>> 500975957 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 63203d9a42 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -17338,6 +17343,8 @@ class ExpressionTest extends Specification {
 >>>>>>> d79d99099b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> ccaae60e3f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 027d1bef2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> 83670fc93 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -21930,6 +21937,8 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> eccc16ddf (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> c3e314fa8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
       exp.apply(Array("", Double.box(45.0), Double.box(46.0))) mustEqual WKTUtils.read("POINT(45 46)")
       exp.eval(Array("", 45.0, 46.0)) mustEqual WKTUtils.read("POINT(45 46)")
 
@@ -28816,11 +28825,16 @@ class ExpressionTest extends Specification {
 =======
       exp.apply(Array("", Double.box(45.0), Double.box(45.0))).asInstanceOf[Point].getCoordinate mustEqual new Coordinate(45.0, 45.0)
       exp.eval(Array("", 45.0, 45.0)).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(45.0, 45.0)
+=======
+      exp.apply(Array("", Double.box(45.0), Double.box(46.0))) mustEqual WKTUtils.read("POINT(45 46)")
+      exp.eval(Array("", 45.0, 46.0)) mustEqual WKTUtils.read("POINT(45 46)")
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
       val trans = Expression("point($0)")
-      trans.apply(Array("POINT(50 52)")).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(50, 52)
-      trans.eval(Array("POINT(50 52)")).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(50, 52)
+      trans.apply(Array("POINT(50 52)")) mustEqual WKTUtils.read("POINT(50 52)")
+      trans.eval(Array("POINT(50 52)")) mustEqual WKTUtils.read("POINT(50 52)")
 
+<<<<<<< HEAD
       // turn "Geometry" into "Point"
       val geoFac = new GeometryFactory()
       val geom = geoFac.createPoint(new Coordinate(55, 56)).asInstanceOf[Geometry]
@@ -28830,11 +28844,45 @@ class ExpressionTest extends Specification {
         res.asInstanceOf[Point] mustEqual geoFac.createPoint(new Coordinate(55, 56))
       }
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> eccc16ddf (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> ccaae60e3f (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> ca34f46df7 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> e4688de07e (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+=======
+=======
+=======
+      val z = Expression("point($1,$2,$3)")
+      z.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47))).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new Coordinate(45.0, 46.0, 47).toString
+      z.eval(Array("", 45.0, 46.0, 47.0)).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new Coordinate(45.0, 46.0, 47).toString
+
+      val zm = Expression("point($1,$2,$3,$4)")
+      zm.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47), Double.box(48))).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new CoordinateXYZM(45.0, 46.0, 47, 48).toString
+      zm.eval(Array("", 45.0, 46.0, 47.0, 48)).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new CoordinateXYZM(45.0, 46.0, 47, 48).toString
+
+      val m = Expression("pointM($1,$2,$3)")
+      m.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47))).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
+      m.eval(Array("", 45.0, 46.0, 47.0)).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> c3e314fa8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 027d1bef2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 0e18131667 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> de8cb22987 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     }
     "parse multipoint wkt and objects" >> {
       val geoFac = new GeometryFactory()
@@ -31432,6 +31480,15 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
     }
+    "parse multipoint from x/y coords" >> {
+      val expected = WKTUtils.read("MultiPoint((45.0 45.0), (50 52))")
+      expected must not(beNull)
+      val trans = Expression("multipoint($0, $1)")
+      val x = Seq(45, 50).asJava
+      val y = Seq(45, 52).asJava
+      trans.apply(Array(x, y)) mustEqual expected
+      trans.eval(Array(x, y)) mustEqual expected
+    }
     "parse linestring wkt and objects" >> {
       val geoFac = new GeometryFactory()
       val lineStr = geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
@@ -34027,6 +34084,15 @@ class ExpressionTest extends Specification {
       trans.eval(Array(x, y)) mustEqual expected
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+    }
+    "parse linestring from x/y coords" >> {
+      val expected = WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
+      expected must not(beNull)
+      val trans = Expression("linestring($0, $1)")
+      val x = Seq(102, 103, 104, 105).asJava
+      val y = Seq(0, 1, 0, 1).asJava
+      trans.apply(Array(x, y)) mustEqual expected
+      trans.eval(Array(x, y)) mustEqual expected
     }
     "parse multilinestring wkt and objects" >> {
       val geoFac = new GeometryFactory()
