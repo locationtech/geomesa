@@ -95,6 +95,13 @@ The bulk ingest command will ingest directly to Accumulo RFiles and then import 
 the normal write path. See `Bulk Ingest <https://accumulo.apache.org/docs/2.x/development/high_speed_ingest#bulk-ingest>`__
 in the Accumulo documentation for additional details.
 
+<<<<<<< HEAD
+=======
+.. note::
+
+  Bulk ingest is currently only implemented for Accumulo 2.0.
+
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 The data to be ingested must be in the same distributed file system that Accumulo is using, and the ingest
 must run in ``distributed`` mode as a map/reduce job.
 
