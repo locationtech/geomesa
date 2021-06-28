@@ -594,7 +594,11 @@
             <artifactId>hadoop-mapreduce-client-core</artifactId>
         </dependency>
 =======
+<<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
         <!-- test dependencies -->
         <dependency>
