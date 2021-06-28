@@ -190,6 +190,7 @@ function dependencies() {
   else
     gavs+=(
 <<<<<<< HEAD
+<<<<<<< HEAD
       "org.apache.commons:commons-collections4:4.3:jar"
 =======
 <<<<<<< HEAD
@@ -204,6 +205,9 @@ function dependencies() {
 =======
       "org.apache.commons:commons-collections4:4.4:jar"
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+      "org.apache.commons:commons-collections4:4.3:jar"
+>>>>>>> 16f912e1ef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
       "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
     )
   fi
