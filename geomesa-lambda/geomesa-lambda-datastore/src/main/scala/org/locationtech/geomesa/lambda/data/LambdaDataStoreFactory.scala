@@ -15,6 +15,7 @@ package org.locationtech.geomesa.lambda.data
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 =======
@@ -30,6 +31,8 @@ import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 >>>>>>> 9b5b23eb090 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 2af63e167d9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 97b68a5fbb8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 =======
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -39,10 +42,13 @@ import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 =======
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 import java.awt.RenderingHints.Key
 import java.io.Serializable
 import java.time.Clock
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -66,6 +72,9 @@ import java.time.Clock
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 >>>>>>> 69a1e5094b5 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -83,6 +92,7 @@ import java.time.Clock
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -107,6 +117,10 @@ import java.time.Clock
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import scala.reflect.ClassTag
 
 class LambdaDataStoreFactory extends DataStoreFactorySpi {
@@ -121,6 +135,7 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
 <<<<<<< HEAD
@@ -149,6 +164,11 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+  override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     // TODO GEOMESA-1891 attribute level vis
     val persistence = new AccumuloDataStoreFactory().createDataStore(LambdaDataStoreFactory.filter(params))
     val config = LambdaDataStoreParams.parse(params, persistence.config.catalog)
@@ -231,12 +251,15 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 
     @deprecated("replaced with LambdaDataStoreParams")
@@ -263,6 +286,7 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -282,6 +306,9 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
   }
 
   private def copy[T <: AnyRef](p: GeoMesaParam[T])(implicit ct: ClassTag[T]): GeoMesaParam[T] = {
@@ -303,6 +330,7 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         .asJava.asInstanceOf[java.util.Map[String, Serializable]]
 <<<<<<< HEAD
@@ -331,5 +359,10 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
         .asJava.asInstanceOf[java.util.Map[String, Serializable]]
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+        .asJava.asInstanceOf[java.util.Map[String, Serializable]]
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
   }
 }
