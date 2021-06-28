@@ -46,6 +46,7 @@ import org.geotools.data.{DataStore, DataStoreFactorySpi}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -82,6 +83,8 @@ import org.geotools.data.{DataStore, DataStoreFactorySpi}
 >>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 2ee6a1e51f (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+>>>>>>> 04cf999171 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 =======
 import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
@@ -126,6 +129,7 @@ import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 =======
 >>>>>>> 16f912e1ef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 >>>>>>> fd675cc6b6 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -134,6 +138,8 @@ import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 =======
 >>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+=======
+>>>>>>> 04cf999171 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -143,6 +149,7 @@ import org.locationtech.geomesa.hbase.HBaseSystemProperties
 >>>>>>> 585c5638c0 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 =======
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> b54485f5a2 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -309,6 +316,14 @@ import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 =======
 >>>>>>> 585c5638c0 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 >>>>>>> 2ee6a1e51f (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+import org.locationtech.geomesa.hbase.HBaseSystemProperties
+=======
+import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 468ab7139 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 16f912e1ef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 04cf999171 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.hbase.data.HBaseDataStore.NoAuthsProvider
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
