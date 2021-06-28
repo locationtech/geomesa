@@ -23,6 +23,7 @@ package org.locationtech.geomesa.utils.uuid
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 =======
 =======
@@ -53,6 +54,8 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 >>>>>>> de3e5a3cc80 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> bde70962716 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> bf685aa0b4b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
@@ -79,14 +82,19 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 >>>>>>> 991f10e2a4 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> ce026b5c8a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
+=======
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
 =======
 import java.util.Date
 
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777)):geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -102,6 +110,10 @@ import java.util.Date
 >>>>>>> 93e36893445 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 2bf9294f93e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> bf685aa0b4b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -235,12 +247,15 @@ import java.util.Date
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 2af63e167d9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> f5016115b5a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> bde70962716 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> bf685aa0b4b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
@@ -498,7 +513,14 @@ import java.util.Date
 =======
 =======
 >>>>>>> ce026b5c8a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> bde70962716 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+=======
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> bf685aa0b4b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod}
