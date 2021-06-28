@@ -37,6 +37,7 @@ package org.locationtech.geomesa.accumulo.data
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import com.typesafe.scalalogging.LazyLogging
 =======
 =======
@@ -95,6 +96,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 46aa4020a84 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 301b8b33945 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> c20d5532a76 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 =======
 =======
@@ -221,10 +224,14 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 1a04676d44 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 1b3a148b37 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 1a04676d44 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import java.nio.charset.StandardCharsets
 import java.util.Collections
 import java.util.Map.Entry
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -434,6 +441,9 @@ import java.util.Map.Entry
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 1a04676d44 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 1b3a148b37 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 1a04676d44 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.apache.accumulo.core.conf.Property
 >>>>>>> 3b1d8cccf25 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.apache.accumulo.core.data.{Key, Range, Value}
