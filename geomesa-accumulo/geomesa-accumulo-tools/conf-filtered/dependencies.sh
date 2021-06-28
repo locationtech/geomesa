@@ -73,6 +73,7 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 234aacdc1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -136,6 +137,8 @@ function dependencies() {
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> locationtech-main
+=======
+>>>>>>> 1a04676d44 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
       "org.apache.thrift:libthrift:%%thrift.version%%:jar"
 =======
 <<<<<<< HEAD
@@ -145,6 +148,7 @@ function dependencies() {
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
       "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
 >>>>>>> 120815d0b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -271,6 +275,8 @@ function dependencies() {
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 1a04676d44 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     )
   fi
 
