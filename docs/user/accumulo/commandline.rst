@@ -197,6 +197,7 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -215,6 +216,10 @@ in the Accumulo documentation for additional details.
 >>>>>>> ce026b5c8a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -223,6 +228,9 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
@@ -254,6 +262,7 @@ in the Accumulo documentation for additional details.
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -304,6 +313,8 @@ in the Accumulo documentation for additional details.
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 The data to be ingested must be in the same distributed file system that Accumulo is using, and the ingest
 must run in ``distributed`` mode as a map/reduce job.
 
