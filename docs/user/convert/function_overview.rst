@@ -309,6 +309,7 @@ List and Map Functions
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
@@ -2747,6 +2748,8 @@ Encoding Functions
 >>>>>>> d69cb74390 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 3070a314b6 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 5ffe5c1383 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
@@ -3063,6 +3066,8 @@ Encoding Functions
 =======
 >>>>>>> a8d5a2eb59 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> e4bed11ff8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 >>>>>>> 3f50ce5c7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> a05012d5a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -3151,7 +3156,12 @@ Encoding Functions
 =======
 =======
 >>>>>>> a38616a270 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> a8d5a2eb59 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> a9e851ba1f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> e4bed11ff8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
@@ -3527,6 +3537,8 @@ Encoding Functions
 >>>>>>> 5e763f098 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> a990ff330 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> b23b68a15 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
@@ -3567,12 +3579,16 @@ Encoding Functions
 -  ``base64Decode``
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> f487c279d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
 
 -  ``base64Encode``
 -  ``base64Decode``
+=======
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
 Control Functions
 ~~~~~~~~~~~~~~~~~
