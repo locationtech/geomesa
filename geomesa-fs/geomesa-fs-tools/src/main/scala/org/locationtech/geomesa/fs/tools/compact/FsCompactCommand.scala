@@ -33,6 +33,7 @@ import org.locationtech.geomesa.tools.utils.TerminalCallback.PrintProgress
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import org.locationtech.geomesa.tools._
 <<<<<<< HEAD
@@ -61,6 +62,11 @@ import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools._
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+import org.locationtech.geomesa.tools._
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
 
@@ -162,6 +168,7 @@ object FsCompactCommand {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
           job.run(storage, toCompact, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
 <<<<<<< HEAD
@@ -190,6 +197,11 @@ object FsCompactCommand {
           job.run(storage, toCompact, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+          job.run(storage, toCompact, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
             case JobSuccess(message, counts) =>
               Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
               val success = counts(FileSystemCompactionJob.MappedCounter)
