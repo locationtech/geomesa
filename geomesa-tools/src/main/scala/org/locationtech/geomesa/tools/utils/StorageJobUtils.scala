@@ -1,5 +1,13 @@
 /***********************************************************************
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 2b1d931578 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,11 +16,25 @@
 
 package org.locationtech.geomesa.tools.utils
 
+<<<<<<< HEAD
+=======
+import java.util.Collections
+
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
+<<<<<<< HEAD
+=======
+import org.locationtech.geomesa.tools.Command
 
+<<<<<<< HEAD
+import java.util.Collections
+>>>>>>> 5090f41d15b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+
+=======
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 object StorageJobUtils extends LazyLogging {
 
   @deprecated("Replaced with org.locationtech.geomesa.tools.utils.DistributedCopy")
