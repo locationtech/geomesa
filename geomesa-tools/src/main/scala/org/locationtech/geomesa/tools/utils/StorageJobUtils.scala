@@ -47,6 +47,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -146,6 +147,8 @@
 >>>>>>> 5d4d794162 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 3689edc98a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 81265a9809 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 =======
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -261,11 +264,17 @@
 =======
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 3689edc98a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 4a51affd9e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 81265a9809 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -275,6 +284,8 @@
 >>>>>>> 9ad047a33f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> c4e9a8c494 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 81265a9809 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> 92dccb4d7a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -929,7 +940,12 @@
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 3689edc98a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 4a51affd9e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 81265a9809 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -938,6 +954,7 @@
 
 package org.locationtech.geomesa.tools.utils
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1034,6 +1051,12 @@ import java.util.Collections
 >>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+import java.util.Collections
+
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 4a51affd9e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -1058,6 +1081,7 @@ import java.util.Collections
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1130,6 +1154,10 @@ import java.util.Collections
 >>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 4a51affd9e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 object StorageJobUtils extends LazyLogging {
 
   def distCopy(
