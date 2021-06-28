@@ -29,6 +29,7 @@ package org.locationtech.geomesa.tools
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -41,6 +42,8 @@ package org.locationtech.geomesa.tools
 >>>>>>> 991f10e2a4 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> ce026b5c8a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -58,6 +61,7 @@ package org.locationtech.geomesa.tools
 =======
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -159,9 +163,12 @@ import java.util.regex.Pattern
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> ce026b5c8a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import java.util
 import java.util.regex.Pattern
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -206,7 +213,13 @@ import java.util.regex.Pattern
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> ce026b5c8a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import com.beust.jcommander.validators.PositiveInteger
 >>>>>>> 5090f41d15b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import com.beust.jcommander.{Parameter, ParameterException}
