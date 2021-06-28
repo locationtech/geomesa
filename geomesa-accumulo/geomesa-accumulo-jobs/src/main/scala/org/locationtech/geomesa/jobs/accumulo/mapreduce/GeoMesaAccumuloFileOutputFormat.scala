@@ -130,6 +130,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 93ad8dd735 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -274,6 +275,8 @@
 >>>>>>> a00c7a6183 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> e29676c9b5 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -688,6 +691,7 @@
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> b00320b6d7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -1033,6 +1037,8 @@
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 =======
 <<<<<<< HEAD
@@ -2187,8 +2193,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -3180,6 +3189,7 @@
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> b00320b6d7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -3706,6 +3716,8 @@
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
