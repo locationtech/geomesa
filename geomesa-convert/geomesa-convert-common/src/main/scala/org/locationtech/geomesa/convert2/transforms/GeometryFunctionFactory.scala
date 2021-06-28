@@ -629,6 +629,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6d51efa18f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -659,6 +660,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> a00c7a6183 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 9f4dc60aaa (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 914d29005e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -706,6 +709,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 1833cacd09 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -1273,6 +1277,10 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> a00c7a6183 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 9f4dc60aaa (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9cdd96d1c0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -4369,6 +4377,9 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -8426,7 +8437,12 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 455aae09d3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1833cacd09 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 9f4dc60aaa (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     case Array(x: Number, y: Number) => gf.createPoint(coord(x, y))
     case Array(x: Number, y: Number, z: Number) => gf.createPoint(coordZ(x, y, z))
     case Array(x: Number, y: Number, z: Number, m: Number) => gf.createPoint(coordZM(x, y, z, m))
@@ -8847,6 +8863,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bad7dfea60 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -8867,6 +8884,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 437d0aab1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 8150528476 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -8901,6 +8920,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> 79f7551983 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -8959,6 +8979,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     case args if args.nonEmpty && args.lengthCompare(4) <= 0 && args.forall(_ == null) => null
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -9091,8 +9113,11 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 437d0aab1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -9120,10 +9145,14 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 036a470d76 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> 83f8dc29e3 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -9160,6 +9189,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 59d379d9d7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 437d0aab1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     case args if args.nonEmpty && args.lengthCompare(4) <= 0 && args.forall(_ == null) => null
 <<<<<<< HEAD
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -10952,6 +10983,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 7e68948ac6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -11335,6 +11367,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 314e6ef1a2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> c3e314fa80 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 61771d8a02 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -18564,12 +18597,16 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 314e6ef1a2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> f426184ec6 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     case args if args.nonEmpty && args.lengthCompare(4) <= 0 && args.forall(_ == null) => null
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23228,6 +23265,9 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 314e6ef1a2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     case args => throw new IllegalArgumentException(s"Invalid point conversion argument: ${args.mkString(",")}")
   }
 
@@ -23247,6 +23287,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -24647,6 +24688,9 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 6f7e363c75 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> c3e314fa80 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -24659,6 +24703,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 =======
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> 6f7e363c75 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -24681,6 +24726,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 61771d8a02 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> b761d87009 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -24697,6 +24744,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -24713,6 +24761,10 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> b059fd9ac1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> b761d87009 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 4073c9b173 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -25875,11 +25927,15 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 6f7e363c75 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 >>>>>>> 6f7e363c75 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> b00320b6d7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -25890,6 +25946,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 9f463efab2 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
@@ -25898,6 +25956,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -25906,6 +25965,10 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> f426184ec6 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 9f463efab2 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 30d431265 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 >>>>>>> 98a03c5861 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -25930,8 +25993,11 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -31832,7 +31898,14 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 =======
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     case Array(x: java.util.List[_], y: java.util.List[_]) =>
       val coords = Array.ofDim[Coordinate](x.size)
       var i = 0
@@ -31846,6 +31919,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -34031,11 +34105,22 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 314e6ef1a2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -34263,6 +34348,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 >>>>>>> 8150528476 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0af33260a0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -34296,6 +34383,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> e56fd38aa5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -35121,6 +35209,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9cdd96d1c0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
@@ -42664,6 +42754,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 314e6ef1a2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 6bd64e6308 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -42728,8 +42819,13 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -42760,6 +42856,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 59d379d9d7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 7e68948ac6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 8150528476 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -43002,12 +43100,16 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 314e6ef1a2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 =======
 >>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -46091,6 +46193,9 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid multipoint conversion argument: ${args.mkString(",")}")
   }
@@ -46105,6 +46210,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -47505,6 +47611,9 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 6f7e363c75 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> c3e314fa80 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -47517,6 +47626,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 =======
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> 6f7e363c75 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -47539,6 +47649,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 61771d8a02 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> b761d87009 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -47555,6 +47667,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -47571,6 +47684,10 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> b059fd9ac1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> b761d87009 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 4073c9b173 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -48733,11 +48850,15 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 6f7e363c75 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 >>>>>>> 6f7e363c75 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> b00320b6d7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -48748,6 +48869,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 9f463efab2 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
@@ -48756,6 +48879,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -48764,6 +48888,10 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> f426184ec6 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 9f463efab2 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 30d431265 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 >>>>>>> 98a03c5861 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -48788,8 +48916,11 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -54690,7 +54821,14 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 =======
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     case Array(x: java.util.List[_], y: java.util.List[_]) =>
       val coords = Array.ofDim[Coordinate](x.size)
       var i = 0
@@ -54704,6 +54842,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -56889,11 +57028,22 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 314e6ef1a2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -57121,6 +57271,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 >>>>>>> 8150528476 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0af33260a0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -57154,6 +57306,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> e56fd38aa5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -57979,6 +58132,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9cdd96d1c0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
@@ -65522,6 +65677,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 314e6ef1a2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 6bd64e6308 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -65586,8 +65742,13 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -65618,6 +65779,8 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 59d379d9d7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 7e68948ac6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 8150528476 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -65860,12 +66023,16 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 314e6ef1a2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 =======
 >>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -68949,6 +69116,9 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 8e99048edc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 14fdaf081b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid linestring conversion argument: ${args.mkString(",")}")
   }
