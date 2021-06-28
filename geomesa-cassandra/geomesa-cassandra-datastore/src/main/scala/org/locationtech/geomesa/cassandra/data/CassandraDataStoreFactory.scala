@@ -19,6 +19,7 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.{CassandraDataStoreConfig, CassandraQueryConfig}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
+import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
@@ -90,9 +91,11 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
       caching = CachingParam.lookup(params)
     )
 
+    val authProvider = new DefaultAuthorizationsProvider()
+
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 
-    val cfg = CassandraDataStoreConfig(catalog, generateStats, audit, queries, ns)
+    val cfg = CassandraDataStoreConfig(catalog, generateStats, authProvider, audit, queries, ns)
 
     new CassandraDataStore(session, cfg)
   }
@@ -195,6 +198,7 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
   case class CassandraDataStoreConfig(
       catalog: String,
       generateStats: Boolean,
+      authProvider: AuthorizationsProvider,
       audit: Option[(AuditWriter, AuditProvider, String)],
       queries: CassandraQueryConfig,
       namespace: Option[String]

@@ -26,6 +26,7 @@ import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
+import org.locationtech.geomesa.security.DefaultAuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -204,6 +205,7 @@ object TestGeoMesaDataStore {
 
   case class TestConfig(looseBBox: Boolean) extends GeoMesaDataStoreConfig {
     override val catalog: String = "test"
+    override val authProvider = new DefaultAuthorizationsProvider()
     override val audit: Option[(AuditWriter, AuditProvider, String)] = None
     override val generateStats: Boolean = true
     override val queries: DataStoreQueryConfig = new DataStoreQueryConfig() {

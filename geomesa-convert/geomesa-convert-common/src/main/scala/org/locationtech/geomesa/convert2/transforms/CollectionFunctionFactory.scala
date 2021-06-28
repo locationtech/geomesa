@@ -10,14 +10,18 @@ package org.locationtech.geomesa.convert2.transforms
 
 import java.util.{Collections, UUID}
 
-import org.locationtech.geomesa.convert2.transforms.CollectionFunctionFactory.CollectionParsing
+import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert2.transforms.CollectionFunctionFactory.{CollectionParsing, TransformList}
+import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
+import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
 class CollectionFunctionFactory extends TransformerFunctionFactory with CollectionParsing {
 
   import scala.collection.JavaConverters._
 
-  override def functions: Seq[TransformerFunction] = Seq(listParserFn, mapParserFn, listFn, mapValueFunction)
+  override def functions: Seq[TransformerFunction] =
+    Seq(listParserFn, mapParserFn, listFn, mapValueFunction, transformList, listItem)
 
   private val defaultListDelim = ","
   private val defaultKVDelim   = "->"
@@ -72,6 +76,16 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
       case m => throw new IllegalArgumentException(s"Expected a java.util.Map but got $m:${m.getClass.getName}")
     }
   }
+
+  private val listItem = TransformerFunction.pure("listItem") { args =>
+    args(0) match {
+      case list: java.util.List[Any] => list.get(args(1).asInstanceOf[Int])
+      case null => null
+      case list => throw new IllegalArgumentException(s"Expected a java.util.List but got $list:${list.getClass.getName}")
+    }
+  }
+
+  private val transformList = new TransformList(null)
 }
 
 object CollectionFunctionFactory {
@@ -96,6 +110,31 @@ object CollectionFunctionFactory {
       case "bytes"            => classOf[Array[Byte]]
       case "uuid"             => classOf[UUID]
       case "date"             => classOf[java.util.Date]
+    }
+  }
+
+  private class TransformList(exp: Expression) extends NamedTransformerFunction(Seq("transformListItems")) {
+
+    import scala.collection.JavaConverters._
+
+    override def apply(args: Array[AnyRef]): AnyRef = {
+      args(0) match {
+        case null => null
+        case list: java.util.List[AnyRef] => list.asScala.map(a => exp.apply(Array(a))).asJava
+        case list => throw new IllegalArgumentException(s"Expected a java.util.List but got $list:${list.getClass.getName}")
+      }
+    }
+
+    override def withContext(ec: EvaluationContext): TransformerFunction = {
+      val ewc = exp.withContext(ec)
+      if (exp.eq(ewc)) { this } else { new TransformList(ewc) }
+    }
+
+    override def getInstance(args: List[Expression]): TransformerFunction = {
+      args(1) match {
+        case LiteralString(exp) => new TransformList(Expression(exp))
+        case a => throw new IllegalArgumentException(s"${names.head} invoked with non-literal expression argument: $a")
+      }
     }
   }
 }

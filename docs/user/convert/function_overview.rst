@@ -63,6 +63,7 @@ Geometry Functions
 ~~~~~~~~~~~~~~~~~~
 
 -  ``point``
+-  ``pointM``
 -  ``multipoint``
 -  ``linestring``
 -  ``multilinestring``
@@ -99,9 +100,11 @@ List and Map Functions
 ~~~~~~~~~~~~~~~~~~~~~~
 
 -  ``list``
+-  ``listItem``
 -  ``mapValue``
 -  ``parseList``
 -  ``parseMap``
+-  ``transformListItems``
 
 Control Functions
 ~~~~~~~~~~~~~~~~~
