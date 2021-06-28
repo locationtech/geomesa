@@ -134,6 +134,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+=======
+>>>>>>> a48d2aebda (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2834,9 +2838,14 @@
 =======
 >>>>>>> 195d1e0018 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
+>>>>>>> a48d2aebda (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 496b655fad (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -3218,6 +3227,9 @@
 >>>>>>> af14a7d63a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 752f4909cb (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 77735bab32 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> a48d2aebda (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -3322,6 +3334,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> a48d2aebda (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6057,7 +6073,13 @@
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 1a04676d44 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 1b3a148b37 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 77735bab32 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> a48d2aebda (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
