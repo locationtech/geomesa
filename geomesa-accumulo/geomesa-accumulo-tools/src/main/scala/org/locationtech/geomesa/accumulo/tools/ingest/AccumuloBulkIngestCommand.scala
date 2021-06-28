@@ -1,5 +1,13 @@
 /***********************************************************************
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 2b1d931578 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,6 +16,11 @@
 
 package org.locationtech.geomesa.accumulo.tools.ingest
 
+<<<<<<< HEAD
+=======
+import java.io.File
+
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.config.Config
 import org.apache.hadoop.conf.Configuration
@@ -16,12 +29,19 @@ import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+<<<<<<< HEAD
 import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloFileOutputFormat
+=======
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.accumulo.tools.AccumuloDataStoreCommand.AccumuloDistributedCommand
 import org.locationtech.geomesa.accumulo.tools.AccumuloDataStoreParams
 import org.locationtech.geomesa.accumulo.tools.ingest.AccumuloBulkIngestCommand.AccumuloBulkIngestParams
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.jobs.JobResult.JobSuccess
+<<<<<<< HEAD
+=======
+import org.locationtech.geomesa.jobs.accumulo.mapreduce.GeoMesaAccumuloFileOutputFormat
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
 import org.locationtech.geomesa.jobs.{Awaitable, JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
@@ -30,11 +50,18 @@ import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.utils.{Prompt, StorageJobUtils}
+<<<<<<< HEAD
 import org.locationtech.geomesa.utils.hadoop.HadoopDelegate
 import org.locationtech.geomesa.utils.index.IndexMode
 
 import java.io.File
 
+=======
+import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.fs.HadoopDelegate.HiddenFileFilter
+import org.opengis.feature.simple.SimpleFeatureType
+
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with AccumuloDistributedCommand {
 
   override val name = "bulk-ingest"
@@ -166,7 +193,11 @@ class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with Ac
             val file = files.next()
             val path = file.getPath
             val table = path.getName
+<<<<<<< HEAD
             if (file.isDirectory && HadoopDelegate.HiddenFileFilter.accept(path) && tableOps.exists(table)) {
+=======
+            if (file.isDirectory && HiddenFileFilter.accept(path) && tableOps.exists(table)) {
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
               Command.user.info(s"Importing $table")
               tableOps.importDirectory(path.toString).to(table).load()
             }
