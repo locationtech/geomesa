@@ -176,7 +176,9 @@ object HBaseDataStore {
 
   object NoAuthsProvider extends AuthorizationsProvider {
     override def getAuthorizations: java.util.List[String] = null
+<<<<<<< HEAD
     override def configure(params: java.util.Map[String, _]): Unit = {}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -209,6 +211,8 @@ object HBaseDataStore {
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -219,6 +223,7 @@ object HBaseDataStore {
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -250,6 +255,10 @@ object HBaseDataStore {
 >>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
     override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -296,10 +305,13 @@ object HBaseDataStore {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> ce026b5c8a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
     override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
@@ -338,6 +350,7 @@ object HBaseDataStore {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -398,5 +411,9 @@ object HBaseDataStore {
 >>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
   }
 }
