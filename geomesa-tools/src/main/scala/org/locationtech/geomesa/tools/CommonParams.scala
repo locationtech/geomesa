@@ -8,6 +8,12 @@
 
 package org.locationtech.geomesa.tools
 
+<<<<<<< HEAD
+=======
+import java.util
+import java.util.regex.Pattern
+
+>>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.geotools.api.filter.Filter
