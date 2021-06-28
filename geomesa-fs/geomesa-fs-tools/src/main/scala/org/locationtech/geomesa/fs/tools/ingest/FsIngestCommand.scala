@@ -33,10 +33,13 @@ import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 60be59afe8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.{Command, TempPathParam}
@@ -57,6 +60,7 @@ import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.{Command, TempPathParam}
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -90,6 +94,8 @@ import org.locationtech.geomesa.tools.{Command, TempPathParam}
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 60be59afe8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
