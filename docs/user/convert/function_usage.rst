@@ -541,7 +541,7 @@ ID Functions
 stringToBytes
 ^^^^^^^^^^^^^
 
-Description: Converts a string to a UTF-8 byte array (to pass to ``md5()`` or ``base64()``).
+Description: Converts a string to a UTF-8 byte array (to pass to other functions like ``md5()``).
 
 Usage: ``stringToBytes($0)``
 
@@ -565,15 +565,24 @@ Usage: ``murmur3_32($0)``
 
 Example: ``murmur3_32('row,of,data')``
 
-murmur3_128
+murmur3_64
+^^^^^^^^^^
+
+Description: Creates a 64-bit murmur3 hash from a string. Note that previously this function was incorrectly
+named ``murmur3_128``, and can still be invoked by that name.
+
+Usage: ``murmur3_64($0)``
+
+Example: ``murmur3_64('row,of,data')``
+
+murmur3Hash
 ^^^^^^^^^^^
 
-Description: Creates a 128-bit murmur3 hash from a string. Note that previously this function was incorrectly
-named ``murmur3_64``, and can still be invoked by that name.
+Description: Creates a 128-bit murmur3 hash from a string or byte array, returned as a hex string.
 
-Usage: ``murmur3_128($0)``
+Usage: ``murmur3Hash($0)``
 
-Example: ``murmur3_128('row,of,data')``
+Example: ``murmur3Hash('row,of,data')``
 
 uuid
 ^^^^
@@ -603,15 +612,6 @@ Usage: ``uuidZ3Centroid($geom, $date, $interval)``
 Example: ``uuidZ3Centroid(linestring('LINESTRING(102 0, 103 1, 104 0, 105 1)', dateTime('2015-01-01T00:00:00.000Z'), 'week')``
 
 See :ref:`customizing_z_index` for details on Z3 intervals.
-
-base64
-^^^^^^
-
-Description: Encodes a byte array as a base-64 string.
-
-Usage; ``base64($0)``
-
-Example: ``base64(stringToBytes('foo'))``
 
 Type Conversions
 ~~~~~~~~~~~~~~~~
@@ -933,6 +933,27 @@ Example: ``transformListItems(list('1','2','3'),'stringToDouble($0)')``
 
 The expression to apply must be defined as a string. In the example shown, the list will be converted
 from ``List[String]`` to ``List[Double]``.
+
+Encoding Functions
+~~~~~~~~~~~~~~~~~~
+
+base64Encode
+^^^^^^^^^^^^
+
+Description: Encodes a byte array as a base-64 URL-safe string.
+
+Usage: ``base64Encode($0)``
+
+Example: ``base64Encode(stringToBytes('foo'))``
+
+base64Decode
+^^^^^^^^^^^^
+
+Description: Decodes a base-64 URL-safe encoded string into a byte array.
+
+Usage: ``base64Decode($0)``
+
+Example: ``base64Decode('Zm9v')``
 
 State Functions
 ~~~~~~~~~~~~~~~

@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDateTime, ZoneOffset}
-import java.util.{Collections, Date}
-
 import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -24,6 +20,10 @@ import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.nio.charset.StandardCharsets
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDateTime, ZoneOffset}
+import java.util.{Collections, Date}
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
@@ -611,6 +611,13 @@ class ExpressionTest extends Specification {
       exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
       exp.eval(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
     }
+    "generate murmur hashes" >> {
+      val exp = Expression("murmur3Hash($0)")
+      exp.apply(Array("foo")) mustEqual "6145f501578671e2877dba2be487af7e"
+      exp.apply(Array("foo".getBytes)) mustEqual "6145f501578671e2877dba2be487af7e"
+      exp.eval(Array("foo")) mustEqual "6145f501578671e2877dba2be487af7e"
+      exp.eval(Array("foo".getBytes)) mustEqual "6145f501578671e2877dba2be487af7e"
+    }
     "generate uuids" >> {
       val exp = Expression("uuid()")
       foreach(Seq(exp.apply(null), exp.eval(null))) { res =>
@@ -637,9 +644,17 @@ class ExpressionTest extends Specification {
       }
     }
     "encode bytes as base64 strings" >> {
-      val exp = Expression("base64($0)")
-      exp.apply(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
-      exp.eval(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
+      foreach(Seq("base64($0)", "base64Encode($0)")) { expression =>
+        val exp = Expression(expression)
+        exp.apply(Array(testBytes)) mustEqual Base64.encodeBase64URLSafeString(testBytes)
+        exp.eval(Array(testBytes)) mustEqual Base64.encodeBase64URLSafeString(testBytes)
+      }
+    }
+    "decode base64 strings as bytes" >> {
+      val encoded = Base64.encodeBase64URLSafeString(testBytes)
+      val exp = Expression("base64Decode($0)")
+      exp.apply(Array(encoded)) mustEqual testBytes
+      exp.eval(Array(encoded)) mustEqual testBytes
     }
     "handle whitespace in functions" >> {
       val variants = Seq(
