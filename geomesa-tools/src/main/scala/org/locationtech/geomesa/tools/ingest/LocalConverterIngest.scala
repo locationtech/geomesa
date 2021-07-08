@@ -165,7 +165,7 @@ class LocalConverterIngest(
                   }
                   features.foreach { sf =>
                     try {
-                      FeatureUtils.write(writer, sf, useProvidedFid = true)
+                      FeatureUtils.write(writer, sf)
                       written.incrementAndGet()
                       count.incrementAndGet()
                     } catch {
