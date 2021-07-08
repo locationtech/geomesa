@@ -11,7 +11,6 @@ package org.locationtech.geomesa.fs
 import java.io.{File, IOException}
 import java.nio.file.Files
 import java.util.Collections
-
 import org.apache.commons.io.FileUtils
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -25,6 +24,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -53,6 +53,19 @@ class FileSystemDataStoreTest extends Specification {
   private def createPoint(i: Int): String = s"POINT(10 10.$i)"
   private def createLine(i: Int): String = s"LINESTRING(10 10, 11 12.$i)"
   private def createPolygon(i: Int): String = s"POLYGON((3$i 28, 41 28, 41 29, 3$i 29, 3$i 28))"
+
+  private val beUUID: Matcher[Any] = (
+    (_: Any) match {
+      case s: String =>
+        try {
+          java.util.UUID.fromString(s); true
+        } catch {
+          case _: IllegalArgumentException => false
+        }
+      case _ => false
+    },
+    (_: Any) + " is not valid UUID"
+  )
 
   val encodings = Seq("orc", "parquet")
 
@@ -210,6 +223,28 @@ class FileSystemDataStoreTest extends Specification {
           }
         }
         ok
+      }
+    }
+
+    "support append without fid" >> {
+      val formats = encodings.map(createFormat(_))
+      foreach(formats) { case (format, sft, features) =>
+        val dir = Files.createTempDirectory(s"fsds-test-append-without-fid-$format").toFile
+        val dsParams = Map(
+          "fs.path" -> dir.getPath,
+          "fs.encoding" -> format,
+          "fs.config.xml" -> gzip)
+        val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
+        ds.createSchema(sft)
+        WithClose(ds.getFeatureWriterAppend(format, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach { feature =>
+            val featureWithEmptyFid = ScalaSimpleFeature.copy(feature)
+            featureWithEmptyFid.setId("")
+            FeatureUtils.write(writer, featureWithEmptyFid)
+          }
+        }
+        val results = SelfClosingIterator(ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)).toList
+        results.map(_.getID) must contain(allOf(beUUID))
       }
     }
 
