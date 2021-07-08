@@ -23,6 +23,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore.{FileSystemFeatureIterator, FileSystemFeatureWriterAppend, FileSystemFeatureWriterModify}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api.{CloseableFeatureIterator, FileSystemStorage}
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushQuietly, FlushWithLogging}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -156,7 +157,8 @@ object FileSystemFeatureStore {
     }
 
     override def write(): Unit = {
-      writers.get(storage.metadata.scheme.getPartitionName(feature)).write(feature)
+      val sf = GeoMesaFeatureWriter.featureWithFid(feature)
+      writers.get(storage.metadata.scheme.getPartitionName(sf)).write(sf)
       feature = null
     }
 
