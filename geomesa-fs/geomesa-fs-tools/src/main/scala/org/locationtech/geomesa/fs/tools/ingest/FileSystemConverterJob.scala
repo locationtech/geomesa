@@ -38,6 +38,7 @@ import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -58,7 +59,10 @@ import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 >>>>>>> 85ed19b827e (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 =======
 >>>>>>> 75ae649304a (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b70b6bbc32e (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfiguration
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -87,6 +91,8 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> ced8120411 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 =======
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
@@ -125,6 +131,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 0222d5f61c (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
@@ -236,7 +243,16 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
+>>>>>>> 918f17f85 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+>>>>>>> d88ff6ec4f (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+>>>>>>> ced8120411 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+>>>>>>> b70b6bbc32e (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters
