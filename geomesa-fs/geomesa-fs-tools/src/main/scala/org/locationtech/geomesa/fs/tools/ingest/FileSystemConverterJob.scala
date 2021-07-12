@@ -30,11 +30,15 @@ import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounter
 import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 0884e75348d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e7ab2709808 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfiguration
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -58,7 +62,16 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
+>>>>>>> 918f17f85 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+>>>>>>> d88ff6ec4f (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+>>>>>>> e7ab2709808 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters
