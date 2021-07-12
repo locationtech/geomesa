@@ -85,6 +85,7 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -105,6 +106,8 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> efe77ffe45 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+=======
+>>>>>>> c0fedddad6 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 =======
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
@@ -171,6 +174,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 918f17f856 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 <<<<<<< HEAD
@@ -286,7 +290,14 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 >>>>>>> 0222d5f61c (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 >>>>>>> efe77ffe45 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+<<<<<<< HEAD
 >>>>>>> b2749f7b8d3 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+=======
+=======
+>>>>>>> 918f17f856 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+>>>>>>> 04cfd35128 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+>>>>>>> c0fedddad6 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+>>>>>>> 2b7950fd27f (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters
