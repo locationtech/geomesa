@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.view
 
-import java.awt.RenderingHints
-
 import com.typesafe.config._
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi, DataStoreFinder}
@@ -20,6 +18,7 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 import org.opengis.filter.Filter
 
+import java.awt.RenderingHints
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
@@ -81,7 +80,9 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
       case NonFatal(e) => stores.result.foreach(_._1.dispose()); throw e
     }
 
-    new MergedDataStoreView(stores.result, namespace)
+    val deduplicate = DeduplicateParam.lookup(params).booleanValue()
+
+    new MergedDataStoreView(stores.result, deduplicate, namespace)
   }
 
   override def getDisplayName: String = DisplayName
@@ -115,6 +116,7 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
       Some(param)
     }
   }
+
   val ConfigParam =
     new GeoMesaParam[String](
       "geomesa.merged.stores",
@@ -124,7 +126,16 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
       readWrite = ReadWriteFlag.ReadOnly
     )
 
-  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] = ConfigLoaderParam.toArray :+ ConfigParam
+  val DeduplicateParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "geomesa.merged.deduplicate",
+      "Deduplicate the features returned from each store",
+      default = java.lang.Boolean.FALSE,
+      readWrite = ReadWriteFlag.ReadOnly
+    )
+
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
+    ConfigLoaderParam.toArray ++ Array(ConfigParam, DeduplicateParam)
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     params.containsKey(ConfigParam.key) || ConfigLoaderParam.exists(p => params.containsKey(p.key))
