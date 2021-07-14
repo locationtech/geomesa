@@ -49,14 +49,17 @@ class FileSystemDataStore(
     names
   }
 
-  override def createSchema(sft: SimpleFeatureType): Unit = {
+  override def createSchema(original: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
 
-    manager.storage(sft.getTypeName) match {
+    manager.storage(original.getTypeName) match {
       case Some(s) =>
         logger.warn(s"Schema already exists: ${SimpleFeatureTypes.encodeType(s.metadata.sft, includeUserData = true)}")
 
       case None =>
+        // copy the feature type so that we don't affect it when removing user data, below
+        val sft = SimpleFeatureTypes.copy(original)
+
         GeoMesaSchemaValidator.validate(sft)
 
         // remove the configs in the user data as they're persisted separately
