@@ -29,3 +29,8 @@ GeoMesa includes some code from the Kryo project. This code has been licensed un
 
 GeoMesa includes some code from the Google protocol buffers project. This code has been licensed under the
 [3-Clause BSD License](https://opensource.org/licenses/BSD-3-Clause).
+
+### OpenStreetMap
+
+GeoMesa includes some shapefiles from the OpenStreetMap project. These files are licensed under the
+[Open Data Commons Open Database License](https://opendatacommons.org/licenses/odbl/summary/).
