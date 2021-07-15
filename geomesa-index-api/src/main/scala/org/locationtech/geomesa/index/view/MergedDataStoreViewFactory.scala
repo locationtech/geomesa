@@ -40,7 +40,7 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 
   override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
     val configs: Seq[Config] = {
-      val explicit = Option(ConfigParam.lookup(params)).map(ConfigFactory.parseString)
+      val explicit = Option(ConfigParam.lookup(params)).map(c => ConfigFactory.parseString(c).resolve())
       val loaded = ConfigLoaderParam.flatMap(_.lookupOpt(params)).flatMap { name =>
         ServiceLoader.load[MergedViewConfigLoader]().find(_.getClass.getName == name).map(_.load())
       }

@@ -37,7 +37,7 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
     createNewDataStore(params)
 
   override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
-    val config = ConfigFactory.parseString(ConfigParam.lookup(params))
+    val config = ConfigFactory.parseString(ConfigParam.lookup(params)).resolve()
     val configs = if (config.hasPath("stores")) { config.getConfigList("stores").asScala } else { Seq.empty }
     if (configs.isEmpty) {
       throw new IllegalArgumentException("No 'stores' element defined in configuration")
