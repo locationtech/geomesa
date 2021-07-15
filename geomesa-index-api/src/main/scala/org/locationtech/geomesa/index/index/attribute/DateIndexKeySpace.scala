@@ -78,8 +78,17 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 
   override def getRangeBytes(ranges: Iterator[ScanRange[Long]], tier: Boolean): Iterator[ByteRange] = {
     ranges.map {
-      case SingleRowRange(row)  => SingleRowByteRange(ByteArrays.toOrderedBytes(row))
-      case BoundedRange(lo, hi) => BoundedByteRange(ByteArrays.toOrderedBytes(lo), ByteArrays.toOrderedBytes(hi))
+      case BoundedRange(lo, hi) =>
+        BoundedByteRange(ByteArrays.toOrderedBytes(lo), ByteArrays.toOrderedBytes(hi))
+
+      case SingleRowRange(row) =>
+        val ordered = ByteArrays.toOrderedBytes(row)
+        if (tier) {
+          SingleRowByteRange(ordered)
+        } else {
+          BoundedByteRange(ordered, ByteArrays.rowFollowingPrefix(ordered))
+        }
+
       case r => throw new IllegalArgumentException(s"Unexpected range type $r")
     }
   }
