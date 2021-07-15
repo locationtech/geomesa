@@ -47,10 +47,12 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
     case _ => None
   }
 
-  private [lambda] val transients = Caffeine.newBuilder().build(new CacheLoader[String, TransientStore] {
-    override def load(key: String): TransientStore =
-      new KafkaStore(persistence, persistence.getSchema(key), authProvider, config)
-  })
+  private [lambda] val transients = Caffeine.newBuilder().build[String, TransientStore](
+    new CacheLoader[String, TransientStore] {
+      override def load(key: String): TransientStore =
+        new KafkaStore(persistence, persistence.getSchema(key), authProvider, config)
+    }
+  )
 
   override val stats: GeoMesaStats = persistence match {
     case p: HasGeoMesaStats => new LambdaStats(p.stats, transients)

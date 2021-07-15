@@ -15,31 +15,19 @@ import org.opengis.feature.simple.SimpleFeature
  * Simple utility that removes duplicates from the list of IDs passed through.
  *
  * @param source the original iterator that may contain duplicate ID-rows
+ * @param cache cache of feature ids seen so far
+ * @param maxCacheSize max size of the feature id cache
  */
-class DeduplicatingSimpleFeatureIterator(source: CloseableIterator[SimpleFeature], maxCacheSize: Int = 999999)
-    extends CloseableIterator[SimpleFeature] {
+class DeduplicatingSimpleFeatureIterator(
+    source: CloseableIterator[SimpleFeature],
+    cache: scala.collection.mutable.Set[String] = scala.collection.mutable.HashSet.empty[String],
+    maxCacheSize: Int = 999999
+  ) extends CloseableIterator[SimpleFeature] {
 
-  private val cache = scala.collection.mutable.HashSet.empty[String]
-  private var nextEntry = findNext()
+  private val iter =
+    source.filter(sf => if (cache.size < maxCacheSize) { cache.add(sf.getID) } else { !cache.contains(sf.getID) })
 
-  override def next(): SimpleFeature = {
-    val next = nextEntry
-    nextEntry = findNext()
-    next
-  }
-
-  override def hasNext: Boolean = nextEntry != null
-
-  private def findNext(): SimpleFeature = {
-    var next: SimpleFeature = null
-    do {
-      next = if (source.hasNext) source.next() else null
-    } while (next != null && (if (cache.size < maxCacheSize) !cache.add(next.getID) else cache.contains(next.getID)))
-    next
-  }
-
-  override def close(): Unit = {
-    cache.clear()
-    source.close()
-  }
+  override def hasNext: Boolean = iter.hasNext
+  override def next(): SimpleFeature = iter.next()
+  override def close(): Unit = source.close()
 }
