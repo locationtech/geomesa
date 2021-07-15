@@ -46,7 +46,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         sc.emptyRDD[SimpleFeature]
       } else {
         val config = new Configuration(conf)
-        GeoMesaAccumuloInputFormat.configure(config, paramsAsJava, qp)
+        GeoMesaAccumuloInputFormat.configure(config, paramsAsJava, qp, Some(ds.auths))
         sc.newAPIHadoopRDD(config, classOf[GeoMesaAccumuloInputFormat], classOf[Text], classOf[SimpleFeature]).map(_._2)
       }
     }
