@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, SynchronousQueue, TimeUnit}
 import java.util.{Collections, Date}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
@@ -30,7 +29,7 @@ import org.locationtech.geomesa.kafka.EmbeddedKafka
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
-import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChanged
+import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -597,6 +596,100 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
             eventually(40, 100.millis)(ids.asScala mustEqual Seq.tabulate(3)(_.toString) ++ Seq.tabulate(10)(_.toString))
           }
+        } finally {
+          store.removeFeatureListener(listener)
+        }
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
+    "support layer views" >> {
+      val views =
+        """{
+          |  test = [
+          |    { type-name = test2, filter = "dtg > '2018-01-01T05:00:00.000Z'", transform = [ "name", "dtg", "geom" ] }
+          |    { type-name = test3, transform = [ "name", "dtg", "geom" ] }
+          |    { type-name = test4, filter = "dtg > '2018-01-01T05:00:00.000Z'" }
+          |  ]
+          |}
+          |
+          |""".stripMargin
+      val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
+      try {
+        val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+        producer.createSchema(sft)
+
+        val sft2 = SimpleFeatureTypes.createType("test2", "name:String,dtg:Date,*geom:Point:srid=4326")
+        val sft3 = SimpleFeatureTypes.createType("test3", "name:String,dtg:Date,*geom:Point:srid=4326")
+        val sft4 = SimpleFeatureTypes.createType("test4", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+
+        val features = Seq.tabulate(10) { i =>
+          ScalaSimpleFeature.create(sft, s"$i", s"name$i", i, f"2018-01-01T$i%02d:00:00.000Z", s"POINT (4$i 55)")
+        }
+
+        consumer.getTypeNames.toSeq must containTheSameElementsAs(Seq("test", "test2", "test3", "test4"))
+        SimpleFeatureTypes.encodeType(consumer.getSchema("test2")) mustEqual SimpleFeatureTypes.encodeType(sft2)
+        SimpleFeatureTypes.encodeType(consumer.getSchema("test3")) mustEqual SimpleFeatureTypes.encodeType(sft3)
+        SimpleFeatureTypes.encodeType(consumer.getSchema("test4")) mustEqual SimpleFeatureTypes.encodeType(sft4)
+
+        val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
+
+        val ids = new CopyOnWriteArrayList[String]()
+
+        val listener = new FeatureListener() {
+          override def changed(event: FeatureEvent): Unit = {
+            event match {
+              case e: KafkaFeatureChanged => ids.add(e.feature.getID)
+              case e: KafkaFeatureRemoved => ids.remove(e.id)
+              case _: KafkaFeatureCleared => ids.clear()
+              case _ => failure(s"Unexpected event: $event")
+            }
+          }
+        }
+
+        store.addFeatureListener(listener)
+
+        try {
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+
+          eventually(40, 100.millis)(ids.asScala mustEqual Seq.tabulate(10)(_.toString))
+          SelfClosingIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toSeq must
+            containTheSameElementsAs(features)
+          SelfClosingIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toSeq must
+            containTheSameElementsAs(features.drop(6).map(ScalaSimpleFeature.retype(sft2, _)))
+          SelfClosingIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toSeq must
+            containTheSameElementsAs(features.map(ScalaSimpleFeature.retype(sft3, _)))
+          SelfClosingIterator(consumer.getFeatureReader(new Query("test4"), Transaction.AUTO_COMMIT))
+            containTheSameElementsAs(features.drop(6).map(ScalaSimpleFeature.retype(sft4, _)))
+
+          val toRemove = ECQL.toFilter("IN('0','9')")
+          WithClose(producer.getFeatureWriter(sft.getTypeName, toRemove, Transaction.AUTO_COMMIT)) { writer =>
+            while(writer.hasNext) {
+              writer.next()
+              writer.remove()
+            }
+          }
+
+          eventually(40, 100.millis)(ids.asScala mustEqual Seq.tabulate(10)(_.toString).slice(1, 9))
+          SelfClosingIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toSeq must
+            containTheSameElementsAs(features.slice(1, 9))
+          SelfClosingIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toSeq must
+            containTheSameElementsAs(features.drop(6).dropRight(1).map(ScalaSimpleFeature.retype(sft2, _)))
+          SelfClosingIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toSeq must
+            containTheSameElementsAs(features.slice(1, 9).map(ScalaSimpleFeature.retype(sft3, _)))
+          SelfClosingIterator(consumer.getFeatureReader(new Query("test4"), Transaction.AUTO_COMMIT)).toSeq must
+            containTheSameElementsAs(features.drop(6).dropRight(1).map(ScalaSimpleFeature.retype(sft4, _)))
+
+          producer.getFeatureSource(sft.getTypeName).removeFeatures(Filter.INCLUDE)
+          eventually(40, 100.millis)(ids.asScala must beEmpty)
+          SelfClosingIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toSeq must beEmpty
+          SelfClosingIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toSeq must beEmpty
+          SelfClosingIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toSeq must beEmpty
+          SelfClosingIterator(consumer.getFeatureReader(new Query("test4"), Transaction.AUTO_COMMIT)).toSeq must beEmpty
         } finally {
           store.removeFeatureListener(listener)
         }

@@ -8,10 +8,9 @@
 
 package org.locationtech.geomesa.kafka.index
 
-import java.io.Closeable
-import java.util.concurrent._
-
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.data.FeatureListener
+import org.geotools.data.simple.SimpleFeatureSource
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
@@ -23,7 +22,10 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
 
-trait KafkaFeatureCache extends Closeable {
+import java.io.Closeable
+import java.util.concurrent._
+
+trait KafkaFeatureCache extends KafkaListeners with Closeable {
   def put(feature: SimpleFeature): Unit
   def remove(id: String): Unit
   def clear(): Unit
@@ -31,6 +33,7 @@ trait KafkaFeatureCache extends Closeable {
   def size(filter: Filter): Int
   def query(id: String): Option[SimpleFeature]
   def query(filter: Filter): Iterator[SimpleFeature]
+  def views: Seq[KafkaFeatureCacheView]
 }
 
 object KafkaFeatureCache extends LazyLogging {
@@ -42,14 +45,21 @@ object KafkaFeatureCache extends LazyLogging {
    *
    * @param sft simple feature type
    * @param config cache config
+   * @param views layer view config
    * @param metrics optional metrics hook
    * @return
    */
-  def apply(sft: SimpleFeatureType, config: IndexConfig, metrics: Option[GeoMesaMetrics] = None): KafkaFeatureCache = {
-    if (config.expiry == ImmediatelyExpireConfig) { NoOpFeatureCache } else {
+  def apply(
+    sft: SimpleFeatureType,
+    config: IndexConfig,
+    views: Seq[LayerView] = Seq.empty,
+    metrics: Option[GeoMesaMetrics] = None): KafkaFeatureCache = {
+    if (config.expiry == ImmediatelyExpireConfig) {
+      new NoOpFeatureCache(views.map(v => KafkaFeatureCacheView.empty(v.viewSft)))
+    } else {
       metrics match {
-        case None => new KafkaFeatureCacheImpl(sft, config)
-        case Some(m) => new KafkaFeatureCacheWithMetrics(sft, config, m)
+        case None => new KafkaFeatureCacheImpl(sft, config, views)
+        case Some(m) => new KafkaFeatureCacheWithMetrics(sft, config, views, m)
       }
     }
   }
@@ -59,7 +69,8 @@ object KafkaFeatureCache extends LazyLogging {
     *
     * @return
     */
-  def empty(): KafkaFeatureCache = EmptyFeatureCache
+  def empty(views: Seq[LayerView] = Seq.empty): KafkaFeatureCache =
+    new EmptyFeatureCache(views.map(v => KafkaFeatureCacheView.empty(v.viewSft)))
 
   /**
     * Cache that won't spatially index the features
@@ -131,6 +142,8 @@ object KafkaFeatureCache extends LazyLogging {
         features.filter(filter.evaluate)
       }
     }
+
+    override def views: Seq[KafkaFeatureCacheView] = Seq.empty
   }
 
   /**
@@ -176,9 +189,11 @@ object KafkaFeatureCache extends LazyLogging {
         features.filter(filter.evaluate)
       }
     }
+
+    override def views: Seq[KafkaFeatureCacheView] = Seq.empty
   }
 
-  object EmptyFeatureCache extends KafkaFeatureCache {
+  class EmptyFeatureCache(val views: Seq[KafkaFeatureCacheView]) extends KafkaFeatureCache {
     override def put(feature: SimpleFeature): Unit = throw new NotImplementedError("Empty feature cache")
     override def remove(id: String): Unit = throw new NotImplementedError("Empty feature cache")
     override def clear(): Unit = throw new NotImplementedError("Empty feature cache")
@@ -187,9 +202,11 @@ object KafkaFeatureCache extends LazyLogging {
     override def query(id: String): Option[SimpleFeature] = None
     override def query(filter: Filter): Iterator[SimpleFeature] = Iterator.empty
     override def close(): Unit = {}
+    override def addListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = {}
+    override def removeListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = {}
   }
 
-  object NoOpFeatureCache extends KafkaFeatureCache {
+  class NoOpFeatureCache(val views: Seq[KafkaFeatureCacheView]) extends KafkaFeatureCache {
     override def put(feature: SimpleFeature): Unit = {}
     override def remove(id: String): Unit = {}
     override def clear(): Unit = {}
@@ -198,5 +215,7 @@ object KafkaFeatureCache extends LazyLogging {
     override def query(id: String): Option[SimpleFeature] = None
     override def query(filter: Filter): Iterator[SimpleFeature] = Iterator.empty
     override def close(): Unit = {}
+    override def addListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = {}
+    override def removeListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = {}
   }
 }

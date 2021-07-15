@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import java.util.Properties
-import java.util.concurrent.ScheduledExecutorService
-
 import com.github.benmanes.caffeine.cache.Ticker
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
@@ -19,6 +16,8 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam, ReadWriteFlag}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 
+import java.util.Properties
+import java.util.concurrent.ScheduledExecutorService
 import scala.concurrent.duration.Duration
 
 object KafkaDataStoreParams extends KafkaDataStoreParams
@@ -142,6 +141,14 @@ trait KafkaDataStoreParams extends NamespaceParams {
       default = "kryo",
       enumerations = Seq("kryo", "avro"),
       supportsNiFiExpressions = true
+    )
+
+  val LayerViews =
+    new GeoMesaParam[String](
+      "kafka.layer.views",
+      "Provide multiple views of a single layer via TypeSafe configuration",
+      largeText = true,
+      readWrite = ReadWriteFlag.ReadOnly
     )
 
   // TODO these should really be per-feature, not per datastore...

@@ -73,6 +73,7 @@ Parameter                            Type    Description
                                              See :ref:`kafka_ssi`
 ``kafka.serialization.lazy``         Boolean Use lazy deserialization of features. This may improve processing load at
                                              the expense of slightly slower query times
+``kafka.layer.views``                String  Additional views on existing schemas to expose as layers. See :ref:`kafka_layer_views` for details
 ``kafka.metrics.reporters``          String  Reporters used to publish Kafka metrics, as TypeSafe config. To use multiple reporters, nest
                                              them under the key ``reporters``. See :ref:`geomesa_metrics` for details
 ``geomesa.query.loose-bounding-box`` Boolean Use loose bounding boxes, which offer improved performance but are not exact

@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.kafka.index
 
-import java.util.concurrent._
-
-import com.typesafe.scalalogging.StrictLogging
-import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SizeSeparatedBucketIndexSupport}
-import org.locationtech.geomesa.kafka.data.KafkaDataStore.IndexConfig
+import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SizeSeparatedBucketIndexSupport, SpatialIndexSupport}
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, LayerView}
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.{FeatureExpiration, FeatureState}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.util.concurrent._
 
 /**
   * Feature cache implementation
@@ -23,8 +22,8 @@ import org.opengis.filter.Filter
   * @param sft simple feature type
   * @param config index config
   */
-class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig)
-    extends KafkaFeatureCache with FeatureExpiration with StrictLogging {
+class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerViews: Seq[LayerView] = Seq.empty)
+    extends KafkaFeatureCache with FeatureExpiration {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -32,16 +31,12 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig)
   // update/delete operations). to reduce contention, we never iterate over this map
   private val state = new ConcurrentHashMap[String, FeatureState]
 
-  // note: CQEngine handles points vs non-points internally
-  private val support = if (config.cqAttributes.nonEmpty) {
-    KafkaFeatureCache.cqIndexSupport(sft, config)
-  } else if (sft.isPoints) {
-    BucketIndexSupport(sft, config.resolution.x, config.resolution.y)
-  } else {
-    SizeSeparatedBucketIndexSupport(sft, config.ssiTiers, config.resolution.x / 360d, config.resolution.y / 180d)
-  }
+  private val support = createSupport(sft)
 
   private val factory = FeatureStateFactory(sft, support.index, config.expiry, this, config.executor)
+
+  override val views: Seq[KafkaFeatureCacheView] =
+    layerViews.map(view => KafkaFeatureCacheView(view, createSupport(view.viewSft)))
 
   /**
     * Note: this method is not thread-safe. The `state` and `index` can get out of sync if the same feature
@@ -56,15 +51,21 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig)
     val old = state.put(featureState.id, featureState)
     if (old == null) {
       featureState.insertIntoIndex()
+      views.foreach(_.put(feature))
     } else if (old.time <= featureState.time) {
       logger.trace(s"${featureState.id} removing old feature")
       old.removeFromIndex()
       featureState.insertIntoIndex()
+      views.foreach { view =>
+        view.remove(featureState.id)
+        view.put(feature)
+      }
     } else {
       logger.trace(s"${featureState.id} ignoring out of sequence feature")
       if (!state.replace(featureState.id, featureState, old)) {
         logger.warn(s"${featureState.id} detected inconsistent state... spatial index may be incorrect")
         old.removeFromIndex()
+        views.foreach(_.remove(featureState.id))
       }
     }
     logger.trace(s"Current index size: ${state.size()}/${support.index.size()}")
@@ -82,6 +83,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig)
     val old = state.remove(id)
     if (old != null) {
       old.removeFromIndex()
+      views.foreach(_.remove(id))
     }
     logger.trace(s"Current index size: ${state.size()}/${support.index.size()}")
   }
@@ -90,6 +92,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig)
     logger.trace(s"${featureState.id} expiring from index")
     if (state.remove(featureState.id, featureState)) {
       featureState.removeFromIndex()
+      views.foreach(_.remove(featureState.id))
     }
     logger.trace(s"Current index size: ${state.size()}/${support.index.size()}")
   }
@@ -98,6 +101,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig)
     logger.trace("Clearing index")
     state.clear()
     support.index.clear()
+    views.foreach(_.clear())
   }
 
   override def size(): Int = state.size()
@@ -111,4 +115,15 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig)
   override def query(filter: Filter): Iterator[SimpleFeature] = support.query(filter)
 
   override def close(): Unit = factory.close()
+
+  private def createSupport(sft: SimpleFeatureType): SpatialIndexSupport = {
+    if (config.cqAttributes.nonEmpty) {
+      // note: CQEngine handles points vs non-points internally
+      KafkaFeatureCache.cqIndexSupport(sft, config)
+    } else if (sft.isPoints) {
+      BucketIndexSupport(sft, config.resolution.x, config.resolution.y)
+    } else {
+      SizeSeparatedBucketIndexSupport(sft, config.ssiTiers, config.resolution.x / 360d, config.resolution.y / 180d)
+    }
+  }
 }

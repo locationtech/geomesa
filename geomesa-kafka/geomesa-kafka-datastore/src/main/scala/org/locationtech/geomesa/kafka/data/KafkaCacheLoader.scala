@@ -8,88 +8,34 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import java.io.Closeable
-import java.time.Duration
-import java.util.Collections
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicLong}
-import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Executors}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
-import org.geotools.data.simple.SimpleFeatureSource
-import org.geotools.data.{FeatureEvent, FeatureListener}
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.ExpiryTimeConfig
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
-import org.locationtech.geomesa.kafka.utils.{GeoMessageSerializer, KafkaFeatureEvent}
+import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer
 import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-import scala.util.control.NonFatal
+import java.io.Closeable
+import java.time.Duration
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicLong}
+import java.util.concurrent.{ConcurrentHashMap, CountDownLatch}
 
 /**
   * Reads from Kafka and populates a `KafkaFeatureCache`.
   * Manages geotools feature listeners
   */
 trait KafkaCacheLoader extends Closeable with LazyLogging {
-
-  import scala.collection.JavaConverters._
-
-  private val listeners = {
-    val map = new ConcurrentHashMap[(SimpleFeatureSource, FeatureListener), java.lang.Boolean]()
-    Collections.newSetFromMap(map).asScala
-  }
-
-  // use a flag instead of checking listeners.isEmpty, which is slightly expensive for ConcurrentHashMap
-  @volatile
-  private var hasListeners = false
-
   def cache: KafkaFeatureCache
-
-  def addListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = synchronized {
-    listeners.add((source, listener))
-    hasListeners = true
-  }
-
-  def removeListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = synchronized {
-    listeners.remove((source, listener))
-    hasListeners = listeners.nonEmpty
-  }
-
-  protected [KafkaCacheLoader] def fireEvent(message: Change, timestamp: Long): Unit = {
-    if (hasListeners) {
-      fireEvent(KafkaFeatureEvent.changed(_, message.feature, timestamp))
-    }
-  }
-
-  protected [KafkaCacheLoader] def fireEvent(message: Delete, timestamp: Long): Unit = {
-    if (hasListeners) {
-      val removed = cache.query(message.id).orNull
-      fireEvent(KafkaFeatureEvent.removed(_, message.id, removed, timestamp))
-    }
-  }
-
-  protected [KafkaCacheLoader] def fireEvent(message: Clear, timestamp: Long): Unit = {
-    if (hasListeners) {
-      fireEvent(KafkaFeatureEvent.cleared(_, timestamp))
-    }
-  }
-
-  private def fireEvent(toEvent: SimpleFeatureSource => FeatureEvent): Unit = {
-    val events = scala.collection.mutable.Map.empty[SimpleFeatureSource, FeatureEvent]
-    listeners.foreach { case (source, listener) =>
-      val event = events.getOrElseUpdate(source, toEvent(source))
-      try { listener.changed(event) } catch {
-        case NonFatal(e) => logger.error(s"Error in feature listener for $event", e)
-      }
-    }
-  }
 }
 
 object KafkaCacheLoader extends LazyLogging {
+
   object LoaderStatus {
     private val count = new AtomicInteger(0)
     private val firstLoadStartTime = new AtomicLong(0L)
@@ -111,8 +57,6 @@ object KafkaCacheLoader extends LazyLogging {
 
   object NoOpLoader extends KafkaCacheLoader {
     override val cache: KafkaFeatureCache = KafkaFeatureCache.empty()
-    override def addListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = {}
-    override def removeListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = {}
     override def close(): Unit = {}
   }
 
@@ -134,9 +78,7 @@ object KafkaCacheLoader extends LazyLogging {
     private val initialLoader = if (doInitialLoad) {
       // for the initial load, don't bother spatially indexing until we have the final state
       val loader = new InitialLoader(sft, consumers, topic, frequency, serializer, initialLoadConfig, this)
-      val executor = Executors.newSingleThreadExecutor()
-      executor.submit(loader)
-      executor.shutdown()
+      CachedThreadPool.execute(loader)
       Some(loader)
     } else {
       startConsumers()
@@ -158,9 +100,9 @@ object KafkaCacheLoader extends LazyLogging {
       val message = serializer.deserialize(record.key(), record.value(), headers, timestamp)
       logger.trace(s"Consumed message [$topic:${record.partition}:${record.offset}] $message")
       message match {
-        case m: Change => fireEvent(m, timestamp); cache.put(m.feature)
-        case m: Delete => fireEvent(m, timestamp); cache.remove(m.id)
-        case m: Clear  => fireEvent(m, timestamp); cache.clear()
+        case m: Change => cache.fireChange(timestamp, m.feature); cache.put(m.feature)
+        case m: Delete => cache.fireDelete(timestamp, m.id, cache.query(m.id).orNull); cache.remove(m.id)
+        case m: Clear  => cache.fireClear(timestamp); cache.clear()
         case m => throw new IllegalArgumentException(s"Unknown message: $m")
       }
     }
@@ -200,9 +142,9 @@ object KafkaCacheLoader extends LazyLogging {
         val message = serializer.deserialize(record.key, record.value, headers, timestamp)
         logger.trace(s"Consumed message [$topic:${record.partition}:${record.offset}] $message")
         message match {
-          case m: Change => toLoad.fireEvent(m, timestamp); cache.put(m.feature)
-          case m: Delete => toLoad.fireEvent(m, timestamp); cache.remove(m.id)
-          case m: Clear  => toLoad.fireEvent(m, timestamp); cache.clear()
+          case m: Change => toLoad.cache.fireChange(timestamp, m.feature); cache.put(m.feature)
+          case m: Delete => toLoad.cache.fireDelete(timestamp, m.id, cache.query(m.id).orNull); cache.remove(m.id)
+          case m: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
           case m => throw new IllegalArgumentException(s"Unknown message: $m")
         }
         // once we've hit the max offset for the partition, remove from the offset map to indicate we're done
