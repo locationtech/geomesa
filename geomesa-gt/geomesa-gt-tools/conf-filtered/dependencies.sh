@@ -26,7 +26,6 @@ function dependencies() {
 
   declare -a gavs=(
     "org.apache.hadoop:hadoop-auth:${hadoop_version}:jar"
-    "org.apache.hadoop:hadoop-client:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-common:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-hdfs:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-hdfs-client:${hadoop_version}:jar"

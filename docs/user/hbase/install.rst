@@ -289,7 +289,6 @@ The specific JARs needed for some common configurations are listed below:
         * commons-io-2.5.jar
         * commons-logging-1.1.3.jar
         * hadoop-auth-2.8.5.jar
-        * hadoop-client-2.8.5.jar
         * hadoop-common-2.8.5.jar
         * hadoop-hdfs-2.8.5.jar
         * hadoop-hdfs-client-2.8.5.jar
@@ -318,7 +317,6 @@ The specific JARs needed for some common configurations are listed below:
         * commons-io-2.5.jar
         * commons-logging-1.1.3.jar
         * hadoop-auth-2.8.5.jar
-        * hadoop-client-2.8.5.jar
         * hadoop-common-2.8.5.jar
         * hadoop-hdfs-2.8.5.jar
         * hadoop-hdfs-client-2.8.5.jar

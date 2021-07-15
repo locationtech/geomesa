@@ -266,7 +266,6 @@ The specific JARs needed for some common configurations are listed below:
         * commons-text-1.6.jar
         * commons-vfs2-2.3.jar
         * hadoop-auth-2.8.5.jar
-        * hadoop-client-2.8.5.jar
         * hadoop-common-2.8.5.jar
         * hadoop-hdfs-2.8.5.jar
         * htrace-core-3.1.0-incubating.jar
@@ -284,7 +283,6 @@ The specific JARs needed for some common configurations are listed below:
         * commons-configuration-1.6.jar
         * commons-vfs2-2.1.jar
         * hadoop-auth-2.8.5.jar
-        * hadoop-client-2.8.5.jar
         * hadoop-common-2.8.5.jar
         * hadoop-hdfs-2.8.5.jar
         * htrace-core-3.1.0-incubating.jar
@@ -301,7 +299,6 @@ The specific JARs needed for some common configurations are listed below:
         * commons-configuration-1.6.jar
         * commons-vfs2-2.1.jar
         * hadoop-auth-2.8.5.jar
-        * hadoop-client-2.8.5.jar
         * hadoop-common-2.8.5.jar
         * hadoop-hdfs-2.8.5.jar
         * htrace-core-3.1.0-incubating.jar

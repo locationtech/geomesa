@@ -38,7 +38,6 @@ function dependencies() {
     "commons-configuration:commons-configuration:1.6:jar"
     "org.apache.hadoop:hadoop-annotations:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-auth:${hadoop_version}:jar"
-    "org.apache.hadoop:hadoop-client:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-common:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-hdfs:${hadoop_version}:jar"
   )
