@@ -79,11 +79,11 @@ ID Functions
 -  ``stringToBytes``
 -  ``md5``
 -  ``murmur3_32``
--  ``murmur3_128``
+-  ``murmur3_64``
+-  ``murmur3Hash``
 -  ``uuid``
 -  ``uuidZ3``
 -  ``uuidZ3Centroid``
--  ``base64``
 
 Math Functions
 ~~~~~~~~~~~~~~
@@ -105,6 +105,12 @@ List and Map Functions
 -  ``parseList``
 -  ``parseMap``
 -  ``transformListItems``
+
+Encoding Functions
+~~~~~~~~~~~~~~~~~~
+
+-  ``base64Encode``
+-  ``base64Decode``
 
 Control Functions
 ~~~~~~~~~~~~~~~~~
