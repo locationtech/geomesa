@@ -49,6 +49,7 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -59,6 +60,8 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3054c9df8b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> a1baa0b13f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
   override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
 <<<<<<< HEAD
@@ -87,11 +90,15 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 15b11b70cf (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a1baa0b13f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 =======
   override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 16d2f25eae (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 =======
 =======
   override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
@@ -118,6 +125,8 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3054c9df8b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> a1baa0b13f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
     val config = ConfigFactory.parseString(ConfigParam.lookup(params)).resolve()
     val configs = if (config.hasPath("stores")) { config.getConfigList("stores").asScala } else { Seq.empty }
     if (configs.isEmpty) {
