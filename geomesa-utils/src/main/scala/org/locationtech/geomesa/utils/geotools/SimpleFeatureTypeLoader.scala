@@ -55,7 +55,7 @@ object SimpleFeatureTypeLoader {
       val configs = urls.flatMap { url =>
         logger.debug(s"Attempting to parse config from url $url")
         try {
-          Some(ConfigFactory.parseURL(url))
+          Some(ConfigFactory.parseURL(url).resolve())
         } catch {
           case e: Throwable =>
             logger.warn(s"Unable to load SFT config from url $url")
