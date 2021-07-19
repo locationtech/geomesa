@@ -95,10 +95,13 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
           BoundedByteRange(ordered, ByteArrays.rowFollowingPrefix(ordered))
         }
 
+<<<<<<< HEAD
       case UnboundedRange(_) =>
         val max = ByteArrays.rowFollowingPrefix(ByteArrays.toOrderedBytes(MaxUpperBound))
         UnboundedByteRange(ByteArrays.toOrderedBytes(MinLowerBound), max)
 
+=======
+>>>>>>> 9bde42cc4b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
       case r => throw new IllegalArgumentException(s"Unexpected range type $r")
     }
   }
