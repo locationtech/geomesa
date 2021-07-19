@@ -122,6 +122,7 @@ package org.locationtech.geomesa.accumulo.jobs.mapreduce
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -360,6 +361,11 @@ package org.locationtech.geomesa.jobs.mapreduce
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 >>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 9b97d99509 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+package org.locationtech.geomesa.jobs.mapreduce
+>>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
+>>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting.Column
@@ -391,6 +397,7 @@ import java.util.Map.Entry
 import java.util.{Collections, Locale}
 =======
 import java.util.{Collections, Properties}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -539,10 +546,14 @@ import java.util.{Collections, Properties}
 =======
 >>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 9b97d99509 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 import java.nio.charset.StandardCharsets
 import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.Collections
 import java.util.Map.Entry
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -910,7 +921,13 @@ import java.util.Map.Entry
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 >>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 9b97d99509 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> c7702744cfa (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
+>>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+>>>>>>> 311ca823f09 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -1021,6 +1038,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
       params: java.util.Map[String, _],
       plan: AccumuloQueryPlan,
       auths: Option[Authorizations]): Unit = {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4772,10 +4790,14 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 74c6b7f8d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 >>>>>>> 30b076b423 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> ebd996c2ba (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+<<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/accumulo/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
+>>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
     // all accumulo input config methods requires a job
     // assertion: only the JobConf is updated - to get credentials pass in a JobConf instead of Configuration
 =======
     // assertion: all accumulo input config requires a job, but really just updates the job conf
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11087,6 +11109,9 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 74c6b7f8d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 >>>>>>> 30b076b423 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> ebd996c2ba (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
+>>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
     val job = new Job(conf)
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 
@@ -11170,6 +11195,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 //    }
 //    // note: for Kerberos, this will create a DelegationToken for us and add it to the Job credentials
 //    AbstractInputFormat.setConnectorInfo(job, user, token)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11318,10 +11344,14 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 9b97d99509 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
     // note: for Kerberos, this will create a DelegationToken for us and add it to the Job credentials
     AbstractInputFormat.setConnectorInfo(job, user, token)
 
     auths.foreach(AbstractInputFormat.setScanAuthorizations(job, _))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11531,6 +11561,9 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 >>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 9b97d99509 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
+>>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 
 >>>>>>> 6e61f13e310 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
     // use the query plan to set the accumulo input format options
