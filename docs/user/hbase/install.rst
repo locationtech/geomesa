@@ -1421,7 +1421,11 @@ The specific JARs needed for some common configurations are listed below:
         * protobuf-java-2.5.0.jar
         * zookeeper-3.4.14.jar
 
+<<<<<<< HEAD
 >>>>>>> 9bde42cc4b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+>>>>>>> b1c30e3f26 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 Restart GeoServer after the JARs are installed.
 
 Connecting to External HBase Clusters Backed By S3
