@@ -167,6 +167,7 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 62d59495fc (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -183,6 +184,8 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 >>>>>>> cfd537e7af (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1b60e283ae (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> b26fc9b517 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -764,7 +767,12 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 =======
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> b1c30e3f26 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+>>>>>>> 1b60e283ae (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
       case UnboundedRange(_) =>
         val max = ByteArrays.rowFollowingPrefix(ByteArrays.toOrderedBytes(MaxUpperBound))
         UnboundedByteRange(ByteArrays.toOrderedBytes(MinLowerBound), max)
@@ -840,6 +848,7 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> ba7f2715c5 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -874,6 +883,8 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 >>>>>>> cfd537e7af (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1b60e283ae (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 9bde42cc4b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -1617,7 +1628,14 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 =======
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+>>>>>>> b1c30e3f26 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+>>>>>>> 1b60e283ae (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
       case r => throw new IllegalArgumentException(s"Unexpected range type $r")
     }
   }
