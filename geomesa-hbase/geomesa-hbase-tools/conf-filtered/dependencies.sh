@@ -43,7 +43,6 @@ function dependencies() {
     "org.apache.hadoop:hadoop-auth:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-common:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-hdfs:${hadoop_version}:jar"
-    "org.apache.hadoop:hadoop-client:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-hdfs-client:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-mapreduce-client-core:${hadoop_version}:jar"
     "commons-configuration:commons-configuration:1.6:jar"

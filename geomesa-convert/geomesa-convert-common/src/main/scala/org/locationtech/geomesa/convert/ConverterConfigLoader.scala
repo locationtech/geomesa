@@ -52,11 +52,8 @@ object ConverterConfigLoader extends LazyLogging {
 }
 
 trait GeoMesaConvertParser extends LazyLogging {
-
   def parseConf(config: Config): Map[String, Config] = {
-    import scala.collection.JavaConversions._
     logger.trace(s"Attempting to load Converters from path ${ConverterConfigLoader.path}")
-
     if (!config.hasPath(ConverterConfigLoader.path)) {
       Map.empty[String, Config]
     } else {
@@ -89,7 +86,7 @@ class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParse
   override def loadConfigs(): java.util.Map[String, Config] = {
     val confs = configURLs.flatMap { url =>
       try {
-        Some(ConfigFactory.parseURL(url))
+        Some(ConfigFactory.parseURL(url).resolve())
       } catch {
         case e: Throwable =>
           logger.warn(s"Unable to load converter config from url $url")
