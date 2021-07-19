@@ -261,6 +261,74 @@ to match the target environment, and then run the script:
 
     $ ./bin/install-dependencies.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
+<<<<<<< HEAD
+=======
+.. warning::
+
+   Due to a classpath conflict with GeoServer, the version of Accumulo client JARs installed must be 1.9.2 or later.
+   Note that newer Accumulo clients can talk to older Accumulo instances, so it is only necessary to upgrade the
+   client JARs in GeoServer, but not the entire Accumulo cluster.
+
+.. warning::
+
+    GeoServer ships with an older version of commons-text, 1.4. The ``install-dependencies.sh`` script will
+    remove it, but if you don't use the script you will need to delete it manually.
+
+The specific JARs needed for some common configurations are listed below:
+
+.. tabs::
+
+    .. tab:: Accumulo 2.0
+
+        * accumulo-core-2.0.0.jar
+        * accumulo-server-base-2.0.0.jar
+        * accumulo-start-2.0.0.jar
+        * commons-configuration-1.6.jar
+        * commons-configuration2-2.5.jar
+        * commons-logging-1.1.3.jar
+        * commons-text-1.6.jar
+        * commons-vfs2-2.3.jar
+        * hadoop-auth-2.8.5.jar
+        * hadoop-common-2.8.5.jar
+        * hadoop-hdfs-2.8.5.jar
+        * htrace-core-3.1.0-incubating.jar
+        * htrace-core4-4.1.0-incubating.jar
+        * libthrift-0.12.0.jar
+        * zookeeper-3.4.14.jar
+
+    .. tab:: Accumulo 1.9
+
+        * accumulo-core-1.9.3.jar
+        * accumulo-fate-1.9.3.jar
+        * accumulo-server-base-1.9.3.jar
+        * accumulo-start-1.9.3.jar
+        * accumulo-trace-1.9.3.jar
+        * commons-configuration-1.6.jar
+        * commons-vfs2-2.1.jar
+        * hadoop-auth-2.8.5.jar
+        * hadoop-common-2.8.5.jar
+        * hadoop-hdfs-2.8.5.jar
+        * htrace-core-3.1.0-incubating.jar
+        * libthrift-0.9.3.jar
+        * zookeeper-3.4.14.jar
+
+    .. tab:: Accumulo 1.7
+
+        * accumulo-core-1.7.4.jar
+        * accumulo-fate-1.7.4.jar
+        * accumulo-server-base-1.7.4.jar
+        * accumulo-start-1.7.4.jar
+        * accumulo-trace-1.7.4.jar
+        * commons-configuration-1.6.jar
+        * commons-vfs2-2.1.jar
+        * hadoop-auth-2.8.5.jar
+        * hadoop-common-2.8.5.jar
+        * hadoop-hdfs-2.8.5.jar
+        * htrace-core-3.1.0-incubating.jar
+        * libthrift-0.9.1.jar
+        * zookeeper-3.4.14.jar
+
+>>>>>>> 9bde42cc4b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 Restart GeoServer after the JARs are installed.
 
 .. _install_geomesa_process:
