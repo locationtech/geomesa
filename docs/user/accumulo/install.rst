@@ -38443,6 +38443,7 @@ to match the target environment, and then run the script:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 9b97d99509 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -38563,6 +38564,9 @@ to match the target environment, and then run the script:
 =======
 >>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 9b97d99509 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 .. warning::
 
    Due to a classpath conflict with GeoServer, the version of Accumulo client JARs installed must be 1.9.2 or later.
@@ -38628,6 +38632,7 @@ The specific JARs needed for some common configurations are listed below:
         * libthrift-0.9.1.jar
         * zookeeper-3.4.14.jar
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -38837,6 +38842,9 @@ The specific JARs needed for some common configurations are listed below:
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 9b97d99509 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+>>>>>>> e8c8204435 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 Restart GeoServer after the JARs are installed.
 
 .. _install_geomesa_process:
