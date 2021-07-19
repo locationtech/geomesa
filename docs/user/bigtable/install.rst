@@ -58,7 +58,6 @@ will download them from Maven Central.
  * commons-configuration-1.6.jar
  * hadoop-annotations-2.5.2.jar
  * hadoop-auth-2.5.2.jar
- * hadoop-client-2.5.2.jar
  * hadoop-common-2.5.2.jar
  * hadoop-hdfs-2.5.2.jar
 
