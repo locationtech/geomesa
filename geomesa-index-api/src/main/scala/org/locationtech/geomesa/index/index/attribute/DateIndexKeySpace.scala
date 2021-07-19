@@ -124,6 +124,7 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b26fc9b517 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -154,6 +155,8 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 2b62bcaeb4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 8871b2b4bc (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 914ec419f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> f0b61142b0 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -249,6 +252,7 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 >>>>>>> 9b796685b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> bd17bd131e (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 =======
@@ -289,10 +293,15 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 >>>>>>> 7ef22a4bb2 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 2b62bcaeb4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> 76328bb49 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+>>>>>>> 8871b2b4bc (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
       case UnboundedRange(_) =>
         val max = ByteArrays.rowFollowingPrefix(ByteArrays.toOrderedBytes(MaxUpperBound))
         UnboundedByteRange(ByteArrays.toOrderedBytes(MinLowerBound), max)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -362,6 +371,8 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 =======
 >>>>>>> 2b62bcaeb4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+>>>>>>> 8871b2b4bc (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
 >>>>>>> 54fb5ef95 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> ce2ad87199 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -504,12 +515,16 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 =======
 >>>>>>> 9b796685b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> bd17bd131e (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+=======
+>>>>>>> 8871b2b4bc (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 =======
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 76328bb49 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 5c68fb7d18 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -546,6 +561,8 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 =======
 >>>>>>> 9b796685b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 2b62bcaeb4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 8871b2b4bc (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
       case r => throw new IllegalArgumentException(s"Unexpected range type $r")
     }
   }
