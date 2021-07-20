@@ -64,6 +64,11 @@ For example, to merge a GeoMesa Accumulo data store with a PostGis data store, y
       ]
     }
 
+If the stores may contain duplicate features, these can be filtered out by setting the parameter
+``geomesa.merged.deduplicate`` to ``true``. Features are identified by their feature ID. The list of stores should be
+defined in priority order, as the first feature with a given feature ID will be returned while any others will be
+filtered out. Deduplication will be more efficient if stores with fewer features are defined first in the list.
+
 Query Filtering
 ^^^^^^^^^^^^^^^
 
