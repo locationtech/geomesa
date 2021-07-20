@@ -103,7 +103,6 @@ object ConverterIngestJob {
 
     override def map(key: LongWritable, sf: SimpleFeature, context: Context): Unit = {
       logger.debug(s"map key ${key.toString}, map value ${DataUtilities.encodeFeature(sf)}")
-      sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       context.write(text, sf)
     }
   }

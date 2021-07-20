@@ -28,6 +28,7 @@ import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
 import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters
@@ -153,8 +154,9 @@ object FileSystemConverterJob {
       // partitionKey is important because this needs to be correct for the parquet file
       try {
         mapped.increment(1)
-        val partitionKey = new Text(scheme.getPartitionName(sf))
-        context.write(partitionKey, new BytesWritable(serializer.serialize(sf)))
+        val sfWithFid = GeoMesaFeatureWriter.featureWithFid(sf)
+        val partitionKey = new Text(scheme.getPartitionName(sfWithFid))
+        context.write(partitionKey, new BytesWritable(serializer.serialize(sfWithFid)))
         written.increment(1)
       } catch {
         case e: Throwable =>
@@ -189,7 +191,8 @@ object FileSystemConverterJob {
 
     override def reduce(key: Text, values: java.lang.Iterable[BytesWritable], context: Context): Unit = {
       values.asScala.foreach { bw =>
-        context.write(null, serializer.deserialize(bw.getBytes))
+        val sf = serializer.deserialize(bw.getBytes)
+        context.write(null, sf)
         reduced.increment(1)
       }
     }
