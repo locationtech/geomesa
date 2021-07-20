@@ -940,7 +940,8 @@ Encoding Functions
 base64Encode
 ^^^^^^^^^^^^
 
-Description: Encodes a byte array as a base-64 URL-safe string.
+Description: Encodes a byte array as a base-64 URL-safe string. This function can also be invoked as ``base64``,
+but that name has been deprecated and will be removed in future versions.
 
 Usage: ``base64Encode($0)``
 
