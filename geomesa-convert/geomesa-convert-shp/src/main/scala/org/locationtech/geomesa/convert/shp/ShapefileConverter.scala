@@ -19,6 +19,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import java.io.InputStream
 import java.util.Collections
 <<<<<<< HEAD
+<<<<<<< HEAD
 import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 
@@ -204,11 +205,25 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 33511dd1c3b (Merge branch 'feature/postgis-fixes')
 =======
 =======
+=======
+import java.nio.charset.Charset
+import java.nio.file.{Files, Paths}
+>>>>>>> 3b1441ba6d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 
 import com.codahale.metrics.Counter
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> abc9ceb3d7d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 3b1441ba6d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> a82d3e0f0b9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -349,7 +364,11 @@ object ShapefileConverter extends LazyLogging {
       val source = scala.io.Source.fromFile(cpgPath.toFile)
 =======
       val source = io.Source.fromFile(cpgPath.toFile)
+<<<<<<< HEAD
 >>>>>>> 20b0d52e9d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 3b1441ba6d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
       try {
         source.getLines.take(1).toList match {
           case Nil => None
@@ -368,7 +387,11 @@ object ShapefileConverter extends LazyLogging {
           logger.warn("Can't figure out charset from cpg file, will use default charset")
           None
       } finally source.close()
+<<<<<<< HEAD
 >>>>>>> 20b0d52e9d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 3b1441ba6d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
     }
   }
 }
