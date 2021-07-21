@@ -4059,10 +4059,13 @@ import java.util.Collections
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 
@@ -6528,10 +6531,14 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 >>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
 
 import com.codahale.metrics.Counter
 <<<<<<< HEAD
@@ -9846,13 +9853,31 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> e28f59c12a6 (Merge branch 'feature/postgis-fixes')
 =======
 =======
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 
 import com.codahale.metrics.Counter
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 248f90d2891 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+=======
+=======
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 401e627535 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 827f3f8b241 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -10068,6 +10093,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -10076,6 +10102,8 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -10093,6 +10121,7 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+<<<<<<< HEAD
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -10123,6 +10152,8 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 6033c1b7af (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
       val source = io.Source.fromFile(cpgPath.toFile)
 <<<<<<< HEAD
 >>>>>>> 20b0d52e9d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -10170,6 +10201,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
@@ -10178,12 +10210,19 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 =======
+>>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+=======
       val source = io.Source.fromFile(cpgPath.toFile)
 >>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 401e627535 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 =======
       val source = io.Source.fromFile(cpgPath.toFile)
@@ -10220,6 +10259,7 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 6033c1b7af (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
 =======
 =======
       val source = io.Source.fromFile(cpgPath.toFile)
@@ -10279,6 +10319,8 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> 6033c1b7af (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
       try {
         source.getLines.take(1).toList match {
           case Nil => None
@@ -10315,6 +10357,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 9fcae81780 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -10324,10 +10367,13 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 6033c1b7af (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
@@ -10349,6 +10395,10 @@ object ShapefileConverter extends LazyLogging {
 =======
 =======
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 9fcae81780 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 9a64765dd6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -10358,8 +10408,11 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 401e627535 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 490baa117c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -10380,6 +10433,7 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 401e627535 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> e3296facc4 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -10401,6 +10455,8 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> 6033c1b7af (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
         case e: Exception =>
           logger.warn("Can't figure out charset from cpg file, will use default charset")
           None
@@ -10423,10 +10479,13 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4d5be61f70 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 0736678d1d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
@@ -10437,6 +10496,7 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 6033c1b7af (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
 =======
 >>>>>>> 0fd022c963 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
@@ -10457,6 +10517,8 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> 6033c1b7af (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 20b0d52e9d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -10514,6 +10576,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 20b0d52e9d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 490baa117c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -10545,6 +10610,7 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 9a64765dd6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 6033c1b7af (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -10594,6 +10660,10 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+=======
+>>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
     }
   }
 }
