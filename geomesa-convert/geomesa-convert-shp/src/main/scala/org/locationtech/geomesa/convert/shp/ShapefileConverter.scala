@@ -110,6 +110,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 302df4295a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -172,6 +173,8 @@ import com.codahale.metrics.Counter
 >>>>>>> e72d6905dd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 89bb58cf10 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 401c676c9c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 import com.typesafe.scalalogging.LazyLogging
@@ -2469,8 +2472,11 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 0f4c829f25 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 7f7bfc7004 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> 401c676c9c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 import com.typesafe.scalalogging.LazyLogging
 =======
@@ -2479,6 +2485,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 0e693a1ea3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
 >>>>>>> dffd024e87 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 1833cacd09 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3767,6 +3774,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> e72d6905dd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 89bb58cf10 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 401c676c9c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
