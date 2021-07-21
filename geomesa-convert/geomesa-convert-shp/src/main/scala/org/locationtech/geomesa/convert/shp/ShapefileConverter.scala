@@ -375,6 +375,7 @@ import com.typesafe.scalalogging.LazyLogging
 import java.io.InputStream
 import java.util.Collections
 <<<<<<< HEAD
+<<<<<<< HEAD
 import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 
@@ -607,9 +608,15 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 45feada390 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+import java.nio.charset.Charset
+import java.nio.file.{Files, Paths}
+>>>>>>> 3b1441ba6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 
 import com.codahale.metrics.Counter
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -643,7 +650,18 @@ import com.codahale.metrics.Counter
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 45feada390 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 3b1441ba6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 61fab3ea79 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 1b95f558e5 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
