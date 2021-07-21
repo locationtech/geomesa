@@ -1036,12 +1036,27 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 import java.io.InputStream
 import java.util.Collections
+import java.nio.charset.Charset
+import java.nio.file.{Files, Paths}
 
 import com.codahale.metrics.Counter
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+=======
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 9fcae8178 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> baee3d5af7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 9a64765dd6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
@@ -1180,7 +1195,9 @@ object ShapefileConverter extends LazyLogging {
     val (baseName, _) = PathUtils.getBaseNameAndExtension(path)
     val cpgPath = shpDirPath.resolve(baseName + ".cpg")
     if (!Files.isRegularFile(cpgPath)) None else {
+<<<<<<< HEAD
       val source = scala.io.Source.fromFile(cpgPath.toFile)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1203,12 +1220,18 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 9fcae81780 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+      val source = io.Source.fromFile(cpgPath.toFile)
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 9a64765dd6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
       try {
         source.getLines.take(1).toList match {
           case Nil => None
           case charsetName :: _ => Some(Charset.forName(charsetName.trim))
         }
       } catch {
+<<<<<<< HEAD
         case _: Exception =>
 <<<<<<< HEAD
           logger.warn("Can't figure out charset from cpg file, will use default charset")
@@ -1219,13 +1242,17 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9fcae81780 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 9a64765dd6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
         case e: Exception =>
           logger.warn("Can't figure out charset from cpg file, will use default charset")
           None
       } finally source.close()
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 20b0d52e9d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -1246,6 +1273,9 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 9fcae81780 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 9a64765dd6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
     }
   }
 }
