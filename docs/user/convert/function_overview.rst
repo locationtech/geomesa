@@ -80,7 +80,7 @@ ID Functions
 -  ``md5``
 -  ``murmur3_32``
 -  ``murmur3_64``
--  ``murmur3Hash``
+-  ``murmurHash3``
 -  ``uuid``
 -  ``uuidZ3``
 -  ``uuidZ3Centroid``

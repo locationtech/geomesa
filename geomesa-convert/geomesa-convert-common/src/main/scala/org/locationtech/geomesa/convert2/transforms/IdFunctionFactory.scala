@@ -74,7 +74,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 
   // we've had some confusion around the names of these functions - the original function was murmur3_64,
   // which was then incorrectly renamed to murmur3_128. currently both these functions only return the first 64
-  // bits of a 128 bit hash. the full 128-bit hash is now called murmur3Hash to avoid name conflicts
+  // bits of a 128 bit hash. the full 128-bit hash is now called murmurHash3 to avoid name conflicts
   private val murmur3_64 =
     TransformerFunction.pure("murmur3_128", "murmur3_64") { args =>
       val hash = args(0) match {
@@ -86,7 +86,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
     }
 
   private val murmur3_128 =
-    TransformerFunction.pure("murmur3Hash") { args =>
+    TransformerFunction.pure("murmurHash3") { args =>
       args(0) match {
         case s: String => murmur3_128Hashing.hashBytes(s.getBytes(StandardCharsets.UTF_8)).toString // toString results in hex
         case b: Array[Byte] => murmur3_128Hashing.hashBytes(b).toString // toString results in hex

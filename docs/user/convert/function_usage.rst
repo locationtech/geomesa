@@ -575,14 +575,14 @@ Usage: ``murmur3_64($0)``
 
 Example: ``murmur3_64('row,of,data')``
 
-murmur3Hash
+murmurHash3
 ^^^^^^^^^^^
 
 Description: Creates a 128-bit murmur3 hash from a string or byte array, returned as a hex string.
 
-Usage: ``murmur3Hash($0)``
+Usage: ``murmurHash3($0)``
 
-Example: ``murmur3Hash('row,of,data')``
+Example: ``murmurHash3('row,of,data')``
 
 uuid
 ^^^^

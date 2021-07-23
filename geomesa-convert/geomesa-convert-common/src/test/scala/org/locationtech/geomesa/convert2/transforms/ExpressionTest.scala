@@ -612,7 +612,7 @@ class ExpressionTest extends Specification {
       exp.eval(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
     }
     "generate murmur hashes" >> {
-      val exp = Expression("murmur3Hash($0)")
+      val exp = Expression("murmurHash3($0)")
       exp.apply(Array("foo")) mustEqual "6145f501578671e2877dba2be487af7e"
       exp.apply(Array("foo".getBytes)) mustEqual "6145f501578671e2877dba2be487af7e"
       exp.eval(Array("foo")) mustEqual "6145f501578671e2877dba2be487af7e"
