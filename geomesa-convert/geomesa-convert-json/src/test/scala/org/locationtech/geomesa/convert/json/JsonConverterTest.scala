@@ -929,6 +929,59 @@ class JsonConverterTest extends Specification {
       }
     }
 
+    "parse and convert json arrays into objects" >> {
+
+      val sftConf = ConfigFactory.parseString(
+        """{
+          |  type-name = "json-obj"
+          |  attributes = [
+          |    { name = "id",   type = "Integer"              }
+          |    { name = "json", type = "String", json = true  }
+          |    { name = "geom", type = "Point"                }
+          |  ]
+          |}
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(sftConf)
+
+      val json =
+        """{
+          |  "id": 1,
+          |  "geometry": {"type": "Point", "coordinates": [55, 56]},
+          |  "things": [
+          |    { "foo": "bar", "baz": 1.1 },
+          |    { "blu": true }
+          |  ]
+          |}
+        """.stripMargin
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "$id"
+          |   fields = [
+          |     { name = "id",   json-type = "integer",  path = "$.id",       transform = "toString($0)"            }
+          |     { name = "json", json-type = "array",    path = "$.things",   transform = "toString(jsonArrayToObject($0))"  }
+          |     { name = "geom", json-type = "geometry", path = "$.geometry", transform = "point($0)"               }
+          |   ]
+          | }
+        """.stripMargin)
+
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val ec = converter.createEvaluationContext()
+        val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
+        features must haveLength(1)
+        ec.success.getCount mustEqual 1L
+        ec.failure.getCount mustEqual 0L
+
+        val f = features.head
+
+        f.getAttribute("json") must beAnInstanceOf[String]
+        f.getAttribute("json") mustEqual """{"0":{"foo":"bar","baz":1.1},"1":{"blu":true}}"""
+      }
+    }
+
     "parse and convert maps" >> {
 
       val mapSftConf = ConfigFactory.parseString(

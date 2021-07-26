@@ -87,6 +87,12 @@ This function converts a java.util.Map into a JSON string. It requires a single 
 java.util.Map. It can be useful for storing complex JSON as a single attribute, which can then be queried
 using GeoMesa's JSON attribute support. See :ref:`json_attributes` for more information.
 
+jsonArrayToObject
+~~~~~~~~~~~~~~~~~
+
+This function converts a JSON array into a JSON object, by using the index of each array element as the object
+key. This is useful for GeoMesa's JSON attribute types, which currently require a top-level object and not an array.
+
 jsonPath
 ~~~~~~~~
 
