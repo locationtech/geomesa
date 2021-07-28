@@ -96,6 +96,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 79bf541ac8 (Merge branch 'feature/postgis-fixes')
@@ -1146,11 +1147,16 @@
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+>>>>>>> 5057b7d518 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 0d4c68bda (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
@@ -1686,6 +1692,9 @@
 =======
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 79bf541ac8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 0d4c68bda (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 5057b7d518 (GEOMESA-3109 Json array to object converter function (#2788))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -1694,6 +1703,7 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1961,6 +1971,11 @@ import java.nio.charset.StandardCharsets
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 5057b7d518 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> fb20571ce3 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+import java.nio.charset.StandardCharsets
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 5057b7d518 (GEOMESA-3109 Json array to object converter function (#2788))
 import java.util.Base64
 
 class EncodingFunctionFactory extends TransformerFunctionFactory {
