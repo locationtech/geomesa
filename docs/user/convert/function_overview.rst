@@ -3119,6 +3119,12 @@ Encoding Functions
 -  ``base64Encode``
 -  ``base64Decode``
 
+Encoding Functions
+~~~~~~~~~~~~~~~~~~
+
+-  ``base64Encode``
+-  ``base64Decode``
+
 Control Functions
 ~~~~~~~~~~~~~~~~~
 
