@@ -99,8 +99,15 @@ import com.google.common.hash.Hashing
 =======
 =======
 import com.google.common.hash.Hashing
+<<<<<<< HEAD
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> cc47bbe241 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> c79a342576 (GEOMESA-3109 Json array to object converter function (#2788))
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
 <<<<<<< HEAD
@@ -305,8 +312,15 @@ import java.security.MessageDigest
 >>>>>>> 79bff6c04a (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> cc47bbe241 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> c79a342576 (GEOMESA-3109 Json array to object converter function (#2788))
 import java.util.{Date, UUID}
 import scala.util.control.NonFatal
 
@@ -350,8 +364,15 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 
   private val murmur3_128Hashing = Hashing.murmur3_128()
+<<<<<<< HEAD
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> cc47bbe241 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> c79a342576 (GEOMESA-3109 Json array to object converter function (#2788))
 
 <<<<<<< HEAD
   private val murmur3_128Hashing = Hashing.murmur3_128()
@@ -649,6 +670,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e57217a17d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -683,6 +705,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> c79a342576 (GEOMESA-3109 Json array to object converter function (#2788))
   private val murmur3_128: TransformerFunction =
     new NamedTransformerFunction(Seq("murmur3_128", "murmur3_64"), pure = true) {
       private val hasher = Hashing.murmur3_128()
@@ -13437,12 +13461,15 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 235691f96a (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
   private val murmur3_128: TransformerFunction =
     new NamedTransformerFunction(Seq("murmur3_128", "murmur3_64"), pure = true) {
       private val hasher = Hashing.murmur3_128()
       override def apply(args: Array[AnyRef]): AnyRef =
         Long.box(hasher.hashString(args(0).toString, StandardCharsets.UTF_8).asLong())
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13932,6 +13959,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 561d58ab21 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> c79a342576 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -14101,6 +14130,33 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+  // we've had some confusion around the names of these functions - the original function was murmur3_64,
+  // which was then incorrectly renamed to murmur3_128. currently both these functions only return the first 64
+  // bits of a 128 bit hash. the full 128-bit hash is now called murmurHash3 to avoid name conflicts
+  private val murmur3_64 =
+    TransformerFunction.pure("murmur3_128", "murmur3_64") { args =>
+      val hash = args(0) match {
+        case s: String => murmur3_128Hashing.hashBytes(s.getBytes(StandardCharsets.UTF_8))
+        case b: Array[Byte] => murmur3_128Hashing.hashBytes(b)
+        case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
+      }
+      Long.box(hash.asLong()) // asLong gets only the first 64 bits even though the hash has 128
+    }
+
+  private val murmur3_128 =
+    TransformerFunction.pure("murmurHash3") { args =>
+      args(0) match {
+        case s: String => murmur3_128Hashing.hashBytes(s.getBytes(StandardCharsets.UTF_8)).toString // toString results in hex
+        case b: Array[Byte] => murmur3_128Hashing.hashBytes(b).toString // toString results in hex
+        case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
+      }
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> c79a342576 (GEOMESA-3109 Json array to object converter function (#2788))
     }
 }
