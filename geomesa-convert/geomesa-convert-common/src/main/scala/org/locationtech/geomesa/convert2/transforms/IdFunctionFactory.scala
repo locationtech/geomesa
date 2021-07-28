@@ -29,6 +29,7 @@ package org.locationtech.geomesa.convert2.transforms
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -53,6 +54,8 @@ package org.locationtech.geomesa.convert2.transforms
 >>>>>>> a27a0a3dce (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> e43a47856c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 import com.google.common.hash.Hashing
 <<<<<<< HEAD
@@ -99,6 +102,7 @@ import com.google.common.hash.Hashing
 import com.google.common.hash.Hashing
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> e81892dbf2 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -149,6 +153,13 @@ import com.google.common.hash.Hashing
 >>>>>>> a27a0a3dce (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> e43a47856c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+import com.google.common.hash.Hashing
+>>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
 <<<<<<< HEAD
@@ -340,6 +351,7 @@ import java.security.MessageDigest
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -364,6 +376,8 @@ import java.security.MessageDigest
 >>>>>>> a27a0a3dce (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> e43a47856c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 <<<<<<< HEAD
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -406,6 +420,7 @@ import java.security.MessageDigest
 >>>>>>> e81892dbf2 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -460,6 +475,12 @@ import java.security.MessageDigest
 >>>>>>> a27a0a3dce (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> e43a47856c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+>>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
 import java.util.{Date, UUID}
 import scala.util.control.NonFatal
 
@@ -467,6 +488,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 
   override def functions: Seq[TransformerFunction] =
     Seq(string2Bytes, md5, uuid, uuidZ3, uuidZ3Centroid, base64, murmur3_32, murmur3_64, murmur3_128)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -498,6 +520,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> e43a47856c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 =======
 =======
 =======
@@ -510,6 +534,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -548,6 +573,12 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 >>>>>>> e43a47856c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+
+  private val murmur3_128Hashing = Hashing.murmur3_128()
+>>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
 
   private val murmur3_128Hashing = Hashing.murmur3_128()
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
@@ -2872,6 +2903,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0e2f008100 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -2948,6 +2980,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3647,7 +3681,12 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
   private val murmur3_128: TransformerFunction =
     new NamedTransformerFunction(Seq("murmur3_128", "murmur3_64"), pure = true) {
       private val hasher = Hashing.murmur3_128()
@@ -20988,7 +21027,35 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+  // we've had some confusion around the names of these functions - the original function was murmur3_64,
+  // which was then incorrectly renamed to murmur3_128. currently both these functions only return the first 64
+  // bits of a 128 bit hash. the full 128-bit hash is now called murmurHash3 to avoid name conflicts
+  private val murmur3_64 =
+    TransformerFunction.pure("murmur3_128", "murmur3_64") { args =>
+      val hash = args(0) match {
+        case s: String => murmur3_128Hashing.hashBytes(s.getBytes(StandardCharsets.UTF_8))
+        case b: Array[Byte] => murmur3_128Hashing.hashBytes(b)
+        case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
+      }
+      Long.box(hash.asLong()) // asLong gets only the first 64 bits even though the hash has 128
+    }
+
+  private val murmur3_128 =
+    TransformerFunction.pure("murmurHash3") { args =>
+      args(0) match {
+        case s: String => murmur3_128Hashing.hashBytes(s.getBytes(StandardCharsets.UTF_8)).toString // toString results in hex
+        case b: Array[Byte] => murmur3_128Hashing.hashBytes(b).toString // toString results in hex
+        case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
+      }
+>>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
     }
 }
