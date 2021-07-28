@@ -59,6 +59,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -182,6 +183,8 @@
 >>>>>>> 69f3e67660 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e21e244bd3 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 0e9d9181e8 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
@@ -357,7 +360,12 @@
 =======
 =======
 >>>>>>> b04d18f291 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> e21e244bd3 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 13c9b592f1 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 0e9d9181e8 (GEOMESA-3109 Json array to object converter function (#2788))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -504,6 +512,8 @@
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> fd776cb831 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -1189,7 +1199,12 @@
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 =======
+=======
+>>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
