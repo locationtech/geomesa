@@ -71,6 +71,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -167,6 +168,10 @@
 >>>>>>> e43a47856c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -175,6 +180,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
 >>>>>>> 64d8177ac0 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -606,6 +614,7 @@
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 =======
 >>>>>>> 4aef7a70f3 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 09373546be (GEOMESA-3109 Json array to object converter function (#2788))
@@ -998,6 +1007,8 @@
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -1006,6 +1017,7 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1052,6 +1064,8 @@ package org.locationtech.geomesa.convert2.transforms
 =======
 >>>>>>> e43a47856c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 import java.nio.charset.StandardCharsets
 <<<<<<< HEAD
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -1095,6 +1109,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> e81892dbf2 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1153,6 +1168,13 @@ import java.nio.charset.StandardCharsets
 >>>>>>> a27a0a3dce (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> e43a47856c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+import java.nio.charset.StandardCharsets
+>>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 42f971fb10 (GEOMESA-3109 Json array to object converter function (#2788))
 import java.util.Base64
 
 class EncodingFunctionFactory extends TransformerFunctionFactory {
