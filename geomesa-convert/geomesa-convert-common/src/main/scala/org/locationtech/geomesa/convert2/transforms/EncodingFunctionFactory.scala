@@ -51,6 +51,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -158,6 +159,8 @@
 >>>>>>> cbd5c949e1 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 02dcfee926 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 0a5a85a9b4 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
@@ -293,7 +296,12 @@
 =======
 =======
 >>>>>>> 46b82ddad2 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 02dcfee926 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 2adb521281 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 0a5a85a9b4 (GEOMESA-3109 Json array to object converter function (#2788))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -324,6 +332,7 @@
 >>>>>>> 31b03236c6 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 9759ddc1b5 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -422,10 +431,13 @@
 =======
 >>>>>>> 31b03236c6 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 46b82ddad2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 2adb521281 (GEOMESA-3109 Json array to object converter function (#2788))
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -458,6 +470,8 @@
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 46b82ddad2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 2adb521281 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 4aef7a70f3 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> e34f9cdeac (GEOMESA-3109 Json array to object converter function (#2788))
@@ -473,6 +487,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> fe33913b4b (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
@@ -481,6 +496,8 @@
 >>>>>>> 266ad92db7 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 02dcfee926 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 0a5a85a9b4 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 9759ddc1b5 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
@@ -1010,7 +1027,14 @@
 =======
 =======
 >>>>>>> 46b82ddad2 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 02dcfee926 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+>>>>>>> 9759ddc1b5 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 2adb521281 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 0a5a85a9b4 (GEOMESA-3109 Json array to object converter function (#2788))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
