@@ -64,6 +64,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -146,6 +147,8 @@
 >>>>>>> cc3633448a (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> ff07fa8368 (GEOMESA-3109 Json array to object converter function (#2788))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -291,6 +294,8 @@
 >>>>>>> e8c33ac76a (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -804,6 +809,8 @@
 >>>>>>> 4bd9eb4df (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
@@ -832,9 +839,24 @@
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 0d4c68bda (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> ff07fa8368 (GEOMESA-3109 Json array to object converter function (#2788))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
