@@ -114,6 +114,7 @@ See below for an example.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
@@ -192,6 +193,10 @@ See below for an example.
 >>>>>>> 9759ddc1b (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 0cdf3f267 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+=======
+>>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
 mapToJson
 ~~~~~~~~~
 
@@ -206,6 +211,7 @@ This function converts a JSON array into a JSON object, by using the index of ea
 key. This is useful for GeoMesa's JSON attribute types, which currently require a top-level object and not an array.
 
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -335,6 +341,9 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c6103aab4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
 jsonPath
 ~~~~~~~~
 
