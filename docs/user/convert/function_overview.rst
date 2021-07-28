@@ -3126,6 +3126,7 @@ Encoding Functions
 
 -  ``base64Encode``
 -  ``base64Decode``
+<<<<<<< HEAD
 =======
 >>>>>>> 3f50ce5c7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
@@ -3148,6 +3149,8 @@ Encoding Functions
 
 -  ``base64Encode``
 -  ``base64Decode``
+=======
+>>>>>>> 008feb67a (GEOMESA-3109 Json array to object converter function (#2788))
 
 Control Functions
 ~~~~~~~~~~~~~~~~~
