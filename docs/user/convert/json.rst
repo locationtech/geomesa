@@ -5380,6 +5380,7 @@ using GeoMesa's JSON attribute support. See :ref:`json_attributes` for more info
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 newJsonObject
 ~~~~~~~~~~~~~
 =======
@@ -5754,6 +5755,8 @@ using GeoMesa's JSON attribute support. See :ref:`json_attributes` for more info
 
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 22c3a3a32c (GEOMESA-3109 Json array to object converter function (#2788))
 newJsonObject
 ~~~~~~~~~~~~~
 =======
@@ -5786,8 +5789,20 @@ This function converts a java.util.Map into a JSON string. It requires a single 
 java.util.Map. It can be useful for storing complex JSON as a single attribute, which can then be queried
 using GeoMesa's JSON attribute support. See :ref:`json_attributes` for more information.
 
+=======
+>>>>>>> fd776cb831 (GEOMESA-3109 Json array to object converter function (#2788))
 newJsonObject
 ~~~~~~~~~~~~~
+=======
+jsonArrayToObject
+~~~~~~~~~~~~~~~~~
+
+This function converts a JSON array into a JSON object, by using the index of each array element as the object
+key. This is useful for GeoMesa's JSON attribute types, which currently require a top-level object and not an array.
+
+jsonPath
+~~~~~~~~
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 
 This function creates a new JSON object from key-value pairs. It can be useful for generating JSON text values.
 
