@@ -262,6 +262,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -432,6 +433,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> e6162be24a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
 =======
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject)
@@ -942,6 +945,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 >>>>>>> 4350edc8f (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 793ec81151 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -968,6 +973,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 72415e208a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> ee3aea1cdc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -2862,10 +2869,14 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 72415e208a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> c14e106409 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
 >>>>>>> 0d4c68bda (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
@@ -3626,10 +3637,15 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> c14e106409 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> e6162be24a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
 =======
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject)
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3973,6 +3989,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 9738e164f5 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> e6162be24a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 4aef7a70f3 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
@@ -4038,6 +4056,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> c14e106409 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 =======
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 0df4f16d9 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -4056,6 +4076,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 04d469083d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 72415e208a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> ee3aea1cd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 7a3d004ad1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -6978,6 +7000,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -8019,9 +8042,21 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+>>>>>>> 0d4c68bda (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
 
   @deprecated("use toString")
   private val jsonToString = TransformerFunction.pure("jsonToString", "json2string") { args =>
@@ -8355,6 +8390,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 6b26d19d93 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -8817,6 +8853,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 =======
 >>>>>>> 275e53813f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -8884,6 +8922,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 =======
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 0df4f16d9 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -8904,6 +8944,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 72415e208a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> ee3aea1cd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 7a3d004ad1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -12420,9 +12462,20 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+>>>>>>> 0d4c68bda (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
   private val newJsonObject = TransformerFunction.pure("newJsonObject") { args =>
     val obj = new JsonObject()
     var i = 1
@@ -24939,6 +24992,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -25107,6 +25161,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> e6162be24a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -25591,6 +25647,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 >>>>>>> 113b056da (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 6f73f22005 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -25607,6 +25665,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 72415e208a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 2c3111e68 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> e080006042 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -29979,8 +30039,21 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 0d4c68bda (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 36a5acc573 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> aef4d2c269 (GEOMESA-3109 Json array to object converter function (#2788))
   private def getPrimitive(p: JsonPrimitive): Any = if (p.isBoolean) { p.getAsBoolean } else { p.getAsString }
 }
