@@ -939,6 +939,9 @@ The expression to apply must be defined as a string. In the example shown, the l
 from ``List[String]`` to ``List[Double]``.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
 
@@ -961,8 +964,11 @@ Usage: ``base64Decode($0)``
 
 Example: ``base64Decode('Zm9v')``
 
+<<<<<<< HEAD
 =======
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
 State Functions
 ~~~~~~~~~~~~~~~
 
