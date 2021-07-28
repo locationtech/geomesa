@@ -622,6 +622,7 @@ See below for an example.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> ba2e891f3d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -833,6 +834,8 @@ See below for an example.
 >>>>>>> caac7355dc (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 027426fcb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
 >>>>>>> 917dff0811 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -2770,6 +2773,8 @@ See below for an example.
 =======
 >>>>>>> c1872b9c98 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> 443baa8c16 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 =======
 >>>>>>> 0da1bb22c5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -3253,6 +3258,8 @@ See below for an example.
 =======
 >>>>>>> 6d73922328 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> ff50279c43 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 =======
 >>>>>>> f8f49130b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 4c9fb0f6e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -3307,12 +3314,16 @@ See below for an example.
 =======
 >>>>>>> 0f2a67fb44 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> e634f5d579 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 =======
 >>>>>>> f9397984e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> dbc712b84 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 7ea07a654 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 89971e000 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 94213b24a (GEOMESA-3109 Json array to object converter function (#2788))
@@ -4634,10 +4645,15 @@ See below for an example.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 443baa8c16 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 00681e3bee (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 443baa8c16 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 374ba65da (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -7085,6 +7101,7 @@ See below for an example.
 >>>>>>> 7ea07a654 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 443baa8c16 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 0f2a67fb44 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 >>>>>>> 6d73922328 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -9078,10 +9095,28 @@ See below for an example.
 >>>>>>> 45dca3e07 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 7ea07a654 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 0f2a67fb44 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 6d73922328 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> c1872b9c98 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 027426fcb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 89971e000 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> e634f5d579 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> ff50279c43 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 443baa8c16 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 mapToJson
 ~~~~~~~~~
 
@@ -9096,6 +9131,7 @@ This function converts a JSON array into a JSON object, by using the index of ea
 key. This is useful for GeoMesa's JSON attribute types, which currently require a top-level object and not an array.
 
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9742,6 +9778,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 =======
 >>>>>>> 027426fcb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 >>>>>>> b51c563993 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 883af44eef (GEOMESA-3109 Json array to object converter function (#2788))
@@ -9979,6 +10017,7 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 >>>>>>> c1872b9c98 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 443baa8c16 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 =======
 >>>>>>> 657054de4f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -10595,6 +10634,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 =======
 >>>>>>> c1872b9c98 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 027426fcb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 4aef7a70f3 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
@@ -10670,6 +10711,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 >>>>>>> 7b32f6803c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 6d73922328 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> ff50279c43 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> ee3aea1cd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 7a3d004ad1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -12872,14 +12915,21 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 =======
 >>>>>>> 0f2a67fb44 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> e634f5d579 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 =======
 >>>>>>> 7ea07a654 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 89971e000 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> dbc712b84 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> ddadfbdc64 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12921,6 +12971,9 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 =======
 <<<<<<< HEAD
 >>>>>>> 1162bd8d94 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+<<<<<<< HEAD
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 097b5a0858 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> efae05a8fa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -12940,6 +12993,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 >>>>>>> b586a90765 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 2ef7cb6fbd (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 443baa8c16 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 7a670f84c4 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -13302,6 +13357,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 =======
 <<<<<<< HEAD
 =======
+>>>>>>> ff50279c43 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 374ba65da (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -13314,6 +13371,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 =======
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> ad8d1be45 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> e634f5d579 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -13565,6 +13624,7 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -13585,6 +13645,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 >>>>>>> f6a71e35ea (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 027426fcb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 7520530797 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -13619,6 +13681,7 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 >>>>>>> c1872b9c98 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 443baa8c16 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 =======
 >>>>>>> 293d1588a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -13693,6 +13756,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 =======
 >>>>>>> c1872b9c98 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 027426fcb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 5d898c0c52 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -13745,8 +13810,11 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 027426fcb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> ff50279c43 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> fde50255e4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -13791,6 +13859,7 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 >>>>>>> ff50279c43 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 443baa8c16 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 =======
 >>>>>>> 293d1588a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -13847,6 +13916,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 =======
 >>>>>>> c1872b9c98 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 027426fcb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14262,8 +14333,11 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 027426fcb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> e634f5d579 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 1fcaabf843 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -14286,6 +14360,7 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 >>>>>>> e634f5d579 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 443baa8c16 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 =======
 >>>>>>> 293d1588a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -14314,6 +14389,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 =======
 >>>>>>> c1872b9c98 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 027426fcb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 31b03236c (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16718,6 +16795,7 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 >>>>>>> 7ea07a654 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 443baa8c16 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 0f2a67fb44 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 >>>>>>> 6d73922328 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -18434,10 +18512,27 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 =======
 =======
 >>>>>>> 7ea07a654 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 0f2a67fb44 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 6d73922328 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> c1872b9c98 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 027426fcb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 89971e000 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> e634f5d579 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> ff50279c43 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 443baa8c16 (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> c0bd8d3c52 (GEOMESA-3109 Json array to object converter function (#2788))
 jsonPath
 ~~~~~~~~
 
