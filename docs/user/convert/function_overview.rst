@@ -4539,6 +4539,12 @@ Encoding Functions
 =======
 >>>>>>> 008feb67a (GEOMESA-3109 Json array to object converter function (#2788))
 
+Encoding Functions
+~~~~~~~~~~~~~~~~~~
+
+-  ``base64Encode``
+-  ``base64Decode``
+
 Control Functions
 ~~~~~~~~~~~~~~~~~
 
