@@ -224,6 +224,7 @@ package org.locationtech.geomesa.convert2.transforms
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> b720884250 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -1202,6 +1203,8 @@ package org.locationtech.geomesa.convert2.transforms
 =======
 >>>>>>> 7015b03b97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 33b6ffa80c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 =======
 >>>>>>> 063b0f26f0 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -1235,11 +1238,16 @@ package org.locationtech.geomesa.convert2.transforms
 =======
 =======
 =======
+>>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 31039e261 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 11d66324ec (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 >>>>>>> 7a6dd271d (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> fd776cb831 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -2927,8 +2935,18 @@ package org.locationtech.geomesa.convert2.transforms
 =======
 =======
 >>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 1bb69524c2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 33b6ffa80c (GEOMESA-3109 Json array to object converter function (#2788))
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.{Collections, Date}
@@ -2961,6 +2979,7 @@ import java.util.{Collections, Date}
 <<<<<<< HEAD
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3315,6 +3334,8 @@ import java.util.{Collections, Date}
 >>>>>>> 22c3a3a32c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 7015b03b97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 33b6ffa80c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> a9f01eaaf5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -3354,6 +3375,8 @@ import java.util.{Collections, Date}
 >>>>>>> fd776cb831 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 11d66324ec (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> c44517c36 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 6938112d54 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -6208,10 +6231,14 @@ import java.util.{Collections, Date}
 >>>>>>> 31039e261 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 33b6ffa80c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 11d66324ec (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -7721,6 +7748,9 @@ import java.util.{Collections, Date}
 =======
 >>>>>>> 11d66324ec (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 7015b03b97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 33b6ffa80c (GEOMESA-3109 Json array to object converter function (#2788))
 import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -36764,6 +36794,9 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -36855,6 +36888,7 @@ class ExpressionTest extends Specification {
       exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
       exp.eval(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -37164,6 +37198,10 @@ class ExpressionTest extends Specification {
 >>>>>>> 31039e261 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e014d8c87 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
     }
 =======
       exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
@@ -37619,6 +37657,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9536729782 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -37661,6 +37700,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 22c3a3a32c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 9a8065c960 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 33b6ffa80c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> eccc16ddf9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -38566,6 +38607,7 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+<<<<<<< HEAD
 >>>>>>> 66cba04aa1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 448369e575 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -38672,6 +38714,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 33b6ffa80c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 7a6dd271d (GEOMESA-3109 Json array to object converter function (#2788))
@@ -38685,6 +38729,7 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -39284,6 +39329,9 @@ class ExpressionTest extends Specification {
 >>>>>>> e014d8c87 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 8cb3591e39 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 9a8065c960 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 33b6ffa80c (GEOMESA-3109 Json array to object converter function (#2788))
       val exp = Expression("base64($0)")
       exp.apply(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
       exp.eval(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
@@ -43956,8 +44004,18 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> e014d8c87 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 8cb3591e39 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
       foreach(Seq("base64($0)", "base64Encode($0)")) { expression =>
         val exp = Expression(expression)
         exp.apply(Array(testBytes)) mustEqual Base64.encodeBase64URLSafeString(testBytes)
@@ -43969,6 +44027,7 @@ class ExpressionTest extends Specification {
       val exp = Expression("base64Decode($0)")
       exp.apply(Array(encoded)) mustEqual testBytes
       exp.eval(Array(encoded)) mustEqual testBytes
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -44046,6 +44105,8 @@ class ExpressionTest extends Specification {
 >>>>>>> fd776cb831 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 8cb3591e39 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
@@ -44226,11 +44287,22 @@ class ExpressionTest extends Specification {
 >>>>>>> 09c8a6d2fd (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> e014d8c87 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 8cb3591e39 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
       val exp = Expression("base64($0)")
       exp.apply(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
       exp.eval(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -44277,6 +44349,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 09c8a6d2fd (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 8cb3591e39 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
 >>>>>>> 2c3111e68 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -44358,9 +44432,13 @@ class ExpressionTest extends Specification {
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 6938112d54 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
+=======
 =======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -44375,6 +44453,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 7a0ab99f8b (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 6938112d54 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -44809,8 +44889,16 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> e014d8c87 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 8cb3591e39 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 9a8065c960 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+>>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 33b6ffa80c (GEOMESA-3109 Json array to object converter function (#2788))
     }
     "handle whitespace in functions" >> {
       val variants = Seq(
