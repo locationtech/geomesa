@@ -28,7 +28,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 
   // noinspection ScalaDeprecation
   override def functions: Seq[TransformerFunction] =
+<<<<<<< HEAD
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
+=======
+    Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject)
+>>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
 
   @deprecated("use toString")
   private val jsonToString = TransformerFunction.pure("jsonToString", "json2string") { args =>
@@ -128,6 +132,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     }
   }
 
+<<<<<<< HEAD
   private val newJsonObject = TransformerFunction.pure("newJsonObject") { args =>
     val obj = new JsonObject()
     var i = 1
@@ -158,5 +163,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     }
   }
 
+=======
+>>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
   private def getPrimitive(p: JsonPrimitive): Any = if (p.isBoolean) { p.getAsBoolean } else { p.getAsString }
 }
