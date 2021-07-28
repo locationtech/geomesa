@@ -3951,6 +3951,12 @@ Encoding Functions
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 
+Encoding Functions
+~~~~~~~~~~~~~~~~~~
+
+-  ``base64Encode``
+-  ``base64Decode``
+
 Control Functions
 ~~~~~~~~~~~~~~~~~
 
