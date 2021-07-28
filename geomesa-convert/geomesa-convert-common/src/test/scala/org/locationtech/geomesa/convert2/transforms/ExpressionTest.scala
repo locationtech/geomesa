@@ -9,12 +9,15 @@
 package org.locationtech.geomesa.convert2.transforms
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.{Collections, Date}
 
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
 import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -27,6 +30,10 @@ import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+<<<<<<< HEAD
+=======
+import java.nio.charset.StandardCharsets
+>>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.{Collections, Date}
@@ -962,6 +969,13 @@ class ExpressionTest extends Specification {
       exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
       exp.eval(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
     }
+    "generate murmur hashes" >> {
+      val exp = Expression("murmurHash3($0)")
+      exp.apply(Array("foo")) mustEqual "6145f501578671e2877dba2be487af7e"
+      exp.apply(Array("foo".getBytes)) mustEqual "6145f501578671e2877dba2be487af7e"
+      exp.eval(Array("foo")) mustEqual "6145f501578671e2877dba2be487af7e"
+      exp.eval(Array("foo".getBytes)) mustEqual "6145f501578671e2877dba2be487af7e"
+    }
     "generate uuids" >> {
       val exp = Expression("uuid()")
       foreach(Seq(exp.apply(null), exp.eval(null))) { res =>
@@ -1011,10 +1025,24 @@ class ExpressionTest extends Specification {
       }
     }
     "encode bytes as base64 strings" >> {
+<<<<<<< HEAD
       val exp = Expression("base64($0)")
       exp.apply(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
       exp.eval(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+      foreach(Seq("base64($0)", "base64Encode($0)")) { expression =>
+        val exp = Expression(expression)
+        exp.apply(Array(testBytes)) mustEqual Base64.encodeBase64URLSafeString(testBytes)
+        exp.eval(Array(testBytes)) mustEqual Base64.encodeBase64URLSafeString(testBytes)
+      }
+    }
+    "decode base64 strings as bytes" >> {
+      val encoded = Base64.encodeBase64URLSafeString(testBytes)
+      val exp = Expression("base64Decode($0)")
+      exp.apply(Array(encoded)) mustEqual testBytes
+      exp.eval(Array(encoded)) mustEqual testBytes
+>>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
     }
     "handle whitespace in functions" >> {
       val variants = Seq(
