@@ -93,6 +93,24 @@ third is a JSON object. The type of keys and values must be one of the types def
 See below for an example.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+mapToJson
+~~~~~~~~~
+
+This function converts a java.util.Map into a JSON string. It requires a single parameter, which must be a
+java.util.Map. It can be useful for storing complex JSON as a single attribute, which can then be queried
+using GeoMesa's JSON attribute support. See :ref:`json_attributes` for more information.
+
+jsonArrayToObject
+~~~~~~~~~~~~~~~~~
+
+This function converts a JSON array into a JSON object, by using the index of each array element as the object
+key. This is useful for GeoMesa's JSON attribute types, which currently require a top-level object and not an array.
+
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> 4aef7a70f3 (GEOMESA-3109 Json array to object converter function (#2788))
 jsonPath
 ~~~~~~~~
 
