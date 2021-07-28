@@ -61,6 +61,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -137,6 +138,8 @@
 >>>>>>> 13c9b592f1 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> a79102d96a (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 4bff038c35 (GEOMESA-3109 Json array to object converter function (#2788))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -276,6 +279,8 @@
 >>>>>>> 62ff7eb02c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 448369e575 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 793ec81151 (GEOMESA-3109 Json array to object converter function (#2788))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -783,6 +788,8 @@
 >>>>>>> 6ba18529e (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> e7b61a536 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 4350edc8f (GEOMESA-3109 Json array to object converter function (#2788))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
@@ -790,6 +797,9 @@
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 64d8177ac (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 31b03236c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
