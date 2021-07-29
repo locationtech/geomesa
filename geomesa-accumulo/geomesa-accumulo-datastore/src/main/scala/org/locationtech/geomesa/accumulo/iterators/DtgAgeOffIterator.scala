@@ -16,6 +16,7 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.index.AccumuloJoinIndex
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.filters.{AgeOffFilter, DtgAgeOffFilter}
 import org.locationtech.geomesa.utils.conf.FeatureExpiration
@@ -97,9 +98,13 @@ object DtgAgeOffIterator extends LazyLogging {
   def set(ds: AccumuloDataStore, sft: SimpleFeatureType, expiry: Duration, dtg: String): Unit = {
     val tableOps = ds.connector.tableOperations()
     ds.manager.indices(sft).foreach { index =>
+      val indexSft = index match {
+        case joinIndex: AccumuloJoinIndex => joinIndex.indexSft
+        case _ => sft
+      }
       index.getTableNames(None).foreach { table =>
         if (tableOps.exists(table)) {
-          tableOps.attachIterator(table, configure(sft, index, expiry, Option(dtg))) // all scopes
+          tableOps.attachIterator(table, configure(indexSft, index, expiry, Option(dtg))) // all scopes
         }
       }
     }
