@@ -18,6 +18,7 @@ package org.locationtech.geomesa.accumulo.iterators
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.geotools.api.data.{DataStore, DataStoreFinder}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
@@ -41,6 +42,8 @@ import org.geotools.api.filter.Filter
 >>>>>>> 912129d8177 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 >>>>>>> 75ae649304a (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 62c9ea72f02 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -56,6 +59,11 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> e303c34c32 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+>>>>>>> a1dcf0cf22 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -98,6 +106,7 @@ import org.apache.accumulo.core.client.Connector
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d625188ed5 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
@@ -106,6 +115,8 @@ import org.apache.accumulo.core.client.Connector
 >>>>>>> 6bbccb88ad (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 >>>>>>> 7af8227781 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+=======
+>>>>>>> a1dcf0cf22 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 >>>>>>> 1ec19b5aac (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 >>>>>>> 1ec19b5aa (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
@@ -118,6 +129,7 @@ import org.apache.accumulo.core.client.Connector
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -165,6 +177,11 @@ import org.apache.accumulo.core.client.Connector
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 1ec19b5aa (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+>>>>>>> e303c34c32 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+>>>>>>> a1dcf0cf22 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 import org.geotools.data.{DataStore, DataStoreFinder}
 >>>>>>> ffd9687a2fb (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 import org.junit.runner.RunWith
@@ -172,7 +189,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.accumulo.{AccumuloContainer, TestWithFeatureType}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.io.WithClose
@@ -271,7 +288,9 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
     }
 =======
   private def scanDirect(expected: Int) = {
+<<<<<<< HEAD
     val conn = MiniCluster.cluster.createAccumuloClient(MiniCluster.Users.root.name, new PasswordToken(MiniCluster.Users.root.password))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -301,6 +320,8 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> a1dcf0cf22 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+=======
     val conn: Connector = MiniCluster.cluster.getConnector(MiniCluster.Users.root.name, MiniCluster.Users.root.password)
 <<<<<<< HEAD
 >>>>>>> 1ec19b5aac (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
@@ -320,6 +341,7 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
     val conn: Connector = MiniCluster.cluster.getConnector(MiniCluster.Users.root.name, MiniCluster.Users.root.password)
 >>>>>>> 1ec19b5aa (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 >>>>>>> e303c34c32 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -374,13 +396,17 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a1dcf0cf22 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
     conn.tableOperations().list().asScala.filter(t => t.contains("DtgAgeOffTest_DtgAgeOffTest")).forall { tableName =>
       val scanner = conn.createScanner(tableName, MiniCluster.Users.root.auths)
       val count = scanner.asScala.size
       scanner.close()
       count mustEqual expected
     }
+<<<<<<< HEAD
     conn.close()
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -409,6 +435,8 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a1dcf0cf22 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 <<<<<<< HEAD
 >>>>>>> 1ec19b5aac (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
@@ -450,12 +478,15 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 122bdcdadd9 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 =======
 >>>>>>> 7d2471c8e3e (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 >>>>>>> a104e87b93f (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 62c9ea72f02 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -543,6 +574,11 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> a1dcf0cf22 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+>>>>>>> 62c9ea72f02 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
   }
 }
