@@ -54,7 +54,7 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
   private val attributeIndex = sft.indexOf(attribute)
   private val descriptor = sft.getDescriptor(attributeIndex)
   private val binding = descriptor.getType.getBinding
-  private val indexSft = IndexValueEncoder.getIndexSft(sft)
+  val indexSft = IndexValueEncoder.getIndexSft(sft)
 
   override val name: String = JoinIndex.name
   override val identifier: String = GeoMesaFeatureIndex.identifier(name, version, attributes)
