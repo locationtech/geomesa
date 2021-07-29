@@ -31,10 +31,14 @@ import org.apache.accumulo.core.client.Connector
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d625188ed5 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 >>>>>>> 1ec19b5aac (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 >>>>>>> 1ec19b5aa (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 >>>>>>> 0cdc5f0484 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+<<<<<<< HEAD
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
@@ -50,6 +54,8 @@ import org.apache.accumulo.core.client.Connector
 =======
 >>>>>>> 1ec19b5aac (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 >>>>>>> 2c1e7121ba (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+=======
+>>>>>>> d625188ed5 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
@@ -177,8 +183,15 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 =======
 =======
     val conn: Connector = MiniCluster.cluster.getConnector(MiniCluster.Users.root.name, MiniCluster.Users.root.password)
+<<<<<<< HEAD
 >>>>>>> 1ec19b5aac (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+<<<<<<< HEAD
 >>>>>>> 2c1e7121ba (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+=======
+=======
+>>>>>>> 1ec19b5aa (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+>>>>>>> 0cdc5f0484 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+>>>>>>> d625188ed5 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
     conn.tableOperations().list().asScala.filter(t => t.contains("DtgAgeOffTest_DtgAgeOffTest")).forall { tableName =>
       val scanner = conn.createScanner(tableName, MiniCluster.Users.root.auths)
       val count = scanner.asScala.size
@@ -215,7 +228,14 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 >>>>>>> c3880e4ec1 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> 1ec19b5aac (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+<<<<<<< HEAD
 >>>>>>> 2c1e7121ba (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+=======
+=======
+>>>>>>> 1ec19b5aa (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+>>>>>>> 0cdc5f0484 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
+>>>>>>> d625188ed5 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
   }
 }
