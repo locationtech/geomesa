@@ -15,10 +15,11 @@ object SerializationOption extends Enumeration {
 
   type SerializationOption = Value
 
-  val WithUserData :Value = Value
-  val WithoutId    :Value = Value
-  val Immutable    :Value = Value
-  val Lazy         :Value = Value
+  val WithUserData    :Value = Value
+  val WithoutFidHints :Value = Value
+  val WithoutId       :Value = Value
+  val Immutable       :Value = Value
+  val Lazy            :Value = Value
 
   implicit class SerializationOptions(val options: Set[SerializationOption]) extends AnyVal {
 
@@ -29,6 +30,16 @@ object SerializationOption extends Enumeration {
     def contains(value: SerializationOption): Boolean = options.contains(value)
 
     def withUserData: Boolean = options.contains(WithUserData)
+
+    /**
+     * In conjunction with `withUserData`, skip Hints.USE_PROVIDED_FID and Hints.PROVIDED_FID
+     *
+     * Note that currently we don't serialize those fields anyway, but this makes it explicit and will
+     * suppress any warnings
+     *
+     * @return
+     */
+    def withoutFidHints: Boolean = options.contains(WithoutFidHints)
 
     def withoutId: Boolean = options.contains(WithoutId)
 
@@ -50,11 +61,25 @@ object SerializationOption extends Enumeration {
     def builder: Builder = new Builder()
 
     class Builder {
+
       private val options = scala.collection.mutable.Set.empty[SerializationOption]
 
       def immutable: Builder = { options.add(Immutable); this }
+
       def withUserData: Builder = { options.add(WithUserData); this }
+
+      /**
+       * In conjunction with `withUserData`, skip Hints.USE_PROVIDED_FID and Hints.PROVIDED_FID
+       *
+       * Note that currently we don't serialize those fields anyway, but this makes it explicit and will
+       * suppress any warnings
+       *
+       * @return
+       */
+      def withoutFidHints: Builder = { options.add(WithoutFidHints); this }
+
       def withoutId: Builder = { options.add(WithoutId); this }
+
       def `lazy`: Builder = { options.add(Lazy); this }
 
       def build: Set[SerializationOption] = options.toSet

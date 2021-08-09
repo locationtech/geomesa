@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
-import java.io.Flushable
-import java.time.Clock
-import java.util.{Collections, Properties, UUID}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, KafkaConsumer}
@@ -27,7 +24,7 @@ import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptor
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.kafka.KafkaConsumerVersions
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
-import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.{FeatureIdHints, MessageTypes}
+import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -37,6 +34,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.io.Flushable
+import java.time.Clock
+import java.util.{Collections, Properties, UUID}
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
@@ -60,7 +60,7 @@ class KafkaStore(
   private val serializer = {
     // use immutable so we can return query results without copying or worrying about user modification
     // use lazy so that we don't create lots of objects that get replaced/updated before actually being read
-    val options = SerializationOptions.builder.withUserData.immutable.`lazy`.build
+    val options = SerializationOptions.builder.withUserData.withoutFidHints.immutable.`lazy`.build
     KryoFeatureSerializer(sft, options)
   }
 
@@ -123,8 +123,6 @@ class KafkaStore(
 
   override def write(original: SimpleFeature): Unit = {
     val feature = GeoMesaFeatureWriter.featureWithFid(original)
-    // we've handled the fid hints, remove them so that we don't serialize them
-    FeatureIdHints.foreach(feature.getUserData.remove)
     val key = KafkaStore.serializeKey(clock.millis(), MessageTypes.Write)
     producer.send(new ProducerRecord(topic, key, serializer.serialize(feature)))
     logger.trace(s"Wrote feature to [$topic]: $feature")
@@ -134,8 +132,6 @@ class KafkaStore(
     import org.locationtech.geomesa.filter.ff
     // send a message to delete from all transient stores
     val feature = GeoMesaFeatureWriter.featureWithFid(original)
-    // we've handled the fid hints, remove them so that we don't serialize them
-    FeatureIdHints.foreach(feature.getUserData.remove)
     val key = KafkaStore.serializeKey(clock.millis(), MessageTypes.Delete)
     producer.send(new ProducerRecord(topic, key, serializer.serialize(feature)))
     // also delete from persistent store
@@ -168,8 +164,6 @@ class KafkaStore(
 object KafkaStore {
 
   val LoadIntervalProperty: SystemProperty = SystemProperty("geomesa.lambda.load.interval", "100ms")
-
-  private val FeatureIdHints = Seq(Hints.USE_PROVIDED_FID, Hints.PROVIDED_FID)
 
   object MessageTypes {
     val Write:  Byte = 0
