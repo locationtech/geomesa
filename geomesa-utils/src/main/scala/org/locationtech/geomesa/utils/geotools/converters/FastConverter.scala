@@ -42,38 +42,42 @@ object FastConverter extends StrictLogging {
     }
 
     val clas = value.getClass
-    var converters = cache.get((clas, binding))
+    if (clas == binding) {
+      value.asInstanceOf[T]
+    } else {
+      var converters = cache.get((clas, binding))
 
-    if (converters == null) {
-      if (clas.eq(binding) || clas == binding || binding.isAssignableFrom(clas)) {
-        converters = Array(IdentityConverter)
-      } else {
-        converters = factories.flatMap(factory => Option(factory.createConverter(clas, binding, null)))
-        if (binding == classOf[String]) {
-          converters = converters :+ ToStringConverter // add toString as a final fallback
+      if (converters == null) {
+        if (clas.eq(binding) || clas == binding || binding.isAssignableFrom(clas)) {
+          converters = Array(IdentityConverter)
+        } else {
+          converters = factories.flatMap(factory => Option(factory.createConverter(clas, binding, null)))
+          if (binding == classOf[String]) {
+            converters = converters :+ ToStringConverter // add toString as a final fallback
+          }
         }
+        cache.put((clas, binding), converters)
       }
-      cache.put((clas, binding), converters)
-    }
 
-    var i = 0
-    while (i < converters.length) {
-      try {
-        val result = converters(i).convert(value, binding)
-        if (result != null) {
-          return result
+      var i = 0
+      while (i < converters.length) {
+        try {
+          val result = converters(i).convert(value, binding)
+          if (result != null) {
+            return result
+          }
+        } catch {
+          case NonFatal(e) =>
+            logger.trace(s"Error converting $value (of type ${value.getClass.getName}) " +
+                s"to ${binding.getName} using converter ${converters(i).getClass.getName}:", e)
         }
-      } catch {
-        case NonFatal(e) =>
-          logger.trace(s"Error converting $value (of type ${value.getClass.getName}) " +
-              s"to ${binding.getName} using converter ${converters(i).getClass.getName}:", e)
+        i += 1
       }
-      i += 1
+
+      logger.warn(s"Could not convert '$value' (of type ${value.getClass.getName}) to ${binding.getName}")
+
+      null.asInstanceOf[T]
     }
-
-    logger.warn(s"Could not convert '$value' (of type ${value.getClass.getName}) to ${binding.getName}")
-
-    null.asInstanceOf[T]
   }
 
   private object IdentityConverter extends Converter {
