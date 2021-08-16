@@ -1315,6 +1315,30 @@ class JsonConverterTest extends Specification {
       }
     }
 
+    "create json object attributes" >> {
+      val sft = SimpleFeatureTypes.createType("objects", "foobar:String:json=true")
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type = "json"
+          |   id-field = "md5(string2bytes(json2string($0)))"
+          |   fields = [
+          |     { name = "foo", path = "$.foo", json-type = "String" }
+          |     { name = "bar", path = "$.bar", json-type = "Array" }
+          |     { name = "foobar", transform = "toString(newJsonObject('string',$foo,'array',$bar))" }
+          |   ]
+          | }
+        """.stripMargin)
+      val in = """{"foo":"foo","bar":["bar1","bar2"]}""".getBytes(StandardCharsets.UTF_8)
+
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(in)))(_.toList)
+        features must haveLength(1)
+        features.head.getAttribute("foobar") mustEqual """{"string":"foo","array":["bar1","bar2"]}"""
+      }
+    }
+
     "infer schema from geojson files" >> {
       val json =
         """{

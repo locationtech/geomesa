@@ -65,6 +65,12 @@ require further processing (e.g. ``jsonList`` or ``jsonMap``, below).
 In addition to the standard functions in :ref:`converter_functions`, the JSON converter provides the following
 JSON-specific functions:
 
+jsonArrayToObject
+~~~~~~~~~~~~~~~~~
+
+This function converts a JSON array into a JSON object, by using the index of each array element as the object
+key. This is useful for GeoMesa's JSON attribute types, which currently require a top-level object and not an array.
+
 jsonList
 ~~~~~~~~
 
@@ -80,19 +86,6 @@ type of the map key elements as a string, the second is the type of the map valu
 third is a JSON object. The type of keys and values must be one of the types defined in :ref:`attribute_types`.
 See below for an example.
 
-mapToJson
-~~~~~~~~~
-
-This function converts a java.util.Map into a JSON string. It requires a single parameter, which must be a
-java.util.Map. It can be useful for storing complex JSON as a single attribute, which can then be queried
-using GeoMesa's JSON attribute support. See :ref:`json_attributes` for more information.
-
-jsonArrayToObject
-~~~~~~~~~~~~~~~~~
-
-This function converts a JSON array into a JSON object, by using the index of each array element as the object
-key. This is useful for GeoMesa's JSON attribute types, which currently require a top-level object and not an array.
-
 jsonPath
 ~~~~~~~~
 
@@ -100,6 +93,26 @@ This function will evaluate a `JSONPath <http://goessner.net/articles/JsonPath/>
 given JSON element. Generally, it is better to use the ``path`` element of the ``fields`` element, but
 this method can be useful for composite predicates (see above). The first argument is the path to evaluate,
 and the second argument is the element to operate on.
+
+mapToJson
+~~~~~~~~~
+
+This function converts a java.util.Map into a JSON string. It requires a single parameter, which must be a
+java.util.Map. It can be useful for storing complex JSON as a single attribute, which can then be queried
+using GeoMesa's JSON attribute support. See :ref:`json_attributes` for more information.
+
+newJsonObject
+~~~~~~~~~~~~~
+
+This function creates a new JSON object from key-value pairs. It can be useful for generating JSON text values.
+
+Example::
+
+  fields = [
+    { name = "foo", path = "$.foo", json-type = "String" }
+    { name = "bar", path = "$.bar", json-type = "Array" }
+    { name = "foobar", transform = "toString(newJsonObject('foo', $foo, 'bar', $bar))"
+  ]
 
 Example Usage
 -------------
