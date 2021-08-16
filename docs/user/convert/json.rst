@@ -65,6 +65,12 @@ require further processing (e.g. ``jsonList`` or ``jsonMap``, below).
 In addition to the standard functions in :ref:`converter_functions`, the JSON converter provides the following
 JSON-specific functions:
 
+emptyJsonToNull
+~~~~~~~~~~~~~~~
+
+This function converts empty JSON objects and arrays to null. A JSON object is also considered empty if all its
+values are null.
+
 jsonArrayToObject
 ~~~~~~~~~~~~~~~~~
 

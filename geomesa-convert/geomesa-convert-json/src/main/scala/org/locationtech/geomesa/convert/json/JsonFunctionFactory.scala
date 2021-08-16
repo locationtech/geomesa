@@ -8,18 +8,17 @@
 
 package org.locationtech.geomesa.convert.json
 
-import java.util.concurrent.ConcurrentHashMap
-import com.google.gson.{Gson, JsonArray, JsonElement, JsonNull, JsonObject, JsonPrimitive}
+import com.google.gson._
 import com.jayway.jsonpath.JsonPath
 import org.json4s.JsonAST.{JNull, JValue}
 import org.json4s.{JBool, JDouble, JInt, JString}
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.CollectionFunctionFactory.CollectionParsing
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
 import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 
 class JsonFunctionFactory extends TransformerFunctionFactory with CollectionParsing {
 
@@ -29,7 +28,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 
   // noinspection ScalaDeprecation
   override def functions: Seq[TransformerFunction] =
-    Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject)
+    Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
 
   @deprecated("use toString")
   private val jsonToString = TransformerFunction.pure("jsonToString", "json2string") { args =>
@@ -147,6 +146,16 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
       i += 2
     }
     obj
+  }
+
+  private val emptyToNull = TransformerFunction.pure("emptyJsonToNull") { args =>
+    args(0) match {
+      case JsonNull.INSTANCE => null
+      case j: JsonObject if j.size() == 0 => null
+      case j: JsonObject if j.entrySet().asScala.forall(_.getValue == JsonNull.INSTANCE) => null
+      case j: JsonArray if j.size() == 0 => null
+      case j => j
+    }
   }
 
   private def getPrimitive(p: JsonPrimitive): Any = if (p.isBoolean) { p.getAsBoolean } else { p.getAsString }

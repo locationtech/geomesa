@@ -1339,6 +1339,43 @@ class JsonConverterTest extends Specification {
       }
     }
 
+    "create json object attributes" >> {
+      val sft =
+        SimpleFeatureTypes.createType("objects",
+          "foo:String,fooNull:String,bar:String,barNull:String,baz:String,bazNull:String")
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type = "json"
+          |   id-field = "md5(string2bytes(json2string($0)))"
+          |   fields = [
+          |     { name = "fooElem", path = "$.foo", json-type = "Object" }
+          |     { name = "foo", transform = "toString($fooElem)" }
+          |     { name = "fooNull", transform = "toString(emptyJsonToNull($fooElem))" }
+          |     { name = "barElem", path = "$.bar", json-type = "Object" }
+          |     { name = "bar", transform = "toString($barElem)" }
+          |     { name = "barNull", transform = "toString(emptyJsonToNull($barElem))" }
+          |     { name = "bazElem", path = "$.baz", json-type = "Array" }
+          |     { name = "baz", transform = "toString($bazElem)" }
+          |     { name = "bazNull", transform = "toString(emptyJsonToNull($bazElem))" }
+          |   ]
+          | }
+        """.stripMargin)
+      val in = """{"foo":{},"bar":{"bar1":null,"bar2":null},"baz":[]}""".getBytes(StandardCharsets.UTF_8)
+
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(in)))(_.toList)
+        features must haveLength(1)
+        features.head.getAttribute("foo") mustEqual "{}"
+        features.head.getAttribute("fooNull") must beNull
+        features.head.getAttribute("bar") mustEqual "{}" // note: toString drops out the null elements
+        features.head.getAttribute("barNull") must beNull
+        features.head.getAttribute("baz") mustEqual "[]"
+        features.head.getAttribute("bazNull") must beNull
+      }
+    }
+
     "infer schema from geojson files" >> {
       val json =
         """{
