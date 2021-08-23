@@ -198,12 +198,14 @@ object FilterHelper {
   def extractAttributeBounds[T](filter: Filter, attribute: String, binding: Class[T]): FilterValues[Bounds[T]] = {
     filter match {
       case o: Or =>
+        val set = o.getChildren.foldLeft(Set.empty[Option[String]])((acc, f) => acc + getAttributeProperty(f))   
         val all = o.getChildren.flatMap { f =>
           val child = extractAttributeBounds(f, attribute, binding)
           if (child.isEmpty) { Seq.empty } else { Seq(child) }
         }
         val union = FilterValues.or[Bounds[T]](Bounds.union[T]) _
-        all.reduceLeftOption[FilterValues[Bounds[T]]](union).getOrElse(FilterValues.empty)
+        if (set.size != 1) FilterValues.empty  
+        else all.reduceLeftOption[FilterValues[Bounds[T]]](union).getOrElse(FilterValues.empty)
 
       case a: And =>
         val all = a.getChildren.flatMap { f =>

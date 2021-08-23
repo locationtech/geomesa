@@ -30,9 +30,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
-import org.locationtech.geomesa.index.conf.partition.TablePartition
-import org.locationtech.geomesa.index.conf.partition.TimePartition
 
 @RunWith(classOf[JUnitRunner])
 class GeoMesaDataStoreTest extends Specification {
@@ -114,37 +111,6 @@ class GeoMesaDataStoreTest extends Specification {
       // other queries should go through as normal
       results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, ECQL.toFilter("bbox(geom,39,54,51,56)")), Transaction.AUTO_COMMIT)).toSeq
       results must haveLength(10)
-    }
-    "time-partitioned queries should return the same result" in {
-      val sftp = SimpleFeatureTypes.createType("test", s"name:String,age:Int,dtg:Date,*geom:Point:srid=4326;" +
-      s"${Configs.TablePartitioning}=${TimePartition.Name}")
-      
-      sftp.getUserData.put(SimpleFeatureTypes.Configs.QueryInterceptors, classOf[TestQueryInterceptor].getName)
-
-      val dsp = new TestGeoMesaDataStore(true)
-      dsp.createSchema(sftp)
-
-      dsp.getFeatureSource(sftp.getTypeName).addFeatures(new ListFeatureCollection(sftp, features.toArray[SimpleFeature]))
-
-      TablePartition.partitioned(sftp) must beTrue
-
-      val filter = "(bbox(geom,39,54,51,56) AND " +
-        "(dtg BETWEEN 2018-01-01T00:00:00+00:00 AND 2018-01-04T00:00:00+00:00)) OR " +
-        "(bbox(geom,39,54,51,57) AND " +
-        "(dtg BETWEEN 2018-01-05T00:00:00+00:00 AND 2018-01-08T00:00:00+00:00))"
-
-      val partitionOption = TablePartition(dsp, sftp)
-      partitionOption must beSome
-      val partition = partitionOption.get
-      val partitionsOption = partition.partitions(ECQL.toFilter(filter))
-      partitionsOption must beSome
-
-      var results = SelfClosingIterator(
-        dsp.getFeatureReader(
-          new Query(sftp.getTypeName, 
-          ECQL.toFilter(filter)), Transaction.AUTO_COMMIT)).toSeq
-      
-      results must not beEmpty
     }
     "block queries which would cause a full table scan" in {
       val sft = SimpleFeatureTypes.createType("61b44359ddb84822983587389d6a28a4",

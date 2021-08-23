@@ -43,7 +43,7 @@ class FilterHelperTest extends Specification {
   }
 
   "FilterHelper" should {
-
+    
     "optimize the inArray function" >> {
       val sf = new ScalaSimpleFeature(sft, "1",
         Array(new Date(), new Integer(1), new Integer(2), new Integer(3), new Integer(4), WKTUtils.read("POINT(1 5)"), "foo"))
@@ -251,6 +251,24 @@ class FilterHelperTest extends Specification {
       } finally {
         FilterProperties.CaseInsensitiveLimit.threadLocalValue.remove()
       }
+    }
+
+    "ignore OR clauses with differing attributes when extracting bounds" >> {
+      val cql1 = "((BBOX(geom, 0.0,0.0,10.0,10.0) OR " +
+        "BBOX(geom, 20.0,20.0,30.0,30.0)) AND " +
+        "(dtg BETWEEN 2021-05-05T00:00:00+00:00 AND 2021-05-10T00:00:00+00:00 OR " +
+        "dtg BETWEEN 2021-05-01T00:00:00+00:00 AND 2021-05-04T00:00:00+00:00)) AND " +
+        "((BBOX(geom, 0.0,0.0,10.0,10.0) OR " +
+        "dtg BETWEEN 2021-05-01T00:00:00+00:00 AND 2021-05-04T00:00:00+00:00) AND " +
+        "(dtg BETWEEN 2021-05-05T00:00:00+00:00 AND 2021-05-10T00:00:00+00:00 OR " +
+        "BBOX(geom, 20.0,20.0,30.0,30.0)))"
+
+      val cql2 = "dtg BETWEEN 2021-05-05T00:00:00+00:00 AND 2021-05-10T00:00:00+00:00 OR " +
+        "dtg BETWEEN 2021-05-01T00:00:00+00:00 AND 2021-05-04T00:00:00+00:00"
+
+      val intervals1 = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql1), "dtg", classOf[Date])
+      val intervals2 = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql2), "dtg", classOf[Date])
+      intervals1 mustEqual intervals2
     }
 
     "deduplicate OR filters" >> {
