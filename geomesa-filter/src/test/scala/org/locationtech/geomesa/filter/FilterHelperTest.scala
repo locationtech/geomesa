@@ -291,7 +291,7 @@ class FilterHelperTest extends Specification {
 
     "ignore OR clauses with differing attributes (2)" >> {
       val cql1 = "(BBOX(geom, 20.0,20.0,30.0,30.0) OR " +
-        "dtg DURING 2021-05-05T00:00:00.000Z/2021-05-10T00:00:00.000Z)) AND " +
+        "dtg DURING 2021-05-05T00:00:00.000Z/2021-05-10T00:00:00.000Z) AND " +
         "dtg DURING 2021-05-01T00:00:00.000Z/2021-05-04T00:00:00.000Z"
 
       val cql2 = "dtg DURING 2021-05-01T00:00:00.000Z/2021-05-04T00:00:00.000Z"
