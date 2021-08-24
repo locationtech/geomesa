@@ -124,7 +124,6 @@ class HBasePartitioningTest extends Specification with LazyLogging {
             "dtg BETWEEN 2018-01-01T00:00:00+00:00 AND 2018-01-04T00:00:00+00:00) OR " +
             "(bbox(geom,38,48,52,61) and dtg BETWEEN 2018-01-05T00:00:00+00:00 AND 2018-01-08T00:00:00+00:00)")
           val plans = ds.getQueryPlan(new Query(sft.getTypeName, filter))
-          println(plans)
           plans must not(beEmpty)
           plans.head must not(beAnInstanceOf[EmptyPlan])
         }
