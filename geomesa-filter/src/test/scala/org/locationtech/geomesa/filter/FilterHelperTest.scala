@@ -253,6 +253,67 @@ class FilterHelperTest extends Specification {
       }
     }
 
+    "ignore OR clauses with differing attributes when extracting bounds" >> {
+      val cql1 = "((BBOX(geom, 0.0,0.0,10.0,10.0) OR " +
+        "BBOX(geom, 20.0,20.0,30.0,30.0)) AND " +
+        "(dtg BETWEEN 2021-05-05T00:00:00+00:00 AND 2021-05-10T00:00:00+00:00 OR " +
+        "dtg BETWEEN 2021-05-01T00:00:00+00:00 AND 2021-05-04T00:00:00+00:00)) AND " +
+        "((BBOX(geom, 0.0,0.0,10.0,10.0) OR " +
+        "dtg BETWEEN 2021-05-01T00:00:00+00:00 AND 2021-05-04T00:00:00+00:00) AND " +
+        "(dtg BETWEEN 2021-05-05T00:00:00+00:00 AND 2021-05-10T00:00:00+00:00 OR " +
+        "BBOX(geom, 20.0,20.0,30.0,30.0)))"
+
+      val cql2 = "dtg BETWEEN 2021-05-05T00:00:00+00:00 AND 2021-05-10T00:00:00+00:00 OR " +
+        "dtg BETWEEN 2021-05-01T00:00:00+00:00 AND 2021-05-04T00:00:00+00:00"
+
+      val intervals1 = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql1), "dtg", classOf[Date])
+      val intervals2 = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql2), "dtg", classOf[Date])
+      intervals1 mustEqual intervals2
+    }
+
+    "ignore OR clauses with differing attributes when extracting bounds" >> {
+      val cql1 = "((BBOX(geom, 0.0,0.0,10.0,10.0) OR " +
+        "BBOX(geom, 20.0,20.0,30.0,30.0)) AND " +
+        "(dtg BETWEEN 2021-05-05T00:00:00+00:00 AND 2021-05-10T00:00:00+00:00 OR " +
+        "dtg BETWEEN 2021-05-01T00:00:00+00:00 AND 2021-05-04T00:00:00+00:00)) AND " +
+        "((BBOX(geom, 0.0,0.0,10.0,10.0) OR " +
+        "dtg BETWEEN 2021-05-01T00:00:00+00:00 AND 2021-05-04T00:00:00+00:00) AND " +
+        "(dtg BETWEEN 2021-05-05T00:00:00+00:00 AND 2021-05-10T00:00:00+00:00 OR " +
+        "BBOX(geom, 20.0,20.0,30.0,30.0)))"
+
+      val cql2 = "dtg BETWEEN 2021-05-05T00:00:00+00:00 AND 2021-05-10T00:00:00+00:00 OR " +
+        "dtg BETWEEN 2021-05-01T00:00:00+00:00 AND 2021-05-04T00:00:00+00:00"
+
+      val intervals1 = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql1), "dtg", classOf[Date])
+      val intervals2 = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql2), "dtg", classOf[Date])
+      intervals1 mustEqual intervals2
+    }
+
+    "ignore OR clauses with differing attributes (2)" >> {
+      val cql1 = "(BBOX(geom, 20.0,20.0,30.0,30.0) OR " +
+        "dtg DURING 2021-05-05T00:00:00.000Z/2021-05-10T00:00:00.000Z) AND " +
+        "dtg DURING 2021-05-01T00:00:00.000Z/2021-05-04T00:00:00.000Z"
+
+      val cql2 = "dtg DURING 2021-05-01T00:00:00.000Z/2021-05-04T00:00:00.000Z"
+
+      val intervals1 = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql1), "dtg", classOf[Date])
+      val intervals2 = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql2), "dtg", classOf[Date])
+      intervals1 mustEqual intervals2
+    }
+
+    "ignore OR clauses with differing attributes without losing valid clauses" >> {
+      val cql1 = "(BBOX(geom, 20.0,20.0,30.0,30.0) AND " +
+        "dtg DURING 2021-05-05T00:00:00.000Z/2021-05-10T00:00:00.000Z) OR " +
+        "dtg DURING 2021-05-01T00:00:00.000Z/2021-05-04T00:00:00.000Z"
+
+      val cql2 = "dtg DURING 2021-05-05T00:00:00.000Z/2021-05-10T00:00:00.000Z OR " +
+        "dtg DURING 2021-05-01T00:00:00.000Z/2021-05-04T00:00:00.000Z"
+
+      val intervals1 = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql1), "dtg", classOf[Date])
+      val intervals2 = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql2), "dtg", classOf[Date])
+      intervals1 mustEqual intervals2
+    }
+
     "deduplicate OR filters" >> {
       val filters = Seq(
         ("(a > 1 AND b < 2 AND c = 3) OR (c = 3 AND a > 2 AND b < 2) OR (b < 2 AND a > 3 AND c = 3)",
