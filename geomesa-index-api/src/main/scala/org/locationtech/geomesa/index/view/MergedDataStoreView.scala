@@ -30,12 +30,16 @@ import org.opengis.filter.Filter
   * @param stores delegate stores
   * @param namespace namespace
   */
-class MergedDataStoreView(val stores: Seq[(DataStore, Option[Filter])], namespace: Option[String] = None)
-    extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaStats {
+class MergedDataStoreView(
+    val stores: Seq[(DataStore, Option[Filter])],
+    deduplicate: Boolean,
+    namespace: Option[String] = None
+  ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaStats {
 
   require(stores.nonEmpty, "No delegate stores configured")
 
-  private [view] val runner = new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f })
+  private[view] val runner =
+    new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f }, deduplicate)
 
   override val stats: GeoMesaStats = new MergedStats(stores)
 
