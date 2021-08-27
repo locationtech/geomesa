@@ -8,31 +8,26 @@
 
 package org.locationtech.geomesa.lambda.stream
 
-import java.io.Closeable
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.{Executors, TimeUnit}
-
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
-import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
-import org.apache.curator.retry.ExponentialBackoffRetry
 import org.locationtech.geomesa.index.utils.Releasable
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
 import org.locationtech.geomesa.lambda.stream.ZookeeperOffsetManager.CuratorOffsetListener
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.zk.CuratorHelper
 
+import java.io.Closeable
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.{Executors, TimeUnit}
 import scala.util.control.NonFatal
 
 class ZookeeperOffsetManager(zookeepers: String, namespace: String = "geomesa") extends OffsetManager {
 
   import ZookeeperOffsetManager.offsetsPath
 
-  private val client = CuratorFrameworkFactory.builder()
-      .namespace(namespace)
-      .connectString(zookeepers)
-      .retryPolicy(new ExponentialBackoffRetry(1000, 3))
-      .build()
+  private val client = CuratorHelper.client(zookeepers).namespace(namespace).build()
   client.start()
 
   private val listeners = scala.collection.mutable.Map.empty[String, CuratorOffsetListener]
@@ -110,7 +105,14 @@ object ZookeeperOffsetManager {
     def addListener(listener: OffsetListener): Unit = {
       closeCache()
       listeners += listener
-      cache = new PathChildrenCache(client, path, true)
+      cache = new PathChildrenCache(client, path, true) {
+        // override ensure path to avoid using containers, which aren't supported in zk 3.4
+        override protected def ensurePath(): Unit = {
+          if (client.checkExists().forPath(path) == null) {
+            client.create().creatingParentsIfNeeded().forPath(path)
+          }
+        }
+      }
       cache.getListenable.addListener(this)
       cache.start()
     }
