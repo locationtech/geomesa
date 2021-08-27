@@ -11,11 +11,10 @@ package org.locationtech.geomesa.lambda.stream.kafka
 import java.io.Closeable
 import java.time.Clock
 import java.util.concurrent.{Executors, TimeUnit}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Transaction}
 import org.locationtech.geomesa.lambda.stream.OffsetManager
-import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.ExpiringFeatureCache
+import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.{ExpiredFeatures, ExpiringFeatureCache, OffsetFeature}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
@@ -84,23 +83,29 @@ class DataStorePersistence(ds: DataStore,
   private def persist(partition: Int, expiry: Long): Unit = {
     import org.locationtech.geomesa.filter.ff
 
-    val (nextOffset, expired) = cache.expired(partition, expiry)
+    val ExpiredFeatures(nextOffset, expired) = cache.expired(partition, expiry)
 
-    logger.trace(s"Found expired entries for [$topic:$partition]:\n\t" +
-        expired.map { case (o, f) => s"offset $o: $f" }.mkString("\n\t"))
+    logger.trace(s"Found ${expired.size} expired entries for [$topic:$partition]:\n\t" +
+        expired.map(e => s"offset ${e.offset}: ${e.feature}").mkString("\n\t"))
 
     val lastOffset = offsetManager.getOffset(topic, partition)
     logger.trace(s"Last persisted offsets for [$topic:$partition]: $lastOffset")
 
     if (expired.nonEmpty) {
-      // check that features haven't been persisted yet
-      val toPersist = scala.collection.mutable.Map(expired.collect { case (o, f) if o > lastOffset => f.getID -> (o, f) }: _*)
-
-      logger.trace(s"Offsets to persist for [$topic:$partition]: ${toPersist.values.map(_._1).toSeq.sorted.mkString(",")}")
-
       if (!persistExpired) {
         logger.trace(s"Persist disabled for $topic")
       } else {
+        // check that features haven't been persisted yet
+        val toPersist = scala.collection.mutable.Map.empty[String, OffsetFeature]
+        expired.foreach { e =>
+          if (e.offset > lastOffset) {
+            toPersist += e.feature.getID -> e
+          }
+        }
+
+        logger.trace(
+          s"Offsets to persist for [$topic:$partition]: ${toPersist.values.map(_.offset).toSeq.sorted.mkString(",")}")
+
         def complete(modified: Long, time: Long): Unit =
           logger.debug(s"Wrote $modified updated feature(s) to persistent storage in ${time}ms")
 
@@ -111,13 +116,13 @@ class DataStorePersistence(ds: DataStore,
             var count = 0L
             while (writer.hasNext) {
               val next = writer.next()
-              toPersist.get(next.getID).foreach { case (offset, updated) =>
-                logger.trace(s"Persistent store modify [$topic:$partition:$offset] $updated")
-                FeatureUtils.copyToFeature(next, updated, useProvidedFid = true)
+              toPersist.get(next.getID).foreach { p =>
+                logger.trace(s"Persistent store modify [$topic:$partition:${p.offset}] ${p.feature}")
+                FeatureUtils.copyToFeature(next, p.feature, useProvidedFid = true)
                 try { writer.write() } catch {
-                  case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
+                  case NonFatal(e) => logger.error(s"Error persisting feature: ${p.feature}", e)
                 }
-                toPersist.remove(updated.getID)
+                toPersist.remove(p.feature.getID)
               }
               count += 1
             }
@@ -133,10 +138,10 @@ class DataStorePersistence(ds: DataStore,
           profile(complete _) {
             WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
               var count = 0L
-              toPersist.values.foreach { case (offset, updated) =>
-                logger.trace(s"Persistent store append [$topic:$partition:$offset] $updated")
-                try { FeatureUtils.write(writer, updated, useProvidedFid = true) } catch {
-                  case NonFatal(e) => logger.error(s"Error persisting feature: $updated", e)
+              toPersist.values.foreach { p =>
+                logger.trace(s"Persistent store append [$topic:$partition:${p.offset}] ${p.feature}")
+                try { FeatureUtils.write(writer, p.feature, useProvidedFid = true) } catch {
+                  case NonFatal(e) => logger.error(s"Error persisting feature: ${p.feature}", e)
                 }
                 count += 1
               }
