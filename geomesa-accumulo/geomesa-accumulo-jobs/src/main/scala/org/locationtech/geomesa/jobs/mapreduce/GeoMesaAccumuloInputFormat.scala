@@ -149,7 +149,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
       params: java.util.Map[String, _],
       plan: AccumuloQueryPlan,
       auths: Option[Authorizations]): Unit = {
-    // assertion: all accumulo input config requires a job, but really just updates the job conf
+    // all accumulo input config methods requires a job
+    // assertion: only the JobConf is updated - to get credentials pass in a JobConf instead of Configuration
     val job = new Job(conf)
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 
