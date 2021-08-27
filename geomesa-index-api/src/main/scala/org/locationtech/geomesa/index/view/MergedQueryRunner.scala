@@ -17,7 +17,6 @@ import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.ARROW_DICTIONARY_CACHED
 import org.locationtech.geomesa.index.geoserver.ViewParams
-import org.locationtech.geomesa.index.iterators.ArrowScan.logger
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.planning.{LocalQueryRunner, QueryPlanner, QueryRunner}
@@ -33,15 +32,17 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 /**
-  * Query runner for merging results from multiple stores
-  *
-  * @param ds merged data store
-  * @param stores delegate stores
-  */
-class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filter])])
+ * Query runner for merging results from multiple stores
+ *
+ * @param ds merged data store
+ * @param stores delegate stores
+ * @param deduplicate deduplicate the results between stores
+ */
+class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filter])], deduplicate: Boolean = false)
     extends QueryRunner with LazyLogging {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+  import org.locationtech.geomesa.index.view.MergedQueryRunner.DeduplicatingSimpleFeatureIterator
 
   // query interceptors are handled by the individual data stores
   override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
@@ -80,12 +81,21 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         }
         binQuery(sft, readers, hints)
       } else {
+        val iters =
+          if (deduplicate) {
+            // we re-use the feature id cache across readers
+            val cache = scala.collection.mutable.HashSet.empty[String]
+            readers.map(r => new DeduplicatingSimpleFeatureIterator(SelfClosingIterator(r), cache))
+          } else {
+            readers.map(SelfClosingIterator(_))
+          }
+
         Option(query.getSortBy).filterNot(_.isEmpty) match {
-          case None => SelfClosingIterator(readers.iterator).flatMap(SelfClosingIterator(_))
+          case None => SelfClosingIterator(iters.iterator).flatMap(i => i)
           case Some(sort) =>
             val sortSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
             // the delegate stores should sort their results, so we can sort merge them
-            new SortedMergeIterator(readers.map(SelfClosingIterator(_)))(SimpleFeatureOrdering(sortSft, sort))
+            new SortedMergeIterator(iters)(SimpleFeatureOrdering(sortSft, sort))
         }
       }
     }
@@ -255,4 +265,19 @@ object MergedQueryRunner {
     override def getFeatureReader(q: Query, t: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature] =
       ds.getFeatureReader(q, t)
   }
+
+  private class DeduplicatingSimpleFeatureIterator(
+      source: CloseableIterator[SimpleFeature],
+      cache: scala.collection.mutable.Set[String] = scala.collection.mutable.HashSet.empty[String],
+      maxCacheSize: Int = 999999
+    ) extends CloseableIterator[SimpleFeature] {
+
+    private val iter =
+      source.filter(sf => if (cache.size < maxCacheSize) { cache.add(sf.getID) } else { !cache.contains(sf.getID) })
+
+    override def hasNext: Boolean = iter.hasNext
+    override def next(): SimpleFeature = iter.next()
+    override def close(): Unit = source.close()
+  }
+
 }
