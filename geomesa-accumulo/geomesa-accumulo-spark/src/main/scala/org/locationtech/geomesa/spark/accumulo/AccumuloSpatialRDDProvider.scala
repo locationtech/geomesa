@@ -12,6 +12,7 @@ package org.locationtech.geomesa.spark.accumulo
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
+import org.apache.hadoop.mapred.JobConf
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -45,7 +46,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
       if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
         sc.emptyRDD[SimpleFeature]
       } else {
-        val config = new Configuration(conf)
+        val config = new JobConf(conf)
         GeoMesaAccumuloInputFormat.configure(config, paramsAsJava, qp)
         sc.newAPIHadoopRDD(config, classOf[GeoMesaAccumuloInputFormat], classOf[Text], classOf[SimpleFeature]).map(_._2)
       }
