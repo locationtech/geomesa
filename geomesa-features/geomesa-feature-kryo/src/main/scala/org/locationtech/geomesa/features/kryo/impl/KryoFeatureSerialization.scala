@@ -34,6 +34,7 @@ trait KryoFeatureSerialization extends SimpleFeatureSerializer {
 
   private val withId = !options.withoutId
   private val withUserData = options.withUserData
+  private val withoutFidHints = options.withoutFidHints
 
   private val count = in.getAttributeCount
 
@@ -73,7 +74,7 @@ trait KryoFeatureSerialization extends SimpleFeatureSerializer {
     }
     offsets(i) = output.position() - offset // user data position
     if (withUserData) {
-      KryoUserDataSerialization.serialize(output, sf.getUserData)
+      KryoUserDataSerialization.serialize(output, sf.getUserData, withoutFidHints)
     }
     val end = output.position()
     if (end - offset > KryoFeatureSerialization.MaxUnsignedShort) {
