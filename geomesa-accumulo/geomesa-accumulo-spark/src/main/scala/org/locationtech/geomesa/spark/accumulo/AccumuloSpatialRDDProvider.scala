@@ -357,6 +357,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 2d101f8da9 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -368,6 +369,10 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 =======
 =======
 =======
+=======
+=======
+>>>>>>> 869683ad83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 3571a41838 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 8a2d3cfac9 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> d073e4ceb3 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -4337,11 +4342,14 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 >>>>>>> 02ddf6ca4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> a358de35a8 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 >>>>>>> 08ee2fed57 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 =======
+=======
+>>>>>>> 869683ad83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
 >>>>>>> 85d211ca2 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -4349,6 +4357,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 >>>>>>> 0cdf3f267 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 44b15e96d9 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6610,11 +6619,17 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 =======
 =======
 >>>>>>> 8a2d3cfac9 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> d073e4ceb3 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> 869683ad83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 3571a41838 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
         val config = new JobConf(conf)
 =======
         val config = new Configuration(conf)
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6910,6 +6925,10 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 =======
 =======
 =======
+=======
+=======
+>>>>>>> 869683ad83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 3571a41838 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 8a2d3cfac9 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> d073e4ceb3 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -9671,6 +9690,27 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> 97a911d79c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 33d2777a8a (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+>>>>>>> location-main
+=======
+=======
+>>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 0cdf3f267 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 0cdf3f2672 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 3571a41838 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12164,6 +12204,10 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 =======
 >>>>>>> 0d96d8bd55 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+=======
+>>>>>>> 0cdf3f267 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 869683ad83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
         val config = new JobConf(conf)
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -12182,6 +12226,9 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3571a41838 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d71c234711 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -12235,6 +12282,8 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 =======
 =======
 >>>>>>> a8e7273bb0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 869683ad83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> ea0c690e2 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 75f3f455ec (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -12243,6 +12292,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 >>>>>>> 7a3d004ad1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> 74c6b7f8d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12302,6 +12352,10 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 >>>>>>> e0056031ea (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> ea5f19f56b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 0cdf3f267 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 869683ad83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
         val config = new JobConf(conf)
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -12370,9 +12424,14 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+=======
+>>>>>>> 3571a41838 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ea5f19f56b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> ce7c794944 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -12381,6 +12440,11 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 =======
 >>>>>>> ea5f19f56b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 07c698faf4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 869683ad83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 3571a41838 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 >>>>>>> 58f72e76c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -13789,6 +13853,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 =======
 =======
 >>>>>>> 02ddf6ca4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> a358de35a (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 65460df3e6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -15733,7 +15798,14 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 =======
 >>>>>>> 02ddf6ca4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 8a2d3cfac9 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> d073e4ceb3 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+=======
+>>>>>>> 0cdf3f267 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 869683ad83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 3571a41838 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
         GeoMesaAccumuloInputFormat.configure(config, paramsAsJava, qp, Some(ds.auths))
         sc.newAPIHadoopRDD(config, classOf[GeoMesaAccumuloInputFormat], classOf[Text], classOf[SimpleFeature]).map(_._2)
       }
