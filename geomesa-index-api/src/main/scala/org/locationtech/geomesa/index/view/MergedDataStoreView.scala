@@ -95,6 +95,7 @@ class MergedDataStoreView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9f616db357 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -103,6 +104,8 @@ class MergedDataStoreView(
 >>>>>>> 5d46ff705f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> afcf525d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -120,6 +123,7 @@ class MergedDataStoreView(
 =======
 >>>>>>> 29dcc37810 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -180,6 +184,8 @@ class MergedDataStoreView(
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> afcf525d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
@@ -468,6 +474,8 @@ class MergedDataStoreView(
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 56f97cd271 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
@@ -507,16 +515,22 @@ class MergedDataStoreView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 29dcc37810 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> b1dea55b93 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 5d46ff705f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 29dcc37810 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> afcf525d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 3c4fc5a828 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -537,6 +551,8 @@ class MergedDataStoreView(
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> afcf525d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -590,6 +606,10 @@ class MergedDataStoreView(
 =======
 >>>>>>> d539392ecd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
+>>>>>>> 29dcc37810 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 9814eb976 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -598,6 +618,9 @@ class MergedDataStoreView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> afcf525d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 26fc359a06 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 >>>>>>> 56f97cd271 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -612,6 +635,7 @@ class MergedDataStoreView(
 =======
 >>>>>>> 3c4fc5a828 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> c6079ecae5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -654,6 +678,12 @@ class MergedDataStoreView(
 >>>>>>> b3fe983979 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 5d46ff705f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 26fc359a06 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 56f97cd271 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 29dcc37810 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> afcf525d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     namespace: Option[String] = None
   ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
 =======
