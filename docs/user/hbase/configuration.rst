@@ -62,6 +62,12 @@ When true, this property has GeoMesa coprocessor calls yield and return to the c
 for that query is reached. When false, the coprocessor will attempt to complete its query (making multiple batches)
 while respecting the ``geomesa.query.timeout``.
 
+geomesa.hbase.delete.vis
+++++++++++++++++++++++++
+
+This property can be used as a work-around to delete features that are written with HBase cell-level security.
+See https://geomesa.atlassian.net/browse/GEOMESA-3113 for details.
+
 geomesa.hbase.remote.filtering
 ++++++++++++++++++++++++++++++
 

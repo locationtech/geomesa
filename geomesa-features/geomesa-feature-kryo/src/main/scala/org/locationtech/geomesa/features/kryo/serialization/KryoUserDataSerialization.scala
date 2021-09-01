@@ -52,16 +52,20 @@ object KryoUserDataSerialization extends LazyLogging {
 
   private implicit val ordering: Ordering[(AnyRef, AnyRef)] = Ordering.by(_._1.toString)
 
-  def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
+  def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit =
+    serialize(out, javaMap, withoutFidHints = false)
+
+  def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef], withoutFidHints: Boolean): Unit = {
     import scala.collection.JavaConverters._
 
     // write in sorted order to keep consistent output
     val toWrite = scala.collection.mutable.SortedSet.empty[(AnyRef, AnyRef)]
 
-    javaMap.asScala.foreach { case (k, v) =>
-      if (k != null && !k.isInstanceOf[Hints.Key]) { toWrite += k -> v } else {
-        logger.warn(s"Skipping serialization of entry: $k -> $v")
-      }
+    javaMap.asScala.foreach {
+      case (k, v) if k != null && !k.isInstanceOf[Hints.Key] => toWrite += k -> v
+      case (Hints.USE_PROVIDED_FID, _) if withoutFidHints => // no-op
+      case (Hints.PROVIDED_FID, _) if withoutFidHints => // no-op
+      case (k, v) => logger.warn(s"Skipping serialization of entry: $k -> $v")
     }
 
     out.writeInt(toWrite.size) // don't use positive optimized version for back compatibility

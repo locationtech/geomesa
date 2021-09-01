@@ -49,6 +49,10 @@ object FastConverter extends StrictLogging {
     }
 
     val clas = value.getClass
+    if (clas == binding) {
+      return value.asInstanceOf[T]
+    }
+
     val converters = getConverters(clas, binding)
 
     var i = 0
@@ -89,6 +93,10 @@ object FastConverter extends StrictLogging {
 
     while (bindings.hasNext) {
       val binding = bindings.next
+      if (clas == binding) {
+        return value.asInstanceOf[T]
+      }
+
       val converters = getConverters(clas, binding)
 
       var i = 0

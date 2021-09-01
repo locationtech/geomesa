@@ -8,16 +8,15 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
+import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
+import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache._
+import org.opengis.feature.simple.SimpleFeature
+
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantLock
-
-import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
-import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.{ExpiringFeatureCache, ReadableFeatureCache, WritableFeatureCache}
-import org.opengis.feature.simple.SimpleFeature
-
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -26,15 +25,17 @@ import scala.collection.mutable.ArrayBuffer
 class KafkaFeatureCache(topic: String) extends WritableFeatureCache with ReadableFeatureCache
     with ExpiringFeatureCache with OffsetListener with LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   // map of feature id -> current feature
-  private val features = new ConcurrentHashMap[String, SimpleFeature]
+  private val features = new ConcurrentHashMap[String, FeatureReference]
 
   // technically we should synchronize all access to the following arrays, since we expand them if needed;
   // however, in normal use it will be created up front and then only read.
   // if partitions are added at runtime, we may have synchronization issues...
 
   // array, indexed by partition, of queues of (offset, create time, feature), sorted by offset
-  private val queues = ArrayBuffer.empty[(ReentrantLock, java.util.ArrayDeque[(Long, Long, SimpleFeature)])]
+  private val queues = ArrayBuffer.empty[(ReentrantLock, java.util.ArrayDeque[FeatureReference])]
   private val offsets = ArrayBuffer.empty[AtomicLong]
 
   private val debug = logger.underlying.isDebugEnabled()
@@ -44,21 +45,24 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
     ensurePartition(partition, offset)
   }
 
-  override def get(id: String): SimpleFeature = features.get(id)
-
-  override def all(): Iterator[SimpleFeature] = {
-    import scala.collection.JavaConverters._
-    features.values.iterator.asScala
+  override def get(id: String): SimpleFeature = {
+    val result = features.get(id)
+    if (result == null) { null } else { result.feature }
   }
+
+  override def all(): Iterator[SimpleFeature] = features.values.iterator.asScala.map(_.feature)
 
   override def add(feature: SimpleFeature, partition: Int, offset: Long, created: Long): Unit = {
     if (offsets(partition).get < offset) {
       logger.trace(s"Adding [$partition:$offset] $feature created at " +
           s"${ZonedDateTime.ofInstant(Instant.ofEpochMilli(created), ZoneOffset.UTC)}")
-      features.put(feature.getID, feature)
+      val id = feature.getID
+      val ref = new FeatureReference(feature, id, partition, offset, created)
+      features.put(id, ref)
       val (lock, queue) = queues(partition)
       lock.lock()
-      try { queue.addLast((offset, created, feature)) } finally {
+      // make the feature null so that we don't keep it around in memory when we don't need to
+      try { queue.addLast(new FeatureReference(null, id, partition, offset, created)) } finally {
         lock.unlock()
       }
     } else {
@@ -82,15 +86,15 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
       val peek = try { queue.peek } finally { lock.unlock() }
       peek match {
         case null => // no-op
-        case (_, created, _) => if (expiry > created) { result += i }
+        case ref => if (expiry > ref.created) { result += i }
       }
       i += 1
     }
     result
   }
 
-  override def expired(partition: Int, expiry: Long): (Long, Seq[(Long, SimpleFeature)]) = {
-    val expired = ArrayBuffer.empty[(Long, SimpleFeature)]
+  override def expired(partition: Int, expiry: Long): ExpiredFeatures = {
+    val expired = ArrayBuffer.empty[FeatureReference]
     val (lock, queue) = this.queues(partition)
 
     var loop = true
@@ -100,7 +104,7 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
       if (poll == null) {
         lock.unlock()
         loop = false
-      } else if (poll._2 > expiry) {
+      } else if (poll.created > expiry) {
         // note: add back to the queue before unlocking
         try { queue.addFirst(poll) } finally {
           lock.unlock()
@@ -108,18 +112,19 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
         loop = false
       } else {
         lock.unlock()
-        expired += ((poll._1, poll._3))
+        expired += poll
       }
     }
 
-    logger.debug(s"Checking [$topic:$partition] for expired entries: found ${expired.size} expired and ${queue.size} remaining")
+    logger.debug(
+      s"Checking [$topic:$partition] for expired entries: found ${expired.size} expired and ${queue.size} remaining")
 
-    val maxExpiredOffset = if (expired.isEmpty) { -1L } else { expired(expired.length - 1)._1 }
+    val maxExpiredOffset = if (expired.isEmpty) { -1L } else { expired(expired.length - 1).offset }
 
     // only remove from feature cache (and persist) if there haven't been additional updates
-    val latest = expired.filter { case (_, feature) => remove(feature) }
+    val latest = expired.flatMap(ref => remove(ref))
 
-    (maxExpiredOffset, latest)
+    ExpiredFeatures(maxExpiredOffset, latest)
   }
 
   override def offsetChanged(partition: Int, offset: Long): Unit = {
@@ -144,7 +149,7 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
       if (poll == null) {
         lock.unlock()
         loop = false
-      } else if (poll._1 > offset) {
+      } else if (poll.offset > offset) {
         // note: add back to the queue before unlocking
         try { queue.addFirst(poll) } finally {
           lock.unlock()
@@ -153,7 +158,7 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
       } else {
         lock.unlock()
         // only remove from feature cache if there haven't been additional updates
-        remove(poll._3)
+        remove(poll)
       }
     }
 
@@ -170,20 +175,26 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
 
   private def ensurePartition(partition: Int, offset: Long): Unit = synchronized {
     while (queues.length <= partition) {
-      queues += ((new ReentrantLock, new java.util.ArrayDeque[(Long, Long, SimpleFeature)]))
+      queues += new ReentrantLock -> new java.util.ArrayDeque[FeatureReference]
       offsets += new AtomicLong(-1L)
     }
     offsets(partition).set(offset)
   }
 
-  // conditionally removes the simple feature from the feature cache if it is the latest version
-  private def remove(feature: SimpleFeature): Boolean = {
-    // note: there isn't an atomic remove that checks identity, so check first and then do an equality remove.
-    // there is a small chance that the feature will be updated in between the identity and equality checks,
-    // and removed incorrectly, however the alternative is full synchronization on inserts and deletes.
-    // also, with standard usage patterns of many updates and only a few writes, the first check (which is
-    // cheaper) will be false, and we can short-circuit the second check
-    feature.eq(features.get(feature.getID)) && features.remove(feature.getID, feature)
+  /**
+   * Conditionally removes the simple feature from the feature cache if it is the latest version. This
+   * should only be called with items pulled of the expiry queue
+   *
+   * @param feature feature reference
+   * @return
+   */
+  private def remove(feature: FeatureReference): Option[FeatureReference] = {
+    // since the features are added to the queue after they are added to the cache,
+    // this must be either the feature corresponding to the reference, or a later feature
+    val current = features.get(feature.id)
+    // the remove is based on the offset and partition, so if it is successful, we know that we
+    // got the right feature above
+    if (features.remove(feature.id, feature)) { Option(current) } else { None }
   }
 
   // debug message
@@ -258,6 +269,42 @@ object KafkaFeatureCache {
       * @param expiry expiry
       * @return (maxExpiredOffset, (offset, expired feature)), ordered by offset
       */
-    def expired(partition: Int, expiry: Long): (Long, Seq[(Long, SimpleFeature)])
+    def expired(partition: Int, expiry: Long): ExpiredFeatures
+  }
+
+  case class ExpiredFeatures(maxOffset: Long, features: Seq[OffsetFeature])
+
+  /**
+   * Holder for a feature plus offset
+   */
+  trait OffsetFeature {
+    def offset: Long
+    def feature: SimpleFeature
+  }
+
+  /**
+   * Feature holder used to track the latest feature in our state. Comparison is only based on the
+   * partition and offset (which are unique) so that we don't have to hold onto expired features
+   * in memory
+   *
+   * @param feature simple feature
+   * @param partition kafka partition
+   * @param offset kafka offset
+   * @param created create time
+   */
+  private class FeatureReference(
+      val feature: SimpleFeature,
+      val id: String,
+      val partition: Int,
+      val offset: Long,
+      val created: Long) extends OffsetFeature {
+    override def equals(other: Any): Boolean = other match {
+      case that: FeatureReference => partition == that.partition && offset == that.offset
+      case _ => false
+    }
+    override def hashCode(): Int = {
+      val state = Seq(partition, offset)
+      state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+    }
   }
 }
