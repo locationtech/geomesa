@@ -295,8 +295,15 @@ object FilterHelper {
 =======
 =======
         o.getChildren.map(f =>
+<<<<<<< HEAD
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 3c6964ab43 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 16bdf7af39 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
           extractAttributeBounds(f, attribute, binding)
         ).reduceLeft[FilterValues[Bounds[T]]]((acc, child) => {
           if (acc.isEmpty || child.isEmpty) {
