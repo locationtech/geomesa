@@ -39,6 +39,8 @@ class MergedDataStoreView(
     deduplicate: Boolean,
 <<<<<<< HEAD
     parallel: Boolean,
+=======
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     namespace: Option[String] = None
   ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
 =======
