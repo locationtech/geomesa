@@ -84,9 +84,11 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
     }
 
     val deduplicate = DeduplicateParam.lookup(params).booleanValue()
+<<<<<<< HEAD
     val parallel = ParallelScanParam.lookup(params).booleanValue()
 
     new MergedDataStoreView(stores.result, deduplicate, parallel, namespace)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -161,6 +163,8 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b51333ce3c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -195,6 +199,7 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
@@ -259,6 +264,8 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
     new MergedDataStoreView(stores.result, deduplicate, namespace)
 <<<<<<< HEAD
@@ -317,8 +324,11 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 735bf09be9 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 38876e069f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -339,6 +349,7 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 >>>>>>> 38876e069f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> d19a46c929 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -359,6 +370,8 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 =======
 >>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 735bf09be9 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
     new MergedDataStoreView(stores.result, deduplicate, namespace)
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -378,10 +391,13 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7bbcc3e5cb (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 735bf09be9 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e30217c0a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -392,6 +408,7 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 >>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> d19a46c929 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -410,6 +427,8 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 =======
 >>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 735bf09be9 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
@@ -464,8 +483,11 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 38876e069f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -557,6 +579,7 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 =======
 >>>>>>> 38876e069f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
@@ -693,6 +716,8 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
   }
 
   override def getDisplayName: String = DisplayName
@@ -743,6 +768,7 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
       default = java.lang.Boolean.FALSE,
       readWrite = ReadWriteFlag.ReadOnly
     )
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -841,6 +867,8 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 =======
 >>>>>>> 735bf09be9 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 <<<<<<< HEAD
 =======
 =======
@@ -871,6 +899,8 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 =======
 >>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 <<<<<<< HEAD
 =======
 =======
@@ -889,6 +919,13 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 =======
 =======
 =======
+=======
+=======
+
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
+    ConfigLoaderParam.toArray ++ Array(ConfigParam, DeduplicateParam)
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 38876e069f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
 <<<<<<< HEAD
 <<<<<<< HEAD
