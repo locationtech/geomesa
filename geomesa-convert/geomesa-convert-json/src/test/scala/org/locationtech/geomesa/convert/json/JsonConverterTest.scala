@@ -1318,6 +1318,9 @@ class JsonConverterTest extends Specification {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     "create json object attributes" >> {
       val sft = SimpleFeatureTypes.createType("objects", "foobar:String:json=true")
 
@@ -1380,6 +1383,7 @@ class JsonConverterTest extends Specification {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     "return errors in the evaluation context" >> {
       val jsonStr =
         """{ id: 1, number: 123, color: "red", lat: 1, lon: 1 }
@@ -1437,6 +1441,12 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 9ef414565f3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 5a2f8b351b0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     "infer schema from geojson files" >> {
       val json =
         """{
