@@ -533,6 +533,7 @@ See below for an example.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> ba2e891f3d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1147,6 +1148,8 @@ See below for an example.
 >>>>>>> ce7c794944 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
 >>>>>>> 206fa4e8ca (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -12350,6 +12353,7 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 >>>>>>> 553cbb229b (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> 4aef7a70f3 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 09373546be (GEOMESA-3109 Json array to object converter function (#2788))
@@ -13984,6 +13988,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 =======
 >>>>>>> 553cbb229b (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 177a1a08ef (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 jsonPath
 ~~~~~~~~
 
@@ -15143,9 +15149,31 @@ jsonArrayToObject
 This function converts a JSON array into a JSON object, by using the index of each array element as the object
 key. This is useful for GeoMesa's JSON attribute types, which currently require a top-level object and not an array.
 
+=======
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 jsonPath
 ~~~~~~~~
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
+
+This function creates a new JSON object from key-value pairs. It can be useful for generating JSON text values.
+
+Example::
+
+  fields = [
+    { name = "foo", path = "$.foo", json-type = "String" }
+    { name = "bar", path = "$.bar", json-type = "Array" }
+    { name = "foobar", transform = "toString(newJsonObject('foo', $foo, 'bar', $bar))"
+  ]
+
+mapToJson
+~~~~~~~~~
+
+This function converts a java.util.Map into a JSON string. It requires a single parameter, which must be a
+java.util.Map. It can be useful for storing complex JSON as a single attribute, which can then be queried
+using GeoMesa's JSON attribute support. See :ref:`json_attributes` for more information.
+
+newJsonObject
+~~~~~~~~~~~~~
 
 This function creates a new JSON object from key-value pairs. It can be useful for generating JSON text values.
 
