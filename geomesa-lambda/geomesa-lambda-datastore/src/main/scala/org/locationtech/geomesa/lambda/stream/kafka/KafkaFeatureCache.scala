@@ -124,7 +124,9 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
     // only remove from feature cache (and persist) if there haven't been additional updates
     val latest = expired.flatMap(ref => remove(ref))
 
+<<<<<<< HEAD
     ExpiredFeatures(maxExpiredOffset, latest.toSeq)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -147,6 +149,11 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+    ExpiredFeatures(maxExpiredOffset, latest)
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> d36d85cd8e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
   }
 
   override def offsetChanged(partition: Int, offset: Long): Unit = {
