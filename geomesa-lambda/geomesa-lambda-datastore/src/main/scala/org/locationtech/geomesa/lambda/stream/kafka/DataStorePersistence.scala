@@ -11,6 +11,7 @@ package org.locationtech.geomesa.lambda.stream.kafka
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -162,6 +163,13 @@ import java.util.concurrent.{Executors, TimeUnit}
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> locationtech-main
+=======
+=======
+import java.io.Closeable
+import java.time.Clock
+import java.util.concurrent.{Executors, TimeUnit}
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 1b0b697d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Transaction}
 import org.locationtech.geomesa.lambda.stream.OffsetManager

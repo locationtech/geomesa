@@ -81,9 +81,11 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
     }
 
     val deduplicate = DeduplicateParam.lookup(params).booleanValue()
+<<<<<<< HEAD
     val parallel = ParallelScanParam.lookup(params).booleanValue()
 
     new MergedDataStoreView(stores.result, deduplicate, parallel, namespace)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -336,6 +338,12 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locationtech-main
+=======
+=======
+
+    new MergedDataStoreView(stores.result, deduplicate, namespace)
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 1b0b697d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
   }
 
   override def getDisplayName: String = DisplayName
@@ -386,6 +394,7 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
       default = java.lang.Boolean.FALSE,
       readWrite = ReadWriteFlag.ReadOnly
     )
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -467,6 +476,13 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 =======
 >>>>>>> locationtech-main
 =======
+=======
+=======
+
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
+    ConfigLoaderParam.toArray ++ Array(ConfigParam, DeduplicateParam)
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 1b0b697d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
 <<<<<<< HEAD
 <<<<<<< HEAD
