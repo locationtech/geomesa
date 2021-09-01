@@ -41,6 +41,7 @@ import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureItera
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -53,6 +54,8 @@ import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureItera
 >>>>>>> 5d19c5d68e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 import org.locationtech.geomesa.utils.stats._
 <<<<<<< HEAD
@@ -80,6 +83,7 @@ import org.locationtech.geomesa.utils.stats._
 import org.locationtech.geomesa.utils.stats._
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> d36d85cd8e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 =======
 import org.locationtech.geomesa.utils.stats._
@@ -109,6 +113,8 @@ import org.locationtech.geomesa.utils.stats._
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 >>>>>>> 3ae745d8b6a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -119,6 +125,7 @@ import org.opengis.filter.Filter
  * @param ds merged data store
  * @param stores delegate stores
  * @param deduplicate deduplicate the results between stores
+<<<<<<< HEAD
  * @param parallel run scans in parallel (vs sequentially)
  */
 class MergedQueryRunner(
@@ -127,6 +134,7 @@ class MergedQueryRunner(
     deduplicate: Boolean,
     parallel: Boolean
   ) extends QueryRunner with LazyLogging {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -165,6 +173,8 @@ class MergedQueryRunner(
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -175,6 +185,7 @@ class MergedQueryRunner(
 =======
 >>>>>>> 91ead0a832 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> d36d85cd8e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -196,9 +207,14 @@ class MergedQueryRunner(
 >>>>>>> e30217c0a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e9c9dbb189 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> d36d85cd8e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
  */
 class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filter])], deduplicate: Boolean)
     extends QueryRunner with LazyLogging {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -226,6 +242,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> e30217c0a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e9c9dbb189 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -265,6 +283,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 91ead0a832 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -316,12 +335,18 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> e9c9dbb189 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> d36d85cd8e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   // query interceptors are handled by the individual data stores
   override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
 
+<<<<<<< HEAD
   override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryResult = {
 <<<<<<< HEAD
     // TODO deduplicate arrow, bin, density queries...
@@ -335,13 +360,17 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d36d85cd8e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 >>>>>>> 38876e069f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -352,6 +381,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 5d19c5d68e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+=======
+>>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
   override def runQuery(
       sft: SimpleFeatureType,
       original: Query,
@@ -366,10 +397,13 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b51333ce3c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 5d19c5d68e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -389,6 +423,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -414,6 +449,11 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 5d19c5d68e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> d36d85cd8e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     val query = configureQuery(sft, original)
     val hints = query.getHints
     val maxFeatures = if (query.isMaxFeaturesUnlimited) { None } else { Option(query.getMaxFeatures) }
@@ -524,6 +564,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         }
         QueryResult(BinaryOutputEncoder.BinEncodedSft, hints, () => binQuery(sft, readers, hints))
       } else {
+<<<<<<< HEAD
         val resultSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
         def run(): CloseableIterator[SimpleFeature] = {
           val iters =
@@ -1308,6 +1349,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3bba3c74cd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -1953,11 +1995,15 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+=======
+        Option(query.getSortBy).filterNot(_.isEmpty) match {
+>>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
           case None => SelfClosingIterator(iters.iterator).flatMap(i => i)
           case Some(sort) =>
             val sortSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
             // the delegate stores should sort their results, so we can sort merge them
             new SortedMergeIterator(iters)(SimpleFeatureOrdering(sortSft, sort))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2463,6 +2509,9 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
             case None => results
             case Some(m) => results.take(m)
           }
+=======
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
         }
         QueryResult(resultSft, hints, run)
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
