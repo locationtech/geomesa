@@ -883,6 +883,7 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     ConfigLoaderParam.toArray ++ Array(ConfigParam, DeduplicateParam)
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1363,6 +1364,9 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3867fd5b25 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -1474,6 +1478,7 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> be1167e028 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -1656,10 +1661,25 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 =======
 
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3867fd5b25 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+=======
+>>>>>>> ac2d5a925 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 11addb1ce7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 42bfd74c63 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> be1167e028 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 3867fd5b25 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
   val ParallelScanParam =
     new GeoMesaParam[java.lang.Boolean](
       "geomesa.merged.scan.parallel",
@@ -1670,6 +1690,10 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     ConfigLoaderParam.toArray ++ Array[GeoMesaParam[_ <: AnyRef]](ConfigParam, DeduplicateParam, ParallelScanParam)
+=======
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
+    ConfigLoaderParam.toArray ++ Array(ConfigParam, DeduplicateParam)
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
   override def canProcess(params: java.util.Map[String, _]): Boolean =
     params.containsKey(ConfigParam.key) || ConfigLoaderParam.exists(p => params.containsKey(p.key))
