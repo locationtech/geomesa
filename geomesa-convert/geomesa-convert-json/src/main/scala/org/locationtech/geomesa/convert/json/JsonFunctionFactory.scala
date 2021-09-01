@@ -503,6 +503,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -557,6 +558,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dea536df78 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -639,6 +642,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 7520530797 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1264,6 +1268,10 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dea536df78 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
 =======
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject)
@@ -2526,6 +2534,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 374ba65da (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 2c3111e68 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -3194,6 +3203,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 6b26d19d93 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 374ba65da (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 2c3111e68 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -3423,9 +3434,12 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 89971e000d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3523,6 +3537,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 67972263e5 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> e459bea71c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 4bd5ce922d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -3531,7 +3547,12 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 =======
 >>>>>>> 1d11096373 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 67972263e5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dc17df6c0b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 18993b52f2 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -3608,8 +3629,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7f28e8e2e5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 8037623548 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -4036,6 +4060,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> 02fea6930b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -4184,6 +4209,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 4bd5ce922d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 7f28e8e2e5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 64d8177ac (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4789,10 +4816,14 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> 8cda894ca7 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -4889,6 +4920,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> c44517c361 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
@@ -5319,6 +5352,9 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
 >>>>>>> 31b03236c (GEOMESA-3109 Json array to object converter function (#2788))
@@ -7709,6 +7745,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 89971e000d (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -9505,10 +9542,15 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dea536df78 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
 =======
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject)
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9957,6 +9999,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 883af44eef (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> bd1dd3a906 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -10008,6 +10052,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 7520530797 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -10549,6 +10594,10 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dea536df78 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 4aef7a70f3 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
@@ -11836,6 +11885,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> ee3aea1cdc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> c44517c361 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -11888,8 +11939,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 <<<<<<< HEAD
@@ -12607,6 +12661,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> 097b5a085 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -12891,10 +12946,13 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13012,6 +13070,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 6449641e67 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> aa65d3827d (GEOMESA-3109 Json array to object converter function (#2788))
@@ -13027,6 +13087,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 917dff0811 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -13162,6 +13223,10 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 7e71095843 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 7a670f84c4 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
@@ -13372,9 +13437,14 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13431,6 +13501,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 67972263e5 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 6449641e67 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e459bea71c (GEOMESA-3109 Json array to object converter function (#2788))
@@ -13446,6 +13518,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 917dff0811 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 1d11096373 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -13503,6 +13576,10 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 7e71095843 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 67972263e5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dc17df6c0b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -14630,6 +14707,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 >>>>>>> 8037623548 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e080006042 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -14926,6 +15004,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> ee3aea1cd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 7a3d004ad (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 64d8177ac (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15763,6 +15843,9 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> c44517c361 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
@@ -16098,8 +16181,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
 <<<<<<< HEAD
@@ -18165,6 +18251,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 7520530797 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -20423,6 +20510,14 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dea536df78 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+=======
+>>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
   @deprecated("use toString")
   private val jsonToString = TransformerFunction.pure("jsonToString", "json2string") { args =>
@@ -20997,6 +21092,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c0f1a31c83 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -21179,6 +21275,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dea536df78 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
 >>>>>>> 6b26d19d93 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -22717,6 +22815,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 >>>>>>> e57217a17d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> b515d530a4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -22929,6 +23028,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 4aef7a70f3 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -23113,6 +23214,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> ee3aea1cdc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> c44517c361 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -23165,8 +23268,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 <<<<<<< HEAD
@@ -23566,6 +23672,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> 097b5a085 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -23704,6 +23811,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
@@ -23780,6 +23889,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 752571c67b (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -23790,6 +23900,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 7e71095843 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 6449641e67 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -23806,6 +23918,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 917dff0811 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -23871,6 +23984,10 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 7e71095843 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 7a670f84c4 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
@@ -27880,8 +27997,13 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> ee3aea1cd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
+>>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -27932,6 +28054,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 448a77c6df (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 9b169d0847 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 0cdf3f267 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 >>>>>>> 72415e208a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -28878,6 +29002,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -28898,6 +29023,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 9c26ba6a25 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> bc833b1448 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dc17df6c0b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -28967,11 +29097,15 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 4bd5ce922d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -29010,6 +29144,9 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 9c26ba6a25 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> bc833b1448 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 64d8177ac (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -29137,12 +29274,16 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 89971e000d (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
 =======
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -31434,11 +31575,15 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
   private val newJsonObject = TransformerFunction.pure("newJsonObject") { args =>
     val obj = new JsonObject()
     var i = 1
     while (i < args.length) {
       val key = args(i -1).toString
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -33618,10 +33763,14 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 6e453fd3d0 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> bbc8576d19 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -33718,6 +33867,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 6e453fd3d0 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 93088d8cab (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 2f66072323 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -34353,6 +34504,9 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> c57b5f538a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 7a3d004ad1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -34384,6 +34538,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 44b3849076 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -34396,6 +34551,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 4d37d5ef5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 627596d1ec (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -34407,6 +34564,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 44b3849076 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -34415,6 +34573,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 36fe4c8b07 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 627596d1ec (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 >>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -37406,6 +37566,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 862857ce2e (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 6e453fd3d0 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -40338,6 +40499,12 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dea536df78 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 93088d8cab (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
       args(i) match {
         case null => // skip nulls
         case j: JsonElement => obj.add(key, j)
@@ -48549,6 +48716,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 601ca649ae (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -48583,6 +48751,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dea536df78 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 93088d8cab (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 5dc1f86700 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -48635,6 +48805,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 7520530797 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 6e453fd3d0 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -49158,6 +49329,10 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dea536df78 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 93088d8cab (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 595c43086a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -49223,8 +49398,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 93088d8cab (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c354d233a4 (GEOMESA-3100 Kafka layer views (#2784))
@@ -50515,6 +50693,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> 7088332aeb (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -50839,6 +51018,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 6e453fd3d0 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 93088d8cab (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 6055a8bb0c (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -51266,8 +51447,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4a73166192 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e7f3e6588 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -51575,10 +51759,14 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 6e453fd3d0 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
@@ -51881,9 +52069,12 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> e9b4ff6d3b (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 93088d8cab (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
       }
 
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -52096,6 +52287,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 93088d8cab (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 5dc1f86700 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> bd1dd3a906 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -52153,6 +52346,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 4b0dd3e513 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 6e453fd3d0 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -52376,6 +52570,10 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 0f8e5d076e (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 93088d8cab (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> f7038468b7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 <<<<<<< HEAD
@@ -53270,8 +53468,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 20c82a075f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 6055a8bb0 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> c354d233a4 (GEOMESA-3100 Kafka layer views (#2784))
@@ -53516,7 +53717,12 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 862857ce2e (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 6e453fd3d0 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 93088d8cab (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
@@ -54652,6 +54858,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -54690,12 +54897,17 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 3c673847c5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 7f28e8e2e5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 2f66072323 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -54890,9 +55102,15 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 2d758409c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> 3c673847c5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -54964,6 +55182,10 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 3c673847c5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 71c797173c (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> ee3aea1cdc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -55283,8 +55505,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 93088d8cab (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -60243,10 +60468,14 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 6e453fd3d0 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
 >>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> 7088332aeb (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -63224,6 +63453,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> dea536df78 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 93088d8cab (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
       i += 2
     }
     obj
@@ -63239,6 +63470,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     }
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -63766,6 +63998,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 09373546be (GEOMESA-3109 Json array to object converter function (#2788))
@@ -63848,6 +64082,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 >>>>>>> e57217a17d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> b515d530a4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -64468,6 +64703,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -75338,6 +75575,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 89971e000d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dc17df6c0b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -75371,9 +75610,14 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+=======
+>>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -75429,6 +75673,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> ee3aea1cdc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> c44517c361 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -75448,9 +75694,12 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 89971e000d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 =======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -75475,6 +75724,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> ee3aea1cdc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 89971e000d (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
@@ -75559,6 +75810,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> c44517c361 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> aa65d3827d (GEOMESA-3109 Json array to object converter function (#2788))
@@ -75568,9 +75820,12 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 =======
 =======
+>>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 =======
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> ee3aea1cdc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 >>>>>>> 4bd5ce922d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -75688,7 +75943,15 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 89971e000d (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 04e3f9e072 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> c4dcfeeea5 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+>>>>>>> eb01a83daf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> ee8e40a0aa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 30e5e390d1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
   private def getPrimitive(p: JsonPrimitive): Any = if (p.isBoolean) { p.getAsBoolean } else { p.getAsString }
 }
