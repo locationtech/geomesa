@@ -30,9 +30,12 @@ import org.specs2.runner.JUnitRunner
 import java.io.ByteArrayInputStream
 import java.util.Date
 
+<<<<<<< HEAD
 @RunWith(classOf[JUnitRunner])
 class LambdaDataStoreTest extends LambdaContainerTest {
 
+=======
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
   import scala.collection.JavaConverters._
   import scala.concurrent.duration._
 

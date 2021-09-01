@@ -113,6 +113,7 @@ See below for an example.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
@@ -332,6 +333,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 >>>>>>> 0cdf3f267 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c6103aab4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 jsonPath
 ~~~~~~~~
 
@@ -357,9 +360,31 @@ jsonArrayToObject
 This function converts a JSON array into a JSON object, by using the index of each array element as the object
 key. This is useful for GeoMesa's JSON attribute types, which currently require a top-level object and not an array.
 
+=======
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 jsonPath
 ~~~~~~~~
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+
+This function creates a new JSON object from key-value pairs. It can be useful for generating JSON text values.
+
+Example::
+
+  fields = [
+    { name = "foo", path = "$.foo", json-type = "String" }
+    { name = "bar", path = "$.bar", json-type = "Array" }
+    { name = "foobar", transform = "toString(newJsonObject('foo', $foo, 'bar', $bar))"
+  ]
+
+mapToJson
+~~~~~~~~~
+
+This function converts a java.util.Map into a JSON string. It requires a single parameter, which must be a
+java.util.Map. It can be useful for storing complex JSON as a single attribute, which can then be queried
+using GeoMesa's JSON attribute support. See :ref:`json_attributes` for more information.
+
+newJsonObject
+~~~~~~~~~~~~~
 
 This function creates a new JSON object from key-value pairs. It can be useful for generating JSON text values.
 
