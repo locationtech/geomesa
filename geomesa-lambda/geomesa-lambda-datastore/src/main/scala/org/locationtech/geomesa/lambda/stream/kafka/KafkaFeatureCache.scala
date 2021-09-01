@@ -132,6 +132,7 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     ExpiredFeatures(maxExpiredOffset, latest)
 <<<<<<< HEAD
@@ -160,6 +161,11 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
     ExpiredFeatures(maxExpiredOffset, latest)
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 38876e069f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+    ExpiredFeatures(maxExpiredOffset, latest)
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
   }
 
   override def offsetChanged(partition: Int, offset: Long): Unit = {
