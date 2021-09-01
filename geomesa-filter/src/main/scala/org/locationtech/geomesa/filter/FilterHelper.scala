@@ -199,7 +199,11 @@ object FilterHelper {
     filter match {
       case o: Or =>
         val union = FilterValues.or[Bounds[T]](Bounds.union[T]) _
+<<<<<<< HEAD
         o.getChildren.asScala.map(f =>
+=======
+        o.getChildren.map(f =>
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
           extractAttributeBounds(f, attribute, binding)
         ).reduceLeft[FilterValues[Bounds[T]]]((acc, child) => {
           if (acc.isEmpty || child.isEmpty) {

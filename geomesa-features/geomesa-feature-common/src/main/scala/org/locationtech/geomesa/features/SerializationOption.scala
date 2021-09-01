@@ -15,12 +15,20 @@ object SerializationOption extends Enumeration {
 
   type SerializationOption = Value
 
+<<<<<<< HEAD
   val WithUserData      :Value = Value
   val WithoutFidHints   :Value = Value
   val WithoutId         :Value = Value
   val Immutable         :Value = Value
   val Lazy              :Value = Value
   val NativeCollections :Value = Value
+=======
+  val WithUserData    :Value = Value
+  val WithoutFidHints :Value = Value
+  val WithoutId       :Value = Value
+  val Immutable       :Value = Value
+  val Lazy            :Value = Value
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
   implicit class SerializationOptions(val options: Set[SerializationOption]) extends AnyVal {
 
