@@ -587,6 +587,7 @@ object HBaseIndexAdapter extends LazyLogging {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     private val batchSize = HBaseSystemProperties.WriteBatchSize.toLong
+<<<<<<< HEAD
     private val flushTimeout = HBaseSystemProperties.WriteFlushTimeout.toLong
     private val deleteVis = HBaseSystemProperties.DeleteVis.option.map(new CellVisibility(_))
 
@@ -595,6 +596,7 @@ object HBaseIndexAdapter extends LazyLogging {
       val maxThreads = math.max(1, ds.connection.getConfiguration.getInt("hbase.htable.threads.max", Int.MaxValue))
       Array.fill(indices.length)(new CachedThreadPool(maxThreads))
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -634,6 +636,8 @@ object HBaseIndexAdapter extends LazyLogging {
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 9cc18dca86 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
     private val deleteVis = HBaseSystemProperties.DeleteVis.option.map(new CellVisibility(_))
 <<<<<<< HEAD
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -664,6 +668,7 @@ object HBaseIndexAdapter extends LazyLogging {
     private val deleteVis = HBaseSystemProperties.DeleteVis.option.map(new CellVisibility(_))
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> d36d85cd8e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -726,6 +731,8 @@ object HBaseIndexAdapter extends LazyLogging {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9cc18dca86 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
     private val mutators = indices.toArray.map { index =>
       // should always be writing to a single table here
