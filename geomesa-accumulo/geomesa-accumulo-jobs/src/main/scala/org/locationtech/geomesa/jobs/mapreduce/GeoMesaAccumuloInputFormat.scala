@@ -457,6 +457,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> bd17bd131e (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -555,6 +556,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> c43c29e91c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> a773c6ef65 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -662,6 +665,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 >>>>>>> 7e323ef52f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 69a4e317d6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1000,6 +1004,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> bd17bd131e (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> ca22354dd7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1063,6 +1069,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+>>>>>>> d774dc1d12 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 113b056da (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 6f73f22005 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -1087,12 +1095,16 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+>>>>>>> 237494b1cc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> bd17bd131 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> c555446b8b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> ca22354dd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c385f7994 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 2d758409c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 <<<<<<< HEAD
 >>>>>>> c385f79943 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -2063,6 +2075,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -2098,11 +2111,16 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+=======
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> d774dc1d12 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 >>>>>>> 33d2777a8a (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> cc5f917a7c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -2152,6 +2170,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+=======
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 <<<<<<< HEAD
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -3045,6 +3065,9 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -3901,6 +3924,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> c385f7994 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -5388,15 +5412,37 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 =======
 >>>>>>> c385f7994 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 85d211ca2 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 2d758409c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 237494b1cc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> d774dc1d12 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     // all accumulo input config methods requires a job
     // assertion: only the JobConf is updated - to get credentials pass in a JobConf instead of Configuration
 =======
     // assertion: all accumulo input config requires a job, but really just updates the job conf
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5769,6 +5815,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> a773c6ef65 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 2d01ec0bc0 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -5863,6 +5911,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -6174,6 +6223,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> c43c29e91c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> bd17bd131e (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> ca22354dd7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -6489,6 +6542,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+>>>>>>> d774dc1d12 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 113b056da (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 6f73f22005 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -6565,6 +6620,9 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 9ec1f049a9 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> a0d6da1831 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -6624,6 +6682,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> 9ec1f049a9 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -6686,6 +6745,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> bd17bd131 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> c555446b8b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -6705,6 +6766,9 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 5c68fb7d1 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 4a47c538b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -6907,6 +6971,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> c385f7994 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -7369,6 +7434,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> c43c29e91c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 45dca3e07 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -7591,6 +7660,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> df9cd4f22d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -7601,6 +7671,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> eeb8ab478a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> b586a90765 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -7617,6 +7689,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> dba8cb28c4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -7676,6 +7749,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> eeb8ab478a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> f8f49130b1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 02ddf6ca41 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -7782,6 +7859,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -7790,12 +7868,19 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> eeb8ab478a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
 >>>>>>> 237494b1cc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> d774dc1d12 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
 >>>>>>> cc5f917a7c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -7831,6 +7916,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -7885,6 +7971,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> eeb8ab478a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> f8f49130b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 <<<<<<< HEAD
@@ -8422,6 +8510,9 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -8778,6 +8869,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> c385f7994 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -9371,13 +9463,29 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> ea0c690e2 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> c385f7994 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 2d758409c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 237494b1cc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> d774dc1d12 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     // all accumulo input config methods requires a job
     // assertion: only the JobConf is updated - to get credentials pass in a JobConf instead of Configuration
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9640,6 +9748,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> b52e5bb454 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 9da518fc54 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -9722,6 +9832,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -9811,6 +9922,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> c43c29e91c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 7a3d004ad1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -10146,6 +10261,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+>>>>>>> d774dc1d12 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 4c9fb0f6e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> b51d3046a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -10205,6 +10322,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 237494b1cc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10269,6 +10387,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 65360f96a0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 5d89f9f58f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> a0d6da1831 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -10465,6 +10585,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -10680,6 +10801,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> c43c29e91c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 74c6b7f8d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -11062,6 +11187,9 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -11260,6 +11388,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -11579,13 +11708,31 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> c385f7994 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 2d758409c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 237494b1cc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> d774dc1d12 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 85d211ca2 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11679,6 +11826,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 68098a00c3 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> fd0793971d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 44bdcb9e58 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -11701,6 +11850,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 28be12542f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -11788,6 +11938,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 00494e0bcf (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 68098a00c3 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 44b15e96d9 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 1b5719bd33 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -11991,6 +12145,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> d9cabf401c (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+>>>>>>> d774dc1d12 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 72415e208a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> c14e106409 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -12066,6 +12222,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 28be12542f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+>>>>>>> 237494b1cc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 74c6b7f8d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> f0b61142b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -12076,8 +12234,11 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 68098a00c3 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 2d758409c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -12145,6 +12306,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 2d758409c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 >>>>>>> c57a8a5ffe (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -12203,6 +12365,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 28be12542f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 68098a00c3 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> locationtech-main
 =======
     // assertion: all accumulo input config requires a job, but really just updates the job conf
@@ -12710,6 +12874,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -12747,6 +12912,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+=======
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> d774dc1d12 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -12755,6 +12924,9 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 33d2777a8a (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> cc5f917a7c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -12780,6 +12952,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -12811,6 +12984,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 9bcc7591e5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14160,6 +14337,9 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -15125,6 +15305,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> c385f7994 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -16617,10 +16798,27 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 =======
 >>>>>>> c385f7994 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 3171e7407d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> 038b4ca087 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> 7f486255dd (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 >>>>>>> 78439fc2da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+=======
+=======
+=======
+=======
+>>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 2d758409c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 237494b1cc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> d774dc1d12 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> e639fc30a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 64c0e084b5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     val job = new Job(conf)
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 
