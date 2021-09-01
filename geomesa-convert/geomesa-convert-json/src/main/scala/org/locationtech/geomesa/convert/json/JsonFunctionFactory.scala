@@ -29,10 +29,14 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
   // noinspection ScalaDeprecation
   override def functions: Seq[TransformerFunction] =
 <<<<<<< HEAD
+<<<<<<< HEAD
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
 =======
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject)
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+    Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
   @deprecated("use toString")
   private val jsonToString = TransformerFunction.pure("jsonToString", "json2string") { args =>
@@ -133,11 +137,15 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
   private val newJsonObject = TransformerFunction.pure("newJsonObject") { args =>
     val obj = new JsonObject()
     var i = 1
     while (i < args.length) {
       val key = args(i -1).toString
+<<<<<<< HEAD
       args(i) match {
         case null => // skip nulls
         case j: JsonElement => obj.add(key, j)
@@ -148,6 +156,18 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
         case j          => obj.add(key, gson.toJsonTree(j))
       }
 
+=======
+      val value = args(i) match {
+        case null => JsonNull.INSTANCE
+        case j: JsonElement => j
+        case j: String  => new JsonPrimitive(j)
+        case j: Number  => new JsonPrimitive(j)
+        case j: Boolean => new JsonPrimitive(j)
+        case j: Date    => new JsonPrimitive(DateParsing.formatDate(j))
+        case j          => gson.toJsonTree(j)
+      }
+      obj.add(key, value)
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
       i += 2
     }
     obj
@@ -163,7 +183,10 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     }
   }
 
+<<<<<<< HEAD
 =======
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
   private def getPrimitive(p: JsonPrimitive): Any = if (p.isBoolean) { p.getAsBoolean } else { p.getAsString }
 }
