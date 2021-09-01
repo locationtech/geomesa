@@ -8,6 +8,11 @@
 
 package org.locationtech.geomesa.hbase.data
 
+<<<<<<< HEAD
+=======
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
