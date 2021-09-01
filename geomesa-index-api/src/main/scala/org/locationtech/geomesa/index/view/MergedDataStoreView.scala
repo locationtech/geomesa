@@ -36,6 +36,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 class MergedDataStoreView(
     val stores: Seq[(DataStore, Option[Filter])],
     deduplicate: Boolean,
+<<<<<<< HEAD
     parallel: Boolean,
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -407,6 +408,18 @@ class MergedDataStoreView(
 <<<<<<< HEAD
 =======
 >>>>>>> 1d4e479464 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
+    namespace: Option[String] = None
+  ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 8832d83354 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1577,6 +1590,7 @@ class MergedDataStoreView(
 <<<<<<< HEAD
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 =======
 =======
     namespace: Option[String] = None
@@ -1651,10 +1665,19 @@ class MergedDataStoreView(
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> locationtech-main
+=======
+    namespace: Option[String] = None
+  ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaStats {
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 1b0b697d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 8832d83354 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
   require(stores.nonEmpty, "No delegate stores configured")
 
   private[view] val runner =
+<<<<<<< HEAD
     new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f }, deduplicate, parallel)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1711,6 +1734,9 @@ class MergedDataStoreView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8832d83354 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e5abfb88a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -2039,6 +2065,7 @@ class MergedDataStoreView(
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
     new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f }, deduplicate)
@@ -2148,6 +2175,14 @@ class MergedDataStoreView(
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
+=======
+=======
+    new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f }, deduplicate)
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 1b0b697d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 8832d83354 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
   override val stats: GeoMesaStats = new MergedStats(stores, parallel)
 
