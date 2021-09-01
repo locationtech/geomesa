@@ -87,7 +87,9 @@ class LambdaDataStoreTest extends LambdaContainerTest {
   )
 
   def testTransforms(ds: LambdaDataStore, transform: SimpleFeatureType): MatchResult[Any] = {
+<<<<<<< HEAD
     val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toSeq: _*)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -110,6 +112,11 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+    val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> d36d85cd8e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     // note: need to copy the features as the same object is re-used in the iterator
     val iter = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
     val result = iter.map(DataUtilities.encodeFeature).toSeq
@@ -264,7 +271,9 @@ class LambdaDataStoreTest extends LambdaContainerTest {
           clock.tick = 252
           ds.persist(sft.getTypeName)
           forall(Seq(ds, readOnly)) { store =>
+<<<<<<< HEAD
             eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()) must beEmpty)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -287,6 +296,11 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()) must beEmpty)
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> d36d85cd8e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
                 containTheSameElementsAs(Seq(update, features.last))
           }
