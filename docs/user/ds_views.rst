@@ -69,6 +69,7 @@ If the stores may contain duplicate features, these can be filtered out by setti
 defined in priority order, as the first feature with a given feature ID will be returned while any others will be
 filtered out. Deduplication will be more efficient if stores with fewer features are defined first in the list.
 
+<<<<<<< HEAD
 The parameter ``geomesa.merged.scan.parallel`` can be set to ``true`` to scan all underlying stores in parallel,
 instead of sequentially.
 
@@ -113,6 +114,9 @@ instead of sequentially.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
@@ -245,6 +249,7 @@ instead of sequentially.
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -348,6 +353,10 @@ instead of sequentially.
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 Query Filtering
 ^^^^^^^^^^^^^^^
 
