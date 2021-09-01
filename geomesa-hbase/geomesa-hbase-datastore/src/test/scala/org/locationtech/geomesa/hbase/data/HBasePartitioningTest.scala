@@ -8,6 +8,11 @@
 
 package org.locationtech.geomesa.hbase.data
 
+<<<<<<< HEAD
+=======
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.SimpleFeature
@@ -120,6 +125,15 @@ class HBasePartitioningTest extends Specification with LazyLogging {
               testQuery(ds, typeName, "name = 'name5'", transforms, Seq(toAdd(5)))
             }
           }
+        }
+
+        {
+          val filter = ECQL.toFilter("(bbox(geom,38,48,52,62) and " +
+            "dtg BETWEEN 2018-01-01T00:00:00+00:00 AND 2018-01-04T00:00:00+00:00) OR " +
+            "(bbox(geom,38,48,52,61) and dtg BETWEEN 2018-01-05T00:00:00+00:00 AND 2018-01-08T00:00:00+00:00)")
+          val plans = ds.getQueryPlan(new Query(sft.getTypeName, filter))
+          plans must not(beEmpty)
+          plans.head must not(beAnInstanceOf[EmptyPlan])
         }
 
         {
