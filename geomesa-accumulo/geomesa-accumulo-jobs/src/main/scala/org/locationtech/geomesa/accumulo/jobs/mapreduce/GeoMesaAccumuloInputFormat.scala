@@ -1331,6 +1331,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f54ebeac7e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -1339,6 +1340,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 3b0a7faa6b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 5b94153fb2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 19108609dc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/accumulo/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 >>>>>>> 85d211ca2 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 <<<<<<< HEAD
@@ -1870,6 +1873,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 85d211ca2b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/accumulo/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 >>>>>>> 595c43086a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
@@ -3062,6 +3066,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> f5f27a82c8 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 089c437c92 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 595c43086a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
+>>>>>>> 77f1dd8356 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 19108609dc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     // all accumulo input config methods requires a job
     // assertion: only the JobConf is updated - to get credentials pass in a JobConf instead of Configuration
 =======
@@ -3332,6 +3340,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/accumulo/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/accumulo/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 <<<<<<< HEAD
@@ -3348,11 +3357,15 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> aa5808a811 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 089c437c92 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 19108609dc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/accumulo/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/accumulo/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> 77f1dd8356 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/accumulo/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 >>>>>>> 85d211ca2b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 =======
@@ -3361,6 +3374,9 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 19108609dc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 45dca3e079 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 =======
 <<<<<<< HEAD
@@ -5628,6 +5644,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     // all accumulo input config methods requires a job
     // assertion: only the JobConf is updated - to get credentials pass in a JobConf instead of Configuration
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/accumulo/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 >>>>>>> 595c43086a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 <<<<<<< HEAD
@@ -6912,6 +6929,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 85d211ca2b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 >>>>>>> f5f27a82c8 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 089c437c92 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 595c43086a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
+>>>>>>> 77f1dd8356 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 19108609dc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     val job = new Job(conf)
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 
