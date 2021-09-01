@@ -98,6 +98,7 @@ import java.util.Date
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 class LambdaDataStoreTest extends LambdaTest with LazyLogging {
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -132,6 +133,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 =======
 
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 class LambdaDataStoreTest extends LambdaTest with LazyLogging {
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
@@ -150,6 +153,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 >>>>>>> 8effb11c46 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -159,6 +163,11 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 >>>>>>> 3c6964ab43 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d19a46c929 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 @RunWith(classOf[JUnitRunner])
 class LambdaDataStoreTest extends LambdaContainerTest {
 
@@ -168,14 +177,18 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e30217c0a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d19a46c929 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 8effb11c46 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -188,6 +201,11 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 >>>>>>> 3c6964ab43 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d19a46c929 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
   import scala.collection.JavaConverters._
   import scala.concurrent.duration._
 
@@ -204,6 +222,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
   def testTransforms(ds: LambdaDataStore, transform: SimpleFeatureType): MatchResult[Any] = {
 <<<<<<< HEAD
     val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toSeq: _*)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -249,6 +268,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 =======
 >>>>>>> 4010468d90 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
     val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
 <<<<<<< HEAD
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -292,6 +313,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
     val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 38876e069f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -350,6 +372,13 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 >>>>>>> 9cc18dca86 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 4010468d90 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+=======
+    val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     // note: need to copy the features as the same object is re-used in the iterator
     val iter = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
     val result = iter.map(DataUtilities.encodeFeature).toSeq
@@ -526,6 +555,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -550,6 +580,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 >>>>>>> 9cc18dca86 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 4010468d90 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
             eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()) must beEmpty)
 <<<<<<< HEAD
@@ -594,6 +626,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
             eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()) must beEmpty)
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 38876e069f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -652,6 +685,13 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 >>>>>>> 9cc18dca86 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 4010468d90 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+=======
+            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()) must beEmpty)
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
                 containTheSameElementsAs(Seq(update, features.last))
           }
