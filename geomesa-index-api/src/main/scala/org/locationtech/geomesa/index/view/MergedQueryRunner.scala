@@ -29,6 +29,15 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortedMergeIterator}
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+import org.locationtech.geomesa.utils.stats._
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
+>>>>>>> 3ae745d8b6a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
 /**
  * Query runner for merging results from multiple stores
@@ -36,6 +45,7 @@ import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureItera
  * @param ds merged data store
  * @param stores delegate stores
  * @param deduplicate deduplicate the results between stores
+<<<<<<< HEAD
  * @param parallel run scans in parallel (vs sequentially)
  */
 class MergedQueryRunner(
@@ -44,15 +54,30 @@ class MergedQueryRunner(
     deduplicate: Boolean,
     parallel: Boolean
   ) extends QueryRunner with LazyLogging {
+=======
+ */
+class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filter])], deduplicate: Boolean)
+    extends QueryRunner with LazyLogging {
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   // query interceptors are handled by the individual data stores
   override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
 
+<<<<<<< HEAD
   override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryResult = {
     // TODO deduplicate arrow, bin, density queries...
     // get view params and threaded query hints
+=======
+  override def runQuery(
+      sft: SimpleFeatureType,
+      original: Query,
+      explain: Explainer): CloseableIterator[SimpleFeature] = {
+
+    // TODO deduplicate arrow, bin, density queries...
+
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     val query = configureQuery(sft, original)
     val hints = query.getHints
     val maxFeatures = if (query.isMaxFeaturesUnlimited) { None } else { Option(query.getMaxFeatures) }
@@ -81,6 +106,7 @@ class MergedQueryRunner(
         }
         QueryResult(BinaryOutputEncoder.BinEncodedSft, hints, () => binQuery(sft, readers, hints))
       } else {
+<<<<<<< HEAD
         val resultSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
         def run(): CloseableIterator[SimpleFeature] = {
           val iters =
@@ -102,6 +128,23 @@ class MergedQueryRunner(
             case None => results
             case Some(m) => results.take(m)
           }
+=======
+        val iters =
+          if (deduplicate) {
+            // we re-use the feature id cache across readers
+            val cache = scala.collection.mutable.HashSet.empty[String]
+            readers.map(r => new DeduplicatingSimpleFeatureIterator(SelfClosingIterator(r), cache))
+          } else {
+            readers.map(SelfClosingIterator(_))
+          }
+
+        Option(query.getSortBy).filterNot(_.isEmpty) match {
+          case None => SelfClosingIterator(iters.iterator).flatMap(i => i)
+          case Some(sort) =>
+            val sortSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
+            // the delegate stores should sort their results, so we can sort merge them
+            new SortedMergeIterator(iters)(SimpleFeatureOrdering(sortSft, sort))
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
         }
         QueryResult(resultSft, hints, run)
       }
