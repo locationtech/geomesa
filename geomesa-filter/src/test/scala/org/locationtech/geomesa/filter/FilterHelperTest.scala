@@ -314,6 +314,7 @@ class FilterHelperTest extends Specification {
       intervals1 mustEqual intervals2
     }
 
+<<<<<<< HEAD
     "remove interleaving bounds for AND filter" >> {
       var cql = "S < 3 AND S < 2 AND S < 4"
       var bounds = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql), "S", classOf[Integer])
@@ -364,6 +365,8 @@ class FilterHelperTest extends Specification {
       bounds1.values must haveSize(2)
     }
 
+=======
+>>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     "deduplicate OR filters" >> {
       val filters = Seq(
         ("(a > 1 AND b < 2 AND c = 3) OR (c = 3 AND a > 2 AND b < 2) OR (b < 2 AND a > 3 AND c = 3)",
