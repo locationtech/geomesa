@@ -2,6 +2,7 @@ org.locationtech.geomesa.convert2.transforms.CastFunctionFactory
 org.locationtech.geomesa.convert2.transforms.CollectionFunctionFactory
 org.locationtech.geomesa.convert2.transforms.CqlFunctionFactory
 org.locationtech.geomesa.convert2.transforms.DateFunctionFactory
+org.locationtech.geomesa.convert2.transforms.EncodingFunctionFactory
 org.locationtech.geomesa.convert2.transforms.EnrichmentCacheFunctionFactory
 org.locationtech.geomesa.convert2.transforms.GeometryFunctionFactory
 org.locationtech.geomesa.convert2.transforms.IdFunctionFactory

@@ -9,13 +9,14 @@
 package org.locationtech.geomesa.features.avro
 
 import java.nio.ByteBuffer
-
 import org.apache.avro.Schema
 import org.apache.avro.io.{DatumWriter, Encoder}
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.serialization.AvroUserDataSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.util.control.NonFatal
 
 class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: Set[SerializationOption] = Set.empty)
   extends DatumWriter[SimpleFeature] {
@@ -47,7 +48,11 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: Set[SerializationOpt
     while (i < converters.length) {
       val value = datum.getAttribute(i)
       val field = schema.getFields.get(i + fieldOffset)
-      write(out, field.schema, if (value == null) { null } else { converters(i).apply(value) })
+      try {
+        write(out, field.schema, if (value == null) { null } else { converters(i).apply(value) })
+      } catch {
+        case NonFatal(e) => throw new RuntimeException(s"Invalid value for field $field: $value", e)
+      }
       i += 1
     }
 

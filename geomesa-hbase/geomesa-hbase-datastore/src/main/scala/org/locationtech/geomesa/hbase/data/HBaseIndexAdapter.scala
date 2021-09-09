@@ -582,7 +582,10 @@ object HBaseIndexAdapter extends LazyLogging {
       partition: Option[String]
     ) extends BaseIndexWriter(indices, wrapper) {
 
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     private val batchSize = HBaseSystemProperties.WriteBatchSize.toLong
+    private val deleteVis = HBaseSystemProperties.DeleteVis.option.map(new CellVisibility(_))
 
     private val mutators = indices.toArray.map { index =>
       val table = index.getTableNames(partition) match {
@@ -594,8 +597,7 @@ object HBaseIndexAdapter extends LazyLogging {
       ds.connection.getBufferedMutator(params)
     }
 
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val expiration = indices.headOption.flatMap(_.sft.getFeatureExpiration).orNull
+    private val expiration = indices.headOption.flatMap(_.sft.getFeatureExpiration).orNull
 
     private var i = 0
 
@@ -664,6 +666,8 @@ object HBaseIndexAdapter extends LazyLogging {
               del.addFamily(value.cf) // note: passing in the column qualifier seems to keep deletes from working
               if (!value.vis.isEmpty) {
                 del.setCellVisibility(new CellVisibility(new String(value.vis, StandardCharsets.UTF_8)))
+              } else {
+                deleteVis.foreach(del.setCellVisibility)
               }
               mutator.mutate(del)
             }
@@ -675,6 +679,8 @@ object HBaseIndexAdapter extends LazyLogging {
                 del.addFamily(value.cf) // note: passing in the column qualifier seems to keep deletes from working
                 if (!value.vis.isEmpty) {
                   del.setCellVisibility(new CellVisibility(new String(value.vis, StandardCharsets.UTF_8)))
+                } else {
+                  deleteVis.foreach(del.setCellVisibility)
                 }
                 mutator.mutate(del)
               }

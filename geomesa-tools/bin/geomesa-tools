@@ -10,8 +10,15 @@
 # set environment variables in conf/geomesa-env.sh, dependencies in .dependencies
 
 # configure HOME and CONF_DIR, then load geomesa-env.sh
-export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
+localHomeDir="$(cd "`dirname "$0"`"/..; pwd)"
+export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$localHomeDir}"
 export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%tools.dist.name%%_HOME/conf}"
+
+if [[ ! "$%%tools.dist.name%%_HOME" -ef "$localHomeDir" ]]; then
+  echo "WARNING: %%tools.dist.name%%_HOME is pointing to $%%tools.dist.name%%_HOME, but script is being invoked from ${localHomeDir}/bin" >&2
+elif [[ ! "$GEOMESA_CONF_DIR" -ef "$%%tools.dist.name%%_HOME/conf" ]]; then
+  echo "WARNING: GEOMESA_CONF_DIR is pointing to $GEOMESA_CONF_DIR, but %%tools.dist.name%%_HOME is $%%tools.dist.name%%_HOME" >&2
+fi
 
 RUNNER="%%tools.runner%%"
 NG_RUNNER="org.locationtech.geomesa.tools.utils.NailgunServer"
@@ -19,7 +26,7 @@ NG_RUNNER="org.locationtech.geomesa.tools.utils.NailgunServer"
 if [[ -f "${GEOMESA_CONF_DIR}/geomesa-env.sh" ]]; then
   . "${GEOMESA_CONF_DIR}/geomesa-env.sh"
 else
-  echo >&2 "ERROR: could not read '${GEOMESA_CONF_DIR}/geomesa-env.sh', aborting script"
+  echo "ERROR: could not read '${GEOMESA_CONF_DIR}/geomesa-env.sh', aborting script" >&2
   exit 1
 fi
 

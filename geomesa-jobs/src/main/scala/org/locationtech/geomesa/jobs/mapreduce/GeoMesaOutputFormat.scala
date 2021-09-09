@@ -98,7 +98,7 @@ object GeoMesaOutputFormat {
       try {
         val sftName = value.getFeatureType.getTypeName
         val writer = writers.getOrElseUpdate(sftName, createWriter(sftName))
-        FeatureUtils.write(writer, value, useProvidedFid = true)
+        FeatureUtils.write(writer, value)
         written.increment(1)
       } catch {
         case e: Exception =>

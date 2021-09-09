@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.fs
 
-import java.io.{File, IOException}
-import java.nio.file.Files
-import java.util.Collections
-
 import org.apache.commons.io.FileUtils
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -19,16 +15,21 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
+import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.io.{File, IOException}
+import java.nio.file.Files
+import java.util.Collections
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class FileSystemDataStoreTest extends Specification {
@@ -54,7 +55,20 @@ class FileSystemDataStoreTest extends Specification {
   private def createLine(i: Int): String = s"LINESTRING(10 10, 11 12.$i)"
   private def createPolygon(i: Int): String = s"POLYGON((3$i 28, 41 28, 41 29, 3$i 29, 3$i 28))"
 
-  val encodings = Seq("orc", "parquet")
+  private val beUUID: Matcher[Any] = (
+    (_: Any) match {
+      case s: String =>
+        try {
+          java.util.UUID.fromString(s); true
+        } catch {
+          case _: IllegalArgumentException => false
+        }
+      case _ => false
+    },
+    (_: Any) + " is not valid UUID"
+  )
+
+  val encodings = Seq("parquet", "orc")
 
   val formats = encodings.map(createFormat(_))
 
@@ -84,7 +98,7 @@ class FileSystemDataStoreTest extends Specification {
           "fs.encoding" -> format,
           "fs.config.xml" -> gzip)
 
-        val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
+        val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]
 
         ds.createSchema(sft)
 
@@ -113,7 +127,7 @@ class FileSystemDataStoreTest extends Specification {
         results must containTheSameElementsAs(features)
 
         // This shows that a new FeatureSource has a correct view of the metadata on disk
-        val ds2 = DataStoreFinder.getDataStore(dsParams)
+        val ds2 = DataStoreFinder.getDataStore(dsParams.asJava)
         val fs2 = ds2.getFeatureSource(format)
         fs2.getCount(Query.ALL) must beEqualTo(10)
         fs2.getBounds must equalTo(new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
@@ -136,13 +150,13 @@ class FileSystemDataStoreTest extends Specification {
       foreach(formats) { case (format, sft, features) =>
         val dir = dirs(format)
         // Load a new datastore to read metadata and stuff
-        val ds = DataStoreFinder.getDataStore(Map("fs.path" -> dir.getPath, "fs.read-threads" -> "4"))
+        val ds = DataStoreFinder.getDataStore(Map("fs.path" -> dir.getPath, "fs.read-threads" -> "4").asJava)
         ds.getTypeNames.toList must containTheSameElementsAs(Seq(format))
 
         val results = SelfClosingIterator(ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)).toList
         results must containTheSameElementsAs(features)
 
-        val dsWithNs = DataStoreFinder.getDataStore(Map("fs.path" -> dir.getPath, "fs.read-threads" -> "4", "namespace" -> "ns0"))
+        val dsWithNs = DataStoreFinder.getDataStore(Map("fs.path" -> dir.getPath, "fs.read-threads" -> "4", "namespace" -> "ns0").asJava)
         val name = dsWithNs.getSchema(sft.getTypeName).getName
         name.getNamespaceURI mustEqual "ns0"
         name.getLocalPart mustEqual sft.getTypeName
@@ -171,6 +185,23 @@ class FileSystemDataStoreTest extends Specification {
       }
     }
 
+    "not modify feature type in create schema" >> {
+      val format = formats.head._1
+      val dir = Files.createTempDirectory(s"fsds-test-$format").toFile
+      try {
+        val sft = SimpleFeatureTypes.createType(format, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+        sft.setScheme("daily")
+        sft.setEncoding(format)
+        WithClose(DataStoreFinder.getDataStore(Collections.singletonMap("fs.path", dir.getPath))) { ds =>
+          ds.createSchema(sft)
+        }
+        sft.removeScheme() must beSome(NamedOptions("daily", Map.empty))
+        sft.removeEncoding must beSome(format)
+      } finally {
+        FileUtils.deleteDirectory(dir)
+      }
+    }
+
     "reject schemas with reserved words" >> {
       foreach(formats) { case (format, _, _) =>
         val dir = dirs(format)
@@ -179,7 +210,7 @@ class FileSystemDataStoreTest extends Specification {
         val ds = DataStoreFinder.getDataStore(Map(
           "fs.path" -> dir.getPath,
           "fs.encoding" -> format,
-          "fs.config.xml" -> gzip))
+          "fs.config.xml" -> gzip).asJava)
         ds.createSchema(reserved) must throwAn[IllegalArgumentException]
         ds.getSchema(reserved.getTypeName) must throwAn[IOException] // content data store schema does not exist
       }
@@ -213,10 +244,32 @@ class FileSystemDataStoreTest extends Specification {
       }
     }
 
+    "support append without fid" >> {
+      val formats = encodings.map(createFormat(_))
+      foreach(formats) { case (format, sft, features) =>
+        val dir = Files.createTempDirectory(s"fsds-test-append-without-fid-$format").toFile
+        val dsParams = Map(
+          "fs.path" -> dir.getPath,
+          "fs.encoding" -> format,
+          "fs.config.xml" -> gzip)
+        val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]
+        ds.createSchema(sft)
+        WithClose(ds.getFeatureWriterAppend(format, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach { feature =>
+            val featureWithEmptyFid = ScalaSimpleFeature.copy(feature)
+            featureWithEmptyFid.setId("")
+            FeatureUtils.write(writer, featureWithEmptyFid)
+          }
+        }
+        val results = SelfClosingIterator(ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)).toList
+        results.map(_.getID) must contain(allOf(beUUID))
+      }
+    }
+
     "support updates" >> {
       foreach(formats) { case (format, _, features) =>
         val dsParams = Map("fs.path" -> dirs(format).getPath, "fs.config.xml" -> gzip)
-        val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
+        val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]
 
         WithClose(ds.getFeatureWriter(format, ECQL.toFilter("IN ('0', '1', '2')"), Transaction.AUTO_COMMIT)) { writer =>
           def modify(f: SimpleFeature): Unit = {
@@ -263,7 +316,7 @@ class FileSystemDataStoreTest extends Specification {
             "fs.encoding" -> format,
             "fs.config.xml" -> gzip)
 
-          val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
+          val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]
           ds must not(beNull)
           try {
             sft.getUserData.put("geomesa.mixed.geometries", "true")

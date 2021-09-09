@@ -117,7 +117,11 @@ object FeatureUtils {
   }
 
   def copyToFeature(toWrite: SimpleFeature, sf: SimpleFeature, useProvidedFid: Boolean = false): SimpleFeature = {
-    toWrite.setAttributes(sf.getAttributes)
+    var i = 0
+    while (i < sf.getAttributeCount) {
+      toWrite.setAttribute(i, sf.getAttribute(i))
+      i += 1
+    }
     toWrite.getUserData.putAll(sf.getUserData)
     if (useProvidedFid || jBoolean.TRUE == sf.getUserData.get(Hints.USE_PROVIDED_FID).asInstanceOf[jBoolean]) {
       toWrite.getIdentifier match {

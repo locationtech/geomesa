@@ -32,7 +32,7 @@ import org.specs2.matcher.MatchResult
 
 class LambdaDataStoreTest extends LambdaTest with LazyLogging {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
   import scala.concurrent.duration._
 
   sequential
@@ -50,7 +50,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
   )
 
   def testTransforms(ds: LambdaDataStore, transform: SimpleFeatureType): MatchResult[Any] = {
-    val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.map(_.getLocalName).toArray)
+    val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     // note: need to copy the features as the same object is re-used in the iterator
     val iter = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
     val result = iter.map(DataUtilities.encodeFeature).toSeq
@@ -109,7 +109,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
 
   "LambdaDataStore" should {
     "write and read features" in {
-      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[LambdaDataStore]
+      val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[LambdaDataStore]
       ds must not(beNull)
 
       try {
@@ -117,12 +117,12 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
         ds.getSchema(sft.getTypeName) mustEqual sft
 
         // check namespaces
-        val ns = DataStoreFinder.getDataStore(dsParams ++ Map("namespace" -> "ns0")).getSchema(sft.getTypeName).getName
+        val ns = DataStoreFinder.getDataStore((dsParams ++ Map("namespace" -> "ns0")).asJava).getSchema(sft.getTypeName).getName
         ns.getNamespaceURI mustEqual "ns0"
         ns.getLocalPart mustEqual sft.getTypeName
 
         // note: instantiate after creating the schema so it's not cached as missing
-        val readOnly = DataStoreFinder.getDataStore(dsParams ++ Map("expiry" -> "Inf")).asInstanceOf[LambdaDataStore]
+        val readOnly = DataStoreFinder.getDataStore((dsParams ++ Map("expiry" -> "Inf")).asJava).asInstanceOf[LambdaDataStore]
         readOnly must not(beNull)
 
         try {
@@ -167,7 +167,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
                      (features.drop(1) , QueryHints.LAMBDA_QUERY_PERSISTENT, "LAMBDA_QUERY_PERSISTENT"))) {
             case (feature, hint, string) =>
               val hints = Seq((hint, java.lang.Boolean.FALSE),
-                (Hints.VIRTUAL_TABLE_PARAMETERS, Map(string -> "false"): java.util.Map[String, String]))
+                (Hints.VIRTUAL_TABLE_PARAMETERS, Map(string -> "false").asJava))
               forall(hints) { case (k, v) =>
                 val query = new Query(sft.getTypeName)
                 query.getHints.put(k, v)
@@ -188,6 +188,27 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
           testBin(ds)
           testArrow(ds)
           testStats(ds)
+
+          // write an update feature to the already persisted features and verify no duplicates are returned
+          val update = ScalaSimpleFeature.create(sft, "0", "n0", "2017-06-15T00:00:01.000Z", "POINT (45 50.1)")
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            FeatureUtils.write(writer, update, useProvidedFid = true)
+          }
+          forall(Seq(ds, readOnly)) { store =>
+            eventually(40, 100.millis)(
+              SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
+                  containTheSameElementsAs(Seq(update, features.last))
+            )
+          }
+
+          // verify the update is persisted
+          clock.tick = 252
+          ds.persist(sft.getTypeName)
+          forall(Seq(ds, readOnly)) { store =>
+            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()) must beEmpty)
+            SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
+                containTheSameElementsAs(Seq(update, features.last))
+          }
         } finally {
           readOnly.dispose()
         }

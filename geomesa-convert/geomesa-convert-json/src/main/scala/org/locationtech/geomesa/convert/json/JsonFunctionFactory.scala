@@ -8,24 +8,27 @@
 
 package org.locationtech.geomesa.convert.json
 
-import java.util.concurrent.ConcurrentHashMap
-
-import com.google.gson.{JsonArray, JsonElement, JsonObject, JsonPrimitive}
+import com.google.gson._
 import com.jayway.jsonpath.JsonPath
 import org.json4s.JsonAST.{JNull, JValue}
 import org.json4s.{JBool, JDouble, JInt, JString}
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.CollectionFunctionFactory.CollectionParsing
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
+import org.locationtech.geomesa.utils.text.DateParsing
+
+import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 
 class JsonFunctionFactory extends TransformerFunctionFactory with CollectionParsing {
 
   import scala.collection.JavaConverters._
 
+  private val gson = new Gson()
+
   // noinspection ScalaDeprecation
   override def functions: Seq[TransformerFunction] =
-    Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath)
+    Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
 
   @deprecated("use toString")
   private val jsonToString = TransformerFunction.pure("jsonToString", "json2string") { args =>
@@ -34,7 +37,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 
   private val jsonPath: TransformerFunction = new NamedTransformerFunction(Array("jsonPath"), pure = true) {
     private val cache = new ConcurrentHashMap[Any, JsonPath]()
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
+    override def apply(args: Array[AnyRef]): AnyRef = {
       var path = cache.get(args(0))
       if (path == null) {
         path = JsonPath.compile(args(0).asInstanceOf[String])
@@ -110,6 +113,49 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
       case x          => JString(x.toString)
     }.toMap
     compact(render(ast))
+  }
+
+  private val jsonArrayToObject = TransformerFunction.pure("jsonArrayToObject") { args =>
+    val array = args(0).asInstanceOf[JsonArray]
+    if (array == null || array.isJsonNull) { null } else {
+      val obj = new JsonObject()
+      var i = 0
+      while (i < array.size()) {
+        obj.add(Integer.toString(i), array.get(i))
+        i += 1
+      }
+      obj
+    }
+  }
+
+  private val newJsonObject = TransformerFunction.pure("newJsonObject") { args =>
+    val obj = new JsonObject()
+    var i = 1
+    while (i < args.length) {
+      val key = args(i -1).toString
+      val value = args(i) match {
+        case null => JsonNull.INSTANCE
+        case j: JsonElement => j
+        case j: String  => new JsonPrimitive(j)
+        case j: Number  => new JsonPrimitive(j)
+        case j: Boolean => new JsonPrimitive(j)
+        case j: Date    => new JsonPrimitive(DateParsing.formatDate(j))
+        case j          => gson.toJsonTree(j)
+      }
+      obj.add(key, value)
+      i += 2
+    }
+    obj
+  }
+
+  private val emptyToNull = TransformerFunction.pure("emptyJsonToNull") { args =>
+    args(0) match {
+      case JsonNull.INSTANCE => null
+      case j: JsonObject if j.size() == 0 => null
+      case j: JsonObject if j.entrySet().asScala.forall(_.getValue == JsonNull.INSTANCE) => null
+      case j: JsonArray if j.size() == 0 => null
+      case j => j
+    }
   }
 
   private def getPrimitive(p: JsonPrimitive): Any = if (p.isBoolean) { p.getAsBoolean } else { p.getAsString }

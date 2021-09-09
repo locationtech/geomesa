@@ -929,6 +929,59 @@ class JsonConverterTest extends Specification {
       }
     }
 
+    "parse and convert json arrays into objects" >> {
+
+      val sftConf = ConfigFactory.parseString(
+        """{
+          |  type-name = "json-obj"
+          |  attributes = [
+          |    { name = "id",   type = "Integer"              }
+          |    { name = "json", type = "String", json = true  }
+          |    { name = "geom", type = "Point"                }
+          |  ]
+          |}
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(sftConf)
+
+      val json =
+        """{
+          |  "id": 1,
+          |  "geometry": {"type": "Point", "coordinates": [55, 56]},
+          |  "things": [
+          |    { "foo": "bar", "baz": 1.1 },
+          |    { "blu": true }
+          |  ]
+          |}
+        """.stripMargin
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "$id"
+          |   fields = [
+          |     { name = "id",   json-type = "integer",  path = "$.id",       transform = "toString($0)"            }
+          |     { name = "json", json-type = "array",    path = "$.things",   transform = "toString(jsonArrayToObject($0))"  }
+          |     { name = "geom", json-type = "geometry", path = "$.geometry", transform = "point($0)"               }
+          |   ]
+          | }
+        """.stripMargin)
+
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val ec = converter.createEvaluationContext()
+        val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
+        features must haveLength(1)
+        ec.success.getCount mustEqual 1L
+        ec.failure.getCount mustEqual 0L
+
+        val f = features.head
+
+        f.getAttribute("json") must beAnInstanceOf[String]
+        f.getAttribute("json") mustEqual """{"0":{"foo":"bar","baz":1.1},"1":{"blu":true}}"""
+      }
+    }
+
     "parse and convert maps" >> {
 
       val mapSftConf = ConfigFactory.parseString(
@@ -1259,6 +1312,67 @@ class JsonConverterTest extends Specification {
           features.head.getAttribute(prop) mustEqual prop
           features.head.getAttributes.asScala.filter(_ == null) must haveLength(2)
         }
+      }
+    }
+
+    "create json object attributes" >> {
+      val sft = SimpleFeatureTypes.createType("objects", "foobar:String:json=true")
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type = "json"
+          |   id-field = "md5(string2bytes(json2string($0)))"
+          |   fields = [
+          |     { name = "foo", path = "$.foo", json-type = "String" }
+          |     { name = "bar", path = "$.bar", json-type = "Array" }
+          |     { name = "foobar", transform = "toString(newJsonObject('string',$foo,'array',$bar))" }
+          |   ]
+          | }
+        """.stripMargin)
+      val in = """{"foo":"foo","bar":["bar1","bar2"]}""".getBytes(StandardCharsets.UTF_8)
+
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(in)))(_.toList)
+        features must haveLength(1)
+        features.head.getAttribute("foobar") mustEqual """{"string":"foo","array":["bar1","bar2"]}"""
+      }
+    }
+
+    "create json object attributes" >> {
+      val sft =
+        SimpleFeatureTypes.createType("objects",
+          "foo:String,fooNull:String,bar:String,barNull:String,baz:String,bazNull:String")
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type = "json"
+          |   id-field = "md5(string2bytes(json2string($0)))"
+          |   fields = [
+          |     { name = "fooElem", path = "$.foo", json-type = "Object" }
+          |     { name = "foo", transform = "toString($fooElem)" }
+          |     { name = "fooNull", transform = "toString(emptyJsonToNull($fooElem))" }
+          |     { name = "barElem", path = "$.bar", json-type = "Object" }
+          |     { name = "bar", transform = "toString($barElem)" }
+          |     { name = "barNull", transform = "toString(emptyJsonToNull($barElem))" }
+          |     { name = "bazElem", path = "$.baz", json-type = "Array" }
+          |     { name = "baz", transform = "toString($bazElem)" }
+          |     { name = "bazNull", transform = "toString(emptyJsonToNull($bazElem))" }
+          |   ]
+          | }
+        """.stripMargin)
+      val in = """{"foo":{},"bar":{"bar1":null,"bar2":null},"baz":[]}""".getBytes(StandardCharsets.UTF_8)
+
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(in)))(_.toList)
+        features must haveLength(1)
+        features.head.getAttribute("foo") mustEqual "{}"
+        features.head.getAttribute("fooNull") must beNull
+        features.head.getAttribute("bar") mustEqual "{}" // note: toString drops out the null elements
+        features.head.getAttribute("barNull") must beNull
+        features.head.getAttribute("baz") mustEqual "[]"
+        features.head.getAttribute("bazNull") must beNull
       }
     }
 

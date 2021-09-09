@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.utils.zk
 
-import java.util.concurrent.TimeUnit
-
+import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
-import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
-import org.apache.curator.retry.ExponentialBackoffRetry
 import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
 import org.locationtech.geomesa.utils.io.CloseQuietly
+
+import java.util.concurrent.TimeUnit
 
 trait ZookeeperLocking extends DistributedLocking {
 
@@ -60,13 +59,7 @@ trait ZookeeperLocking extends DistributedLocking {
 
   private def distributedLock(key: String): (CuratorFramework, InterProcessSemaphoreMutex) = {
     val lockPath = if (key.startsWith("/")) key else s"/$key"
-    val client =
-      CuratorFrameworkFactory.builder()
-          .connectString(zookeepers)
-          .retryPolicy(new ExponentialBackoffRetry(1000, 3))
-          .zk34CompatibilityMode(true)
-          .dontUseContainerParents()
-          .build()
+    val client = CuratorHelper.client(zookeepers).build()
     client.start()
     val lock = new InterProcessSemaphoreMutex(client, lockPath)
     (client, lock)

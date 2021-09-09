@@ -40,7 +40,6 @@ base_url="${GEOMESA_MAVEN_URL:-https://search.maven.org/remotecontent?filepath=}
 declare -a urls=(
   "${base_url}commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar"
   "${base_url}org/apache/hadoop/hadoop-auth/${hadoop_version}/hadoop-auth-${hadoop_version}.jar"
-  "${base_url}org/apache/hadoop/hadoop-client/${hadoop_version}/hadoop-client-${hadoop_version}.jar"
   "${base_url}org/apache/hadoop/hadoop-common/${hadoop_version}/hadoop-common-${hadoop_version}.jar"
   "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
   "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"

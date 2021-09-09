@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
-import java.io.Flushable
-import java.time.Clock
-import java.util.{Collections, Properties, UUID}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, KafkaConsumer}
@@ -38,6 +34,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.io.Flushable
+import java.time.Clock
+import java.util.{Collections, Properties, UUID}
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
@@ -61,7 +60,7 @@ class KafkaStore(
   private val serializer = {
     // use immutable so we can return query results without copying or worrying about user modification
     // use lazy so that we don't create lots of objects that get replaced/updated before actually being read
-    val options = SerializationOptions.builder.withUserData.immutable.`lazy`.build
+    val options = SerializationOptions.builder.withUserData.withoutFidHints.immutable.`lazy`.build
     KryoFeatureSerializer(sft, options)
   }
 
