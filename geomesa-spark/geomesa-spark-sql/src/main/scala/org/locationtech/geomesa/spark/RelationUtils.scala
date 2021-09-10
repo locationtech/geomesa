@@ -106,26 +106,25 @@ object RelationUtils extends LazyLogging {
 
   def weightedPartitioning(rawRDD: RDD[SimpleFeature], bound: Envelope, numPartitions: Int, sampleSize: Int): List[Envelope] = {
     val width: Int = Math.sqrt(numPartitions).toInt
-    val binSize = sampleSize / width
     val sample = rawRDD.takeSample(withReplacement = false, sampleSize)
-    val xSample = sample.map{f => f.getDefaultGeometry.asInstanceOf[Geometry].getCoordinates.min.x}
-    val ySample = sample.map{f => f.getDefaultGeometry.asInstanceOf[Geometry].getCoordinates.min.y}
-    val xSorted = xSample.sorted
-    val ySorted = ySample.sorted
-
-    val partitionEnvelopes: ListBuffer[Envelope] = ListBuffer()
-
-    for (xBin <- 0 until width) {
-      val minX = xSorted(xBin * binSize)
-      val maxX = xSorted(((xBin + 1) * binSize) - 1)
-      for (yBin <- 0 until width) {
-        val minY = ySorted(yBin)
-        val maxY = ySorted(((yBin + 1) * binSize) - 1)
-        partitionEnvelopes += new Envelope(minX, maxX, minY, maxY)
+    val binSize = sample.length / width
+    if (binSize > 0)  {
+      val xSample = sample.map{f => f.getDefaultGeometry.asInstanceOf[Geometry].getCoordinates.min.x}
+      val ySample = sample.map{f => f.getDefaultGeometry.asInstanceOf[Geometry].getCoordinates.min.y}
+      val xSorted = xSample.sorted
+      val ySorted = ySample.sorted
+      val partitionEnvelopes: ListBuffer[Envelope] = ListBuffer()
+      for (xBin <- 0 until width) {
+        val minX = xSorted(xBin * binSize)
+        val maxX = xSorted(math.min((xBin + 1) * binSize, xSorted.length - 1))
+        for (yBin <- 0 until width) {
+          val minY = ySorted(yBin * binSize)
+          val maxY = ySorted(math.min((yBin + 1) * binSize, ySorted.length - 1))
+          partitionEnvelopes += new Envelope(minX, maxX, minY, maxY)
+        }
       }
-    }
-
-    partitionEnvelopes.toList
+      partitionEnvelopes.toList
+    } else List(bound)
   }
 
   def wholeEarthPartitioning(numPartitions: Int): List[Envelope] = {
