@@ -120,6 +120,17 @@
         <priority value="fatal"/>
     </category>
 
+    <!-- suppress logs from Apache Sedona kryo serializer registrator -->
+    <category name="org.apache.sedona.core.serde.SedonaKryoRegistrator">
+        <priority value="warn"/>
+    </category>
+    <category name="org.apache.sedona.core.serde.SedonaWKBKryoRegistrator">
+        <priority value="warn"/>
+    </category>
+    <category name="org.apache.sedona.core.serde.SedonaKryoRegistratorHelper">
+        <priority value="warn"/>
+    </category>
+
     <!-- uncomment the following line to enable verbose log messages from the index query-planner -->
 
     <!--

@@ -50,6 +50,16 @@
             <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
         </dependency>
 
+        <!-- Spark SQL support powered by Apache Sedona -->
+        <dependency>
+            <groupId>org.apache.sedona</groupId>
+            <artifactId>sedona-core-${spark.compat.version}_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.sedona</groupId>
+            <artifactId>sedona-sql-${spark.compat.version}_${scala.binary.version}</artifactId>
+        </dependency>
+
         <!-- test -->
         <dependency>
             <groupId>org.specs2</groupId>

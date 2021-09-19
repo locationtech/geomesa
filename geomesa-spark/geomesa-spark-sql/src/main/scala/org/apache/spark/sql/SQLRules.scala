@@ -8,26 +8,28 @@
 
 package org.apache.spark.sql
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset}
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
-import org.apache.spark.sql.types.{DataTypes, StructType}
+import org.apache.spark.sql.sedona_sql.expressions.{ST_Contains => Sedona_ST_Contains, ST_Crosses => Sedona_ST_Crosses, ST_Equals => Sedona_ST_Equals, ST_Intersects => Sedona_ST_Intersects, ST_Overlaps => Sedona_ST_Overlaps, ST_Predicate => Sedona_ST_Predicate, ST_Touches => Sedona_ST_Touches, ST_Within => Sedona_ST_Within}
+import org.apache.spark.sql.types.DataTypes
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.spark.GeoMesaRelation.PartitionedIndexedRDD
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
+import org.locationtech.geomesa.spark.sedona.haveSedona
 import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils, SparkVersions}
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.opengis.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
 import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
+
+import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.util.Date
 
 object SQLRules extends LazyLogging {
   @transient
@@ -71,6 +73,24 @@ object SQLRules extends LazyLogging {
     }
   }
 
+  def sedonaExprToGTFilter(pred: Sedona_ST_Predicate): Option[GTFilter] = {
+    val left = pred.children.head
+    val right = pred.children.last
+    (sparkExprToGTExpr(left), sparkExprToGTExpr(right)) match {
+      case (Some(expr1), Some(expr2)) => pred match {
+        case Sedona_ST_Contains(_) => Some(ff.contains(expr1, expr2))
+        case Sedona_ST_Crosses(_) => Some(ff.crosses(expr1, expr2))
+        case Sedona_ST_Overlaps(_) => Some(ff.overlaps(expr1, expr2))
+        case Sedona_ST_Intersects(_) => Some(ff.intersects(expr1, expr2))
+        case Sedona_ST_Within(_) => Some(ff.within(expr1, expr2))
+        case Sedona_ST_Touches(_) => Some(ff.touches(expr1, expr2))
+        case Sedona_ST_Equals(_) => Some(ff.equal(expr1, expr2))
+        case _ => None
+      }
+      case _ => None
+    }
+  }
+
   def sparkFilterToGTFilter(expr: Expression): Option[GTFilter] = {
     expr match {
       case udf: ScalaUDF => scalaUDFtoGTFilter(udf)
@@ -102,8 +122,12 @@ object SQLRules extends LazyLogging {
           }
         }
       case _ =>
-        logger.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
-        None
+        if (haveSedona && expr.isInstanceOf[Sedona_ST_Predicate]) {
+          sedonaExprToGTFilter(expr.asInstanceOf[Sedona_ST_Predicate])
+        } else {
+          logger.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
+          None
+        }
     }
   }
 
@@ -154,12 +178,6 @@ object SQLRules extends LazyLogging {
                               e: org.apache.spark.sql.catalyst.expressions.Expression): Option[List[Int]] =
       extractGeometry(e).map(RelationUtils.gridIdMapper(_, envelopes))
 
-    // Converts a pair of GeoMesaRelations into one GeoMesaJoinRelation
-    private def alterRelation(left: GeoMesaRelation, right: GeoMesaRelation, cond: Expression): GeoMesaJoinRelation = {
-      val joinedSchema = StructType(left.schema.fields ++ right.schema.fields)
-      GeoMesaJoinRelation(left.sqlContext, left, right, joinedSchema, cond)
-    }
-
     // Replace the relation in a join with a GeoMesaJoin Relation
     private def alterJoin(join: Join): LogicalPlan = {
       val isSpatialUDF = join.condition.exists {
@@ -183,7 +201,7 @@ object SQLRules extends LazyLogging {
           }
 
         case (leftProject @ Project(leftProjectList, left: LogicalRelation),
-            rightProject @ Project(rightProjectList, right: LogicalRelation)) if isSpatialUDF =>
+            Project(rightProjectList, right: LogicalRelation)) if isSpatialUDF =>
           (left.relation, right.relation) match {
             case (leftRel: GeoMesaRelation, rightRel: GeoMesaRelation) =>
               leftRel.join(rightRel, join.condition.get) match {
@@ -204,10 +222,10 @@ object SQLRules extends LazyLogging {
     override def apply(plan: LogicalPlan): LogicalPlan = {
       logger.debug(s"Optimizer sees $plan")
       plan.transform {
-        case agg @ Aggregate(aggregateExpressions,groupingExpressions, Project(projectList, join: Join)) =>
+        case Aggregate(aggregateExpressions,groupingExpressions, Project(projectList, join: Join)) =>
           val alteredJoin = alterJoin(join)
           Aggregate(aggregateExpressions, groupingExpressions, Project(projectList, alteredJoin))
-        case agg @ Aggregate(aggregateExpressions,groupingExpressions, join: Join) =>
+        case Aggregate(aggregateExpressions,groupingExpressions, join: Join) =>
           val alteredJoin = alterJoin(join)
           Aggregate(aggregateExpressions, groupingExpressions, alteredJoin)
         case join: Join =>

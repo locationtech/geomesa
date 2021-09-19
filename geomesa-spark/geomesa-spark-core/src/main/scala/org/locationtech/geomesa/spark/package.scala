@@ -8,10 +8,13 @@
 
 package org.locationtech.geomesa
 
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
 
 package object spark {
   trait Schema {
     def schema: SimpleFeatureType
   }
+
+  def isUsingSedona: Boolean = SystemProperty("geomesa.use.sedona").toBoolean.getOrElse(false)
 }

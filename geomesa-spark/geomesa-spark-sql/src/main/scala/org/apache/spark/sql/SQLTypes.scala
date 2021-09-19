@@ -8,8 +8,9 @@
 
 package org.apache.spark.sql
 
-import org.locationtech.geomesa.spark.GeometricDistanceFunctions
+import org.locationtech.geomesa.spark.{GeometricDistanceFunctions, isUsingSedona}
 import org.locationtech.geomesa.spark.jts._
+import org.locationtech.geomesa.spark.sedona._
 
 object SQLTypes {
 
@@ -17,5 +18,8 @@ object SQLTypes {
     initJTS(sqlContext)
     SQLRules.registerOptimizations(sqlContext)
     GeometricDistanceFunctions.registerFunctions(sqlContext)
+    if (isUsingSedona) {
+      initSedona(sqlContext)
+    }
   }
 }
