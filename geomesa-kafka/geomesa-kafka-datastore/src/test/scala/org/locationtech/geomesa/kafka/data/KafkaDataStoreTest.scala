@@ -610,7 +610,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         """{
           |  test = [
           |    { type-name = test2, filter = "dtg > '2018-01-01T05:00:00.000Z'", transform = [ "name", "dtg", "geom" ] }
-          |    { type-name = test3, transform = [ "name", "dtg", "geom" ] }
+          |    { type-name = test3, transform = [ "derived=strConcat(name,'-d')", "dtg", "geom" ] }
           |    { type-name = test4, filter = "dtg > '2018-01-01T05:00:00.000Z'" }
           |  ]
           |}
@@ -622,11 +622,14 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         producer.createSchema(sft)
 
         val sft2 = SimpleFeatureTypes.createType("test2", "name:String,dtg:Date,*geom:Point:srid=4326")
-        val sft3 = SimpleFeatureTypes.createType("test3", "name:String,dtg:Date,*geom:Point:srid=4326")
+        val sft3 = SimpleFeatureTypes.createType("test3", "derived:String,dtg:Date,*geom:Point:srid=4326")
         val sft4 = SimpleFeatureTypes.createType("test4", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
 
         val features = Seq.tabulate(10) { i =>
           ScalaSimpleFeature.create(sft, s"$i", s"name$i", i, f"2018-01-01T$i%02d:00:00.000Z", s"POINT (4$i 55)")
+        }
+        val derived = Seq.tabulate(10) { i =>
+          ScalaSimpleFeature.create(sft3, s"$i", s"name$i-d", f"2018-01-01T$i%02d:00:00.000Z", s"POINT (4$i 55)")
         }
 
         consumer.getTypeNames.toSeq must containTheSameElementsAs(Seq("test", "test2", "test3", "test4"))
@@ -662,7 +665,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           SelfClosingIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toSeq must
             containTheSameElementsAs(features.drop(6).map(ScalaSimpleFeature.retype(sft2, _)))
           SelfClosingIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toSeq must
-            containTheSameElementsAs(features.map(ScalaSimpleFeature.retype(sft3, _)))
+            containTheSameElementsAs(derived)
           SelfClosingIterator(consumer.getFeatureReader(new Query("test4"), Transaction.AUTO_COMMIT))
             containTheSameElementsAs(features.drop(6).map(ScalaSimpleFeature.retype(sft4, _)))
 
@@ -680,7 +683,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           SelfClosingIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toSeq must
             containTheSameElementsAs(features.drop(6).dropRight(1).map(ScalaSimpleFeature.retype(sft2, _)))
           SelfClosingIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toSeq must
-            containTheSameElementsAs(features.slice(1, 9).map(ScalaSimpleFeature.retype(sft3, _)))
+            containTheSameElementsAs(derived.slice(1, 9))
           SelfClosingIterator(consumer.getFeatureReader(new Query("test4"), Transaction.AUTO_COMMIT)).toSeq must
             containTheSameElementsAs(features.drop(6).dropRight(1).map(ScalaSimpleFeature.retype(sft4, _)))
 

@@ -160,7 +160,10 @@ class KafkaDataStore(
       case None => super.getSchema(typeName)
       case Some(orig) =>
         val parent = super.getSchema(orig)
-        if (parent == null) { null } else {
+        if (parent == null) {
+          logger.warn(s"Backing schema '$orig' for configured layer view '$typeName' does not exist")
+          null
+        } else {
           val view = config.layerViewsConfig.get(orig).flatMap(_.find(_.typeName == typeName)).getOrElse {
             // this should be impossible since we created the lookup from the view config
             throw new IllegalStateException("Inconsistent layer view config")
@@ -172,7 +175,14 @@ class KafkaDataStore(
 
   override def getTypeNames: Array[String] = {
     val nonViews = super.getTypeNames
-    nonViews ++ layerViewLookup.collect { case (k, v) if nonViews.contains(v) => k }
+    nonViews ++ layerViewLookup.toArray.flatMap { case (k, v) =>
+      if (nonViews.contains(v)) {
+        Some(k)
+      } else {
+        logger.warn(s"Backing schema '$v' for configured layer view '$k' does not exist")
+        None
+      }
+    }
   }
 
   @throws(classOf[IllegalArgumentException])
