@@ -19,6 +19,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer
 import org.locationtech.geomesa.kafka.versions.{KafkaConsumerVersions, RecordVersions}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
@@ -133,6 +134,11 @@ import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
 =======
 >>>>>>> ad362b1341 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> locationtech-main
+=======
+=======
+import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
@@ -294,6 +300,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -14423,6 +14430,12 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locationtech-main
+=======
+        case _: Clear  => cache.fireClear(timestamp); cache.clear()
+=======
+        case m: Clear  => cache.fireClear(timestamp); cache.clear()
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
         case m => throw new IllegalArgumentException(s"Unknown message: $m")
       }
     }
@@ -14539,6 +14552,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -28668,6 +28682,12 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locationtech-main
+=======
+          case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
+=======
+          case m: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
           case m => throw new IllegalArgumentException(s"Unknown message: $m")
         }
         // once we've hit the max offset for the partition, remove from the offset map to indicate we're done

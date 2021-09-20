@@ -21,6 +21,7 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: K
     extends GeoMesaFeatureStore(ds, sft) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -86,9 +87,12 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 >>>>>>> 337ecd16e5 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> locationtech-main
 =======
+>>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: QueryRunner, listeners: KafkaListeners)
     extends GeoMesaFeatureStore(ds, sft, runner) {
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -150,6 +154,8 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 =======
 >>>>>>> ad362b1341 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> locationtech-main
+=======
+>>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
 
   override def removeFeatures(filter: Filter): Unit = filter match {
     case Filter.INCLUDE => clearFeatures()
