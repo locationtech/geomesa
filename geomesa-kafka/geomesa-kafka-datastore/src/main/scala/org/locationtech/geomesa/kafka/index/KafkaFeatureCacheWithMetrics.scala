@@ -8,16 +8,33 @@
 
 package org.locationtech.geomesa.kafka.index
 
+<<<<<<< HEAD
 import com.codahale.metrics.{Gauge, Histogram}
+<<<<<<< HEAD
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+=======
+=======
+import com.codahale.metrics.Gauge
+import com.codahale.metrics.MetricRegistry.MetricSupplier
+>>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> a9de98d0ef9 (GEOMESA-3100 Kafka layer views (#2784))
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, LayerView}
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.FeatureState
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCacheWithMetrics.SizeGauge
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 
+<<<<<<< HEAD
 import java.util.Date
 import java.util.concurrent.atomic.AtomicLong
 import scala.annotation.tailrec
+=======
+class KafkaFeatureCacheWithMetrics(
+    sft: SimpleFeatureType,
+    config: IndexConfig,
+    views: Seq[LayerView],
+    metrics: GeoMesaMetrics
+  ) extends KafkaFeatureCacheImpl(sft, config, views) {
+>>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
 
 class KafkaFeatureCacheWithMetrics(
     sft: SimpleFeatureType,
