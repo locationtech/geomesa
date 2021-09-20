@@ -10,14 +10,18 @@ package org.locationtech.geomesa.kafka.index
 
 import com.codahale.metrics.Gauge
 import com.codahale.metrics.MetricRegistry.MetricSupplier
-import org.locationtech.geomesa.kafka.data.KafkaDataStore.IndexConfig
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, LayerView}
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.FeatureState
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCacheWithMetrics.SizeGaugeSupplier
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class KafkaFeatureCacheWithMetrics(sft: SimpleFeatureType, config: IndexConfig, metrics: GeoMesaMetrics)
-    extends KafkaFeatureCacheImpl(sft, config){
+class KafkaFeatureCacheWithMetrics(
+    sft: SimpleFeatureType,
+    config: IndexConfig,
+    views: Seq[LayerView],
+    metrics: GeoMesaMetrics
+  ) extends KafkaFeatureCacheImpl(sft, config, views) {
 
   metrics.gauge(sft.getTypeName, "index-size", new SizeGaugeSupplier(this))
 
