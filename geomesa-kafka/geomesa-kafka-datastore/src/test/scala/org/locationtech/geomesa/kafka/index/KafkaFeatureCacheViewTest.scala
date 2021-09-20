@@ -211,6 +211,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 92dc7a8411 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -391,6 +392,8 @@
 >>>>>>> a98c720f77 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b5a7ce4912 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f6e840b5dd (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -3547,10 +3550,16 @@
 >>>>>>> d2cb939f5 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 6af71ff43 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 89fb9950ef (GEOMESA-3100 Kafka layer views (#2784))
+=======
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+>>>>>>> 337ecd16e5 (GEOMESA-3100 Kafka layer views (#2784))
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3628,6 +3637,8 @@
 >>>>>>> c45703da7a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> b608d18cff (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> b5a7ce4912 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 >>>>>>> f7038468b7 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> fbff2623fe (GEOMESA-3100 Kafka layer views (#2784))
@@ -6717,7 +6728,13 @@
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> a0314fb7f (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 337ecd16e5 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> b5a7ce4912 (GEOMESA-3100 Kafka layer views (#2784))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
