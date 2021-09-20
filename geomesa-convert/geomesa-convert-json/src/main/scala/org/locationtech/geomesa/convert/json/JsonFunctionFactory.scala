@@ -153,12 +153,18 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     while (i < args.length) {
       val key = args(i -1).toString
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
       args(i) match {
         case null => // skip nulls
         case j: JsonElement => obj.add(key, j)
@@ -168,10 +174,13 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
         case j: Date    => obj.add(key, new JsonPrimitive(DateParsing.formatDate(j)))
         case j          => obj.add(key, gson.toJsonTree(j))
 <<<<<<< HEAD
+<<<<<<< HEAD
       }
 
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
       }
 
 =======
@@ -190,7 +199,10 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
       }
 
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
       i += 2
     }
     obj
