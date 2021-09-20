@@ -39,4 +39,5 @@ To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quick
    data
    transactional_writes
    feature_events
+   layer_views
    confluent
