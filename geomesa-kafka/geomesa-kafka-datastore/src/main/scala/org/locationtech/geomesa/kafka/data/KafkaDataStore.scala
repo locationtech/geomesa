@@ -334,6 +334,7 @@ class KafkaDataStore(
     } else if (layerViewLookup.contains(typeName)) {
       throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
     }
     val producer = getTransactionalProducer(sft, transaction)
     val vis = sft.isVisibilityRequired
@@ -358,6 +359,31 @@ class KafkaDataStore(
       throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
     }
     val producer = getTransactionalProducer(transaction)
+=======
+    }
+    val producer = getTransactionalProducer(transaction)
+    val vis = sft.isVisibilityRequired
+    val writer = filter match {
+      case None if vis    => new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
+      case None           => new AppendKafkaFeatureWriter(sft, producer, config.serialization)
+      case Some(f) if vis => new ModifyKafkaFeatureWriter(sft, producer, config.serialization, f) with RequiredVisibilityWriter
+      case Some(f)        => new ModifyKafkaFeatureWriter(sft, producer, config.serialization, f)
+    }
+<<<<<<< HEAD
+    if (config.clearOnStart && cleared.add(sft.getTypeName)) {
+=======
+    writer
+  }
+
+  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): KafkaFeatureWriter = {
+    val sft = getSchema(typeName)
+    if (sft == null) {
+      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
+    } else if (layerViewLookup.contains(typeName)) {
+      throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
+    }
+    val producer = getTransactionalProducer(transaction)
+>>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
     val writer =
       if (sft.isVisibilityRequired) {
         new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
