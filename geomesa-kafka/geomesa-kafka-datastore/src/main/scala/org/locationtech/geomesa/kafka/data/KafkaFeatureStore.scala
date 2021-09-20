@@ -16,8 +16,13 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+<<<<<<< HEAD
 class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: KafkaListeners)
     extends GeoMesaFeatureStore(ds, sft) {
+=======
+class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: QueryRunner, listeners: KafkaListeners)
+    extends GeoMesaFeatureStore(ds, sft, runner) {
+>>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
 
   override def removeFeatures(filter: Filter): Unit = filter match {
     case Filter.INCLUDE => clearFeatures()
