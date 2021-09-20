@@ -111,6 +111,16 @@ object ScalaSimpleFeature {
   }
 
   /**
+   * Retypes a simple feature by only updating the feature type. The feature type must have
+   * compatible attribute types with the wrapped feature.
+   *
+   * @param sft updated feature type
+   * @param in feature to retyp
+   * @return
+   */
+  def wrap(sft: SimpleFeatureType, in: SimpleFeature): SimpleFeature = new WrappedSimpleFeature(sft, in)
+
+  /**
     * Creates a simple feature, converting the values to the appropriate type
     *
     * @param sft simple feature type
@@ -134,6 +144,19 @@ object ScalaSimpleFeature {
   def equalIdAndAttributes(sf1: SimpleFeature, sf2: SimpleFeature): Boolean =
     sf1 != null && sf2 != null && sf1.getIdentifier.equalsExact(sf2.getIdentifier) &&
         java.util.Arrays.equals(sf1.getAttributes.toArray, sf2.getAttributes.toArray)
+
+  /**
+   * Simple re-typing of a simple feature, with all attributes the same
+   *
+   * @param sft simple feature type
+   * @param wrapped wrapped feature
+   */
+  class WrappedSimpleFeature(sft: SimpleFeatureType, wrapped: SimpleFeature)
+    extends AbstractImmutableSimpleFeature(sft) {
+    this.id = wrapped.getID // set id in constructor
+    override def getAttribute(i: Int): AnyRef = wrapped.getAttribute(i)
+    override def getUserData: java.util.Map[AnyRef, AnyRef] = wrapped.getUserData
+  }
 
   /**
     * Immutable simple feature implementation

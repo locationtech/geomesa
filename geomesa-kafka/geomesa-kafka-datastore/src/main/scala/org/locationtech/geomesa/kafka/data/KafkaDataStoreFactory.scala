@@ -8,10 +8,7 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import java.awt.RenderingHints
-import java.io.{IOException, Serializable}
-
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ConfigFactory, ConfigList, ConfigObject, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
@@ -28,8 +25,14 @@ import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAud
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.zk.ZookeeperMetadata
+import org.opengis.filter.Filter
+import pureconfig.error.{CannotConvert, ConfigReaderFailures, FailureReason}
+import pureconfig.{ConfigCursor, ConfigReader, Derivation}
 
+import java.awt.RenderingHints
+import java.io.{IOException, Serializable}
 import scala.concurrent.duration.Duration
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 class KafkaDataStoreFactory extends DataStoreFactorySpi {
@@ -70,6 +73,9 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
   import scala.collection.JavaConverters._
 
+  private val LayerViewReader = Derivation.Successful(ConfigReader.fromCursor(readLayerViewConfig))
+  private val LayerViewClassTag = ClassTag[LayerViewConfig](classOf[LayerViewConfig])
+
   val DefaultZkPath: String = "geomesa/ds/kafka"
 
   override val DisplayName = "Kafka (GeoMesa)"
@@ -95,10 +101,11 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreParams.EventTimeOrdering,
       KafkaDataStoreParams.LazyLoad,
       KafkaDataStoreParams.LazyFeatures,
+      KafkaDataStoreParams.LayerViews,
+      KafkaDataStoreParams.MetricsReporters,
       KafkaDataStoreParams.AuditQueries,
       KafkaDataStoreParams.LooseBBox,
-      KafkaDataStoreParams.Authorizations,
-      KafkaDataStoreParams.MetricsReporters
+      KafkaDataStoreParams.Authorizations
     )
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
@@ -193,6 +200,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     }
     val authProvider = buildAuthProvider(params)
 
+    val layerViews = parseLayerViewConfig(params)
+
     val metrics = MetricsReporters.lookupOpt(params).map { conf =>
       val config = ConfigFactory.parseString(conf).resolve()
       val reporters =
@@ -210,7 +219,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     }
 
     KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, clearOnStart, topics, serialization,
-      indices, looseBBox, authProvider, audit, metrics, ns)
+      indices, looseBBox, layerViews, authProvider, audit, metrics, ns)
   }
 
   private def buildAuthProvider(params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
@@ -273,6 +282,102 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       throw new IOException(s"$key, defined a filter after Filter.INCLUDE (which would never be invoked)")
     }
     expiry
+  }
+
+  /**
+   * Parse the typesafe config for a layer view. Views take the form:
+   *
+   * {
+   *   foo-sft = [
+   *     {
+   *       type-name = foo-sft-enhanced
+   *       filter = "foo = bar"
+   *       transform = [ "foo", "bar", "baz", "blu" ]
+   *     },
+   *     {
+   *       type-name = foo-sft-reduced
+   *       filter = "foo = baz"
+   *       transform = [ "foo", "bar", "baz" ]
+   *     }
+   *   ]
+   * }
+   *
+   * @param params params
+   * @return
+   */
+  private[kafka] def parseLayerViewConfig(params: java.util.Map[String, _]): Map[String, Seq[LayerViewConfig]] = {
+    def asConfigObject(o: AnyRef) = o match {
+      case c: ConfigObject => c
+      case _ => throw new IllegalArgumentException(s"Invalid layer view, expected a config object but got: $o")
+    }
+
+    KafkaDataStoreParams.LayerViews.lookupOpt(params) match {
+      case None => Map.empty[String, Seq[LayerViewConfig]]
+      case Some(conf) =>
+        val config = ConfigFactory.parseString(conf).resolve()
+        val entries = config.entrySet().asScala.map { e =>
+          val views = e.getValue match {
+            case c: ConfigList => c.asScala.map(asConfigObject)
+            case c => Seq(asConfigObject(c))
+          }
+          e.getKey -> views.map { c =>
+            pureconfig.loadConfigOrThrow[LayerViewConfig](c.toConfig)(LayerViewClassTag, LayerViewReader)
+          }
+        }
+        val configs = entries.toMap
+        val typeNames = configs.toSeq.flatMap(_._2.map(_.typeName))
+        if (typeNames != typeNames.distinct) {
+          throw new IllegalArgumentException(
+            s"Detected duplicate type name in layer view config: ${config.root().render(ConfigRenderOptions.concise)}")
+        }
+        configs
+    }
+  }
+
+  /**
+   * Parse a single layer view config
+   *
+   * @param cur cursor
+   * @return
+   */
+  private def readLayerViewConfig(cur: ConfigCursor): Either[ConfigReaderFailures, LayerViewConfig] = {
+    val config = for {
+      obj       <- cur.asObjectCursor.right
+      typeName  <- obj.atKey("type-name").right.flatMap(_.asString).right
+      filter    <- readFilter(obj.atKeyOrUndefined("filter")).right
+      transform <- readTransform(obj.atKeyOrUndefined("transform")).right
+    } yield {
+      LayerViewConfig(typeName, filter, transform)
+    }
+    config.right.flatMap { c =>
+      if (c.filter.isEmpty && c.transform.isEmpty) {
+        val err = "LayerViews must define at least one of 'filter' or 'transform'"
+        cur.failed(new FailureReason { override def description: String = err })
+      } else {
+        Right(c)
+      }
+    }
+  }
+
+  private def readFilter(cur: ConfigCursor): Either[ConfigReaderFailures, Option[Filter]] = {
+    if (cur.isUndefined) { Right(None) } else {
+      cur.asString.right.flatMap { ecql =>
+        try { Right(Some(ECQL.toFilter(ecql)).filter(_ != Filter.INCLUDE)) } catch {
+          case NonFatal(e) => cur.failed(CannotConvert(ecql, "Filter", e.toString))
+        }
+      }
+    }
+  }
+
+  private def readTransform(cur: ConfigCursor): Either[ConfigReaderFailures, Option[Seq[String]]] = {
+    if (cur.isUndefined) { Right(None) } else {
+      val transforms = cur.asList.right.flatMap { list =>
+        list.foldLeft[Either[ConfigReaderFailures, Seq[String]]](Right(Seq.empty)) { case (res, elem) =>
+          res.right.flatMap(r => elem.asString.right.map(r :+ _))
+        }
+      }
+      transforms.right.map(t => if (t.isEmpty) { None } else { Some(t) })
+    }
   }
 
   /**
