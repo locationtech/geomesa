@@ -144,6 +144,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -437,6 +438,8 @@
 >>>>>>> e13ac13c85 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f88a33e70b (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 9e3d40c19d (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 =======
 >>>>>>> 92dc7a8411 (GEOMESA-3100 Kafka layer views (#2784))
@@ -533,6 +536,8 @@
 >>>>>>> c4a3e8f36b (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a53bfd6caf (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f6e840b5dd (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -1575,6 +1580,7 @@
 =======
 >>>>>>> 9a5d6d2815 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f4b2369e9a (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -1598,6 +1604,10 @@
 >>>>>>> c4a3e8f36b (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a53bfd6caf (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> f4b2369e9a (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 <<<<<<< HEAD
@@ -1616,6 +1626,8 @@
 >>>>>>> ac0357d36 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 4adaa7f47 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 =======
 >>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
@@ -1657,6 +1669,10 @@
 =======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+=======
+>>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 <<<<<<< HEAD
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 =======
@@ -1674,12 +1690,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0e1c98d0b5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c4a3e8f36b (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a53bfd6caf (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 9236b0208 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 >>>>>>> 64646d61ed (GEOMESA-3100 Kafka layer views (#2784))
@@ -2904,20 +2923,26 @@
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 4adaa7f47 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> c4a3e8f36b (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a53bfd6caf (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2444ce9a2d (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 28427dfd8 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -3448,10 +3473,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 305a9263eb (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 72ec0b2107 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 4adaa7f47 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -3459,6 +3487,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 6af71ff43 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3515,6 +3544,11 @@
 =======
 >>>>>>> 6af71ff43 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 72ec0b2107 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 4adaa7f47 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> f4b2369e9a (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -3538,12 +3572,16 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 72ec0b2107 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 89fb9950e (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> f4b2369e9a (GEOMESA-3100 Kafka layer views (#2784))
@@ -3555,6 +3593,10 @@
 >>>>>>> 79f56900f0 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 72ec0b2107 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> f4b2369e9a (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a0314fb7f (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -3571,10 +3613,13 @@
 >>>>>>> 4adaa7f47 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6af71ff43 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 88ef67cdf (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -4219,6 +4264,8 @@
 >>>>>>> ac0357d36 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> f4b2369e9a (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
@@ -4227,6 +4274,10 @@
 >>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -4241,12 +4292,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fb32a36e0e (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> ea8384d9b7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> fe3378ccaa (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 9236b0208 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 >>>>>>> f6e840b5d (GEOMESA-3100 Kafka layer views (#2784))
@@ -4289,10 +4343,13 @@
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 4adaa7f47 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> fe3378ccaa (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
@@ -4491,6 +4548,7 @@
 =======
 =======
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 4adaa7f47 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
@@ -5653,7 +5711,14 @@
 >>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 9a5d6d2815 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a53bfd6caf (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> f88a33e70b (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 4adaa7f47 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> f4b2369e9a (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 9e3d40c19d (GEOMESA-3100 Kafka layer views (#2784))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
