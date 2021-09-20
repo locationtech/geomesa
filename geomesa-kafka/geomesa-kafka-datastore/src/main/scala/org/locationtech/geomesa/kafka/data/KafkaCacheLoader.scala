@@ -591,6 +591,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 984dd84de9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -1005,6 +1006,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 21d0f33e7c (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> bfbaa0e3cd (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
         case _: Clear  => cache.fireClear(timestamp); cache.clear()
 =======
 =======
@@ -1257,6 +1260,8 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 5132751c2c (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
+>>>>>>> 4bc781ae0d (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -1297,6 +1302,8 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
+>>>>>>> dc84900201 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> 186135b4f (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> 0d789c064b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
@@ -1307,6 +1314,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 6af71ff43 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> b4c6267f1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
@@ -3696,6 +3705,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c1bc2bba7f (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -3716,12 +3726,16 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 627596d1ec (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 45918d6ca7 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> b4c6267f1c (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> 357b5be81d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> 4bc781ae0d (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 <<<<<<< HEAD
@@ -4370,6 +4384,7 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 93cedd7b3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
@@ -7001,13 +7016,26 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 93cedd7b3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> 5132751c2c (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> bfbaa0e3cd (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+=======
+=======
+=======
+>>>>>>> b4c6267f1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> dc84900201 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 4bc781ae0d (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
         case _: Clear  => cache.fireClear(timestamp); cache.clear()
 =======
         case m: Clear  => cache.fireClear(timestamp); cache.clear()
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7709,6 +7737,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 21d0f33e7c (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> bfbaa0e3cd (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> f7038468b7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -8726,6 +8756,8 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 5132751c2c (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
+>>>>>>> 4bc781ae0d (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -8803,6 +8835,8 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
+>>>>>>> dc84900201 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> 186135b4f (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> 0d789c064b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
@@ -8826,7 +8860,12 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
+<<<<<<< HEAD
 >>>>>>> bfbaa0e3cd (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> b4c6267f1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -12327,6 +12366,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> c1bc2bba7f (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> af7a3e028 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
@@ -12344,10 +12384,17 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> af7a3e028 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> 66f2b7e33b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> af7a3e028 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+=======
+>>>>>>> b4c6267f1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
         case _: Clear  => cache.fireClear(timestamp); cache.clear()
 >>>>>>> 60b8016be (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12364,6 +12411,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 304d8d4049 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 66f2b7e33b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 4d37d5ef5 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 >>>>>>> e7bfe001dd (GEOMESA-3100 Kafka layer views (#2784))
@@ -12824,6 +12873,7 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 60b8016be (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> 93cedd7b3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
@@ -15623,9 +15673,22 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 60b8016be (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> 93cedd7b3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> 5132751c2c (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> bfbaa0e3cd (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+=======
+=======
+=======
+>>>>>>> 4d37d5ef5 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> b4c6267f1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> dc84900201 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 4bc781ae0d (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
         case m => throw new IllegalArgumentException(s"Unknown message: $m")
       }
     }
@@ -16032,6 +16095,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 984dd84de9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -16446,6 +16510,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 21d0f33e7c (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> bfbaa0e3cd (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
           case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
 =======
 =======
@@ -16698,6 +16764,8 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 5132751c2c (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
+>>>>>>> 4bc781ae0d (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -16738,6 +16806,8 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
+>>>>>>> dc84900201 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> 186135b4f (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> 0d789c064b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
@@ -16748,6 +16818,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 6af71ff43 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> b4c6267f1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
@@ -19137,6 +19209,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c1bc2bba7f (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -19157,12 +19230,16 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 627596d1ec (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 45918d6ca7 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> b4c6267f1c (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> 357b5be81d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> 4bc781ae0d (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 <<<<<<< HEAD
@@ -19811,6 +19888,7 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 93cedd7b3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
@@ -22442,13 +22520,26 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 93cedd7b3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> 5132751c2c (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> bfbaa0e3cd (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+=======
+=======
+=======
+>>>>>>> b4c6267f1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> dc84900201 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 4bc781ae0d (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
           case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
 =======
           case m: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23150,6 +23241,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 21d0f33e7c (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> bfbaa0e3cd (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> f7038468b7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -24167,6 +24260,8 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 5132751c2c (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
+>>>>>>> 4bc781ae0d (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -24244,6 +24339,8 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
+>>>>>>> dc84900201 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> 186135b4f (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> 0d789c064b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
@@ -24267,7 +24364,12 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
+<<<<<<< HEAD
 >>>>>>> bfbaa0e3cd (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> b4c6267f1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -27768,6 +27870,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> c1bc2bba7f (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> af7a3e028 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
@@ -27785,10 +27888,17 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> af7a3e028 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> 66f2b7e33b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> af7a3e028 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+=======
+>>>>>>> b4c6267f1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
           case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
 >>>>>>> 60b8016be (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -27805,6 +27915,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 304d8d4049 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 66f2b7e33b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 4d37d5ef5 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 >>>>>>> e7bfe001dd (GEOMESA-3100 Kafka layer views (#2784))
@@ -28265,6 +28377,7 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 60b8016be (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> 93cedd7b3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
@@ -31064,9 +31177,22 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 60b8016be (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> 93cedd7b3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> 5132751c2c (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> bfbaa0e3cd (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+=======
+=======
+=======
+>>>>>>> 4d37d5ef5 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> b4c6267f1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> dc84900201 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 4bc781ae0d (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 29284d20b8 (GEOMESA-3100 Kafka layer views (#2784))
           case m => throw new IllegalArgumentException(s"Unknown message: $m")
         }
         // once we've hit the max offset for the partition, remove from the offset map to indicate we're done
