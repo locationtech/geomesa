@@ -44,6 +44,11 @@ import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+import java.util.concurrent.ScheduledExecutorService
+import java.util.{Locale, Properties}
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -171,12 +176,17 @@ import java.util.concurrent.ScheduledExecutorService
 <<<<<<< HEAD
 =======
 >>>>>>> ad362b1341 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 import java.util.concurrent.ScheduledExecutorService
 import java.util.{Locale, Properties}
 =======
 import java.util.Properties
 import java.util.concurrent.ScheduledExecutorService
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
@@ -211,6 +221,10 @@ import java.util.concurrent.ScheduledExecutorService
 =======
 >>>>>>> ad362b1341 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 1a6cc128e9 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
 import scala.concurrent.duration.Duration
 
 object KafkaDataStoreParams extends NamespaceParams {
@@ -766,8 +780,11 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e2420db68f (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -919,6 +936,7 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 =======
 >>>>>>> ad362b1341 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -978,6 +996,13 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 >>>>>>> 291f0fa5ea (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 1a6cc128e9 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locationtech-main
+=======
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
   val LayerViews =
     new GeoMesaParam[String](
       "kafka.layer.views",
