@@ -176,6 +176,7 @@ import org.locationtech.geomesa.filter.factory.FastFilterFactory
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 770d928c15 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -336,6 +337,8 @@ import org.locationtech.geomesa.filter.factory.FastFilterFactory
 >>>>>>> 5aa646c0e8 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 <<<<<<< HEAD
 =======
@@ -3522,13 +3525,17 @@ import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.FlushableFeatureWriter
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 import org.locationtech.geomesa.index.FlushableFeatureWriter
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 8ec26b8c2a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
@@ -4021,6 +4028,8 @@ import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.FlushableFeatureWriter
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
@@ -4201,6 +4210,7 @@ import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
@@ -4409,6 +4419,8 @@ import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 >>>>>>> 5aa646c0e8 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -8472,14 +8484,18 @@ import java.io.{Closeable, IOException}
 import java.io.{Closeable, IOException, StringReader}
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 import java.io.{Closeable, IOException, StringReader}
 =======
 import java.io.{Closeable, IOException}
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 8ec26b8c2a (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -9137,6 +9153,8 @@ import java.io.{Closeable, IOException}
 import java.io.{Closeable, IOException, StringReader}
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
 import java.util.{Collections, Properties, UUID}
 import scala.concurrent.duration.Duration
@@ -9464,6 +9482,7 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
@@ -9662,6 +9681,8 @@ class KafkaDataStore(
 >>>>>>> 5aa646c0e8 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 5ca0cd6de5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -10773,6 +10794,7 @@ class KafkaDataStore(
 >>>>>>> d2cb939f51 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4516873dab (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
@@ -10845,9 +10867,14 @@ class KafkaDataStore(
 >>>>>>> d2cb939f51 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 5aa646c0e8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
   @volatile
   private var producerInitialized = false
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10871,6 +10898,8 @@ class KafkaDataStore(
 >>>>>>> 33f0b95d6b (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 5aa646c0e8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -14895,6 +14924,7 @@ class KafkaDataStore(
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -15633,6 +15663,11 @@ class KafkaDataStore(
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
   // only instantiate the producer if needed
   private val defaultProducer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))
   // noinspection ScalaDeprecation
@@ -16883,6 +16918,10 @@ class KafkaDataStore(
   private val layerViewLookup =
     config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
 
+  // view type name -> actual type name
+  private val layerViewLookup =
+    config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
+
   private val cleared = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]())
 
   private val caches = Caffeine.newBuilder().build[String, KafkaCacheLoader](new CacheLoader[String, KafkaCacheLoader] {
@@ -16947,8 +16986,15 @@ class KafkaDataStore(
     new MetadataMigration(this, config.catalog, config.zookeepers).run()
     metadata.insert("migration", "check", "true")
   }
+<<<<<<< HEAD
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 642891ac8f (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 
 <<<<<<< HEAD
   // migrate old schemas, if any
@@ -24029,6 +24075,7 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 =======
@@ -24038,6 +24085,9 @@ class KafkaDataStore(
 =======
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -24096,6 +24146,11 @@ class KafkaDataStore(
 >>>>>>> 69e3273ac1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 305a9263eb (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+=======
+>>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
     new KafkaFeatureStore(this, sft, runner, cache(typeName))
   }
 
@@ -24113,6 +24168,9 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 8ed2c9f7e5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -24120,6 +24178,7 @@ class KafkaDataStore(
 =======
 >>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
 =======
+<<<<<<< HEAD
 >>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -24175,6 +24234,11 @@ class KafkaDataStore(
 >>>>>>> 69e3273ac1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 305a9263eb (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> d2cb939f51 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
   override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): KafkaFeatureWriter = {
     val sft = getSchema(typeName)
     if (sft == null) {
@@ -24190,6 +24254,19 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 9361541304 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 2f66072323 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> ea3b40e187 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -24433,7 +24510,13 @@ class KafkaDataStore(
 =======
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
     }
     val producer = getTransactionalProducer(sft, transaction)
 =======
@@ -24457,7 +24540,9 @@ class KafkaDataStore(
       case Some(f) if vis => new ModifyKafkaFeatureWriter(sft, producer, config.serialization, f) with RequiredVisibilityWriter
       case Some(f)        => new ModifyKafkaFeatureWriter(sft, producer, config.serialization, f)
     }
+<<<<<<< HEAD
     if (config.clearOnStart && cleared.add(sft.getTypeName)) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -25096,6 +25181,10 @@ class KafkaDataStore(
 =======
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
+=======
     writer
   }
 
@@ -25107,6 +25196,7 @@ class KafkaDataStore(
       throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
     }
     val producer = getTransactionalProducer(transaction)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -25738,7 +25828,12 @@ class KafkaDataStore(
 =======
 >>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 4d37d5ef54 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 08dfdc0d90 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
     val writer =
       if (sft.isVisibilityRequired) {
         new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
@@ -25746,6 +25841,7 @@ class KafkaDataStore(
         new AppendKafkaFeatureWriter(sft, producer, config.serialization)
       }
     if (config.clearOnStart && cleared.add(typeName)) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -25780,6 +25876,8 @@ class KafkaDataStore(
 >>>>>>> 33f0b95d6b (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 5aa646c0e8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
@@ -25835,6 +25933,7 @@ class KafkaDataStore(
 >>>>>>> d2cb939f51 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26130,6 +26229,11 @@ class KafkaDataStore(
 >>>>>>> 5aa646c0e8 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
       writer.clear()
     }
     writer
