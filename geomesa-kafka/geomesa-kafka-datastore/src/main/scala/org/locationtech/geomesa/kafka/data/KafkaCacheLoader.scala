@@ -573,6 +573,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 984dd84de9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -951,6 +952,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> e148628c16 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
         case _: Clear  => cache.fireClear(timestamp); cache.clear()
 =======
 =======
@@ -1167,10 +1170,14 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 8ed2c9f7e5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
@@ -3767,12 +3774,16 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fc4546247e (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> a0314fb7f (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6347,10 +6358,15 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> e148628c16 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 8ed2c9f7e5 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
         case _: Clear  => cache.fireClear(timestamp); cache.clear()
 =======
         case m: Clear  => cache.fireClear(timestamp); cache.clear()
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6998,6 +7014,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 7cd6694c69 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e148628c16 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> f7038468b7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -7307,6 +7325,7 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 3ebcdb99d9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7977,6 +7996,15 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e148628c16 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 8ed2c9f7e5 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -11240,12 +11268,15 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> fc4546247e (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -11254,6 +11285,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -11264,6 +11296,10 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> fc4546247e (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> eecabb92a (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 >>>>>>> 98e7bf59d2 (GEOMESA-3100 Kafka layer views (#2784))
@@ -11381,13 +11417,17 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fc4546247e (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
 =======
 =======
 >>>>>>> a0314fb7f (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14134,6 +14174,10 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 8ed2c9f7e5 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
         case m => throw new IllegalArgumentException(s"Unknown message: $m")
       }
     }
@@ -14522,6 +14566,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 984dd84de9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -14900,6 +14945,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> e148628c16 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
           case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
 =======
 =======
@@ -15116,10 +15163,14 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 8ed2c9f7e5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
@@ -17716,12 +17767,16 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fc4546247e (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> a0314fb7f (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -20296,10 +20351,15 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> e148628c16 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 8ed2c9f7e5 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
           case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
 =======
           case m: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -20947,6 +21007,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 7cd6694c69 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e148628c16 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> f7038468b7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -21256,6 +21318,7 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 3ebcdb99d9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -21926,6 +21989,15 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e148628c16 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 8ed2c9f7e5 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -25189,12 +25261,15 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> fc4546247e (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -25203,6 +25278,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -25213,6 +25289,10 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> fc4546247e (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> eecabb92a (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 >>>>>>> 98e7bf59d2 (GEOMESA-3100 Kafka layer views (#2784))
@@ -25330,13 +25410,17 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fc4546247e (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
 =======
 =======
 >>>>>>> a0314fb7f (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -28083,6 +28167,10 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 8ed2c9f7e5 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
           case m => throw new IllegalArgumentException(s"Unknown message: $m")
         }
         // once we've hit the max offset for the partition, remove from the offset map to indicate we're done
