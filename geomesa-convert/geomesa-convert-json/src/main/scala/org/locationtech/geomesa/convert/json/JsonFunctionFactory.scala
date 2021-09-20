@@ -37590,6 +37590,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
@@ -42271,10 +42272,14 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> 69a4e317d6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -42291,6 +42296,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> eeb8ab478a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 4a47c538bc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -42350,8 +42357,13 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> d2cb939f5 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -42381,11 +42393,16 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 21d0f33e7c (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> ad7a284ebe (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 6af71ff432 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -42421,6 +42438,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> e148628c16 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> 416a95a4c0 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d38e17d229 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -42434,6 +42453,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 44b15e96d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> e5413df04f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+=======
+>>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -43312,12 +43333,17 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e148628c16 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> eeb8ab478a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> b51d3046a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -43327,10 +43353,13 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e6162be24a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 665046a461 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -45068,6 +45097,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> b51d3046a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
@@ -48093,6 +48123,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> e3bae3f1c6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> eeb8ab478a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
       args(i) match {
         case null => // skip nulls
         case j: JsonElement => obj.add(key, j)
@@ -48101,6 +48136,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
         case j: Boolean => obj.add(key, new JsonPrimitive(j))
         case j: Date    => obj.add(key, new JsonPrimitive(DateParsing.formatDate(j)))
         case j          => obj.add(key, gson.toJsonTree(j))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -48427,6 +48463,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> e3bae3f1c6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> 808743e257 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> ad0d29873e (GEOMESA-3100 Kafka layer views (#2784))
@@ -48533,6 +48571,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> b4cd5a7733 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -48852,6 +48891,10 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 569d34b2dd (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e3bae3f1c6 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> bddfdbea54 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
@@ -49209,6 +49252,10 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 3ebcdb99d9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> fdf51402cf (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 4adaa7f479 (GEOMESA-3100 Kafka layer views (#2784))
@@ -50652,10 +50699,14 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> cf457d8543 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> fc4546247e (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -50676,6 +50727,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> cf457d8543 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> c933324bff (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 6af71ff432 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 17f13b3a7a (GEOMESA-3100 Kafka layer views (#2784))
@@ -50785,6 +50838,9 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 416a95a4c0 (GEOMESA-3100 Kafka layer views (#2784))
@@ -50797,6 +50853,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 =======
 >>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> eddb4eaca1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -50819,6 +50876,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> f340d6feab (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a98c720f77 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> eecabb92a (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 >>>>>>> 98e7bf59d2 (GEOMESA-3100 Kafka layer views (#2784))
@@ -50947,12 +51006,17 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e148628c16 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e3bae3f1c6 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> fdf51402cf (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -50962,10 +51026,13 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fc4546247e (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> cdb70d217a (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -51472,6 +51539,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> a0314fb7f (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
@@ -52240,6 +52308,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> fdf51402cf (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> b4cd5a7733 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> e3bae3f1c6 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
       }
 
 =======
@@ -58003,6 +58073,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 601ca649ae (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -58131,6 +58202,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> d1d11691fd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> eeb8ab478a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 5dc1f86700 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -58327,6 +58400,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> e6162be24a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -58895,6 +58969,8 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> eeb8ab478a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 595c43086a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -59885,12 +59961,16 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 =======
 >>>>>>> b51d3046a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> e7f3e6588 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 3ebcdb99d9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 58f72e76c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 4c9fb0f6e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 5d898c0c5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> ca22354dd7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -69022,12 +69102,17 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e148628c16 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 98e607d2fa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 0cdf3f267 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -69551,8 +69636,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> eeb8ab478a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> b51d3046a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
@@ -72819,10 +72907,14 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> b51d3046a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 5f0745e34b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> b51d3046a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 0cdf3f267 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -75853,6 +75945,15 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 >>>>>>> e3bae3f1c6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> eeb8ab478a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+      }
+
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> d2cb939f5 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> a377061090 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 750ebbabe7 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 3c8efa1e60 (GEOMESA-3100 Kafka layer views (#2784))
       i += 2
     }
     obj
