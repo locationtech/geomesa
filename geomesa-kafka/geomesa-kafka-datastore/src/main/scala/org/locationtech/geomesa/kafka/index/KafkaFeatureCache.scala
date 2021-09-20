@@ -214,5 +214,7 @@ object KafkaFeatureCache extends LazyLogging {
     override def query(id: String): Option[SimpleFeature] = None
     override def query(filter: Filter): Iterator[SimpleFeature] = Iterator.empty
     override def close(): Unit = {}
+    override def addListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = {}
+    override def removeListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = {}
   }
 }
