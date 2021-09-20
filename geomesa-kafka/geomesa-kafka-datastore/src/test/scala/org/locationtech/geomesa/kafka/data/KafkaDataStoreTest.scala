@@ -989,6 +989,7 @@ import java.util.{Collections, Date}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a62c58818f (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -1029,6 +1030,8 @@ import java.util.{Collections, Date}
 >>>>>>> 414dc52b25 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> ad0d29873e (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -1094,6 +1097,7 @@ import java.util.{Collections, Date}
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
 =======
+<<<<<<< HEAD
 >>>>>>> 117b13aaaa (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a94a1be83c (GEOMESA-3100 Kafka layer views (#2784))
@@ -1358,6 +1362,8 @@ import java.util.{Collections, Date}
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 9361541304 (GEOMESA-3100 Kafka layer views (#2784))
@@ -1471,8 +1477,11 @@ import java.util.{Collections, Date}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 89fb9950ef (GEOMESA-3100 Kafka layer views (#2784))
@@ -1816,6 +1825,7 @@ import java.util.{Collections, Date}
 >>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> 117b13aaaa (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -1982,6 +1992,8 @@ import java.util.{Collections, Date}
 =======
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
@@ -2154,6 +2166,7 @@ import java.util.{Collections, Date}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -2162,6 +2175,10 @@ import java.util.{Collections, Date}
 >>>>>>> c45703da7a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 777da2f2bd (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -2171,11 +2188,15 @@ import java.util.{Collections, Date}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> f4b2369e9a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
 =======
+<<<<<<< HEAD
 >>>>>>> f4b2369e9a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> fae9296238 (GEOMESA-3100 Kafka layer views (#2784))
@@ -2186,8 +2207,11 @@ import java.util.{Collections, Date}
 =======
 >>>>>>> 777da2f2bd (GEOMESA-3100 Kafka layer views (#2784))
 =======
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2230,6 +2254,10 @@ import java.util.{Collections, Date}
 >>>>>>> 8ce8f9e394 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 777da2f2bd (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 4adaa7f479 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f6e840b5dd (GEOMESA-3100 Kafka layer views (#2784))
@@ -2254,8 +2282,11 @@ import java.util.{Collections, Date}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -4457,6 +4488,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 2f673a268a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 <<<<<<< HEAD
@@ -4477,6 +4512,7 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> bddfdbea54 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4514,10 +4550,15 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> c57b5f538a (GEOMESA-3100 Kafka layer views (#2784))
 =======
+=======
+>>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4549,6 +4590,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 4adaa7f479 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 95c83ca7f (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
@@ -4568,6 +4611,7 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
@@ -4617,6 +4661,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 54ece16d15 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c57b5f538a (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> f7038468b7 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 984dd84de9 (GEOMESA-3100 Kafka layer views (#2784))
@@ -9703,6 +9751,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
@@ -9759,6 +9808,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 414dc52b25 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
@@ -10160,6 +10211,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 9361541304 (GEOMESA-3100 Kafka layer views (#2784))
@@ -10184,6 +10237,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 54ece16d15 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c57b5f538a (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> ea3b40e187 (GEOMESA-3100 Kafka layer views (#2784))
@@ -10215,6 +10270,10 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 <<<<<<< HEAD
 >>>>>>> 2f66072323 (GEOMESA-3100 Kafka layer views (#2784))
@@ -11219,6 +11278,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7d01a56679 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -11239,6 +11299,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 414dc52b25 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f43f8303d3 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -11273,6 +11335,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> 0cd029fb3b (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -11423,6 +11486,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 95c83ca7fa (GEOMESA-3100 Kafka layer views (#2784))
@@ -11673,6 +11738,9 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 73767737b (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 429ffc55e (GEOMESA-3100 Kafka layer views (#2784))
@@ -11844,6 +11912,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -11964,9 +12033,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 414dc52b25 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12020,6 +12094,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 02e526eae3 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> d309fbbbbf (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d3b123117a (GEOMESA-3100 Kafka layer views (#2784))
@@ -12029,6 +12105,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> de8804123e (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> 12f226f36d (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -12091,6 +12168,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> de8804123e (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 02e526eae3 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> ea3b40e187 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d2cb939f51 (GEOMESA-3100 Kafka layer views (#2784))
@@ -12144,8 +12223,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1bffff6025 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 50a71079c1 (GEOMESA-3100 Kafka layer views (#2784))
@@ -12339,7 +12421,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 =======
 >>>>>>> d3b123117a (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 1bffff6025 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 95c83ca7f (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12593,10 +12682,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> 4f4ecaeb43 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -12637,6 +12730,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -12871,10 +12966,13 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 117b13aaaa (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> b608d18cff (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> d2cb939f5 (GEOMESA-3100 Kafka layer views (#2784))
@@ -13500,6 +13598,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> c57b5f538a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
@@ -14289,10 +14388,15 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 414dc52b25 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
       val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
 =======
       val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14556,6 +14660,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 414dc52b25 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
@@ -14908,6 +15014,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 9361541304 (GEOMESA-3100 Kafka layer views (#2784))
@@ -14930,6 +15038,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 54ece16d15 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c57b5f538a (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> ea3b40e187 (GEOMESA-3100 Kafka layer views (#2784))
@@ -14961,6 +15071,10 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 <<<<<<< HEAD
 >>>>>>> 2f66072323 (GEOMESA-3100 Kafka layer views (#2784))
@@ -15891,6 +16005,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7d01a56679 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -15911,6 +16026,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 414dc52b25 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f43f8303d3 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -15945,6 +16062,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> 0cd029fb3b (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -16095,6 +16213,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 95c83ca7fa (GEOMESA-3100 Kafka layer views (#2784))
@@ -16345,6 +16465,9 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 73767737b (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 429ffc55e (GEOMESA-3100 Kafka layer views (#2784))
@@ -16516,6 +16639,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -16636,9 +16760,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 414dc52b25 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16692,6 +16821,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 02e526eae3 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 >>>>>>> d309fbbbbf (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d3b123117a (GEOMESA-3100 Kafka layer views (#2784))
@@ -16701,6 +16832,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> de8804123e (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> 12f226f36d (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -16763,6 +16895,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> de8804123e (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 02e526eae3 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> ea3b40e187 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d2cb939f51 (GEOMESA-3100 Kafka layer views (#2784))
@@ -16829,8 +16963,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1bffff6025 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 50a71079c1 (GEOMESA-3100 Kafka layer views (#2784))
@@ -17024,7 +17161,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 =======
 >>>>>>> d3b123117a (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 1bffff6025 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 88ef67cdfe (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 95c83ca7f (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17278,10 +17422,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> 4f4ecaeb43 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -17322,6 +17470,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -17699,10 +17849,13 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 117b13aaaa (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> b608d18cff (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> d2cb939f5 (GEOMESA-3100 Kafka layer views (#2784))
@@ -18363,6 +18516,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> c57b5f538a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> c44e474495 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
@@ -19284,6 +19438,10 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 414dc52b25 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 1d17e692b8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> c2a94543ba (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> bf7a1ab2d1 (GEOMESA-3100 Kafka layer views (#2784))
       try {
         val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
         producer.createSchema(sft)
