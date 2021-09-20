@@ -802,6 +802,9 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           |""".stripMargin
 <<<<<<< HEAD
       val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
+=======
+      val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
       try {
         val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
         producer.createSchema(sft)
