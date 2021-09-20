@@ -9,10 +9,23 @@
 package org.locationtech.geomesa.kafka.data
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter}
 =======
 <<<<<<< HEAD
 >>>>>>> 53f954de5a (GEOMESA-3100 Kafka layer views (#2784))
+=======
+<<<<<<< HEAD
+=======
+=======
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, SynchronousQueue, TimeUnit}
+import java.util.{Collections, Date}
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> f7038468b7 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 6e1d4eedb3 (GEOMESA-3100 Kafka layer views (#2784))
 import kafka.admin.ConfigCommand.{ConfigEntity, Entity}
 import kafka.zk.{AdminZkClient, KafkaZkClient}
 =======
@@ -823,6 +836,9 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           |""".stripMargin
 <<<<<<< HEAD
       val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
+=======
+      val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
       try {
         val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
         producer.createSchema(sft)
