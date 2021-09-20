@@ -46,8 +46,11 @@ import org.locationtech.geomesa.kafka.versions.{KafkaConsumerVersions, RecordVer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e2420db68f (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -212,6 +215,7 @@ import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
 =======
 >>>>>>> ad362b1341 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
@@ -273,6 +277,14 @@ import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
 >>>>>>> 291f0fa5ea (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 1a6cc128e9 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locationtech-main
+=======
+=======
+import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
@@ -433,6 +445,163 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 8ed2c9f7e5 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 1cb34aff19 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 06956ccf98 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 835ba25ca9 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 8b9e99d11a (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 214797e54a (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 83a98c1a01 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 473d51f7e5 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 69e3273ac1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 4906df322a (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 17d152a893 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 3fcf3dfd76 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> e0773a1bd7 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 33e796f4d0 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> da4045f79e (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 23a7d9849f (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> dc84900201 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 5242a49df1 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6069aba6b4 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> fd19482a69 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> d5f6f5af59 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 33e26d959a (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+>>>>>>> bf93ea67c4 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 13fd1a2b83 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> ef8e16d0b6 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> bc97b07a31 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> e94ef984bb (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> a09ef82d36 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 7b82c7bf20 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> c57b5f538 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 1e11ed51a6 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 757d430ce (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 2443aee96b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 0fde036fa (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 4f05dea44b (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> d7cf8eba5 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 2cbe9d9703 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> fa68dd43c (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 23f312535d (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> c6426a3a7 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> d403547ad5 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 7e7054316 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> b0e086ac3a (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> e554a4e73 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 555809484e (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> c589b832a (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 9e433ba57e (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 186135b4f (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 0d789c064b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> ea0ead77f (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 335182b81 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 6af71ff43 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> b4c6267f1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> ff40ff096 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a2836a23a (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> ff35f42ba (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 9007cdfc8 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 89fb9950e (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 4b8c118ac (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> e7bfe001d (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 357b5be81 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> c82e069f2 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> c8421ce4b (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bbf7cc3b0 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26788,6 +26957,7 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> locationtech-main
 =======
+<<<<<<< HEAD
         case m: Clear  => cache.fireClear(timestamp); cache.clear()
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
@@ -26892,10 +27062,13 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> d83cb8858c (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
+=======
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
         case _: Clear  => cache.fireClear(timestamp); cache.clear()
 =======
         case m: Clear  => cache.fireClear(timestamp); cache.clear()
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> d2cb939f51 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 5aa646c0e8 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -29776,6 +29949,9 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
         case m => throw new IllegalArgumentException(s"Unknown message: $m")
       }
     }
@@ -29893,6 +30069,163 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 42549e8e3 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 8ed2c9f7e5 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 1cb34aff19 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 06956ccf98 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 835ba25ca9 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 8b9e99d11a (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 214797e54a (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 83a98c1a01 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 473d51f7e5 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 69e3273ac1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 4906df322a (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 17d152a893 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 3fcf3dfd76 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> e0773a1bd7 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 33e796f4d0 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> da4045f79e (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 23a7d9849f (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 82a3553e3d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> dc84900201 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 5242a49df1 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6069aba6b4 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> fd19482a69 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> d5f6f5af59 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 33e26d959a (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+>>>>>>> bf93ea67c4 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 13fd1a2b83 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> ef8e16d0b6 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> bc97b07a31 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> e94ef984bb (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> a09ef82d36 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 7b82c7bf20 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> c57b5f538 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 1e11ed51a6 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 757d430ce (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 2443aee96b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 0fde036fa (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 4f05dea44b (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> d7cf8eba5 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 2cbe9d9703 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> fa68dd43c (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 23f312535d (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> c6426a3a7 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> d403547ad5 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 7e7054316 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> b0e086ac3a (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> e554a4e73 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 555809484e (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> c589b832a (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 9e433ba57e (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 186135b4f (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 0d789c064b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> ea0ead77f (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 335182b81 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 6af71ff43 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> c1afaaa1d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> b4c6267f1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> ff40ff096 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a2836a23a (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> ff35f42ba (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 9007cdfc8 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 89fb9950e (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 4b8c118ac (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> e7bfe001d (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 357b5be81 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> c82e069f2 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> c8421ce4b (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> bbf7cc3b0 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -56248,6 +56581,7 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> locationtech-main
 =======
+<<<<<<< HEAD
           case m: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
@@ -56352,10 +56686,13 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> d83cb8858c (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
+=======
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
           case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
 =======
           case m: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> d2cb939f51 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 5aa646c0e8 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -59236,6 +59573,9 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> cbf238f717 (GEOMESA-3100 Kafka layer views (#2784))
           case m => throw new IllegalArgumentException(s"Unknown message: $m")
         }
         // once we've hit the max offset for the partition, remove from the offset map to indicate we're done
