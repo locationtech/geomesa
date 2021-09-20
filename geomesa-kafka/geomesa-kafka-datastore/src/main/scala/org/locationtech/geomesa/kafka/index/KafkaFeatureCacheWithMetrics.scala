@@ -16,6 +16,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 =======
 import com.codahale.metrics.Gauge
 <<<<<<< HEAD
+<<<<<<< HEAD
 import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
@@ -27,7 +28,15 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 98e7bf59d2 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 5e885404c30 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+=======
+import com.codahale.metrics.MetricRegistry.MetricSupplier
+>>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> c860f21098 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> d014210d195 (GEOMESA-3100 Kafka layer views (#2784))
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, LayerView}
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.FeatureState
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCacheWithMetrics.SizeGauge
