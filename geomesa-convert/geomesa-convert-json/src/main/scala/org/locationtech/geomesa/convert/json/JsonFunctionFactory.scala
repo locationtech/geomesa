@@ -133,16 +133,16 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     var i = 1
     while (i < args.length) {
       val key = args(i -1).toString
-      val value = args(i) match {
-        case null => JsonNull.INSTANCE
-        case j: JsonElement => j
-        case j: String  => new JsonPrimitive(j)
-        case j: Number  => new JsonPrimitive(j)
-        case j: Boolean => new JsonPrimitive(j)
-        case j: Date    => new JsonPrimitive(DateParsing.formatDate(j))
-        case j          => gson.toJsonTree(j)
+      args(i) match {
+        case null => // skip nulls
+        case j: JsonElement => obj.add(key, j)
+        case j: String  => obj.add(key, new JsonPrimitive(j))
+        case j: Number  => obj.add(key, new JsonPrimitive(j))
+        case j: Boolean => obj.add(key, new JsonPrimitive(j))
+        case j: Date    => obj.add(key, new JsonPrimitive(DateParsing.formatDate(j)))
+        case j          => obj.add(key, gson.toJsonTree(j))
       }
-      obj.add(key, value)
+
       i += 2
     }
     obj
