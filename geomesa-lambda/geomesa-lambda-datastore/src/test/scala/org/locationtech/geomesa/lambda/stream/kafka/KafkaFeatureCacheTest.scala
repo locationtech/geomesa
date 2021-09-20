@@ -39,11 +39,23 @@ class KafkaFeatureCacheTest extends Specification with LazyLogging {
       cache.expired(0) must beEmpty
       cache.expired(1) mustEqual Seq(0)
       cache.expired(4) mustEqual Seq(0, 1)
-      cache.expired(0, 1) mustEqual (0, Seq((0, one)))
+      var expired = cache.expired(0, 1)
+      expired.maxOffset mustEqual 0L
+      expired.features must haveLength(1)
+      expired.features.head.offset mustEqual 0L
+      expired.features.head.feature mustEqual one
       cache.all().toSeq must containTheSameElementsAs(Seq(two, three))
-      cache.expired(1, 2) mustEqual (0, Seq((0, two)))
+      expired = cache.expired(1, 2)
+      expired.maxOffset mustEqual 0L
+      expired.features must haveLength(1)
+      expired.features.head.offset mustEqual 0L
+      expired.features.head.feature mustEqual two
       cache.all().toSeq mustEqual Seq(three)
-      cache.expired(0, 4) mustEqual (1, Seq((1, three)))
+      expired = cache.expired(0, 4)
+      expired.maxOffset mustEqual 1L
+      expired.features must haveLength(1)
+      expired.features.head.offset mustEqual 1L
+      expired.features.head.feature mustEqual three
       cache.all() must beEmpty
     }
     "expire features indirectly" >> {
