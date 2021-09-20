@@ -99,6 +99,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   logger.debug(s"Initialized KafkaFeatureCache with factory $factory and support $support")
 
 =======
@@ -174,6 +175,8 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 >>>>>>> 89fb9950ef (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a51d9f1aaf (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> e7bfe001dd (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
@@ -495,12 +498,16 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 =======
 >>>>>>> ed371dc57 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 16b14a4c3c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+=======
+>>>>>>> e7bfe001dd (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 4d37d5ef5 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> b4c6267f1c (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -628,10 +635,13 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 =======
 >>>>>>> ed371dc57 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> a51d9f1aaf (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> e7bfe001dd (GEOMESA-3100 Kafka layer views (#2784))
   logger.debug(s"Initialized KafkaFeatureCache with factory $factory and support $support")
 
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -738,6 +748,8 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 >>>>>>> 89fb9950ef (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a51d9f1aaf (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> e7bfe001dd (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
@@ -1576,11 +1588,21 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 =======
 =======
 =======
+>>>>>>> 4d37d5ef5 (GEOMESA-3100 Kafka layer views (#2784))
+=======
   logger.debug(s"Initialized KafkaFeatureCache with factory $factory and support $support")
 
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> ed371dc57 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> a51d9f1aaf (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+=======
+>>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 4d37d5ef5 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> e7bfe001dd (GEOMESA-3100 Kafka layer views (#2784))
   /**
     * Note: this method is not thread-safe. The `state` and `index` can get out of sync if the same feature
     * is updated simultaneously from two different threads
