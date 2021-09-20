@@ -28,6 +28,7 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 =======
 import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 98e7bf59d2 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
@@ -60,13 +61,24 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> 72207855ca1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
+=======
+>>>>>>> cd74249075 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 98e7bf59d2 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 846e61d5c9 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 5c7acfc0f0e (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+=======
+>>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> c860f21098 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> cd74249075 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 4f588ffc458 (GEOMESA-3100 Kafka layer views (#2784))
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, LayerView}
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.FeatureState
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCacheWithMetrics.SizeGauge
