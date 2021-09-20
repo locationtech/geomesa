@@ -4397,6 +4397,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
@@ -4430,6 +4431,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 6368ee48e8 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 4516873dab (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 64da8137f1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -4906,6 +4909,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 9bda77cfe3 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 >>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 9236b02087 (GEOMESA-3100 Kafka layer views (#2784))
@@ -5466,6 +5470,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 64da8137f1 (GEOMESA-3100 Kafka layer views (#2784))
       try {
         val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
         producer.createSchema(sft)
