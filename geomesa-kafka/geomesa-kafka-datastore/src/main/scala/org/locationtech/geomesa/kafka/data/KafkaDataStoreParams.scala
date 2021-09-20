@@ -21,6 +21,7 @@ import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import java.util.concurrent.ScheduledExecutorService
 import java.util.{Locale, Properties}
 <<<<<<< HEAD
@@ -42,8 +43,14 @@ object KafkaDataStoreParams extends NamespaceParams {
 >>>>>>> 17f13b3a7a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> ccfb3bd95e (GEOMESA-3100 Kafka layer views (#2784))
 import java.util.concurrent.ScheduledExecutorService
 import java.util.{Locale, Properties}
+=======
+import java.util.Properties
+import java.util.concurrent.ScheduledExecutorService
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 import scala.concurrent.duration.Duration
 
 <<<<<<< HEAD
@@ -226,6 +233,7 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
       supportsNiFiExpressions = true
     )
 
+<<<<<<< HEAD
   object SerializationTypes {
 
     val Kryo = "kryo"
@@ -258,6 +266,7 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
@@ -274,6 +283,10 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 >>>>>>> 17f13b3a7a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> ccfb3bd95e (GEOMESA-3100 Kafka layer views (#2784))
   val LayerViews =
     new GeoMesaParam[String](
       "kafka.layer.views",
