@@ -531,6 +531,7 @@ import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledEx
 import org.locationtech.geomesa.kafka.KafkaContainerTest
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
+import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
@@ -1651,6 +1652,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -1718,10 +1720,19 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> d3cff0b4f8 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 =======
+>>>>>>> c2f23a900d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
 >>>>>>> b6e06ebf5 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> cedd74041 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 1cb34aff19 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> c2f23a900d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
     "support transactions" >> {
       val (producer, consumer, _) = createStorePair()
       try {
