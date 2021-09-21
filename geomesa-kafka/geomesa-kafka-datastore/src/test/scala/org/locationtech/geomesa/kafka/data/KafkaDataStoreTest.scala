@@ -2831,6 +2831,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 46554dec25 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
@@ -3025,6 +3026,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 1c638ccdf8 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> cedd740417 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
@@ -3176,6 +3179,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e554a4e738 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
     "support listeners without indexing" >> {
       val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
       val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
@@ -3219,6 +3224,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       }
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 4b8c118ac7 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
@@ -3530,6 +3536,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 9a412492cb (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> 23a67ee28d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
+=======
+>>>>>>> 1c638ccdf8 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> 9a412492cb (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
     "support listeners without indexing" >> {
@@ -3599,7 +3607,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 =======
 >>>>>>> def9ca3cde (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> befd97dfe9 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+=======
+>>>>>>> e554a4e738 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 1c638ccdf8 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
     "support transactions" >> {
       val (producer, consumer, _) = createStorePair()
       try {
