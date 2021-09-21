@@ -4613,8 +4613,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7c0f257cef (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> def9ca3cde (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
     "support listeners without indexing" >> {
       val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
       val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
@@ -4660,11 +4663,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 2083e85e99 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 <<<<<<< HEAD
 >>>>>>> 6cf796911a (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
+=======
+>>>>>>> 115829ea19 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 <<<<<<< HEAD
 =======
 >>>>>>> 46554dec25 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
@@ -5474,6 +5480,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 0185d52d35 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> def9ca3cde (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 =======
 >>>>>>> e554a4e738 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
@@ -6388,6 +6395,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 0185d52d35 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> d1e5218220 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 115829ea19 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
     "support transactions" >> {
       val (producer, consumer, _) = createStorePair()
       try {
