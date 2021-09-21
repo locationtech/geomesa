@@ -3228,6 +3228,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7c0f257cef (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
@@ -3290,7 +3291,103 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 <<<<<<< HEAD
 =======
 >>>>>>> 46554dec25 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> 0ef6ebd072 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+    "support listeners without indexing" >> {
+      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
+      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
+      try {
+        val id = "fid-0"
+        val numUpdates = 1
+        val maxLon = 80.0
+
+        var latestLon = -1.0
+        var count = 0
+
+        val listener = new FeatureListener {
+          override def changed(event: FeatureEvent): Unit = {
+            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
+            feature.getID mustEqual id
+            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
+            count += 1
+          }
+        }
+
+        producer.createSchema(sft)
+        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
+        consumerStore.addFeatureListener(listener)
+
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          (numUpdates to 1 by -1).foreach { i =>
+            val ll = maxLon - maxLon / i
+            val sf = writer.next()
+            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
+            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
+            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+            writer.write()
+          }
+        }
+
+        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
+        latestLon must be equalTo 0.0
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 7c0f257ce (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 15e3939cd7 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+    "support listeners without indexing" >> {
+      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
+      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
+      try {
+        val id = "fid-0"
+        val numUpdates = 1
+        val maxLon = 80.0
+
+        var latestLon = -1.0
+        var count = 0
+
+        val listener = new FeatureListener {
+          override def changed(event: FeatureEvent): Unit = {
+            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
+            feature.getID mustEqual id
+            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
+            count += 1
+          }
+        }
+
+        producer.createSchema(sft)
+        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
+        consumerStore.addFeatureListener(listener)
+
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          (numUpdates to 1 by -1).foreach { i =>
+            val ll = maxLon - maxLon / i
+            val sf = writer.next()
+            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
+            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
+            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+            writer.write()
+          }
+        }
+
+        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
+        latestLon must be equalTo 0.0
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
+<<<<<<< HEAD
+>>>>>>> e1483489ac (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
     "support listeners without indexing" >> {
       val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
       val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
@@ -4298,9 +4395,20 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 =======
 >>>>>>> cedd74041 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> 1cb34aff19 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> c2f23a900d (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> e0bad155c5 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+=======
+=======
+=======
+>>>>>>> 7c0f257ce (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 835ba25ca9 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 15e3939cd7 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> e1483489ac (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
     "support transactions" >> {
       val (producer, consumer, _) = createStorePair()
       try {
