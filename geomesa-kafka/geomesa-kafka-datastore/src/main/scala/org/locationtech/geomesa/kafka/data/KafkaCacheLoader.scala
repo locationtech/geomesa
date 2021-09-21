@@ -102,7 +102,7 @@ object KafkaCacheLoader extends LazyLogging {
       message match {
         case m: Change => cache.fireChange(timestamp, m.feature); cache.put(m.feature)
         case m: Delete => cache.fireDelete(timestamp, m.id, cache.query(m.id).orNull); cache.remove(m.id)
-        case m: Clear  => cache.fireClear(timestamp); cache.clear()
+        case _: Clear  => cache.fireClear(timestamp); cache.clear()
         case m => throw new IllegalArgumentException(s"Unknown message: $m")
       }
     }
@@ -126,7 +126,7 @@ object KafkaCacheLoader extends LazyLogging {
       serializer: GeoMessageSerializer,
       ordering: ExpiryTimeConfig,
       toLoad: KafkaCacheLoaderImpl
-  ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency), false) with Runnable {
+    ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency), false) with Runnable {
 
     private val cache = KafkaFeatureCache.nonIndexing(sft, ordering)
 
@@ -144,7 +144,7 @@ object KafkaCacheLoader extends LazyLogging {
         message match {
           case m: Change => toLoad.cache.fireChange(timestamp, m.feature); cache.put(m.feature)
           case m: Delete => toLoad.cache.fireDelete(timestamp, m.id, cache.query(m.id).orNull); cache.remove(m.id)
-          case m: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
+          case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
           case m => throw new IllegalArgumentException(s"Unknown message: $m")
         }
         // once we've hit the max offset for the partition, remove from the offset map to indicate we're done
@@ -154,7 +154,7 @@ object KafkaCacheLoader extends LazyLogging {
           latch.countDown()
           logger.info(s"Initial load: consumed [$topic:${record.partition}:${record.offset}] of $maxOffset, " +
               s"${latch.getCount} partitions remaining")
-        } else if (record.offset % 1048576 == 0) { // magic number 2^20
+        } else if (record.offset > 0 && record.offset % 1048576 == 0) { // magic number 2^20
           logger.info(s"Initial load: consumed [$topic:${record.partition}:${record.offset}] of $maxOffset")
         }
       }
