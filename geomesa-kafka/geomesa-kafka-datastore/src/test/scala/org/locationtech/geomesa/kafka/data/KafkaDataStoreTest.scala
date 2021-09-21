@@ -11261,6 +11261,107 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    "support listeners without indexing" >> {
+      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
+      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
+      try {
+        val id = "fid-0"
+        val numUpdates = 1
+        val maxLon = 80.0
+
+        var latestLon = -1.0
+        var count = 0
+
+        val listener = new FeatureListener {
+          override def changed(event: FeatureEvent): Unit = {
+            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
+            feature.getID mustEqual id
+            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
+            count += 1
+          }
+        }
+
+        producer.createSchema(sft)
+        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
+        consumerStore.addFeatureListener(listener)
+
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          (numUpdates to 1 by -1).foreach { i =>
+            val ll = maxLon - maxLon / i
+            val sf = writer.next()
+            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
+            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
+            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+            writer.write()
+          }
+        }
+
+        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
+        latestLon must be equalTo 0.0
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
+    "support listeners without indexing" >> {
+      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
+      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
+      try {
+        val id = "fid-0"
+        val numUpdates = 1
+        val maxLon = 80.0
+
+        var latestLon = -1.0
+        var count = 0
+
+        val listener = new FeatureListener {
+          override def changed(event: FeatureEvent): Unit = {
+            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
+            feature.getID mustEqual id
+            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
+            count += 1
+          }
+        }
+
+        producer.createSchema(sft)
+        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
+        consumerStore.addFeatureListener(listener)
+
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          (numUpdates to 1 by -1).foreach { i =>
+            val ll = maxLon - maxLon / i
+            val sf = writer.next()
+            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
+            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
+            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+            writer.write()
+          }
+        }
+
+        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
+        latestLon must be equalTo 0.0
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
+<<<<<<< HEAD
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locationtech-main
+=======
+>>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e1c99f18f0 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> 9d1b3676b8 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e1c99f18f0 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
@@ -11351,12 +11452,17 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9a412492cb (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> 03fc449fc3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 756b7b5666 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 9d1b3676b8 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
     "support listeners without indexing" >> {
       val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
       val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
@@ -12852,7 +12958,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 =======
 >>>>>>> cfd0bdd9e8 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+<<<<<<< HEAD
 >>>>>>> 32d9a937f7 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+=======
+>>>>>>> 756b7b5666 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> 9d1b3676b8 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
     "support transactions" >> {
       val (producer, consumer, _) = createStorePair()
       try {
