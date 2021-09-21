@@ -311,6 +311,7 @@ import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchRe
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 =======
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
@@ -322,6 +323,9 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreF
 >>>>>>> f71ad77609 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> f5f39ce787 (Merge branch 'feature/postgis-fixes')
+=======
+import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
+>>>>>>> ac2d6b46dd (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
@@ -1056,6 +1060,9 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0185d52d35 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
     "support listeners without indexing" >> {
       val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
       val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
@@ -1099,6 +1106,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       }
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1391,6 +1399,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 0185d52d35 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
     "support transactions" >> {
       val (producer, consumer, _) = createStorePair()
       try {
