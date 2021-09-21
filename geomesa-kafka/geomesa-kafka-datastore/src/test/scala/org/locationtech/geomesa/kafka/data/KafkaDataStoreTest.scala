@@ -168,12 +168,16 @@ import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 =======
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
 >>>>>>> 1b7313570b (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> 642ed3a7de (Merge branch 'feature/postgis-fixes')
+=======
+import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
+>>>>>>> f71ad77609 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
@@ -898,6 +902,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       }
     }
 
+<<<<<<< HEAD
     "support listeners without indexing" >> {
       val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
       val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
@@ -1073,6 +1078,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cedd740417 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
     "support transactions" >> {
       val (producer, consumer, _) = createStorePair()
       try {
