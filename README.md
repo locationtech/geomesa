@@ -1470,6 +1470,7 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Current release: [4.0.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-4.0.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -1515,6 +1516,7 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 >>>>>>> 61d746ac2 ([maven-release-plugin] prepare for next development iteration)
 **Current release: [3.4.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.4.0)**
 =======
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a762db479 ([maven-release-plugin] prepare for next development iteration)
@@ -1595,6 +1597,8 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 >>>>>>> 61d746ac2 ([maven-release-plugin] prepare for next development iteration)
 **Current release: [3.4.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.4.0)**
 =======
+=======
+>>>>>>> 654d8c98f5 ([maven-release-plugin] prepare for next development iteration)
 **Current release: [3.5.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.5.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -1604,6 +1608,7 @@ https://lists.osgeo.org/mailman/listinfo/proj/
   [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-kafka_2.12-3.5.0-bin.tar.gz) |
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-redis_2.12-3.5.0-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-fs_2.12-3.5.0-bin.tar.gz) |
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -1638,6 +1643,9 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 <<<<<<< HEAD
 =======
 >>>>>>> 30bf8d4d94 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 654d8c98f5 ([maven-release-plugin] prepare for next development iteration)
 **Current release: [3.3.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.3.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -1649,6 +1657,7 @@ https://lists.osgeo.org/mailman/listinfo/proj/
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-fs_2.12-3.3.0-bin.tar.gz) |
   [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-bigtable_2.12-3.3.0-bin.tar.gz)
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f9c85b7d5 ([maven-release-plugin] prepare for next development iteration)
@@ -1721,6 +1730,9 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 >>>>>>> 61d746ac2 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 74f8f4e95b ([maven-release-plugin] prepare for next development iteration)
 **Current release: [3.4.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.4.0)**
+=======
+>>>>>>> f9c85b7d5 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 654d8c98f5 ([maven-release-plugin] prepare for next development iteration)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.4.0/geomesa-hbase_2.12-3.4.0-bin.tar.gz) |
@@ -2851,12 +2863,22 @@ of the system are stored in a compressed tar file named `proj-x.y.z.tar.gz` wher
 "x" will indicate the major release number, "y" indicates the minor release
 number, and "z" indicates the patch number of the release.
 
+<<<<<<< HEAD
 In addition to the PROJ software package, distributions of datum
 conversion grid files and PROJ parameter files are also available.
 The grid package is distributed under the name `proj-data-x.y.zip`,
 where "x" is the major release version and "y" is the minor release
 version numbers. The resource packages can be downloaded from the
 [PROJ website](https://proj.org/download.html).
+=======
+```bash
+<<<<<<< HEAD
+$ gpg2 --verify geomesa-accumulo_2.12-3.5.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.5.0-bin.tar.gz
+=======
+$ gpg2 --verify geomesa-accumulo_2.12-3.3.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.3.0-bin.tar.gz
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+```
+>>>>>>> f9c85b7d5 ([maven-release-plugin] prepare for next development iteration)
 
 More info on the contents of the proj-data package can be
 found at the
@@ -3371,6 +3393,7 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
@@ -4067,8 +4090,16 @@ CDN.
 =======
 =======
 >>>>>>> a97477799 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> e3dc30faf3 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> 10d470378c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+=======
+>>>>>>> f9c85b7d5 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> d19a0298a4 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 654d8c98f5 ([maven-release-plugin] prepare for next development iteration)
 Snapshot versions are published nightly to the Eclipse repository:
 =======
 ```xml
@@ -4129,6 +4160,7 @@ For nightly snapshot integration, add:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
@@ -4144,6 +4176,19 @@ For nightly snapshot integration, add:
 =======
 =======
 =======
+=======
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> d19a0298a4 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 654d8c98f5 ([maven-release-plugin] prepare for next development iteration)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5077,8 +5122,16 @@ Snapshot versions are published nightly to the Eclipse repository:
 =======
 Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> f9c85b7d5 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> d19a0298a4 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 654d8c98f5 ([maven-release-plugin] prepare for next development iteration)
 
 ```xml
 <repository>
@@ -5478,6 +5531,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.5.1"
 =======
 =======
@@ -5725,6 +5779,8 @@ libraryDependencies ++= Seq(
 >>>>>>> 222e3a8118 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 654d8c98f5 ([maven-release-plugin] prepare for next development iteration)
   "org.locationtech.geomesa" %% "geomesa-utils" % "4.0.0"
 =======
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.4.0"
@@ -5762,12 +5818,22 @@ libraryDependencies ++= Seq(
 =======
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.4.1"
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+  "org.locationtech.geomesa" %% "geomesa-utils" % "3.5.0"
+=======
+  "org.locationtech.geomesa" %% "geomesa-utils" % "3.3.0"
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> f9c85b7d5 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 654d8c98f5 ([maven-release-plugin] prepare for next development iteration)
 )
 ```
 
 ## Building from Source
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7790,6 +7856,8 @@ libraryDependencies ++= Seq(
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f0e34e448d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 654d8c98f5 ([maven-release-plugin] prepare for next development iteration)
 **Development version: 4.1.0-SNAPSHOT**
 =======
 =======
@@ -8408,7 +8476,13 @@ libraryDependencies ++= Seq(
 =======
 **Development version: 3.3.0-SNAPSHOT**
 >>>>>>> ff5c21d0c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> f0e34e448d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+**Development version: 3.4.0-SNAPSHOT**
+>>>>>>> f9c85b7d5 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 654d8c98f5 ([maven-release-plugin] prepare for next development iteration)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
