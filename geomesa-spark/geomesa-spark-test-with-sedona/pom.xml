@@ -43,8 +43,10 @@
 =======
 >>>>>>> b1512df467 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-test-with-sedona/pom.xml
+<<<<<<< HEAD:geomesa-spark/geomesa-spark-test-with-sedona/pom.xml
         <version>4.1.0-SNAPSHOT</version>
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -64,6 +66,10 @@
 =======
 >>>>>>> 74f8f4e95b ([maven-release-plugin] prepare for next development iteration)
 =======
+=======
+>>>>>>> 119aa0d83e ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 40972ca408 ([maven-release-plugin] prepare for next development iteration)
+=======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -74,6 +80,9 @@
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 40972ca408 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> dbcf5b0dbb ([maven-release-plugin] prepare for next development iteration):geomesa-kudu/geomesa-kudu-spark/pom.xml
 =======
 >>>>>>> b1512df467 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -84,6 +93,7 @@
 =======
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration):geomesa-kudu/geomesa-kudu-spark/pom.xml
 >>>>>>> 119aa0d83e ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 =======
 >>>>>>> 718c9f550e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -97,6 +107,8 @@
 =======
 >>>>>>> cf5d60cb23 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 74f8f4e95b ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 40972ca408 ([maven-release-plugin] prepare for next development iteration)
         <version>3.5.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
@@ -186,9 +198,13 @@
 =======
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-test-with-sedona/pom.xml
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-test-with-sedona/pom.xml
 =======
 >>>>>>> 74f8f4e95b ([maven-release-plugin] prepare for next development iteration)
+=======
+<<<<<<< HEAD:geomesa-spark/geomesa-spark-test-with-sedona/pom.xml
+>>>>>>> 40972ca408 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 059393960 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-kudu/geomesa-kudu-spark/pom.xml
 =======
 =======
@@ -197,6 +213,9 @@
 >>>>>>> 61d746ac2 ([maven-release-plugin] prepare for next development iteration):geomesa-kudu/geomesa-kudu-spark/pom.xml
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 40972ca408 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> cf5d60cb23 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> 0ebbbee7b32 ([maven-release-plugin] prepare for next development iteration)
@@ -218,8 +237,11 @@
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration):geomesa-kudu/geomesa-kudu-spark/pom.xml
 >>>>>>> 119aa0d83e ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 33314c08fad ([maven-release-plugin] prepare for next development iteration)
 =======
+=======
+>>>>>>> a721122fcd2 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 059393960c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-kudu/geomesa-kudu-spark/pom.xml
 >>>>>>> 718c9f550e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -260,7 +282,12 @@
 =======
 >>>>>>> cf5d60cb23 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 74f8f4e95b ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 642ed6e3f9e ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 40972ca408 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> a721122fcd2 ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
