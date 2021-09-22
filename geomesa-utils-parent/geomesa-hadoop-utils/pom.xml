@@ -5,10 +5,14 @@
         <groupId>org.locationtech.geomesa</groupId>
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/pom.xml
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/pom.xml
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/pom.xml
 =======
 >>>>>>> 009ad2a267 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/pom.xml
+>>>>>>> fac323abc9 ([maven-release-plugin] prepare for next development iteration)
         <artifactId>geomesa-utils-parent_2.12</artifactId>
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -67,8 +71,17 @@
 =======
 =======
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-features/geomesa-feature-nio/pom.xml
+<<<<<<< HEAD
 >>>>>>> 009ad2a267 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 18a3d82b732 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+        <version>3.4.0-SNAPSHOT</version>
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration):geomesa-features/geomesa-feature-nio/pom.xml
+>>>>>>> fac323abc9 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 8a14ab4bffd ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
