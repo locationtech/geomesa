@@ -228,6 +228,7 @@
 =======
 =======
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-partitioning/pom.xml
+<<<<<<< HEAD:geomesa-gt/geomesa-gt-partitioning/pom.xml
         <artifactId>geomesa-gt_2.12</artifactId>
 <<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
@@ -236,9 +237,21 @@
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-features/geomesa-feature-nio/pom.xml
+<<<<<<< HEAD
 >>>>>>> ff5c21d0c5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> e02f74f029 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 4f90edfcb4b (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+        <version>3.4.0-SNAPSHOT</version>
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration):geomesa-features/geomesa-feature-nio/pom.xml
+>>>>>>> f9c85b7d56 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 7d90b9e8fd ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> fd47f683f3f ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
