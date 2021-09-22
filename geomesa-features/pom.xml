@@ -305,6 +305,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 67c850bb2f ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -333,6 +334,8 @@
 >>>>>>> 24218aa338 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 8665a820cb (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> ea944a3a53 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 3a2e956065 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -379,6 +382,7 @@
 >>>>>>> 2024fa80f3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> a801bb2986 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 =======
 >>>>>>> 5fae301729 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -693,6 +697,8 @@
 =======
 >>>>>>> 2024fa80f3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 8665a820cb (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> ea944a3a53 ([maven-release-plugin] prepare for next development iteration)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.4.0-SNAPSHOT</version>
@@ -6242,6 +6248,7 @@
 >>>>>>> c8e80535d8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 2024fa80f3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a0c34ab601 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> a801bb2986 ([maven-release-plugin] prepare for next development iteration)
@@ -6292,6 +6299,11 @@
 >>>>>>> 24218aa338 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 8665a820cb (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> a0c34ab601 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> a801bb2986 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> ea944a3a53 ([maven-release-plugin] prepare for next development iteration)
         <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -6399,6 +6411,7 @@
 =======
 >>>>>>> aada4d63c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f3dd0ac67 ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -6449,10 +6462,15 @@
 >>>>>>> 24218aa338 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 8665a820cb (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> f3dd0ac67 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> ea944a3a53 ([maven-release-plugin] prepare for next development iteration)
         <version>3.5.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6510,6 +6528,8 @@
 >>>>>>> 24218aa338 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 8665a820cb (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> ea944a3a53 ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
 >>>>>>> 04c5bd425 ([maven-release-plugin] prepare for next development iteration)
@@ -6768,6 +6788,7 @@
 =======
 =======
 >>>>>>> aada4d63c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> c8e80535d8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -8448,9 +8469,24 @@
 =======
 =======
 >>>>>>> aada4d63c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> ea944a3a53 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> c8e80535d8 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 2024fa80f3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 8665a820cb (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+=======
+        <version>3.4.0-SNAPSHOT</version>
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> f3dd0ac67 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> a0c34ab601 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> a801bb2986 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> ea944a3a53 ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
