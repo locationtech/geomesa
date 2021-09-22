@@ -527,6 +527,7 @@
 =======
 =======
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-partitioning/pom.xml
+<<<<<<< HEAD:geomesa-gt/geomesa-gt-partitioning/pom.xml
         <artifactId>geomesa-gt_2.12</artifactId>
 <<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
@@ -536,7 +537,9 @@
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-features/geomesa-feature-nio/pom.xml
+<<<<<<< HEAD
 >>>>>>> cf42b98f8f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 00aea531e3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -545,6 +548,8 @@
 =======
 =======
 =======
+>>>>>>> 05410a7682 ([maven-release-plugin] prepare for next development iteration)
+=======
 =======
         <version>3.4.0-SNAPSHOT</version>
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration):geomesa-features/geomesa-feature-nio/pom.xml
@@ -552,8 +557,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c88c49d289 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 06eef1a77e ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 30bf8d4d94 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> ba28f1a0135 ([maven-release-plugin] prepare for next development iteration)
@@ -1190,8 +1198,16 @@
 >>>>>>> locationtech-main
 =======
 >>>>>>> 06775f0442 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> a94dca8a85 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> d14ed3f1a73 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+>>>>>>> 05410a7682 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 06eef1a77e ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 45e86c07926 ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
