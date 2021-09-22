@@ -602,6 +602,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>5.2.0-SNAPSHOT</version>
 =======
 =======
@@ -1786,6 +1787,8 @@
 >>>>>>> c75445c2430 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 8f187121ad3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> ec4870cddc9 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
     <version>5.1.0-SNAPSHOT</version>
 =======
@@ -2971,6 +2974,8 @@
 >>>>>>> e2c2191184c (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 40849b3b192 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> bfb98687366 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
     <version>5.0.0-SNAPSHOT</version>
 =======
@@ -4159,6 +4164,8 @@
 >>>>>>> 2e10de9c5f5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1506e448521 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 2e6f4446923 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 =======
 >>>>>>> 67c850bb2f ([maven-release-plugin] prepare for next development iteration)
@@ -4499,6 +4506,8 @@
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 5c87845c27 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 38d9229df3 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 3a2e956065 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -5742,8 +5751,11 @@
 =======
 >>>>>>> 239f254e7e ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4568d83473e ([maven-release-plugin] prepare for next development iteration)
 =======
+=======
+>>>>>>> 2e6f4446923 ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
 >>>>>>> 3a2e956065 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -7406,7 +7418,12 @@
 =======
 >>>>>>> c107a1f0ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 5c87845c27 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 1506e448521 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 38d9229df3 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 2e6f4446923 ([maven-release-plugin] prepare for next development iteration)
     <version>4.1.0-SNAPSHOT</version>
 =======
     <version>3.4.0-SNAPSHOT</version>
@@ -25473,14 +25490,20 @@
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 86fd3375c0 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 5c87845c27 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 86fd3375c0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 38d9229df3 ([maven-release-plugin] prepare for next development iteration)
     <version>4.1.0-SNAPSHOT</version>
 =======
     <version>3.3.0-SNAPSHOT</version>
 >>>>>>> cf42b98f8f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> dca5d74b69 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -32002,12 +32025,34 @@
 =======
 =======
 =======
+=======
+>>>>>>> 38d9229df3 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> dca5d74b69 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> c107a1f0ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 5c87845c27 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 1506e448521 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 40849b3b192 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 8f187121ad3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+    <version>3.4.0-SNAPSHOT</version>
+>>>>>>> a084f35ebb ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 86fd3375c0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 239f254e7e ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 38d9229df3 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 2e6f4446923 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> bfb98687366 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> ec4870cddc9 ([maven-release-plugin] prepare for next development iteration)
 
     <licenses>
         <license>
@@ -33293,6 +33338,7 @@
 
         <!-- documentation -->
         <!-- bump version right before performing releases for the README and the documentation -->
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -35394,6 +35440,8 @@
 >>>>>>> c75445c2430 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> bc53af193ab (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> ec4870cddc9 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
         <geomesa.release.version>5.0.1</geomesa.release.version>
 =======
@@ -36795,6 +36843,8 @@
 >>>>>>> b387b8488d6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> de5892f1e8a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> a7882ef1fa2 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
         <geomesa.release.version>5.0.0</geomesa.release.version>
 >>>>>>> f65c0d8670f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -38198,6 +38248,8 @@
 >>>>>>> e2c2191184c (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> bc3116c046a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> bfb98687366 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
         <geomesa.release.version>4.0.5</geomesa.release.version>
 =======
@@ -39602,6 +39654,8 @@
 >>>>>>> 86af194f7df (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 7b11fe83e5a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9a70b4a476a ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
         <geomesa.release.version>4.0.4</geomesa.release.version>
 <<<<<<< HEAD
@@ -40941,6 +40995,8 @@
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 38d9229df3 ([maven-release-plugin] prepare for next development iteration)
         <geomesa.release.version>4.0.2</geomesa.release.version>
 =======
 =======
@@ -41432,14 +41488,26 @@
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
 =======
+=======
+>>>>>>> 239f254e7e ([maven-release-plugin] prepare for next development iteration)
         <geomesa.release.version>4.0.1</geomesa.release.version>
 =======
+=======
+>>>>>>> 86fd3375c0 ([maven-release-plugin] prepare for next development iteration)
         <geomesa.release.version>4.0.0</geomesa.release.version>
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
 =======
+<<<<<<< HEAD
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> a084f35ebb ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 239f254e7e ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 38d9229df3 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
         <geomesa.release.version>3.5.0</geomesa.release.version>
         <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
@@ -55606,6 +55674,10 @@
 =======
         <geomesa.release.version>3.2.0</geomesa.release.version>
         <geomesa.devel.version>3.3.0-SNAPSHOT</geomesa.devel.version>
+=======
+        <geomesa.release.version>3.3.0</geomesa.release.version>
+        <geomesa.devel.version>3.4.0-SNAPSHOT</geomesa.devel.version>
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
         <copyright.year>2021</copyright.year>
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
