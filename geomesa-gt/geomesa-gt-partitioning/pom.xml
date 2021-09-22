@@ -89,6 +89,7 @@
 =======
 =======
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-partitioning/pom.xml
+<<<<<<< HEAD:geomesa-gt/geomesa-gt-partitioning/pom.xml
         <artifactId>geomesa-gt_2.12</artifactId>
 <<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
@@ -98,7 +99,9 @@
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-features/geomesa-feature-nio/pom.xml
+<<<<<<< HEAD
 >>>>>>> cf42b98f8f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 038b27c4861 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -110,15 +113,22 @@
 >>>>>>> a39044daadc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
+>>>>>>> 86fd3375c0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 4af6d6857af ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
         <version>3.4.0-SNAPSHOT</version>
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration):geomesa-features/geomesa-feature-nio/pom.xml
 >>>>>>> a084f35ebb ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 8d8a1669809 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> 58a4fbfb3c4 ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
+=======
+>>>>>>> 4af6d6857af ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
         <version>4.0.0</version>
@@ -258,8 +268,16 @@
 =======
 =======
 >>>>>>> dca5d74b69 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> a39044daadc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 0aed744cb36 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+>>>>>>> 86fd3375c0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 4af6d6857af ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> a453c2f1ae9 ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
