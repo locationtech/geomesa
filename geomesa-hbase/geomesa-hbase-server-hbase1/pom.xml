@@ -4,14 +4,23 @@
         <artifactId>geomesa-hbase_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
+=======
+>>>>>>> e574cbf364f ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> 1108247cc5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 8367a36725d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+        <version>3.4.0-SNAPSHOT</version>
+>>>>>>> 5792d822c6 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> e574cbf364f ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
