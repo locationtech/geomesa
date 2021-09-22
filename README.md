@@ -5446,6 +5446,7 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -5535,6 +5536,8 @@ CDN.
 =======
 >>>>>>> 8fd4b52074 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+>>>>>>> ad9041d15c ([maven-release-plugin] prepare for next development iteration)
+=======
 >>>>>>> fb47f5073b ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 1c744a07e0 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -5548,7 +5551,14 @@ CDN.
 =======
 =======
 >>>>>>> a1258aa460 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> 8fd4b52074 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> dbcf5b0dbb ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> ad9041d15c ([maven-release-plugin] prepare for next development iteration)
 Snapshot versions are published nightly to the Eclipse repository:
 =======
 ```xml
@@ -5730,6 +5740,7 @@ Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> fb47f5073b ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> 848040ab2b ([maven-release-plugin] prepare for next development iteration)
@@ -5753,7 +5764,17 @@ Snapshot versions are published nightly to the Eclipse repository:
 Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> a1258aa460 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> 8fd4b52074 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+=======
+Snapshot versions are published nightly to the Eclipse repository:
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> dbcf5b0dbb ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> ad9041d15c ([maven-release-plugin] prepare for next development iteration)
 
 ```xml
 <repository>
@@ -6047,6 +6068,7 @@ libraryDependencies ++= Seq(
 
 ## Building from Source
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6895,6 +6917,8 @@ libraryDependencies ++= Seq(
 >>>>>>> 8150528476 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d7ab86086c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> ad9041d15c ([maven-release-plugin] prepare for next development iteration)
 **Development version: 4.1.0-SNAPSHOT**
 =======
 **Development version: 4.0.0-SNAPSHOT**
@@ -6940,10 +6964,17 @@ libraryDependencies ++= Seq(
 >>>>>>> 7e68948ac6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
+>>>>>>> dbcf5b0dbb ([maven-release-plugin] prepare for next development iteration)
+=======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> b6c4628dba (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> dbcf5b0dbb ([maven-release-plugin] prepare for next development iteration)
 **Development version: 3.5.0-SNAPSHOT**
 =======
 **Development version: 4.0.0-SNAPSHOT**
@@ -6978,6 +7009,7 @@ libraryDependencies ++= Seq(
 =======
 **Development version: 3.4.0-SNAPSHOT**
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> fb47f5073b ([maven-release-plugin] prepare for next development iteration)
@@ -7015,6 +7047,8 @@ libraryDependencies ++= Seq(
 =======
 =======
 =======
+>>>>>>> dbcf5b0dbb ([maven-release-plugin] prepare for next development iteration)
+=======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 7e68948ac6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -7027,8 +7061,16 @@ libraryDependencies ++= Seq(
 **Development version: 3.3.0-SNAPSHOT**
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> b6c4628dba (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> d7ab86086c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> dbcf5b0dbb ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> ad9041d15c ([maven-release-plugin] prepare for next development iteration)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
