@@ -208,6 +208,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -620,6 +621,8 @@
 =======
 >>>>>>> 591334f3005 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> 6f068af95a4 ([maven-release-plugin] prepare for next development iteration)
+=======
 >>>>>>> 67c850bb2f ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 128d53e072 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -813,7 +816,12 @@
 =======
 =======
 >>>>>>> 0e18586576 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 591334f3005 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> ea51da41eb ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 6f068af95a4 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD
@@ -3841,6 +3849,7 @@
 =======
 >>>>>>> 3616f751a9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5fa4f4e5cc ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -4011,6 +4020,10 @@
 >>>>>>> 0683b797f6 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 0e18586576 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 5fa4f4e5cc ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> ea51da41eb ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
@@ -6041,8 +6054,12 @@
 >>>>>>> 322af20c7e ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
+=======
+>>>>>>> c009eb5e7f ([maven-release-plugin] prepare for next development iteration)
         <version>3.4.0-SNAPSHOT</version>
 =======
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> 1f8411bc8e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 0e18586576 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -6050,6 +6067,7 @@
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6092,6 +6110,8 @@
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 =======
 >>>>>>> 0e18586576 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> ea51da41eb ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
@@ -6281,6 +6301,7 @@
 >>>>>>> 8a73cc0434 ([maven-release-plugin] prepare for next development iteration):geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo2/pom.xml
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> c009eb5e7f ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -6301,9 +6322,15 @@
 =======
 >>>>>>> 322af20c7e ([maven-release-plugin] prepare for next development iteration)
 =======
+>>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> c009eb5e7f ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> ea51da41eb ([maven-release-plugin] prepare for next development iteration)
+=======
         <version>3.4.0-SNAPSHOT</version>
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6312,6 +6339,8 @@
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 =======
 >>>>>>> 9f0490ac78 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> ea51da41eb ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
@@ -6473,6 +6502,9 @@
 >>>>>>> 1f8411bc8e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ea51da41eb ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 3616f751a9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 954a02d7e06 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -6480,6 +6512,7 @@
 =======
 =======
 >>>>>>> c009eb5e7f ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 5fa4f4e5cc ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
@@ -9861,7 +9894,13 @@
 =======
 >>>>>>> 3616f751a9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 0e18586576 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 591334f3005 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 5fa4f4e5cc ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> ea51da41eb ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 6f068af95a4 ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
