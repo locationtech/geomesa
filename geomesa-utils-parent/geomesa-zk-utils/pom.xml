@@ -99,6 +99,7 @@
 =======
 >>>>>>> 059393960c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-zk-utils/pom.xml
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 059393960c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-zk-utils/pom.xml
 <<<<<<< HEAD
@@ -125,6 +126,7 @@
 =======
 <<<<<<< HEAD
 >>>>>>> e91404e741 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -151,6 +153,8 @@
 <<<<<<< HEAD
 >>>>>>> 848040ab2b ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> ead6a44dd8 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 91d4f12636 ([maven-release-plugin] prepare for next development iteration)
         <version>3.5.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
@@ -179,6 +183,7 @@
 >>>>>>> 848040ab2b ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-zk-utils/pom.xml
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-zk-utils/pom.xml
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-zk-utils/pom.xml
 >>>>>>> 6ed35b9ff9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-zk-utils/pom.xml
 =======
 =======
@@ -205,6 +210,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 91d4f12636 ([maven-release-plugin] prepare for next development iteration)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5717,7 +5725,12 @@
 =======
 >>>>>>> 059393960c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-zk-utils/pom.xml
 >>>>>>> 718c9f550e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> bcaee17f93 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> e91404e741 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 91d4f12636 ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
