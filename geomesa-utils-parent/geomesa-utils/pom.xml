@@ -200,6 +200,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/pom.xml
 =======
 >>>>>>> 059393960c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-utils/pom.xml
@@ -221,6 +222,7 @@
 <<<<<<< HEAD
 >>>>>>> ad9041d15c ([maven-release-plugin] prepare for next development iteration)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 86e5e3ea48 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -252,9 +254,12 @@
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 8a9771c7fb ([maven-release-plugin] prepare for next development iteration)
 =======
+=======
+>>>>>>> f2bd5577d4 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -269,6 +274,8 @@
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/pom.xml
 =======
 >>>>>>> fbcde51fc6 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> f2bd5577d4 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/pom.xml
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/pom.xml
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/pom.xml
@@ -363,6 +370,7 @@
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> d7ab86086c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ad9041d15c ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -453,6 +461,10 @@
 >>>>>>> 91d4f12636 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 29a776bce2 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> ad9041d15c ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> f2bd5577d4 ([maven-release-plugin] prepare for next development iteration)
         <version>3.5.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
@@ -737,6 +749,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f2bd5577d4 ([maven-release-plugin] prepare for next development iteration)
 =======
         <version>3.4.0-SNAPSHOT</version>
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
@@ -7885,8 +7900,25 @@
 =======
 >>>>>>> b6c4628dba (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-utils/pom.xml
 >>>>>>> d7ab86086c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 29a776bce2 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> a8ff66bd0a4 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/pom.xml
+>>>>>>> b6c4628dba (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-utils/pom.xml
+=======
+=======
+=======
+        <version>3.4.0-SNAPSHOT</version>
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> dbcf5b0dbb ([maven-release-plugin] prepare for next development iteration):geomesa-utils/pom.xml
+>>>>>>> ad9041d15c ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> f2bd5577d4 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> b52ce32c74e ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
