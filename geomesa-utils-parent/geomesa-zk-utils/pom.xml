@@ -100,6 +100,7 @@
 >>>>>>> 3346b773d3e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 059393960c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-zk-utils/pom.xml
 <<<<<<< HEAD
@@ -3085,12 +3086,15 @@
 =======
 =======
 >>>>>>> 90c964b1a1 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 6627dee08f ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
         <version>3.5.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-zk-utils/pom.xml
+<<<<<<< HEAD
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-zk-utils/pom.xml
 <<<<<<< HEAD
 >>>>>>> f39309c33 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -4182,7 +4186,18 @@
 =======
 >>>>>>> 6ed35b9ff9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-zk-utils/pom.xml
 >>>>>>> 6e1c2e524d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 3346b773d3e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 6ed35b9ff9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-zk-utils/pom.xml
+=======
+=======
+        <version>3.4.0-SNAPSHOT</version>
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> fb47f5073b ([maven-release-plugin] prepare for next development iteration):geomesa-zk-utils/pom.xml
+>>>>>>> 6627dee08f ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> d40f5683c26 ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
