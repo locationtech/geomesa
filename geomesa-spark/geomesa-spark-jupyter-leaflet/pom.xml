@@ -176,13 +176,24 @@
         <version>3.4.0-SNAPSHOT</version>
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3605e1a51 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> f8e2dfa5c2 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 357511344f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> a762db479 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 7f8ae0d275 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 65bdb53362 ([maven-release-plugin] prepare for next development iteration)
         <version>3.5.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -252,9 +263,13 @@
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
 =======
 >>>>>>> 357511344f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 65bdb53362 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
+=======
+>>>>>>> a762db479 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-jupyter/geomesa-jupyter-leaflet/pom.xml
 =======
@@ -269,11 +284,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> a762db479e ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> 56d09a91487 ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
+=======
+>>>>>>> 65bdb53362 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 059393960 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-jupyter/geomesa-jupyter-leaflet/pom.xml
 <<<<<<< HEAD
@@ -547,9 +565,20 @@
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-jupyter/geomesa-jupyter-leaflet/pom.xml
 >>>>>>> 3605e1a51 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> f8e2dfa5c2 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 357511344f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> 991b617c43e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+=======
+>>>>>>> a762db479 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 7f8ae0d275 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 65bdb53362 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> d6644ccd5e3 ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
