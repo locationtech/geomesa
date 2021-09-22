@@ -93,6 +93,7 @@
 =======
 >>>>>>> 16a2ad178c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo21/pom.xml
+<<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo21/pom.xml
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
@@ -120,6 +121,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> e574cbf364f ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
@@ -130,6 +132,10 @@
 >>>>>>> 52067c96448 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 3346b773d3e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 35375d0fd0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 1f7d3b6abfc ([maven-release-plugin] prepare for next development iteration)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo21/pom.xml
@@ -1358,10 +1364,13 @@
 >>>>>>> 16a2ad178c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> c9931fffaa9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
 >>>>>>> e92440e9de1 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 1f7d3b6abfc ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 315436b799 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
@@ -2003,7 +2012,14 @@
 =======
 =======
 >>>>>>> 8809dc9b7e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> e92440e9de1 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+>>>>>>> 315436b799 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 35375d0fd0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 1f7d3b6abfc ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
