@@ -285,16 +285,21 @@ write to a distributed file system like HDFS.
 Using GeoMesa SparkSQL with Apache Sedona
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-GeoMesa SparkSQL can work seamlessly with `Apache Sedona <http://sedona.apache.org/>`_. You can enable this feature by
-specifying ``geomesa.use.sedona`` system property to ``true`` when submitting your Spark job. Please make sure that
-Apache Sedona JAR ``sedona-python-adapter-${spark-version}_${scala-version}-${sedona-version}.jar`` is submitted with
-``--jars`` option:
+GeoMesa SparkSQL can work seamlessly with `Apache Sedona <http://sedona.apache.org/>`_. You can enable this feature by adding
+Apache Sedona JAR to your classpath. For example, you can submit your Spark job with
+``sedona-python-adapter-${spark-version}_${scala-version}-${sedona-version}.jar`` added to ``--jars`` option:
+
+.. code-block:: shell
+
+   spark-submit --jars /path/to/geomesa-spark-runtime-jar.jar,/path/to/sedona-python-adapter-jar.jar ...
+
+Once classes provided by Apache Sedona are available, Apache Sedona integration will be automatically enabled. You can manually
+disable this feature by setting system property ``geomesa.use.sedona`` to ``false``:
 
 .. code-block:: shell
 
    spark-submit --conf "spark.driver.extraJavaOptions=-Dgeomesa.use.sedona=true" \
                 --conf "spark.executor.extraJavaOptions=-Dgeomesa.use.sedona=true" \
-                --jars /path/to/geomesa-spark-runtime-jar.jar,/path/to/sedona-python-adapter-jar.jar \
                 ...
 
 There are several configs to take care of when creating Spark session object:
@@ -311,8 +316,7 @@ There are several configs to take care of when creating Spark session object:
     SQLTypes.init(spark.sqlContext)
 
 - ``spark.serializer`` and ``spark.kryo.registrator`` should be configured to use Kryo serializers provided by GeoMesa
-  Spark. ``GeoMesaSparkKryoRegistrator`` will automatically register other kryo serializers provided by Apache Sedona
-  when ``geomesa.use.sedona`` system property was set to ``true``.
+  Spark. ``GeoMesaSparkKryoRegistrator`` will automatically register other kryo serializers provided by Apache Sedona.
 
 - ``spark.geomesa.sedona.udf.prefix`` option specifies a common prefix to be added to Spark SQL functions provided by
   Apache Sedona. There're a lot of functions both provided by :doc:`./spark_jts` and Apache Sedona. For example,
@@ -325,8 +329,8 @@ There are several configs to take care of when creating Spark session object:
      spark.sql("SELECT st_pointFromText('POINT (10 20)')")
      spark.sql("SELECT sedona_ST_PointFromText('10,20', ',')")
 
-  When option ``spark.geomesa.sedona.udf.prefix`` was left unspecified or set as empty string, Spark JTS functions
-  will be overriden by functions from Apache Sedona with the same name.
+  The default value of ``spark.geomesa.sedona.udf.prefix`` is ``"sedona_"``. When this option was explicitly set to
+  empty string, Spark JTS functions will be overriden by functions from Apache Sedona with the same name.
 
 Geometric predicate function calls to Apache Sedona functions can be pushed down to DataStore by GeoMesa SparkSQL:
 

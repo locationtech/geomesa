@@ -21,7 +21,7 @@ import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.spark.GeoMesaRelation.PartitionedIndexedRDD
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
-import org.locationtech.geomesa.spark.sedona.haveSedona
+import org.locationtech.geomesa.spark.haveSedona
 import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils, SparkVersions}
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.jts.geom.{Envelope, Geometry}

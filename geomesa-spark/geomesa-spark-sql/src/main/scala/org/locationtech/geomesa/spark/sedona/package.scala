@@ -12,16 +12,12 @@ import org.apache.sedona.sql.UDF.Catalog
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.sedona_sql.strategy.join.JoinQueryDetector
 
-import scala.util.Try
-
 package object sedona {
 
-  val haveSedona: Boolean = Try(Class.forName("org.apache.spark.sql.sedona_sql.UDT.GeometryUDT")).isSuccess
-
   // User can specify a common prefix of UDFs/UDAFs introduced by Apache Sedona. For example, when prefix is specified
-  // as "Sedona_", ST_Contains function from Apache Sedona will be named as "Sedona_ST_Contains". When prefix is left
-  // empty, Apache Sedona functions will replace Spark JTS functions.
-  def sedonaUdfPrefix(sqlContext: SQLContext): String = sqlContext.getConf("spark.geomesa.sedona.udf.prefix", "")
+  // as "Sedona_", ST_Contains function from Apache Sedona will be named as "Sedona_ST_Contains". When prefix is explicitly
+  // set to empty, Apache Sedona functions will replace corresponding Spark JTS functions.
+  def sedonaUdfPrefix(sqlContext: SQLContext): String = sqlContext.getConf("spark.geomesa.sedona.udf.prefix", "sedona_")
 
   /**
    * Register Geometry UDTs, UDFs, UDAFs and optimization rules for Apache Sedona.

@@ -12,6 +12,8 @@ import org.apache.spark.SparkContext
 import org.apache.spark.sql.SparkSession
 import org.geotools.data.{DataStoreFinder, Transaction}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.spark.haveSedona
+import org.locationtech.geomesa.spark.isUsingSedona
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -61,6 +63,11 @@ class SparkSQLWithoutSedonaTest extends Specification {
   // This test is for verifying that GeoMesa SparkSQL could work without Apache Sedona: we should only load
   // Apache Sedona classes when spark.geomesa.use.sedona was set to true.
   "GeoMesa Spark SQL" should {
+    "not have or using sedona" in {
+      haveSedona must beFalse
+      isUsingSedona must beFalse
+    }
+
     "work well without Apache Sedona" in {
       val df = spark.read.format("geomesa").options(dsParams).option("geomesa.feature", "chicago").load()
       df.createOrReplaceTempView("chicago")

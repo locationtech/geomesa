@@ -12,6 +12,7 @@ import java.{util => ju}
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.spark.isUsingSedona
 import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.apache.spark.sql.{Column, DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{DataStore, DataStoreFinder}
@@ -50,6 +51,10 @@ class SparkSQLDataTest extends Specification with LazyLogging {
   }
 
   "sql data tests" should {
+
+    "not using sedon" >> {
+      isUsingSedona must beFalse
+    }
 
     "ingest chicago" >> {
       SparkSQLTestUtils.ingestChicago(ds)

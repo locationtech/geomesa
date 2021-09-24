@@ -13,6 +13,7 @@ import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.catalyst.util.ArrayData
 import org.apache.spark.sql.jts.GeometryUDT
+import org.locationtech.geomesa.spark.haveSedona
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 
 import scala.util.Try

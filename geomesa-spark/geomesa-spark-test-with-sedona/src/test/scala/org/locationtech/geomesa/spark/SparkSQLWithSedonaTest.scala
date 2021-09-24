@@ -85,7 +85,6 @@ class SparkSQLWithSedonaTest extends Specification with LazyLogging {
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .config("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
       .config("spark.sql.crossJoin.enabled", "true")
-      .config("spark.geomesa.sedona.udf.prefix", "sedona_")
       .config("spark.ui.enabled", value = false)
       .master("local[*]")
       .getOrCreate()

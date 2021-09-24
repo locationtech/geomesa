@@ -11,10 +11,14 @@ package org.locationtech.geomesa
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.util.Try
+
 package object spark {
   trait Schema {
     def schema: SimpleFeatureType
   }
 
-  def isUsingSedona: Boolean = SystemProperty("geomesa.use.sedona").toBoolean.getOrElse(false)
+  def isUsingSedona: Boolean = haveSedona && SystemProperty("geomesa.use.sedona").toBoolean.getOrElse(true)
+
+  val haveSedona: Boolean = Try(Class.forName("org.apache.spark.sql.sedona_sql.UDT.GeometryUDT")).isSuccess
 }
