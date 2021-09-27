@@ -10,7 +10,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.12</artifactId>
     <packaging>pom</packaging>
-    <version>3.3.0</version>
+    <version>3.3.1-SNAPSHOT</version>
 
     <licenses>
         <license>
