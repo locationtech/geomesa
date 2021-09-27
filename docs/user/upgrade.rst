@@ -91,8 +91,11 @@ Compatibility Matrix
 +--------------+-------+-------+-------+
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Version 5.0.0 Upgrade Guide
 =======
+=======
+>>>>>>> 52032d25f6e (Add note on NiFi scala version to upgrade guide)
 <<<<<<< HEAD
 Version 4.1.0 Upgrade Guide
 >>>>>>> 00f021f6c00 (Add note on NiFi scala version to upgrade guide)
@@ -230,6 +233,8 @@ If not specified, prepared statements now default to ``true``  in the partitione
 statements are generally faster on insert, and some attribute types (such as list-type attributes) are only
 supported through prepared statements.
 
+=======
+>>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -379,7 +384,11 @@ Dependency Updates
 * com.google.code.gson:gson: ``2.8.1`` -> ``2.8.9``
 
 =======
+<<<<<<< HEAD
 >>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
