@@ -119,6 +119,7 @@ Compatibility Matrix
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Version 5.0.0 Upgrade Guide
 =======
 =======
@@ -180,6 +181,8 @@ Version 5.0.0 Upgrade Guide
 >>>>>>> 88c1ec533b8 (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> 5f775c54521 (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 3f6774cce57 (Add note on NiFi scala version to upgrade guide)
 <<<<<<< HEAD
 =======
 >>>>>>> 9166a90e23 (Add note on NiFi scala version to upgrade guide)
@@ -332,7 +335,12 @@ Version 5.0.0 Upgrade Guide
 =======
 >>>>>>> a97cb0164e (Add note on NiFi scala version to upgrade guide)
 >>>>>>> 4c3d9587eb (Add note on NiFi scala version to upgrade guide)
+<<<<<<< HEAD
 >>>>>>> 5f775c54521 (Add note on NiFi scala version to upgrade guide)
+=======
+=======
+>>>>>>> a97cb0164e (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 3f6774cce57 (Add note on NiFi scala version to upgrade guide)
 Version 4.1.0 Upgrade Guide
 >>>>>>> 00f021f6c00 (Add note on NiFi scala version to upgrade guide)
 +++++++++++++++++++++++++++
@@ -482,6 +490,7 @@ statements are generally faster on insert, and some attribute types (such as lis
 supported through prepared statements.
 
 =======
+<<<<<<< HEAD
 >>>>>>> d5f3f284a6 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
 =======
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
@@ -587,6 +596,10 @@ supported through prepared statements.
 >>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
 >>>>>>> a97cb0164e (Add note on NiFi scala version to upgrade guide)
 >>>>>>> 4c3d9587eb (Add note on NiFi scala version to upgrade guide)
+=======
+<<<<<<< HEAD
+>>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
+>>>>>>> a97cb0164e (Add note on NiFi scala version to upgrade guide)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -1554,6 +1567,7 @@ Dependency Updates
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1741,6 +1755,10 @@ Dependency Updates
 >>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
 >>>>>>> a97cb0164e (Add note on NiFi scala version to upgrade guide)
 >>>>>>> 4c3d9587eb (Add note on NiFi scala version to upgrade guide)
+=======
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> a97cb0164e (Add note on NiFi scala version to upgrade guide)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
