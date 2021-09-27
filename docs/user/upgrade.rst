@@ -90,6 +90,15 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 3.3.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Scala Versions
+--------------
+
+GeoMesa NiFi NARs now ship with Scala 2.12 by default. This should be largely transparent to end-users, however
+any custom GeoMesa converter JARs used in NiFi and written in Scala will need to be compiled with Scala 2.12.
+
 Version 3.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
