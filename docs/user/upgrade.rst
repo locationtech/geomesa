@@ -94,6 +94,7 @@ Compatibility Matrix
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Version 5.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -118,6 +119,9 @@ The following dependencies have been upgraded:
 =======
 <<<<<<< HEAD
 >>>>>>> 7e19dd4a99a (Merge branch 'a0x8o' into stag0)
+=======
+<<<<<<< HEAD
+>>>>>>> 9e03d60b421 (Add note on NiFi scala version to upgrade guide)
 Version 5.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -174,6 +178,9 @@ The package for configuring audit logging has changed from ``org.locationtech.ge
 =======
 <<<<<<< HEAD
 >>>>>>> 0732be4394c (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> c5466a02061 (Add note on NiFi scala version to upgrade guide)
 Version 5.0.0 Upgrade Guide
 =======
 =======
@@ -182,6 +189,8 @@ Version 5.0.0 Upgrade Guide
 >>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 41b0b79cc0d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 17e4255218e (Add note on NiFi scala version to upgrade guide)
 <<<<<<< HEAD
 Version 4.1.0 Upgrade Guide
 >>>>>>> 00f021f6c00 (Add note on NiFi scala version to upgrade guide)
@@ -323,6 +332,8 @@ supported through prepared statements.
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 2dd5db0392 (Add note on NiFi scala version to upgrade guide)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -512,6 +523,7 @@ Dependency Updates
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
@@ -522,6 +534,10 @@ Dependency Updates
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 2dd5db0392 (Add note on NiFi scala version to upgrade guide)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
