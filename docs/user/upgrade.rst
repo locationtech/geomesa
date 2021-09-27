@@ -112,10 +112,14 @@ Compatibility Matrix
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9166a90e23 (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> 3a8f16e50e (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> 3bb01897ac (Add note on NiFi scala version to upgrade guide)
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -144,6 +148,8 @@ Compatibility Matrix
 =======
 >>>>>>> 3a8f16e50e (Add note on NiFi scala version to upgrade guide)
 >>>>>>> aaa8412afd (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 9166a90e23 (Add note on NiFi scala version to upgrade guide)
 Version 4.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -172,6 +178,7 @@ supported through prepared statements.
 
 =======
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
+<<<<<<< HEAD
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -189,6 +196,7 @@ supported through prepared statements.
 =======
 >>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
 >>>>>>> 3bb01897ac (Add note on NiFi scala version to upgrade guide)
@@ -220,6 +228,9 @@ supported through prepared statements.
 =======
 >>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
 >>>>>>> 364909bdaf (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 3bb01897ac (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 9166a90e23 (Add note on NiFi scala version to upgrade guide)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -954,9 +965,19 @@ Dependency Updates
 =======
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
+<<<<<<< HEAD
 >>>>>>> 3a8f16e50e (Add note on NiFi scala version to upgrade guide)
+<<<<<<< HEAD
 >>>>>>> aaa8412afd (Add note on NiFi scala version to upgrade guide)
+=======
+=======
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 3bb01897ac (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 9166a90e23 (Add note on NiFi scala version to upgrade guide)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
