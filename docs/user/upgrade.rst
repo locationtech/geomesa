@@ -96,6 +96,7 @@ Compatibility Matrix
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Version 5.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -124,6 +125,9 @@ The following dependencies have been upgraded:
 =======
 <<<<<<< HEAD
 >>>>>>> 288da4aa9c7 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 49ab41f169f (Add note on NiFi scala version to upgrade guide)
 Version 5.0.0 Upgrade Guide
 =======
 =======
@@ -136,6 +140,8 @@ Version 5.0.0 Upgrade Guide
 >>>>>>> 17e4255218e (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> 7db4865b988 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6c4eb6353a7 (Add note on NiFi scala version to upgrade guide)
 <<<<<<< HEAD
 Version 4.1.0 Upgrade Guide
 >>>>>>> 00f021f6c00 (Add note on NiFi scala version to upgrade guide)
@@ -281,6 +287,8 @@ supported through prepared statements.
 >>>>>>> 2dd5db0392 (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -549,6 +557,7 @@ Dependency Updates
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
@@ -565,6 +574,10 @@ Dependency Updates
 >>>>>>> 2dd5db0392 (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
