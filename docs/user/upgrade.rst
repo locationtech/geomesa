@@ -90,6 +90,7 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+<<<<<<< HEAD
 Version 5.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -100,6 +101,9 @@ The following dependencies have been upgraded:
 
 * spring-security ``5.8.14`` -> ``5.8.15``
 
+=======
+<<<<<<< HEAD
+>>>>>>> c82fb6bdbc7 (Add note on NiFi scala version to upgrade guide)
 Version 5.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -144,7 +148,14 @@ Audit Logger Changes
 The package for configuring audit logging has changed from ``org.locationtech.geomesa.utils.audit`` to
 ``org.locationtech.geomesa.index.audit``. See :ref:`audit_provider` for additional details on audit logging.
 
+=======
+<<<<<<< HEAD
+>>>>>>> f09704aae15 (Add note on NiFi scala version to upgrade guide)
 Version 5.0.0 Upgrade Guide
+=======
+<<<<<<< HEAD
+Version 4.1.0 Upgrade Guide
+>>>>>>> 00f021f6c00 (Add note on NiFi scala version to upgrade guide)
 +++++++++++++++++++++++++++
 
 Version Compatibility
@@ -427,6 +438,8 @@ Dependency Updates
 * org.slf4j:slf4j-api: ``1.7.25`` -> ``1.7.36``
 * com.google.code.gson:gson: ``2.8.1`` -> ``2.8.9``
 
+=======
+>>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
