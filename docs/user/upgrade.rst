@@ -118,6 +118,7 @@ Compatibility Matrix
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Version 5.0.0 Upgrade Guide
 =======
 =======
@@ -177,10 +178,14 @@ Version 5.0.0 Upgrade Guide
 >>>>>>> 8c0a0c82122 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 88c1ec533b8 (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 5f775c54521 (Add note on NiFi scala version to upgrade guide)
 <<<<<<< HEAD
 =======
 >>>>>>> 9166a90e23 (Add note on NiFi scala version to upgrade guide)
 >>>>>>> d027f78786a (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 4c3d9587eb (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -239,8 +244,11 @@ Version 5.0.0 Upgrade Guide
 =======
 >>>>>>> d381f46e90 (Add note on NiFi scala version to upgrade guide)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 25eb151d8cd (Add note on NiFi scala version to upgrade guide)
 =======
+=======
+>>>>>>> 5f775c54521 (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> 6eee7c559a (Add note on NiFi scala version to upgrade guide)
 <<<<<<< HEAD
@@ -316,7 +324,15 @@ Version 5.0.0 Upgrade Guide
 =======
 >>>>>>> d381f46e90 (Add note on NiFi scala version to upgrade guide)
 >>>>>>> aa984d6123 (Add note on NiFi scala version to upgrade guide)
+<<<<<<< HEAD
 >>>>>>> 88c1ec533b8 (Add note on NiFi scala version to upgrade guide)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> a97cb0164e (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 4c3d9587eb (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 5f775c54521 (Add note on NiFi scala version to upgrade guide)
 Version 4.1.0 Upgrade Guide
 >>>>>>> 00f021f6c00 (Add note on NiFi scala version to upgrade guide)
 +++++++++++++++++++++++++++
@@ -560,8 +576,17 @@ If not specified, prepared statements now default to ``true``  in the partitione
 statements are generally faster on insert, and some attribute types (such as list-type attributes) are only
 supported through prepared statements.
 
+<<<<<<< HEAD
 >>>>>>> 008807b427 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
+<<<<<<< HEAD
 >>>>>>> d5f3f284a6 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
+=======
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
+>>>>>>> a97cb0164e (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 4c3d9587eb (Add note on NiFi scala version to upgrade guide)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -1528,8 +1553,11 @@ Dependency Updates
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4c3d9587eb (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> 49f1028075 (Add note on NiFi scala version to upgrade guide)
 =======
@@ -1650,6 +1678,7 @@ Dependency Updates
 <<<<<<< HEAD
 =======
 >>>>>>> d381f46e90 (Add note on NiFi scala version to upgrade guide)
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -1705,6 +1734,13 @@ Dependency Updates
 =======
 >>>>>>> d381f46e90 (Add note on NiFi scala version to upgrade guide)
 >>>>>>> aa984d6123 (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> locationtech-main
+=======
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> a97cb0164e (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 4c3d9587eb (Add note on NiFi scala version to upgrade guide)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
