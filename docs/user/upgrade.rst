@@ -91,6 +91,7 @@ Compatibility Matrix
 +--------------+-------+-------+-------+
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Version 4.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -108,6 +109,8 @@ The following classes have been deprecated and will be removed in a future versi
 
 * org.locationtech.geomesa.kafka.confluent.SchemaParser.GeoMesaAvroDeserializableEnumProperty
 
+=======
+>>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -257,7 +260,11 @@ Dependency Updates
 * com.google.code.gson:gson: ``2.8.1`` -> ``2.8.9``
 
 =======
+<<<<<<< HEAD
 >>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
