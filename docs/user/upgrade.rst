@@ -98,8 +98,11 @@ Compatibility Matrix
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3a8f16e50e (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 3bb01897ac (Add note on NiFi scala version to upgrade guide)
 Version 4.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -117,6 +120,7 @@ The following classes have been deprecated and will be removed in a future versi
 
 * org.locationtech.geomesa.kafka.confluent.SchemaParser.GeoMesaAvroDeserializableEnumProperty
 
+<<<<<<< HEAD
 Partitioned PostGIS Prepared Statements
 ---------------------------------------
 
@@ -134,6 +138,10 @@ supported through prepared statements.
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
+=======
+=======
+>>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 3bb01897ac (Add note on NiFi scala version to upgrade guide)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -426,8 +434,15 @@ Dependency Updates
 >>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
+<<<<<<< HEAD
 >>>>>>> 3a8f16e50e (Add note on NiFi scala version to upgrade guide)
+=======
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 3bb01897ac (Add note on NiFi scala version to upgrade guide)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
