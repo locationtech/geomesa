@@ -90,6 +90,7 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+<<<<<<< HEAD
 Version 4.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -114,6 +115,9 @@ If not specified, prepared statements now default to ``true``  in the partitione
 statements are generally faster on insert, and some attribute types (such as list-type attributes) are only
 supported through prepared statements.
 
+=======
+<<<<<<< HEAD
+>>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -262,6 +266,8 @@ Dependency Updates
 * org.slf4j:slf4j-api: ``1.7.25`` -> ``1.7.36``
 * com.google.code.gson:gson: ``2.8.1`` -> ``2.8.9``
 
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
