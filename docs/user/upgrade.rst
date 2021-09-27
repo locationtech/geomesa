@@ -98,6 +98,7 @@ Compatibility Matrix
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Version 5.0.0 Upgrade Guide
 =======
 =======
@@ -118,6 +119,13 @@ Version 5.0.0 Upgrade Guide
 =======
 >>>>>>> 3a8f16e50e (Add note on NiFi scala version to upgrade guide)
 >>>>>>> 71febf7318d (Add note on NiFi scala version to upgrade guide)
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 3a8f16e50e (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 3bb01897ac (Add note on NiFi scala version to upgrade guide)
+>>>>>>> cb24731debc (Add note on NiFi scala version to upgrade guide)
 Version 4.1.0 Upgrade Guide
 >>>>>>> 00f021f6c00 (Add note on NiFi scala version to upgrade guide)
 +++++++++++++++++++++++++++
@@ -233,6 +241,7 @@ The following classes have been deprecated and will be removed in a future versi
 
 * org.locationtech.geomesa.kafka.confluent.SchemaParser.GeoMesaAvroDeserializableEnumProperty
 
+<<<<<<< HEAD
 Removed Modules
 ---------------
 
@@ -247,6 +256,9 @@ GeoMesa Convert OSM
 
 The ``geomesa-convert-osm`` module has been relocated to https://github.com/geomesa/geomesa-convert-osm.
 
+=======
+<<<<<<< HEAD
+>>>>>>> 1d14c6bb326 (Add note on NiFi scala version to upgrade guide)
 Partitioned PostGIS Prepared Statements
 ---------------------------------------
 
@@ -264,6 +276,10 @@ supported through prepared statements.
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
+=======
+=======
+>>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 3bb01897ac (Add note on NiFi scala version to upgrade guide)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -556,8 +572,15 @@ Dependency Updates
 >>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
+<<<<<<< HEAD
 >>>>>>> 3a8f16e50e (Add note on NiFi scala version to upgrade guide)
+=======
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 3bb01897ac (Add note on NiFi scala version to upgrade guide)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
