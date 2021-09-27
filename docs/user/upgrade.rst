@@ -97,6 +97,7 @@ Compatibility Matrix
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Version 5.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -128,6 +129,9 @@ The following dependencies have been upgraded:
 =======
 <<<<<<< HEAD
 >>>>>>> 447e64c55d1 (Add note on NiFi scala version to upgrade guide)
+=======
+<<<<<<< HEAD
+>>>>>>> 6e38a2485cb (Add note on NiFi scala version to upgrade guide)
 Version 5.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -193,6 +197,9 @@ The package for configuring audit logging has changed from ``org.locationtech.ge
 =======
 <<<<<<< HEAD
 >>>>>>> 49ab41f169f (Add note on NiFi scala version to upgrade guide)
+=======
+<<<<<<< HEAD
+>>>>>>> 6388f621f09 (Add note on NiFi scala version to upgrade guide)
 Version 5.0.0 Upgrade Guide
 =======
 =======
@@ -208,6 +215,11 @@ Version 5.0.0 Upgrade Guide
 =======
 >>>>>>> 6c4eb6353a7 (Add note on NiFi scala version to upgrade guide)
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 3a8f16e50e (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 71febf7318d (Add note on NiFi scala version to upgrade guide)
 Version 4.1.0 Upgrade Guide
 >>>>>>> 00f021f6c00 (Add note on NiFi scala version to upgrade guide)
 +++++++++++++++++++++++++++
@@ -623,6 +635,7 @@ Dependency Updates
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
@@ -643,6 +656,10 @@ Dependency Updates
 =======
 >>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
 >>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
+=======
+=======
+>>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 3a8f16e50e (Add note on NiFi scala version to upgrade guide)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
