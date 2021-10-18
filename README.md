@@ -74,8 +74,18 @@ The keys currently used for signing are:
 
 [![Maven](.github/maven-badge.svg)](https://search.maven.org/search?q=g:org.locationtech.geomesa)
 
-GeoMesa is hosted on Maven Central. However, it still depends on several third-party libraries only available
-in other repositories. To include GeoMesa in your project, add the following repositories to your pom:
+GeoMesa is hosted on Maven Central. To include it as a dependency, add the desired modules, for example:
+
+```xml
+<dependency>
+  <groupId>org.locationtech.geomesa</groupId>
+  <artifactId>geomesa-hbase-datastore_2.12</artifactId>
+  <version>3.3.0</version>
+</dependency>
+```
+
+GeoMesa depends on several third-party libraries that are only available in separate repositories. To include
+GeoMesa in your project, add the following repositories to your pom:
 
 ```xml
 <repositories>
@@ -92,29 +102,9 @@ in other repositories. To include GeoMesa in your project, add the following rep
 </repositories>
 ```
 
-You may then include the desired `geomesa-*` dependencies, for example:
+### Nightly Snapshots
 
-```xml
-<dependency>
-  <groupId>org.locationtech.geomesa</groupId>
-  <artifactId>geomesa-utils_2.12</artifactId>
-  <version>3.3.0</version>
-</dependency>
-```
-
-To download from the LocationTech Maven repository (required for older versions), add:
-
-```xml
-<repository>
-  <id>eclipse-releases</id>
-  <url>https://repo.eclipse.org/content/groups/releases</url>
-  <snapshots>
-    <enabled>false</enabled>
-  </snapshots>
-</repository>
-```
-
-For nightly snapshot integration, add:
+Snapshot versions are published nightly to the Eclipse repository:
 
 ```xml
 <repository>
@@ -128,6 +118,29 @@ For nightly snapshot integration, add:
   </snapshots>
 </repository>
 ```
+
+### Spark Runtimes
+
+GeoMesa publishes `spark-runtime` JARs for integration with Spark environments like Databricks. These
+shaded JARs include all the required dependencies in a single artifact. When importing through Maven, all
+transitive dependencies can be excluded. There are Spark runtime JARs available for most of the different
+DataStore implementations:
+
+```xml
+<dependency>
+  <groupId>org.locationtech.geomesa</groupId>
+  <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
+  <version>3.3.0</version>
+  <exclusions>
+    <exclusion>
+      <groupId>*</groupId>
+      <artifactId>*</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+```
+
+These JARs are also included in the [Downloads](#downloads) bundles, above.
 
 ## `sbt` Integration
 
