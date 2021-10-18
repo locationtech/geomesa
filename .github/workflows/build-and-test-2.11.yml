@@ -26,7 +26,7 @@ jobs:
       - name: Set Scala version
         run: ./build/change-scala-version.sh 2.11
       - name: Build with Maven
-        run: ./build/mvn clean install -Pbigtable -DskipTests -T4
+        run: ./build/mvn clean install -Pbigtable -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: Unit Tests
         run: mvn -o surefire:test -Pbigtable -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
       - name: HBase Tests
