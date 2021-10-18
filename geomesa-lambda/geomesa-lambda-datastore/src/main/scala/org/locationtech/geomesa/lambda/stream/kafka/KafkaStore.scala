@@ -18,7 +18,6 @@ import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
-import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
@@ -284,17 +283,25 @@ object KafkaStore {
     */
   class FeatureIdPartitioner extends Partitioner {
 
-    private var feature: KryoBufferSimpleFeature = _
+    private var serializer: KryoFeatureSerializer = _
 
-    override def partition(topic: String,
-                           key: scala.Any,
-                           keyBytes: Array[Byte],
-                           value: scala.Any,
-                           valueBytes: Array[Byte],
-                           cluster: Cluster): Int = {
-      val count = cluster.partitionsForTopic(topic).size
-      feature.setBuffer(valueBytes)
-      Math.abs(MurmurHash3.stringHash(feature.getID)) % count
+    private val features = new ThreadLocal[KryoBufferSimpleFeature]() {
+      override def initialValue(): KryoBufferSimpleFeature = serializer.getReusableFeature
+    }
+
+    override def partition(
+        topic: String,
+        key: scala.Any,
+        keyBytes: Array[Byte],
+        value: scala.Any,
+        valueBytes: Array[Byte],
+        cluster: Cluster): Int = {
+      val numPartitions = cluster.partitionsForTopic(topic).size
+      if (numPartitions < 2) { 0 } else {
+        val feature = features.get
+        feature.setBuffer(valueBytes)
+        Math.abs(MurmurHash3.stringHash(feature.getID)) % numPartitions
+      }
     }
 
     override def configure(configs: java.util.Map[String, _]): Unit = {
@@ -303,7 +310,7 @@ object KafkaStore {
         case s => throw new IllegalStateException(s"Invalid spec config for $SimpleFeatureSpecConfig: $s")
       }
       val options = SerializationOptions.builder.immutable.`lazy`.build
-      feature = KryoFeatureSerializer(SimpleFeatureTypes.createType("", spec), options).getReusableFeature
+      serializer = KryoFeatureSerializer(SimpleFeatureTypes.createType("", spec), options)
     }
 
     override def close(): Unit = {}
