@@ -293,14 +293,16 @@ Apache Sedona JAR to your classpath. For example, you can submit your Spark job 
 
    spark-submit --jars /path/to/geomesa-spark-runtime-jar.jar,/path/to/sedona-python-adapter-jar.jar ...
 
-Once classes provided by Apache Sedona are available, Apache Sedona integration will be automatically enabled. You can manually
-disable this feature by setting system property ``geomesa.use.sedona`` to ``false``:
+.. note::
 
-.. code-block:: shell
+  Once classes provided by Apache Sedona are available, Apache Sedona integration will be automatically enabled. You can manually
+  disable this feature by setting system property ``geomesa.use.sedona`` to ``false``:
 
-   spark-submit --conf "spark.driver.extraJavaOptions=-Dgeomesa.use.sedona=true" \
-                --conf "spark.executor.extraJavaOptions=-Dgeomesa.use.sedona=true" \
-                ...
+  .. code-block:: shell
+
+    spark-submit --conf "spark.driver.extraJavaOptions=-Dgeomesa.use.sedona=false" \
+                  --conf "spark.executor.extraJavaOptions=-Dgeomesa.use.sedona=false" \
+                  ...
 
 There are several configs to take care of when creating Spark session object:
 
