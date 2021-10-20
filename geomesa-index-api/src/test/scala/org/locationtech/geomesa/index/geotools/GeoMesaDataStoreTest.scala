@@ -18,6 +18,7 @@ import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
+import org.locationtech.geomesa.index.TestGeoMesaDataStore.TestAttributeIndex
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
@@ -67,6 +68,18 @@ class GeoMesaDataStoreTest extends Specification {
       val query = new Query("test", filter)
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
       results must beEmpty
+    }
+    "handle ORs between indexed attribute fields" >> {
+      val spec =
+        "attr1:Long:cardinality=high:index=true,attr2:Long:cardinality=high:index=true," +
+            "name:String:cardinality=high:index=true,dtg:Date,*geom:Point:srid=4326"
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(SimpleFeatureTypes.createType("test", spec))
+      val filter =
+        ECQL.toFilter("(attr1=1 OR attr2=2 OR name='3') and dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z")
+      val plans = ds.getQueryPlan(new Query("test", filter))
+      plans must haveLength(3)
+      foreach(plans)(_.filter.index must beAnInstanceOf[TestAttributeIndex])
     }
   }
 }

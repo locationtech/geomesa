@@ -206,6 +206,7 @@ trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult], F <: Wrapp
     * Gets the estimated cost of running the query. In general, this is the estimated
     * number of features that will have to be scanned.
     */
+  @deprecated("replaced with costMultiplier in filter strategy")
   def getCost(sft: SimpleFeatureType,
               stats: Option[GeoMesaStats],
               filter: TypedFilterStrategy,

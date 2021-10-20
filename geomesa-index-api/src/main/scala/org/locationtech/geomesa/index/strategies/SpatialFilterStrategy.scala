@@ -27,15 +27,15 @@ trait SpatialFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeatur
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     if (filter == Filter.INCLUDE) {
-      Seq(FilterStrategy(this, None, None))
+      Seq(FilterStrategy(this, None, None, temporal = false, Float.PositiveInfinity))
     } else if (filter == Filter.EXCLUDE) {
       Seq.empty
     } else {
       val (spatial, nonSpatial) = FilterExtractingVisitor(filter, sft.getGeomField, sft, spatialCheck)
       if (spatial.nonEmpty) {
-        Seq(FilterStrategy(this, spatial, nonSpatial))
+        Seq(FilterStrategy(this, spatial, nonSpatial, temporal = false, 1.2f))
       } else {
-        Seq(FilterStrategy(this, None, Some(filter)))
+        Seq(FilterStrategy(this, None, Some(filter), temporal = false, Float.PositiveInfinity))
       }
     }
   }

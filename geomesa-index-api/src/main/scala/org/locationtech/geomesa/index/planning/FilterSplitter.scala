@@ -13,10 +13,10 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
 import org.locationtech.geomesa.index.api.{FilterPlan, FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 
-import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -26,6 +26,8 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     (sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[DS, F, W]]) extends LazyLogging {
 
   import FilterSplitter._
+
+  import scala.collection.JavaConverters._
 
   type TypedFilterPlan = FilterPlan[DS, F, W]
   type TypedFilterStrategy = FilterStrategy[DS, F, W]
@@ -65,30 +67,72 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     rewriteFilterInCNF(filter) match {
       case a: And =>
         // look for ORs across attributes, e.g. bbox OR dtg
-        val (complex, simple) = a.getChildren.partition(f => f.isInstanceOf[Or] && attributeAndIdCount(f, sft) > 1)
+        val complex = ArrayBuffer.empty[Or]
+        val simple = ArrayBuffer.empty[Filter]
+        var permutations = 1
+
+        a.getChildren.asScala.foreach {
+          case or: Or =>
+            val attributes = attributeAndIdCount(or, sft)
+            if (attributes > 1) {
+              complex += or
+              permutations *= attributes
+            } else {
+              simple += or
+            }
+
+          case f =>
+            simple += f
+        }
+
         if (complex.isEmpty) {
           // no cross-attribute ORs
-          getSimpleQueryOptions(a, transform).map(FilterPlan.apply[DS, F, W])
-        } else if (simple.nonEmpty) {
-          logger.warn("Not considering complex OR predicates in query planning: " +
-              s"${complex.map(filterToString).mkString("(", ") AND (", ")")}")
-          def addComplexPredicates(qf: TypedFilterStrategy) =
-            qf.copy(secondary = andOption(qf.secondary.toSeq ++ complex))
-          val simpleOptions = getSimpleQueryOptions(andFilters(simple), transform)
-          simpleOptions.map(addComplexPredicates).map(FilterPlan.apply[DS, F, W])
+          getSimpleQueryOptions(a, transform).map(fs => FilterPlan(Seq(fs)))
         } else {
-          logger.warn(s"Falling back to expand/reduce query splitting for filter ${filterToString(filter)}")
-          val dnf = rewriteFilterInDNF(filter).asInstanceOf[Or]
-          expandReduceOrOptions(dnf, transform).map(makeDisjoint)
+          // we don't generally consider all the permutations available, as that takes exponential time
+          // instead, we consider the cross-attribute-ors and the rest of the query separately
+
+          // the cross-attribute or plans
+          // each option should just result in 1 filter plan since there are no ANDs
+          val complexOptions = complex.map(getQueryOptions(_, transform))
+
+          // the non-cross-attribute ors, with the ors tacked on as secondary filters at the end
+          lazy val simpleOptions = if (simple.isEmpty) { Seq.empty } else {
+            getSimpleQueryOptions(andFilters(simple), transform)
+                .map(s => FilterPlan(Seq(addSecondaryPredicates(s, complex))))
+          }
+          lazy val expandReduceOptions =
+            expandReduceOrOptions(rewriteFilterInDNF(filter).asInstanceOf[Or], transform)
+                .map(fp => FilterPlan(makeDisjoint(fp.strategies)))
+
+          if (complexOptions.forall(o => o.lengthCompare(1) == 0 && o.head.strategies.forall(_.isPreferredScan))) {
+            // if each of the complex options has a good scan available, return those plus the simple options
+            complexOptions.map(o => FilterPlan(o.head.strategies.map(addSecondaryPredicates(_, simple)))) ++
+                simpleOptions
+          } else if (ExpandReduceThreshold.toInt.exists(_ > permutations)) {
+            logger.debug(s"Using ${getExpandReduceLog(filter, permutations)}")
+            expandReduceOptions
+          } else if (simpleOptions.nonEmpty) {
+            // if there's not a clear option for the complex scans, ignore them and just return the simple ones
+            logger.warn("Not considering complex OR predicates in query planning: " +
+                s"${complex.map(filterToString).mkString("(", ") AND (", ")")}")
+            simpleOptions
+          } else {
+            // if there aren't any simple plans or clear options for the complex plans,
+            // fall back to the expand-reduce logic
+            logger.warn(s"Falling back to ${getExpandReduceLog(filter, permutations)}")
+            expandReduceOptions
+          }
         }
 
       case o: Or =>
         // there are no ands - just ors between fields
         // this implies that each child has only a single property or ID
-        def getGroup(f: Filter) = (FilterHelper.propertyNames(f, sft), FilterHelper.hasIdFilter(f))
+        def getGroup(f: Filter): (Seq[String], Boolean) =
+          (FilterHelper.propertyNames(f, sft), FilterHelper.hasIdFilter(f))
 
         // group and then recombine the OR'd filters by the attribute they operate on
-        val groups = o.getChildren.groupBy(getGroup).values.map(ff.or(_)).toSeq
+        val groups = o.getChildren.asScala.groupBy(getGroup).values.map(g => ff.or(g.asJava)).toSeq
         val perAttributeOptions = groups.flatMap { g =>
           val options = getSimpleQueryOptions(g, transform)
           require(options.length < 2, s"Expected only a single option for ${filterToString(g)} but got $options")
@@ -96,13 +140,13 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
         }
         if (perAttributeOptions.exists(_.primary.isEmpty)) {
           // we have to do a full table scan for part of the query, just append everything to that
-          Seq(FilterPlan(fullTableScanOption(o, transform)))
+          Seq(FilterPlan(Seq(fullTableScanOption(o, transform))))
         } else {
-          Seq(makeDisjoint(FilterPlan(perAttributeOptions)))
+          Seq(FilterPlan(makeDisjoint(perAttributeOptions)))
         }
 
       case f =>
-        getSimpleQueryOptions(f, transform).map(qf => FilterPlan(Seq(qf)))
+        getSimpleQueryOptions(f, transform).map(fs => FilterPlan(Seq(fs)))
     }
   }
 
@@ -120,15 +164,25 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     * @return sequence of options, any of which can satisfy the query
     */
   private def getSimpleQueryOptions(filter: Filter, transform: Option[SimpleFeatureType]): Seq[TypedFilterStrategy] = {
-    val options = indices.flatMap(_.getFilterStrategy(sft, filter, transform))
-    if (options.isEmpty) {
-      Seq.empty
-    } else {
-      val (fullScans, indexScans) = options.partition(_.primary.isEmpty)
-      if (indexScans.nonEmpty) {
-        indexScans
-      } else {
-        Seq(fullScans.head)
+    if (filter == Filter.EXCLUDE) { Seq.empty } else {
+      val fullTableScansBuilder  = Seq.newBuilder[TypedFilterStrategy]
+      val preferredScansBuilder  = Seq.newBuilder[TypedFilterStrategy]
+      val acceptableScansBuilder = Seq.newBuilder[TypedFilterStrategy]
+
+      indices.foreach { i =>
+        i.getFilterStrategy(sft, filter, transform).foreach {
+          case f if f.primary.isEmpty => fullTableScansBuilder += f
+          case f if f.isPreferredScan => preferredScansBuilder += f
+          case f                      => acceptableScansBuilder += f
+        }
+      }
+
+      val preferredScans = preferredScansBuilder.result
+      if (preferredScans.nonEmpty) { preferredScans } else {
+        val acceptableScans = acceptableScansBuilder.result
+        if (acceptableScans.nonEmpty) { acceptableScans } else {
+          fullTableScansBuilder.result.take(1)
+        }
       }
     }
   }
@@ -142,7 +196,7 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     // for each child of the or, get the query options
     // each filter plan should only have a single query filter
     def getChildOptions: Seq[Seq[TypedFilterPlan]] =
-      filter.getChildren.map(getSimpleQueryOptions(_, transform).map(qf => FilterPlan(Seq(qf))))
+      filter.getChildren.asScala.map(getSimpleQueryOptions(_, transform).map(fs => FilterPlan(Seq(fs))))
 
     // combine the filter plans so that each plan has multiple query filters
     // use the permutations of the different options for each child
@@ -163,7 +217,7 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
           groups.append(f)
         } else {
           val current = groups(i).secondary match {
-            case Some(o) if o.isInstanceOf[Or] => o.asInstanceOf[Or].getChildren.toSeq
+            case Some(o: Or) => o.getChildren.asScala
             case Some(n) => Seq(n)
             case None => Seq.empty
           }
@@ -176,7 +230,7 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     // if a filter plan has any query filters that scan a subset of the range of a different query filter,
     // then we can combine them, as we have to scan the larger range anyway
     def mergeOverlappedFilters(options: Seq[TypedFilterPlan]): Seq[TypedFilterPlan] = options.map { filterPlan =>
-      val filters = ArrayBuffer(filterPlan.strategies: _*)
+      val filters = ArrayBuffer[TypedFilterStrategy](filterPlan.strategies: _*)
       var merged: TypedFilterStrategy = null
       var i = 0
       while (i < filters.length) {
@@ -233,9 +287,20 @@ class FilterSplitter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
       throw new UnsupportedOperationException(s"Configured indices do not support the query ${filterToString(filter)}")
     }
   }
+
+  private def addSecondaryPredicates(filter: TypedFilterStrategy, predicates: Seq[Filter]): TypedFilterStrategy = {
+    val secondary = andOption(filter.secondary.toSeq ++ predicates)
+    FilterStrategy(filter.index, filter.primary, secondary, filter.temporal, filter.costMultiplier)
+  }
+
+  private def getExpandReduceLog(filter: Filter, permutations: Int): String =
+    s"expand/reduce query splitting with $permutations permutations for filter ${filterToString(filter)}"
+
 }
 
 object FilterSplitter {
+
+  val ExpandReduceThreshold: SystemProperty = SystemProperty("geomesa.query.processing.or.threshold")
 
   /**
     * Gets the count of distinct attributes being queried - ID is treated as an attribute
@@ -288,7 +353,7 @@ object FilterSplitter {
     }
 
     if (canMergePrimary && toMerge.secondary == mergeTo.secondary) {
-      FilterStrategy(mergeTo.index, orOption(toMerge.primary.toSeq ++ mergeTo.primary), mergeTo.secondary)
+      mergeTo.copy(primary = orOption(toMerge.primary.toSeq ++ mergeTo.primary))
     } else {
       null
     }
@@ -300,21 +365,20 @@ object FilterSplitter {
     * @param option filter plan
     * @return same filter plan with disjoint ORs
     */
-  def makeDisjoint[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](option: FilterPlan[DS, F, W]): FilterPlan[DS, F, W] = {
-    if (option.strategies.length < 2) {
-      option
-    } else {
-      // A OR B OR C becomes... A OR (B NOT A) OR (C NOT A and NOT B)
-      def extractNot(qp: FilterStrategy[DS, F, W]) = qp.filter.map(ff.not)
-      // keep track of our current disjoint clause
-      val nots = ArrayBuffer[Filter]()
-      extractNot(option.strategies.head).foreach(nots.append(_))
-      val filters = Seq(option.strategies.head) ++ option.strategies.tail.map { filter =>
-        val sec = Some(andFilters(nots ++ filter.secondary))
-        extractNot(filter).foreach(nots.append(_)) // note - side effect
-        filter.copy(secondary = sec)
+   def makeDisjoint[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](
+       strategies: Seq[FilterStrategy[DS, F, W]]): Seq[FilterStrategy[DS, F, W]] = {
+      if (strategies.lengthCompare(2) < 0) { strategies } else {
+        // A OR B OR C becomes... A OR (B NOT A) OR (C NOT A and NOT B)
+        // keep track of our current disjoint clause
+        val nots = ArrayBuffer.empty[Filter]
+        strategies.map { filter =>
+          val res = if (nots.isEmpty) { filter } else {
+            val secondary = Some(andFilters(nots ++ filter.secondary))
+            FilterStrategy(filter.index, filter.primary, secondary, filter.temporal, filter.costMultiplier)
+          }
+          nots ++= filter.filter.map(ff.not) // note - side effect
+          res
+        }
       }
-      FilterPlan(filters)
     }
-  }
 }

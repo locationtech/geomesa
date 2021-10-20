@@ -187,13 +187,21 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
                                  transform: Option[SimpleFeatureType]): Seq[AccumuloFilterStrategyType] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-    val strategies = super.getFilterStrategy(sft, filter, transform)
-    // verify that it's ok to return join plans, and filter them out if not
-    if (AllowJoinPlans.get) { strategies } else {
-      strategies.filterNot { strategy =>
-        val attributes = strategy.primary.toSeq.flatMap(FilterHelper.propertyNames(_, sft))
-        val joins = attributes.filter(sft.getDescriptor(_).getIndexCoverage() == IndexCoverage.JOIN)
-        joins.exists(AccumuloAttributeIndex.requiresJoin(sft, _, strategy.secondary, transform))
+    super.getFilterStrategy(sft, filter, transform).flatMap { strategy =>
+      val attribute = strategy.primary.flatMap(FilterHelper.propertyNames(_, sft).headOption).getOrElse {
+        throw new IllegalStateException("Got an attribute strategy without an attribute filter")
+      }
+      val requiresJoin = AccumuloAttributeIndex.requiresJoin(sft, attribute, strategy.secondary, transform)
+      if (!requiresJoin) {
+        Some(strategy)
+      } else if (!AllowJoinPlans.get) {
+          None
+      } else {
+        val primary = strategy.primary.getOrElse(Filter.INCLUDE)
+        val bounds = FilterHelper.extractAttributeBounds(primary, attribute, sft.getDescriptor(attribute).getType.getBinding)
+        val joinMultiplier = 9f + bounds.values.length // 10 plus 1 per additional range being scanned
+        val multiplier = strategy.costMultiplier * joinMultiplier
+        Some(FilterStrategy(strategy.index, strategy.primary, strategy.secondary, strategy.temporal, multiplier))
       }
     }
   }

@@ -35,6 +35,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 
+import java.util.Date
 import scala.util.Try
 
 trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
@@ -289,15 +290,39 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     }
     indexedAttributes.flatMap { case (attribute, coverage) =>
       val (primary, secondary) = FilterExtractingVisitor(filter, attribute, sft, attributeCheck)
-      // check to see if we have a join plan and if so, that it's ok to return it
-      lazy val joinCheck = coverage match {
-        case IndexCoverage.FULL => true
-        case IndexCoverage.JOIN => AllowJoinPlans.get || !requiresJoin(sft, attribute, secondary, transform)
+      val nonJoin = primary.map { extracted =>
+        val binding = sft.getDescriptor(attribute).getType.getBinding
+        val bounds = FilterHelper.extractAttributeBounds(extracted, attribute, binding)
+        val isEquals = bounds.precise && bounds.nonEmpty && bounds.forall(_.isEquals)
+        val temporal = classOf[Date].isAssignableFrom(binding)
+        val basePriority =
+          if (isEquals) {
+            1f
+          } else if (bounds.isEmpty || !bounds.forall(_.isBounded)) {
+            1000f // not null
+          } else {
+            2.5f // range query
+          }
+        // prioritize attributes based on cardinality hint
+        val priority = sft.getDescriptor(attribute).getCardinality() match {
+          case Cardinality.HIGH    => basePriority / 10f
+          case Cardinality.UNKNOWN => basePriority
+          case Cardinality.LOW     => basePriority * 10f
+        }
+        FilterStrategy(this, primary, secondary, temporal, priority)
       }
-      if (primary.isDefined && joinCheck) {
-        Seq(FilterStrategy(this, primary, secondary))
+      if (coverage == IndexCoverage.FULL || !requiresJoin(sft, attribute, secondary, transform)) {
+        nonJoin
+      } else if (AllowJoinPlans.get) {
+        nonJoin.map { strategy =>
+          val primary = strategy.primary.getOrElse(Filter.INCLUDE)
+          val bounds = FilterHelper.extractAttributeBounds(primary, attribute, sft.getDescriptor(attribute).getType.getBinding)
+          val joinMultiplier = 9f + bounds.values.length // 10 plus 1 per additional range being scanned
+          val multiplier = strategy.costMultiplier * joinMultiplier
+          FilterStrategy(strategy.index, strategy.primary, strategy.secondary, strategy.temporal, multiplier)
+        }
       } else {
-        Seq.empty
+        None
       }
     }
   }

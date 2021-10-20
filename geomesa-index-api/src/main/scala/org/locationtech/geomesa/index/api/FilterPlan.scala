@@ -17,13 +17,25 @@ import org.opengis.filter.Filter
   * and a 'secondary' that will be applied as a final step.
   */
 case class FilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
-    (index: GeoMesaFeatureIndex[DS, F, W], primary: Option[Filter], secondary: Option[Filter] = None) {
+    (index: GeoMesaFeatureIndex[DS, F, W],
+        primary: Option[Filter],
+        secondary: Option[Filter] = None,
+        temporal: Boolean = false,
+        costMultiplier: Float = Float.PositiveInfinity) {
 
   lazy val filter: Option[Filter] = andOption(primary.toSeq ++ secondary)
+
+  def isFullTableScan: Boolean = primary.isEmpty
+
+  def isPreferredScan: Boolean = costMultiplier < FilterStrategy.PreferredMultiplierThreshold
 
   override lazy val toString: String =
     s"$index[${primary.map(filterToString).getOrElse("INCLUDE")}]" +
         s"[${secondary.map(filterToString).getOrElse("None")}]"
+}
+
+object FilterStrategy {
+  val PreferredMultiplierThreshold = 2f
 }
 
 /**

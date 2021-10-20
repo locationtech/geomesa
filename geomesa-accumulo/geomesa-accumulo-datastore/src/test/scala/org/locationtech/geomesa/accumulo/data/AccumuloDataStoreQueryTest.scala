@@ -44,7 +44,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
   sequential
 
-  val defaultSft = createNewSchema("name:String:index=join,geom:Point:srid=4326,dtg:Date")
+  // note: index=join causes some weird issues since technically it's a full index since there aren't any other fields
+  val defaultSft = createNewSchema("name:String:index=full,geom:Point:srid=4326,dtg:Date")
   addFeature(defaultSft, ScalaSimpleFeature.create(defaultSft, "fid-1", "name1", "POINT(45 49)", "2010-05-07T12:30:00.000Z"))
 
   "AccumuloDataStore" should {

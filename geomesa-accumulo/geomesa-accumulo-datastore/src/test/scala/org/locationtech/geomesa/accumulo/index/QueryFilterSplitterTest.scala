@@ -14,6 +14,7 @@ import org.locationtech.geomesa.filter
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{decomposeAnd, decomposeOr}
 import org.locationtech.geomesa.index.planning.FilterSplitter
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.Cardinality
@@ -33,11 +34,11 @@ class QueryFilterSplitterTest extends Specification {
 
   val sft = SchemaBuilder.builder()
     .addString("attr1")
-    .addString("attr2").withIndex()
+    .addString("attr2").withOption(AttributeOptions.OPT_INDEX, "full")
     .addString("attr3")
     .addString("attr4")
-    .addString("high").withIndex(Cardinality.HIGH)
-    .addString("low").withIndex(Cardinality.LOW)
+    .addString("high").withOptions(AttributeOptions.OPT_INDEX -> "full", AttributeOptions.OPT_CARDINALITY -> Cardinality.HIGH.toString)
+    .addString("low").withOptions(AttributeOptions.OPT_INDEX -> "full", AttributeOptions.OPT_CARDINALITY -> Cardinality.LOW.toString)
     .addDate("dtg", default = true)
     .addPoint("geom", default = true)
     .build("QueryFilterSplitterTest")
@@ -474,14 +475,12 @@ class QueryFilterSplitterTest extends Specification {
       val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft))
       val filter = f("dtg TEQUALS 2014-01-01T12:30:00.000Z")
       val options = splitter.getQueryOptions(filter)
-      options must haveLength(2)
-      foreach(options)(_.strategies must haveLength(1))
-      val strategies = options.map(_.strategies.head)
-      strategies.map(_.index) must containTheSameElementsAs(Seq(AttributeIndex, Z3Index))
-      foreach(strategies) { strategy =>
-        strategy.primary must beSome(filter)
-        strategy.secondary must beNone
-      }
+      options must haveLength(1)
+      options.head.strategies must haveLength(1)
+      val strategy = options.head.strategies.head
+      strategy.index.name mustEqual AttributeIndex.name
+      strategy.primary must beSome(filter)
+      strategy.secondary must beNone
     }
 
     "provide only one option on OR queries of high cardinality indexed attributes" >> {
@@ -532,6 +531,61 @@ class QueryFilterSplitterTest extends Specification {
       options.head.strategies.head.index mustEqual Z2Index
       compareOr(options.head.strategies.head.primary, bbox1, bbox2)
       options.head.strategies.head.secondary must beSome // note: filter is too complex to compare explicitly...
+    }
+
+    "handle ORs between indexed attribute fields" >> {
+      val spec =
+        "attr1:Long:cardinality=high:index=true,attr2:Long:cardinality=high:index=true," +
+            "name:String:cardinality=high:index=true,dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("multiAttr", spec)
+      sft.setIndices(AccumuloFeatureIndex.CurrentIndices.filter(_.supports(sft)).map(i => (i.name, i.version, IndexMode.ReadWrite)))
+
+      val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft))
+      val filter = f("(attr1=1 OR attr2=2 OR name='3') and dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z")
+      foreach(Seq("0", "10")) { threshold =>
+        FilterSplitter.ExpandReduceThreshold.threadLocalValue.set(threshold)
+        try {
+          val options = splitter.getQueryOptions(filter)
+          options must haveLength(2)
+          options.map(_.strategies.map(_.index.name)) must
+              containTheSameElementsAs(Seq(Seq(Z3Index.name), Seq.fill(3)(AttributeIndex.name)))
+        } finally {
+          FilterSplitter.ExpandReduceThreshold.threadLocalValue.remove()
+        }
+      }
+    }
+
+    "use expand reduce processing when configured via system prop" >> {
+      val spec =
+        "attr1:Long:cardinality=high:index=true,attr2:Long:cardinality=high:index=true," +
+            "name:String:cardinality=high:index=true,dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("multiAttr", spec)
+      sft.setIndices(AccumuloFeatureIndex.CurrentIndices.filter(_.supports(sft)).map(i => (i.name, i.version, IndexMode.ReadWrite)))
+
+      val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft))
+      val dtg1 = "dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z"
+      val dtg2 = "dtg during 2020-01-03T00:00:00.000Z/2020-01-04T00:00:00.000Z"
+      val filter = f(s"((attr1=1 OR attr2=2) and $dtg1) OR ((attr1=3 OR attr2=4) and $dtg2)")
+
+      // initial option ignores the complex filter and gives us a z3 dtg-only filter
+      val options = splitter.getQueryOptions(filter)
+      options must haveLength(1)
+      options.head.strategies must haveLength(1)
+      options.head.strategies.head.index.name mustEqual Z3Index.name
+      options.head.strategies.head.primary must beSome(beEqualTo(or(dtg1, dtg2)))
+
+      // with the threshold set, we get 4 high-cardinality attribute filters instead
+      FilterSplitter.ExpandReduceThreshold.threadLocalValue.set("99")
+      try {
+        val options = splitter.getQueryOptions(filter)
+        options must haveLength(1)
+        options.head.strategies must haveLength(4)
+        foreach(options.head.strategies)(_.index.name mustEqual AttributeIndex.name)
+        options.head.strategies.map(_.primary.orNull) must
+            containTheSameElementsAs(Seq(f("attr1=1"), f("attr1=3"), f("attr2=2"), f("attr2=4")))
+      } finally {
+        FilterSplitter.ExpandReduceThreshold.threadLocalValue.remove()
+      }
     }
   }
 }

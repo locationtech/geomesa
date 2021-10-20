@@ -19,6 +19,8 @@ import org.opengis.filter._
 import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 
+import java.util.Date
+
 trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
     extends GeoMesaFeatureIndex[DS, F, W] {
 
@@ -32,10 +34,26 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
     val indexedAttributes = attributes.filter(a => Option(sft.getDescriptor(a)).exists(_.isIndexed))
     indexedAttributes.flatMap { attribute =>
       val (primary, secondary) = FilterExtractingVisitor(filter, attribute, sft, attributeCheck(sft))
-      if (primary.isDefined) {
-        Seq(FilterStrategy(this, primary, secondary))
-      } else {
-        Seq.empty
+      primary.map { extracted =>
+        val binding = sft.getDescriptor(attribute).getType.getBinding
+        val bounds = FilterHelper.extractAttributeBounds(extracted, attribute, binding)
+        val isEquals = bounds.precise && bounds.nonEmpty && bounds.forall(_.isEquals)
+        val temporal = classOf[Date].isAssignableFrom(binding)
+        val basePriority =
+          if (isEquals) {
+            1f
+          } else if (bounds.isEmpty || !bounds.forall(_.isBounded)) {
+            1000f // not null
+          } else {
+            2.5f // range query
+          }
+        // prioritize attributes based on cardinality hint
+        val priority = sft.getDescriptor(attribute).getCardinality() match {
+          case Cardinality.HIGH    => basePriority / 10f
+          case Cardinality.UNKNOWN => basePriority
+          case Cardinality.LOW     => basePriority * 10f
+        }
+        FilterStrategy(this, primary, secondary, temporal, priority)
       }
     }
   }

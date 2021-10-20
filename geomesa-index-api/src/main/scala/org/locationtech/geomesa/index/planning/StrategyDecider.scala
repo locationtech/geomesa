@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.planning
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.index.api._
+import org.locationtech.geomesa.index.api.{WrappedFeature, _}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
@@ -51,13 +51,33 @@ class CostBasedStrategyDecider extends StrategyDecider with MethodProfiling {
        options: Seq[FilterPlan[DS, F, W]],
        transform: Option[SimpleFeatureType],
        explain: Explainer): FilterPlan[DS, F, W] = {
-    val costs = options.map { option =>
-      var time = 0L
-      val optionCosts = profile(t => time = t)(option.strategies.map(f => f.index.getCost(sft, stats, f, transform)))
-      (option, optionCosts.sum, time)
-    }.sortBy(_._2)
-    explain(s"Costs: ${costs.map(c => s"${c._1} (Cost ${c._2} in ${c._3}ms)").mkString("; ")}")
-    costs.head._1
+
+    def cost(option: FilterPlan[DS, F, W]): FilterPlanCost[DS, F, W] = {
+      profile((fpc: FilterPlanCost[DS, F, W], time: Long) => fpc.copy(time = time)) {
+        var cost = BigInt(0)
+        option.strategies.foreach { strategy =>
+          val filter = strategy.primary.getOrElse(Filter.INCLUDE)
+          val count = stats.flatMap(_.getCount(sft, filter, exact = false)).getOrElse(100L)
+          cost = cost + BigInt((count * strategy.costMultiplier).toLong)
+        }
+        FilterPlanCost(option, if (cost.isValidLong) { cost.longValue() } else { Long.MaxValue }, 0L)
+      }
+    }
+
+    val costs = options.map(cost).sorted
+
+//    val temporal = if (!sft.isTemporalPriority) { None } else {
+//      costs.find(c => c.plan.strategies.nonEmpty && c.plan.strategies.forall(_.temporal))
+//    }
+    val selected = costs.head // temporal.getOrElse(costs.head)
+    explain(s"Filter plan selected: $selected")
+    explain(s"Filter plans not selected: ${costs.filterNot(_.eq(selected)).mkString(", ")}")
+    selected.plan
+  }
+
+  private case class FilterPlanCost[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](plan: FilterPlan[DS, F, W], cost: Long, time: Long) extends Comparable[FilterPlanCost[DS, F, W]] {
+    override def compareTo(o: FilterPlanCost[DS, F, W]): Int = java.lang.Long.compare(cost, o.cost)
+    override def toString: String = s"$plan (Cost $cost in ${time}ms)"
   }
 }
 
@@ -113,7 +133,7 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
           // see if one of the normal plans matches the requested type - if not, force it
           options.find(_.strategies.forall(checkStrategy)).getOrElse {
             val secondary = if (filter == Filter.INCLUDE) { None } else { Some(filter) }
-            FilterPlan(Seq(FilterStrategy(index, None, secondary)))
+            FilterPlan(Seq(FilterStrategy(index, None, secondary, temporal = false, Float.PositiveInfinity)))
           }
         }
         explain(s"Filter plan forced to $forced")

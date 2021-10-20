@@ -31,7 +31,7 @@ trait SpatioTemporalFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: Wrappe
     }
 
     if (filter == Filter.INCLUDE) {
-      Seq(FilterStrategy(this, None, None))
+      Seq(FilterStrategy(this, None, None, temporal = false, Float.PositiveInfinity))
     } else if (filter == Filter.EXCLUDE) {
       Seq.empty
     } else {
@@ -40,13 +40,15 @@ trait SpatioTemporalFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: Wrappe
 
       if (!intervals.disjoint && !intervals.exists(_.isBounded)) {
         // if there aren't any intervals then we would have to do a full table scan
-        Seq(FilterStrategy(this, None, Some(filter)))
+        Seq(FilterStrategy(this, None, Some(filter), temporal = false, Float.PositiveInfinity))
       } else {
         val (spatial, others) = nonTemporal match {
           case Some(nt) => FilterExtractingVisitor(nt, sft.getGeomField, sft, SpatialFilterStrategy.spatialCheck)
           case None     => (None, None)
         }
-        Seq(FilterStrategy(this, andOption((spatial ++ temporal).toSeq), others))
+        // de-prioritize non-spatial and one-sided date filters
+        val priority = if (spatial.isDefined && intervals.forall(_.isBoundedBothSides)) { 1.1f } else { 3f }
+        Seq(FilterStrategy(this, andOption((spatial ++ temporal).toSeq), others, temporal = true, priority))
       }
     }
   }

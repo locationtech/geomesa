@@ -22,15 +22,17 @@ trait IdFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
                                  filter: Filter,
                                  transform: Option[SimpleFeatureType]): Seq[FilterStrategy[DS, F, W]] = {
     if (filter == Filter.INCLUDE) {
-      Seq(FilterStrategy(this, None, None))
+      Seq(FilterStrategy(this, None, None, temporal = false, Float.PositiveInfinity))
     } else if (filter == Filter.EXCLUDE) {
       Seq.empty
     } else {
       val (ids, notIds) = IdExtractingVisitor(filter)
       if (ids.isDefined) {
-        Seq(FilterStrategy(this, ids, notIds))
+        // top-priority index if there are actually ID filters
+        // note: although there's no temporal predicate, there's an implied exact date for the given feature
+        Seq(FilterStrategy(this, ids, notIds, temporal = true, .001f))
       } else {
-        Seq(FilterStrategy(this, None, Some(filter)))
+        Seq(FilterStrategy(this, None, Some(filter), temporal = false, Float.PositiveInfinity))
       }
     }
   }
