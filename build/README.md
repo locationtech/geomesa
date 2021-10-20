@@ -133,6 +133,7 @@ DataStore implementations:
   <version>${geomesa.release.version}</version>
   <exclusions>
     <exclusion>
+      <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
       <groupId>*</groupId>
       <artifactId>*</artifactId>
     </exclusion>

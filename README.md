@@ -133,6 +133,7 @@ DataStore implementations:
   <version>3.3.0</version>
   <exclusions>
     <exclusion>
+      <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
       <groupId>*</groupId>
       <artifactId>*</artifactId>
     </exclusion>
