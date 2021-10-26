@@ -8,8 +8,7 @@
 
 package org.locationtech.geomesa.arrow.vector
 
-import java.util.Date
-
+import java.util.{Date, UUID}
 import org.apache.arrow.vector.complex.FixedSizeListVector
 import org.apache.arrow.vector.{BigIntVector, IntVector}
 import org.geotools.util.Converters
@@ -26,10 +25,10 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureVectorTest extends Specification {
 
-  val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326,uuid:UUID")
   val features = (0 until 10).map { i =>
     ScalaSimpleFeature.create(sft, s"28a12c18-e5ae-4c04-ae7b-bf7cdbfaf23$i", s"name0${i % 2}",
-      s"${i % 5}", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
+      s"${i % 5}", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)", UUID.randomUUID())
   }
 
   val uuidSft = SimpleFeatureTypes.createType(sft.getTypeName,
