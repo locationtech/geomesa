@@ -32,6 +32,12 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-spark-core_${scala.binary.version}</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.geotools</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.locationtech.jts.io</groupId>
