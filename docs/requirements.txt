@@ -4,6 +4,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -14,6 +15,8 @@
 =======
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 2341036672 (Fix docutils version for Sphinx docs build)
 Sphinx==4.5.0
 sphinx-tabs==3.3.1
 recommonmark==0.7.1
@@ -37,13 +40,18 @@ sphinx-copybutton==0.5.1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+=======
+>>>>>>> 2341036672 (Fix docutils version for Sphinx docs build)
 Sphinx==1.8.2
 sphinx-tabs==1.1.10
 recommonmark==0.4.0
 sphinx-rtd-theme==0.4.2
 docutils<0.18
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1087,3 +1095,6 @@ sphinx-copybutton==0.5.0
 >>>>>>> 76fe0cddda (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> eb4b681d08 (Fix docutils version for Sphinx docs build)
+>>>>>>> 2341036672 (Fix docutils version for Sphinx docs build)
