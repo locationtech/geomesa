@@ -167,6 +167,7 @@ docutils<0.18
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 jinja2==3.1.4
 =======
 =======
@@ -216,11 +217,17 @@ jinja2==3.1.4
 >>>>>>> 919e8072db8 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> 46a0d97ef1 (Fix docutils version for Sphinx docs build)
+>>>>>>> b5f9d5d4b9e (Fix docutils version for Sphinx docs build)
+=======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> d6411f607f7 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 265088407c (Fix docutils version for Sphinx docs build)
 =======
+<<<<<<< HEAD
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
@@ -239,6 +246,8 @@ jinja2==3.1.4
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 46a0d97ef1 (Fix docutils version for Sphinx docs build)
 >>>>>>> 85dd4e1e2c (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
@@ -4634,6 +4643,7 @@ sphinx-copybutton==0.5.0
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> ea18b1b6b34 (Merge branch 'feature/postgis-fixes')
@@ -4642,11 +4652,17 @@ sphinx-copybutton==0.5.0
 =======
 >>>>>>> f5fcdd87b8 (Fix docutils version for Sphinx docs build)
 =======
+=======
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 46a0d97ef1 (Fix docutils version for Sphinx docs build)
 jinja2==3.1.2
 sphinx-copybutton==0.5.1
 =======
 <<<<<<< HEAD
 jinja2<3.1.0
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7160,4 +7176,15 @@ sphinx-copybutton==0.5.0
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e2c2191184c (Merge branch 'feature/postgis-fixes')
+=======
+=======
+sphinx-copybutton==0.5.0
+=======
+>>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
+>>>>>>> ff6a156f4 (Fix docutils version for Sphinx docs build)
+>>>>>>> 123a08b6a0 (Fix docutils version for Sphinx docs build)
+>>>>>>> 265088407c (Fix docutils version for Sphinx docs build)
+>>>>>>> 46a0d97ef1 (Fix docutils version for Sphinx docs build)
+>>>>>>> 40eb317ab90 (Fix docutils version for Sphinx docs build)
