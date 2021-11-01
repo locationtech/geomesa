@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Sphinx==4.5.0
 sphinx-tabs==3.3.1
 recommonmark==0.7.1
@@ -8,6 +9,7 @@ docutils<0.18
 jinja2==3.1.2
 sphinx-copybutton==0.5.1
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -118,3 +120,11 @@ jinja2<3.1.0
 sphinx-copybutton==0.5.0
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+Sphinx==1.8.2
+sphinx-tabs==1.1.10
+recommonmark==0.4.0
+sphinx-rtd-theme==0.4.2
+docutils<0.18
+>>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
+>>>>>>> 0261d5eff (Fix docutils version for Sphinx docs build)
