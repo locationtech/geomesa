@@ -21,14 +21,21 @@ sphinx-rtd-theme==1.1.1
 docutils<0.18
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 jinja2==3.1.4
 =======
 =======
 >>>>>>> 3e03a1f3e52 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 85dd4e1e2c (Fix docutils version for Sphinx docs build)
+>>>>>>> 3f1de8141fd (Fix docutils version for Sphinx docs build)
 jinja2==3.1.2
 >>>>>>> 328739918d2 (Fix docutils version for Sphinx docs build)
 sphinx-copybutton==0.5.1
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -46,6 +53,8 @@ sphinxcontrib-qthelp==1.0.3
 >>>>>>> c4bca43aefe (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> c4bf8e3b9cb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 6e835b186b6 (Fix docutils version for Sphinx docs build)
 =======
 Sphinx==1.8.2
 sphinx-tabs==1.1.10
@@ -334,6 +343,8 @@ pybtex
 =======
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 094aebdc2c (Fix docutils version for Sphinx docs build)
 =======
 <<<<<<< HEAD
 =======
@@ -919,6 +930,24 @@ pybtex
 =======
 =======
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 7c0158dc6e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> c4bf8e3b9cb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+=======
+=======
+=======
+<<<<<<< HEAD
+jinja2<3.1.0
+sphinx-copybutton==0.5.0
+=======
+>>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
+>>>>>>> ff6a156f4 (Fix docutils version for Sphinx docs build)
+>>>>>>> 1bd1f7a3d (Fix docutils version for Sphinx docs build)
+>>>>>>> 85dd4e1e2c (Fix docutils version for Sphinx docs build)
+>>>>>>> 094aebdc2c (Fix docutils version for Sphinx docs build)
+>>>>>>> 6e835b186b6 (Fix docutils version for Sphinx docs build)
