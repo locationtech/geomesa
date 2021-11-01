@@ -73,6 +73,7 @@ docutils<0.18
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> location-main
@@ -3175,3 +3176,14 @@ sphinx-copybutton==0.5.0
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locationtech-main
+=======
+jinja2==3.1.2
+sphinx-copybutton==0.5.1
+=======
+<<<<<<< HEAD
+jinja2<3.1.0
+sphinx-copybutton==0.5.0
+=======
+>>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
+>>>>>>> ff6a156f4 (Fix docutils version for Sphinx docs build)
+>>>>>>> 6a1e3a2366 (Fix docutils version for Sphinx docs build)
