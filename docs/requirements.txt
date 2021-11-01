@@ -197,6 +197,7 @@ sphinx-copybutton==0.5.0
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3f68131abd (Fix docutils version for Sphinx docs build)
 =======
@@ -223,6 +224,8 @@ sphinx-copybutton==0.5.0
 >>>>>>> 7c16abdc5b (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 798faeb761 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> f1280adf80 (Fix docutils version for Sphinx docs build)
 >>>>>>> ad8b1886ac (Fix docutils version for Sphinx docs build)
 =======
 =======
@@ -250,6 +253,7 @@ sphinx-copybutton==0.5.0
 >>>>>>> a9ad505dfb (Fix docutils version for Sphinx docs build)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1a8a226859 (Fix docutils version for Sphinx docs build)
 =======
@@ -276,6 +280,8 @@ sphinx-copybutton==0.5.0
 >>>>>>> f9e8439b09 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 798faeb761 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> f1280adf80 (Fix docutils version for Sphinx docs build)
 >>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 63db7d154a (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -509,12 +515,16 @@ sphinx-copybutton==0.5.0
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d47d327cf9 (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> f1280adf80 (Fix docutils version for Sphinx docs build)
 >>>>>>> f9e8439b09 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
 >>>>>>> 9d67a6996 (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2863,3 +2873,6 @@ sphinx-copybutton==0.5.0
 =======
 >>>>>>> f9e8439b09 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 798faeb761 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> a9ad505dfb (Fix docutils version for Sphinx docs build)
+>>>>>>> f1280adf80 (Fix docutils version for Sphinx docs build)
