@@ -2812,6 +2812,7 @@ sphinx-copybutton==0.5.0
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8ab454bac7 (Fix docutils version for Sphinx docs build)
 =======
@@ -2888,6 +2889,8 @@ sphinx-copybutton==0.5.0
 =======
 >>>>>>> afb750b567 (Fix docutils version for Sphinx docs build)
 >>>>>>> 8ab454bac7 (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> afb750b567 (Fix docutils version for Sphinx docs build)
 >>>>>>> ff6a156f4 (Fix docutils version for Sphinx docs build)
 <<<<<<< HEAD
 >>>>>>> 123a08b6a0 (Fix docutils version for Sphinx docs build)
@@ -4496,6 +4499,8 @@ sphinx-copybutton==0.5.0
 =======
 >>>>>>> f9e8439b0 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
+>>>>>>> a9ad505df (Fix docutils version for Sphinx docs build)
+=======
 >>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 8cbe155de (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -4907,7 +4912,9 @@ sphinx-copybutton==0.5.0
 =======
 =======
 >>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 >>>>>>> f9e8439b0 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> bd3233180f (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD
@@ -4917,9 +4924,12 @@ sphinx-copybutton==0.5.0
 =======
 =======
 =======
+>>>>>>> afb750b567 (Fix docutils version for Sphinx docs build)
+=======
 =======
 >>>>>>> 9d67a6996 (Fix docutils version for Sphinx docs build)
 >>>>>>> a9ad505df (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 7a6b80684c (Fix docutils version for Sphinx docs build)
 <<<<<<< HEAD
@@ -6642,3 +6652,5 @@ sphinx-copybutton==0.5.0
 >>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> f9e8439b0 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> f2943650ff (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> afb750b567 (Fix docutils version for Sphinx docs build)
