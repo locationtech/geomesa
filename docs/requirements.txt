@@ -22,6 +22,7 @@ sphinx-rtd-theme==0.4.2
 docutils<0.18
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> eb4b681d08 (Fix docutils version for Sphinx docs build)
 <<<<<<< HEAD
 >>>>>>> 87fe7bce64f (Fix docutils version for Sphinx docs build)
@@ -31,6 +32,8 @@ docutils<0.18
 =======
 =======
 >>>>>>> ad8b1886ac (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> 33eb30d131 (Fix docutils version for Sphinx docs build)
 jinja2<3.1.0
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -39,6 +42,7 @@ jinja2<3.1.0
 =======
 >>>>>>> 90ec70f559 (GEOMESA-3176 Docs - fix download links in install instructions)
 sphinx-copybutton==0.5.0
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> bea966ce8 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -62,4 +66,11 @@ sphinx-copybutton==0.5.0
 >>>>>>> bea966ce8 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 90ec70f559 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 >>>>>>> dca68088e79 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+=======
+=======
+>>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
+>>>>>>> 33eb30d131 (Fix docutils version for Sphinx docs build)
+>>>>>>> b381f503d95 (Fix docutils version for Sphinx docs build)
