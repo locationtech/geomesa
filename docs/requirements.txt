@@ -1165,6 +1165,7 @@ sphinx-copybutton==0.5.0
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> cbf2af9584 (Fix docutils version for Sphinx docs build)
 =======
@@ -1191,6 +1192,8 @@ sphinx-copybutton==0.5.0
 >>>>>>> 3455dead08 (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 96b5e91bc8 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> d0df862d70 (Fix docutils version for Sphinx docs build)
 >>>>>>> ad8b1886a (Fix docutils version for Sphinx docs build)
 <<<<<<< HEAD
 >>>>>>> bf87a6e11 (Fix docutils version for Sphinx docs build)
@@ -1227,6 +1230,7 @@ sphinx-copybutton==0.5.0
 >>>>>>> a9ad505df (Fix docutils version for Sphinx docs build)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -1281,6 +1285,8 @@ sphinx-copybutton==0.5.0
 >>>>>>> f9e8439b0 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 96b5e91bc8 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> d0df862d70 (Fix docutils version for Sphinx docs build)
 >>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -4219,7 +4225,22 @@ sphinx-copybutton==0.5.0
 =======
 >>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> f9e8439b0 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 >>>>>>> bd3233180f (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 >>>>>>> 94efcf84c2 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 >>>>>>> 96b5e91bc8 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 >>>>>>> fb77a6f6cbe (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 9d67a6996 (Fix docutils version for Sphinx docs build)
+>>>>>>> a9ad505df (Fix docutils version for Sphinx docs build)
+>>>>>>> 7a6b80684c (Fix docutils version for Sphinx docs build)
+>>>>>>> d1cc090cb8 (Fix docutils version for Sphinx docs build)
+>>>>>>> d0df862d70 (Fix docutils version for Sphinx docs build)
+>>>>>>> 27368deba98 (Fix docutils version for Sphinx docs build)
