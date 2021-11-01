@@ -95,6 +95,7 @@ docutils<0.18
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -127,6 +128,10 @@ docutils<0.18
 >>>>>>> 0db6a76c68 (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 85dd4e1e2c (Fix docutils version for Sphinx docs build)
+>>>>>>> 969831c5bd (Fix docutils version for Sphinx docs build)
 jinja2==3.1.2
 sphinx-copybutton==0.5.1
 <<<<<<< HEAD
@@ -142,6 +147,9 @@ sphinx-copybutton==0.5.1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 969831c5bd (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -626,6 +634,8 @@ pybtex
 =======
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 094aebdc2c (Fix docutils version for Sphinx docs build)
 =======
 <<<<<<< HEAD
 =======
@@ -1583,6 +1593,7 @@ pybtex
 =======
 =======
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 7c0158dc6e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -3585,6 +3596,25 @@ pybtex
 =======
 =======
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 969831c5bd (Fix docutils version for Sphinx docs build)
 >>>>>>> 7c0158dc6e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+=======
+=======
+=======
+<<<<<<< HEAD
+jinja2<3.1.0
+sphinx-copybutton==0.5.0
+=======
+>>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
+>>>>>>> ff6a156f4 (Fix docutils version for Sphinx docs build)
+>>>>>>> 1bd1f7a3d (Fix docutils version for Sphinx docs build)
+>>>>>>> 85dd4e1e2c (Fix docutils version for Sphinx docs build)
+>>>>>>> 094aebdc2c (Fix docutils version for Sphinx docs build)
+>>>>>>> 969831c5bd (Fix docutils version for Sphinx docs build)
