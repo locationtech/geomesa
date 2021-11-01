@@ -149,10 +149,13 @@ sphinx-copybutton==0.5.0
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3f68131abd (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 3b4f3da2e1 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 1a8a226859 (Fix docutils version for Sphinx docs build)
 >>>>>>> ad8b1886ac (Fix docutils version for Sphinx docs build)
 <<<<<<< HEAD
 >>>>>>> d9a3e2ff0ba (Fix docutils version for Sphinx docs build)
@@ -166,6 +169,7 @@ sphinx-copybutton==0.5.0
 =======
 >>>>>>> b489fd9385 (Fix docutils version for Sphinx docs build)
 =======
+<<<<<<< HEAD
 >>>>>>> 0fbf9e83e2 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> f0ed80088d (Fix docutils version for Sphinx docs build)
@@ -174,6 +178,8 @@ sphinx-copybutton==0.5.0
 =======
 >>>>>>> a9ad505dfb (Fix docutils version for Sphinx docs build)
 =======
+=======
+>>>>>>> 1a8a226859 (Fix docutils version for Sphinx docs build)
 >>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 63db7d154a (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -256,6 +262,9 @@ sphinx-copybutton==0.5.0
 >>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1a8a226859 (Fix docutils version for Sphinx docs build)
 >>>>>>> 63db7d154a (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD
 >>>>>>> 422a4caaa01 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -320,10 +329,13 @@ sphinx-copybutton==0.5.0
 >>>>>>> 8cbe155de6 (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b8387ff5b63 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
 >>>>>>> 2a826cb40a8 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> a0f856eb3b0 (Fix docutils version for Sphinx docs build)
 =======
 =======
 >>>>>>> f9e8439b09 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -1581,4 +1593,13 @@ sphinx-copybutton==0.5.0
 =======
 =======
 >>>>>>> 3b4f3da2e1 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 >>>>>>> 2a826cb40a8 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+=======
+=======
+=======
+>>>>>>> 33eb30d13 (Fix docutils version for Sphinx docs build)
+>>>>>>> b489fd9385 (Fix docutils version for Sphinx docs build)
+>>>>>>> 1a8a226859 (Fix docutils version for Sphinx docs build)
+>>>>>>> a0f856eb3b0 (Fix docutils version for Sphinx docs build)
