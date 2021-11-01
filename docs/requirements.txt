@@ -169,6 +169,9 @@ docutils<0.18
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> eed71ddf92 (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 46a0d97ef1 (Fix docutils version for Sphinx docs build)
 =======
@@ -4281,6 +4284,7 @@ jinja2<3.1.0
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 90ec70f559 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -6338,3 +6342,15 @@ sphinx-copybutton==0.5.0
 >>>>>>> a4409176e4 (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+=======
+jinja2==3.1.2
+sphinx-copybutton==0.5.1
+=======
+<<<<<<< HEAD
+jinja2<3.1.0
+sphinx-copybutton==0.5.0
+=======
+>>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
+>>>>>>> ff6a156f4 (Fix docutils version for Sphinx docs build)
+>>>>>>> 6a1e3a2366 (Fix docutils version for Sphinx docs build)
+>>>>>>> eed71ddf92 (Fix docutils version for Sphinx docs build)
