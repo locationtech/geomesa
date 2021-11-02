@@ -611,6 +611,7 @@ object ArrowAttributeWriter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
 =======
   class ArrowUuidWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
@@ -669,6 +670,8 @@ object ArrowAttributeWriter {
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 75fa4fbac8 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> d9505f01f0 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
   class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
 =======
 =======
@@ -816,7 +819,20 @@ object ArrowAttributeWriter {
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+=======
+>>>>>>> 016aa0138 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
   class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
+=======
+  @deprecated("replaced with ArrowNoFidWriter")
+  object ArrowNoopWriter extends ArrowAttributeWriter {
+    override def name: String = SimpleFeatureVector.FeatureIdField
+    override def vector: FieldVector = null
+    override def apply(i: Int, value: AnyRef): Unit = {}
+    override def setValueCount(count: Int): Unit = {}
+  }
+
+    class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
+>>>>>>> 022e7e92f (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
   class ArrowUuidWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
 >>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
