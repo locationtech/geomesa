@@ -10,8 +10,7 @@ package org.locationtech.geomesa.arrow
 package vector
 
 import java.nio.charset.StandardCharsets
-import java.util.Date
-
+import java.util.{Date, UUID}
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, StructVector}
@@ -194,7 +193,7 @@ object ArrowAttributeWriter {
           case ObjectType.LIST     => new ArrowListWriter(name, bindings(1), encoding, metadata, factory)
           case ObjectType.MAP      => new ArrowMapWriter(name, bindings(1), bindings(2), encoding, metadata, factory)
           case ObjectType.BYTES    => new ArrowBytesWriter(name, metadata, factory)
-          case ObjectType.UUID     => new ArrowStringWriter(name, metadata, factory)
+          case ObjectType.UUID     => new ArrowUuidWriter(name, metadata, factory)
           case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
         }
     }
@@ -478,6 +477,32 @@ object ArrowAttributeWriter {
     override def vector: FieldVector = null
     override def apply(i: Int, value: AnyRef): Unit = {}
     override def setValueCount(count: Int): Unit = {}
+  }
+
+  class ArrowUuidWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
+    extends ArrowAttributeWriter {
+    val fieldType: FieldType = new FieldType(true, new ArrowType.FixedSizeList(2), null, metadata.asJava)
+    override val vector: FixedSizeListVector = factory.apply(name, fieldType)
+
+    private val bits = {
+      val result = vector.addOrGetVector[BigIntVector](FieldType.nullable(MinorType.BIGINT.getType))
+      if (result.isCreated) {
+        result.getVector.allocateNew()
+      }
+      result.getVector
+    }
+
+    override def apply(i: Int, value: AnyRef): Unit = {
+      if (value == null) {
+        vector.setNull(i) // note: calls .setSafe internally
+      } else {
+        val uuid = value.asInstanceOf[UUID]
+        val (msb, lsb) = (uuid.getMostSignificantBits, uuid.getLeastSignificantBits)
+        vector.setNotNull(i)
+        bits.setSafe(i * 2, msb)
+        bits.setSafe(i * 2 + 1, lsb)
+      }
+    }
   }
 
   class ArrowFeatureIdMinimalUuidWriter(name: String, factory: VectorFactory)
