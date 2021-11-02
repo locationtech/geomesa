@@ -36,8 +36,11 @@ package org.locationtech.geomesa.arrow.vector
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 00d0e11384 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 >>>>>>> 6e55a3468d (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
@@ -202,6 +205,7 @@ import java.util.{Date, UUID}
 =======
 >>>>>>> dc888e30d5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 import java.util.{Date, UUID}
@@ -263,6 +267,14 @@ import java.util.{Date, UUID}
 >>>>>>> b5288e37e7 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 >>>>>>> 1e4476dff5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> locationtech-main
+=======
+=======
+import java.util.{Date, UUID}
+>>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+>>>>>>> 782023083a (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+>>>>>>> 00d0e11384 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 import org.apache.arrow.vector.complex.FixedSizeListVector
 import org.apache.arrow.vector.{BigIntVector, IntVector}
 import org.geotools.util.Converters
