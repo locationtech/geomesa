@@ -1029,6 +1029,7 @@ object ArrowAttributeWriter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bb9821e80f (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
@@ -1133,6 +1134,8 @@ object ArrowAttributeWriter {
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 59409bb933 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> 595a4fe5ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
   class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
 =======
   class ArrowUuidWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
@@ -1224,6 +1227,7 @@ object ArrowAttributeWriter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5dca98162e (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
@@ -1294,6 +1298,10 @@ object ArrowAttributeWriter {
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 59409bb933 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+=======
+>>>>>>> 5dca98162e (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+>>>>>>> 595a4fe5ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
   class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
 =======
 =======
@@ -1380,6 +1388,7 @@ object ArrowAttributeWriter {
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1976,7 +1985,22 @@ object ArrowAttributeWriter {
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+=======
+>>>>>>> 64f0137ab (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+>>>>>>> 595a4fe5ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
   class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
+=======
+  @deprecated("replaced with ArrowNoFidWriter")
+  object ArrowNoopWriter extends ArrowAttributeWriter {
+    override def name: String = SimpleFeatureVector.FeatureIdField
+    override def vector: FieldVector = null
+    override def apply(i: Int, value: AnyRef): Unit = {}
+    override def setValueCount(count: Int): Unit = {}
+  }
+
+    class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
+>>>>>>> 022e7e92f (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
   class ArrowUuidWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
 >>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
