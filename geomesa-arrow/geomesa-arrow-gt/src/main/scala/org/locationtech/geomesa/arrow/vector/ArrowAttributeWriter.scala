@@ -19,6 +19,7 @@ package vector
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 822d0242c (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
@@ -233,9 +234,12 @@ import java.util.{Date, UUID}
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+>>>>>>> 782023083a (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 >>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+<<<<<<< HEAD
 >>>>>>> 9e2da6708a (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 =======
@@ -454,6 +458,8 @@ import java.util.{Date, UUID}
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locationtech-main
+=======
+>>>>>>> 782023083a (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, StructVector}
@@ -930,6 +936,7 @@ object ArrowAttributeWriter {
     override def setValueCount(count: Int): Unit = {}
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1888,6 +1895,12 @@ object ArrowAttributeWriter {
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locationtech-main
+=======
+  class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
+=======
+  class ArrowUuidWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
+>>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+>>>>>>> 782023083a (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
     extends ArrowAttributeWriter {
     val fieldType: FieldType = new FieldType(true, new ArrowType.FixedSizeList(2), null, metadata.asJava)
     override val vector: FixedSizeListVector = factory.apply(name, fieldType)
@@ -1913,6 +1926,7 @@ object ArrowAttributeWriter {
     }
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2404,6 +2418,12 @@ object ArrowAttributeWriter {
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locationtech-main
+=======
+  class ArrowFeatureIdMinimalUuidWriter(val name: String, factory: VectorFactory)
+=======
+  class ArrowFeatureIdMinimalUuidWriter(name: String, factory: VectorFactory)
+>>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+>>>>>>> 782023083a (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
       extends ArrowAttributeWriter {
 
     override val vector: IntVector = factory.apply(name, MinorType.INT, Map.empty)
