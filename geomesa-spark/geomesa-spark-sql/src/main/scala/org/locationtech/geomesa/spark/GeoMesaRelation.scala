@@ -279,8 +279,10 @@ object GeoMesaRelation extends LazyLogging {
           Some(IndexedRDD(rdd))
       }
     }
+   
+   val filter = Option(ECQL.toFilter(params.getOrElse("query", "INCLUDE")))
 
-    GeoMesaRelation(sqlContext, sft, schema, params, None, cached, partitioned)
+    GeoMesaRelation(sqlContext, sft, schema, params, filter, cached, partitioned)
   }
 
   /**
