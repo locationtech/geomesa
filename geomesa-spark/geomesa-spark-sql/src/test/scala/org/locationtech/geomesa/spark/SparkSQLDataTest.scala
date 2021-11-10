@@ -81,7 +81,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
     }
     
     
-    "create spatially partitioned relation with data query option" >> {
+    "create spatially partitioned relation with date query option" >> {
       dfPartitioned = spark.read
           .format("geomesa")
           .options(dsParams)
