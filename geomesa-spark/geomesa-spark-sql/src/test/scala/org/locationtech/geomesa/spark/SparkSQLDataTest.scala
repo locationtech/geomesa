@@ -79,6 +79,55 @@ class SparkSQLDataTest extends Specification with LazyLogging {
 
       dfIndexed.collect.length mustEqual 3
     }
+    
+    
+    "create spatially partitioned relation with date query option" >> {
+      dfPartitioned = spark.read
+          .format("geomesa")
+          .options(dsParams)
+          .option("geomesa.feature", "chicago")
+          .option("spatial", "true")
+          .option("query", "dtg AFTER 2016-01-01T10:00:00.000Z")
+          .load()
+      logger.debug(df.schema.treeString)
+
+      dfPartitioned.createOrReplaceTempView("chicagoPartitionedWithQuery")
+
+      spark.sql("select * from chicagoPartitionedWithQuery")
+        .collect().map{ r=> r.get(0) } mustEqual Array("2", "3")
+    }
+
+    "create spatially partitioned relation with attribute query option" >> {
+      dfPartitioned = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "chicago")
+        .option("spatial", "true")
+        .option("query", "case_number < 3")
+        .load()
+      logger.debug(df.schema.treeString)
+
+      dfPartitioned.createOrReplaceTempView("chicagoPartitionedWithQuery")
+
+      spark.sql("select * from chicagoPartitionedWithQuery")
+        .collect().map{ r=> r.get(0) } mustEqual Array("1", "2")
+    }
+
+    "create spatially partitioned relation with spatial query option" >> {
+      dfPartitioned = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "chicago")
+        .option("spatial", "true")
+        .option("query", "BBOX(geom, -76.7, 38.2, -76.2, 38.7)")
+        .load()
+      logger.debug(df.schema.treeString)
+
+      dfPartitioned.createOrReplaceTempView("chicagoPartitionedWithQuery")
+
+      spark.sql("select * from chicagoPartitionedWithQuery")
+        .collect().map{ r=> r.get(0) } mustEqual Array("1")
+    }
 
     "create spatially partitioned relation" >> {
       dfPartitioned = spark.read
