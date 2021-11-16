@@ -285,6 +285,7 @@ object QueryPlan {
     override def schema: SimpleFeatureType = sft
 
     protected def createSerializer: KryoFeatureSerializer = {
+      println(s"Creating serializer for sft: $sft")
       val builder = KryoFeatureSerializer.builder(sft)
       if (index.serializedWithId) { builder.withId.withUserData.build() } else { builder.withoutId.withUserData.build() }
     }

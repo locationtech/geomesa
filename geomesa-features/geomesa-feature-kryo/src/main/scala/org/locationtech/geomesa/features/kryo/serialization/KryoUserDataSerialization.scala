@@ -97,7 +97,7 @@ object KryoUserDataSerialization extends LazyLogging {
       map
     } catch {
       case NonFatal(e) =>
-        logger.error("Error reading serialized kryo user data:", e)
+        logger.error(s"Error reading serialized kryo user data at ${in.position()}:", e)
         new java.util.HashMap[AnyRef, AnyRef]()
     }
   }

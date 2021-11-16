@@ -112,7 +112,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 
     // TODO: Calculate size of userData for vis.
 
-    length += 54 // 2 ($s) + 26 "geomesa.feature.visibility" + 2 "$s" + 19 "user,user,user,user" + 4 for two string sizes
+    length += 60 // 2 ($s) + 26 "geomesa.feature.visibility" + 2 "$s" + 19 "user,user,user,user" + 4 for two string sizes
 
     val value = Array.ofDim[Byte](length)
     val output = new Output(value)
@@ -149,7 +149,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     // write nulls - we should already be in the right position
     nulls.serialize(output)
     println(s"Output at position after null writer: ${output.position()}")
-    output.setPosition(valueCursor-3)
+    output.setPosition(valueCursor-4)
 
     println(s"Output at position before userdata: ${output.position()}")
     KryoUserDataSerialization.serialize(output, map)
