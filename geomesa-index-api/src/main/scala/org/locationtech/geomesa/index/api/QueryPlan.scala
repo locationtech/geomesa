@@ -286,7 +286,7 @@ object QueryPlan {
 
     protected def createSerializer: KryoFeatureSerializer = {
       val builder = KryoFeatureSerializer.builder(sft)
-      if (index.serializedWithId) { builder.withId.build() } else { builder.withoutId.build() }
+      if (index.serializedWithId) { builder.withId.withUserData.build() } else { builder.withoutId.withUserData.build() }
     }
 
     def canEqual(other: Any): Boolean = other.isInstanceOf[IndexResultsToFeatures[T]]

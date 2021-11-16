@@ -171,6 +171,9 @@ object WritableFeature {
     private lazy val visibilities: Array[String] = {
       val count = feature.getFeatureType.getAttributeCount
       val userData = Option(feature.getUserData.get(FEATURE_VISIBILITY).asInstanceOf[String])
+      if (userData.isEmpty) {
+        println(s"User data is empty for $feature")
+      }
       val visibilities = userData.map(_.split(",")).getOrElse(Array.fill(count)(""))
       require(visibilities.length == count,
         s"Per-attribute visibilities do not match feature type ($count values expected): ${userData.getOrElse("")}")

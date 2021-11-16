@@ -15,11 +15,18 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RowEncodingIterator
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
+import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, Metadata}
 import org.locationtech.geomesa.index.iterators.IteratorCache
+import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.utils.collection.IntBitSet
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
+
+import scala.collection.JavaConverters.asJavaIterableConverter
+import scala.collection.convert.ImplicitConversions.`iterable AsScalaIterable`
 
 /**
   * Assumes cq are byte-encoded attribute number
@@ -42,6 +49,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       env: IteratorEnvironment): Unit = {
     super.init(source, options, env)
     sft = IteratorCache.sft(options.get(KryoVisibilityRowEncoder.SftOpt))
+    if (sft.getVisibilityLevel == VisibilityLevel.Attribute) {
+      println(s"Initializing a reader for $sft")
+    }
     count = sft.getAttributeCount
     if (attributes == null || attributes.length < count) {
       attributes = Array.ofDim[(Array[Byte], Int, Int)](count)
@@ -100,6 +110,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       i += 1
     }
 
+    // TODO: Calculate size of userData for vis.
+
+    length += 54 // 2 ($s) + 26 "geomesa.feature.visibility" + 2 "$s" + 19 "user,user,user,user" + 4 for two string sizes
+
     val value = Array.ofDim[Byte](length)
     val output = new Output(value)
     output.writeByte(KryoFeatureSerializer.Version3)
@@ -128,9 +142,18 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     }
     output.writeInt(valueCursor - 4) // user-data offset. Note no user data has actually been copied in.
 
+
+    import scala.collection.JavaConversions._
+    val map: Map[String, String] = Map(FEATURE_VISIBILITY -> Array.fill(count)("user").mkString(","))
+
     // write nulls - we should already be in the right position
     nulls.serialize(output)
+    println(s"Output at position after null writer: ${output.position()}")
+    output.setPosition(valueCursor-3)
 
+    println(s"Output at position before userdata: ${output.position()}")
+    KryoUserDataSerialization.serialize(output, map)
+    println(s"Output at position after userdata: ${output.position()}")
     new Value(value)
   }
 

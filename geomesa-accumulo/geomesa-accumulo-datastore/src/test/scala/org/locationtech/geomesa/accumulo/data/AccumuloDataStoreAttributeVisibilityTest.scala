@@ -22,6 +22,7 @@ import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
+import org.geotools.data.simple._
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
@@ -103,6 +104,40 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
         m.get.getAttribute(2) must beNull
         m.get.getAttribute(3) mustEqual mixedFeature.getAttribute(3)
       }
+    }
+
+//    "delete one record" in {
+//      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+//      val fs: SimpleFeatureStore = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
+//
+//      val query1 = new Query(sftName, ECQL.toFilter("IN('user')"))
+//      val foo1 = SelfClosingIterator(ds.getFeatureReader(query1, Transaction.AUTO_COMMIT)).toSeq
+//      foo1.size mustEqual 1
+//
+//      fs.removeFeatures(ECQL.toFilter("IN('user')"))
+//
+//      val query = new Query(sftName, ECQL.toFilter(filters.head._1))
+//      val foo = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
+//      println(foo.head)
+//      foo.size mustEqual 0
+//      ok
+//    }
+
+    "delete all records" in {
+      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+      val fs: SimpleFeatureStore = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
+
+      val query1 = new Query(sftName, ECQL.toFilter("INCLUDE"))
+      val foo1 = SelfClosingIterator(ds.getFeatureReader(query1, Transaction.AUTO_COMMIT)).toSeq
+      foo1.size mustEqual 3
+
+      fs.removeFeatures(ECQL.toFilter(filters.head._1))
+
+      //      import org.geotools.filter._
+      val query = new Query(sftName, ECQL.toFilter("INCLUDE"))
+      val foo = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
+      foo.size mustEqual 0
+      ok
     }
   }
 }

@@ -76,7 +76,7 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
 
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
     val visible = LocalQueryRunner.visible(authProvider)
-    val iter = features(sft, filter).filter(visible.apply)
+    val iter: CloseableIterator[SimpleFeature] = features(sft, filter).filter(visible.apply)
 
     val hook = Some(ArrowDictionaryHook(stats, filter))
     var result = transform(sft, iter, query.getHints.getTransform, query.getHints, hook)

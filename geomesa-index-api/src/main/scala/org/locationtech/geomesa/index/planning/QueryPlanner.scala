@@ -56,7 +56,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
   override def runQuery(sft: SimpleFeatureType, query: Query, explain: Explainer): CloseableIterator[SimpleFeature] = {
     val plans = getQueryPlans(sft, query, None, explain)
 
-    var iterator = SelfClosingIterator(plans.iterator).flatMap(p => p.scan(ds).map(p.resultsToFeatures.apply))
+    var iterator: CloseableIterator[SimpleFeature] = SelfClosingIterator(plans.iterator).flatMap(p => p.scan(ds).map(p.resultsToFeatures.apply))
 
     if (!query.getHints.isSkipReduce) {
       plans.headOption.flatMap(_.reducer).foreach { reducer =>

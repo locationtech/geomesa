@@ -392,6 +392,7 @@ object AccumuloIndexAdapter {
           case kv: SingleRowKeyValue[_] =>
             val mutation = new Mutation(kv.row)
             kv.values.foreach { v =>
+              println(s"Adding for $v")
               mutation.put(colFamilyMappings(i)(v.cf), v.cq, visCache(v.vis), v.value)
             }
             writers(i).addMutation(mutation)
@@ -400,6 +401,7 @@ object AccumuloIndexAdapter {
             mkv.rows.foreach { row =>
               val mutation = new Mutation(row)
               mkv.values.foreach { v =>
+                println(s"Adding for $v")
                 mutation.put(colFamilyMappings(i)(v.cf), v.cq, visCache(v.vis), v.value)
               }
               writers(i).addMutation(mutation)
@@ -416,6 +418,7 @@ object AccumuloIndexAdapter {
           case SingleRowKeyValue(row, _, _, _, _, _, vals) =>
             val mutation = new Mutation(row)
             vals.foreach { v =>
+              println(s"Deleting single row with ${new String(v.vis)} for $v")
               mutation.putDelete(colFamilyMappings(i)(v.cf), v.cq, visCache(v.vis))
             }
             writers(i).addMutation(mutation)
@@ -424,6 +427,7 @@ object AccumuloIndexAdapter {
             rows.foreach { row =>
               val mutation = new Mutation(row)
               vals.foreach { v =>
+                println(s"Deleting multi row with ${new String(v.vis)} for $v")
                 mutation.putDelete(colFamilyMappings(i)(v.cf), v.cq, visCache(v.vis))
               }
               writers(i).addMutation(mutation)

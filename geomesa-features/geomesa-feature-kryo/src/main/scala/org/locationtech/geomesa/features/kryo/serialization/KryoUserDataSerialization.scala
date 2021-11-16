@@ -71,13 +71,20 @@ object KryoUserDataSerialization extends LazyLogging {
     out.writeInt(toWrite.size) // don't use positive optimized version for back compatibility
 
     toWrite.foreach { case (key, value) =>
+      val string = baseClassMappings.getOrElse(key.getClass, key.getClass.getName)
       out.writeString(baseClassMappings.getOrElse(key.getClass, key.getClass.getName))
+      println(s"Writing ${string.length}: $string")
+      println(s"Writing ${key.toString.length}: $key")
       write(out, key)
       if (value == null) {
         out.writeString(nullMapping)
       } else {
+        val valueString = baseClassMappings.getOrElse(value.getClass, value.getClass.getName)
+        println(s"Writing value ${valueString.length}: $valueString")
+        println(s"Writing value ${value.toString.length}: $value")
         out.writeString(baseClassMappings.getOrElse(value.getClass, value.getClass.getName))
         write(out, value)
+
       }
     }
   }
