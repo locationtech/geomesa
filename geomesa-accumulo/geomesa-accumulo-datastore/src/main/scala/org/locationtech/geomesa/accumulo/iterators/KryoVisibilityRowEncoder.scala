@@ -15,11 +15,15 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RowEncodingIterator
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
+import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, Metadata}
 import org.locationtech.geomesa.index.iterators.IteratorCache
+import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.utils.collection.IntBitSet
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.util.Collections
 
 /**
   * Assumes cq are byte-encoded attribute number
@@ -29,7 +33,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
   private var sft: SimpleFeatureType = _
   private var count: Int = -1
   private var attributes: Array[(Array[Byte], Int, Int)] = _ // (bytes, offset, length)
-
+  private var attributeVis: Array[String] = _
   private var nullBytesV2: Array[Array[Byte]] = _
   private var offsetsV2: Array[Int] = _
   private var offsetStart: Int = -1
@@ -45,14 +49,12 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     count = sft.getAttributeCount
     if (attributes == null || attributes.length < count) {
       attributes = Array.ofDim[(Array[Byte], Int, Int)](count)
+      attributeVis = Array.ofDim[String](count)
     }
     nullBytesV2 = null // lazily initialized when we hit v2 encoded data
   }
 
   override def rowEncoder(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
-    if (values.size() == 1) {
-      return values.get(0)
-    }
     // TODO if we don't have a geometry, skip the record?
     values.get(0).get.head match {
       case KryoFeatureSerializer.Version3 => encodeV3(keys, values)
@@ -69,7 +71,6 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     * @return
     */
   private def encodeV3(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
-
     // Calculate length of serialised attributes, excluding attribute values themselves
     var length = 1 +            // version
       2 +                       // attribute count
@@ -88,18 +89,27 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       val input = KryoFeatureDeserialization.getInput(bytes, 1, bytes.length - 1) // skip the version byte
       val metadata = Metadata(input) // read count, size, etc
       // Column qualifiers tell us which attributes are intended to be populated given visibilities
-      keys.get(i).getColumnQualifier.getBytes.foreach { unsigned =>
+      val key = keys.get(i)
+      key.getColumnQualifier.getBytes.foreach { unsigned =>
         val index = java.lang.Byte.toUnsignedInt(unsigned)
         if(!metadata.nulls.contains(index)) {
           val pos = metadata.setPosition(index)
           val len = metadata.setPosition(index + 1) - pos
           attributes(index) = (bytes, 4 + pos, len) // pos is relative to first byte of attribute offsets, see length calc
+          attributeVis(index) = key.getColumnVisibility.toString
           length += len
         }
       }
       i += 1
     }
 
+    val attributeVisString = attributeVis.mkString(",")
+    // The magic number "34" is brought to you by adding up
+    //   Class and size info for the key and value (2 bytes for the class, and 2 for the size per key and value).
+    //     2*(2+2) = 8
+    //   The size of the key ("geomesa.feature.visibility".size = 26)
+    //   And the size of the attributeVisString.
+    length += 34 + attributeVisString.length
     val value = Array.ofDim[Byte](length)
     val output = new Output(value)
     output.writeByte(KryoFeatureSerializer.Version3)
@@ -131,6 +141,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     // write nulls - we should already be in the right position
     nulls.serialize(output)
 
+    output.setPosition(valueCursor)
+    val map = Collections.singletonMap(FEATURE_VISIBILITY, attributeVisString)
+    KryoUserDataSerialization.serialize(output, map)
     new Value(value)
   }
 
