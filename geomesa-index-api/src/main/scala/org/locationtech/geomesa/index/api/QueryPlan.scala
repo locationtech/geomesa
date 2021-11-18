@@ -288,6 +288,7 @@ object QueryPlan {
     protected def createSerializer: KryoFeatureSerializer = {
       val hasAttributeLevelVis = sft.getVisibilityLevel == VisibilityLevel.Attribute
       val builder = KryoFeatureSerializer.builder(sft)
+      // note: attribute level vis are serialized into the user data since they can't be held by a single key
       val toBuild = (index.serializedWithId, hasAttributeLevelVis) match {
         case (true, true)   => builder.withId.withUserData
         case (true, false)  => builder.withId.withoutUserData
