@@ -2526,6 +2526,7 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 2467f5e140 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
@@ -4596,6 +4597,12 @@ class MergedFeatureSourceView(
 =======
         val source_bounds = source.getBounds(mergeFilter(sft, query, filter))
 >>>>>>> b4d1f55060 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+        val source_bounds = source.getBounds(mergeFilter(sft, query, filter))
+=======
+        val source_bounds = source.getBounds(mergeFilter(query, filter))
+>>>>>>> 22da407b4 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+>>>>>>> 348458d8ec (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
         if(source_bounds != null){
           bounds.expandToInclude(source_bounds)
         }
