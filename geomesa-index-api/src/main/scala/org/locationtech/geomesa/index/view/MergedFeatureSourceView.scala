@@ -365,7 +365,9 @@ class MergedFeatureSourceView(
     }
 
     val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
+<<<<<<< HEAD
     sourceBounds.foreach(bounds.expandToInclude)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -424,6 +426,8 @@ class MergedFeatureSourceView(
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 8692c9ad11 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1864,11 +1868,21 @@ class MergedFeatureSourceView(
         val source_bounds = source.getBounds(mergeFilter(query, filter))
 >>>>>>> 74d905136 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 >>>>>>> 0a65fe97ef (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+<<<<<<< HEAD
 >>>>>>> 5154767520 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+=======
+=======
+    sources.foreach {
+      case (source, filter) =>
+        val source_bounds = source.getBounds(mergeFilter(query, filter))
+>>>>>>> b6daad9ec3 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+>>>>>>> 8692c9ad11 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
         if(source_bounds != null){
           bounds.expandToInclude(source_bounds)
         }
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1892,6 +1906,8 @@ class MergedFeatureSourceView(
 >>>>>>> b351d781cc (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> a11f24a7cd (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+>>>>>>> 8692c9ad11 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 >>>>>>> 22da407b47 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> 22da407b4 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
@@ -1952,6 +1968,7 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> 22da407b4 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 >>>>>>> b6daad9ec3 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2123,6 +2140,8 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 8692c9ad11 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
     bounds
   }
 
