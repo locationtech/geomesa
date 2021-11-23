@@ -106,7 +106,17 @@ class MergedFeatureSourceView(
     }
 
     val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
+<<<<<<< HEAD
     sourceBounds.foreach(bounds.expandToInclude)
+=======
+    sources.foreach {
+      case (source, filter) =>
+        val source_bounds = source.getBounds(mergeFilter(query, filter))
+        if(source_bounds != null){
+          bounds.expandToInclude(source_bounds)
+        }
+    }
+>>>>>>> 22da407b47 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
     bounds
   }
 
