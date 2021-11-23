@@ -129,6 +129,7 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 17b5ca670 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
@@ -137,6 +138,10 @@ class MergedFeatureSourceView(
 >>>>>>> b114c31d7 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> d4f1ac397 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+>>>>>>> 17b5ca670 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+>>>>>>> dbcb800c1 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
         val source_bounds = source.getBounds(mergeFilter(sft, query, filter))
 =======
         val source_bounds = source.getBounds(mergeFilter(query, filter))
@@ -144,12 +149,16 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dbcb800c1 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
         val source_bounds = source.getBounds(mergeFilter(query, filter))
 >>>>>>> 0ab344f33 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
         val source_bounds = source.getBounds(mergeFilter(sft, query, filter))
 >>>>>>> eea6a40fa (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 17b5ca670 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
@@ -191,7 +200,14 @@ class MergedFeatureSourceView(
 =======
 =======
 >>>>>>> d4f1ac397 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 >>>>>>> be2554eb71 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+=======
+>>>>>>> 17b5ca670 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+>>>>>>> dbcb800c1 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+>>>>>>> 350ba6beb5 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
         if(source_bounds != null){
           bounds.expandToInclude(source_bounds)
         }
