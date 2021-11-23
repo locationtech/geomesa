@@ -1183,6 +1183,7 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c09f851b5e (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
@@ -1231,6 +1232,8 @@ class MergedFeatureSourceView(
 >>>>>>> 896efd220d (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 6ce6ec0bfb (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+>>>>>>> bff2713913 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> 99963d4974 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
@@ -1308,6 +1311,7 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> 37df571f73 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
+<<<<<<< HEAD
 >>>>>>> fbb15f46d8 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> f521ea8102 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
@@ -1438,6 +1442,8 @@ class MergedFeatureSourceView(
 >>>>>>> 9a5edf0b43 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> 6ce6ec0bfb (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+>>>>>>> bff2713913 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 >>>>>>> 17b5ca6708 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> b3286af625 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
@@ -1574,6 +1580,9 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bff2713913 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> c4103ae4e3 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
@@ -1602,6 +1611,7 @@ class MergedFeatureSourceView(
 >>>>>>> bc92b610a (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> d1da3de16b (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 37df571f73 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
@@ -1647,6 +1657,10 @@ class MergedFeatureSourceView(
 >>>>>>> 15f3d62be6 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> 33509bea65 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+=======
+>>>>>>> 37df571f73 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+>>>>>>> bff2713913 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 >>>>>>> 17b5ca670 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 <<<<<<< HEAD
 >>>>>>> dbcb800c14 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
@@ -2786,16 +2800,22 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bff2713913 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> c4103ae4e3 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> 37df571f73 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+<<<<<<< HEAD
 =======
 >>>>>>> 42fa86b986 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 =======
 >>>>>>> c4103ae4e3 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 >>>>>>> 2b369805b6 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+>>>>>>> bff2713913 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 >>>>>>> dbcb800c14 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 =======
@@ -3257,6 +3277,7 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 37df571f73 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
@@ -3265,14 +3286,21 @@ class MergedFeatureSourceView(
 >>>>>>> 6ce6ec0bfb (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 =======
+>>>>>>> 37df571f73 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+>>>>>>> bff2713913 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+=======
         val source_bounds = source.getBounds(mergeFilter(query, filter))
 >>>>>>> 74d905136 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 >>>>>>> 35b8e2b607 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1c6d7e0589 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+>>>>>>> bff2713913 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 =======
     sources.foreach {
@@ -3618,6 +3646,7 @@ class MergedFeatureSourceView(
 >>>>>>> 9a5edf0b43 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> 37df571f73 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+<<<<<<< HEAD
 =======
 =======
     sources.foreach {
@@ -4361,6 +4390,8 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> 9a5edf0b43 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 >>>>>>> 6ce6ec0bfb (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+>>>>>>> bff2713913 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
         if(source_bounds != null){
           bounds.expandToInclude(source_bounds)
         }
