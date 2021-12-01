@@ -169,8 +169,8 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
     }
 
     "expire by event time with ordering (no mocking)" in {
-      val ev = EventTimeConfig(Duration("100ms"), "dtg", ordered = true)
-      val config = IndexConfig(ev, res, Seq.empty, Seq.empty, lazyDeserialization = true, None)
+      val ev = Some(EventTimeConfig("dtg", ordering = true))
+      val config = IndexConfig(Duration("100ms"), ev, 180, 90, Seq.empty, Seq.empty, lazyDeserialization = true, None)
 
       WithClose(KafkaFeatureCache(sft, config)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", new Date(), "POINT (-78.0 35.0)")
