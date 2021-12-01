@@ -260,4 +260,8 @@ object FeatureStateFactory extends LazyLogging {
 
     override def close(): Unit = executor.shutdownNow()
   }
+
+  object CurrentTimeTicker extends Ticker {
+    override def read(): Long = System.currentTimeMillis() * 1000000L
+  }
 }
