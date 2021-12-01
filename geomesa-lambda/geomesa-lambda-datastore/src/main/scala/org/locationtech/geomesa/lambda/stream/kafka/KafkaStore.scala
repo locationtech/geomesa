@@ -17,8 +17,7 @@ import org.apache.kafka.common.{Cluster, TopicPartition}
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
+import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
@@ -29,6 +28,7 @@ import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -51,7 +51,7 @@ class KafkaStore(
 
   private val offsetManager = config.offsetManager
 
-  private val producer = KafkaStore.producer(config.producerConfig)
+  private val producer = KafkaStore.producer(sft, config.producerConfig)
 
   private val topic = KafkaStore.topic(config.zkNamespace, sft)
 
@@ -163,6 +163,8 @@ class KafkaStore(
 
 object KafkaStore {
 
+  val SimpleFeatureSpecConfig = "geomesa.sft.spec"
+
   val LoadIntervalProperty: SystemProperty = SystemProperty("geomesa.lambda.load.interval", "100ms")
 
   object MessageTypes {
@@ -174,15 +176,16 @@ object KafkaStore {
 
   def topic(ns: String, typeName: String): String = s"${ns}_$typeName".replaceAll("[^a-zA-Z0-9_\\-]", "_")
 
-  def producer(connect: Map[String, String]): Producer[Array[Byte], Array[Byte]] = {
+  def producer(sft: SimpleFeatureType, connect: Map[String, String]): Producer[Array[Byte], Array[Byte]] = {
     import org.apache.kafka.clients.producer.ProducerConfig._
     val props = new Properties()
     // set some defaults but allow them to be overridden
     props.put(ACKS_CONFIG, "1") // mix of reliability and performance
     props.put(RETRIES_CONFIG, Int.box(3))
     props.put(LINGER_MS_CONFIG, Int.box(3)) // helps improve batching at the expense of slight delays in write
-    connect.foreach { case (k, v) => props.put(k, v) }
     props.put(PARTITIONER_CLASS_CONFIG, classOf[FeatureIdPartitioner].getName)
+    props.put(SimpleFeatureSpecConfig, SimpleFeatureTypes.encodeType(sft, includeUserData = false))
+    connect.foreach { case (k, v) => props.put(k, v) }
     props.put(KEY_SERIALIZER_CLASS_CONFIG, classOf[ByteArraySerializer].getName)
     props.put(VALUE_SERIALIZER_CLASS_CONFIG, classOf[ByteArraySerializer].getName)
     new KafkaProducer[Array[Byte], Array[Byte]](props)
@@ -280,19 +283,35 @@ object KafkaStore {
     */
   class FeatureIdPartitioner extends Partitioner {
 
-    override def partition(topic: String,
-                           key: scala.Any,
-                           keyBytes: Array[Byte],
-                           value: scala.Any,
-                           valueBytes: Array[Byte],
-                           cluster: Cluster): Int = {
-      val count = cluster.partitionsForTopic(topic).size
-      // feature id starts at position 5
-      val id = KryoFeatureDeserialization.getInput(valueBytes, 5, valueBytes.length - 5).readString()
-      Math.abs(MurmurHash3.stringHash(id)) % count
+    private var serializer: KryoFeatureSerializer = _
+
+    private val features = new ThreadLocal[KryoBufferSimpleFeature]() {
+      override def initialValue(): KryoBufferSimpleFeature = serializer.getReusableFeature
     }
 
-    override def configure(configs: java.util.Map[String, _]): Unit = {}
+    override def partition(
+        topic: String,
+        key: scala.Any,
+        keyBytes: Array[Byte],
+        value: scala.Any,
+        valueBytes: Array[Byte],
+        cluster: Cluster): Int = {
+      val numPartitions = cluster.partitionsForTopic(topic).size
+      if (numPartitions < 2) { 0 } else {
+        val feature = features.get
+        feature.setBuffer(valueBytes)
+        Math.abs(MurmurHash3.stringHash(feature.getID)) % numPartitions
+      }
+    }
+
+    override def configure(configs: java.util.Map[String, _]): Unit = {
+      val spec = configs.get(SimpleFeatureSpecConfig) match {
+        case s: String => s
+        case s => throw new IllegalStateException(s"Invalid spec config for $SimpleFeatureSpecConfig: $s")
+      }
+      val options = SerializationOptions.builder.immutable.`lazy`.build
+      serializer = KryoFeatureSerializer(SimpleFeatureTypes.createType("", spec), options)
+    }
 
     override def close(): Unit = {}
   }
