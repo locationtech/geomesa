@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.kafka.index
 
-import java.io.Closeable
-import java.util.Date
-import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
-
 import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -25,6 +21,9 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
 
+import java.io.Closeable
+import java.util.Date
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 import scala.util.control.NonFatal
 
 /**
@@ -54,7 +53,7 @@ object FeatureStateFactory extends LazyLogging {
       // remove tasks when canceled, otherwise they will only be removed from the task queue
       // when they would be executed. we expect frequent cancellations due to feature updates
       es.setRemoveOnCancelPolicy(true)
-      (es, Ticker.systemTicker())
+      (es, CurrentTimeTicker)
     }
 
     expiry match {
@@ -314,5 +313,9 @@ object FeatureStateFactory extends LazyLogging {
     }
 
     override def close(): Unit = CloseWithLogging(delegates.map(_._2))
+  }
+
+  object CurrentTimeTicker extends Ticker {
+    override def read(): Long = System.currentTimeMillis() * 1000000L
   }
 }
