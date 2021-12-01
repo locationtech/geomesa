@@ -168,6 +168,21 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
       }
     }
 
+    "expire by event time with ordering (no mocking)" in {
+      val ev = EventTimeConfig(Duration("100ms"), "dtg", ordered = true)
+      val config = IndexConfig(ev, res, Seq.empty, Seq.empty, lazyDeserialization = true, None)
+
+      WithClose(KafkaFeatureCache(sft, config)) { cache =>
+        val sf1 = ScalaSimpleFeature.create(sft, "1", "first", new Date(), "POINT (-78.0 35.0)")
+        cache.put(sf1)
+        cache.query("1") must beSome(sf1.asInstanceOf[SimpleFeature])
+        cache.query(ECQL.toFilter("bbox(geom,-79.0,34.0,-77.0,36.0)")).toSeq mustEqual Seq(sf1)
+
+        eventually(cache.query("1") must beNone)
+        cache.query(ECQL.toFilter("bbox(geom,-79.0,34.0,-77.0,36.0)")).toSeq must beEmpty
+      }
+    }
+
     "expire by event time without ordering" in {
       val ex = mock[ScheduledExecutorService]
       val ticker = new MockTicker()
