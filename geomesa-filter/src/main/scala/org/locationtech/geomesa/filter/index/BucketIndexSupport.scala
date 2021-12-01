@@ -12,7 +12,9 @@ import org.locationtech.geomesa.utils.index.BucketIndex
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class BucketIndexSupport(override val sft: SimpleFeatureType, override val index: BucketIndex[SimpleFeature])
-    extends SpatialIndexSupport
+    extends SpatialIndexSupport {
+  override def toString: String = s"BucketIndexSupport[${sft.getTypeName}:${index.xBuckets}x${index.yBuckets}]"
+}
 
 object BucketIndexSupport {
   def apply(sft: SimpleFeatureType, xResolution: Int, yResolution: Int): BucketIndexSupport =

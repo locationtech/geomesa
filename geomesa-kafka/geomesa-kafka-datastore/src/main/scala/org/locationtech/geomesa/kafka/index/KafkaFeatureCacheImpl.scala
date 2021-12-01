@@ -38,6 +38,8 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
   override val views: Seq[KafkaFeatureCacheView] =
     layerViews.map(view => KafkaFeatureCacheView(view, createSupport(view.viewSft)))
 
+  logger.debug(s"Initialized KafkaFeatureCache with factory $factory and support $support")
+
   /**
     * Note: this method is not thread-safe. The `state` and `index` can get out of sync if the same feature
     * is updated simultaneously from two different threads
