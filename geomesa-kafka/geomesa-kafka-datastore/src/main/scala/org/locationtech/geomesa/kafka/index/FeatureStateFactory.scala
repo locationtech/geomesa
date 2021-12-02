@@ -22,6 +22,7 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -124,6 +125,13 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 >>>>>>> 43b3328091 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> e062806100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+import java.io.Closeable
+import java.util.Date
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
+>>>>>>> c8e6854100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 40b1336067 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
