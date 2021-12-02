@@ -85,6 +85,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 943e0f6c2e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -111,6 +112,8 @@
 >>>>>>> 488816d898 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> f65a21dfc2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> adb7b3537d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> e2aff21ea9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -151,6 +154,7 @@
 >>>>>>> 1f39195661 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> d329149a3b (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c708bdc30c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -262,6 +266,10 @@
 >>>>>>> 488816d898 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> f65a21dfc2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+>>>>>>> c708bdc30c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> adb7b3537d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -442,6 +450,7 @@
 =======
 >>>>>>> 55d18fef60 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ea8fbcfbe5 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -490,6 +499,10 @@
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f65a21dfc2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+>>>>>>> ea8fbcfbe5 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> adb7b3537d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -1106,6 +1119,7 @@
 =======
 >>>>>>> 0f4c4f114 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 23799430d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -1301,6 +1315,10 @@
 >>>>>>> 488816d898 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> f65a21dfc2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+>>>>>>> 23799430d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> adb7b3537d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
@@ -1308,6 +1326,9 @@
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> a1258aa46 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> c46a601b8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
