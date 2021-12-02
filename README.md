@@ -1226,6 +1226,7 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> d2a2e1c6e ([maven-release-plugin] prepare for next development iteration)
@@ -1266,7 +1267,14 @@ CDN.
 =======
 >>>>>>> 6113b1721 ([maven-release-plugin] prepare for next development iteration)
 =======
+<<<<<<< HEAD
 >>>>>>> ca9ac40bb2 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> fc9bafe41 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 42ec5d4ce8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -1274,6 +1282,13 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 42ec5d4ce8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1300,6 +1315,8 @@ CDN.
 =======
 >>>>>>> 008510a7f ([maven-release-plugin] prepare for next development iteration)
 =======
+>>>>>>> fc9bafe41 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
 >>>>>>> 61d746ac2 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> a1258aa46 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -1315,6 +1332,7 @@ CDN.
 =======
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1424,7 +1442,14 @@ CDN.
 =======
 =======
 >>>>>>> 6113b1721 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> ca9ac40bb2 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+>>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> fc9bafe41 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 42ec5d4ce8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 Snapshot versions are published nightly to the Eclipse repository:
 =======
 ```xml
@@ -1465,6 +1490,7 @@ For nightly snapshot integration, add:
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1598,10 +1624,17 @@ For nightly snapshot integration, add:
 =======
 >>>>>>> ff6b69c1b ([maven-release-plugin] prepare for next development iteration)
 =======
+>>>>>>> fc9bafe41 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 42ec5d4ce8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 8d2851846 ([maven-release-plugin] prepare for next development iteration)
 =======
 <<<<<<< HEAD
@@ -1626,7 +1659,14 @@ For nightly snapshot integration, add:
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 8a73cc043 ([maven-release-plugin] prepare for next development iteration)
 =======
+<<<<<<< HEAD
 >>>>>>> ff6b69c1b ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> d04dc6d34 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> fc9bafe41 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 42ec5d4ce8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -1634,6 +1674,7 @@ Snapshot versions are published nightly to the Eclipse repository:
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1656,12 +1697,26 @@ Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> 6113b1721 ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> ca9ac40bb2 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> fc9bafe41 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+>>>>>>> 42ec5d4ce8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 42ec5d4ce8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1676,6 +1731,8 @@ Snapshot versions are published nightly to the Eclipse repository:
 =======
 >>>>>>> 008510a7f ([maven-release-plugin] prepare for next development iteration)
 =======
+>>>>>>> fc9bafe41 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
 >>>>>>> 61d746ac2 ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
@@ -1688,6 +1745,7 @@ Snapshot versions are published nightly to the Eclipse repository:
 <<<<<<< HEAD
 =======
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -1828,7 +1886,12 @@ Snapshot versions are published nightly to the Eclipse repository:
 =======
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 6113b1721 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> ca9ac40bb2 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> fc9bafe41 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 42ec5d4ce8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 
 ```xml
 <repository>
