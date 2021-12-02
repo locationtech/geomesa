@@ -6349,6 +6349,7 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>3.5.1</version>
 =======
 =======
@@ -6460,6 +6461,8 @@ CDN.
 >>>>>>> a80d0b72f7 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 8f0f1b0f79 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <version>4.0.1</version>
 =======
   <version>3.3.0</version>
@@ -30422,10 +30425,13 @@ GeoMesa in your project, add the following repositories to your pom:
 <<<<<<< HEAD
 =======
 >>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 9233b0b6ee (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> fb47f5073b ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -30474,10 +30480,14 @@ GeoMesa in your project, add the following repositories to your pom:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9233b0b6ee (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
@@ -30486,6 +30496,8 @@ GeoMesa in your project, add the following repositories to your pom:
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 9233b0b6ee (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> d04dc6d340 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -31131,16 +31143,20 @@ Snapshot versions are published nightly to the Eclipse repository:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 9233b0b6ee (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> e6fdf06261 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 =======
 Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -31150,6 +31166,11 @@ Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> e6fdf06261 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 9233b0b6ee (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 
 ```xml
 <repository>
@@ -31175,6 +31196,7 @@ DataStore implementations:
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -31247,6 +31269,8 @@ DataStore implementations:
 >>>>>>> 3f1c145517e (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 20104954ece (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> bef60a82cc5 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>5.0.1</version>
 =======
@@ -31296,6 +31320,8 @@ DataStore implementations:
 >>>>>>> eb93d185798 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 36e26cb8e32 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> eaede82e41a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>5.0.0</version>
 =======
@@ -31345,6 +31371,8 @@ DataStore implementations:
 >>>>>>> b04fe1fccc7 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 498f4afb467 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> d2661a7b146 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>4.0.5</version>
 =======
@@ -31394,6 +31422,8 @@ DataStore implementations:
 >>>>>>> 0fa93adb4e3 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 5a0cc1930b5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f9359962c97 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>4.0.4</version>
 =======
@@ -31406,8 +31436,13 @@ DataStore implementations:
 =======
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9233b0b6ee (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <version>4.0.2</version>
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+  <version>4.0.1</version>
+>>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
   <version>3.3.0</version>
 >>>>>>> c8e6854100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -31542,10 +31577,14 @@ DataStore implementations:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9233b0b6ee (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
@@ -31554,6 +31593,8 @@ DataStore implementations:
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 9233b0b6ee (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <version>3.5.0</version>
 =======
   <version>3.4.0</version>
