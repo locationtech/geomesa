@@ -2444,6 +2444,7 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>3.5.1</version>
 =======
 =======
@@ -2555,6 +2556,8 @@ CDN.
 >>>>>>> a80d0b72f7 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 8f0f1b0f79 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <version>4.0.1</version>
 =======
   <version>3.3.0</version>
@@ -10362,8 +10365,11 @@ CDN.
 >>>>>>> 16b14a4c3c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> e6fdf06261 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <version>3.5.0</version>
 =======
   <version>3.4.0</version>
@@ -10497,6 +10503,9 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> fb47f5073b ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -10542,8 +10551,11 @@ CDN.
 =======
 >>>>>>> e6fdf06261 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+<<<<<<< HEAD
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> d04dc6d340 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -11186,12 +11198,16 @@ Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> a97477799 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> e6fdf06261 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 =======
 Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e6fdf06261 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 
 ```xml
 <repository>
@@ -11217,6 +11233,7 @@ DataStore implementations:
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11274,6 +11291,8 @@ DataStore implementations:
 >>>>>>> 7da8b9148b5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0c2938893dd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 0b653927b8c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>5.0.0</version>
 =======
@@ -11313,6 +11332,8 @@ DataStore implementations:
 >>>>>>> f03b61efde8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e05e1390095 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b9524117c1f (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>4.0.5</version>
 =======
@@ -11352,8 +11373,13 @@ DataStore implementations:
 >>>>>>> e048f0e5775 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 8d17c775453 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 85af499a004 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>4.0.4</version>
+=======
+  <version>4.0.1</version>
+>>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
   <version>3.3.0</version>
 >>>>>>> c8e6854100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -11467,8 +11493,11 @@ DataStore implementations:
 >>>>>>> 16b14a4c3c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> e6fdf06261 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <version>3.5.0</version>
 =======
   <version>3.4.0</version>
