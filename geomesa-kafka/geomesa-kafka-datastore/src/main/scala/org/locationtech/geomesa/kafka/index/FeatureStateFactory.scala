@@ -35,13 +35,17 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> f1f9dcf7d1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 43b3328091 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> e062806100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -65,6 +69,10 @@ package org.locationtech.geomesa.kafka.index
 =======
 =======
 >>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> e062806100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> f1f9dcf7d1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 7ae88ee16e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 56698b9664 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -74,8 +82,11 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> f1f9dcf7d1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 082c87bda9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> e2aff21ea9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -102,10 +113,13 @@ package org.locationtech.geomesa.kafka.index
 >>>>>>> 082c87bda9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> e062806100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 43b3328091 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> f1f9dcf7d1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 import java.io.Closeable
 import java.util.Date
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
@@ -119,8 +133,11 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> f1f9dcf7d1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> ae468ad6f1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -128,10 +145,15 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 =======
 >>>>>>> 43b3328091 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e062806100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+>>>>>>> e062806100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> f1f9dcf7d1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> c8e6854100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -191,6 +213,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 56698b9664 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 43b3328091 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> e062806100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -322,6 +345,10 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+>>>>>>> e062806100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> f1f9dcf7d1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
