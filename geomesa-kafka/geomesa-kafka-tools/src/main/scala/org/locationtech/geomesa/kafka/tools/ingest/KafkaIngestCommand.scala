@@ -28,6 +28,8 @@ import scala.concurrent.duration.Duration
 
 class KafkaIngestCommand extends IngestCommand[KafkaDataStore] with KafkaDistributedCommand {
 
+  import scala.collection.JavaConverters._
+
   override val params = new KafkaIngestParams()
 
   // override to add delay in writing messages
@@ -43,7 +45,7 @@ class KafkaIngestCommand extends IngestCommand[KafkaDataStore] with KafkaDistrib
         throw new ParameterException("Delay is only supported for local ingest")
       }
       Command.user.info(s"Inserting delay of ${params.delay}")
-      new LocalConverterIngest(ds, sft, converter, inputs, params.threads) {
+      new LocalConverterIngest(ds, connection.asJava, sft, converter, inputs, params.threads) {
         override protected def features(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] =
           iter.map { f => Thread.sleep(delay); f }
       }

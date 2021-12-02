@@ -34,8 +34,8 @@ function dependencies() {
     # htrace 3 required for hadoop before 2.8
     # htrace 4 required for hadoop 2.8 and later
     # since they have separate package names, should be safe to install both
-    "org.apache.htrace:htrace-core:${htrace3_core_version}:jar"
-    "org.apache.htrace:htrace-core4:${htrace4_core_version}:jar"
+    "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
+    "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
   )
 
