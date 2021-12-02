@@ -164,8 +164,29 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 ```xml
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
+<<<<<<< HEAD
   <artifactId>geomesa-accumulo-datastore_2.12</artifactId>
   <version>5.1.0</version>
+=======
+  <artifactId>geomesa-hbase-datastore_2.12</artifactId>
+<<<<<<< HEAD
+  <version>5.0.1</version>
+=======
+<<<<<<< HEAD
+  <version>5.0.0</version>
+=======
+<<<<<<< HEAD
+  <version>4.0.5</version>
+=======
+<<<<<<< HEAD
+  <version>4.0.4</version>
+=======
+  <version>3.3.0</version>
+>>>>>>> c8e6854100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 6bb369fab87 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> b0ef8de2d6d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 399c76aff56 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 40c641cb2b6 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 </dependency>
 ```
 
@@ -206,6 +227,7 @@ GeoMesa in your project, add the following repositories to your pom:
 ### Nightly Snapshots
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Snapshot versions are published nightly to the Eclipse repository:
 =======
 ```xml
@@ -230,6 +252,9 @@ To download from the LocationTech Maven repository (required for older versions)
 
 For nightly snapshot integration, add:
 >>>>>>> 5792d822c6 ([maven-release-plugin] prepare for next development iteration)
+=======
+Snapshot versions are published nightly to the Eclipse repository:
+>>>>>>> c8e6854100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 
 ```xml
 <repository>
@@ -255,7 +280,27 @@ DataStore implementations:
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
+<<<<<<< HEAD
   <version>5.1.0</version>
+=======
+<<<<<<< HEAD
+  <version>5.0.1</version>
+=======
+<<<<<<< HEAD
+  <version>5.0.0</version>
+=======
+<<<<<<< HEAD
+  <version>4.0.5</version>
+=======
+<<<<<<< HEAD
+  <version>4.0.4</version>
+=======
+  <version>3.3.0</version>
+>>>>>>> c8e6854100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 6bb369fab87 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> b0ef8de2d6d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 399c76aff56 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 40c641cb2b6 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
