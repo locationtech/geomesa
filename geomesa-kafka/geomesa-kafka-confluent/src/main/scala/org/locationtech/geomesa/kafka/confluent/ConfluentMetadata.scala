@@ -32,9 +32,9 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
           try {
             val subject = topic + SubjectPostfix
             val schemaId = schemaRegistry.getLatestSchemaMetadata(subject).getId
-            val geom = Some(ConfluentFeatureSerializer.GeomAttributeName)
-            val dtg = Some(ConfluentFeatureSerializer.DateAttributeName)
-            val sft = AvroSimpleFeatureUtils.schemaToSft(schemaRegistry.getByID(schemaId), topic, geom, dtg)
+            //val geom = Some(ConfluentFeatureSerializer.GeomAttributeName)
+            //val dtg = Some(ConfluentFeatureSerializer.DateAttributeName)
+            val sft = AvroSimpleFeatureUtils.schemaToSft(schemaRegistry.getById(schemaId), topic, geom, dtg)
             KafkaDataStore.setTopic(sft, topic)
             SimpleFeatureTypes.encodeType(sft, includeUserData = true)
           } catch {

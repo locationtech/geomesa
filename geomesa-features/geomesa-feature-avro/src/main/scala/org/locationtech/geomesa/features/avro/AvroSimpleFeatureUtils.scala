@@ -256,7 +256,55 @@ object AvroSimpleFeatureUtils extends LazyLogging {
     builder.buildFeatureType()
   }
 
-  def addSchemaToBuilder(builder: SimpleFeatureTypeBuilder,
+  def schemaToSft(schema: Schema, sftName: String): SimpleFeatureType = {
+    val builder = new SimpleFeatureTypeBuilder
+    builder.setName(sftName)
+    schema.getFields.foreach { field =>
+      val geom = field.getProp(AVRO_GEOMESA_GEOM_PROP)
+      val date = field.getProp(AVRO_GEOMESA_DATE_PROP)
+      (geom, date) match {
+        case (null, null) => addSchemaToBuilder(builder, field)
+        case (geom, null) => builder.add(ga, classOf[Geometry])
+        case (null, date) => builder.add(ga, classOf[Geometry])
+        case _ => logger.error(s"Field ${field.name()} is described with mutually exclusive geomesa avro properties")
+      }
+    }
+  }
+
+  private case class GeomesaAvroField private (field: Schema.Field, props: GeomesaAvroFieldProperties) {
+    def apply(field: Schema.Field): GeomesaAvroField = {
+      val geomFormatProp = field.getProp(GeomProperties.FORMAT)
+      val geomTypeProp = field.getProp(GeomProperties.TYPE)
+      val geomDefaultProp = field.getProp(GeomProperties.DEFAULT)
+      val dateFormatProp = field.getProp(DateProperties.FORMAT)
+
+      if (geomTypeProp != null && geomTypeProp != null) {
+
+      } else if (dateFormatProp != null) {
+
+      } else {
+        GeomesaAvroField(field, NoProperties)
+      }
+    }
+  }
+
+  private sealed trait GeomesaAvroFieldProperties
+  private final case class GeomProperties(format: String, typ: Geometry, default: Boolean)
+    extends GeomesaAvroFieldProperties
+  private final case class DateProperties(format: String)
+    extends GeomesaAvroFieldProperties
+  private final case object NoProperties extends GeomesaAvroFieldProperties
+
+  private final case object GeomProperties {
+    val FORMAT = "geomesa.geom.format"
+    val TYPE = "geomesa.geom.type"
+    val DEFAULT = "geomesa.geom.default"
+  }
+  private final case object DateProperties {
+    val FORMAT = "geomesa.date.format"
+  }
+
+  private def addSchemaToBuilder(builder: SimpleFeatureTypeBuilder,
                          field: Schema.Field,
                          typeOverride: Option[Schema.Type] = None): Unit = {
     typeOverride.getOrElse(field.schema().getType) match {
@@ -266,17 +314,25 @@ object AvroSimpleFeatureUtils extends LazyLogging {
       case Schema.Type.DOUBLE  => builder.add(field.name(), classOf[java.lang.Double])
       case Schema.Type.LONG    => builder.add(field.name(), classOf[java.lang.Long])
       case Schema.Type.FLOAT   => builder.add(field.name(), classOf[java.lang.Float])
-      case Schema.Type.BYTES   => logger.error("Avro schema requested BYTES, which is not yet supported") // TODO support
+      case Schema.Type.BYTES   => builder.add(field.name(), classOf[Array[java.lang.Byte]])
+      //what if there are multiple non-null types in the union? then can't be serialized to SFT?
       case Schema.Type.UNION   => field.schema().getTypes.map(_.getType).find(_ != Schema.Type.NULL)
-                                       .foreach(t => addSchemaToBuilder(builder, field, Option(t))) // TODO support more union types and log any errors better
+                                    .foreach(t => addSchemaToBuilder(builder, field, Option(t))) // TODO support more union types and log any errors better
       case Schema.Type.MAP     => logger.error("Avro schema requested MAP, which is not yet supported") // TODO support
       case Schema.Type.RECORD  => logger.error("Avro schema requested RECORD, which is not yet supported") // TODO support
       case Schema.Type.ENUM    => builder.add(field.name(), classOf[java.lang.String])
       case Schema.Type.ARRAY   => logger.error("Avro schema requested ARRAY, which is not yet supported") // TODO support
       case Schema.Type.FIXED   => logger.error("Avro schema requested FIXED, which is not yet supported") // TODO support
-      case Schema.Type.NULL    => logger.error("Avro schema requested NULL, which is not yet supported") // TODO support
+      //what to use for this? classOf[Null]? does this need to be supported to use a null default?
+      case Schema.Type.NULL    => builder.add(field.name(), classOf[java.lang.Object])
       case _                   => logger.error(s"Avro schema requested unknown type ${field.schema().getType}")
     }
+  }
+
+  private def parseGeomesaAvroSchemaProperties
+
+  private def addGeomesaSchemaToBuilder(builder: SimpleFeatureTypeBuilder, field: Schema.Field): Unit = {
+
   }
 
   private def encodeNullCollection: ByteBuffer =
