@@ -594,6 +594,7 @@ class KafkaStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8e665b32ac (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -826,6 +827,8 @@ class KafkaStore(
 >>>>>>> 9eff3cec42 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 482326b3cf (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -1178,6 +1181,7 @@ class KafkaStore(
 >>>>>>> a71ff4b55b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 6d9d7dfd39 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 =======
 >>>>>>> 6adfbb9118 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -1862,6 +1866,8 @@ class KafkaStore(
 =======
 >>>>>>> a71ff4b55b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 482326b3cf (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 =======
   private val producer = KafkaStore.producer(config.producerConfig)
@@ -3172,6 +3178,8 @@ class KafkaStore(
 =======
 >>>>>>> c48823a84a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> cc8f236b0d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
 >>>>>>> 3f50ce5c7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> ef1041e32f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -3264,6 +3272,8 @@ class KafkaStore(
 =======
 >>>>>>> bc5cfce599 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> efecf8c4e7 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
 =======
 >>>>>>> b23b68a15 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -3316,6 +3326,8 @@ class KafkaStore(
 >>>>>>> 2d530ccd7 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> a83aceac8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> a51d9f1aa (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> d04dc6d340 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -7985,10 +7997,13 @@ class KafkaStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ab2825de65 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> c8f7e687c8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 82d1dee8a6 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -7999,6 +8014,7 @@ class KafkaStore(
 >>>>>>> 3d62f0b5cd (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 6d9d7dfd39 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 =======
 >>>>>>> 6adfbb9118 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -8025,6 +8041,8 @@ class KafkaStore(
 =======
 >>>>>>> 3d62f0b5cd (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> c8f7e687c8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 16b14a4c3c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 =======
@@ -8048,8 +8066,11 @@ class KafkaStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8f7e687c8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> cc8f236b0d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 8ca5e5c22b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -8057,6 +8078,7 @@ class KafkaStore(
 =======
 >>>>>>> cc8f236b0d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 6d9d7dfd39 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -8068,6 +8090,9 @@ class KafkaStore(
 >>>>>>> 8ca5e5c22b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 12b0b267d0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 6d9d7dfd39 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> e762caca5 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> b4c47024ad (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -9365,6 +9390,9 @@ class KafkaStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> bc5cfce599 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 >>>>>>> c48823a84a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -10465,6 +10493,7 @@ class KafkaStore(
 >>>>>>> a83aceac8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 6d9d7dfd39 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> bc5cfce599 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 >>>>>>> c48823a84a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -12382,14 +12411,30 @@ class KafkaStore(
 =======
 >>>>>>> b36757a53 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> a83aceac8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> bc5cfce599 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> c48823a84a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> a71ff4b55b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 482326b3cf (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> a51d9f1aa (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> efecf8c4e7 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> cc8f236b0d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 6d9d7dfd39 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 =======
   private val producer = KafkaStore.producer(config.producerConfig)
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13063,6 +13108,8 @@ class KafkaStore(
 =======
 >>>>>>> 482326b3cf (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
 >>>>>>> 0af33260a0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 722ee572e5 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -13360,6 +13407,7 @@ class KafkaStore(
 >>>>>>> 023a497566 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> a71ff4b55b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 6d9d7dfd39 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -13955,6 +14003,10 @@ class KafkaStore(
 >>>>>>> 9eff3cec42 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 482326b3cf (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 6d9d7dfd39 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 9cdd96d1c0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
@@ -14081,6 +14133,8 @@ class KafkaStore(
 =======
 >>>>>>> c48823a84a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> cc8f236b0d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
 >>>>>>> 0f4c4f114 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 55d18fef60 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -14161,6 +14215,8 @@ class KafkaStore(
 =======
 >>>>>>> bc5cfce599 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> efecf8c4e7 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
 =======
 >>>>>>> 30d431265 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> a990ff330 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -14192,6 +14248,8 @@ class KafkaStore(
 >>>>>>> e6fdf0626 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> a83aceac8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> a51d9f1aa (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> d04dc6d34 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 2d530ccd74 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -19487,6 +19545,7 @@ class KafkaStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5db00999ef (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -19495,13 +19554,18 @@ class KafkaStore(
 =======
 >>>>>>> bc5cfce599 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> efecf8c4e7 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
 >>>>>>> 16b14a4c3 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 248f4e6cc4 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> a51d9f1aa (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 =======
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> ed371dc57 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -19515,6 +19579,9 @@ class KafkaStore(
 =======
 <<<<<<< HEAD
 >>>>>>> b4c47024ad (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+<<<<<<< HEAD
+>>>>>>> cc8f236b0d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 =======
 >>>>>>> a97477799 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -20413,6 +20480,9 @@ class KafkaStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 4b08d07fef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
@@ -20426,6 +20496,7 @@ class KafkaStore(
 =======
 >>>>>>> 3d62f0b5cd (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 6d9d7dfd39 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -20449,6 +20520,10 @@ class KafkaStore(
 >>>>>>> ab2825de65 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> c8f7e687c8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 6d9d7dfd39 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> a97477799 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 1a020f43f (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -21498,6 +21573,9 @@ class KafkaStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> bc5cfce599 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 >>>>>>> c48823a84a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -22958,6 +23036,7 @@ class KafkaStore(
 >>>>>>> a83aceac8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 6d9d7dfd39 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> bc5cfce599 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 >>>>>>> c48823a84a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -25312,10 +25391,25 @@ class KafkaStore(
 =======
 =======
 >>>>>>> a83aceac8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> bc5cfce599 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> c48823a84a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> a71ff4b55b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 482326b3cf (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> a51d9f1aa (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> efecf8c4e7 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> cc8f236b0d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 6d9d7dfd39 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> ad8fde3d37 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 
   private val topic = KafkaStore.topic(config.zkNamespace, sft)
 
