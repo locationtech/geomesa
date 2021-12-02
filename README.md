@@ -2679,6 +2679,7 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -2968,6 +2969,12 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 =======
   <version>4.0.0</version>
 >>>>>>> 7fd730a88a (Set release version)
+=======
+  <version>4.0.0</version>
+=======
+  <version>3.3.0</version>
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 6b51e11e71 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 </dependency>
 ```
 
@@ -2992,6 +2999,7 @@ GeoMesa in your project, add the following repositories to your pom:
 
 ### Nightly Snapshots
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3571,6 +3579,8 @@ GeoMesa in your project, add the following repositories to your pom:
 >>>>>>> 320c3cc14c ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 4847bec263 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 6b51e11e71 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 Snapshot versions are published nightly to the Eclipse repository:
 =======
 ```xml
@@ -3602,6 +3612,7 @@ For nightly snapshot integration, add:
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4252,6 +4263,11 @@ Snapshot versions are published nightly to the Eclipse repository:
 =======
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 4847bec263 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+Snapshot versions are published nightly to the Eclipse repository:
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 6b51e11e71 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 
 ```xml
 <repository>
@@ -4277,6 +4293,7 @@ DataStore implementations:
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4525,6 +4542,12 @@ DataStore implementations:
 =======
   <version>4.0.0</version>
 >>>>>>> 7fd730a88a (Set release version)
+=======
+  <version>4.0.0</version>
+=======
+  <version>3.3.0</version>
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 6b51e11e71 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
