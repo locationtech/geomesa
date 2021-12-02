@@ -15,6 +15,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
@@ -524,11 +525,16 @@
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
+=======
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+>>>>>>> 8252893b4e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -786,6 +792,9 @@
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locationtech-main
+=======
+>>>>>>> 5ad2f6a7b (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 8252893b4e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at

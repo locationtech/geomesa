@@ -11,6 +11,7 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -162,6 +163,13 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 =======
 >>>>>>> e062806100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> locationtech-main
+=======
+=======
+import java.io.Closeable
+import java.util.Date
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 8252893b4e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.text.ecql.ECQL
