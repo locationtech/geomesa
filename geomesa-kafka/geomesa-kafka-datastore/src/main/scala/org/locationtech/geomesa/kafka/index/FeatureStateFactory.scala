@@ -37,6 +37,7 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -357,12 +358,17 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> 8252893b4e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
 import java.io.Closeable
 import java.util.Date
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> 8252893b4e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> b2d7d521a4 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 8252893b4e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
