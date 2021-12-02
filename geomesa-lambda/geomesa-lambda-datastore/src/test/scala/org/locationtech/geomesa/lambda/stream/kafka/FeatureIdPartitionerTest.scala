@@ -5,6 +5,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -17,6 +18,8 @@
 >>>>>>> 12b9bf4608 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> d136bd4a2c (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 46e34931f6 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
@@ -32,10 +35,13 @@
 >>>>>>> c46a601b81 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> ed371dc574 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 5ad2f6a7b2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -61,7 +67,12 @@
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> d136bd4a2c (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 5ad2f6a7b2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 46e34931f6 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at

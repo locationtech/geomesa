@@ -685,6 +685,7 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>5.0.1</version>
 =======
 =======
@@ -703,6 +704,8 @@ CDN.
 >>>>>>> fc94f9a3cb9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 57aa4fbafbc (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c222ed2ab7a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>5.0.0</version>
 =======
@@ -722,6 +725,8 @@ CDN.
 >>>>>>> 1058a1fed26 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 8363956f2e1 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5d359971fdb (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>4.0.5</version>
 =======
@@ -741,6 +746,8 @@ CDN.
 >>>>>>> b87bc55ade3 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> f86d521e3d0 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> ccb338d3fb2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>4.0.4</version>
 =======
@@ -847,10 +854,28 @@ CDN.
 =======
   <version>3.4.1</version>
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> f86d521e3d0 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 8363956f2e1 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 57aa4fbafbc (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 5500239a959 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+=======
+  <version>3.5.0</version>
+=======
+  <version>3.3.0</version>
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 5ad2f6a7b2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> ccb338d3fb2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 5d359971fdb (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> c222ed2ab7a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 620e16fb333 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 </dependency>
 ```
 =======
@@ -919,6 +944,7 @@ GeoMesa in your project, add the following repositories to your pom:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fb47f5073b ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -1002,6 +1028,8 @@ GeoMesa in your project, add the following repositories to your pom:
 >>>>>>> a974777993 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> f9c85b7d56 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 5ad2f6a7b2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 Snapshot versions are published nightly to the Eclipse repository:
 =======
 ```xml
@@ -1036,6 +1064,7 @@ Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> c8e6854100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1179,6 +1208,11 @@ Snapshot versions are published nightly to the Eclipse repository:
 =======
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> f9c85b7d56 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+Snapshot versions are published nightly to the Eclipse repository:
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 5ad2f6a7b2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 
 ```xml
 <repository>
@@ -1213,6 +1247,7 @@ DataStore implementations:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>5.1.0</version>
 =======
 =======
@@ -1231,6 +1266,8 @@ DataStore implementations:
 >>>>>>> f93da589283 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 5500239a959 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 620e16fb333 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>5.0.1</version>
 =======
@@ -1250,6 +1287,8 @@ DataStore implementations:
 >>>>>>> fc94f9a3cb9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 57aa4fbafbc (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c222ed2ab7a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>5.0.0</version>
 =======
@@ -1269,6 +1308,8 @@ DataStore implementations:
 >>>>>>> 1058a1fed26 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 8363956f2e1 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5d359971fdb (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>4.0.5</version>
 =======
@@ -1288,6 +1329,8 @@ DataStore implementations:
 >>>>>>> b87bc55ade3 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> f86d521e3d0 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> ccb338d3fb2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
   <version>4.0.4</version>
 =======
@@ -1394,10 +1437,28 @@ DataStore implementations:
 =======
   <version>3.4.1</version>
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> f86d521e3d0 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 8363956f2e1 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 57aa4fbafbc (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 5500239a959 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+=======
+  <version>3.5.0</version>
+=======
+  <version>3.3.0</version>
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 5ad2f6a7b2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> ccb338d3fb2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 5d359971fdb (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> c222ed2ab7a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 620e16fb333 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
