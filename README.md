@@ -21834,7 +21834,11 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-hbase-datastore_2.12</artifactId>
+<<<<<<< HEAD
   <version>3.5.0</version>
+=======
+  <version>3.3.0</version>
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 </dependency>
 ```
 
@@ -21872,6 +21876,7 @@ See [CITATION](CITATION)
 ### Nightly Snapshots
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Snapshot versions are published nightly to the Eclipse repository:
 =======
 ```xml
@@ -21896,6 +21901,9 @@ To download from the LocationTech Maven repository (required for older versions)
 
 For nightly snapshot integration, add:
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+=======
+Snapshot versions are published nightly to the Eclipse repository:
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 
 ```xml
 <repository>
@@ -21921,7 +21929,11 @@ DataStore implementations:
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
+<<<<<<< HEAD
   <version>3.5.0</version>
+=======
+  <version>3.3.0</version>
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
