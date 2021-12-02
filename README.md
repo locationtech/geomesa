@@ -4815,6 +4815,7 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>4.0.0</version>
 =======
   <version>3.4.0</version>
@@ -4858,6 +4859,8 @@ CDN.
 >>>>>>> 897d857f0 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 20a188f4e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 85139491a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <version>3.5.0</version>
 =======
   <version>3.4.0</version>
@@ -4868,11 +4871,16 @@ CDN.
 =======
 =======
 >>>>>>> 39183654c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> f2dc07420 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <version>3.4.1</version>
 >>>>>>> c46a601b8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
   <version>3.4.0</version>
 >>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+  <version>3.4.0</version>
+>>>>>>> a1258aa46 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
   <version>3.3.0</version>
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -4937,6 +4945,7 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c22584d75 ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -4947,6 +4956,8 @@ CDN.
 >>>>>>> 20a188f4e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> ac4540264 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 85139491a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> d2a2e1c6e ([maven-release-plugin] prepare for next development iteration)
@@ -4959,6 +4970,7 @@ CDN.
 =======
 >>>>>>> f2dc07420 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+<<<<<<< HEAD
 >>>>>>> 8a73cc043 ([maven-release-plugin] prepare for next development iteration)
 =======
 <<<<<<< HEAD
@@ -5008,7 +5020,12 @@ CDN.
 >>>>>>> 04c5bd425 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> ac4540264 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 2f950ac7dd ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 85139491a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 57d734da30 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -5076,10 +5093,13 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8a73cc043 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 6113b1721 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 85139491a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 =======
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
@@ -5133,10 +5153,13 @@ CDN.
 >>>>>>> 04c5bd425 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 008510a7f ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
 >>>>>>> 2f950ac7dd ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 57d734da30 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> f2dc07420 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
@@ -5245,7 +5268,14 @@ CDN.
 =======
 =======
 >>>>>>> ac4540264 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 2f950ac7dd ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+>>>>>>> f2dc07420 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 85139491a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 57d734da30 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 Snapshot versions are published nightly to the Eclipse repository:
 =======
 ```xml
@@ -5286,6 +5316,7 @@ For nightly snapshot integration, add:
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5437,6 +5468,8 @@ For nightly snapshot integration, add:
 =======
 >>>>>>> ac4540264 ([maven-release-plugin] prepare for next development iteration)
 =======
+>>>>>>> 85139491a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -5473,8 +5506,11 @@ For nightly snapshot integration, add:
 >>>>>>> f2dc07420 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 8e36ec0d0 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+=======
+>>>>>>> 57d734da30 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 8a73cc043 ([maven-release-plugin] prepare for next development iteration)
@@ -5505,7 +5541,12 @@ For nightly snapshot integration, add:
 >>>>>>> 04c5bd425 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> ac4540264 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 2f950ac7dd ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 85139491a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 57d734da30 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -5612,6 +5653,9 @@ Snapshot versions are published nightly to the Eclipse repository:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 85139491a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
@@ -5668,10 +5712,13 @@ Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> 04c5bd425 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 008510a7f ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
 >>>>>>> 2f950ac7dd ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 57d734da30 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> f2dc07420 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
@@ -5812,7 +5859,14 @@ Snapshot versions are published nightly to the Eclipse repository:
 =======
 =======
 >>>>>>> ac4540264 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 2f950ac7dd ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+>>>>>>> f2dc07420 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 85139491a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 57d734da30 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 
 ```xml
 <repository>
@@ -5838,6 +5892,7 @@ DataStore implementations:
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5895,6 +5950,8 @@ DataStore implementations:
 >>>>>>> 897d857f0 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 20a188f4e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 85139491a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <version>3.5.0</version>
 =======
   <version>3.4.0</version>
@@ -5905,11 +5962,16 @@ DataStore implementations:
 =======
 =======
 >>>>>>> 39183654c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> f2dc07420 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
   <version>3.4.1</version>
 >>>>>>> c46a601b8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
   <version>3.4.0</version>
 >>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+  <version>3.4.0</version>
+>>>>>>> a1258aa46 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
   <version>3.3.0</version>
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
