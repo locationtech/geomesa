@@ -128,8 +128,11 @@ GeoMesa in your project, add the following repositories to your pom:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 Snapshot versions are published nightly to the Eclipse repository:
 =======
 ```xml
@@ -155,11 +158,17 @@ To download from the LocationTech Maven repository (required for older versions)
 For nightly snapshot integration, add:
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+Snapshot versions are published nightly to the Eclipse repository:
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 
 ```xml
 <repository>
