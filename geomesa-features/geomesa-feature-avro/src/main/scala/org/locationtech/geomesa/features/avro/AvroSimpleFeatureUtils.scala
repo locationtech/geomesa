@@ -256,54 +256,6 @@ object AvroSimpleFeatureUtils extends LazyLogging {
     builder.buildFeatureType()
   }
 
-  def schemaToSft(schema: Schema, sftName: String): SimpleFeatureType = {
-    val builder = new SimpleFeatureTypeBuilder
-    builder.setName(sftName)
-    schema.getFields.foreach { field =>
-      val geom = field.getProp(AVRO_GEOMESA_GEOM_PROP)
-      val date = field.getProp(AVRO_GEOMESA_DATE_PROP)
-      (geom, date) match {
-        case (null, null) => addSchemaToBuilder(builder, field)
-        case (geom, null) => builder.add(ga, classOf[Geometry])
-        case (null, date) => builder.add(ga, classOf[Geometry])
-        case _ => logger.error(s"Field ${field.name()} is described with mutually exclusive geomesa avro properties")
-      }
-    }
-  }
-
-  private case class GeomesaAvroField private (field: Schema.Field, props: GeomesaAvroFieldProperties) {
-    def apply(field: Schema.Field): GeomesaAvroField = {
-      val geomFormatProp = field.getProp(GeomProperties.FORMAT)
-      val geomTypeProp = field.getProp(GeomProperties.TYPE)
-      val geomDefaultProp = field.getProp(GeomProperties.DEFAULT)
-      val dateFormatProp = field.getProp(DateProperties.FORMAT)
-
-      if (geomTypeProp != null && geomTypeProp != null) {
-
-      } else if (dateFormatProp != null) {
-
-      } else {
-        GeomesaAvroField(field, NoProperties)
-      }
-    }
-  }
-
-  private sealed trait GeomesaAvroFieldProperties
-  private final case class GeomProperties(format: String, typ: Geometry, default: Boolean)
-    extends GeomesaAvroFieldProperties
-  private final case class DateProperties(format: String)
-    extends GeomesaAvroFieldProperties
-  private final case object NoProperties extends GeomesaAvroFieldProperties
-
-  private final case object GeomProperties {
-    val FORMAT = "geomesa.geom.format"
-    val TYPE = "geomesa.geom.type"
-    val DEFAULT = "geomesa.geom.default"
-  }
-  private final case object DateProperties {
-    val FORMAT = "geomesa.date.format"
-  }
-
   private def addSchemaToBuilder(builder: SimpleFeatureTypeBuilder,
                          field: Schema.Field,
                          typeOverride: Option[Schema.Type] = None): Unit = {
@@ -327,12 +279,6 @@ object AvroSimpleFeatureUtils extends LazyLogging {
       case Schema.Type.NULL    => builder.add(field.name(), classOf[java.lang.Object])
       case _                   => logger.error(s"Avro schema requested unknown type ${field.schema().getType}")
     }
-  }
-
-  private def parseGeomesaAvroSchemaProperties
-
-  private def addGeomesaSchemaToBuilder(builder: SimpleFeatureTypeBuilder, field: Schema.Field): Unit = {
-
   }
 
   private def encodeNullCollection: ByteBuffer =
