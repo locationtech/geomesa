@@ -10,6 +10,7 @@ package org.locationtech.geomesa.features.avro
 
 import org.apache.avro.Schema
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeomesaAvroDateFormat, GeomesaAvroGeomDefault, GeomesaAvroGeomFormat, GeomesaAvroGeomType, GeomesaAvroProperty}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.{Geometry, Point}
 import org.specs2.mutable.Specification
@@ -133,11 +134,6 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
 
   "The GeomesaAvroProperty parser for" >> {
     "default geometry" should {
-      "fail if the field does not have the required type(s)" in {
-        val field = invalidGeomesaAvroSchema1.getField("f2")
-        GeomesaAvroGeomDefault.parse(field) must throwAn[GeomesaAvroProperty.InvalidPropertyTypeException]
-      }
-
       "fail if an unsupported value is parsed" in {
         val field = invalidGeomesaAvroSchema1.getField("f1")
         GeomesaAvroGeomDefault.parse(field) must throwAn[GeomesaAvroProperty.InvalidPropertyValueException]
@@ -177,11 +173,6 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
     }
 
     "geometry type" should {
-      "fail if the field does not have the required type(s)" in {
-        val field = invalidGeomesaAvroSchema1.getField("f2")
-        GeomesaAvroGeomType.parse(field) must throwAn[GeomesaAvroProperty.InvalidPropertyTypeException]
-      }
-
       "fail if an unsupported value is parsed" in {
         val field = invalidGeomesaAvroSchema1.getField("f3")
         GeomesaAvroGeomType.parse(field) must throwAn[GeomesaAvroProperty.InvalidPropertyValueException]
