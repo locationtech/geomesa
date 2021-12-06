@@ -227,7 +227,6 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
     "convert a schema with valid geomesa avro properties into an SFT" in {
       val expected =
       val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaSchema)
-      
     }
   }
 }

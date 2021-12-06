@@ -47,7 +47,6 @@ object AvroSimpleFeatureTypeParser extends LazyLogging {
       case Schema.Type.BYTES   => builder.add(field.name(), classOf[Array[java.lang.Byte]])
       case Schema.Type.UNION   =>
         val types = field.schema().getTypes.map(_.getType).filter(_ != Schema.Type.NULL).toSet
-        println("Types: " + types)
         if (types.size > 1) {
           throw UnsupportedAvroTypeException(types.mkString("[", ", ", "]"))
         } else {
@@ -81,24 +80,22 @@ object AvroSimpleFeatureTypeParser extends LazyLogging {
   final def sftGeomFormatKey(name: String): String = s"$name.${GeomesaAvroGeomFormat.KEY}"
   final def sftDateFormatKey(name: String): String = s"$name.${GeomesaAvroDateFormat.KEY}"
 
-  sealed trait GeomesaAvroFieldMetadata
-  case class GeomMetadata(format: String, typ: Class[_ <: Geometry], default: Boolean) extends GeomesaAvroFieldMetadata
-  case class DateMetadata(format: String) extends GeomesaAvroFieldMetadata
-  case object NoMetadata extends GeomesaAvroFieldMetadata
+  private sealed trait GeomesaAvroFieldMetadata
+  private case class GeomMetadata(format: String, typ: Class[_ <: Geometry], default: Boolean) extends GeomesaAvroFieldMetadata
+  private case class DateMetadata(format: String) extends GeomesaAvroFieldMetadata
+  private case object NoMetadata extends GeomesaAvroFieldMetadata
 
   final case class UnsupportedAvroTypeException(typeName: String)
     extends IllegalArgumentException(s"Type '$typeName' is not supported for SFT conversion")
 }
 
-trait GeomesaAvroProperty[T] {
+private[avro] trait GeomesaAvroProperty[T] {
   val KEY: String
 
   def parse(field: Schema.Field): Option[T]
 
-  protected final def assertFieldType(field: Schema.Field, typ: Schema.Type): Unit = {
-    assertFieldTypes(field, Set(typ))
-  }
-
+  protected final def assertFieldType(field: Schema.Field, typ: Schema.Type): Unit = assertFieldTypes(field, Set(typ))
+  //doesn't support unions with null default, should it?
   protected final def assertFieldTypes(field: Schema.Field, types: Set[Schema.Type]): Unit = {
     if (!types.contains(field.schema.getType)) {
       throw GeomesaAvroProperty.InvalidPropertyTypeException(types.map(_.getName).mkString(", "), KEY)
@@ -106,7 +103,7 @@ trait GeomesaAvroProperty[T] {
   }
 }
 
-object GeomesaAvroProperty {
+private[avro] object GeomesaAvroProperty {
   final case class InvalidPropertyValueException(value: String, key: String)
     extends IllegalArgumentException(s"Unable to parse value '$value' for property '$key'")
 
@@ -114,7 +111,18 @@ object GeomesaAvroProperty {
     extends IllegalArgumentException(s"Fields with property '$key' must be of type(s): '$typeNames'")
 }
 
-object GeomesaAvroGeomDefault extends GeomesaAvroProperty[Boolean] {
+private[avro] trait GeomesaAvroPropertyEnum[T] extends GeomesaAvroProperty[T] {
+  protected val SUPPORTED: Set[String]
+
+  final def supported(value: String): Option[String] = Option(value.toUpperCase).filter(SUPPORTED.contains)
+  final def supportedOrThrow(value: String): String = {
+    supported(value).getOrElse {
+      throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
+    }
+  }
+}
+
+private[avro] object GeomesaAvroGeomDefault extends GeomesaAvroProperty[Boolean] {
   override val KEY = "geomesa.geom.default"
 
   override def parse(field: Schema.Field): Option[Boolean] = {
@@ -128,47 +136,36 @@ object GeomesaAvroGeomDefault extends GeomesaAvroProperty[Boolean] {
   }
 }
 
-trait GeomesaAvroPropertyEnum[T] extends GeomesaAvroProperty[T] {
-  val SUPPORTED: Set[String]
-
-  final def supports(value: String): Boolean = SUPPORTED.contains(value.toUpperCase)
-  final def supportsOrThrow(value: String): String = {
-    if (supports(value)) { value.toUpperCase } else {
-      throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
-    }
-  }
-}
-
-object GeomesaAvroGeomFormat extends GeomesaAvroPropertyEnum[String] {
+private[avro] object GeomesaAvroGeomFormat extends GeomesaAvroPropertyEnum[String] {
   override val KEY = "geomesa.geom.format"
 
   val WKT = "WKT"
   val WKB = "WKB"
 
-  override val SUPPORTED = Set(WKT, WKB)
+  override protected val SUPPORTED = Set(WKT, WKB)
 
   override def parse(field: Schema.Field): Option[String] = {
     val geomFormat = Option(field.getProp(KEY))
-    geomFormat.map(supportsOrThrow(_) match {
+    geomFormat.map(supportedOrThrow(_) match {
       case WKT => assertFieldType(field, Schema.Type.STRING); WKT
       case WKB => assertFieldType(field, Schema.Type.BYTES); WKB
     })
   }
 }
 
-object GeomesaAvroGeomType extends GeomesaAvroPropertyEnum[Class[_ <: Geometry]] {
+private[avro] object GeomesaAvroGeomType extends GeomesaAvroPropertyEnum[Class[_ <: Geometry]] {
   override val KEY = "geomesa.geom.type"
 
   val POINT = "POINT"
   val LINESTRING = "LINESTRING"
   val POLYGON = "POLYGON"
 
-  override val SUPPORTED = Set(POINT, LINESTRING, POLYGON)
+  override protected val SUPPORTED = Set(POINT, LINESTRING, POLYGON)
 
   override def parse(field: Schema.Field): Option[Class[_ <: Geometry]] = {
     val geomType = Option(field.getProp(KEY))
     geomType.map { typ =>
-      val validated = supportsOrThrow(typ)
+      val validated = supportedOrThrow(typ)
       assertFieldTypes(field, Set(Schema.Type.STRING, Schema.Type.BYTES))
       validated match {
         case POINT => classOf[Point]
@@ -179,16 +176,16 @@ object GeomesaAvroGeomType extends GeomesaAvroPropertyEnum[Class[_ <: Geometry]]
   }
 }
 
-private object GeomesaAvroDateFormat extends GeomesaAvroPropertyEnum[String] {
+private[avro] object GeomesaAvroDateFormat extends GeomesaAvroPropertyEnum[String] {
   override val KEY = "geomesa.date.format"
 
   val ISO8601 = "ISO8601"
 
-  override val SUPPORTED = Set(ISO8601)
+  override protected val SUPPORTED = Set(ISO8601)
 
   override def parse(field: Schema.Field): Option[String] = {
     val dateFormat = Option(field.getProp(KEY))
-    dateFormat.map(supportsOrThrow(_) match {
+    dateFormat.map(supportedOrThrow(_) match {
       case ISO8601 => assertFieldType(field, Schema.Type.STRING); ISO8601
     })
   }
