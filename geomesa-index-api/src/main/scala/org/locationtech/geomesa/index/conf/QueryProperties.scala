@@ -22,6 +22,7 @@ object QueryProperties {
 
   // rough upper limit on the number of ranges we will generate per query
   val ScanRangesTarget: SystemProperty = SystemProperty("geomesa.scan.ranges.target", "2000")
+  val ScanSeek        : SystemProperty = SystemProperty("geomesa.scan.seek", "true")
 
   // decomposition is disabled by default
   val PolygonDecompMultiplier: SystemProperty = SystemProperty("geomesa.query.decomposition.multiplier", "0")

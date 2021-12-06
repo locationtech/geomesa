@@ -267,6 +267,13 @@ This property works in conjunction with ``geomesa.scan.block-full-table``, above
 on the number of features that are returned (through the use of ``maxFeatures``), then it will not be blocked.
 The property is specified as an integer. By default, a limit of 1000 or less is allowed.
 
+geomesa.scan.ranges.recurse
++++++++++++++++++++++++++++
+
+This property controls the max level of recursion that will be used when generating scan ranges. Higher levels of
+recursion will generate more accurate ranges at the cost of longer query planning times, and vice-versa. Generally
+this does not need to be configured.
+
 geomesa.scan.ranges.target
 ++++++++++++++++++++++++++
 
@@ -274,6 +281,12 @@ This property provides a rough upper-limit for the number of row ranges that wil
 query. It is specified as a number. In general, more ranges will result in fewer false-positive rows being
 scanned, which will speed up most queries. However, too many ranges can take a long time to generate, and
 overwhelm clients, causing slowdowns. The optimal value depends on the environment.
+
+geomesa.scan.seek
++++++++++++++++++
+
+The property controls seeking in distributed scans. By default seeking is enabled, which should provide the best
+performance.
 
 geomesa.serializer.cache.expiry
 +++++++++++++++++++++++++++++++

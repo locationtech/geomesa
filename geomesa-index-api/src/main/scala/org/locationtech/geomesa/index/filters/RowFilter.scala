@@ -9,7 +9,17 @@
 package org.locationtech.geomesa.index.filters
 
 trait RowFilter {
+
+  import RowFilter.FilterResult
+
+  @deprecated("replaced with filter")
   def inBounds(buf: Array[Byte], offset: Int): Boolean
+
+  // TODO remove default impl in next major version
+  def filter(row: Array[Byte], offset: Int): FilterResult = {
+    // noinspection ScalaDeprecation
+    if (inBounds(row, offset)) { FilterResult.InBounds } else { FilterResult.OutOfBounds }
+  }
 }
 
 object RowFilter {
@@ -20,5 +30,13 @@ object RowFilter {
 
     def serializeToStrings(filter: T): Map[String, String]
     def deserializeFromStrings(serialized: scala.collection.Map[String, String]): T
+  }
+
+  sealed trait FilterResult
+
+  object FilterResult {
+    case object InBounds extends FilterResult
+    case object OutOfBounds extends FilterResult
+    case class SkipAhead(next: Array[Byte]) extends FilterResult
   }
 }

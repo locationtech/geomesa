@@ -231,12 +231,12 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       val indexFilter = strategy.index match {
         case _: Z3Index =>
           strategy.values.map { case v: Z3IndexValues =>
-            (Z3HBaseFilter.Priority, Z3HBaseFilter(Z3Filter(v), index.keySpace.sharding.length))
+            (Z3HBaseFilter.Priority, Z3HBaseFilter(Z3Filter(v, hints), index.keySpace.sharding.length))
           }
 
         case _: Z2Index =>
           strategy.values.map { case v: Z2IndexValues =>
-            (Z2HBaseFilter.Priority, Z2HBaseFilter(Z2Filter(v), index.keySpace.sharding.length))
+            (Z2HBaseFilter.Priority, Z2HBaseFilter(Z2Filter(v, hints), index.keySpace.sharding.length))
           }
 
         case _: S2Index =>

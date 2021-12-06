@@ -12,7 +12,7 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Value, Range => AccRang
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.index.filters.RowFilter
-import org.locationtech.geomesa.index.filters.RowFilter.RowFilterFactory
+import org.locationtech.geomesa.index.filters.RowFilter.{FilterResult, RowFilterFactory}
 
 /**
  * Abstract base class for filtering iterators. Implementations must have a no-arg default constructor, used
@@ -33,6 +33,11 @@ abstract class RowFilterIterator[T <: RowFilter](factory: RowFilterFactory[T])
 
   private var topKey: Key = _
   private var topValue: Value = _
+
+  private var colFamilies: java.util.Collection[ByteSequence] = _
+  private var inclusive: Boolean = _
+  private var range: AccRange = _
+
   private val row = new Text()
 
   override def init(
@@ -54,17 +59,30 @@ abstract class RowFilterIterator[T <: RowFilter](factory: RowFilterFactory[T])
     topValue = null
     while (source.hasTop) {
       source.getTopKey.getRow(row)
-      if (filter.inBounds(row.getBytes, offset)) {
-        topKey = source.getTopKey
-        topValue = source.getTopValue
-        return
-      } else {
-        source.next()
+      filter.filter(row.getBytes, offset) match {
+        case FilterResult.InBounds =>
+          topKey = source.getTopKey
+          topValue = source.getTopValue
+          return
+
+        case FilterResult.OutOfBounds =>
+          source.next()
+
+        case FilterResult.SkipAhead(next) =>
+          val nextKey = new Key(row.getBytes.take(offset) ++ next)
+          if (range.afterEndKey(nextKey)) {
+            return
+          } else {
+            source.seek(new AccRange(nextKey, true, range.getEndKey, range.isEndKeyInclusive), colFamilies, inclusive)
+          }
       }
     }
   }
 
   override def seek(range: AccRange, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {
+    this.range = range
+    this.colFamilies = columnFamilies
+    this.inclusive = inclusive
     source.seek(range, columnFamilies, inclusive)
     findTop()
   }

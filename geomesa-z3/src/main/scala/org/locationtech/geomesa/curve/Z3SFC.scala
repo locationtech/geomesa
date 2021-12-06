@@ -55,10 +55,11 @@ class Z3SFC(period: TimePeriod, precision: Int = 21) extends SpaceTimeFillingCur
                       t: Seq[(Long, Long)],
                       precision: Int,
                       maxRanges: Option[Int]): Seq[IndexRange] = {
+    val maxRecursion = sys.props.get("geomesa.scan.ranges.recurse").map(_.toInt).orElse(Some(Int.MaxValue))
     val zbounds = for { (xmin, ymin, xmax, ymax) <- xy ; (tmin, tmax) <- t } yield {
       ZRange(index(xmin, ymin, tmin), index(xmax, ymax, tmax))
     }
-    Z3.zranges(zbounds.toArray, precision, maxRanges)
+    Z3.zranges(zbounds.toArray, precision, maxRanges, maxRecursion)
   }
 }
 

@@ -23,6 +23,8 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.nio.ByteBuffer
+
 @RunWith(classOf[JUnitRunner])
 class Z3IteratorTest extends Specification {
 
@@ -48,35 +50,50 @@ class Z3IteratorTest extends Specification {
           map: java.util.Map[String, String],
           iteratorEnvironment: IteratorEnvironment): Unit = {}
       override def seek(range: Range, collection: java.util.Collection[ByteSequence], b: Boolean): Unit = {
+        staged = key
         key = null
-        staged = null
       }
       override def hasTop: Boolean = staged != null
     }
 
     val iter = new Z3Iterator
     iter.init(srcIter, Z3Iterator.configure(indexValues, 0, None, 25).getOptions, null)
+    iter.seek(new org.apache.accumulo.core.data.Range(new Key(new Text(k)), null), null, inclusive = false)
     iter
   }
 
   "Z3Iterator" should {
 
-    "iterate on points" >> {
-      "keep in bounds values" >> {
-        val test1 = indexValues.sfc.index(-76.0, 38.5, 500)
-        val row = ByteArrays.toBytes(Array[Byte](0, 0), test1)
-        val iter = iterator(row)
-        iter.next()
-        iter.hasTop must beTrue
+    "serialize iterator version" >> {
+      val buf = ByteBuffer.allocate(5)
+      val read = ByteBuffer.wrap(buf.array())
+      (-9 to -1).map(_.toByte).foreach { version =>
+        buf.clear()
+        buf.put(version).mark()
+        (0 to 10000).foreach { i =>
+          buf.reset()
+          buf.putInt(i)
+          read.clear()
+          read.getInt must beLessThan(0)
+          read.position(1)
+          read.get() must beGreaterThanOrEqualTo(0.toByte)
+        }
       }
+      ok
+    }
 
-      "drop out of bounds values" >> {
-        val test2 = indexValues.sfc.index(-70.0, 38.5, 500)
-        val row = ByteArrays.toBytes(Array[Byte](0, 0), test2)
-        val iter = iterator(row)
-        iter.next()
-        iter.hasTop must beFalse
-      }
+    "keep in bounds values" >> {
+      val test1 = indexValues.sfc.index(-76.0, 38.5, 500)
+      val row = ByteArrays.toBytes(Array[Byte](0, 0), test1)
+      val iter = iterator(row)
+      iter.hasTop must beTrue
+    }
+
+    "drop out of bounds values" >> {
+      val test2 = indexValues.sfc.index(-70.0, 38.5, 500)
+      val row = ByteArrays.toBytes(Array[Byte](0, 0), test2)
+      val iter = iterator(row)
+      iter.hasTop must beFalse
     }
 
     "configure 1.3 compatibility mode" >> {

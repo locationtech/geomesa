@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.index.filters
 
-import java.nio.ByteBuffer
+import org.geotools.util.factory.Hints
 
+import java.nio.ByteBuffer
 import org.locationtech.geomesa.index.filters.RowFilter.RowFilterFactory
 import org.locationtech.geomesa.index.filters.Z3Filter._
 import org.locationtech.geomesa.index.index.z2.Z2IndexValues
@@ -38,10 +39,16 @@ class Z2Filter(val xy: Array[Array[Int]]) extends RowFilter {
 
 object Z2Filter extends RowFilterFactory[Z2Filter] {
 
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
   private val RangeSeparator = ":"
   private val TermSeparator  = ";"
 
-  def apply(values: Z2IndexValues): Z2Filter = {
+  def apply(values: Z2IndexValues): Z2Filter = apply(values, seek = true)
+
+  def apply(values: Z2IndexValues, hints: Hints): Z2Filter = apply(values, hints.isScanSeeking)
+
+  private def apply(values: Z2IndexValues, seek: Boolean): Z2Filter = {
     val sfc = values.sfc
     val xy: Array[Array[Int]] = values.spatialBounds.map { case (xmin, ymin, xmax, ymax) =>
       Array(sfc.lon.normalize(xmin), sfc.lat.normalize(ymin), sfc.lon.normalize(xmax), sfc.lat.normalize(ymax))

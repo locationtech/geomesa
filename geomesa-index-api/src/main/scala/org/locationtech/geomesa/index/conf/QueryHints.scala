@@ -40,6 +40,7 @@ object QueryHints {
 
   val EXACT_COUNT      = new ClassKey(classOf[java.lang.Boolean])
   val LOOSE_BBOX       = new ClassKey(classOf[java.lang.Boolean])
+  val SCAN_SEEKING     = new ClassKey(classOf[java.lang.Boolean])
 
   val SAMPLING         = new ClassKey(classOf[java.lang.Float])
   val SAMPLE_BY        = new ClassKey(classOf[String])
@@ -186,6 +187,11 @@ object QueryHints {
       Option(hints.get(LAMBDA_QUERY_PERSISTENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
     def isLambdaQueryTransient: Boolean =
       Option(hints.get(LAMBDA_QUERY_TRANSIENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
+    def isScanSeeking: Boolean =
+      Option(hints.get(SCAN_SEEKING).asInstanceOf[java.lang.Boolean])
+          .map(_.booleanValue())
+          .orElse(QueryProperties.ScanSeek.toBoolean)
+          .getOrElse(true)
 
     def getFilterCompatibility: Option[FilterCompatibility] = {
       Option(hints.get(FILTER_COMPAT).asInstanceOf[String]).map { c =>

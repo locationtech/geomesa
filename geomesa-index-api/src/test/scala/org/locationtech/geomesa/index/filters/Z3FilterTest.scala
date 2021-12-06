@@ -34,8 +34,8 @@ class Z3FilterTest extends Specification {
   val values = filters.map(keySpace.getIndexValues(_, ExplainNull))
 
   def compare(actual: Z3Filter, expected: Z3Filter): MatchResult[Boolean] = {
-    val left = Array[AnyRef](actual.xy, actual.t, Short.box(actual.minEpoch), Short.box(actual.maxEpoch))
-    val right = Array[AnyRef](expected.xy, expected.t, Short.box(expected.minEpoch), Short.box(expected.maxEpoch))
+    val left = Array[AnyRef](actual.xy, actual.t, Short.box(actual.epochOffset), Int.box(actual.maxTime))
+    val right = Array[AnyRef](expected.xy, expected.t, Short.box(expected.epochOffset), Int.box(expected.maxTime))
     java.util.Arrays.deepEquals(left, right) must beTrue
   }
 
