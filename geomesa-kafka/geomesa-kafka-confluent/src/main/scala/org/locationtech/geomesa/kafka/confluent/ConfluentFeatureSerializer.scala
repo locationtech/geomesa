@@ -11,25 +11,27 @@ package org.locationtech.geomesa.kafka.confluent
 import java.io.{InputStream, OutputStream}
 import java.net.URL
 import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import io.confluent.kafka.schemaregistry.client.{CachedSchemaRegistryClient, SchemaRegistryClient}
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import org.apache.avro.generic.GenericRecord
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeomesaAvroDateFormat, GeomesaAvroGeomFormat}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
+import org.locationtech.geomesa.kafka.confluent.ConfluentFeatureSerializer.DeserializationException
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.interop.WKTUtils
+import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 object ConfluentFeatureSerializer {
 
-  val GeomAttributeName = "_geom"
-  val DateAttributeName = "_date"
   val VisAttributeName  = "visibilities"
 
   def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL): Builder = new Builder(sft, schemaRegistryUrl)
@@ -41,6 +43,8 @@ object ConfluentFeatureSerializer {
       new ConfluentFeatureSerializer(sft, client, options.toSet)
     }
   }
+
+  case class DeserializationException(message: String) extends RuntimeException(message)
 }
 
 class ConfluentFeatureSerializer(
@@ -55,49 +59,61 @@ class ConfluentFeatureSerializer(
     override def initialValue(): KafkaAvroDeserializer = new KafkaAvroDeserializer(schemaRegistryClient)
   }
 
-  private var geomSrcAttributeName: Option[String] = None
-
   def deserialize(id: String, bytes: Array[Byte], date: Date): SimpleFeature = {
-    val genericRecord = kafkaAvroDeserializer.get.deserialize("", bytes).asInstanceOf[GenericRecord]
-    val attrs = sft.getAttributeDescriptors.asScala.map(_.getLocalName).map {
-      case ConfluentFeatureSerializer.GeomAttributeName =>
-        geomSrcAttributeName match {
-          case None =>
-            // Here we find a valid geom field in the first record or throw.
-            val kv = sft.getAttributeDescriptors.asScala
-                .iterator
-                .map(_.getLocalName)
-                .map(n => n -> readFieldAsWkt(genericRecord, n, logFailure = false))
-                .collectFirst { case (k, Some(v)) => k -> v }
-                .getOrElse {
-                  throw new UnsupportedOperationException("No valid WKT field found in avro data for " +
-                      s"ConfluentFeatureSerializer in first record $genericRecord.  Valid Geometry field is required.")
-                }
-            geomSrcAttributeName = Option(kv._1)
-            kv._2
+    val record = kafkaAvroDeserializer.get.deserialize("", bytes).asInstanceOf[GenericRecord]
 
-          case Some(name) => readFieldAsWkt(genericRecord, name, logFailure = true).get
-        }
-
-      case ConfluentFeatureSerializer.DateAttributeName => date
-      case name => genericRecord.get(name)
+    val attributes = sft.getAttributeDescriptors.asScala.map { descriptor =>
+      val fieldName = descriptor.getLocalName
+      val userData = descriptor.getUserData
+      if (descriptor.getType.getBinding.isAssignableFrom(classOf[Geometry])) {
+        Option(userData.get(GeomesaAvroGeomFormat.KEY).asInstanceOf[String])
+          .filter(GeomesaAvroGeomFormat.supported(_).isDefined).flatMap {
+            case GeomesaAvroGeomFormat.WKT => readFieldAsWkt(record, fieldName)
+            case GeomesaAvroGeomFormat.WKB => readFieldAsWkb(record, fieldName)
+          }.getOrElse {
+            throw DeserializationException(s"Could not deserialize geometry field '$fieldName'")
+          }
+      } else if (descriptor.getType.getBinding.isAssignableFrom(classOf[Date])) {
+        Option(userData.get(GeomesaAvroDateFormat.KEY).asInstanceOf[String])
+          .filter(GeomesaAvroDateFormat.supported(_).isDefined).map {
+            case GeomesaAvroDateFormat.ISO8601 =>
+              //better way to do this?? do I even need to do this??
+              Date.from(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(record.get(fieldName).toString)))
+          }.getOrElse {
+            throw DeserializationException(s"Could not deserialize date field '$fieldName'")
+          }
+      } else {
+        record.get(fieldName)
+      }
     }
-    val sf = ScalaSimpleFeature.create(sft, id, attrs: _*)
+
+    val feature = ScalaSimpleFeature.create(sft, id, attributes: _*)
     if (visAttributeIndex != -1) {
-      SecurityUtils.setFeatureVisibility(sf, sf.getAttribute(visAttributeIndex).asInstanceOf[String])
+      SecurityUtils.setFeatureVisibility(feature, feature.getAttribute(visAttributeIndex).asInstanceOf[String])
     }
-    sf
+    feature
   }
 
   override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = deserialize(id, bytes, null)
 
-  private def readFieldAsWkt(record: GenericRecord, fieldName: String, logFailure: Boolean): Option[Geometry] = {
-    try { Option(WKTUtils.read(record.get(fieldName).toString)) } catch {
-      case NonFatal(t) =>
-        if (logFailure) {
-          logger.error(s"Error parsing wkt from field $fieldName with value ${record.get(fieldName)} " +
-              s"for sft ${sft.getTypeName}")
-        }
+  private def readFieldAsWkt(record: GenericRecord, fieldName: String): Option[Geometry] = {
+    try {
+      Option(WKTUtils.read(record.get(fieldName).toString))
+    } catch {
+      case NonFatal(_) =>
+        logger.error(s"Error parsing WKT from field '$fieldName' with value '${record.get(fieldName)}' " +
+          s"for sft '${sft.getTypeName}'")
+        None
+    }
+  }
+
+  private def readFieldAsWkb(record: GenericRecord, fieldName: String): Option[Geometry] = {
+    try {
+      Option(WKBUtils.read(record.get(fieldName).toString))
+    } catch {
+      case NonFatal(_) =>
+        logger.error(s"Error parsing WKB from field '$fieldName' with value '${record.get(fieldName)}' " +
+          s"for sft '${sft.getTypeName}'")
         None
     }
   }
