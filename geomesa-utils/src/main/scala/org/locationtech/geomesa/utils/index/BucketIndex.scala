@@ -26,10 +26,11 @@ import scala.annotation.tailrec
   * @param extents area to be indexed
   * @tparam T index value binding
   */
-class BucketIndex[T](xBuckets: Int = 360,
-                     yBuckets: Int = 180,
-                     extents: Envelope = new Envelope(-180.0, 180.0, -90.0, 90.0))
-    extends SpatialIndex[T] with LazyLogging {
+class BucketIndex[T](
+    val xBuckets: Int = 360,
+    val yBuckets: Int = 180,
+    val extents: Envelope = new Envelope(-180.0, 180.0, -90.0, 90.0)
+  ) extends SpatialIndex[T] with LazyLogging {
 
   // create the buckets up front to avoid having to synchronize the whole array
   // we use a ConcurrentHashMap, which gives us iterators that aren't affected by modifications to the backing map
