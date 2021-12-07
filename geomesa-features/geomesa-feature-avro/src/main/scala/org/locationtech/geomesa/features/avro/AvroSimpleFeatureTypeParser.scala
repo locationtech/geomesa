@@ -11,6 +11,7 @@ package org.locationtech.geomesa.features.avro
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.GeomesaAvroProperty.DeserializationException
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.locationtech.jts.geom.{Geometry, GeometryCollection, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -20,7 +21,7 @@ import java.time.format.DateTimeFormatter
 import java.util.{Date, Locale}
 import scala.annotation.tailrec
 import scala.collection.convert.ImplicitConversions._
-import scala.reflect.{ClassTag, classTag}
+import scala.reflect.ClassTag
 import scala.util.Try
 
 object AvroSimpleFeatureTypeParser {
@@ -134,29 +135,9 @@ object AvroSimpleFeatureTypeParser {
 
     final case class InvalidPropertyTypeException(typeName: String, key: String)
       extends IllegalArgumentException(s"Fields with property '$key' must have type '$typeName'")
-  }
 
-  trait GeomesaAvroEnumProperty[T] extends GeomesaAvroProperty[T] {
-    // the values that can be parsed for this property
-    protected val SUPPORTED: Set[String]
-
-    final def supported(value: String): Option[String] =
-      Option(value.toUpperCase(Locale.ENGLISH)).filter(SUPPORTED.contains)
-    final def supportedOrThrow(value: String): String = {
-      supported(value).getOrElse {
-        throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
-      }
-    }
-  }
-
-  trait GeomesaAvroEnumPropertyWithDeserialization[K, T] extends GeomesaAvroEnumProperty[K] {
-    protected implicit val ctg: ClassTag[T] = classTag[T]
-
-    // deserialize the value from an avro record field based on a geomesa avro enum property value
-    def deserialize(record: GenericRecord, fieldName: String, enumValue: String): T
-
-    final case class DeserializationException(fieldName: String, t: Throwable)
-      extends RuntimeException(s"Could not deserialize field '$fieldName' into a ${ctg.runtimeClass.getName}: ", t)
+    final case class DeserializationException[T: ClassTag](fieldName: String, t: Throwable)(implicit ev: ClassTag[T])
+      extends RuntimeException(s"Could not deserialize field '$fieldName' into a ${ev.runtimeClass.getName}: ", t)
   }
 
   object GeomesaAvroGeomDefault extends GeomesaAvroProperty[Boolean] {
@@ -171,35 +152,36 @@ object AvroSimpleFeatureTypeParser {
     }
   }
 
-  object GeomesaAvroGeomFormat extends GeomesaAvroEnumPropertyWithDeserialization[String, Geometry] {
+  object GeomesaAvroGeomFormat extends GeomesaAvroProperty[String] {
     override val KEY: String = "geomesa.geom.format"
 
     val WKT: String = "WKT"
     val WKB: String = "WKB"
 
-    override protected val SUPPORTED: Set[String] = Set(WKT, WKB)
-
     override def parse(field: Schema.Field): Option[String] = {
-      Option(field.getProp(KEY)).map(supportedOrThrow(_) match {
+      Option(field.getProp(KEY)).map(_.toUpperCase(Locale.ENGLISH)).map {
         case WKT => assertFieldType(field, Schema.Type.STRING); WKT
         case WKB => assertFieldType(field, Schema.Type.BYTES); WKB
-      })
+        case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
+      }
     }
 
-    override def deserialize(record: GenericRecord, fieldName: String, enumValue: String): Geometry = {
+    // convert a field in an avro record to a geometry based on the format type
+    def deserialize(record: GenericRecord, fieldName: String, format: String): Geometry = {
       try {
         val data = record.get(fieldName)
-        supportedOrThrow(enumValue) match {
+        format.toUpperCase(Locale.ENGLISH) match {
           case WKT => WKTUtils.read(data.asInstanceOf[String])
           case WKB => WKBUtils.read(data.asInstanceOf[Array[Byte]])
+          case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
         }
       } catch {
-        case ex: Exception => throw DeserializationException(fieldName, ex)
+        case ex: Exception => throw DeserializationException[Geometry](fieldName, ex)
       }
     }
   }
 
-  object GeomesaAvroGeomType extends GeomesaAvroEnumProperty[Class[_ <: Geometry]] {
+  object GeomesaAvroGeomType extends GeomesaAvroProperty[Class[_ <: Geometry]] {
     override val KEY: String = "geomesa.geom.type"
 
     val GEOMETRY: String = "GEOMETRY"
@@ -211,11 +193,8 @@ object AvroSimpleFeatureTypeParser {
     val MULTIPOLYGON: String = "MULTIPOLYGON"
     val GEOMETRYCOLLECTION: String = "GEOMETRYCOLLECTION"
 
-    override protected val SUPPORTED: Set[String] =
-      Set(GEOMETRY, POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRYCOLLECTION)
-
     override def parse(field: Schema.Field): Option[Class[_ <: Geometry]] = {
-      Option(field.getProp(KEY)).map(supportedOrThrow(_) match {
+      Option(field.getProp(KEY)).map(_.toUpperCase(Locale.ENGLISH)).map {
         case GEOMETRY => classOf[Geometry]
         case POINT => classOf[Point]
         case LINESTRING => classOf[LineString]
@@ -224,11 +203,12 @@ object AvroSimpleFeatureTypeParser {
         case MULTILINESTRING => classOf[MultiLineString]
         case MULTIPOLYGON => classOf[MultiPolygon]
         case GEOMETRYCOLLECTION => classOf[GeometryCollection]
-      })
+        case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
+      }
     }
   }
 
-  object GeomesaAvroDateFormat extends GeomesaAvroEnumPropertyWithDeserialization[String, Date] {
+  object GeomesaAvroDateFormat extends GeomesaAvroProperty[String] {
     override val KEY: String = "geomesa.date.format"
 
     val EPOCH_MILLIS: String = "EPOCH_MILLIS"
@@ -236,21 +216,21 @@ object AvroSimpleFeatureTypeParser {
     val ISO_DATETIME_OFFSET: String = "ISO_DATETIME_OFFSET"
     val ISO_INSTANT: String = "ISO_INSTANT"
 
-    override protected val SUPPORTED: Set[String] = Set(EPOCH_MILLIS, ISO_DATE, ISO_DATETIME_OFFSET, ISO_INSTANT)
-
     override def parse(field: Schema.Field): Option[String] = {
-      Option(field.getProp(KEY)).map(supportedOrThrow(_) match {
+      Option(field.getProp(KEY)).map(_.toUpperCase(Locale.ENGLISH)).map {
         case EPOCH_MILLIS => assertFieldType(field, Schema.Type.LONG); EPOCH_MILLIS
         case ISO_DATE => assertFieldType(field, Schema.Type.STRING); ISO_DATE
         case ISO_DATETIME_OFFSET => assertFieldType(field, Schema.Type.STRING); ISO_DATETIME_OFFSET
         case ISO_INSTANT => assertFieldType(field, Schema.Type.STRING); ISO_INSTANT
-      })
+        case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
+      }
     }
 
-    override def deserialize(record: GenericRecord, fieldName: String, enumValue: String): Date = {
+    // convert a field in an avro record to a date based on the format type
+    def deserialize(record: GenericRecord, fieldName: String, format: String): Date = {
       try {
         val data = record.get(fieldName)
-        supportedOrThrow(enumValue) match {
+        format.toUpperCase(Locale.ENGLISH) match {
           case EPOCH_MILLIS =>
             new Date(data.asInstanceOf[java.lang.Long])
           case ISO_DATE =>
@@ -259,9 +239,10 @@ object AvroSimpleFeatureTypeParser {
             Date.from(Instant.from(DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(data.asInstanceOf[String])))
           case ISO_INSTANT =>
             Date.from(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(data.asInstanceOf[String])))
+          case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
         }
       } catch {
-        case ex: Exception => throw DeserializationException(fieldName, ex)
+        case ex: Exception => throw DeserializationException[Date](fieldName, ex)
       }
     }
   }
