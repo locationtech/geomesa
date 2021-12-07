@@ -243,7 +243,7 @@ object Z3Filter extends RowFilterFactory[Z3Filter] {
     val xyLength = 4 + filter.xy.length * 16
     // 4 bytes for length, then per-epoch 4 bytes for length plus 8 bytes for each t val (2 ints)
     val tLength = 4 + filter.t.map(bounds => if (bounds == null) { 4 } else { 4 + bounds.length * 8 } ).sum
-    // additional 1 byte fore version, 2 bytes for epoch offset, 4 bytes for max time, 1 byte for seek
+    // additional 1 byte for version, 2 bytes for epoch offset, 4 bytes for max time, 1 byte for seek
     val buffer = ByteBuffer.allocate(xyLength + tLength + 8)
 
     buffer.put(Version)
