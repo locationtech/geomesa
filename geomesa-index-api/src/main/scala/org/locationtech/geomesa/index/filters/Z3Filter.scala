@@ -339,5 +339,12 @@ object Z3Filter extends RowFilterFactory[Z3Filter] {
   private def zBound(xmin: Int, ymin: Int, tmin: Int, xmax: Int, ymax: Int, tmax: Int): Array[Long] =
     Array(Z3(xmin, ymin, tmin).z, Z3(xmax, ymax, tmax).z)
 
+  /**
+   * Holds z values for seeking in a given epoch
+   *
+   * @param bounds the inner array is tuples of min/max z values for valid scan ranges,
+   *               the outer array is to hold all the valid tuples
+   * @param min the absolute min z value in the bounds, used when seeking from a previous epoch
+   */
   private case class ZBounds(bounds: Array[Array[Long]], min: Long)
 }

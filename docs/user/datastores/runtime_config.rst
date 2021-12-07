@@ -273,7 +273,7 @@ geomesa.scan.ranges.recurse
 This property controls the max level of recursion that will be used when generating scan ranges. Higher levels of
 recursion will generate more accurate ranges at the cost of longer query planning times, and lower levels will do
 the opposite. By default there is no limit. Generally this does not need to be configured, and setting it may
-limit the ranges generated to substantially less than ``geomesa.scan.ranges.target``.
+limit the ranges generated to substantially less than ``geomesa.scan.ranges.target``. It is specified as a integer.
 
 geomesa.scan.ranges.target
 ++++++++++++++++++++++++++
@@ -287,7 +287,7 @@ geomesa.scan.seek
 +++++++++++++++++
 
 The property controls seeking in distributed scans. By default seeking is enabled, which should provide the best
-performance.
+performance. It is specified as ``true`` or ``false``.
 
 geomesa.serializer.cache.expiry
 +++++++++++++++++++++++++++++++
