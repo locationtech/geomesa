@@ -90,6 +90,16 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 3.4.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Scan Range Changes
+------------------
+
+GeoMesa will now generate a more accurate number of ranges based on ``geomesa.scan.ranges.target``. Users
+who have configured this property should verify their setting is still appropriate, especially if set to a
+large value. Setting ``geomesa.scan.ranges.recurse`` to ``7`` will restore the old behavior if needed.
+
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
