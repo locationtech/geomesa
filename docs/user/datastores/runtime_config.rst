@@ -271,8 +271,8 @@ geomesa.scan.ranges.recurse
 +++++++++++++++++++++++++++
 
 This property controls the max level of recursion that will be used when generating scan ranges. Higher levels of
-recursion will generate more accurate ranges at the cost of longer query planning times, and vice-versa. Generally
-this does not need to be configured.
+recursion will generate more accurate ranges at the cost of longer query planning times, and vice-versa. By default
+there is no limit. Generally this does not need to be configured.
 
 geomesa.scan.ranges.target
 ++++++++++++++++++++++++++
