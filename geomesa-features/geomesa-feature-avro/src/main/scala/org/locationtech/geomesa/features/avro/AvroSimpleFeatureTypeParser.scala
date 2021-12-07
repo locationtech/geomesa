@@ -11,6 +11,7 @@ package org.locationtech.geomesa.features.avro
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.GeomesaAvroProperty.DeserializationException
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.locationtech.jts.geom.{Geometry, GeometryCollection, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon}
@@ -137,7 +138,8 @@ object AvroSimpleFeatureTypeParser {
       extends IllegalArgumentException(s"Fields with property '$key' must have type '$typeName'")
 
     final case class DeserializationException[T: ClassTag](fieldName: String, t: Throwable)(implicit ev: ClassTag[T])
-      extends RuntimeException(s"Could not deserialize field '$fieldName' into a ${ev.runtimeClass.getName}: ", t)
+      extends RuntimeException(s"Could not deserialize field '$fieldName' into a ${ev.runtimeClass.getName}: " +
+        s"${t.getMessage}")
   }
 
   object GeomesaAvroGeomDefault extends GeomesaAvroProperty[Boolean] {
@@ -213,14 +215,12 @@ object AvroSimpleFeatureTypeParser {
 
     val EPOCH_MILLIS: String = "EPOCH_MILLIS"
     val ISO_DATE: String = "ISO_DATE"
-    val ISO_DATETIME_OFFSET: String = "ISO_DATETIME_OFFSET"
     val ISO_INSTANT: String = "ISO_INSTANT"
 
     override def parse(field: Schema.Field): Option[String] = {
       Option(field.getProp(KEY)).map(_.toUpperCase(Locale.ENGLISH)).map {
         case EPOCH_MILLIS => assertFieldType(field, Schema.Type.LONG); EPOCH_MILLIS
         case ISO_DATE => assertFieldType(field, Schema.Type.STRING); ISO_DATE
-        case ISO_DATETIME_OFFSET => assertFieldType(field, Schema.Type.STRING); ISO_DATETIME_OFFSET
         case ISO_INSTANT => assertFieldType(field, Schema.Type.STRING); ISO_INSTANT
         case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
       }
@@ -234,11 +234,9 @@ object AvroSimpleFeatureTypeParser {
           case EPOCH_MILLIS =>
             new Date(data.asInstanceOf[java.lang.Long])
           case ISO_DATE =>
-            Date.from(Instant.from(DateTimeFormatter.ISO_DATE.parse(data.asInstanceOf[String])))
-          case ISO_DATETIME_OFFSET =>
-            Date.from(Instant.from(DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(data.asInstanceOf[String])))
+            ISODateTimeFormat.date().parseDateTime(data.asInstanceOf[String]).toDate
           case ISO_INSTANT =>
-            Date.from(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(data.asInstanceOf[String])))
+            ISODateTimeFormat.dateTime().parseDateTime(data.asInstanceOf[String]).toDate
           case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
         }
       } catch {

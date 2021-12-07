@@ -10,6 +10,7 @@ package org.locationtech.geomesa.features.avro
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
+import org.joda.time.format.ISODateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeomesaAvroDateFormat, GeomesaAvroGeomDefault, GeomesaAvroGeomFormat, GeomesaAvroGeomType, GeomesaAvroProperty}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -45,7 +46,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |      "${GeomesaAvroGeomFormat.KEY}":"${GeomesaAvroGeomFormat.WKT}",
        |      "${GeomesaAvroGeomType.KEY}":"${GeomesaAvroGeomType.POLYGON}",
        |      "${GeomesaAvroGeomDefault.KEY}":"yes",
-       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.ISO_DATETIME_OFFSET}"
+       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.ISO_DATE}"
        |    },
        |    {
        |      "name":"f3",
@@ -99,7 +100,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    {
        |      "name":"f5",
        |      "type":"string",
-       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.ISO_DATE}"
+       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.ISO_INSTANT}"
        |    }
        |  ]
        |}""".stripMargin
@@ -150,7 +151,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
   private val validGeomesaAvroSchema2 = new Schema.Parser().parse(validGeomesaAvroSchemaJson2)
 
   private val geomFactory = new GeometryFactory()
-  private val coordinateFactory = new CoordinateArraySequenceFactory()
+  private val coordinateFactory = CoordinateArraySequenceFactory.instance()
 
   private def generateCoordinate(x: Double, y: Double): CoordinateSequence = {
     coordinateFactory.create(Array(new Coordinate(x, y)))
@@ -261,7 +262,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
       "fail if the value cannot be deserialized because the type is incorrect" in {
         val record = new GenericData.Record(validGeomesaAvroSchema1)
         record.put("f3", "POINT(10 20)")
-        GeomesaAvroGeomFormat.deserialize(record, "f3", GeomesaAvroGeomFormat.WKT) must
+        GeomesaAvroGeomFormat.deserialize(record, "f3", GeomesaAvroGeomFormat.WKB) must
           throwA[GeomesaAvroProperty.DeserializationException[Geometry]]
       }
 
@@ -271,6 +272,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
         val expectedGeom1: Geometry = new Point(generateCoordinate(10, 20), geomFactory)
         GeomesaAvroGeomFormat.deserialize(record1, "f3", GeomesaAvroGeomFormat.WKT) mustEqual expectedGeom1
 
+        // how to deal with avro properties that can be null??
         val record2 = new GenericData.Record(validGeomesaAvroSchema1)
         record2.put("f3", null)
         val expectedGeom2: Geometry = null
@@ -300,21 +302,21 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
 
       "fail if the value cannot be deserialized because the type is incorrect" in {
         val record = new GenericData.Record(validGeomesaAvroSchema1)
-        record.put("f4", "1638912032")
+        record.put("f4", 1000)
         GeomesaAvroDateFormat.deserialize(record, "f4", GeomesaAvroDateFormat.EPOCH_MILLIS) must
           throwA[GeomesaAvroProperty.DeserializationException[Date]]
       }
 
       "return the date if it can be deserialized" in {
         val record1 = new GenericData.Record(validGeomesaAvroSchema1)
-        record1.put("f4", 1638912032)
-        val expectedDate1 = new Date(1638912032)
+        record1.put("f4", 1638915744897L)
+        val expectedDate1 = new Date(1638915744897L)
         GeomesaAvroDateFormat.deserialize(record1, "f4", GeomesaAvroDateFormat.EPOCH_MILLIS) mustEqual expectedDate1
 
         val record2 = new GenericData.Record(validGeomesaAvroSchema1)
-        record2.put("f5", "2021-12-07")
-        val expectedDate2 = Date.from(Instant.from(DateTimeFormatter.ISO_DATE.parse("2021-12-07")))
-        GeomesaAvroDateFormat.deserialize(record2, "f5", GeomesaAvroDateFormat.ISO_DATE) mustEqual expectedDate2
+        record2.put("f5", "2021-12-07T17:22:24.897-05:00")
+        val expectedDate2 = new Date(1638915744897L)
+        GeomesaAvroDateFormat.deserialize(record2, "f5", GeomesaAvroDateFormat.ISO_INSTANT) mustEqual expectedDate2
       }
     }
   }
@@ -332,7 +334,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
 
     "convert a schema with valid geomesa avro properties into an SFT" in {
       val expectedSft = "f1:Point:geomesa.geom.format=WKB,f2:Double,*f3:Geometry:geomesa.geom.format=WKT," +
-        "f4:Date:geomesa.date.format=ISO8601"
+        "f4:Date:geomesa.date.format=EPOCH_MILLIS,f5:Date:geomesa.date.format=ISO_INSTANT"
       val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema1)
 
       SimpleFeatureTypes.encodeType(sft, includeUserData = true) mustEqual expectedSft
