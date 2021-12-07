@@ -38,7 +38,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |      "${GeomesaAvroGeomFormat.KEY}":"${GeomesaAvroGeomFormat.WKT}",
        |      "${GeomesaAvroGeomType.KEY}":"${GeomesaAvroGeomType.POLYGON}",
        |      "${GeomesaAvroGeomDefault.KEY}":"yes",
-       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.ISO8601}"
+       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.ISO_DATETIME_OFFSET}"
        |    },
        |    {
        |      "name":"f3",
@@ -81,8 +81,8 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    },
        |    {
        |      "name":"f4",
-       |      "type":"string",
-       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.ISO8601}"
+       |      "type":"long",
+       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.EPOCH_MILLIS}"
        |    }
        |  ]
        |}""".stripMargin
@@ -210,8 +210,18 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
 
       "return a string value if valid" in {
         val field = validGeomesaAvroSchema1.getField("f4")
-        GeomesaAvroDateFormat.parse(field) must beSome(GeomesaAvroDateFormat.ISO8601)
+        GeomesaAvroDateFormat.parse(field) must beSome(GeomesaAvroDateFormat.)
       }
+    }
+  }
+
+  "The GeomesaAvroProperty deserializer for " >> {
+    "geometry format" should {
+
+    }
+
+    "date format" should {
+
     }
   }
 

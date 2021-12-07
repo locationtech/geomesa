@@ -18,15 +18,10 @@ import org.apache.avro.generic.GenericRecord
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeomesaAvroDateFormat, GeomesaAvroGeomFormat}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
-import org.locationtech.geomesa.kafka.confluent.ConfluentFeatureSerializer.DeserializationException
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.interop.WKTUtils
-import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import java.time.Instant
-import java.time.format.DateTimeFormatter
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
@@ -43,8 +38,6 @@ object ConfluentFeatureSerializer {
       new ConfluentFeatureSerializer(sft, client, options.toSet)
     }
   }
-
-  case class DeserializationException(message: String) extends RuntimeException(message)
 }
 
 class ConfluentFeatureSerializer(
@@ -66,22 +59,13 @@ class ConfluentFeatureSerializer(
       val fieldName = descriptor.getLocalName
       val userData = descriptor.getUserData
       if (descriptor.getType.getBinding.isAssignableFrom(classOf[Geometry])) {
-        Option(userData.get(GeomesaAvroGeomFormat.KEY).asInstanceOf[String])
-          .filter(GeomesaAvroGeomFormat.supported(_).isDefined).flatMap {
-            case GeomesaAvroGeomFormat.WKT => readFieldAsWkt(record, fieldName)
-            case GeomesaAvroGeomFormat.WKB => readFieldAsWkb(record, fieldName)
-          }.getOrElse {
-            throw DeserializationException(s"Could not deserialize geometry field '$fieldName'")
-          }
+        Option(userData.get(GeomesaAvroGeomFormat.KEY).asInstanceOf[String]).map { property =>
+          GeomesaAvroGeomFormat.deserialize(record, fieldName, property)
+        }
       } else if (descriptor.getType.getBinding.isAssignableFrom(classOf[Date])) {
-        Option(userData.get(GeomesaAvroDateFormat.KEY).asInstanceOf[String])
-          .filter(GeomesaAvroDateFormat.supported(_).isDefined).map {
-            case GeomesaAvroDateFormat.ISO8601 =>
-              //better way to do this?? do I even need to do this??
-              Date.from(Instant.from(DateTimeFormatter.ISO_INSTANT.parse(record.get(fieldName).toString)))
-          }.getOrElse {
-            throw DeserializationException(s"Could not deserialize date field '$fieldName'")
-          }
+        Option(userData.get(GeomesaAvroDateFormat.KEY).asInstanceOf[String]).map { property =>
+          GeomesaAvroDateFormat.deserialize(record, fieldName, property)
+        }
       } else {
         record.get(fieldName)
       }
@@ -91,25 +75,16 @@ class ConfluentFeatureSerializer(
     if (visAttributeIndex != -1) {
       SecurityUtils.setFeatureVisibility(feature, feature.getAttribute(visAttributeIndex).asInstanceOf[String])
     }
+
     feature
   }
 
   override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = deserialize(id, bytes, null)
 
-  private def readFieldAsWkt(record: GenericRecord, fieldName: String): Option[Geometry] = {
+  private def readGeometryField(record: GenericRecord, fieldName: String)
+                               (read: String => Geometry): Option[Geometry] = {
     try {
-      Option(WKTUtils.read(record.get(fieldName).toString))
-    } catch {
-      case NonFatal(_) =>
-        logger.error(s"Error parsing WKT from field '$fieldName' with value '${record.get(fieldName)}' " +
-          s"for sft '${sft.getTypeName}'")
-        None
-    }
-  }
-
-  private def readFieldAsWkb(record: GenericRecord, fieldName: String): Option[Geometry] = {
-    try {
-      Option(WKBUtils.read(record.get(fieldName).toString))
+      Option(read(record.get(fieldName).toString))
     } catch {
       case NonFatal(_) =>
         logger.error(s"Error parsing WKB from field '$fieldName' with value '${record.get(fieldName)}' " +
