@@ -38,9 +38,7 @@ object AvroSimpleFeatureTypeParser {
           builder.add(fieldName, geomType)
           builder.get(fieldName).getUserData.put(GeomesaAvroGeomFormat.KEY, format)
           // if more than one field is set as the default geometry, the last one becomes the default
-          if (default) {
-            builder.setDefaultGeometry(fieldName)
-          }
+          if (default) { builder.setDefaultGeometry(fieldName) }
         case DateMetadata(format) =>
           builder.add(fieldName, classOf[Date])
           builder.get(fieldName).getUserData.put(GeomesaAvroDateFormat.KEY, format)
@@ -82,6 +80,8 @@ object AvroSimpleFeatureTypeParser {
   }
 
   private def parseMetadata(field: Schema.Field): GeomesaAvroFieldMetadata = {
+    // all fields metadata fields are parsed before their value is examined, e.g. a geom field cannot have an
+    // invalid date format, and, if it has valid date format metadata, it will be ignored
     val geomFormat = GeomesaAvroGeomFormat.parse(field)
     val geomType = GeomesaAvroGeomType.parse(field)
     val geomDefault = GeomesaAvroGeomDefault.parse(field)
@@ -96,20 +96,29 @@ object AvroSimpleFeatureTypeParser {
     }
   }
 
-  sealed trait GeomesaAvroFieldMetadata
-  case class GeomMetadata(format: String, typ: Class[_ <: Geometry], default: Boolean) extends GeomesaAvroFieldMetadata
-  case class DateMetadata(format: String) extends GeomesaAvroFieldMetadata
-  case object NoMetadata extends GeomesaAvroFieldMetadata
+  private sealed trait GeomesaAvroFieldMetadata
+  private case class GeomMetadata(format: String, typ: Class[_ <: Geometry], default: Boolean)
+    extends GeomesaAvroFieldMetadata
+  private case class DateMetadata(format: String) extends GeomesaAvroFieldMetadata
+  private case object NoMetadata extends GeomesaAvroFieldMetadata
 
   case class UnsupportedAvroTypeException(typeName: String)
     extends IllegalArgumentException(s"Type '$typeName' is not supported for SFT conversion")
 
-  // an attribute in an avro schema to provide additional information when creating an SFT
+  /**
+   * An attribute in an Avro [[Schema.Field]] to provide additional information when creating an SFT.
+   */
   trait GeomesaAvroProperty[T] {
+    /**
+     * The key in the [[Schema.Field]] for this attribute.
+     */
     val KEY: String
 
-    // parse the value from the schema field at this property's key, returning none if the key does not exist,
-    // and throwing an exception if the value cannot be parsed
+    /**
+     * Parse the value from the [[Schema.Field]] at this property's `key`.
+     *
+     * @return `None` if the `key` does not exist, else the value at the `key`
+     */
     def parse(field: Schema.Field): Option[T]
 
     protected final def assertFieldType(field: Schema.Field, typ: Schema.Type): Unit = {
@@ -140,6 +149,9 @@ object AvroSimpleFeatureTypeParser {
         s"${t.getMessage}")
   }
 
+  /**
+   * Indicates that this avro field should be interpreted as the default [[Geometry]] for this [[SimpleFeatureType]].
+   */
   object GeomesaAvroGeomDefault extends GeomesaAvroProperty[Boolean] {
     override val KEY: String = "geomesa.geom.default"
 
@@ -152,10 +164,19 @@ object AvroSimpleFeatureTypeParser {
     }
   }
 
+  /**
+   * Indicates that the avro field should be interpreted as a [[Geometry]], with one of the formats specified below.
+   */
   object GeomesaAvroGeomFormat extends GeomesaAvroProperty[String] {
     override val KEY: String = "geomesa.geom.format"
 
+    /**
+     * Well-Known Text representation as a [[String]]
+     */
     val WKT: String = "WKT"
+    /**
+     * Well-Known Bytes representation as an [[Array]] of [[Byte]]s
+     */
     val WKB: String = "WKB"
 
     override def parse(field: Schema.Field): Option[String] = {
@@ -166,7 +187,9 @@ object AvroSimpleFeatureTypeParser {
       }
     }
 
-    // convert a field in an avro record to a geometry based on the format type
+    /**
+     * Convert a field in a [[GenericRecord]] to a [[Geometry]] based on the [[GeomesaAvroGeomFormat]] type.
+     */
     def deserialize(record: GenericRecord, fieldName: String, format: String): Geometry = {
       val data = record.get(fieldName)
       if (data == null) { return null }
@@ -182,16 +205,43 @@ object AvroSimpleFeatureTypeParser {
     }
   }
 
+  /**
+   * Indicates that the avro field represents a [[Geometry]], with one of the types specified below.
+   */
   object GeomesaAvroGeomType extends GeomesaAvroProperty[Class[_ <: Geometry]] {
     override val KEY: String = "geomesa.geom.type"
 
+    /**
+     * A [[Geometry]]
+     */
     val GEOMETRY: String = "GEOMETRY"
+    /**
+     * A [[Point]]
+     */
     val POINT: String = "POINT"
+    /**
+     * A [[LineString]]
+     */
     val LINESTRING: String = "LINESTRING"
+    /**
+     * A [[Polygon]]
+     */
     val POLYGON: String = "POLYGON"
+    /**
+     * A [[MultiPoint]]
+     */
     val MULTIPOINT: String = "MULTIPOINT"
+    /**
+     * A [[MultiLineString]]
+     */
     val MULTILINESTRING: String = "MULTILINESTRING"
+    /**
+     * A [[MultiPolygon]]
+     */
     val MULTIPOLYGON: String = "MULTIPOLYGON"
+    /**
+     * A [[GeometryCollection]]
+     */
     val GEOMETRYCOLLECTION: String = "GEOMETRYCOLLECTION"
 
     override def parse(field: Schema.Field): Option[Class[_ <: Geometry]] = {
@@ -209,11 +259,23 @@ object AvroSimpleFeatureTypeParser {
     }
   }
 
+  /**
+   * Indicates that the avro field should be interpreted as a [[Date]], with one of the formats specified below.
+   */
   object GeomesaAvroDateFormat extends GeomesaAvroProperty[String] {
     override val KEY: String = "geomesa.date.format"
 
+    /**
+     * Milliseconds since the Unix epoch as a [[Long]]
+     */
     val EPOCH_MILLIS: String = "EPOCH_MILLIS"
+    /**
+     * A [[String]] with date format "yyyy-MM-dd"
+     */
     val ISO_DATE: String = "ISO_DATE"
+    /**
+     * A [[String]] with date format "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
+     */
     val ISO_INSTANT: String = "ISO_INSTANT"
 
     override def parse(field: Schema.Field): Option[String] = {
@@ -225,18 +287,17 @@ object AvroSimpleFeatureTypeParser {
       }
     }
 
-    // convert a field in an avro record to a date based on the format type
+    /**
+     * Convert a field in a [[GenericRecord]] to a [[Date]] based on the [[GeomesaAvroDateFormat]] type.
+     */
     def deserialize(record: GenericRecord, fieldName: String, format: String): Date = {
       try {
         val data = record.get(fieldName)
         if (data == null) { return null }
         format.toUpperCase(Locale.ENGLISH) match {
-          case EPOCH_MILLIS =>
-            new Date(data.asInstanceOf[java.lang.Long])
-          case ISO_DATE =>
-            ISODateTimeFormat.date().parseDateTime(data.asInstanceOf[String]).toDate
-          case ISO_INSTANT =>
-            ISODateTimeFormat.dateTime().parseDateTime(data.asInstanceOf[String]).toDate
+          case EPOCH_MILLIS => new Date(data.asInstanceOf[java.lang.Long])
+          case ISO_DATE => ISODateTimeFormat.date().parseDateTime(data.asInstanceOf[String]).toDate
+          case ISO_INSTANT => ISODateTimeFormat.dateTime().parseDateTime(data.asInstanceOf[String]).toDate
           case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
         }
       } catch {
