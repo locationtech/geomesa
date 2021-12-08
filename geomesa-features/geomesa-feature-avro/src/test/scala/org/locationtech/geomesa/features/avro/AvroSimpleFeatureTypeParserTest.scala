@@ -70,7 +70,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    }
        |  ]
        |}""".stripMargin
-  private val invalidGeomesaAvroSchema1 = new Schema.Parser().parse(invalidGeomesaAvroSchemaJson1)
+  private lazy val invalidGeomesaAvroSchema1 = new Schema.Parser().parse(invalidGeomesaAvroSchemaJson1)
 
   private val validGeomesaAvroSchemaName1 = "Schema2"
   private val validGeomesaAvroSchemaJson1 =
@@ -112,7 +112,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    }
        |  ]
        |}""".stripMargin
-  private val validGeomesaAvroSchema1 = new Schema.Parser().parse(validGeomesaAvroSchemaJson1)
+  private lazy val validGeomesaAvroSchema1: Schema = new Schema.Parser().parse(validGeomesaAvroSchemaJson1)
 
   private val invalidGeomesaAvroSchemaName2 = "Schema3"
   private val invalidGeomesaAvroSchemaJson2 =
@@ -134,7 +134,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    }
        |  ]
        |}""".stripMargin
-  private val invalidGeomesaAvroSchema2 = new Schema.Parser().parse(invalidGeomesaAvroSchemaJson2)
+  private lazy val invalidGeomesaAvroSchema2 = new Schema.Parser().parse(invalidGeomesaAvroSchemaJson2)
 
   private val validGeomesaAvroSchemaName2 = "Schema4"
   private val validGeomesaAvroSchemaJson2 =
@@ -156,10 +156,10 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    }
        |  ]
        |}""".stripMargin
-  private val validGeomesaAvroSchema2 = new Schema.Parser().parse(validGeomesaAvroSchemaJson2)
+  private lazy val validGeomesaAvroSchema2 = new Schema.Parser().parse(validGeomesaAvroSchemaJson2)
 
-  private val geomFactory = new GeometryFactory()
-  private val coordinateFactory = CoordinateArraySequenceFactory.instance()
+  private lazy val geomFactory = new GeometryFactory()
+  private lazy val coordinateFactory = CoordinateArraySequenceFactory.instance()
 
   private def generateCoordinate(x: Double, y: Double): CoordinateSequence = {
     coordinateFactory.create(Array(new Coordinate(x, y)))

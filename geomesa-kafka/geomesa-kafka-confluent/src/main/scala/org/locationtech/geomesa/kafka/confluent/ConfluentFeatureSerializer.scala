@@ -23,7 +23,6 @@ import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConverters._
-import scala.util.control.NonFatal
 
 object ConfluentFeatureSerializer {
 
@@ -49,6 +48,8 @@ class ConfluentFeatureSerializer(
   }
 
   override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
+    println("Deserializing: " + id)
+
     val record = kafkaAvroDeserializer.get.deserialize("", bytes).asInstanceOf[GenericRecord]
 
     var visibilityAttributeName: Option[String] = None
@@ -58,20 +59,21 @@ class ConfluentFeatureSerializer(
       val userData = descriptor.getUserData
 
       if (descriptor.getType.getBinding.isAssignableFrom(classOf[Geometry])) {
-        Option(userData.get(GeomesaAvroGeomFormat.KEY).asInstanceOf[String]).map { property =>
-          GeomesaAvroGeomFormat.deserialize(record, fieldName, property)
+        Option(userData.get(GeomesaAvroGeomFormat.KEY).asInstanceOf[String]).map { format =>
+          GeomesaAvroGeomFormat.deserialize(record, fieldName, format)
         }.getOrElse {
           throw GeomesaAvroProperty.MissingPropertyValueException[Geometry](fieldName, GeomesaAvroGeomFormat.KEY)
         }
       } else if (descriptor.getType.getBinding.isAssignableFrom(classOf[Date])) {
-        Option(userData.get(GeomesaAvroDateFormat.KEY).asInstanceOf[String]).map { property =>
-          GeomesaAvroDateFormat.deserialize(record, fieldName, property)
+        Option(userData.get(GeomesaAvroDateFormat.KEY).asInstanceOf[String]).map { format =>
+          GeomesaAvroDateFormat.deserialize(record, fieldName, format)
         }.getOrElse {
           throw GeomesaAvroProperty.MissingPropertyValueException[Date](fieldName, GeomesaAvroDateFormat.KEY)
         }
       } else {
         if (descriptor.getType.getBinding.isAssignableFrom(classOf[String])
             && userData.containsKey(GeomesaAvroFeatureVisibility.KEY)) {
+          // if there is more than one visibility attribute, the last one will be used
           visibilityAttributeName = Some(descriptor.getLocalName)
         }
         record.get(fieldName)
@@ -84,10 +86,12 @@ class ConfluentFeatureSerializer(
       SecurityUtils.setFeatureVisibility(feature, feature.getAttribute(name).asInstanceOf[String])
     }
 
+    println("Feature id: " + feature.getID)
+
     feature
   }
 
-  // Implement the following if we find we need them
+  // implement the following if we need them
 
   override def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError()
 

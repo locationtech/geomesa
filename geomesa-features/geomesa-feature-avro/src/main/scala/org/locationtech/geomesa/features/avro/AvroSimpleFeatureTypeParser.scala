@@ -206,7 +206,7 @@ object AvroSimpleFeatureTypeParser {
       if (data == null) { return null }
       try {
         format.toUpperCase(Locale.ENGLISH) match {
-          case WKT => WKTUtils.read(data.asInstanceOf[String])
+          case WKT => WKTUtils.read(data.toString)
           case WKB => WKBUtils.read(data.asInstanceOf[Array[Byte]])
           case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
         }
@@ -307,8 +307,8 @@ object AvroSimpleFeatureTypeParser {
         if (data == null) { return null }
         format.toUpperCase(Locale.ENGLISH) match {
           case EPOCH_MILLIS => new Date(data.asInstanceOf[java.lang.Long])
-          case ISO_DATE => ISODateTimeFormat.date().parseDateTime(data.asInstanceOf[String]).toDate
-          case ISO_INSTANT => ISODateTimeFormat.dateTime().parseDateTime(data.asInstanceOf[String]).toDate
+          case ISO_DATE => ISODateTimeFormat.date().parseDateTime(data.toString).toDate
+          case ISO_INSTANT => ISODateTimeFormat.dateTime().parseDateTime(data.toString).toDate
           case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
         }
       } catch {
