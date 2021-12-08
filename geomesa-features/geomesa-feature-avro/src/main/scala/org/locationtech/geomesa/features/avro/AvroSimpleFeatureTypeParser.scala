@@ -17,8 +17,6 @@ import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.locationtech.jts.geom.{Geometry, GeometryCollection, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon}
 import org.opengis.feature.simple.SimpleFeatureType
 
-import java.time.Instant
-import java.time.format.DateTimeFormatter
 import java.util.{Date, Locale}
 import scala.annotation.tailrec
 import scala.collection.convert.ImplicitConversions._
@@ -170,8 +168,9 @@ object AvroSimpleFeatureTypeParser {
 
     // convert a field in an avro record to a geometry based on the format type
     def deserialize(record: GenericRecord, fieldName: String, format: String): Geometry = {
+      val data = record.get(fieldName)
+      if (data == null) { return null }
       try {
-        val data = record.get(fieldName)
         format.toUpperCase(Locale.ENGLISH) match {
           case WKT => WKTUtils.read(data.asInstanceOf[String])
           case WKB => WKBUtils.read(data.asInstanceOf[Array[Byte]])
@@ -230,6 +229,7 @@ object AvroSimpleFeatureTypeParser {
     def deserialize(record: GenericRecord, fieldName: String, format: String): Date = {
       try {
         val data = record.get(fieldName)
+        if (data == null) { return null }
         format.toUpperCase(Locale.ENGLISH) match {
           case EPOCH_MILLIS =>
             new Date(data.asInstanceOf[java.lang.Long])
