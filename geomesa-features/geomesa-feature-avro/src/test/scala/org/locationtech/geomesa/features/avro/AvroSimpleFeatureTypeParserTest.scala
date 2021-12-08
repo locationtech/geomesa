@@ -12,7 +12,7 @@ import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeomesaAvroDateFormat,
-  GeomesaAvroGeomDefault, GeomesaAvroGeomFormat, GeomesaAvroGeomType, GeomesaAvroProperty}
+  GeomesaAvroGeomDefault, GeomesaAvroGeomFormat, GeomesaAvroGeomType, GeomesaAvroProperty, GeomesaAvroFeatureVisibility}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.impl.CoordinateArraySequenceFactory
@@ -62,6 +62,11 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |      "name":"f5",
        |      "type":"string",
        |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.EPOCH_MILLIS}"
+       |    },
+       |    {
+       |      "name":"f6",
+       |      "type":"bytes",
+       |      "${GeomesaAvroFeatureVisibility.KEY}":""
        |    }
        |  ]
        |}""".stripMargin
@@ -99,6 +104,11 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |      "name":"f5",
        |      "type":["null","string"],
        |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.ISO_INSTANT}"
+       |    },
+       |    {
+       |      "name":"f6",
+       |      "type":"string",
+       |      "${GeomesaAvroFeatureVisibility.KEY}":""
        |    }
        |  ]
        |}""".stripMargin
@@ -239,6 +249,23 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
         GeomesaAvroDateFormat.parse(field) must beSome(GeomesaAvroDateFormat.EPOCH_MILLIS)
       }
     }
+
+    "feature visibility" should {
+      "fail if the field does not have the required type(s)" in {
+        val field = invalidGeomesaAvroSchema1.getField("f6")
+        GeomesaAvroFeatureVisibility.parse(field) must throwA[GeomesaAvroProperty.InvalidPropertyTypeException]
+      }
+
+      "return None if the property doesn't exist" in {
+        val field = validGeomesaAvroSchema2.getField("f3")
+        GeomesaAvroFeatureVisibility.parse(field) must beNone
+      }
+
+      "return a string value if valid" in {
+        val field = validGeomesaAvroSchema1.getField("f6")
+        GeomesaAvroFeatureVisibility.parse(field) must beSome
+      }
+    }
   }
 
   "The GeomesaAvroProperty deserializer for " >> {
@@ -341,7 +368,8 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
 
     "convert a schema with valid geomesa avro properties into an SFT" in {
       val expectedSft = "f1:Point:geomesa.geom.format=WKB,f2:Double,*f3:Geometry:geomesa.geom.format=WKT," +
-        "f4:Date:geomesa.date.format=EPOCH_MILLIS,f5:Date:geomesa.date.format=ISO_INSTANT"
+        "f4:Date:geomesa.date.format=EPOCH_MILLIS,f5:Date:geomesa.date.format=ISO_INSTANT," +
+        "f6:String:geomesa.feature.visibility=''"
       val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema1)
 
       SimpleFeatureTypes.encodeType(sft, includeUserData = true) mustEqual expectedSft

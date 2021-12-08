@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 import com.github.benmanes.caffeine.cache.{Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
-import org.locationtech.geomesa.features.avro.{AvroSimpleFeatureTypeParser, AvroSimpleFeatureUtils}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

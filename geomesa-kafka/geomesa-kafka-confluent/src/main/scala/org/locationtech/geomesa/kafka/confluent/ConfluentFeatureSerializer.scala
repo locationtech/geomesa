@@ -16,7 +16,7 @@ import io.confluent.kafka.schemaregistry.client.{CachedSchemaRegistryClient, Sch
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import org.apache.avro.generic.GenericRecord
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeomesaAvroDateFormat, GeomesaAvroGeomFormat}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeomesaAvroDateFormat, GeomesaAvroFeatureVisibility, GeomesaAvroGeomFormat, GeomesaAvroProperty}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.jts.geom.Geometry
@@ -26,8 +26,6 @@ import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 object ConfluentFeatureSerializer {
-
-  val VisAttributeName  = "visibilities"
 
   def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL): Builder = new Builder(sft, schemaRegistryUrl)
 
@@ -46,51 +44,47 @@ class ConfluentFeatureSerializer(
     val options: Set[SerializationOption] = Set.empty
 ) extends SimpleFeatureSerializer with LazyLogging {
 
-  private val visAttributeIndex = sft.indexOf(ConfluentFeatureSerializer.VisAttributeName)
-
   private val kafkaAvroDeserializer = new ThreadLocal[KafkaAvroDeserializer]() {
     override def initialValue(): KafkaAvroDeserializer = new KafkaAvroDeserializer(schemaRegistryClient)
   }
 
-  def deserialize(id: String, bytes: Array[Byte], date: Date): SimpleFeature = {
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
     val record = kafkaAvroDeserializer.get.deserialize("", bytes).asInstanceOf[GenericRecord]
+
+    var visibilityAttributeName: Option[String] = None
 
     val attributes = sft.getAttributeDescriptors.asScala.map { descriptor =>
       val fieldName = descriptor.getLocalName
       val userData = descriptor.getUserData
+
       if (descriptor.getType.getBinding.isAssignableFrom(classOf[Geometry])) {
         Option(userData.get(GeomesaAvroGeomFormat.KEY).asInstanceOf[String]).map { property =>
           GeomesaAvroGeomFormat.deserialize(record, fieldName, property)
+        }.getOrElse {
+          throw GeomesaAvroProperty.MissingPropertyValueException[Geometry](fieldName, GeomesaAvroGeomFormat.KEY)
         }
       } else if (descriptor.getType.getBinding.isAssignableFrom(classOf[Date])) {
         Option(userData.get(GeomesaAvroDateFormat.KEY).asInstanceOf[String]).map { property =>
           GeomesaAvroDateFormat.deserialize(record, fieldName, property)
+        }.getOrElse {
+          throw GeomesaAvroProperty.MissingPropertyValueException[Date](fieldName, GeomesaAvroDateFormat.KEY)
         }
       } else {
+        if (descriptor.getType.getBinding.isAssignableFrom(classOf[String])
+            && userData.containsKey(GeomesaAvroFeatureVisibility.KEY)) {
+          visibilityAttributeName = Some(descriptor.getLocalName)
+        }
         record.get(fieldName)
       }
     }
 
     val feature = ScalaSimpleFeature.create(sft, id, attributes: _*)
-    if (visAttributeIndex != -1) {
-      SecurityUtils.setFeatureVisibility(feature, feature.getAttribute(visAttributeIndex).asInstanceOf[String])
+
+    visibilityAttributeName.map { name =>
+      SecurityUtils.setFeatureVisibility(feature, feature.getAttribute(name).asInstanceOf[String])
     }
 
     feature
-  }
-
-  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = deserialize(id, bytes, null)
-
-  private def readGeometryField(record: GenericRecord, fieldName: String)
-                               (read: String => Geometry): Option[Geometry] = {
-    try {
-      Option(read(record.get(fieldName).toString))
-    } catch {
-      case NonFatal(_) =>
-        logger.error(s"Error parsing WKB from field '$fieldName' with value '${record.get(fieldName)}' " +
-          s"for sft '${sft.getTypeName}'")
-        None
-    }
   }
 
   // Implement the following if we find we need them

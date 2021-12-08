@@ -31,7 +31,7 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
       timestamp: Long): GeoMessage = {
     if (key.isEmpty) { Clear } else {
       val id = new String(key, StandardCharsets.UTF_8)
-      if (value == null) { Delete(id) } else { Change(serializer.deserialize(id, value, new Date(timestamp))) }
+      if (value == null) { Delete(id) } else { Change(serializer.deserialize(id, value)) }
     }
   }
 }

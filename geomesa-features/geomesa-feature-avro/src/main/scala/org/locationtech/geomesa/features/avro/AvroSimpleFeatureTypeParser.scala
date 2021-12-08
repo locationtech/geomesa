@@ -42,6 +42,9 @@ object AvroSimpleFeatureTypeParser {
         case DateMetadata(format) =>
           builder.add(fieldName, classOf[Date])
           builder.get(fieldName).getUserData.put(GeomesaAvroDateFormat.KEY, format)
+        case FeatureVisibilityMetadata =>
+          addFieldToBuilder(builder, field)
+          builder.get(fieldName).getUserData.put(GeomesaAvroFeatureVisibility.KEY, "")
         case NoMetadata =>
           addFieldToBuilder(builder, field)
       }
@@ -86,11 +89,14 @@ object AvroSimpleFeatureTypeParser {
     val geomType = GeomesaAvroGeomType.parse(field)
     val geomDefault = GeomesaAvroGeomDefault.parse(field)
     val dateFormat = GeomesaAvroDateFormat.parse(field)
+    val featureVisibility = GeomesaAvroFeatureVisibility.parse(field)
 
     if (geomFormat.isDefined && geomType.isDefined) {
       GeomMetadata(geomFormat.get, geomType.get, geomDefault.getOrElse(false))
     } else if (dateFormat.isDefined) {
       DateMetadata(dateFormat.get)
+    } else if (featureVisibility.isDefined) {
+      FeatureVisibilityMetadata
     } else {
       NoMetadata
     }
@@ -100,6 +106,7 @@ object AvroSimpleFeatureTypeParser {
   private case class GeomMetadata(format: String, typ: Class[_ <: Geometry], default: Boolean)
     extends GeomesaAvroFieldMetadata
   private case class DateMetadata(format: String) extends GeomesaAvroFieldMetadata
+  private case object FeatureVisibilityMetadata extends GeomesaAvroFieldMetadata
   private case object NoMetadata extends GeomesaAvroFieldMetadata
 
   case class UnsupportedAvroTypeException(typeName: String)
@@ -144,8 +151,12 @@ object AvroSimpleFeatureTypeParser {
     final case class InvalidPropertyTypeException(typeName: String, key: String)
       extends IllegalArgumentException(s"Fields with property '$key' must have type '$typeName'")
 
-    final case class DeserializationException[T: ClassTag](fieldName: String, t: Throwable)(implicit ev: ClassTag[T])
-      extends RuntimeException(s"Could not deserialize field '$fieldName' into a ${ev.runtimeClass.getName}: " +
+    final case class MissingPropertyValueException[T](fieldName: String, key: String)(implicit ctg: ClassTag[T])
+      extends IllegalArgumentException(s"Cannot process field '$fieldName' for type '${ctg.runtimeClass.getName} " +
+        s"because key '$key' is missing")
+
+    final case class DeserializationException[T](fieldName: String, t: Throwable)(implicit ctg: ClassTag[T])
+      extends RuntimeException(s"Cannot deserialize field '$fieldName' into a ${ctg.runtimeClass.getName}: " +
         s"${t.getMessage}")
   }
 
@@ -303,6 +314,17 @@ object AvroSimpleFeatureTypeParser {
       } catch {
         case ex: Exception => throw DeserializationException[Date](fieldName, ex)
       }
+    }
+  }
+
+  /**
+   * Indicates that this avro field should be interpreted as the visibility attribute for this [[SimpleFeatureType]].
+   */
+  object GeomesaAvroFeatureVisibility extends GeomesaAvroProperty[Unit] {
+    override val KEY: String = "geomesa.feature.visibility"
+
+    override def parse(field: Schema.Field): Option[Unit] = {
+      Option(field.getProp(KEY)).map(_ => assertFieldType(field, Schema.Type.STRING))
     }
   }
 }
