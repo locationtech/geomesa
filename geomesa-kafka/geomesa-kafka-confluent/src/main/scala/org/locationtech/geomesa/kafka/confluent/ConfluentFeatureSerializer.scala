@@ -15,6 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import io.confluent.kafka.schemaregistry.client.{CachedSchemaRegistryClient, SchemaRegistryClient}
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import org.apache.avro.generic.GenericRecord
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeomesaAvroDateFormat, GeomesaAvroFeatureVisibility, GeomesaAvroGeomFormat, GeomesaAvroProperty}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
@@ -48,8 +49,6 @@ class ConfluentFeatureSerializer(
   }
 
   override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
-    println("Deserializing: " + id)
-
     val record = kafkaAvroDeserializer.get.deserialize("", bytes).asInstanceOf[GenericRecord]
 
     var visibilityAttributeName: Option[String] = None
@@ -57,8 +56,6 @@ class ConfluentFeatureSerializer(
     val attributes = sft.getAttributeDescriptors.asScala.map { descriptor =>
       val fieldName = descriptor.getLocalName
       val userData = descriptor.getUserData
-
-      println(s"$fieldName (${descriptor.getType.getBinding}): $userData")
 
       if (classOf[Geometry].isAssignableFrom(descriptor.getType.getBinding)) {
         Option(userData.get(GeomesaAvroGeomFormat.KEY).asInstanceOf[String]).map { format =>
@@ -73,7 +70,7 @@ class ConfluentFeatureSerializer(
           throw GeomesaAvroProperty.MissingPropertyValueException[Date](fieldName, GeomesaAvroDateFormat.KEY)
         }
       } else {
-        if (descriptor.getType.getBinding.isAssignableFrom(classOf[String])
+        if (classOf[String].isAssignableFrom(descriptor.getType.getBinding)
             && userData.containsKey(GeomesaAvroFeatureVisibility.KEY)) {
           // if there is more than one visibility attribute, the last one will be used
           visibilityAttributeName = Some(descriptor.getLocalName)

@@ -24,7 +24,7 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
 
   import ConfluentMetadata.SubjectPostfix
 
-  private val topicSftCache: LoadingCache[String, String] =
+  private val topicSftCache: LoadingCache[String, String] = {
     Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(
       (topic: String) => {
         try {
@@ -38,6 +38,7 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
         }
       }
     )
+  }
 
   override def getFeatureTypes: Array[String] = {
     schemaRegistry.getAllSubjects.asScala.collect {

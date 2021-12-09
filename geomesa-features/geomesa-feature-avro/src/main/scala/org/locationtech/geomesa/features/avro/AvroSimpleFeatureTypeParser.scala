@@ -166,11 +166,14 @@ object AvroSimpleFeatureTypeParser {
   object GeomesaAvroGeomDefault extends GeomesaAvroProperty[Boolean] {
     override val KEY: String = "geomesa.geom.default"
 
+    val TRUE: String = "TRUE"
+    val FALSE: String = "FALSE"
+
     override def parse(field: Schema.Field): Option[Boolean] = {
-      Option(field.getProp(KEY)).map { geomDefault =>
-        Try(geomDefault.toBoolean).getOrElse {
-          throw GeomesaAvroProperty.InvalidPropertyValueException(geomDefault, KEY)
-        }
+      Option(field.getProp(KEY)).map(_.toUpperCase(Locale.ENGLISH)).map {
+        case TRUE => true
+        case FALSE => false
+        case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
       }
     }
   }

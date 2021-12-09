@@ -42,7 +42,7 @@ class EmbeddedConfluent extends Closeable {
   val schemaRegistryUrl: String = schemaRegistryApp.restConnect
 
   override def close(): Unit = {
-    try { schemaRegistryApp.stop() } catch { case e: Throwable => }
+    try { schemaRegistryApp.stop() } catch { case _: Throwable => }
     try { server.shutdown() } catch { case _: Throwable => }
     try { zookeeper.shutdown() } catch { case _: Throwable => }
     PathUtils.deleteRecursively(logs.toPath)

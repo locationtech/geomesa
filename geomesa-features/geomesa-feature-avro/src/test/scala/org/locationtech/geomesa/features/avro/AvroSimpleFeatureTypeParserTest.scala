@@ -25,11 +25,10 @@ import java.util.Date
 @RunWith(classOf[JUnitRunner])
 class AvroSimpleFeatureTypeParserTest extends Specification {
 
-  private val invalidGeomesaAvroSchemaName1 = "Schema1"
   private val invalidGeomesaAvroSchemaJson1 =
     s"""{
        |  "type":"record",
-       |  "name":"$invalidGeomesaAvroSchemaName1",
+       |  "name":"schema1",
        |  "fields":[
        |    {
        |      "name":"f1",
@@ -51,7 +50,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |      "type":"string",
        |      "${GeomesaAvroGeomFormat.KEY}":"TWKB",
        |      "${GeomesaAvroGeomType.KEY}":"MultiGeometryCollection",
-       |      "${GeomesaAvroGeomDefault.KEY}":"true"
+       |      "${GeomesaAvroGeomDefault.KEY}":"${GeomesaAvroGeomDefault.TRUE}"
        |    },
        |    {
        |      "name":"f4",
@@ -72,17 +71,17 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |}""".stripMargin
   private lazy val invalidGeomesaAvroSchema1 = new Schema.Parser().parse(invalidGeomesaAvroSchemaJson1)
 
-  private val validGeomesaAvroSchemaName1 = "Schema2"
   private val validGeomesaAvroSchemaJson1 =
     s"""{
        |  "type":"record",
-       |  "name":"$validGeomesaAvroSchemaName1",
+       |  "name":"schema2",
        |  "fields":[
        |    {
        |      "name":"f1",
        |      "type":"bytes",
        |      "${GeomesaAvroGeomFormat.KEY}":"${GeomesaAvroGeomFormat.WKB}",
-       |      "${GeomesaAvroGeomType.KEY}":"${GeomesaAvroGeomType.POINT}"
+       |      "${GeomesaAvroGeomType.KEY}":"${GeomesaAvroGeomType.POINT}",
+       |      "${GeomesaAvroGeomDefault.KEY}":"${GeomesaAvroGeomDefault.FALSE}"
        |    },
        |    {
        |      "name":"f2",
@@ -93,7 +92,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |      "type":["null","string"],
        |      "${GeomesaAvroGeomFormat.KEY}":"wkt",
        |      "${GeomesaAvroGeomType.KEY}":"geometry",
-       |      "${GeomesaAvroGeomDefault.KEY}":"true"
+       |      "${GeomesaAvroGeomDefault.KEY}":"${GeomesaAvroGeomDefault.TRUE}"
        |    },
        |    {
        |      "name":"f4",
@@ -114,11 +113,10 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |}""".stripMargin
   private lazy val validGeomesaAvroSchema1: Schema = new Schema.Parser().parse(validGeomesaAvroSchemaJson1)
 
-  private val invalidGeomesaAvroSchemaName2 = "Schema3"
   private val invalidGeomesaAvroSchemaJson2 =
     s"""{
        |  "type":"record",
-       |  "name":"$invalidGeomesaAvroSchemaName2",
+       |  "name":"schema3",
        |  "fields":[
        |    {
        |      "name":"f1",
@@ -136,11 +134,10 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |}""".stripMargin
   private lazy val invalidGeomesaAvroSchema2 = new Schema.Parser().parse(invalidGeomesaAvroSchemaJson2)
 
-  private val validGeomesaAvroSchemaName2 = "Schema4"
   private val validGeomesaAvroSchemaJson2 =
     s"""{
        |  "type":"record",
-       |  "name":"$validGeomesaAvroSchemaName2",
+       |  "name":"schema4",
        |  "fields":[
        |    {
        |      "name":"f1",
@@ -357,12 +354,12 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
 
   "AvroSimpleFeatureParser" should {
     "fail to convert a schema with invalid geomesa avro properties into an SFT" in {
-      AvroSimpleFeatureTypeParser.schemaToSft(invalidGeomesaAvroSchema1) must
+      AvroSimpleFeatureTypeParser.schemaToSft(invalidGeomesaAvroSchema1, "test-sft") must
         throwAn[GeomesaAvroProperty.InvalidPropertyTypeException]
     }
 
     "fail to convert a schema without geomesa properties into an SFT when the field type is not supported" in {
-      AvroSimpleFeatureTypeParser.schemaToSft(invalidGeomesaAvroSchema2) must
+      AvroSimpleFeatureTypeParser.schemaToSft(invalidGeomesaAvroSchema2, "test-sft") must
         throwAn[AvroSimpleFeatureTypeParser.UnsupportedAvroTypeException]
     }
 
@@ -370,14 +367,14 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
       val expectedSft = "f1:Point:geomesa.geom.format=WKB,f2:Double,*f3:Geometry:geomesa.geom.format=WKT," +
         "f4:Date:geomesa.date.format=EPOCH_MILLIS,f5:Date:geomesa.date.format=ISO_INSTANT," +
         "f6:String:geomesa.feature.visibility=''"
-      val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema1)
+      val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema1, "test-sft")
 
       SimpleFeatureTypes.encodeType(sft, includeUserData = true) mustEqual expectedSft
     }
 
     "convert a schema without geomesa avro properties into an SFT" in {
       val expectedSft = "f1:Bytes,f2:String,f3:Double"
-      val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema2)
+      val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema2, "test-sft")
 
       SimpleFeatureTypes.encodeType(sft, includeUserData = true) mustEqual expectedSft
     }

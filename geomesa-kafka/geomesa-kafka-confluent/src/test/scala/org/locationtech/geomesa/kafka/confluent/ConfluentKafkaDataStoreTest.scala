@@ -35,19 +35,19 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
 
   "ConfluentKafkaDataStore" should {
 
-    val topic = "confluent-test"
+    val topic = "confluent-kds-test"
 
-    val schemaJson =
+    val schemaJson1 =
       s"""{
          |  "type":"record",
-         |  "name":"schema",
+         |  "name":"schema1",
          |  "fields":[
          |    {
          |      "name":"position",
          |      "type":"string",
          |      "${GeomesaAvroGeomFormat.KEY}":"${GeomesaAvroGeomFormat.WKT}",
          |      "${GeomesaAvroGeomType.KEY}":"${GeomesaAvroGeomType.POINT}",
-         |      "${GeomesaAvroGeomDefault.KEY}":"true"
+         |      "${GeomesaAvroGeomDefault.KEY}":"${GeomesaAvroGeomDefault.TRUE}"
          |    },
          |    {
          |      "name":"speed",
@@ -65,9 +65,33 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
          |    }
          |  ]
          |}""".stripMargin
-    val schema = new Schema.Parser().parse(schemaJson)
+    val schema1 = new Schema.Parser().parse(schemaJson1)
 
-    /*
+    val schemaJson2 =
+      s"""{
+         |  "type":"record",
+         |  "name":"schema2",
+         |  "fields":[
+         |    {
+         |      "name":"position",
+         |      "type":"string",
+         |      "${GeomesaAvroGeomFormat.KEY}":"${GeomesaAvroGeomFormat.WKB}",
+         |      "${GeomesaAvroGeomType.KEY}":"${GeomesaAvroGeomType.POINT}",
+         |      "${GeomesaAvroGeomDefault.KEY}":"${GeomesaAvroGeomDefault.TRUE}"
+         |    },
+         |    {
+         |      "name":"speed",
+         |      "type":"double"
+         |    },
+         |    {
+         |      "name":"date",
+         |      "type":"long",
+         |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.EPOCH_MILLIS}"
+         |    }
+         |  ]
+         |}""".stripMargin
+    val schema2 = new Schema.Parser().parse(schemaJson2)
+
     "fail to get a feature source when the schema is invalid" in new ConfluentKafkaTestContext {
       private val badSchemaJson =
         s"""{
@@ -94,7 +118,6 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
 
       kds.getFeatureSource(topic) must throwAn[Exception]
     }
-     */
 
     "Deserialize simple features when the schema and records are valid" in new ConfluentKafkaTestContext {
       private val id = "1"
@@ -102,29 +125,26 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
       record.put("position", "POINT(10 20)")
       record.put("speed", 12.325d)
       record.put("date", "2021-12-07T17:22:24.897-05:00")
-      record.put("visibility", "visible")
+      record.put("visibility", "")
 
       private val producer = getProducer
-      private val res = producer.send(new ProducerRecord[String, GenericRecord](topic, 0, id, record)).get
-      println("Sent to: " + res.topic())
+      producer.send(new ProducerRecord[String, GenericRecord](topic, id, record)).get
 
       private val kds = getStore
       private val fs = kds.getFeatureSource(topic)
 
-      eventually(40, 100.millis) {
+      eventually(10, 100.millis) {
         SelfClosingIterator(fs.getFeatures.features).toArray.length mustEqual 1
 
-        /*
         val feature = fs.getFeatures.features.next()
         val expectedPosition = new Point(generateCoordinate(10, 20), geomFactory)
         feature.getID mustEqual "1"
         feature.getAttribute("position") mustEqual expectedPosition
         feature.getAttribute("speed") mustEqual 12.325d
         feature.getAttribute("date") mustEqual new Date(1638915744897L)
-        feature.getAttribute("visibility") mustEqual "visible"
+        feature.getAttribute("visibility") mustEqual ""
         feature.getDefaultGeometry mustEqual expectedPosition
-        SecurityUtils.getVisibility(feature) mustEqual "visible"
-         */
+        SecurityUtils.getVisibility(feature) mustEqual ""
       }
     }
 
@@ -200,8 +220,19 @@ trait ConfluentKafkaTestContext extends BeforeAfter {
 
   protected var confluentKafka: EmbeddedConfluent = _
 
+  protected def getProducer: KafkaProducer[String, GenericRecord] = {
+    val producerProps = new Properties()
+
+    producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, confluentKafka.brokers)
+    producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
+    producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[KafkaAvroSerializer])
+    producerProps.put("schema.registry.url", confluentKafka.schemaRegistryUrl)
+
+    new KafkaProducer[String, GenericRecord](producerProps)
+  }
+
   protected def getStore: KafkaDataStore = {
-    val baseParams = Map(
+    val params = Map(
       "kafka.schema.registry.url" -> confluentKafka.schemaRegistryUrl,
       "kafka.brokers"             -> confluentKafka.brokers,
       "kafka.zookeepers"          -> confluentKafka.zookeepers,
@@ -212,18 +243,7 @@ trait ConfluentKafkaTestContext extends BeforeAfter {
       "kafka.consumer.count"      -> 1
     )
 
-    DataStoreFinder.getDataStore(baseParams).asInstanceOf[KafkaDataStore]
-  }
-
-  protected def getProducer: KafkaProducer[String, GenericRecord] = {
-    val producerProps = new Properties()
-
-    producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, confluentKafka.brokers)
-    producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
-    producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[KafkaAvroSerializer])
-    producerProps.put("schema.registry.url", confluentKafka.schemaRegistryUrl)
-
-    new KafkaProducer[String, GenericRecord](producerProps)
+    DataStoreFinder.getDataStore(params).asInstanceOf[KafkaDataStore]
   }
 
   override def before: Any = {
