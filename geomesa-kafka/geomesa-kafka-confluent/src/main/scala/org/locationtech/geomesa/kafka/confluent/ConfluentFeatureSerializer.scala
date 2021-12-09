@@ -58,13 +58,15 @@ class ConfluentFeatureSerializer(
       val fieldName = descriptor.getLocalName
       val userData = descriptor.getUserData
 
-      if (descriptor.getType.getBinding.isAssignableFrom(classOf[Geometry])) {
+      println(s"$fieldName (${descriptor.getType.getBinding}): $userData")
+
+      if (classOf[Geometry].isAssignableFrom(descriptor.getType.getBinding)) {
         Option(userData.get(GeomesaAvroGeomFormat.KEY).asInstanceOf[String]).map { format =>
           GeomesaAvroGeomFormat.deserialize(record, fieldName, format)
         }.getOrElse {
           throw GeomesaAvroProperty.MissingPropertyValueException[Geometry](fieldName, GeomesaAvroGeomFormat.KEY)
         }
-      } else if (descriptor.getType.getBinding.isAssignableFrom(classOf[Date])) {
+      } else if (classOf[Date].isAssignableFrom(descriptor.getType.getBinding)) {
         Option(userData.get(GeomesaAvroDateFormat.KEY).asInstanceOf[String]).map { format =>
           GeomesaAvroDateFormat.deserialize(record, fieldName, format)
         }.getOrElse {
@@ -86,7 +88,7 @@ class ConfluentFeatureSerializer(
       SecurityUtils.setFeatureVisibility(feature, feature.getAttribute(name).asInstanceOf[String])
     }
 
-    println("Feature id: " + feature.getID)
+    println("Feature: " + feature)
 
     feature
   }
