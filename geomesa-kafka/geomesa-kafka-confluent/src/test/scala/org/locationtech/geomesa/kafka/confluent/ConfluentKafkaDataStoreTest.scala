@@ -31,7 +31,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
 @RunWith(classOf[JUnitRunner])
-class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
+class ConfluentKafkaDataStoreTest extends Specification {
   sequential
 
   "ConfluentKafkaDataStore" should {

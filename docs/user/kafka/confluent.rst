@@ -64,7 +64,7 @@ Value                    Description
 ``MULTILINESTRING``      A ``MultiLineString``
 ``MULTIPOLYGON``         A ``MultiPolygon``
 ``GEOMETRYCOLLECTION``   A ``GeometryCollection``
-======================== ===========================
+======================== ============================
 
 ``geomesa.geom.default``
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -89,8 +89,8 @@ Indicates that this field should be interpreted as a ``Date`` in the given forma
 Value              Schema Field Type     Description
 ================== ===================== ====================================================
 ``EPOCH_MILLIS``   ``LONG``              Milliseconds since the Unix epoch
-``ISO_DATE``       ``STRING``            Date format "yyyy-MM-dd"
-``ISO_INSTANT``    ``STRING``            Date format "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
+``ISO_DATE``       ``STRING``            Date format ``yyyy-MM-dd``
+``ISO_INSTANT``    ``STRING``            Date format ``yyyy-MM-dd'T'HH:mm:ss.SSSZZ``
 ================== ===================== ====================================================
 
 ``geomesa.feature.visibility``
