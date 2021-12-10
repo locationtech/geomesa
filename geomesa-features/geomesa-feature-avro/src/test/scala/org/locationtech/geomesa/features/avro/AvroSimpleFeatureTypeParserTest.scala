@@ -11,8 +11,7 @@ package org.locationtech.geomesa.features.avro
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeomesaAvroDateFormat,
-  GeomesaAvroGeomDefault, GeomesaAvroGeomFormat, GeomesaAvroGeomType, GeomesaAvroProperty, GeomesaAvroFeatureVisibility}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeomesaAvroDateFormat, GeomesaAvroFeatureVisibility, GeomesaAvroGeomDefault, GeomesaAvroGeomFormat, GeomesaAvroGeomType, GeomesaAvroProperty}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.impl.CoordinateArraySequenceFactory
@@ -20,6 +19,7 @@ import org.locationtech.jts.geom.{Coordinate, CoordinateSequence, Geometry, Geom
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.nio.ByteBuffer
 import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
@@ -65,7 +65,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    {
        |      "name":"f6",
        |      "type":"bytes",
-       |      "${GeomesaAvroFeatureVisibility.KEY}":""
+       |      "${GeomesaAvroFeatureVisibility.KEY}":"${GeomesaAvroFeatureVisibility.VALUE}"
        |    }
        |  ]
        |}""".stripMargin
@@ -107,7 +107,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    {
        |      "name":"f6",
        |      "type":"string",
-       |      "${GeomesaAvroFeatureVisibility.KEY}":""
+       |      "${GeomesaAvroFeatureVisibility.KEY}":"${GeomesaAvroFeatureVisibility.VALUE}"
        |    }
        |  ]
        |}""".stripMargin
@@ -292,7 +292,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
         "for a point" in {
           val record1 = new GenericData.Record(validGeomesaAvroSchema1)
           val expectedGeom1 = new Point(generateCoordinate(10, 20), geomFactory)
-          record1.put("f1", WKBUtils.write(expectedGeom1))
+          record1.put("f1", ByteBuffer.wrap(WKBUtils.write(expectedGeom1)))
           GeomesaAvroGeomFormat.deserialize(record1, "f1", GeomesaAvroGeomFormat.WKB) mustEqual expectedGeom1
         }
 
@@ -354,12 +354,12 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
 
   "AvroSimpleFeatureParser" should {
     "fail to convert a schema with invalid geomesa avro properties into an SFT" in {
-      AvroSimpleFeatureTypeParser.schemaToSft(invalidGeomesaAvroSchema1, "test-sft") must
+      AvroSimpleFeatureTypeParser.schemaToSft(invalidGeomesaAvroSchema1) must
         throwAn[GeomesaAvroProperty.InvalidPropertyTypeException]
     }
 
     "fail to convert a schema without geomesa properties into an SFT when the field type is not supported" in {
-      AvroSimpleFeatureTypeParser.schemaToSft(invalidGeomesaAvroSchema2, "test-sft") must
+      AvroSimpleFeatureTypeParser.schemaToSft(invalidGeomesaAvroSchema2) must
         throwAn[AvroSimpleFeatureTypeParser.UnsupportedAvroTypeException]
     }
 
@@ -367,14 +367,14 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
       val expectedSft = "f1:Point:geomesa.geom.format=WKB,f2:Double,*f3:Geometry:geomesa.geom.format=WKT," +
         "f4:Date:geomesa.date.format=EPOCH_MILLIS,f5:Date:geomesa.date.format=ISO_INSTANT," +
         "f6:String:geomesa.feature.visibility=''"
-      val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema1, "test-sft")
+      val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema1)
 
       SimpleFeatureTypes.encodeType(sft, includeUserData = true) mustEqual expectedSft
     }
 
     "convert a schema without geomesa avro properties into an SFT" in {
       val expectedSft = "f1:Bytes,f2:String,f3:Double"
-      val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema2, "test-sft")
+      val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema2)
 
       SimpleFeatureTypes.encodeType(sft, includeUserData = true) mustEqual expectedSft
     }

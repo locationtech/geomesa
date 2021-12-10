@@ -21,11 +21,12 @@ import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{Geome
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.jts.geom.{Coordinate, CoordinateSequence, GeometryFactory, LinearRing, Point, Polygon}
-import org.locationtech.jts.geom.impl.CoordinateArraySequenceFactory
+import org.locationtech.geomesa.utils.text.WKBUtils
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point, Polygon}
 import org.specs2.mutable.{After, Specification}
 import org.specs2.runner.JUnitRunner
 
+import java.nio.ByteBuffer
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
@@ -61,7 +62,7 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
          |    {
          |      "name":"visibility",
          |      "type":"string",
-         |      "${GeomesaAvroFeatureVisibility.KEY}":""
+         |      "${GeomesaAvroFeatureVisibility.KEY}":"${GeomesaAvroFeatureVisibility.VALUE}"
          |    }
          |  ]
          |}""".stripMargin
@@ -74,7 +75,7 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
          |  "fields":[
          |    {
          |      "name":"shape",
-         |      "type":"string",
+         |      "type":"bytes",
          |      "${GeomesaAvroGeomFormat.KEY}":"${GeomesaAvroGeomFormat.WKB}",
          |      "${GeomesaAvroGeomType.KEY}":"${GeomesaAvroGeomType.GEOMETRY}",
          |      "${GeomesaAvroGeomDefault.KEY}":"${GeomesaAvroGeomDefault.TRUE}"
@@ -88,7 +89,7 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
          |}""".stripMargin
     val schema2 = new Schema.Parser().parse(schemaJson2)
 
-    "fail to get a feature source when the schema is invalid" in new ConfluentKafkaTestContext {
+    "fail to get a feature source when the schema cannot be converted to an SFT" in new ConfluentKafkaTestContext {
       private val badSchemaJson =
         s"""{
           |  "type":"record",
@@ -115,7 +116,7 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
       kds.getFeatureSource(topic) must throwAn[Exception]
     }
 
-    "Deserialize simple features when the schema and records are valid" in new ConfluentKafkaTestContext {
+    "deserialize simple features when the schema and records are valid" in new ConfluentKafkaTestContext {
       private val id = "1"
       private val record = new GenericData.Record(schema1)
       record.put("position", "POINT(10 20)")
@@ -133,7 +134,7 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
         SelfClosingIterator(fs.getFeatures.features).toArray.length mustEqual 1
 
         val feature = fs.getFeatures.features.next
-        val expectedPosition = generatePoint(10, 20)
+        val expectedPosition = generatePoint(10d, 20d)
         feature.getID mustEqual id
         feature.getAttribute("position") mustEqual expectedPosition
         feature.getAttribute("speed") mustEqual 12.325d
@@ -148,7 +149,8 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
       "update" in new ConfluentKafkaTestContext {
         private val id = "1"
         private val record1 = new GenericData.Record(schema2)
-        record1.put("shape", "POINT(10 20)")
+        private val expectedGeom1 = generatePoint(10d, 20d)
+        record1.put("shape", ByteBuffer.wrap(WKBUtils.write(expectedGeom1)))
         record1.put("date", 1639145281285L)
 
         private val producer = getProducer
@@ -162,12 +164,13 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
 
           val feature = fs.getFeatures.features.next
           feature.getID mustEqual id
-          feature.getAttribute("shape") mustEqual generatePoint(10, 20)
+          feature.getAttribute("shape") mustEqual expectedGeom1
           feature.getAttribute("date") mustEqual new Date(1639145281285L)
         }
 
         private val record2 = new GenericData.Record(schema2)
-        record2.put("shape", "POINT(15 30)")
+        private val expectedGeom2 = generatePoint(15d, 30d)
+        record2.put("shape", ByteBuffer.wrap(WKBUtils.write(expectedGeom2)))
         record2.put("date", 1639145515643L)
 
         producer.send(new ProducerRecord[String, GenericRecord](topic, id, record2)).get
@@ -177,7 +180,7 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
 
           val feature = fs.getFeatures.features.next
           feature.getID mustEqual id
-          feature.getAttribute("shape") mustEqual generatePoint(15, 30)
+          feature.getAttribute("shape") mustEqual expectedGeom2
           feature.getAttribute("date") mustEqual new Date(1639145515643L)
         }
       }
@@ -185,12 +188,14 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
       "drop" in new ConfluentKafkaTestContext {
         private val id1 = "1"
         private val record1 = new GenericData.Record(schema2)
-        record1.put("shape", "POLYGON((0 0,0 10,10 0,10 10)")
+        private val expectedGeom1 = generatePolygon(Seq((0d,0d), (10d,0d), (10d,10d), (0d,10d), (0d,0d)))
+        record1.put("shape", ByteBuffer.wrap(WKBUtils.write(expectedGeom1)))
         record1.put("date", 1639145281285L)
 
         private val id2 = "2"
         private val record2 = new GenericData.Record(schema2)
-        record2.put("shape", "POLYGON((5 5,5 15,15 5,15 15))")
+        private val expectedGeom2 = generatePolygon(Seq((5d,5d), (15d,5d), (15d,15d), (5d,15d), (5d,5d)))
+        record2.put("shape", ByteBuffer.wrap(WKBUtils.write(expectedGeom2)))
         record2.put("date", 1639145515643L)
 
         private val producer = getProducer
@@ -211,7 +216,7 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
 
           val feature = fs.getFeatures.features.next
           feature.getID mustEqual id2
-          feature.getAttribute("shape") mustEqual generatePolygon(Set((5d,5d), (5d,15d), (15d,5d), (15d,15d)))
+          feature.getAttribute("shape") mustEqual expectedGeom2
           feature.getAttribute("date") mustEqual new Date(1639145515643L)
         }
       }
@@ -219,12 +224,14 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
       "clear" in new ConfluentKafkaTestContext {
         private val id1 = "1"
         private val record1 = new GenericData.Record(schema2)
-        record1.put("shape", "POLYGON((0 0,0 10,10 0,10 10)")
+        private val expectedGeom1 = generatePolygon(Seq((0d,0d), (10d,0d), (10d,10d), (0d,10d), (0d,0d)))
+        record1.put("shape", ByteBuffer.wrap(WKBUtils.write(expectedGeom1)))
         record1.put("date", 1639145281285L)
 
         private val id2 = "2"
         private val record2 = new GenericData.Record(schema2)
-        record2.put("shape", "POLYGON((5 5,5 15,15 5,15 15))")
+        private val expectedGeom2 = generatePolygon(Seq((5d,5d), (15d,5d), (15d,15d), (5d,15d), (5d,5d)))
+        record2.put("shape", ByteBuffer.wrap(WKBUtils.write(expectedGeom2)))
         record2.put("date", 1639145515643L)
 
         private val producer = getProducer
@@ -252,7 +259,6 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
     protected val confluentKafka: EmbeddedConfluent = new EmbeddedConfluent()
 
     private val geomFactory = new GeometryFactory()
-    private val coordinateFactory = CoordinateArraySequenceFactory.instance()
 
     override def after: Unit = confluentKafka.close()
 
@@ -281,18 +287,10 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
       DataStoreFinder.getDataStore(params).asInstanceOf[KafkaDataStore]
     }
 
-    protected def generatePoint(x: Double, y: Double): Point = new Point(generateCoordinate(x, y), geomFactory)
+    protected def generatePoint(x: Double, y: Double): Point = geomFactory.createPoint(new Coordinate(x, y))
 
-    protected def generatePolygon(points: Set[(Double, Double)]): Polygon = {
-      val shell = new LinearRing(generateCoordinates(points), geomFactory)
-      new Polygon(shell, null, geomFactory)
-    }
-
-    private def generateCoordinate(x: Double, y: Double): CoordinateSequence = generateCoordinates(Set((x, y)))
-
-    private def generateCoordinates(points: Set[(Double, Double)]): CoordinateSequence = {
-      val coords = points.map(point => new Coordinate(point._1, point._2)).toSeq
-      coordinateFactory.create(Array(coords: _*))
+    protected def generatePolygon(points: Seq[(Double, Double)]): Polygon = {
+      geomFactory.createPolygon(points.map(point => new Coordinate(point._1, point._2)).toArray)
     }
   }
 }

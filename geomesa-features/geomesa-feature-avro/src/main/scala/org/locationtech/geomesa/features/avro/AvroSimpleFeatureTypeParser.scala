@@ -17,11 +17,11 @@ import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.locationtech.jts.geom.{Geometry, GeometryCollection, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.nio.ByteBuffer
 import java.util.{Date, Locale}
 import scala.annotation.tailrec
 import scala.collection.convert.ImplicitConversions._
 import scala.reflect.ClassTag
-import scala.util.Try
 
 object AvroSimpleFeatureTypeParser {
   /**
@@ -44,7 +44,7 @@ object AvroSimpleFeatureTypeParser {
           builder.get(fieldName).getUserData.put(GeomesaAvroDateFormat.KEY, format)
         case FeatureVisibilityMetadata =>
           addFieldToBuilder(builder, field)
-          builder.get(fieldName).getUserData.put(GeomesaAvroFeatureVisibility.KEY, "")
+          builder.get(fieldName).getUserData.put(GeomesaAvroFeatureVisibility.KEY, GeomesaAvroFeatureVisibility.VALUE)
         case NoMetadata =>
           addFieldToBuilder(builder, field)
       }
@@ -152,11 +152,11 @@ object AvroSimpleFeatureTypeParser {
       extends IllegalArgumentException(s"Fields with property '$key' must have type '$typeName'")
 
     final case class MissingPropertyValueException[T](fieldName: String, key: String)(implicit ctg: ClassTag[T])
-      extends IllegalArgumentException(s"Cannot process field '$fieldName' for type '${ctg.runtimeClass.getName} " +
-        s"because key '$key' is missing")
+      extends RuntimeException(s"Cannot process field '$fieldName' for type '${ctg.runtimeClass.getName} because " +
+        s"key '$key' is missing")
 
     final case class DeserializationException[T](fieldName: String, t: Throwable)(implicit ctg: ClassTag[T])
-      extends RuntimeException(s"Cannot deserialize field '$fieldName' into a ${ctg.runtimeClass.getName}: " +
+      extends RuntimeException(s"Cannot deserialize field '$fieldName' into a '${ctg.runtimeClass.getName}': " +
         s"${t.getMessage}")
   }
 
@@ -210,7 +210,7 @@ object AvroSimpleFeatureTypeParser {
       try {
         format.toUpperCase(Locale.ENGLISH) match {
           case WKT => WKTUtils.read(data.toString)
-          case WKB => WKBUtils.read(data.asInstanceOf[Array[Byte]])
+          case WKB => WKBUtils.read(data.asInstanceOf[ByteBuffer].array())
           case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
         }
       } catch {
@@ -325,6 +325,8 @@ object AvroSimpleFeatureTypeParser {
    */
   object GeomesaAvroFeatureVisibility extends GeomesaAvroProperty[Unit] {
     override val KEY: String = "geomesa.feature.visibility"
+
+    val VALUE = ""
 
     override def parse(field: Schema.Field): Option[Unit] = {
       Option(field.getProp(KEY)).map(_ => assertFieldType(field, Schema.Type.STRING))
