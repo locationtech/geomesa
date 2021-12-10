@@ -82,7 +82,7 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
          |    },
          |    {
          |      "name":"date",
-         |      "type":"long",
+         |      "type":["null","long"],
          |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.EPOCH_MILLIS}"
          |    }
          |  ]
@@ -171,7 +171,7 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
         private val record2 = new GenericData.Record(schema2)
         private val expectedGeom2 = generatePoint(15d, 30d)
         record2.put("shape", ByteBuffer.wrap(WKBUtils.write(expectedGeom2)))
-        record2.put("date", 1639145515643L)
+        record2.put("date", null)
 
         producer.send(new ProducerRecord[String, GenericRecord](topic, id, record2)).get
 
@@ -181,7 +181,7 @@ class ConfluentKafkaDataStoreTest extends Specification with LazyLogging {
           val feature = fs.getFeatures.features.next
           feature.getID mustEqual id
           feature.getAttribute("shape") mustEqual expectedGeom2
-          feature.getAttribute("date") mustEqual new Date(1639145515643L)
+          feature.getAttribute("date") mustEqual null
         }
       }
 

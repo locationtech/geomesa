@@ -161,24 +161,6 @@ object AvroSimpleFeatureTypeParser {
   }
 
   /**
-   * Indicates that this avro field should be interpreted as the default [[Geometry]] for this [[SimpleFeatureType]].
-   */
-  object GeomesaAvroGeomDefault extends GeomesaAvroProperty[Boolean] {
-    override val KEY: String = "geomesa.geom.default"
-
-    val TRUE: String = "TRUE"
-    val FALSE: String = "FALSE"
-
-    override def parse(field: Schema.Field): Option[Boolean] = {
-      Option(field.getProp(KEY)).map(_.toUpperCase(Locale.ENGLISH)).map {
-        case TRUE => true
-        case FALSE => false
-        case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
-      }
-    }
-  }
-
-  /**
    * Indicates that the avro field should be interpreted as a [[Geometry]], with one of the formats specified below.
    */
   object GeomesaAvroGeomFormat extends GeomesaAvroProperty[String] {
@@ -268,6 +250,24 @@ object AvroSimpleFeatureTypeParser {
         case MULTILINESTRING => classOf[MultiLineString]
         case MULTIPOLYGON => classOf[MultiPolygon]
         case GEOMETRYCOLLECTION => classOf[GeometryCollection]
+        case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
+      }
+    }
+  }
+
+  /**
+   * Indicates that this avro field should be interpreted as the default [[Geometry]] for this [[SimpleFeatureType]].
+   */
+  object GeomesaAvroGeomDefault extends GeomesaAvroProperty[Boolean] {
+    override val KEY: String = "geomesa.geom.default"
+
+    val TRUE: String = "TRUE"
+    val FALSE: String = "FALSE"
+
+    override def parse(field: Schema.Field): Option[Boolean] = {
+      Option(field.getProp(KEY)).map(_.toUpperCase(Locale.ENGLISH)).map {
+        case TRUE => true
+        case FALSE => false
         case value: String => throw GeomesaAvroProperty.InvalidPropertyValueException(value, KEY)
       }
     }
