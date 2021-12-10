@@ -69,7 +69,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    }
        |  ]
        |}""".stripMargin
-  private lazy val invalidGeomesaAvroSchema1 = new Schema.Parser().parse(invalidGeomesaAvroSchemaJson1)
+  private val invalidGeomesaAvroSchema1 = new Schema.Parser().parse(invalidGeomesaAvroSchemaJson1)
 
   private val validGeomesaAvroSchemaJson1 =
     s"""{
@@ -111,7 +111,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    }
        |  ]
        |}""".stripMargin
-  private lazy val validGeomesaAvroSchema1: Schema = new Schema.Parser().parse(validGeomesaAvroSchemaJson1)
+  private val validGeomesaAvroSchema1: Schema = new Schema.Parser().parse(validGeomesaAvroSchemaJson1)
 
   private val invalidGeomesaAvroSchemaJson2 =
     s"""{
@@ -132,7 +132,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    }
        |  ]
        |}""".stripMargin
-  private lazy val invalidGeomesaAvroSchema2 = new Schema.Parser().parse(invalidGeomesaAvroSchemaJson2)
+  private val invalidGeomesaAvroSchema2 = new Schema.Parser().parse(invalidGeomesaAvroSchemaJson2)
 
   private val validGeomesaAvroSchemaJson2 =
     s"""{
@@ -153,10 +153,10 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    }
        |  ]
        |}""".stripMargin
-  private lazy val validGeomesaAvroSchema2 = new Schema.Parser().parse(validGeomesaAvroSchemaJson2)
+  private val validGeomesaAvroSchema2 = new Schema.Parser().parse(validGeomesaAvroSchemaJson2)
 
-  private lazy val geomFactory = new GeometryFactory()
-  private lazy val coordinateFactory = CoordinateArraySequenceFactory.instance()
+  private val geomFactory = new GeometryFactory()
+  private val coordinateFactory = CoordinateArraySequenceFactory.instance()
 
   private def generateCoordinate(x: Double, y: Double): CoordinateSequence = {
     coordinateFactory.create(Array(new Coordinate(x, y)))
