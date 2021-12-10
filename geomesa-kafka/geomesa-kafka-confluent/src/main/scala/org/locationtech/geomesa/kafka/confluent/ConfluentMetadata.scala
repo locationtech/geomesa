@@ -9,11 +9,10 @@
 package org.locationtech.geomesa.kafka.confluent
 
 import java.util.concurrent.TimeUnit
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -25,16 +24,14 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
 
   import ConfluentMetadata.SubjectPostfix
 
-  private val topicSftCache: LoadingCache[String, String] =
+  private val topicSftCache: LoadingCache[String, String] = {
     Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(
       new CacheLoader[String, String] {
         override def load(topic: String): String = {
           try {
             val subject = topic + SubjectPostfix
             val schemaId = schemaRegistry.getLatestSchemaMetadata(subject).getId
-            val geom = Some(ConfluentFeatureSerializer.GeomAttributeName)
-            val dtg = Some(ConfluentFeatureSerializer.DateAttributeName)
-            val sft = AvroSimpleFeatureUtils.schemaToSft(schemaRegistry.getByID(schemaId), topic, geom, dtg)
+            val sft = AvroSimpleFeatureTypeParser.schemaToSft(schemaRegistry.getById(schemaId))
             KafkaDataStore.setTopic(sft, topic)
             SimpleFeatureTypes.encodeType(sft, includeUserData = true)
           } catch {
@@ -43,12 +40,12 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
         }
       }
     )
+  }
 
   override def getFeatureTypes: Array[String] = {
-    val types = schemaRegistry.getAllSubjects.asScala.collect {
-      case s if s.endsWith(SubjectPostfix) => s.substring(0, s.lastIndexOf(SubjectPostfix))
-    }
-    types.toArray
+    schemaRegistry.getAllSubjects.asScala.collect {
+      case s: String if s.endsWith(SubjectPostfix) => s.substring(0, s.lastIndexOf(SubjectPostfix))
+    }.toArray
   }
 
   override def read(typeName: String, key: String, cache: Boolean): Option[String] = {
@@ -76,7 +73,7 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
   override def close(): Unit = {}
 
   override def scan(typeName: String, prefix: String, cache: Boolean): Seq[(String, String)] =
-    throw new NotImplementedError(s"ConfluentMetadata only supports ATTRIBUTES_KEY")
+    throw new NotImplementedError(s"ConfluentMetadata only supports ${GeoMesaMetadata.AttributesKey}")
 
   override def insert(typeName: String, key: String, value: String): Unit = {}
   override def insert(typeName: String, kvPairs: Map[String, String]): Unit = {}
@@ -84,12 +81,11 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
   override def remove(typeName: String, keys: Seq[String]): Unit = {}
   override def delete(typeName: String): Unit = {}
   override def backup(typeName: String): Unit = {}
-  override def resetCache(): Unit = { }
+  override def resetCache(): Unit = {}
 }
 
-object ConfluentMetadata extends LazyLogging {
+object ConfluentMetadata {
 
-  // Currently hard-coded to the default confluent uses (<topic>-value).  See the following documentation:
-  //   https://docs.confluent.io/current/schema-registry/docs/serializer-formatter.html#subject-name-strategy
+  // hardcoded to the default confluent uses (<topic>-value)
   val SubjectPostfix = "-value"
 }
