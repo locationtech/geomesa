@@ -11,7 +11,7 @@ package org.locationtech.geomesa.features.avro
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeomesaAvroCardinality, GeomesaAvroDateDefault, GeomesaAvroDateFormat, GeomesaAvroDeserializableEnumProperty, GeomesaAvroFeatureVisibility, GeomesaAvroGeomDefault, GeomesaAvroGeomFormat, GeomesaAvroGeomSrid, GeomesaAvroGeomType, GeomesaAvroIndex, GeomesaAvroProperty}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeoMesaAvroDateFormat, GeoMesaAvroExcludeField, GeoMesaAvroGeomDefault, GeoMesaAvroGeomFormat, GeoMesaAvroGeomType, GeoMesaAvroVisibilityField, GeoMesaAvroDeserializableEnumProperty, GeoMesaAvroProperty}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.impl.CoordinateArraySequenceFactory
@@ -33,38 +33,36 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    {
        |      "name":"f1",
        |      "type":"string",
-       |      "${GeomesaAvroGeomFormat.KEY}":"${GeomesaAvroGeomFormat.WKB}",
-       |      "${GeomesaAvroGeomType.KEY}":"${GeomesaAvroGeomType.POINT}",
-       |      "${GeomesaAvroGeomDefault.KEY}":"yes",
-       |      "${GeomesaAvroGeomSrid.KEY}":"3401",
-       |      "${GeomesaAvroIndex.KEY}":"no",
-       |      "${GeomesaAvroCardinality.KEY}":"medium"
+       |      "${GeoMesaAvroGeomFormat.KEY}":"${GeoMesaAvroGeomFormat.WKB}",
+       |      "${GeoMesaAvroGeomType.KEY}":"${GeoMesaAvroGeomType.POINT}",
+       |      "${GeoMesaAvroGeomDefault.KEY}":"yes"
        |    },
        |    {
        |      "name":"f2",
        |      "type":"double",
-       |      "${GeomesaAvroGeomFormat.KEY}":"${GeomesaAvroGeomFormat.WKT}",
-       |      "${GeomesaAvroGeomType.KEY}":"${GeomesaAvroGeomType.POLYGON}",
-       |      "${GeomesaAvroGeomDefault.KEY}":"yes",
-       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.ISO_DATE}",
-       |      "${GeomesaAvroFeatureVisibility.KEY}":"${GeomesaAvroFeatureVisibility.TRUE}"
+       |      "${GeoMesaAvroGeomFormat.KEY}":"${GeoMesaAvroGeomFormat.WKT}",
+       |      "${GeoMesaAvroGeomType.KEY}":"${GeoMesaAvroGeomType.POLYGON}",
+       |      "${GeoMesaAvroGeomDefault.KEY}":"yes",
+       |      "${GeoMesaAvroDateFormat.KEY}":"${GeoMesaAvroDateFormat.ISO_DATE}",
+       |      "${GeoMesaAvroVisibilityField.KEY}":"${GeoMesaAvroVisibilityField.TRUE}"
        |    },
        |    {
        |      "name":"f3",
        |      "type":"string",
-       |      "${GeomesaAvroGeomFormat.KEY}":"TWKB",
-       |      "${GeomesaAvroGeomType.KEY}":"MultiGeometryCollection",
-       |      "${GeomesaAvroGeomDefault.KEY}":"${GeomesaAvroGeomDefault.TRUE}"
+       |      "${GeoMesaAvroGeomFormat.KEY}":"TWKB",
+       |      "${GeoMesaAvroGeomType.KEY}":"MultiGeometryCollection",
+       |      "${GeoMesaAvroGeomDefault.KEY}":"${GeoMesaAvroGeomDefault.TRUE}"
        |    },
        |    {
        |      "name":"f4",
        |      "type":"string",
-       |      "${GeomesaAvroDateFormat.KEY}":"dd-mm-yyyy"
+       |      "${GeoMesaAvroDateFormat.KEY}":"dd-mm-yyyy",
+       |      "${GeoMesaAvroExcludeField.KEY}":"${GeoMesaAvroExcludeField.TRUE}"
        |    },
        |    {
        |      "name":"f5",
        |      "type":"string",
-       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.EPOCH_MILLIS}"
+       |      "${GeoMesaAvroDateFormat.KEY}":"${GeoMesaAvroDateFormat.EPOCH_MILLIS}"
        |    }
        |  ]
        |}""".stripMargin
@@ -76,21 +74,20 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |  "name":"schema2",
        |  "geomesa.table.sharing":"false",
        |  "geomesa.table.compression.enabled":"true",
+       |  "geomesa.index.dtg":"f4",
        |  "fields":[
        |    {
        |      "name":"id",
        |      "type":"string",
-       |      "${GeomesaAvroIndex.KEY}":"${GeomesaAvroIndex.FULL}",
-       |      "${GeomesaAvroCardinality.KEY}":"${GeomesaAvroCardinality.HIGH}"
+       |      "index":"full",
+       |      "cardinality":"high"
        |    },
        |    {
        |      "name":"f1",
        |      "type":"bytes",
-       |      "${GeomesaAvroGeomFormat.KEY}":"${GeomesaAvroGeomFormat.WKB}",
-       |      "${GeomesaAvroGeomType.KEY}":"${GeomesaAvroGeomType.POINT}",
-       |      "${GeomesaAvroGeomDefault.KEY}":"${GeomesaAvroGeomDefault.FALSE}",
-       |      "${GeomesaAvroGeomSrid.KEY}":"${GeomesaAvroGeomSrid.EPSG_4326}",
-       |      "${GeomesaAvroDateDefault.KEY}":"${GeomesaAvroDateDefault.FALSE}"
+       |      "${GeoMesaAvroGeomFormat.KEY}":"${GeoMesaAvroGeomFormat.WKB}",
+       |      "${GeoMesaAvroGeomType.KEY}":"${GeoMesaAvroGeomType.POINT}",
+       |      "${GeoMesaAvroGeomDefault.KEY}":"${GeoMesaAvroGeomDefault.FALSE}"
        |    },
        |    {
        |      "name":"f2",
@@ -99,30 +96,25 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |    {
        |      "name":"f3",
        |      "type":["null","string"],
-       |      "${GeomesaAvroGeomFormat.KEY}":"wkt",
-       |      "${GeomesaAvroGeomType.KEY}":"geometry",
-       |      "${GeomesaAvroGeomDefault.KEY}":"${GeomesaAvroGeomDefault.TRUE}"
+       |      "${GeoMesaAvroGeomFormat.KEY}":"wkt",
+       |      "${GeoMesaAvroGeomType.KEY}":"geometry",
+       |      "${GeoMesaAvroGeomDefault.KEY}":"${GeoMesaAvroGeomDefault.TRUE}"
        |    },
        |    {
        |      "name":"f4",
        |      "type":"long",
-       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.EPOCH_MILLIS}",
-       |      "${GeomesaAvroDateDefault.KEY}":"${GeomesaAvroDateDefault.TRUE}"
+       |      "${GeoMesaAvroDateFormat.KEY}":"${GeoMesaAvroDateFormat.EPOCH_MILLIS}"
        |    },
        |    {
        |      "name":"f5",
-       |      "type":["null","string"],
-       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.ISO_INSTANT}"
+       |      "type":["null", "string"],
+       |      "${GeoMesaAvroDateFormat.KEY}":"${GeoMesaAvroDateFormat.ISO_DATETIME}"
        |    },
        |    {
        |      "name":"f6",
        |      "type":"string",
-       |      "${GeomesaAvroDateFormat.KEY}":"${GeomesaAvroDateFormat.ISO_INSTANT_NO_MILLIS}"
-       |    },
-       |    {
-       |      "name":"f7",
-       |      "type":"string",
-       |      "${GeomesaAvroFeatureVisibility.KEY}":"${GeomesaAvroFeatureVisibility.TRUE}"
+       |      "${GeoMesaAvroVisibilityField.KEY}":"${GeoMesaAvroVisibilityField.TRUE}",
+       |      "${GeoMesaAvroExcludeField.KEY}":"${GeoMesaAvroExcludeField.TRUE}"
        |    }
        |  ]
        |}""".stripMargin
@@ -137,114 +129,88 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
 
   "The GeomesaAvroProperty parser for" >> {
     "geometry format" should {
-      "fail if the field does not have the required type(s)" in {
+      "fail if the field does not have the required type" in {
         val field = invalidGeomesaAvroSchema.getField("f1")
-        GeomesaAvroGeomFormat.parse(field) must throwAn[GeomesaAvroProperty.InvalidPropertyTypeException]
+        GeoMesaAvroGeomFormat.parse(field) must throwAn[GeoMesaAvroProperty.InvalidPropertyTypeException]
       }
 
       "fail if an unsupported value is parsed" in {
         val field = invalidGeomesaAvroSchema.getField("f3")
-        GeomesaAvroGeomFormat.parse(field) must throwAn[GeomesaAvroProperty.InvalidPropertyValueException]
+        GeoMesaAvroGeomFormat.parse(field) must throwAn[GeoMesaAvroProperty.InvalidPropertyValueException]
       }
 
       "return None if the property doesn't exist" in {
         val field = validGeomesaAvroSchema.getField("f4")
-        GeomesaAvroGeomFormat.parse(field) must beNone
+        GeoMesaAvroGeomFormat.parse(field) must beNone
       }
 
       "return a string value if valid" in {
         val field = validGeomesaAvroSchema.getField("f3")
-        GeomesaAvroGeomFormat.parse(field) must beSome(GeomesaAvroGeomFormat.WKT)
+        GeoMesaAvroGeomFormat.parse(field) must beSome(GeoMesaAvroGeomFormat.WKT)
       }
     }
 
     "geometry type" should {
       "fail if an unsupported value is parsed" in {
         val field = invalidGeomesaAvroSchema.getField("f3")
-        GeomesaAvroGeomType.parse(field) must throwAn[GeomesaAvroProperty.InvalidPropertyValueException]
+        GeoMesaAvroGeomType.parse(field) must throwAn[GeoMesaAvroProperty.InvalidPropertyValueException]
       }
 
       "return None if the property doesn't exist" in {
         val field = validGeomesaAvroSchema.getField("f4")
-        GeomesaAvroGeomType.parse(field) must beNone
+        GeoMesaAvroGeomType.parse(field) must beNone
       }
 
       "return a geometry type if valid" in {
         val field1 = validGeomesaAvroSchema.getField("f1")
-        GeomesaAvroGeomType.parse(field1) must beSome(classOf[Point])
+        GeoMesaAvroGeomType.parse(field1) must beSome(classOf[Point])
 
         val field3 = validGeomesaAvroSchema.getField("f3")
-        GeomesaAvroGeomType.parse(field3) must beSome(classOf[Geometry])
+        GeoMesaAvroGeomType.parse(field3) must beSome(classOf[Geometry])
       }
     }
 
     "default geometry" should {
       "fail if an unsupported value is parsed" in {
         val field = invalidGeomesaAvroSchema.getField("f1")
-        GeomesaAvroGeomDefault.parse(field) must throwAn[GeomesaAvroProperty.InvalidPropertyValueException]
+        GeoMesaAvroGeomDefault.parse(field) must throwAn[GeoMesaAvroProperty.InvalidPropertyValueException]
       }
 
       "return a boolean value if valid" >> {
         val field = validGeomesaAvroSchema.getField("f3")
-        GeomesaAvroGeomDefault.parse(field) must beSome(true)
-      }
-    }
-
-    "geometry srid" should {
-      "fail if an unsupported value is parsed" in {
-        val field = invalidGeomesaAvroSchema.getField("f1")
-        GeomesaAvroGeomSrid.parse(field) must throwAn[GeomesaAvroProperty.InvalidPropertyValueException]
-      }
-
-      "return a string if valid" in {
-        val field = validGeomesaAvroSchema.getField("f1")
-        GeomesaAvroGeomSrid.parse(field) must beSome("4326")
+        GeoMesaAvroGeomDefault.parse(field) must beSome(true)
       }
     }
 
     "date format" should {
-      "fail if the field does not have the required type(s)" in {
+      "fail if the field does not have the required type" in {
         val field1 = invalidGeomesaAvroSchema.getField("f2")
-        GeomesaAvroDateFormat.parse(field1) must throwAn[GeomesaAvroProperty.InvalidPropertyTypeException]
+        GeoMesaAvroDateFormat.parse(field1) must throwAn[GeoMesaAvroProperty.InvalidPropertyTypeException]
 
         val field2 = invalidGeomesaAvroSchema.getField("f5")
-        GeomesaAvroDateFormat.parse(field2) must throwAn[GeomesaAvroProperty.InvalidPropertyTypeException]
+        GeoMesaAvroDateFormat.parse(field2) must throwAn[GeoMesaAvroProperty.InvalidPropertyTypeException]
       }
 
       "fail if an unsupported value is parsed" in {
         val field = invalidGeomesaAvroSchema.getField("f4")
-        GeomesaAvroDateFormat.parse(field) must throwAn[GeomesaAvroProperty.InvalidPropertyValueException]
+        GeoMesaAvroDateFormat.parse(field) must throwAn[GeoMesaAvroProperty.InvalidPropertyValueException]
       }
 
       "return a string value if valid" in {
         val field = validGeomesaAvroSchema.getField("f4")
-        GeomesaAvroDateFormat.parse(field) must beSome(GeomesaAvroDateFormat.EPOCH_MILLIS)
-      }
-    }
-
-    "index" should {
-      "return a string value if valid" in {
-        val field = validGeomesaAvroSchema.getField("id")
-        GeomesaAvroIndex.parse(field) must beSome(GeomesaAvroIndex.FULL)
-      }
-    }
-
-    "cardinality" should {
-      "return a string value if valid" in {
-        val field = validGeomesaAvroSchema.getField("id")
-        GeomesaAvroCardinality.parse(field) must beSome(GeomesaAvroCardinality.HIGH)
+        GeoMesaAvroDateFormat.parse(field) must beSome(GeoMesaAvroDateFormat.EPOCH_MILLIS)
       }
     }
 
     "feature visibility" should {
-      "fail if the field does not have the required type(s)" in {
+      "fail if the field does not have the required type" in {
         val field = invalidGeomesaAvroSchema.getField("f2")
-        GeomesaAvroFeatureVisibility.parse(field) must throwAn[GeomesaAvroProperty.InvalidPropertyTypeException]
+        GeoMesaAvroVisibilityField.parse(field) must throwAn[GeoMesaAvroProperty.InvalidPropertyTypeException]
       }
 
-      "return a string value if valid" in {
-        val field = validGeomesaAvroSchema.getField("f7")
-        GeomesaAvroFeatureVisibility.parse(field) must beSome(true)
+      "return a boolean value if valid" in {
+        val field = validGeomesaAvroSchema.getField("f6")
+        GeoMesaAvroVisibilityField.parse(field) must beSome(true)
       }
     }
   }
@@ -254,15 +220,15 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
       "fail if the value cannot be deserialized because the format is invalid" in {
         val record = new GenericData.Record(invalidGeomesaAvroSchema)
         record.put("f3", "POINT(10 20)")
-        GeomesaAvroGeomFormat.deserialize(record, "f3") must
-          throwA[GeomesaAvroDeserializableEnumProperty.DeserializationException[Geometry]]
+        GeoMesaAvroGeomFormat.deserialize(record, "f3") must
+          throwA[GeoMesaAvroDeserializableEnumProperty.DeserializationException[Geometry]]
       }
 
       "fail if the value cannot be deserialized because the geometry cannot be parsed" in {
         val record = new GenericData.Record(validGeomesaAvroSchema)
         record.put("f3", "POINT(0 0 0 0 0 0)")
-        GeomesaAvroGeomFormat.deserialize(record, "f3") must
-          throwA[GeomesaAvroDeserializableEnumProperty.DeserializationException[Geometry]]
+        GeoMesaAvroGeomFormat.deserialize(record, "f3") must
+          throwA[GeoMesaAvroDeserializableEnumProperty.DeserializationException[Geometry]]
       }
 
       "return the geometry if it can be deserialized" >> {
@@ -270,14 +236,14 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
           val record1 = new GenericData.Record(validGeomesaAvroSchema)
           val expectedGeom1 = new Point(generateCoordinate(10, 20), geomFactory)
           record1.put("f1", ByteBuffer.wrap(WKBUtils.write(expectedGeom1)))
-          GeomesaAvroGeomFormat.deserialize(record1, "f1") mustEqual expectedGeom1
+          GeoMesaAvroGeomFormat.deserialize(record1, "f1") mustEqual expectedGeom1
         }
 
         "for a geometry" in {
           val record2 = new GenericData.Record(validGeomesaAvroSchema)
           val expectedGeom2 = new Point(generateCoordinate(10, 20), geomFactory).asInstanceOf[Geometry]
           record2.put("f3", "POINT(10 20)")
-          GeomesaAvroGeomFormat.deserialize(record2, "f3") mustEqual expectedGeom2
+          GeoMesaAvroGeomFormat.deserialize(record2, "f3") mustEqual expectedGeom2
         }
       }
     }
@@ -286,22 +252,22 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
       "fail if the value cannot be deserialized because the format is invalid" in {
         val record = new GenericData.Record(invalidGeomesaAvroSchema)
         record.put("f4", "1638912032")
-        GeomesaAvroDateFormat.deserialize(record, "f4") must
-          throwA[GeomesaAvroDeserializableEnumProperty.DeserializationException[Date]]
+        GeoMesaAvroDateFormat.deserialize(record, "f4") must
+          throwA[GeoMesaAvroDeserializableEnumProperty.DeserializationException[Date]]
       }
 
       "fail if the value cannot be deserialized because the date cannot be parsed" in {
         val record = new GenericData.Record(validGeomesaAvroSchema)
         record.put("f5", "12/07/2021")
-        GeomesaAvroDateFormat.deserialize(record, "f5") must
-          throwA[GeomesaAvroDeserializableEnumProperty.DeserializationException[Date]]
+        GeoMesaAvroDateFormat.deserialize(record, "f5") must
+          throwA[GeoMesaAvroDeserializableEnumProperty.DeserializationException[Date]]
       }
 
       "fail if the value cannot be deserialized because the type is incorrect" in {
         val record = new GenericData.Record(validGeomesaAvroSchema)
         record.put("f4", 1000)
-        GeomesaAvroDateFormat.deserialize(record, "f4") must
-          throwA[GeomesaAvroDeserializableEnumProperty.DeserializationException[Date]]
+        GeoMesaAvroDateFormat.deserialize(record, "f4") must
+          throwA[GeoMesaAvroDeserializableEnumProperty.DeserializationException[Date]]
       }
 
       "return the date if it can be deserialized" >> {
@@ -309,31 +275,26 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
           val record = new GenericData.Record(validGeomesaAvroSchema)
           val expectedDate = new Date(1638915744897L)
           record.put("f4", 1638915744897L)
-          GeomesaAvroDateFormat.deserialize(record, "f4") mustEqual expectedDate
+          GeoMesaAvroDateFormat.deserialize(record, "f4") mustEqual expectedDate
         }
 
         "for a null string" in {
           val record = new GenericData.Record(validGeomesaAvroSchema)
           val expectedDate = null
           record.put("f5", null)
-          GeomesaAvroDateFormat.deserialize(record, "f5") mustEqual expectedDate
+          GeoMesaAvroDateFormat.deserialize(record, "f5") mustEqual expectedDate
         }
 
-        "for an ISO datetime string" >> {
+        "for an ISO datetime string with generic format" in {
+          val record1 = new GenericData.Record(validGeomesaAvroSchema)
+          val expectedDate1 = new Date(1638915744000L)
+          record1.put("f5", "2021-12-07T17:22:24-05:00")
+          GeoMesaAvroDateFormat.deserialize(record1, "f5") mustEqual expectedDate1
 
-          "with milliseconds" in {
-            val record = new GenericData.Record(validGeomesaAvroSchema)
-            val expectedDate = new Date(1638915744897L)
-            record.put("f5", "2021-12-07T17:22:24.897-05:00")
-            GeomesaAvroDateFormat.deserialize(record, "f5") mustEqual expectedDate
-          }
-
-          "without milliseconds" in {
-            val record = new GenericData.Record(validGeomesaAvroSchema)
-            val expectedDate = new Date(1638915744000L)
-            record.put("f6", "2021-12-07T17:22:24-05:00")
-            GeomesaAvroDateFormat.deserialize(record, "f6") mustEqual expectedDate
-          }
+          val record2 = new GenericData.Record(validGeomesaAvroSchema)
+          val expectedDate2 = new Date(1638915744897L)
+          record2.put("f5", "2021-12-07T17:22:24.897-05:00")
+          GeoMesaAvroDateFormat.deserialize(record2, "f5") mustEqual expectedDate2
         }
       }
     }
@@ -342,13 +303,63 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
   "AvroSimpleFeatureParser" should {
     "fail to convert a schema with invalid geomesa avro properties into an SFT" in {
       AvroSimpleFeatureTypeParser.schemaToSft(invalidGeomesaAvroSchema) must
-        throwAn[GeomesaAvroProperty.InvalidPropertyTypeException]
+        throwAn[GeoMesaAvroProperty.InvalidPropertyTypeException]
+    }
+
+    "fail to convert a schema with multiple default geometries into an SFT" in {
+      val schemaJson =
+        s"""{
+           |  "type":"record",
+           |  "name":"schema1",
+           |  "fields":[
+           |    {
+           |      "name":"geom1",
+           |      "type":"string",
+           |      "${GeoMesaAvroGeomFormat.KEY}":"${GeoMesaAvroGeomFormat.WKT}",
+           |      "${GeoMesaAvroGeomType.KEY}":"${GeoMesaAvroGeomType.LINESTRING}",
+           |      "${GeoMesaAvroGeomDefault.KEY}":"${GeoMesaAvroGeomDefault.TRUE}"
+           |    },
+           |    {
+           |      "name":"geom2",
+           |      "type":"bytes",
+           |      "${GeoMesaAvroGeomFormat.KEY}":"${GeoMesaAvroGeomFormat.WKB}",
+           |      "${GeoMesaAvroGeomType.KEY}":"${GeoMesaAvroGeomType.MULTIPOINT}",
+           |      "${GeoMesaAvroGeomDefault.KEY}":"${GeoMesaAvroGeomDefault.TRUE}"
+           |    }
+           |  ]
+           |}""".stripMargin
+      val schema = new Schema.Parser().parse(schemaJson)
+
+      AvroSimpleFeatureTypeParser.schemaToSft(schema) must throwAn[IllegalArgumentException]
+    }
+
+    "fail to convert a schema with multiple visibility fields into an SFT" in {
+      val schemaJson =
+        s"""{
+           |  "type":"record",
+           |  "name":"schema1",
+           |  "fields":[
+           |    {
+           |      "name":"visibility1",
+           |      "type":"string",
+           |      "${GeoMesaAvroVisibilityField.KEY}":"${GeoMesaAvroVisibilityField.TRUE}"
+           |    },
+           |    {
+           |      "name":"visibility2",
+           |      "type":"string",
+           |      "${GeoMesaAvroVisibilityField.KEY}":"${GeoMesaAvroVisibilityField.TRUE}"
+           |    }
+           |  ]
+           |}""".stripMargin
+      val schema = new Schema.Parser().parse(schemaJson)
+
+      AvroSimpleFeatureTypeParser.schemaToSft(schema) must throwAn[IllegalArgumentException]
     }
 
     "convert a schema with valid geomesa avro properties into an SFT" in {
-      val expectedSft = "id:String:cardinality=high:index=full,f1:Point:srid=4326,f2:Double,*f3:Geometry,f4:Date," +
-        "f5:Date,f6:Date,f7:String;geomesa.index.dtg='f4',geomesa.table.compression.enabled='true'," +
-        "geomesa.avro.visibility.field='f7',geomesa.table.sharing='false'"
+      val expectedSft = "id:String:cardinality=high:index=full,f1:Point,f2:Double,*f3:Geometry,f4:Date,f5:Date;" +
+        "geomesa.index.dtg='f4',geomesa.table.compression.enabled='true',geomesa.visibility.field='f6'," +
+        "geomesa.table.sharing='false'"
       val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema)
 
       SimpleFeatureTypes.encodeType(sft, includeUserData = true) mustEqual expectedSft

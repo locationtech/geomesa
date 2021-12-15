@@ -16,15 +16,16 @@ import io.confluent.kafka.schemaregistry.client.{CachedSchemaRegistryClient, Sch
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import org.apache.avro.generic.GenericRecord
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeomesaAvroDateFormat, GeomesaAvroFeatureVisibility, GeomesaAvroGeomFormat}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeoMesaAvroDateFormat, GeoMesaAvroGeomFormat, GeoMesaAvroVisibilityField}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConverters._
+import scala.util.control.NonFatal
 
-object ConfluentFeatureSerializer {
+object ConfluentFeatureSerializer extends LazyLogging {
 
   def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL): Builder = new Builder(sft, schemaRegistryUrl)
 
@@ -54,9 +55,9 @@ class ConfluentFeatureSerializer(
       val fieldName = descriptor.getLocalName
 
       if (classOf[Geometry].isAssignableFrom(descriptor.getType.getBinding)) {
-        GeomesaAvroGeomFormat.deserialize(record, fieldName)
+        GeoMesaAvroGeomFormat.deserialize(record, fieldName)
       } else if (classOf[Date].isAssignableFrom(descriptor.getType.getBinding)) {
-        GeomesaAvroDateFormat.deserialize(record, fieldName)
+        GeoMesaAvroDateFormat.deserialize(record, fieldName)
       } else {
         record.get(fieldName)
       }
@@ -65,8 +66,13 @@ class ConfluentFeatureSerializer(
     val sf = ScalaSimpleFeature.create(sft, id, attributes: _*)
 
     // set the feature visibility if it exists
-    Option(sft.getUserData.get(GeomesaAvroFeatureVisibility.KEY)).map { fieldName =>
-      SecurityUtils.setFeatureVisibility(sf, record.get(fieldName.asInstanceOf[String]).toString)
+    Option(sft.getUserData.get(GeoMesaAvroVisibilityField.KEY)).map(_.asInstanceOf[String]).foreach { fieldName =>
+      try {
+        SecurityUtils.setFeatureVisibility(sf, record.get(fieldName).toString)
+      } catch {
+        case NonFatal(ex) => throw new IllegalArgumentException(s"Error setting feature visibility using" +
+          s"field '$fieldName': ${ex.getMessage}")
+      }
     }
 
     sf
