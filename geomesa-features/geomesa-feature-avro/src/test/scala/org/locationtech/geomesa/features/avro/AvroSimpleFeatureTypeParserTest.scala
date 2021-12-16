@@ -11,7 +11,7 @@ package org.locationtech.geomesa.features.avro
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeoMesaAvroDateFormat, GeoMesaAvroExcludeField, GeoMesaAvroGeomDefault, GeoMesaAvroGeomFormat, GeoMesaAvroGeomType, GeoMesaAvroVisibilityField, GeoMesaAvroDeserializableEnumProperty, GeoMesaAvroProperty}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeoMesaAvroDateFormat, GeoMesaAvroDeserializableEnumProperty, GeoMesaAvroExcludeField, GeoMesaAvroGeomDefault, GeoMesaAvroGeomFormat, GeoMesaAvroGeomType, GeoMesaAvroProperty, GeoMesaAvroVisibilityField}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.impl.CoordinateArraySequenceFactory
@@ -220,30 +220,29 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
       "fail if the value cannot be deserialized because the format is invalid" in {
         val record = new GenericData.Record(invalidGeomesaAvroSchema)
         record.put("f3", "POINT(10 20)")
-        GeoMesaAvroGeomFormat.deserialize(record, "f3") must
-          throwA[GeoMesaAvroDeserializableEnumProperty.DeserializationException[Geometry]]
+        GeoMesaAvroGeomFormat.getFieldReader(record.getSchema, "f3").apply(record.get("f3")) must
+          throwA[GeoMesaAvroDeserializableEnumProperty.DeserializerException[Geometry]]
       }
 
       "fail if the value cannot be deserialized because the geometry cannot be parsed" in {
         val record = new GenericData.Record(validGeomesaAvroSchema)
         record.put("f3", "POINT(0 0 0 0 0 0)")
-        GeoMesaAvroGeomFormat.deserialize(record, "f3") must
-          throwA[GeoMesaAvroDeserializableEnumProperty.DeserializationException[Geometry]]
+        GeoMesaAvroGeomFormat.getFieldReader(record.getSchema, "f3").apply(record.get("f3")) must throwAn[Exception]
       }
 
       "return the geometry if it can be deserialized" >> {
         "for a point" in {
-          val record1 = new GenericData.Record(validGeomesaAvroSchema)
-          val expectedGeom1 = new Point(generateCoordinate(10, 20), geomFactory)
-          record1.put("f1", ByteBuffer.wrap(WKBUtils.write(expectedGeom1)))
-          GeoMesaAvroGeomFormat.deserialize(record1, "f1") mustEqual expectedGeom1
+          val record = new GenericData.Record(validGeomesaAvroSchema)
+          val expectedGeom = new Point(generateCoordinate(10, 20), geomFactory)
+          record.put("f1", ByteBuffer.wrap(WKBUtils.write(expectedGeom)))
+          GeoMesaAvroGeomFormat.getFieldReader(record.getSchema, "f1").apply(record.get("f1")) mustEqual expectedGeom
         }
 
         "for a geometry" in {
-          val record2 = new GenericData.Record(validGeomesaAvroSchema)
-          val expectedGeom2 = new Point(generateCoordinate(10, 20), geomFactory).asInstanceOf[Geometry]
-          record2.put("f3", "POINT(10 20)")
-          GeoMesaAvroGeomFormat.deserialize(record2, "f3") mustEqual expectedGeom2
+          val record = new GenericData.Record(validGeomesaAvroSchema)
+          val expectedGeom = new Point(generateCoordinate(10, 20), geomFactory).asInstanceOf[Geometry]
+          record.put("f3", "POINT(10 20)")
+          GeoMesaAvroGeomFormat.getFieldReader(record.getSchema, "f3").apply(record.get("f3")) mustEqual expectedGeom
         }
       }
     }
@@ -252,22 +251,20 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
       "fail if the value cannot be deserialized because the format is invalid" in {
         val record = new GenericData.Record(invalidGeomesaAvroSchema)
         record.put("f4", "1638912032")
-        GeoMesaAvroDateFormat.deserialize(record, "f4") must
-          throwA[GeoMesaAvroDeserializableEnumProperty.DeserializationException[Date]]
+        GeoMesaAvroDateFormat.getFieldReader(record.getSchema, "f4").apply(record.get("f4")) must
+          throwA[GeoMesaAvroDeserializableEnumProperty.DeserializerException[Date]]
       }
 
       "fail if the value cannot be deserialized because the date cannot be parsed" in {
         val record = new GenericData.Record(validGeomesaAvroSchema)
         record.put("f5", "12/07/2021")
-        GeoMesaAvroDateFormat.deserialize(record, "f5") must
-          throwA[GeoMesaAvroDeserializableEnumProperty.DeserializationException[Date]]
+        GeoMesaAvroDateFormat.getFieldReader(record.getSchema, "f5").apply(record.get("f5")) must throwAn[Exception]
       }
 
       "fail if the value cannot be deserialized because the type is incorrect" in {
         val record = new GenericData.Record(validGeomesaAvroSchema)
         record.put("f4", 1000)
-        GeoMesaAvroDateFormat.deserialize(record, "f4") must
-          throwA[GeoMesaAvroDeserializableEnumProperty.DeserializationException[Date]]
+        GeoMesaAvroDateFormat.getFieldReader(record.getSchema, "f4").apply(record.get("f4")) must throwAn[Exception]
       }
 
       "return the date if it can be deserialized" >> {
@@ -275,26 +272,24 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
           val record = new GenericData.Record(validGeomesaAvroSchema)
           val expectedDate = new Date(1638915744897L)
           record.put("f4", 1638915744897L)
-          GeoMesaAvroDateFormat.deserialize(record, "f4") mustEqual expectedDate
+          GeoMesaAvroDateFormat.getFieldReader(record.getSchema, "f4").apply(record.get("f4")) mustEqual expectedDate
         }
 
-        "for a null string" in {
-          val record = new GenericData.Record(validGeomesaAvroSchema)
-          val expectedDate = null
-          record.put("f5", null)
-          GeoMesaAvroDateFormat.deserialize(record, "f5") mustEqual expectedDate
-        }
+        "for an ISO datetime string with generic format" >> {
 
-        "for an ISO datetime string with generic format" in {
-          val record1 = new GenericData.Record(validGeomesaAvroSchema)
-          val expectedDate1 = new Date(1638915744000L)
-          record1.put("f5", "2021-12-07T17:22:24-05:00")
-          GeoMesaAvroDateFormat.deserialize(record1, "f5") mustEqual expectedDate1
+          "without millis" in {
+            val record = new GenericData.Record(validGeomesaAvroSchema)
+            val expectedDate = new Date(1638915744000L)
+            record.put("f5", "2021-12-07T17:22:24-05:00")
+            GeoMesaAvroDateFormat.getFieldReader(record.getSchema, "f5").apply(record.get("f5")) mustEqual expectedDate
+          }
 
-          val record2 = new GenericData.Record(validGeomesaAvroSchema)
-          val expectedDate2 = new Date(1638915744897L)
-          record2.put("f5", "2021-12-07T17:22:24.897-05:00")
-          GeoMesaAvroDateFormat.deserialize(record2, "f5") mustEqual expectedDate2
+          "with millis" in {
+            val record = new GenericData.Record(validGeomesaAvroSchema)
+            val expectedDate = new Date(1638915744897L)
+            record.put("f5", "2021-12-07T17:22:24.897-05:00")
+            GeoMesaAvroDateFormat.getFieldReader(record.getSchema, "f5").apply(record.get("f5")) mustEqual expectedDate
+          }
         }
       }
     }

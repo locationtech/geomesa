@@ -22,7 +22,7 @@ import scala.util.control.NonFatal
 
 class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMesaMetadata[String] with LazyLogging {
 
-  import ConfluentMetadata.SubjectPostfix
+  import ConfluentMetadata.{SubjectPostfix, SchemaIdKey}
 
   private val topicSftCache: LoadingCache[String, String] = {
     Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(
@@ -32,10 +32,12 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
             val subject = topic + SubjectPostfix
             val schemaId = schemaRegistry.getLatestSchemaMetadata(subject).getId
             val sft = AvroSimpleFeatureTypeParser.schemaToSft(schemaRegistry.getById(schemaId))
+            //store the schema id to access the schema when creating the feature serializer
+            sft.getUserData.put(SchemaIdKey, schemaId.toString)
             KafkaDataStore.setTopic(sft, topic)
             SimpleFeatureTypes.encodeType(sft, includeUserData = true)
           } catch {
-            case NonFatal(e) => logger.error("Error retrieving schema from confluent registry:", e); null
+            case NonFatal(e) => logger.error("Error retrieving schema from confluent registry: ", e); null
           }
         }
       }
@@ -88,4 +90,7 @@ object ConfluentMetadata {
 
   // hardcoded to the default confluent uses (<topic>-value)
   val SubjectPostfix = "-value"
+
+  // key in user data where avro schema id is stored
+  val SchemaIdKey = "geomesa.avro.schema.id"
 }

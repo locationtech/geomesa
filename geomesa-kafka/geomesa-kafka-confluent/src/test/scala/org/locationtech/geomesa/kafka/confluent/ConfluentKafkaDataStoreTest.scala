@@ -63,7 +63,7 @@ class ConfluentKafkaDataStoreTest extends Specification {
          |    {
          |      "name":"date",
          |      "type":"string",
-         |      "${GeoMesaAvroDateFormat.KEY}":"${GeoMesaAvroDateFormat.ISO_INSTANT}"
+         |      "${GeoMesaAvroDateFormat.KEY}":"${GeoMesaAvroDateFormat.ISO_DATETIME}"
          |    },
          |    {
          |      "name":"visibility",
@@ -74,8 +74,7 @@ class ConfluentKafkaDataStoreTest extends Specification {
          |  ]
          |}""".stripMargin
     val schema1 = new Schema.Parser().parse(schemaJson1)
-    val encodedSft1 = s"id:String:cardinality=high,*position:Point,speed:Double,date:Date;geomesa.index.dtg='date'," +
-      s"geomesa.kafka.topic='confluent-kds-test',geomesa.visibility.field='visibility'"
+    val encodedSft1 = s"id:String:cardinality=high,*position:Point,speed:Double,date:Date"
 
     val schemaJson2 =
       s"""{
@@ -97,7 +96,7 @@ class ConfluentKafkaDataStoreTest extends Specification {
          |  ]
          |}""".stripMargin
     val schema2 = new Schema.Parser().parse(schemaJson2)
-    val encodedSft2 = s"*shape:Geometry,date:Date;geomesa.kafka.topic='$topic',geomesa.index.dtg='date'"
+    val encodedSft2 = s"*shape:Geometry,date:Date"
 
     "fail to get a feature source when the schema cannot be converted to an SFT" in new ConfluentKafkaTestContext {
       private val badSchemaJson =
@@ -157,7 +156,7 @@ class ConfluentKafkaDataStoreTest extends Specification {
 
         val feature = fs.getFeatures.features.next
         val expectedPosition = generatePoint(10d, 20d)
-        SimpleFeatureTypes.encodeType(feature.getType, includeUserData = true) mustEqual encodedSft1
+        SimpleFeatureTypes.encodeType(feature.getType, includeUserData = false) mustEqual encodedSft1
         feature.getID mustEqual id1
         feature.getAttribute("position") mustEqual expectedPosition
         feature.getAttribute("speed") mustEqual 12.325d
@@ -185,7 +184,7 @@ class ConfluentKafkaDataStoreTest extends Specification {
           SelfClosingIterator(fs.getFeatures.features).toArray.length mustEqual 1
 
           val feature = fs.getFeatures.features.next
-          SimpleFeatureTypes.encodeType(feature.getType, includeUserData = true) mustEqual encodedSft2
+          SimpleFeatureTypes.encodeType(feature.getType, includeUserData = false) mustEqual encodedSft2
           feature.getID mustEqual id
           feature.getAttribute("shape") mustEqual expectedGeom1
           feature.getAttribute("date") mustEqual new Date(1639145281285L)
@@ -202,7 +201,7 @@ class ConfluentKafkaDataStoreTest extends Specification {
           SelfClosingIterator(fs.getFeatures.features).toArray.length mustEqual 1
 
           val feature = fs.getFeatures.features.next
-          SimpleFeatureTypes.encodeType(feature.getType, includeUserData = true) mustEqual encodedSft2
+          SimpleFeatureTypes.encodeType(feature.getType, includeUserData = false) mustEqual encodedSft2
           feature.getID mustEqual id
           feature.getAttribute("shape") mustEqual expectedGeom2
           feature.getAttribute("date") mustEqual null
@@ -239,7 +238,7 @@ class ConfluentKafkaDataStoreTest extends Specification {
           SelfClosingIterator(fs.getFeatures.features).toArray.length mustEqual 1
 
           val feature = fs.getFeatures.features.next
-          SimpleFeatureTypes.encodeType(feature.getType, includeUserData = true) mustEqual encodedSft2
+          SimpleFeatureTypes.encodeType(feature.getType, includeUserData = false) mustEqual encodedSft2
           feature.getID mustEqual id2
           feature.getAttribute("shape") mustEqual expectedGeom2
           feature.getAttribute("date") mustEqual new Date(1639145515643L)

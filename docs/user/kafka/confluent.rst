@@ -91,10 +91,7 @@ Value                       Schema Field Type     Description
 =========================== ===================== ====================================================
 ``epoch-millis``            ``LONG``              Milliseconds since the Unix epoch
 ``iso-date``                ``STRING``            Generic ISO date format
-``iso-full-date``           ``STRING``            Date format ``yyyy-MM-dd``
 ``iso-datetime``            ``STRING``            Generic ISO datetime format
-``iso-instant``             ``STRING``            Date format ``yyyy-MM-dd'T'HH:mm:ss.SSSZZ``
-``iso-instant-no-millis``   ``STRING``            Date format ``yyyy-MM-dd'T'HH:mm:ssZZ``
 =========================== ===================== ====================================================
 
 ``geomesa.visibility.field``

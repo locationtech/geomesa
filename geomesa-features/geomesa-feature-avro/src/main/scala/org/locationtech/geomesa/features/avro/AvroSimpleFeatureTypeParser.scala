@@ -55,7 +55,7 @@ object AvroSimpleFeatureTypeParser {
           builder.add(fieldName, geomType)
           if (default) {
             defaultGeomField.foreach { name =>
-              throw new IllegalArgumentException(s"There may be only one default geometry field: " +
+              throw new IllegalArgumentException(s"There may be only one default geometry field in a schema: " +
                 s"'$name' was already declared as the default")
             }
             builder.setDefaultGeometry(fieldName)
@@ -70,7 +70,7 @@ object AvroSimpleFeatureTypeParser {
             addFieldToBuilder(builder, field)
           }
           visibilityField.foreach { name =>
-            throw new IllegalArgumentException(s"There may be only one visibility field: " +
+            throw new IllegalArgumentException(s"There may be only one visibility field in a schema: " +
               s"'$name' was already declared as the visibility")
           }
           sftUserData.put(GeoMesaAvroVisibilityField.KEY, fieldName)
@@ -120,6 +120,23 @@ object AvroSimpleFeatureTypeParser {
   }
 
   private def parseMetadata(field: Schema.Field): GeoMesaAvroMetadata = {
+    lazy val geomFormat = GeoMesaAvroGeomFormat.parse(field)
+    lazy val geomType = GeoMesaAvroGeomType.parse(field)
+    lazy val geomDefault = GeoMesaAvroGeomDefault.parse(field).getOrElse(false)
+    lazy val dateFormat = GeoMesaAvroDateFormat.parse(field)
+    lazy val visibility = GeoMesaAvroVisibilityField.parse(field).getOrElse(false)
+
+    val metadata =
+      if (geomFormat.isDefined && geomType.isDefined) {
+        GeometryField(geomFormat.get, geomType.get, geomDefault)
+      } else if (dateFormat.isDefined) {
+        DateField(dateFormat.get)
+      } else if (visibility) {
+        VisibilityField
+      } else {
+        StandardField
+      }
+
     // any field properties that are not one of the defined geomesa avro properties will go in the attribute user data
     val extraProps = field.getProps.filterNot {
       case (key, _) => reservedPropertyKeys.contains(key)
@@ -127,27 +144,7 @@ object AvroSimpleFeatureTypeParser {
 
     val exclude = GeoMesaAvroExcludeField.parse(field).getOrElse(false)
 
-    val geomFormat = GeoMesaAvroGeomFormat.parse(field)
-    val geomType = GeoMesaAvroGeomType.parse(field)
-    val geomDefault = GeoMesaAvroGeomDefault.parse(field).getOrElse(false)
-
-    if (geomFormat.isDefined && geomType.isDefined) {
-      return GeoMesaAvroMetadata(GeometryField(geomFormat.get, geomType.get, geomDefault), extraProps, exclude)
-    }
-
-    val dateFormat = GeoMesaAvroDateFormat.parse(field)
-
-    if (dateFormat.isDefined) {
-      return GeoMesaAvroMetadata(DateField(dateFormat.get), extraProps, exclude)
-    }
-
-    val visibility = GeoMesaAvroVisibilityField.parse(field).getOrElse(false)
-
-    if (visibility) {
-      return GeoMesaAvroMetadata(VisibilityField, extraProps, exclude)
-    }
-
-    GeoMesaAvroMetadata(StandardField, extraProps, exclude)
+    GeoMesaAvroMetadata(metadata, extraProps, exclude)
   }
 
   private case class GeoMesaAvroMetadata(field: GeoMesaAvroField, extraProps: Map[String, String], exclude: Boolean)
@@ -210,11 +207,11 @@ object AvroSimpleFeatureTypeParser {
    */
   trait GeoMesaAvroEnumProperty[T] extends GeoMesaAvroProperty[T] {
     // case clauses to match the values of the enum and possibly check the field type
-    protected val matcher: PartialFunction[(String, Schema.Field), T]
+    protected val valueMatcher: PartialFunction[(String, Schema.Field), T]
 
     override final def parse(field: Schema.Field): Option[T] = {
       Option(field.getProp(KEY)).map(_.toLowerCase(Locale.ENGLISH)).map { value =>
-        matcher.lift.apply((value, field)).getOrElse {
+        valueMatcher.lift.apply((value, field)).getOrElse {
           throw GeoMesaAvroProperty.InvalidPropertyValueException(value, KEY)
         }
       }
@@ -228,7 +225,7 @@ object AvroSimpleFeatureTypeParser {
     final val TRUE: String = "true"
     final val FALSE: String = "false"
 
-    override protected val matcher: PartialFunction[(String, Schema.Field), Boolean] = {
+    override protected val valueMatcher: PartialFunction[(String, Schema.Field), Boolean] = {
       case (TRUE, _) => true
       case (FALSE, _) => false
     }
@@ -240,35 +237,32 @@ object AvroSimpleFeatureTypeParser {
    * @tparam T the type of the value to be parsed from this property
    * @tparam K the type of the value to be deserialized from this property
    */
-  abstract class GeoMesaAvroDeserializableEnumProperty[T, K >: Null: ClassTag] extends GeoMesaAvroEnumProperty[T] {
-    // case clauses to match the values of the enum and deserialize the data accordingly
-    protected val dematcher: PartialFunction[(T, AnyRef), K]
+  abstract class GeoMesaAvroDeserializableEnumProperty[T, K: ClassTag] extends GeoMesaAvroEnumProperty[T] {
+    // case clauses to match the value of the enum to a function to deserialize the data
+    protected val fieldReaderMatcher: PartialFunction[T, AnyRef => K]
 
-    final def deserialize(record: GenericRecord, fieldName: String): K = {
-      val data = record.get(fieldName)
-      if (data == null) { return null }
+    final def getFieldReader(schema: Schema, fieldName: String): AnyRef => K = {
       try {
-        parse(record.getSchema.getField(fieldName)).map { value =>
-          dematcher.lift.apply((value, data)).getOrElse {
+        parse(schema.getField(fieldName)).map { value =>
+          fieldReaderMatcher.lift.apply(value).getOrElse {
             throw GeoMesaAvroProperty.InvalidPropertyValueException(value.toString, KEY)
           }
         }.getOrElse {
-          throw GeoMesaAvroDeserializableEnumProperty.MissingPropertyValueException[K](fieldName, KEY)
+          throw GeoMesaAvroDeserializableEnumProperty.MissingPropertyException(fieldName, KEY)
         }
       } catch {
-        case NonFatal(ex) => throw GeoMesaAvroDeserializableEnumProperty.DeserializationException[K](fieldName, ex)
+        case NonFatal(ex) => throw GeoMesaAvroDeserializableEnumProperty.DeserializerException[K](fieldName, ex)
       }
     }
   }
 
   object GeoMesaAvroDeserializableEnumProperty {
-    final case class MissingPropertyValueException[K: ClassTag](fieldName: String, key: String)
-      extends RuntimeException(s"Cannot process field '$fieldName' for type '${classTag[K].runtimeClass.getName}' " +
-        s"because key '$key' is missing")
+    final case class MissingPropertyException(fieldName: String, key: String)
+      extends RuntimeException(s"Key '$key' is missing from schema for field '$fieldName'")
 
-    final case class DeserializationException[K: ClassTag](fieldName: String, t: Throwable)
-      extends RuntimeException(s"Cannot deserialize field '$fieldName' into a '${classTag[K].runtimeClass.getName}': " +
-        s"${t.getMessage}")
+    final case class DeserializerException[K: ClassTag](fieldName: String, t: Throwable)
+      extends RuntimeException(s"Cannot parse deserializer for field '$fieldName' for type " +
+        s"'${classTag[K].runtimeClass.getName}': ${t.getMessage}")
   }
 
   /**
@@ -287,14 +281,14 @@ object AvroSimpleFeatureTypeParser {
      */
     val WKB: String = "wkb"
 
-    override protected val matcher: PartialFunction[(String, Schema.Field), String] = {
+    override protected val valueMatcher: PartialFunction[(String, Schema.Field), String] = {
       case (WKT, field) => assertFieldType(field, Schema.Type.STRING); WKT
       case (WKB, field) => assertFieldType(field, Schema.Type.BYTES); WKB
     }
 
-    override protected val dematcher: PartialFunction[(String, AnyRef), Geometry] = {
-      case (WKT, data) => WKTUtils.read(data.toString)
-      case (WKB, data) => WKBUtils.read(data.asInstanceOf[ByteBuffer].array())
+    protected val fieldReaderMatcher: PartialFunction[String, AnyRef => Geometry] = {
+      case WKT => data => WKTUtils.read(data.toString)
+      case WKB => data => WKBUtils.read(data.asInstanceOf[ByteBuffer].array())
     }
   }
 
@@ -338,7 +332,7 @@ object AvroSimpleFeatureTypeParser {
      */
     val GEOMETRYCOLLECTION: String = "geometrycollection"
 
-    override protected val matcher: PartialFunction[(String, Schema.Field), Class[_ <: Geometry]] = {
+    override protected val valueMatcher: PartialFunction[(String, Schema.Field), Class[_ <: Geometry]] = {
       case (GEOMETRY, _) => classOf[Geometry]
       case (POINT, _) => classOf[Point]
       case (LINESTRING, _) => classOf[LineString]
@@ -374,38 +368,20 @@ object AvroSimpleFeatureTypeParser {
      */
     val ISO_DATE: String = "iso-date"
     /**
-     * A [[String]] with date format "yyyy-MM-dd"
-     */
-    val ISO_FULL_DATE: String = "iso-full-date"
-    /**
      * A [[String]] with generic ISO datetime format
      */
     val ISO_DATETIME: String = "iso-datetime"
-    /**
-     * A [[String]] with date format "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
-     */
-    val ISO_INSTANT: String = "iso-instant"
-    /**
-     * A [[String]] with date format "yyyy-MM-dd'T'HH:mm:ssZZ"
-     */
-    val ISO_INSTANT_NO_MILLIS: String = "iso-instant-no-millis"
 
-    override protected val matcher: PartialFunction[(String, Schema.Field), String] = {
+    override protected val valueMatcher: PartialFunction[(String, Schema.Field), String] = {
       case (EPOCH_MILLIS, field) => assertFieldType(field, Schema.Type.LONG); EPOCH_MILLIS
       case (ISO_DATE, field) => assertFieldType(field, Schema.Type.STRING); ISO_DATE
-      case (ISO_FULL_DATE, field) => assertFieldType(field, Schema.Type.STRING); ISO_FULL_DATE
       case (ISO_DATETIME, field) => assertFieldType(field, Schema.Type.STRING); ISO_DATETIME
-      case (ISO_INSTANT, field) => assertFieldType(field, Schema.Type.STRING); ISO_INSTANT
-      case (ISO_INSTANT_NO_MILLIS, field) => assertFieldType(field, Schema.Type.STRING); ISO_INSTANT_NO_MILLIS
     }
 
-    override protected val dematcher: PartialFunction[(String, AnyRef), Date] = {
-      case (EPOCH_MILLIS, data) => new Date(data.asInstanceOf[java.lang.Long])
-      case (ISO_DATE, data) => ISODateTimeFormat.dateParser().parseDateTime(data.toString).toDate
-      case (ISO_FULL_DATE, data) => ISODateTimeFormat.date().parseDateTime(data.toString).toDate
-      case (ISO_DATETIME, data) => ISODateTimeFormat.dateTimeParser().parseDateTime(data.toString).toDate
-      case (ISO_INSTANT, data) => ISODateTimeFormat.dateTime().parseDateTime(data.toString).toDate
-      case (ISO_INSTANT_NO_MILLIS, data) => ISODateTimeFormat.dateTimeNoMillis().parseDateTime(data.toString).toDate
+    protected val fieldReaderMatcher: PartialFunction[String, AnyRef => Date] = {
+      case EPOCH_MILLIS => data => new Date(data.asInstanceOf[java.lang.Long])
+      case ISO_DATE => data => ISODateTimeFormat.dateParser().parseDateTime(data.toString).toDate
+      case ISO_DATETIME => data => ISODateTimeFormat.dateTimeParser().parseDateTime(data.toString).toDate
     }
   }
 
@@ -416,7 +392,7 @@ object AvroSimpleFeatureTypeParser {
   object GeoMesaAvroVisibilityField extends GeoMesaAvroBooleanProperty {
     override val KEY: String = "geomesa.visibility.field"
 
-    override protected val matcher: PartialFunction[(String, Schema.Field), Boolean] = {
+    override protected val valueMatcher: PartialFunction[(String, Schema.Field), Boolean] = {
       case (TRUE, field) => assertFieldType(field, Schema.Type.STRING); true
       case (FALSE, field) => assertFieldType(field, Schema.Type.STRING); false
     }
