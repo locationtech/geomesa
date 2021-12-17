@@ -52,7 +52,8 @@ class Z3Filter(
     val bounds = xy.map { case Array(xmin, ymin, xmax, ymax) =>
       Z3Filter.zBound(xmin, ymin, 0, xmax, ymax, maxTime)
     }
-    ZBounds(bounds, bounds.map(_.head).min)
+    java.util.Arrays.sort(bounds, Z3Filter.ZBoundsOrdering)
+    ZBounds(bounds, bounds.head.head)
   }
 
   private val zBounds: Array[ZBounds] = if (!seek) { null } else {
@@ -64,7 +65,8 @@ class Z3Filter(
             Z3Filter.zBound(xmin, ymin, tmin, xmax, ymax, tmax)
           }
         }
-        ZBounds(bounds, bounds.map(_.head).min)
+        java.util.Arrays.sort(bounds, Z3Filter.ZBoundsOrdering)
+        ZBounds(bounds, bounds.head.head)
     }
   }
 
@@ -167,6 +169,8 @@ class Z3Filter(
 object Z3Filter extends RowFilterFactory[Z3Filter] {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
+  private val ZBoundsOrdering = Ordering.by[Array[Long], Long](_.head)
 
   private val RangeSeparator = ":"
   private val TermSeparator  = ";"

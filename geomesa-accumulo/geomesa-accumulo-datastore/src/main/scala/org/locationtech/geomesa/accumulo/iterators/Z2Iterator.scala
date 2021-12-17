@@ -9,16 +9,22 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import org.apache.accumulo.core.client.IteratorSetting
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.filters.Z2Filter
 import org.locationtech.geomesa.index.index.z2.Z2IndexValues
 
 class Z2Iterator extends RowFilterIterator[Z2Filter](Z2Filter)
 
 object Z2Iterator {
-  def configure(values: Z2IndexValues, offset: Int, priority: Int): IteratorSetting = {
+
+  @deprecated
+  def configure(values: Z2IndexValues, offset: Int, priority: Int): IteratorSetting =
+    configure(values, offset, new Hints(), priority)
+
+  def configure(values: Z2IndexValues, offset: Int, hints: Hints, priority: Int): IteratorSetting = {
     val is = new IteratorSetting(priority, "z2", classOf[Z2Iterator])
     // index space values for comparing in the iterator
-    Z2Filter.serializeToStrings(Z2Filter(values)).foreach { case (k, v) => is.addOption(k, v) }
+    Z2Filter.serializeToStrings(Z2Filter(values, hints)).foreach { case (k, v) => is.addOption(k, v) }
     // account for shard and table sharing bytes
     is.addOption(RowFilterIterator.RowOffsetKey, offset.toString)
     is

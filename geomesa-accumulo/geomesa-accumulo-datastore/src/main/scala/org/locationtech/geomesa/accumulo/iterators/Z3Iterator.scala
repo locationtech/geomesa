@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import org.apache.accumulo.core.client.IteratorSetting
-import org.locationtech.geomesa.index.conf.FilterCompatibility
+import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.index.conf.{FilterCompatibility, QueryHints}
 import org.locationtech.geomesa.index.conf.FilterCompatibility.FilterCompatibility
 import org.locationtech.geomesa.index.filters.Z3Filter
 import org.locationtech.geomesa.index.index.z3.Z3IndexValues
@@ -18,24 +19,37 @@ class Z3Iterator extends RowFilterIterator[Z3Filter](Z3Filter)
 
 object Z3Iterator {
 
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
+  @deprecated
+  def configure(
+      values: Z3IndexValues,
+      offset: Int,
+      compatibility: Option[FilterCompatibility],
+      priority: Int): IteratorSetting = {
+    val hints = new Hints()
+    compatibility.foreach(c => hints.put(QueryHints.FILTER_COMPAT, c.toString))
+    configure(values, offset, hints, priority)
+  }
+
   /**
    * Configure the iterator
    *
    * @param values index values
    * @param offset offset for z-value in each row
-   * @param compatibility compatibility mode
+   * @param hints query hints
    * @param priority iterator priority
    * @return
    */
   def configure(
       values: Z3IndexValues,
       offset: Int,
-      compatibility: Option[FilterCompatibility],
+      hints: Hints,
       priority: Int): IteratorSetting = {
 
-    val opts = compatibility match {
+    val opts = hints.getFilterCompatibility match {
       case None =>
-        Z3Filter.serializeToStrings(Z3Filter(values)) + (RowFilterIterator.RowOffsetKey -> offset.toString)
+        Z3Filter.serializeToStrings(Z3Filter(values, hints)) + (RowFilterIterator.RowOffsetKey -> offset.toString)
 
       case Some(FilterCompatibility.`1.3`) =>
         val Z3IndexValues(sfc, _, bounds, _, times, _) = values

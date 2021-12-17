@@ -239,11 +239,12 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
           val indexIter = if (index.name == Z3Index.name) {
             strategy.values.toSeq.map { case v: Z3IndexValues =>
               val offset = index.keySpace.sharding.length + index.keySpace.sharing.length
-              Z3Iterator.configure(v, offset, hints.getFilterCompatibility, ZIterPriority)
+              Z3Iterator.configure(v, offset, hints, ZIterPriority)
             }
           } else if (index.name == Z2Index.name) {
             strategy.values.toSeq.map { case v: Z2IndexValues =>
-              Z2Iterator.configure(v, index.keySpace.sharding.length + index.keySpace.sharing.length, ZIterPriority)
+              val offset = index.keySpace.sharding.length + index.keySpace.sharing.length
+              Z2Iterator.configure(v, offset, hints, ZIterPriority)
             }
           } else if (index.name == S3Index.name) {
             strategy.values.toSeq.map { case v: S3IndexValues =>

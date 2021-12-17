@@ -12,9 +12,10 @@ import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.apache.hadoop.io.Text
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy
-import org.locationtech.geomesa.index.conf.FilterCompatibility
+import org.locationtech.geomesa.index.conf.{FilterCompatibility, QueryHints}
 import org.locationtech.geomesa.index.index.z3.Z3IndexKeySpace
 import org.locationtech.geomesa.index.index.z3.legacy.Z3IndexV4.Z3IndexKeySpaceV4
 import org.locationtech.geomesa.index.utils.ExplainNull
@@ -57,7 +58,7 @@ class Z3IteratorTest extends Specification {
     }
 
     val iter = new Z3Iterator
-    iter.init(srcIter, Z3Iterator.configure(indexValues, 0, None, 25).getOptions, null)
+    iter.init(srcIter, Z3Iterator.configure(indexValues, 0, new Hints(), 25).getOptions, null)
     iter.seek(new org.apache.accumulo.core.data.Range(new Key(new Text(k)), null), null, inclusive = false)
     iter
   }
@@ -101,7 +102,9 @@ class Z3IteratorTest extends Specification {
       val keySpace = new Z3IndexKeySpaceV4(sft, Array.empty, NoShardStrategy, "geom", "dtg")
       val filter = "bbox(geom,0,-70,50,-50) and dtg during 2015-06-06T00:00:00.000Z/2015-06-08T00:00:00.000Z"
       val values = keySpace.getIndexValues(ECQL.toFilter(filter), ExplainNull)
-      val config = Z3Iterator.configure(values, 2, Some(FilterCompatibility.`1.3`), 23)
+      val hints = new Hints()
+      hints.put(QueryHints.FILTER_COMPAT, "1.3")
+      val config = Z3Iterator.configure(values, 2, hints, 23)
       config.getIteratorClass mustEqual classOf[Z3Iterator].getName
       config.getPriority mustEqual 23
       // expected values taken from a 1.3 install
