@@ -57,7 +57,7 @@ files for January, 2018:
 
     $ mkdir gdelt && cd gdelt
     $ for day in {01..31}; do
-        do mkdir 201801$day && cd 201801$day;
+        mkdir 201801$day && cd 201801$day;
         for hour in {00..23}; do
           for minute in 00 15 30 45; do
             wget "http://data.gdeltproject.org/gdeltv2/201801${day}${hour}${minute}00.export.CSV.zip"
