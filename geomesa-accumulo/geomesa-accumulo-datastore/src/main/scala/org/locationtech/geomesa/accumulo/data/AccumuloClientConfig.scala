@@ -27,7 +27,7 @@ import scala.util.Try
  * Client configuration options, loaded from a config file
  *
  * @param config Accumulo client configuration
- * @param hasInstances instance id or name set in config file
+ * @param hasInstance instance id or name set in config file
  * @param instance instance name (not actually used during configuration)
  * @param zookeepers zookeeper connect string (not actually used during configuration)
  * @param zkTimeout zookeeper timeout (not actually used during configuration)
@@ -38,7 +38,7 @@ import scala.util.Try
 @SuppressWarnings(Array("deprecated"))
 case class AccumuloClientConfig(
     config: ClientConfiguration,
-    hasInstances: Boolean,
+    hasInstance: Boolean,
     instance: Option[String],
     zookeepers: Option[String],
     zkTimeout: Option[String],
@@ -48,7 +48,7 @@ case class AccumuloClientConfig(
   ) {
   override def toString: String = {
     val values =
-      Seq(s"hasInstances=$hasInstances") ++
+      Seq(s"hasInstance=$hasInstance") ++
       instance.map(s => s"instance=$s").toSeq ++ zookeepers.map(s => s"zookeepers=$s") ++
         zkTimeout.map(s => s"zookeepers.timeout=$s") ++ authType.map(s => s"auth.type=$s") ++
         principal.map(s => s"principal=$s") ++ token.map(_ => "token=***")
