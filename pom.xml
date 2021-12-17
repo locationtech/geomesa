@@ -2603,10 +2603,12 @@
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
                             <validHeader>build/copyright/ccri-dstl.txt</validHeader>
+                            <validHeader>build/copyright/ccri-dstl-mitre.txt</validHeader>
                             <validHeader>build/copyright/dstl.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
                             <validHeader>build/copyright/mitre.txt</validHeader>
+                            <validHeader>build/copyright/ccri-mitre.txt</validHeader>
                         </validHeaders>
                         <properties>
                             <year>${copyright.year}</year>
