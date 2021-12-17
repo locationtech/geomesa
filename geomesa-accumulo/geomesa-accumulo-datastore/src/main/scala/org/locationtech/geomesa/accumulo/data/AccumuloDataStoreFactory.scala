@@ -1,10 +1,15 @@
 /***********************************************************************
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2021 Dstl
+ * Portions Copyright (c) 2021 The MITRE Corporation
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
  * http://www.opensource.org/licenses/apache2.0.php.
+ * This software was produced for the U. S. Government under Basic
+ * Contract No. W56KGU-18-D-0004, and is subject to the Rights in
+ * Noncommercial Computer Software and Noncommercial Computer Software
+ * Documentation Clause 252.227-7014 (FEB 2012)
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
@@ -127,11 +132,21 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       }
 
     lazy val config = AccumuloClientConfig.load()
-    val instance = lookup(InstanceIdParam, config.instance)
-    val zookeepers = lookup(ZookeepersParam, config.zookeepers)
+    val conf = config.config
 
-    val conf = ClientConfiguration.create().withInstance(instance).withZkHosts(zookeepers)
-    ZookeeperTimeoutParam.lookupOpt(params).orElse(config.zkTimeout).foreach { timeout =>
+    def doIfOverridden(param: GeoMesaParam[String], action: String => Any, inConf: Boolean) = {
+      param.lookupOpt(params) match {
+        case Some(paramVal) => action(paramVal)
+        case None =>
+          if (!inConf) {
+            throw new IOException(s"Parameter ${param.key} is required: ${param.description}")
+          }
+      }
+    }
+
+    doIfOverridden(InstanceIdParam, { paramVal: String => conf.withInstance(paramVal) }, config.hasInstances)
+    doIfOverridden(ZookeepersParam, { paramVal: String => conf.withZkHosts(paramVal) }, config.zookeepers != None)
+    ZookeeperTimeoutParam.lookupOpt(params).foreach { timeout =>
       conf.`with`(ClientProperty.INSTANCE_ZK_TIMEOUT, timeout)
     }
 
@@ -149,7 +164,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
         AccumuloClientConfig.KerberosAuthType
       } else {
         config.authType.map(_.trim.toLowerCase(Locale.US)).getOrElse {
-          throw new IOException(s"Parameter ${PasswordParam.key} is required: ${PasswordParam.description}")
+          throw new IOException(s"Parameter ${PasswordParam.key} is required: ${PasswordParam.description} or parameter ${KeytabPathParam.key} is required: ${KeytabPathParam.description}")
         }
       }
 
@@ -157,9 +172,6 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     val auth: AuthenticationToken = if (authType == AccumuloClientConfig.PasswordAuthType) {
       new PasswordToken(lookup(PasswordParam, config.token).getBytes(StandardCharsets.UTF_8))
     } else if (authType == AccumuloClientConfig.KerberosAuthType) {
-      // explicitly enable SASL for kerberos connections
-      // this shouldn't be required if Accumulo client.conf is set appropriately, but it doesn't seem to work
-      conf.withSasl(true)
       val file = new java.io.File(lookup(KeytabPathParam, config.token))
       // mimic behavior from accumulo 1.9 and earlier:
       // `public KerberosToken(String principal, File keytab, boolean replaceCurrentUser)`
