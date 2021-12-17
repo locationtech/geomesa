@@ -144,7 +144,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       }
     }
 
-    doIfOverridden(InstanceIdParam, { paramVal: String => conf.withInstance(paramVal) }, config.hasInstances)
+    doIfOverridden(InstanceIdParam, { paramVal: String => conf.withInstance(paramVal) }, config.hasInstance)
     doIfOverridden(ZookeepersParam, { paramVal: String => conf.withZkHosts(paramVal) }, config.zookeepers != None)
     ZookeeperTimeoutParam.lookupOpt(params).foreach { timeout =>
       conf.`with`(ClientProperty.INSTANCE_ZK_TIMEOUT, timeout)
