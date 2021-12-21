@@ -26,8 +26,6 @@ import scala.util.Try
 /**
  * Client configuration options, loaded from a config file
  *
- * @param config Accumulo client configuration
- * @param hasInstance instance id or name set in config file
  * @param instance instance name (not actually used during configuration)
  * @param zookeepers zookeeper connect string (not actually used during configuration)
  * @param zkTimeout zookeeper timeout (not actually used during configuration)
@@ -35,9 +33,41 @@ import scala.util.Try
  * @param principal authentication principal (username, keytab file, etc)
  * @param token authentication token (password, etc)
  */
-@SuppressWarnings(Array("deprecated"))
 case class AccumuloClientConfig(
-    config: ClientConfiguration,
+    instance: Option[String],
+    zookeepers: Option[String],
+    zkTimeout: Option[String],
+    authType: Option[String],
+    principal: Option[String],
+    token: Option[String]
+  ) {
+
+  @SuppressWarnings(Array("deprecated"))
+  private[this] var config: ClientConfiguration = ClientConfiguration.create();
+  private[this] var hasInstance: Boolean = false;
+
+  @SuppressWarnings(Array("deprecated"))
+  private[data] def getConfig(): ClientConfiguration = {
+    config;
+  }
+
+  private[data] def getHasInstance(): Boolean = {
+    hasInstance;
+  }
+
+  /**
+   * Client configuration options, loaded from a config file
+   *
+   * @param config Accumulo client configuration
+   * @param hasInstance instance id or name set in config file
+   * @param instance instance name (not actually used during configuration)
+   * @param zookeepers zookeeper connect string (not actually used during configuration)
+   * @param zkTimeout zookeeper timeout (not actually used during configuration)
+   * @param authType  authentication type ("password", "kerberos" or authentication token class)
+   * @param principal authentication principal (username, keytab file, etc)
+   * @param token authentication token (password, etc)
+   */
+  private def this(config: ClientConfiguration,
     hasInstance: Boolean,
     instance: Option[String],
     zookeepers: Option[String],
@@ -46,6 +76,11 @@ case class AccumuloClientConfig(
     principal: Option[String],
     token: Option[String]
   ) {
+    this(instance, zookeepers, zkTimeout, authType, principal, token);
+    this.config = config;
+    this.hasInstance = hasInstance;
+  }
+
   override def toString: String = {
     val values =
       Seq(s"hasInstance=$hasInstance") ++
@@ -72,7 +107,7 @@ object AccumuloClientConfig {
   def load(): AccumuloClientConfig = {
     val loader = Option(Thread.currentThread().getContextClassLoader).getOrElse(getClass.getClassLoader)
     AccumuloClientProperties(loader).orElse(ClientConf(loader))
-      .getOrElse(AccumuloClientConfig(ClientConfiguration.create(), false, None, None, None, None, None, None))
+      .getOrElse(AccumuloClientConfig(None, None, None, None, None, None))
   }
 
   /**
@@ -120,8 +155,9 @@ object AccumuloClientConfig {
         val auth = authTypeKey.map(props.getProperty).filter(_ != null)
         val principal = principalKey.map(props.getProperty).filter(_ != null)
         val token = tokenKey.map(props.getProperty).filter(_ != null)
+        @SuppressWarnings(Array("deprecated"))
         val conf = ClientConfiguration.fromFile(f)
-        val config = AccumuloClientConfig(conf, hasInstance, instance, zk, zkTimeout, auth, principal, token)
+        val config = new AccumuloClientConfig(conf, hasInstance, instance, zk, zkTimeout, auth, principal, token)
         logger.info(s"Loaded Accumulo config from '${f.getAbsolutePath}': $config")
         config
       }
