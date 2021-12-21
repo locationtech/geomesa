@@ -11,26 +11,22 @@ package org.locationtech.geomesa.kafka.confluent
 import java.io.{InputStream, OutputStream}
 import java.net.URL
 import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import io.confluent.kafka.schemaregistry.client.{CachedSchemaRegistryClient, SchemaRegistryClient}
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
+import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeoMesaAvroDateFormat, GeoMesaAvroGeomFormat, GeoMesaAvroVisibilityField}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
-object ConfluentFeatureSerializer {
-
-  val GeomAttributeName = "_geom"
-  val DateAttributeName = "_date"
-  val VisAttributeName  = "visibilities"
+object ConfluentFeatureSerializer extends LazyLogging {
 
   def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL): Builder = new Builder(sft, schemaRegistryUrl)
 
@@ -49,60 +45,42 @@ class ConfluentFeatureSerializer(
     val options: Set[SerializationOption] = Set.empty
 ) extends SimpleFeatureSerializer with LazyLogging {
 
-  private val visAttributeIndex = sft.indexOf(ConfluentFeatureSerializer.VisAttributeName)
-
   private val kafkaAvroDeserializer = new ThreadLocal[KafkaAvroDeserializer]() {
     override def initialValue(): KafkaAvroDeserializer = new KafkaAvroDeserializer(schemaRegistryClient)
   }
 
-  private var geomSrcAttributeName: Option[String] = None
-
-  def deserialize(id: String, bytes: Array[Byte], date: Date): SimpleFeature = {
-    val genericRecord = kafkaAvroDeserializer.get.deserialize("", bytes).asInstanceOf[GenericRecord]
-    val attrs = sft.getAttributeDescriptors.asScala.map(_.getLocalName).map {
-      case ConfluentFeatureSerializer.GeomAttributeName =>
-        geomSrcAttributeName match {
-          case None =>
-            // Here we find a valid geom field in the first record or throw.
-            val kv = sft.getAttributeDescriptors.asScala
-                .iterator
-                .map(_.getLocalName)
-                .map(n => n -> readFieldAsWkt(genericRecord, n, logFailure = false))
-                .collectFirst { case (k, Some(v)) => k -> v }
-                .getOrElse {
-                  throw new UnsupportedOperationException("No valid WKT field found in avro data for " +
-                      s"ConfluentFeatureSerializer in first record $genericRecord.  Valid Geometry field is required.")
-                }
-            geomSrcAttributeName = Option(kv._1)
-            kv._2
-
-          case Some(name) => readFieldAsWkt(genericRecord, name, logFailure = true).get
+  private val featureReader = new ThreadLocal[ConfluentFeatureReader]() {
+    override def initialValue(): ConfluentFeatureReader = {
+      val schemaId = Option(sft.getUserData.get(ConfluentMetadata.SchemaIdKey))
+        .map(_.asInstanceOf[String].toInt).getOrElse {
+          throw new IllegalStateException(s"Cannot create ConfluentFeatureSerializer because SimpleFeatureType " +
+            s"'${sft.getTypeName}' does not have schema id at key '${ConfluentMetadata.SchemaIdKey}'")
         }
+      val schema = schemaRegistryClient.getById(schemaId)
 
-      case ConfluentFeatureSerializer.DateAttributeName => date
-      case name => genericRecord.get(name)
-    }
-    val sf = ScalaSimpleFeature.create(sft, id, attrs: _*)
-    if (visAttributeIndex != -1) {
-      SecurityUtils.setFeatureVisibility(sf, sf.getAttribute(visAttributeIndex).asInstanceOf[String])
-    }
-    sf
-  }
-
-  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = deserialize(id, bytes, null)
-
-  private def readFieldAsWkt(record: GenericRecord, fieldName: String, logFailure: Boolean): Option[Geometry] = {
-    try { Option(WKTUtils.read(record.get(fieldName).toString)) } catch {
-      case NonFatal(t) =>
-        if (logFailure) {
-          logger.error(s"Error parsing wkt from field $fieldName with value ${record.get(fieldName)} " +
-              s"for sft ${sft.getTypeName}")
-        }
-        None
+      new ConfluentFeatureReader(sft, schema)
     }
   }
 
-  // Implement the following if we find we need them
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
+    val record = kafkaAvroDeserializer.get.deserialize("", bytes).asInstanceOf[GenericRecord]
+
+    val feature = featureReader.get.read(id, record)
+
+    // set the feature visibility if it exists
+    Option(sft.getUserData.get(GeoMesaAvroVisibilityField.KEY)).map(_.asInstanceOf[String]).foreach { fieldName =>
+      try {
+        SecurityUtils.setFeatureVisibility(feature, record.get(fieldName).toString)
+      } catch {
+        case NonFatal(ex) => throw new IllegalArgumentException(s"Error setting feature visibility using" +
+          s"field '$fieldName': ${ex.getMessage}")
+      }
+    }
+
+    feature
+  }
+
+  // implement the following if we need them
 
   override def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError()
 
@@ -122,5 +100,46 @@ class ConfluentFeatureSerializer(
 
   override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
     throw new NotImplementedError("ConfluentSerializer is read-only")
-}
 
+  // precompute the deserializer for each field in the SFT to simplify the actual deserialization
+  private class ConfluentFeatureReader(sft: SimpleFeatureType, schema: Schema) {
+
+    def read(id: String, record: GenericRecord): SimpleFeature = {
+      val attributes = fieldReaders.map { fieldReader =>
+        try {
+          Option(record.get(fieldReader.fieldName)).map(fieldReader.reader.apply).orNull
+        } catch {
+          case NonFatal(ex) =>
+            throw ConfluentFeatureReader.DeserializationException(fieldReader.fieldName, fieldReader.clazz, ex)
+        }
+      }
+
+      ScalaSimpleFeature.create(sft, id, attributes: _*)
+    }
+
+    private val fieldReaders: Seq[ConfluentFeatureReader.FieldReader[_]] = {
+      sft.getAttributeDescriptors.asScala.map { descriptor =>
+        val fieldName = descriptor.getLocalName
+
+        val reader =
+          if (classOf[Geometry].isAssignableFrom(descriptor.getType.getBinding)) {
+            GeoMesaAvroGeomFormat.getFieldReader(schema, fieldName)
+          } else if (classOf[Date].isAssignableFrom(descriptor.getType.getBinding)) {
+            GeoMesaAvroDateFormat.getFieldReader(schema, fieldName)
+          } else {
+            value: AnyRef => value
+          }
+
+        ConfluentFeatureReader.FieldReader(fieldName, reader, descriptor.getType.getBinding)
+      }
+    }
+  }
+
+  private object ConfluentFeatureReader {
+
+    private case class FieldReader[T](fieldName: String, reader: AnyRef => T, clazz: Class[_])
+
+    final case class DeserializationException(fieldName: String, clazz: Class[_], t: Throwable)
+      extends RuntimeException(s"Cannot deserialize field '$fieldName' into a '${clazz.getName}': ${t.getMessage}")
+  }
+}
