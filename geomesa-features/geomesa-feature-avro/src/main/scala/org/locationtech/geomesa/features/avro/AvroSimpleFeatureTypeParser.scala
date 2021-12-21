@@ -78,10 +78,14 @@ object AvroSimpleFeatureTypeParser {
 
         case StandardField if !metadata.exclude =>
           addFieldToBuilder(builder, field)
+
+        case _ =>
       }
 
       // any extra props on the field go in the attribute user data
-      Option(builder.get(fieldName)).map(_.getUserData.putAll(metadata.extraProps))
+      if (!metadata.exclude) {
+        builder.get(fieldName).getUserData.putAll(metadata.extraProps)
+      }
     }
 
     val sft = builder.buildFeatureType()

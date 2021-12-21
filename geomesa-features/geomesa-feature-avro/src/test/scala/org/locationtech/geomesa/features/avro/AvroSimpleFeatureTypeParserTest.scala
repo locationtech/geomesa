@@ -115,6 +115,11 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
        |      "type":"string",
        |      "${GeoMesaAvroVisibilityField.KEY}":"${GeoMesaAvroVisibilityField.TRUE}",
        |      "${GeoMesaAvroExcludeField.KEY}":"${GeoMesaAvroExcludeField.TRUE}"
+       |    },
+       |    {
+       |      "name":"f7",
+       |      "type":"int",
+       |      "${GeoMesaAvroExcludeField.KEY}":"${GeoMesaAvroExcludeField.TRUE}"
        |    }
        |  ]
        |}""".stripMargin
