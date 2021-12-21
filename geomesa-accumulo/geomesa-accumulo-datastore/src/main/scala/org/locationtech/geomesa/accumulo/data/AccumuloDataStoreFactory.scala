@@ -21,7 +21,7 @@ import java.util.Locale
 
 import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, KerberosToken, PasswordToken}
-import org.apache.accumulo.core.client.{ClientConfiguration, Connector, ZooKeeperInstance}
+import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
 import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
@@ -132,7 +132,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       }
 
     lazy val config = AccumuloClientConfig.load()
-    val conf = config.config
+    val conf = config.getConfig()
 
     def doIfOverridden(param: GeoMesaParam[String], action: String => Any, inConf: Boolean) = {
       param.lookupOpt(params) match {
@@ -144,7 +144,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       }
     }
 
-    doIfOverridden(InstanceIdParam, { paramVal: String => conf.withInstance(paramVal) }, config.hasInstance)
+    doIfOverridden(InstanceIdParam, { paramVal: String => conf.withInstance(paramVal) }, config.getHasInstance())
     doIfOverridden(ZookeepersParam, { paramVal: String => conf.withZkHosts(paramVal) }, config.zookeepers != None)
     ZookeeperTimeoutParam.lookupOpt(params).foreach { timeout =>
       conf.`with`(ClientProperty.INSTANCE_ZK_TIMEOUT, timeout)
