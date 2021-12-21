@@ -130,7 +130,7 @@ object GeoMessageSerializer {
   }
 
   class GeoMessageSerializerFactory {
-    def apply(sft: SimpleFeatureType, serialization: SerializationType, `lazy`: Boolean): GeoMessageSerializer =
+    def apply(sft: SimpleFeatureType, serialization: SerializationType, `lazy`: Boolean = false): GeoMessageSerializer =
       GeoMessageSerializer.apply(sft, serialization, `lazy`)
   }
 }

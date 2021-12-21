@@ -8,27 +8,40 @@
 
 package org.locationtech.geomesa.kafka.confluent
 
-import java.util.{Date, Properties}
-import io.confluent.kafka.serializers.KafkaAvroSerializer
+import io.confluent.kafka.serializers.{KafkaAvroDeserializer, KafkaAvroSerializer}
 import org.apache.avro.Schema
 import org.apache.avro.generic.{GenericData, GenericRecord}
+import org.apache.kafka.clients.consumer.ConsumerConfig.{BOOTSTRAP_SERVERS_CONFIG, KEY_DESERIALIZER_CLASS_CONFIG, VALUE_DESERIALIZER_CLASS_CONFIG}
+import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener
+import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecords, KafkaConsumer}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
-import org.apache.kafka.common.serialization.StringSerializer
-import org.geotools.data.DataStoreFinder
+import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
+import org.geotools.data.{DataStoreFinder, Transaction}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeoMesaAvroDateFormat, GeoMesaAvroExcludeField, GeoMesaAvroGeomDefault, GeoMesaAvroGeomFormat, GeoMesaAvroGeomType, GeoMesaAvroVisibilityField}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser._
+import org.locationtech.geomesa.kafka.KafkaConsumerVersions
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point, Polygon}
 import org.specs2.mutable.{After, Specification}
 import org.specs2.runner.JUnitRunner
 
 import java.nio.ByteBuffer
+import java.util.concurrent.Executors
+import java.util.{Date, Properties}
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
+
+object ConfluentKafkaDataStoreTest {
+  val topic = "confluent-kds-test"
+}
+
+import org.locationtech.geomesa.kafka.confluent.ConfluentKafkaDataStoreTest._
 
 @RunWith(classOf[JUnitRunner])
 class ConfluentKafkaDataStoreTest extends Specification {
@@ -36,7 +49,8 @@ class ConfluentKafkaDataStoreTest extends Specification {
 
   "ConfluentKafkaDataStore" should {
 
-    val topic = "confluent-kds-test"
+
+//    val topic = "confluent-kds-test"
 
     val schemaJson1 =
       s"""{
@@ -73,7 +87,7 @@ class ConfluentKafkaDataStoreTest extends Specification {
          |    }
          |  ]
          |}""".stripMargin
-    val schema1 = new Schema.Parser().parse(schemaJson1)
+    val schema1: Schema = new Schema.Parser().parse(schemaJson1)
     val encodedSft1 = s"id:String:cardinality=high,*position:Point,speed:Double,date:Date"
 
     val schemaJson2 =
@@ -128,7 +142,7 @@ class ConfluentKafkaDataStoreTest extends Specification {
 
     "deserialize simple features when the schema and records are valid" in new ConfluentKafkaTestContext {
       private val id1 = "1"
-      private val record1 = new GenericData.Record(schema1)
+      private val record1: GenericData.Record = new GenericData.Record(schema1)
       record1.put("id", id1)
       record1.put("position", "POINT(10 20)")
       record1.put("speed", 12.325d)
@@ -142,6 +156,33 @@ class ConfluentKafkaDataStoreTest extends Specification {
       record2.put("speed", 0.00d)
       record2.put("date", "2021-12-07T17:23:25.372-05:00")
       record2.put("visibility", "hidden")
+
+      val consumer = getConsumer
+      def runnable = new Runnable {
+        override def run(): Unit = {
+          val frequency = java.time.Duration.ofMillis(100)
+          try {
+            var interrupted = false
+            while (!interrupted) {
+              try {
+                val result: ConsumerRecords[String, GenericRecord] = KafkaConsumerVersions.poll(consumer, frequency)
+                import scala.collection.JavaConversions._
+                result.iterator().foreach { cr =>
+                  val key = cr.key()
+                  val value = cr.value()
+                  println(s"Key: $key value: $value")
+                }
+              } catch {
+                case t: Throwable =>
+                  t.printStackTrace()
+                  interrupted = true
+              }
+            }
+          }
+        }
+      }
+      val es = Executors.newFixedThreadPool(1)
+      es.execute(runnable)
 
       private val producer = getProducer
       producer.send(new ProducerRecord[String, GenericRecord](topic, id1, record1)).get
@@ -164,6 +205,18 @@ class ConfluentKafkaDataStoreTest extends Specification {
         feature.getDefaultGeometry mustEqual expectedPosition
         SecurityUtils.getVisibility(feature) mustEqual ""
       }
+      Thread.sleep(1000)
+
+      val sft = kds.getSchema(topic)
+      println(s"SFT: $sft")
+
+      val f2 = ScalaSimpleFeature.create(sft, "7", "id", "POINT(2 2)", 1.234d, "2017-01-01T00:00:02.000Z")
+      println(s"SF: $f2")
+
+      WithClose(kds.getFeatureWriterAppend(topic, Transaction.AUTO_COMMIT)) { writer =>
+        FeatureUtils.write(writer, f2, useProvidedFid = true)
+      }
+
     }
 
     "support the GeoMessage control operation for" >> {
@@ -296,6 +349,22 @@ class ConfluentKafkaDataStoreTest extends Specification {
       new KafkaProducer[String, GenericRecord](producerProps)
     }
 
+    def getConsumer: Consumer[String, GenericRecord] = {
+      val props = new Properties()
+      props.put(BOOTSTRAP_SERVERS_CONFIG, confluentKafka.brokers)
+//      props.put(ENABLE_AUTO_COMMIT_CONFIG, "false")
+      props.put(KEY_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer].getName)
+      props.put(VALUE_DESERIALIZER_CLASS_CONFIG, classOf[KafkaAvroDeserializer].getName)
+      props.put("schema.registry.url", confluentKafka.schemaRegistryUrl)
+      props.put("group.id", "test")
+//      properties.foreach { case (k, v) => props.put(k, v) }
+
+      val consumer = new KafkaConsumer[String, GenericRecord](props)
+      val listener = new NoOpConsumerRebalanceListener()
+      KafkaConsumerVersions.subscribe(consumer, topic, listener)
+      consumer
+    }
+
     protected def getStore: KafkaDataStore = {
       val params = Map(
         "kafka.schema.registry.url" -> confluentKafka.schemaRegistryUrl,
@@ -305,7 +374,8 @@ class ConfluentKafkaDataStoreTest extends Specification {
         "kafka.topic.replication" -> 1,
         "kafka.consumer.read-back" -> "Inf",
         "kafka.zk.path" -> "",
-        "kafka.consumer.count" -> 1
+        "kafka.consumer.count" -> 1,
+        "kafka.serialization.type" -> "avro"
       )
 
       DataStoreFinder.getDataStore(params).asInstanceOf[KafkaDataStore]

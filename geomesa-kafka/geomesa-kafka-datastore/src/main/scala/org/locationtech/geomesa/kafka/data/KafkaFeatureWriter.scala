@@ -41,12 +41,12 @@ object KafkaFeatureWriter {
   class AppendKafkaFeatureWriter(
       sft: SimpleFeatureType,
       producer: KafkaFeatureProducer,
-      serialization: SerializationType
+      serializer: GeoMessageSerializer
     ) extends KafkaFeatureWriter with LazyLogging {
 
     protected val topic: String = KafkaDataStore.topic(sft)
 
-    protected val serializer: GeoMessageSerializer = GeoMessageSerializer(sft, serialization)
+//    protected val serializer: GeoMessageSerializer = GeoMessageSerializer(sft, serialization)
 
     protected val feature = new ScalaSimpleFeature(sft, "-1")
 
@@ -98,9 +98,9 @@ object KafkaFeatureWriter {
   class ModifyKafkaFeatureWriter(
       sft: SimpleFeatureType,
       producer: KafkaFeatureProducer,
-      serialization: SerializationType,
+      serializer: GeoMessageSerializer,
       filter: Filter
-    ) extends AppendKafkaFeatureWriter(sft, producer, serialization) {
+    ) extends AppendKafkaFeatureWriter(sft, producer, serializer) {
 
     import scala.collection.JavaConversions._
 

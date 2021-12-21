@@ -18,10 +18,10 @@ import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
 import org.opengis.feature.simple.SimpleFeatureType
 
 class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: ConfluentFeatureSerializer)
-    extends GeoMessageSerializer(sft, null, null, null, 0) {
+    extends GeoMessageSerializer(sft, serializer, null, null, 0) {
 
-  override def serialize(msg: GeoMessage): (Array[Byte], Array[Byte], Map[String, Array[Byte]]) =
-    throw new NotImplementedError("Confluent data store is read-only")
+//  override def serialize(msg: GeoMessage): (Array[Byte], Array[Byte], Map[String, Array[Byte]]) =
+//    throw new NotImplementedError("Confluent data store is read-only")
 
   override def deserialize(
       key: Array[Byte],

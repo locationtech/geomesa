@@ -8,21 +8,23 @@
 
 package org.locationtech.geomesa.kafka.confluent
 
-import java.io.{InputStream, OutputStream}
-import java.net.URL
-import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import io.confluent.kafka.schemaregistry.client.{CachedSchemaRegistryClient, SchemaRegistryClient}
-import io.confluent.kafka.serializers.KafkaAvroDeserializer
+import io.confluent.kafka.serializers.{KafkaAvroDeserializer, KafkaAvroSerializer}
 import org.apache.avro.Schema
-import org.apache.avro.generic.GenericRecord
+import org.apache.avro.generic.{GenericData, GenericRecord}
+import org.joda.time.format.{DateTimeFormatter, ISODateTimeFormat}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeoMesaAvroDateFormat, GeoMesaAvroGeomFormat, GeoMesaAvroVisibilityField}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.{InputStream, OutputStream}
+import java.net.URL
+import java.util.Date
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
@@ -95,8 +97,73 @@ class ConfluentFeatureSerializer(
   override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
     throw new NotImplementedError()
 
-  override def serialize(feature: SimpleFeature): Array[Byte] =
-    throw new NotImplementedError("ConfluentSerializer is read-only")
+  override def serialize(feature: SimpleFeature): Array[Byte] = {
+    // Strategy:  We have the SFT.
+    //  1. Determine Avro schema.
+    //  2. Build Avro record
+    //  3. serialize with the io.confluent.kafka.serializers.KafkaAvroSerializer
+
+    // TODO:  Cribbed code / refactor
+    val schemaId = Option(sft.getUserData.get(ConfluentMetadata.SchemaIdKey))
+      .map(_.asInstanceOf[String].toInt).getOrElse {
+      throw new IllegalStateException(s"Cannot create ConfluentFeatureSerializer because SimpleFeatureType " +
+        s"'${sft.getTypeName}' does not have schema id at key '${ConfluentMetadata.SchemaIdKey}'")
+    }
+    val schema: Schema = schemaRegistryClient.getById(schemaId)
+
+    val record: GenericData.Record = new GenericData.Record(schema)
+    schema.getFields.asScala.foreach { field =>
+      val name = field.name()
+      val ad = sft.getDescriptor(name)
+
+      if (ad != null) {
+        println(s"Handling $name with type ${ad.getType.getBinding}")
+        if (ad.getType.getBinding.isAssignableFrom(classOf[Geometry]) ||
+          classOf[Geometry].isAssignableFrom(ad.getType.getBinding)) {
+          println("Doing geometry handling!")
+          // Handling the geometry field!
+          // TODO:  Add handling for WKB by reading the metadata
+          val geom = feature.getAttribute(name).asInstanceOf[Geometry]
+          record.put(name, WKTUtils.write(geom))
+        } else if (ad.getType.getBinding.isAssignableFrom(classOf[java.util.Date]) ||
+          classOf[java.util.Date].isAssignableFrom(ad.getType.getBinding)) {
+          val date: Date = feature.getAttribute(name).asInstanceOf[java.util.Date]
+          val formatter: DateTimeFormatter = ISODateTimeFormat.dateTime()
+          record.put(name, formatter.print(date.getTime))  // JNH: This may not be formatted properly
+        } else {
+          record.put(name, feature.getAttribute(name))
+        }
+      } else {
+        // TODO: Fix this!
+        // This is to handle "visibility" / missing fields
+        record.put(name, "")
+      }
+    }
+
+//    sft.getAttributeDescriptors.asScala.foreach { ad =>
+//      val name = ad.getLocalName
+//      println(s"Handling $name with type ${ad.getType.getBinding}")
+//      if (ad.getType.getBinding.isAssignableFrom(classOf[Geometry]) ||
+//        classOf[Geometry].isAssignableFrom(ad.getType.getBinding)) {
+//        println("Doing geometry handling!")
+//        // Handling the geometry field!
+//        // TODO:  Add handling for WKB by reading the metadata
+//        val geom = feature.getAttribute(name).asInstanceOf[Geometry]
+//        record.put(name, WKTUtils.write(geom))
+//      } else if (ad.getType.getBinding.isAssignableFrom(classOf[java.util.Date]) ||
+//        classOf[java.util.Date].isAssignableFrom(ad.getType.getBinding)) {
+//        val date: Date = feature.getAttribute(name).asInstanceOf[java.util.Date]
+//        val parser: DateTimeFormatter = ISODateTimeFormat.dateTimeParser()
+//        record.put(name, date.toString)  // JNH: This may not be formatted properly
+//      } else {
+//        record.put(name, feature.getAttribute(name))
+//      }
+//    }
+
+    val kas = new KafkaAvroSerializer(schemaRegistryClient)
+    // TODO: Wire through topic instead of "confluent-kds-test"
+    kas.serialize("confluent-kds-test", record)
+  }
 
   override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
     throw new NotImplementedError("ConfluentSerializer is read-only")
