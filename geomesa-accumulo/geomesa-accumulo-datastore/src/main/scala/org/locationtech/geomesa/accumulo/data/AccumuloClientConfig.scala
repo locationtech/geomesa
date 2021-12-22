@@ -1,6 +1,6 @@
 /***********************************************************************
  * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
- * Portions MITRE Copyright (c) 2021
+ * Portions Copyright (c) 2021 The MITRE Corporation
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
