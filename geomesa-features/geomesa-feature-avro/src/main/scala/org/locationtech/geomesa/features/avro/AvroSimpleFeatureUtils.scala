@@ -241,44 +241,6 @@ object AvroSimpleFeatureUtils extends LazyLogging {
     }
   }
 
-  def schemaToSft(schema: Schema,
-                  sftName: String,
-                  geomAttr: Option[String],
-                  dateAttr: Option[String]): SimpleFeatureType = {
-    val builder = new SimpleFeatureTypeBuilder
-    builder.setName(sftName)
-    geomAttr.foreach { ga =>
-      builder.setDefaultGeometry(ga)
-      builder.add(ga, classOf[Geometry])
-    }
-    dateAttr.foreach(builder.add(_, classOf[Date]))
-    schema.getFields.foreach(addSchemaToBuilder(builder, _))
-    builder.buildFeatureType()
-  }
-
-  def addSchemaToBuilder(builder: SimpleFeatureTypeBuilder,
-                         field: Schema.Field,
-                         typeOverride: Option[Schema.Type] = None): Unit = {
-    typeOverride.getOrElse(field.schema().getType) match {
-      case Schema.Type.STRING  => builder.add(field.name(), classOf[java.lang.String])
-      case Schema.Type.BOOLEAN => builder.add(field.name(), classOf[java.lang.Boolean])
-      case Schema.Type.INT     => builder.add(field.name(), classOf[java.lang.Integer])
-      case Schema.Type.DOUBLE  => builder.add(field.name(), classOf[java.lang.Double])
-      case Schema.Type.LONG    => builder.add(field.name(), classOf[java.lang.Long])
-      case Schema.Type.FLOAT   => builder.add(field.name(), classOf[java.lang.Float])
-      case Schema.Type.BYTES   => logger.error("Avro schema requested BYTES, which is not yet supported") // TODO support
-      case Schema.Type.UNION   => field.schema().getTypes.map(_.getType).find(_ != Schema.Type.NULL)
-                                       .foreach(t => addSchemaToBuilder(builder, field, Option(t))) // TODO support more union types and log any errors better
-      case Schema.Type.MAP     => logger.error("Avro schema requested MAP, which is not yet supported") // TODO support
-      case Schema.Type.RECORD  => logger.error("Avro schema requested RECORD, which is not yet supported") // TODO support
-      case Schema.Type.ENUM    => builder.add(field.name(), classOf[java.lang.String])
-      case Schema.Type.ARRAY   => logger.error("Avro schema requested ARRAY, which is not yet supported") // TODO support
-      case Schema.Type.FIXED   => logger.error("Avro schema requested FIXED, which is not yet supported") // TODO support
-      case Schema.Type.NULL    => logger.error("Avro schema requested NULL, which is not yet supported") // TODO support
-      case _                   => logger.error(s"Avro schema requested unknown type ${field.schema().getType}")
-    }
-  }
-
   private def encodeNullCollection: ByteBuffer =
     ByteBuffer.allocate(4).putInt(-1).flip.asInstanceOf[ByteBuffer]
 

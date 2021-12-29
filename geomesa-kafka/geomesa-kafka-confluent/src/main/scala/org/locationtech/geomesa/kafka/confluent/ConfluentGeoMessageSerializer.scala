@@ -10,7 +10,6 @@ package org.locationtech.geomesa.kafka.confluent
 
 import java.net.URL
 import java.nio.charset.StandardCharsets
-import java.util.Date
 
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
@@ -31,7 +30,7 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
       timestamp: Long): GeoMessage = {
     if (key.isEmpty) { Clear } else {
       val id = new String(key, StandardCharsets.UTF_8)
-      if (value == null) { Delete(id) } else { Change(serializer.deserialize(id, value, new Date(timestamp))) }
+      if (value == null) { Delete(id) } else { Change(serializer.deserialize(id, value)) }
     }
   }
 }
