@@ -11,11 +11,11 @@ package org.locationtech.geomesa.features.avro
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeoMesaAvroDateFormat, GeoMesaAvroDeserializableEnumProperty, GeoMesaAvroExcludeField, GeoMesaAvroGeomDefault, GeoMesaAvroGeomFormat, GeoMesaAvroGeomType, GeoMesaAvroProperty, GeoMesaAvroVisibilityField}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeUtils._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.impl.CoordinateArraySequenceFactory
-import org.locationtech.jts.geom.{Coordinate, CoordinateSequence, Geometry, GeometryFactory, Point}
+import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -23,7 +23,7 @@ import java.nio.ByteBuffer
 import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureTypeParserTest extends Specification {
+class AvroSimpleFeatureTypeUtilsTest extends Specification {
 
   private val invalidGeomesaAvroSchemaJson =
     s"""{
@@ -302,7 +302,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
 
   "AvroSimpleFeatureParser" should {
     "fail to convert a schema with invalid geomesa avro properties into an SFT" in {
-      AvroSimpleFeatureTypeParser.schemaToSft(invalidGeomesaAvroSchema) must
+      AvroSimpleFeatureTypeUtils.schemaToSft(invalidGeomesaAvroSchema) must
         throwAn[GeoMesaAvroProperty.InvalidPropertyTypeException]
     }
 
@@ -330,7 +330,7 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
            |}""".stripMargin
       val schema = new Schema.Parser().parse(schemaJson)
 
-      AvroSimpleFeatureTypeParser.schemaToSft(schema) must throwAn[IllegalArgumentException]
+      AvroSimpleFeatureTypeUtils.schemaToSft(schema) must throwAn[IllegalArgumentException]
     }
 
     "fail to convert a schema with multiple visibility fields into an SFT" in {
@@ -353,14 +353,14 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
            |}""".stripMargin
       val schema = new Schema.Parser().parse(schemaJson)
 
-      AvroSimpleFeatureTypeParser.schemaToSft(schema) must throwAn[IllegalArgumentException]
+      AvroSimpleFeatureTypeUtils.schemaToSft(schema) must throwAn[IllegalArgumentException]
     }
 
     "convert a schema with valid geomesa avro properties into an SFT" in {
       val expectedSft = "id:String:cardinality=high:index=full,f1:Point,f2:Double,*f3:Geometry,f4:Date,f5:Date;" +
         "geomesa.index.dtg='f4',geomesa.table.compression.enabled='true',geomesa.visibility.field='f6'," +
         "geomesa.table.sharing='false'"
-      val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema)
+      val sft = AvroSimpleFeatureTypeUtils.schemaToSft(validGeomesaAvroSchema)
 
       SimpleFeatureTypes.encodeType(sft, includeUserData = true) mustEqual expectedSft
     }
