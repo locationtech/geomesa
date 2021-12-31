@@ -6,8 +6,8 @@ vulnerabilities is done by the GeoMesa committers, with assistance and guidance 
 
 ## Reporting a Vulnerability
 
-In the case of a suspected vulnerability, do not use the GeoMesa public issue tracker. Instead, contact the
-[Eclipse Security Team](mailto:security@eclipse.org) directly.
+In the case of a suspected vulnerability, do **not** use any public GeoMesa forum (mailing list, chat or issue tracker).
+Instead, contact the [Eclipse Security Team](mailto:security@eclipse.org) directly.
 
 ## Supported Versions
 
