@@ -26,7 +26,7 @@ import java.util.Date
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
-object ConfluentFeatureSerializer extends LazyLogging {
+object ConfluentFeatureSerializer {
 
   def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL, schemaOverride: Option[Schema]): Builder =
     new Builder(sft, schemaRegistryUrl, schemaOverride)

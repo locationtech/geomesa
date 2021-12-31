@@ -93,8 +93,14 @@ object ConfluentKafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogg
         .filter(_.hasPath("schemas"))
         .map {
           _.getObject("schemas").asScala.map { case (topic, schemaConfig) =>
-            val schema = new Schema.Parser().parse(schemaConfig.render(ConfigRenderOptions.concise()))
-            topic -> (AvroSimpleFeatureTypeUtils.schemaToSft(schema, Some(topic)), schema)
+            try {
+              val schema = new Schema.Parser().parse(schemaConfig.render(ConfigRenderOptions.concise()))
+              val sft = AvroSimpleFeatureTypeUtils.schemaToSft(schema, Some(topic))
+              topic -> (sft, schema)
+            } catch {
+              case NonFatal(ex) =>
+                throw new IllegalArgumentException(s"Schema override for topic '$topic' is invalid: ${ex.getMessage}")
+            }
           }.toMap
         }
         .getOrElse(Map.empty)
