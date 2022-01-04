@@ -23,12 +23,12 @@ object ConfluentKafkaDataStore {
       config: KafkaDataStoreConfig,
       schemaRegistryUrl: URL,
       schemaOverrides: Map[String, (SimpleFeatureType, Schema)]): KafkaDataStore = {
-    val sftNameToSchema = schemaOverrides.values.map { case (sft, schema) => sft.getTypeName -> schema }.toMap
+    val topicToSchema = schemaOverrides.map { case (topic, (_, schema)) => topic -> schema }
     val topicToSft = schemaOverrides.map { case (topic, (sft, _)) => topic -> sft }
 
     val client = new CachedSchemaRegistryClient(schemaRegistryUrl.toExternalForm, 100)
     val metadata = new ConfluentMetadata(client, topicToSft)
-    val serialization = new ConfluentGeoMessageSerializerFactory(schemaRegistryUrl, sftNameToSchema)
+    val serialization = new ConfluentGeoMessageSerializerFactory(schemaRegistryUrl, topicToSchema)
 
     new KafkaDataStore(config, metadata, serialization) {
       override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit =

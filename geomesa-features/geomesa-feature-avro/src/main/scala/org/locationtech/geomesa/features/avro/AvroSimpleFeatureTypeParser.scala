@@ -23,7 +23,7 @@ import scala.collection.JavaConverters._
 import scala.reflect.{ClassTag, classTag}
 import scala.util.control.NonFatal
 
-object AvroSimpleFeatureTypeUtils {
+object AvroSimpleFeatureTypeParser {
   val reservedPropertyKeys: Set[String] = Set(
     GeoMesaAvroGeomFormat.KEY,
     GeoMesaAvroGeomType.KEY,

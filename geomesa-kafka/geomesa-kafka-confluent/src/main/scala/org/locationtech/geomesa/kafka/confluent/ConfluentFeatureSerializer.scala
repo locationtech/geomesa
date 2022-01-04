@@ -14,7 +14,7 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeUtils.{GeoMesaAvroDateFormat, GeoMesaAvroGeomFormat, GeoMesaAvroVisibilityField}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeoMesaAvroDateFormat, GeoMesaAvroGeomFormat, GeoMesaAvroVisibilityField}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.jts.geom.Geometry
@@ -28,13 +28,13 @@ import scala.util.control.NonFatal
 
 object ConfluentFeatureSerializer {
 
-  def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL, schemaOverride: Option[Schema]): Builder =
+  def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL, schemaOverride: Option[Schema] = None): Builder =
     new Builder(sft, schemaRegistryUrl, schemaOverride)
 
   class Builder private[ConfluentFeatureSerializer](
     sft: SimpleFeatureType,
     schemaRegistryUrl: URL,
-    schemaOverride: Option[Schema]
+    schemaOverride: Option[Schema] = None
   ) extends SimpleFeatureSerializer.Builder[Builder] {
     override def build(): ConfluentFeatureSerializer = {
       val client = new CachedSchemaRegistryClient(schemaRegistryUrl.toExternalForm, 100)
@@ -46,7 +46,7 @@ object ConfluentFeatureSerializer {
 class ConfluentFeatureSerializer(
   sft: SimpleFeatureType,
   schemaRegistryClient: SchemaRegistryClient,
-  schemaOverride: Option[Schema],
+  schemaOverride: Option[Schema] = None,
   val options: Set[SerializationOption] = Set.empty
 ) extends SimpleFeatureSerializer with LazyLogging {
 

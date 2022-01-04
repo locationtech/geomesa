@@ -15,7 +15,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, Produce
 import org.apache.kafka.common.serialization.StringSerializer
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeUtils._
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser._
 import org.locationtech.geomesa.kafka.confluent.ConfluentKafkaDataStoreTest._
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.security.SecurityUtils

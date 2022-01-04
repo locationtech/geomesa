@@ -23,7 +23,18 @@ class ConfluentKafkaDataStoreFactoryTest extends Specification {
       "when the config cannot be parsed" in {
         val config = "{[[[{{{]]"
         val schemaJsonByTopic = Map(topic -> config)
-        val schemaOverridesConfig = generateSchemaOverrideConfig(schemaJsonByTopic)
+        val schemaOverridesConfig = Some(generateSchemaOverrideConfig(schemaJsonByTopic))
+
+        ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig) must
+          throwAn[IllegalArgumentException]
+      }
+
+      "when the schema overrides key does not exist" in {
+        val config =
+          s"""{
+             |  "key": "value"
+             |}""".stripMargin
+        val schemaOverridesConfig = Some(config)
 
         ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig) must
           throwAn[IllegalArgumentException]
@@ -42,7 +53,7 @@ class ConfluentKafkaDataStoreFactoryTest extends Specification {
              |  ]
              |}""".stripMargin
         val schemaJsonByTopic = Map(topic -> schemaJson)
-        val schemaOverridesConfig = generateSchemaOverrideConfig(schemaJsonByTopic)
+        val schemaOverridesConfig = Some(generateSchemaOverrideConfig(schemaJsonByTopic))
 
         ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig) must
           throwAn[IllegalArgumentException]
@@ -50,7 +61,7 @@ class ConfluentKafkaDataStoreFactoryTest extends Specification {
 
       "when one or more of the schemas cannot be converted to an SFT" in {
         val schemaJsonByTopic = Map(topic -> badSchemaJson)
-        val schemaOverridesConfig = generateSchemaOverrideConfig(schemaJsonByTopic)
+        val schemaOverridesConfig = Some(generateSchemaOverrideConfig(schemaJsonByTopic))
 
         ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig) must
           throwAn[IllegalArgumentException]
@@ -58,30 +69,17 @@ class ConfluentKafkaDataStoreFactoryTest extends Specification {
     }
 
     "parse no schemas" >> {
-      "when the schema overrides key does not exist" in {
-        val config =
-          s"""{
-             |  "key": "value"
-             |}""".stripMargin
-        val expected = Map.empty
-
-        ConfluentKafkaDataStoreFactory.parseSchemaOverrides(config) must
-          containTheSameElementsAs(expected.toSeq)
-      }
-
       "when there are no schema overrides defined" in {
-        val schemaOverridesConfig = generateSchemaOverrideConfig(Map.empty)
-        val expected = Map.empty
+        val schemaOverridesConfig = Some(generateSchemaOverrideConfig(Map.empty))
 
-        ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig) must
-          containTheSameElementsAs(expected.toSeq)
+        ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig) mustEqual Map.empty
       }
     }
 
     "succeed in parsing schemas" >> {
       "when there is one valid schema" in {
         val schemaJsonByTopic = Map(topic -> schemaJson1)
-        val schemaOverridesConfig = generateSchemaOverrideConfig(schemaJsonByTopic)
+        val schemaOverridesConfig = Some(generateSchemaOverrideConfig(schemaJsonByTopic))
 
         val results = ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig)
 
@@ -97,7 +95,7 @@ class ConfluentKafkaDataStoreFactoryTest extends Specification {
         val topic2 = "topic2"
 
         val schemaJsonByTopic = Map(topic1 -> schemaJson1, topic2 -> schemaJson2)
-        val schemaOverridesConfig = generateSchemaOverrideConfig(schemaJsonByTopic)
+        val schemaOverridesConfig = Some(generateSchemaOverrideConfig(schemaJsonByTopic))
 
         val results = ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig)
 

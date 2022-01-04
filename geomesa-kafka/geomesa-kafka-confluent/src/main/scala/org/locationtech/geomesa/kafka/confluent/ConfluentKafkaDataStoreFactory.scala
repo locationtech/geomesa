@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.Schema
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeUtils
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.kafka.data.{KafkaDataStore, KafkaDataStoreFactory, KafkaDataStoreParams}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -34,7 +34,7 @@ class ConfluentKafkaDataStoreFactory extends DataStoreFactorySpi {
   override def createDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore = {
     val config = KafkaDataStoreFactory.buildConfig(params)
     val url = ConfluentKafkaDataStoreFactory.SchemaRegistryUrl.lookup(params)
-    val schemaOverridesConfig = ConfluentKafkaDataStoreFactory.SchemaOverrides.lookup(params)
+    val schemaOverridesConfig = ConfluentKafkaDataStoreFactory.SchemaOverrides.lookupOpt(params)
     val schemaOverrides = ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig)
 
     // keep confluent classes off the classpath for the data store factory so that it can be loaded via SPI
@@ -78,7 +78,7 @@ object ConfluentKafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogg
     )
 
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
-    KafkaDataStoreFactory.ParameterInfo ++ Array(SchemaRegistryUrl, SchemaOverrides)
+    SchemaRegistryUrl +: KafkaDataStoreFactory.ParameterInfo :+ SchemaOverrides
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
     KafkaDataStoreParams.Brokers.exists(params) &&
@@ -86,24 +86,21 @@ object ConfluentKafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogg
       SchemaRegistryUrl.exists(params)
   }
 
-  private[confluent] def parseSchemaOverrides(schemaOverridesConfig: String): Map[String, (SimpleFeatureType, Schema)] = {
+  private[confluent] def parseSchemaOverrides(config: Option[String]): Map[String, (SimpleFeatureType, Schema)] = {
     try {
-      Option(schemaOverridesConfig)
-        .map(ConfigFactory.parseString(_).resolve())
-        .filter(_.hasPath("schemas"))
-        .map {
-          _.getObject("schemas").asScala.map { case (topic, schemaConfig) =>
+      config.map {
+        ConfigFactory.parseString(_).resolve().getObject("schemas").asScala.toMap.map {
+          case (topic, schemaConfig) =>
             try {
               val schema = new Schema.Parser().parse(schemaConfig.render(ConfigRenderOptions.concise()))
-              val sft = AvroSimpleFeatureTypeUtils.schemaToSft(schema, Some(topic))
+              val sft = AvroSimpleFeatureTypeParser.schemaToSft(schema, Some(topic))
               topic -> (sft, schema)
             } catch {
               case NonFatal(ex) =>
                 throw new IllegalArgumentException(s"Schema override for topic '$topic' is invalid: ${ex.getMessage}")
             }
-          }.toMap
         }
-        .getOrElse(Map.empty)
+      }.getOrElse(Map.empty)
     } catch {
       case NonFatal(ex) => throw new IllegalArgumentException(s"Failed to parse schema overrides: ${ex.getMessage}")
     }

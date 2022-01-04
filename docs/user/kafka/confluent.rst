@@ -171,8 +171,7 @@ The schema used to generate a ``SimpleFeatureType`` may optionally be overridden
 configuration parameter at the key ``kafka.schema.overrides``. The value must be a Typesafe Config string with the
 top-level key ``schemas`` that is an object that contains a mapping from topic name to schema definition.
 If an override for a schema exists, it will be used instead of the schema registry. The overrides might be useful
-if you have an existing schema without the GeoMesa properties, or if you have an external topic that is not connected
-to the schema registry.
+if you have an existing schema without the GeoMesa properties.
 
 Schema Overrides Example Config
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

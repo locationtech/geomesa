@@ -11,7 +11,7 @@ package org.locationtech.geomesa.kafka.confluent
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeUtils
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.kafka.confluent.ConfluentMetadata._
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
@@ -22,7 +22,8 @@ import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
-class ConfluentMetadata(schemaRegistry: SchemaRegistryClient, sftOverrides: Map[String, SimpleFeatureType])
+class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient,
+                        sftOverrides: Map[String, SimpleFeatureType] = Map.empty)
   extends GeoMesaMetadata[String] with LazyLogging {
 
   private val topicSftCache: LoadingCache[String, String] = {
@@ -34,7 +35,7 @@ class ConfluentMetadata(schemaRegistry: SchemaRegistryClient, sftOverrides: Map[
             val sft = sftOverrides.getOrElse(topic, {
               val subject = topic + SubjectPostfix
               val schemaId = schemaRegistry.getLatestSchemaMetadata(subject).getId
-              val sft = AvroSimpleFeatureTypeUtils.schemaToSft(schemaRegistry.getById(schemaId))
+              val sft = AvroSimpleFeatureTypeParser.schemaToSft(schemaRegistry.getById(schemaId))
               // store the schema id to access the schema when creating the feature serializer
               sft.getUserData.put(SchemaIdKey, schemaId.toString)
               sft
