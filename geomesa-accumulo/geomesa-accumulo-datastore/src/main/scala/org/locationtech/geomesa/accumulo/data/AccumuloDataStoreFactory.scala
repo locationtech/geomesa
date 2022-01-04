@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
- * Portions Crown Copyright (c) 2016-2021 Dstl
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2022 Dstl
  * Portions Copyright (c) 2021 The MITRE Corporation
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0

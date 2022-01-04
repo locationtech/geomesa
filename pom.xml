@@ -127,7 +127,7 @@
         <!-- bump version right before performing releases for the README and the documentation -->
         <geomesa.release.version>3.3.0</geomesa.release.version>
         <geomesa.devel.version>3.4.0-SNAPSHOT</geomesa.devel.version>
-        <copyright.year>2021</copyright.year>
+        <copyright.year>2022</copyright.year>
 
         <!-- recommended installation versions -->
         <accumulo.version.recommended>2.0.0</accumulo.version.recommended>
