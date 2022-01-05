@@ -163,3 +163,61 @@ Example GeoMesa Avro Schema
         }
       ]
     }
+
+Schema Overrides Config
+-----------------------
+
+The schema used to generate a ``SimpleFeatureType`` may optionally be overridden per topic by adding a data store
+configuration parameter at the key ``kafka.schema.overrides``. The value must be a Typesafe Config string with the
+top-level key ``schemas`` that is an object that contains a mapping from topic name to schema definition.
+If an override for a schema exists, it will be used instead of the schema registry. The overrides might be useful
+if you have an existing schema without the GeoMesa properties.
+
+Schema Overrides Example Config
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    {
+      "schemas": {
+        "topic1": {
+          "type": "record",
+          "name": "schema1",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string",
+              "cardinality": "high"
+            },
+            {
+              "name": "position",
+              "type": "string",
+              "geomesa.geom.format": "wkt",
+              "geomesa.geom.type": "point",
+              "geomesa.geom.default": "true"
+            },
+            {
+              "name": "speed",
+              "type": "double"
+            }
+          ]
+        },
+        "topic2": {
+          "type": "record",
+          "name": "schema2",
+          "fields": [
+            {
+              "name": "shape",
+              "type": "bytes",
+              "geomesa.geom.format": "wkb",
+              "geomesa.geom.type": "geometry"
+            },
+            {
+              "name": "date",
+              "type": ["null","long"],
+              "geomesa.date.format": "epoch-millis"
+            }
+          ]
+        }
+      }
+    }

@@ -13,13 +13,13 @@ import org.apache.avro.generic.GenericRecord
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.joda.time.format.ISODateTimeFormat
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
-import org.locationtech.jts.geom.{Geometry, GeometryCollection, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon}
+import org.locationtech.jts.geom._
 import org.opengis.feature.simple.SimpleFeatureType
 
 import java.nio.ByteBuffer
 import java.util.{Date, Locale}
 import scala.annotation.tailrec
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.reflect.{ClassTag, classTag}
 import scala.util.control.NonFatal
 
@@ -36,9 +36,9 @@ object AvroSimpleFeatureTypeParser {
   /**
    * Convert an Avro [[Schema]] into a [[SimpleFeatureType]].
    */
-  def schemaToSft(schema: Schema): SimpleFeatureType = {
+  def schemaToSft(schema: Schema, name: Option[String] = None): SimpleFeatureType = {
     val builder = new SimpleFeatureTypeBuilder
-    builder.setName(schema.getName)
+    builder.setName(name.getOrElse(schema.getName))
 
     // any extra props on the schema go in the SFT user data
     val sftUserData = schema.getProps
@@ -46,7 +46,7 @@ object AvroSimpleFeatureTypeParser {
     var defaultGeomField: Option[String] = None
     var visibilityField: Option[String] = None
 
-    schema.getFields.foreach { field =>
+    schema.getFields.asScala.foreach { field =>
       val fieldName = field.name
       val metadata = parseMetadata(field)
 
@@ -84,7 +84,7 @@ object AvroSimpleFeatureTypeParser {
 
       // any extra props on the field go in the attribute user data
       if (!metadata.exclude) {
-        builder.get(fieldName).getUserData.putAll(metadata.extraProps)
+        builder.get(fieldName).getUserData.putAll(metadata.extraProps.asJava)
       }
     }
 
@@ -107,7 +107,7 @@ object AvroSimpleFeatureTypeParser {
       case Schema.Type.BYTES   => builder.add(field.name, classOf[Array[Byte]])
       case Schema.Type.UNION   =>
         // if a union has more than one non-null type, it is not supported
-        val types = field.schema.getTypes.map(_.getType).filter(_ != Schema.Type.NULL).toSet
+        val types = field.schema.getTypes.asScala.map(_.getType).filter(_ != Schema.Type.NULL).toSet
         if (types.size != 1) {
           throw UnsupportedAvroTypeException(types.mkString("[", ", ", "]"))
         } else {
@@ -142,7 +142,7 @@ object AvroSimpleFeatureTypeParser {
       }
 
     // any field properties that are not one of the defined geomesa avro properties will go in the attribute user data
-    val extraProps = field.getProps.filterNot {
+    val extraProps = field.getProps.asScala.filterNot {
       case (key, _) => reservedPropertyKeys.contains(key)
     }.toMap
 
@@ -184,7 +184,7 @@ object AvroSimpleFeatureTypeParser {
       field.schema.getType match {
         case Schema.Type.UNION =>
           // if a union has more than one non-null type, it should not be converted to an SFT
-          val unionTypes = field.schema.getTypes.map(_.getType).filter(_ != Schema.Type.NULL).toSet
+          val unionTypes = field.schema.getTypes.asScala.map(_.getType).filter(_ != Schema.Type.NULL).toSet
           if (unionTypes.size != 1 || typ != unionTypes.head) {
             throw GeoMesaAvroProperty.InvalidPropertyTypeException(typ.getName, KEY)
           }

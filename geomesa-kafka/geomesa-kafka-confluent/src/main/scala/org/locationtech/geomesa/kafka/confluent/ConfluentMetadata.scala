@@ -8,32 +8,38 @@
 
 package org.locationtech.geomesa.kafka.confluent
 
-import java.util.concurrent.TimeUnit
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
+import org.locationtech.geomesa.kafka.confluent.ConfluentMetadata._
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
-class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMesaMetadata[String] with LazyLogging {
-
-  import ConfluentMetadata.{SubjectPostfix, SchemaIdKey}
+class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient,
+                        sftOverrides: Map[String, SimpleFeatureType] = Map.empty)
+  extends GeoMesaMetadata[String] with LazyLogging {
 
   private val topicSftCache: LoadingCache[String, String] = {
     Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(
       new CacheLoader[String, String] {
         override def load(topic: String): String = {
           try {
-            val subject = topic + SubjectPostfix
-            val schemaId = schemaRegistry.getLatestSchemaMetadata(subject).getId
-            val sft = AvroSimpleFeatureTypeParser.schemaToSft(schemaRegistry.getById(schemaId))
-            //store the schema id to access the schema when creating the feature serializer
-            sft.getUserData.put(SchemaIdKey, schemaId.toString)
+            // use the overridden sft for the topic if it exists, else look it up in the registry
+            val sft = sftOverrides.getOrElse(topic, {
+              val subject = topic + SubjectPostfix
+              val schemaId = schemaRegistry.getLatestSchemaMetadata(subject).getId
+              val sft = AvroSimpleFeatureTypeParser.schemaToSft(schemaRegistry.getById(schemaId))
+              // store the schema id to access the schema when creating the feature serializer
+              sft.getUserData.put(SchemaIdKey, schemaId.toString)
+              sft
+            })
             KafkaDataStore.setTopic(sft, topic)
             SimpleFeatureTypes.encodeType(sft, includeUserData = true)
           } catch {
