@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.kafka.confluent
 
-import java.io.{InputStream, OutputStream}
-import java.net.URL
-import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import io.confluent.kafka.schemaregistry.client.{CachedSchemaRegistryClient, SchemaRegistryClient}
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
@@ -23,26 +20,34 @@ import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.{InputStream, OutputStream}
+import java.net.URL
+import java.util.Date
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
-object ConfluentFeatureSerializer extends LazyLogging {
+object ConfluentFeatureSerializer {
 
-  def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL): Builder = new Builder(sft, schemaRegistryUrl)
+  def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL, schemaOverride: Option[Schema] = None): Builder =
+    new Builder(sft, schemaRegistryUrl, schemaOverride)
 
-  class Builder private [ConfluentFeatureSerializer] (sft: SimpleFeatureType, schemaRegistryUrl: URL)
-      extends SimpleFeatureSerializer.Builder[Builder] {
+  class Builder private[ConfluentFeatureSerializer](
+    sft: SimpleFeatureType,
+    schemaRegistryUrl: URL,
+    schemaOverride: Option[Schema] = None
+  ) extends SimpleFeatureSerializer.Builder[Builder] {
     override def build(): ConfluentFeatureSerializer = {
       val client = new CachedSchemaRegistryClient(schemaRegistryUrl.toExternalForm, 100)
-      new ConfluentFeatureSerializer(sft, client, options.toSet)
+      new ConfluentFeatureSerializer(sft, client, schemaOverride, options.toSet)
     }
   }
 }
 
 class ConfluentFeatureSerializer(
-    sft: SimpleFeatureType,
-    schemaRegistryClient: SchemaRegistryClient,
-    val options: Set[SerializationOption] = Set.empty
+  sft: SimpleFeatureType,
+  schemaRegistryClient: SchemaRegistryClient,
+  schemaOverride: Option[Schema] = None,
+  val options: Set[SerializationOption] = Set.empty
 ) extends SimpleFeatureSerializer with LazyLogging {
 
   private val kafkaAvroDeserializer = new ThreadLocal[KafkaAvroDeserializer]() {
@@ -51,12 +56,14 @@ class ConfluentFeatureSerializer(
 
   private val featureReader = new ThreadLocal[ConfluentFeatureReader]() {
     override def initialValue(): ConfluentFeatureReader = {
-      val schemaId = Option(sft.getUserData.get(ConfluentMetadata.SchemaIdKey))
-        .map(_.asInstanceOf[String].toInt).getOrElse {
+      val schema = schemaOverride.getOrElse {
+        val schemaId = Option(sft.getUserData.get(ConfluentMetadata.SchemaIdKey))
+          .map(_.asInstanceOf[String].toInt).getOrElse {
           throw new IllegalStateException(s"Cannot create ConfluentFeatureSerializer because SimpleFeatureType " +
             s"'${sft.getTypeName}' does not have schema id at key '${ConfluentMetadata.SchemaIdKey}'")
         }
-      val schema = schemaRegistryClient.getById(schemaId)
+        schemaRegistryClient.getById(schemaId)
+      }
 
       new ConfluentFeatureReader(sft, schema)
     }

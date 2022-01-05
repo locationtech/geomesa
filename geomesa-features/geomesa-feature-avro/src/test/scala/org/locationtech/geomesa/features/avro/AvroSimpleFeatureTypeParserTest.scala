@@ -11,11 +11,11 @@ package org.locationtech.geomesa.features.avro
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeoMesaAvroDateFormat, GeoMesaAvroDeserializableEnumProperty, GeoMesaAvroExcludeField, GeoMesaAvroGeomDefault, GeoMesaAvroGeomFormat, GeoMesaAvroGeomType, GeoMesaAvroProperty, GeoMesaAvroVisibilityField}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.impl.CoordinateArraySequenceFactory
-import org.locationtech.jts.geom.{Coordinate, CoordinateSequence, Geometry, GeometryFactory, Point}
+import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

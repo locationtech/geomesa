@@ -8,19 +8,28 @@
 
 package org.locationtech.geomesa.kafka.confluent
 
-import java.net.URL
-
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient
+import org.apache.avro.Schema
 import org.locationtech.geomesa.kafka.confluent.ConfluentGeoMessageSerializer.ConfluentGeoMessageSerializerFactory
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.net.URL
+
 object ConfluentKafkaDataStore {
 
-  def apply(config: KafkaDataStoreConfig, schemaRegistryUrl: URL): KafkaDataStore = {
-    val metadata = new ConfluentMetadata(new CachedSchemaRegistryClient(schemaRegistryUrl.toExternalForm, 100))
-    val serialization = new ConfluentGeoMessageSerializerFactory(schemaRegistryUrl)
+  def apply(
+      config: KafkaDataStoreConfig,
+      schemaRegistryUrl: URL,
+      schemaOverrides: Map[String, (SimpleFeatureType, Schema)]): KafkaDataStore = {
+    val topicToSchema = schemaOverrides.map { case (topic, (_, schema)) => topic -> schema }
+    val topicToSft = schemaOverrides.map { case (topic, (sft, _)) => topic -> sft }
+
+    val client = new CachedSchemaRegistryClient(schemaRegistryUrl.toExternalForm, 100)
+    val metadata = new ConfluentMetadata(client, topicToSft)
+    val serialization = new ConfluentGeoMessageSerializerFactory(schemaRegistryUrl, topicToSchema)
+
     new KafkaDataStore(config, metadata, serialization) {
       override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit =
         throw new NotImplementedError("Confluent Kafka stores do not support updateSchema")

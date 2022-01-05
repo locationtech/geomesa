@@ -8,14 +8,15 @@
 
 package org.locationtech.geomesa.kafka.confluent
 
-import java.net.URL
-import java.nio.charset.StandardCharsets
-
+import org.apache.avro.Schema
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.net.URL
+import java.nio.charset.StandardCharsets
 
 class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: ConfluentFeatureSerializer)
     extends GeoMessageSerializer(sft, null, null, null, 0) {
@@ -36,12 +37,16 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
 }
 
 object ConfluentGeoMessageSerializer {
-  class ConfluentGeoMessageSerializerFactory(url: URL) extends GeoMessageSerializerFactory {
+  class ConfluentGeoMessageSerializerFactory(
+    schemaRegistryUrl: URL,
+    schemaOverrides: Map[String, Schema]
+  ) extends GeoMessageSerializerFactory {
     override def apply(
         sft: SimpleFeatureType,
         serialization: SerializationType,
         `lazy`: Boolean): GeoMessageSerializer = {
-      val serializer = ConfluentFeatureSerializer.builder(sft, url).withoutId.withUserData.build()
+      val serializer = ConfluentFeatureSerializer.builder(sft, schemaRegistryUrl, schemaOverrides.get(sft.getTypeName))
+        .withoutId.withUserData.build()
       new ConfluentGeoMessageSerializer(sft, serializer)
     }
   }
