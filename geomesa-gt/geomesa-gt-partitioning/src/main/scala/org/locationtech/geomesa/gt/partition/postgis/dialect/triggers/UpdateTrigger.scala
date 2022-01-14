@@ -9,6 +9,9 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package triggers
 
+/**
+ * Trigger to delegate updates from the main view to the sub tables
+ */
 object UpdateTrigger extends SqlFunction {
 
   override def name(info: TypeInfo): String = s"update_to_${info.name}"

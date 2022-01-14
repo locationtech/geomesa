@@ -25,7 +25,7 @@ object LogCleaner extends SqlFunction with CronSchedule {
 
   override protected def dropStatements(info: TypeInfo): Seq[String] = Seq.empty // function is shared between types
 
-  override protected def schedule(info: TypeInfo): String = "0 0 * * *"
+  override protected def schedule(info: TypeInfo): String = "30 1 * * *" // 01:30 every day
 
   override protected def invocation(info: TypeInfo): String =
     s"SELECT cron_log_cleaner(''${info.tables.view.name.raw}'', INTERVAL ''7 DAYS'')"
