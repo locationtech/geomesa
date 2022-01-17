@@ -33,7 +33,7 @@ package object dialect {
   /**
    * Wrapper to facilitate jdbc calls.
    *
-   * Note: does not do any validation, inputs must be sanitized by the caller.
+   * Note: does not do any validation, sql must be sanitized by the caller.
    *
    * @param cx connection
    */

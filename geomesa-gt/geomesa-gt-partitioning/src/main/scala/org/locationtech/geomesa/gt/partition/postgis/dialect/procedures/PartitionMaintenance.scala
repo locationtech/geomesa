@@ -27,8 +27,6 @@ object PartitionMaintenance extends SqlProcedure with CronSchedule {
     val minute = info.partitions.cronMinute.getOrElse {
       // spread out the cron schedule so that all the feature types don't run at the exact same time
       // also don't run at same minute as roll-write-ahead (i.e. use 0-8)
-      // TODO this will mean data left in the write ahead table longer -
-      //   revisit if this impacts performance, since write ahead isn't partition pruned during queries
       math.abs(MurmurHash3.stringHash(info.name) % 9)
     }
     val minutes = Seq(0, 10, 20, 30, 40, 50).map(_ + minute).mkString(",")
