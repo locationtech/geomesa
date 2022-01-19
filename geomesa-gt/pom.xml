@@ -14,6 +14,7 @@
 
     <modules>
         <module>geomesa-gt-dist</module>
+        <module>geomesa-gt-partitioning</module>
         <module>geomesa-gt-spark</module>
         <module>geomesa-gt-spark-runtime</module>
         <module>geomesa-gt-tools</module>
