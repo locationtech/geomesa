@@ -49,7 +49,10 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
         // TODO dialect.setEstimatedExtentsEnabled(d.isEstimatedExtentsEnabled)
         // TODO dialect.setSimplifyEnabled(d.isSimplifyEnabled)
         dialect.setEncodeBBOXFilterAsEnvelope(d.isEncodeBBOXFilterAsEnvelope)
-        ds.setSQLDialect(new PostGISPSDialect(ds, dialect))
+        ds.setSQLDialect(new PostGISPSDialect(ds, dialect) {
+          // fix bug with PostGISPSDialect dialect not delegating this method
+          override def getDefaultVarcharSize: Int = dialect.getDefaultVarcharSize
+        })
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
     }
