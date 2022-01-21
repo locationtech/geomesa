@@ -20,22 +20,26 @@ object PartitionTables extends SqlStatements {
 
   private def statements(info: TypeInfo, table: TableConfig, indexType: String): Seq[String] = {
     // note: don't include storage opts since these are parent partition tables
+    val (tableTs, indexTs) = table.tablespace match {
+      case None => ("", "")
+      case Some(ts) => (s""" TABLESPACE "$ts"""", s""" USING INDEX TABLESPACE "$ts"""")
+    }
     val create =
       s"""CREATE TABLE IF NOT EXISTS ${table.name.full} (
          |  LIKE ${info.tables.writeAhead.name.full} INCLUDING DEFAULTS INCLUDING CONSTRAINTS,
-         |  CONSTRAINT "${s"${table.name.raw}_pkey"}" PRIMARY KEY (fid, ${info.cols.dtg.name})${table.tablespace.index}
-         |) PARTITION BY RANGE(${info.cols.dtg.name})${table.tablespace.table};""".stripMargin
+         |  CONSTRAINT "${s"${table.name.raw}_pkey"}" PRIMARY KEY (fid, ${info.cols.dtg.name})$indexTs
+         |) PARTITION BY RANGE(${info.cols.dtg.name})$tableTs;""".stripMargin
     // note: brin doesn't support 'include' cols
     val geomIndex =
       s"""CREATE INDEX IF NOT EXISTS "${table.name.raw}_${info.cols.geom.raw}"
          |  ON ${table.name.full}
-         |  USING $indexType(${info.cols.geom.name})${table.tablespace.table};""".stripMargin
+         |  USING $indexType(${info.cols.geom.name})$tableTs;""".stripMargin
     val dtgIndex =
       s"""CREATE INDEX IF NOT EXISTS "${table.name.raw}_${info.cols.dtg.raw}"
-         |  ON ${table.name.full} (${info.cols.dtg.name})${table.tablespace.table};""".stripMargin
+         |  ON ${table.name.full} (${info.cols.dtg.name})$tableTs;""".stripMargin
     val indices = info.cols.indexed.map { col =>
       s"""CREATE INDEX IF NOT EXISTS s"${table.name.raw}_${col.raw}"
-         |  ON ${table.name.full} (${col.name})${table.tablespace.table};""".stripMargin
+         |  ON ${table.name.full} (${col.name})$tableTs;""".stripMargin
     }
     Seq(create, geomIndex, dtgIndex) ++ indices
   }

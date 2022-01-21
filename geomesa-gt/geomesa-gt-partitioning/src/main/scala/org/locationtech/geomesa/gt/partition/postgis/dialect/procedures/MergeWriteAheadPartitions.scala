@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.PartitionTablespacesTable
+
 /**
  * Merge recent write-ahead partitions and move them into the main partition table
  */
@@ -33,7 +35,6 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |      partition_start timestamp without time zone; -- start bounds for the partition we're writing
        |      partition_end timestamp without time zone;   -- end bounds for the partition we're writing
        |      partition_name text;                         -- partition table name
-       |      partition_parent text;                       -- partition parent table name
        |      partition_tablespace text;                   -- partition tablespace
        |      write_ahead_partitions text[];               -- names of the partitions we're migrating
        |      write_ahead_partition text;                  -- name of current partition
@@ -59,10 +60,18 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |
        |        -- create the partition table if it doesn't exist
        |        IF NOT pexists THEN
+       |          SELECT table_space INTO partition_tablespace FROM "${info.schema}".${PartitionTablespacesTable.TableName}
+       |            WHERE type_name = '${info.name}' AND table_type = '$PartitionedTableSuffix';
+       |          IF partition_tablespace IS NULL THEN
+       |            partition_tablespace := '';
+       |          ELSE
+       |            partition_tablespace := ' TABLESPACE ' || quote_ident(partition_tablespace);
+       |          END IF;
        |          -- upper bounds are exclusive
        |          -- this won't have any indices until we attach it to the parent partition table
        |          EXECUTE 'CREATE TABLE "${info.schema}".' || quote_ident(partition_name) ||
-       |            ' (LIKE ${mainPartitions.name.full} INCLUDING DEFAULTS INCLUDING CONSTRAINTS)${mainPartitions.tablespace.table}';
+       |            ' (LIKE ${mainPartitions.name.full} INCLUDING DEFAULTS INCLUDING CONSTRAINTS)' ||
+       |            partition_tablespace;
        |          -- creating a constraint allows it to be attached to the parent without any additional checks
        |          EXECUTE 'ALTER TABLE  "${info.schema}".' || quote_ident(partition_name) ||
        |            ' ADD CONSTRAINT ' || quote_ident(partition_name || '_constraint') ||

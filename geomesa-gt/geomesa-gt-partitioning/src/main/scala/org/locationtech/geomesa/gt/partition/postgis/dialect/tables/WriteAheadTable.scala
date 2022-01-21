@@ -34,27 +34,35 @@ object WriteAheadTable extends SqlStatements {
     val dropIndices = info.cols.geoms.map { col =>
       s"""DROP INDEX IF EXISTS "spatial_${info.tables.view.name.raw}_${col.raw.toLowerCase(Locale.US)}";"""
     }
-    val move = if (table.tablespace.table.isEmpty) { Seq.empty } else {
-      Seq(s"ALTER TABLE ${table.name.full} SET${table.tablespace.table};")
+    val move = table.tablespace.toSeq.map { ts =>
+      s"""ALTER TABLE ${table.name.full} SET TABLESPACE "$ts";"""
+    }
+    val (tableTs, indexTs) = table.tablespace match {
+      case None => ("", "")
+      case Some(ts) => (s""" TABLESPACE "$ts"""", s""" USING INDEX TABLESPACE "$ts"""")
     }
     val child =
       s"""CREATE TABLE IF NOT EXISTS $partition (
-         |  CONSTRAINT "${table.name.raw}_000_pkey" PRIMARY KEY (fid, ${info.cols.dtg.name})${table.tablespace.index}
-         |) INHERITS (${table.name.full})${table.storage}${table.tablespace.table};""".stripMargin
+         |  CONSTRAINT "${table.name.raw}_000_pkey" PRIMARY KEY (fid, ${info.cols.dtg.name})$indexTs
+         |) INHERITS (${table.name.full})${table.storage}$tableTs;""".stripMargin
     val dtgIndex =
       s"""CREATE INDEX IF NOT EXISTS "${table.name.raw}_${info.cols.dtg.raw}_000"
-         |  ON $partition (${info.cols.dtg.name})${table.tablespace.table};""".stripMargin
+         |  ON $partition (${info.cols.dtg.name})$tableTs;""".stripMargin
     val geomIndices = info.cols.geoms.map { col =>
       s"""CREATE INDEX IF NOT EXISTS "spatial_${table.name.raw}_${col.raw.toLowerCase(Locale.US)}_000"
-         |  ON $partition USING gist(${col.name})${table.tablespace.table};""".stripMargin
+         |  ON $partition USING gist(${col.name})$tableTs;""".stripMargin
     }
     val indices = info.cols.indexed.map { col =>
       s"""CREATE INDEX IF NOT EXISTS "${table.name.raw}_${col.raw}_000"
-         |  ON $partition (${col.name})${table.tablespace.table};""".stripMargin
+         |  ON $partition (${col.name})$tableTs;""".stripMargin
     }
     Seq(seq, rename) ++ dropIndices ++ move ++ Seq(child, dtgIndex) ++ geomIndices ++ indices
   }
 
-  override protected def dropStatements(info: TypeInfo): Seq[String] =
-    Seq(s"DROP TABLE IF EXISTS ${info.tables.writeAhead.name.full};") // note: actually gets dropped by jdbc store
+  override protected def dropStatements(info: TypeInfo): Seq[String] = {
+    Seq(
+      s"DROP TABLE IF EXISTS ${info.tables.writeAhead.name.full};", // note: actually gets dropped by jdbc store
+      s"""DROP SEQUENCE IF EXISTS "${info.tables.writeAhead.name.raw}_seq";"""
+    )
+  }
 }

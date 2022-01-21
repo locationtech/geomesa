@@ -16,10 +16,10 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.triggers.{DeleteTrigger, InsertTrigger, UpdateTrigger, WriteAheadTrigger}
 import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 
 import java.sql.{Connection, DatabaseMetaData}
-import scala.collection.mutable.ArrayBuffer
 
 class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(store) with StrictLogging {
 
@@ -35,11 +35,11 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 
   // order of calls during remove schema:
   //  preDropTable
-  //  "DROP TABLE" + encodeTableName
+  //  "DROP TABLE " + encodeTableName
   //  postDropTable
 
   // state for checking when we want to use the write_ahead table in place of the main view
-  private val replaceTableName = new ThreadLocal[Boolean]() {
+  private val dropping = new ThreadLocal[Boolean]() {
     override def initialValue(): Boolean = false
   }
 
@@ -47,8 +47,15 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   override def getDesiredTablesType: Array[String] = Array("VIEW")
 
   override def encodeTableName(raw: String, sql: StringBuffer): Unit = {
-    sql.append(s""""${if (replaceTableName.get) { raw + WriteAheadTableSuffix } else { raw }}"""")
-    replaceTableName.remove()
+    sql.append('"').append(raw)
+    if (dropping.get) {
+      // redirect from the view as DROP TABLE is hard-coded by the JDBC data store,
+      // and cascade the drop to delete any write ahead partitions
+      sql.append(WriteAheadTableSuffix).append('"').append(" CASCADE")
+      dropping.remove()
+    } else {
+      sql.append('"')
+    }
   }
 
   override def encodePrimaryKey(column: String, sql: StringBuffer): Unit = {
@@ -64,39 +71,15 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 
     implicit val ex: ExecutionContext = new ExecutionContext(cx)
     try {
-      val commands = ArrayBuffer.empty[Sql]
-      commands += WriteAheadTable
-      commands += WriteAheadTrigger
-      commands += PartitionTables
-      commands += MainView
-      commands += InsertTrigger
-      commands += UpdateTrigger
-      commands += DeleteTrigger
-      commands += PrimaryKeyTable
-      commands += AnalyzeQueueTable
-      commands += SortQueueTable
-      commands += TruncateToTenMinutes
-      commands += TruncateToPartition
-      commands += RollWriteAheadLog
-      commands += PartitionWriteAheadLog
-      commands += MergeWriteAheadPartitions
-      if (info.partitions.maxPartitions.isDefined) {
-        commands += DropAgedOffPartitions
-      }
-      commands += PartitionMaintenance
-      commands += AnalyzePartitions
-      commands += PartitionSort
-      commands += LogCleaner
-
-      commands.foreach(_.create(info))
+      PartitionedPostgisDialect.Commands.foreach(_.create(info))
     } finally {
       ex.close()
     }
   }
 
   /**
-   * Re-create the PLGP/SQL functions and procedures associated with a feature type. This can be used
-   * to 'upgrade in place' if the functions are changed.
+   * Re-create the PLPG/SQL procedures associated with a feature type. This can be used
+   * to 'upgrade in place' if the code is changed.
    *
    * @param schemaName database schema, e.g. "public"
    * @param sft feature type
@@ -106,20 +89,11 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
     val info = TypeInfo(schemaName, sft)
     implicit val ex: ExecutionContext = new ExecutionContext(cx)
     try {
-      val commands = ArrayBuffer.empty[Sql]
-      commands += TruncateToTenMinutes
-      commands += TruncateToPartition
-      commands += RollWriteAheadLog
-      commands += PartitionWriteAheadLog
-      commands += MergeWriteAheadPartitions
-      if (info.partitions.maxPartitions.isDefined) {
-        commands += DropAgedOffPartitions
+      val commands = PartitionedPostgisDialect.Commands.filter {
+        case _: SqlProcedure => true
+        case _               => false
       }
-      commands += PartitionMaintenance
-      commands += AnalyzePartitions
-      commands += PartitionSort
-      commands += LogCleaner
-      commands.foreach(_.drop(info))
+      commands.reverse.foreach(_.drop(info))
       commands.foreach(_.create(info))
     } finally {
       ex.close()
@@ -133,39 +107,74 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
       cx: Connection): Unit = {
     // normally views get set to read-only, override that here since we use triggers to delegate writes
     sft.getUserData.remove(JDBCDataStore.JDBC_READ_ONLY)
+
+    // populate user data
+    val sql = s"""select key, value from "$schemaName".${UserDataTable.TableName} where type_name = ?"""
+    WithClose(cx.prepareStatement(sql)) { statement =>
+      statement.setString(1, sft.getTypeName)
+      WithClose(statement.executeQuery()) { rs =>
+        while (rs.next()) {
+          sft.getUserData.put(rs.getString(1), rs.getString(2))
+        }
+      }
+    }
   }
 
   override def preDropTable(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit = {
-    // due to the JDBCDataStore hard-coding "DROP TABLE" we have to redirect it away from the main view
-    replaceTableName.set(true)
+    // due to the JDBCDataStore hard-coding "DROP TABLE" we have to redirect it away from the main view,
+    // and we can't drop the write ahead table so that it has something to drop
+    dropping.set(true)
     val info = TypeInfo(schemaName, sft)
 
     implicit val ex: ExecutionContext = new ExecutionContext(cx)
     try {
-      Seq(
-        PartitionMaintenance,
-        PartitionSort,
-        LogCleaner,
-        PrimaryKeyTable,
-        MainView,
-        InsertTrigger,
-        UpdateTrigger,
-        DeleteTrigger,
-        PartitionTables
-      ).foreach(_.drop(info))
+      PartitionedPostgisDialect.Commands.reverse.filter(_ != WriteAheadTable).foreach(_.drop(info))
     } finally {
       ex.close()
     }
   }
 
   override def postDropTable(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit = {
-    val tables = Tables(sft, schemaName)
+    val info = TypeInfo(schemaName, sft)
+
+    implicit val ex: ExecutionContext = new ExecutionContext(cx)
+    try {
+      WriteAheadTable.drop(info) // drop the write ahead name sequence
+    } finally {
+      ex.close()
+    }
+
     // rename the sft so that configuration is applied to the write ahead table
-    super.postDropTable(schemaName, SimpleFeatureTypes.renameSft(sft, tables.writeAhead.name.raw), cx)
+    super.postDropTable(schemaName, SimpleFeatureTypes.renameSft(sft, info.tables.writeAhead.name.raw), cx)
   }
 }
 
 object PartitionedPostgisDialect {
+
+  private val Commands: Seq[Sql] = Seq(
+    WriteAheadTable,
+    WriteAheadTrigger,
+    PartitionTables,
+    MainView,
+    InsertTrigger,
+    UpdateTrigger,
+    DeleteTrigger,
+    PrimaryKeyTable,
+    PartitionTablespacesTable,
+    AnalyzeQueueTable,
+    SortQueueTable,
+    UserDataTable,
+    TruncateToTenMinutes,
+    TruncateToPartition,
+    RollWriteAheadLog,
+    PartitionWriteAheadLog,
+    MergeWriteAheadPartitions,
+    DropAgedOffPartitions,
+    PartitionMaintenance,
+    AnalyzePartitions,
+    PartitionSort,
+    LogCleaner
+  )
 
   object Config extends Conversions {
 

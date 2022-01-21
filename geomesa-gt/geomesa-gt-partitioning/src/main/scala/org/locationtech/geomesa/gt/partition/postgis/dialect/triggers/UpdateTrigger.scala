@@ -12,11 +12,16 @@ package triggers
 /**
  * Trigger to delegate updates from the main view to the sub tables
  */
-object UpdateTrigger extends SqlFunction {
+object UpdateTrigger extends SqlTriggerFunction {
 
   override def name(info: TypeInfo): String = s"update_to_${info.name}"
 
-  override protected def createStatements(info: TypeInfo): Seq[String] = Seq(function(info)) ++ trigger(info)
+  override protected def table(info: TypeInfo): TableName = info.tables.view.name
+
+  override protected def action: String = "INSTEAD OF UPDATE"
+
+  override protected def createStatements(info: TypeInfo): Seq[String] =
+    Seq(function(info)) ++ super.createStatements(info)
 
   private def function(info: TypeInfo): String = {
     val updateFields = info.cols.all.map(c => s"${c.name} = NEW.${c.name}").mkString(",")
@@ -48,16 +53,5 @@ object UpdateTrigger extends SqlFunction {
        |  $$BODY$$
        |LANGUAGE plpgsql VOLATILE
        |COST 100;""".stripMargin
-  }
-
-  // note: trigger gets automatically dropped when main view is dropped
-  private def trigger(info: TypeInfo): Seq[String] = {
-    val trigger = s"${name(info)}_trigger"
-    val drop = s"""DROP TRIGGER IF EXISTS "$trigger" ON ${info.tables.view.name.full};"""
-    val create =
-      s"""CREATE TRIGGER "$trigger"
-         |  INSTEAD OF UPDATE ON ${info.tables.view.name.full}
-         |  FOR EACH ROW EXECUTE PROCEDURE "${name(info)}"();""".stripMargin
-    Seq(drop, create)
   }
 }

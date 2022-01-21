@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
-import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.WriteAheadTable
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, WriteAheadTable}
 
 import java.util.Locale
 
@@ -37,8 +37,10 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |  $$BODY$$
        |    DECLARE
        |      seq_val smallint;
-       |      cur_partition text;  -- rename of the _writes table
-       |      next_partition text; -- next partition that will be created from the _writes table
+       |      cur_partition text;        -- rename of the _writes table
+       |      next_partition text;       -- next partition that will be created from the _writes table
+       |      partition_tablespace text; -- table space command
+       |      index_space text;          -- index table space command
        |    BEGIN
        |
        |      -- get the required locks up front to avoid deadlocks with inserts
@@ -52,25 +54,34 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |        -- format the table name to be 3 digits, with leading zeros as needed
        |        cur_partition := lpad((seq_val - 1)::text, 3, '0');
        |        next_partition := lpad(seq_val::text, 3, '0');
+       |        SELECT table_space INTO partition_tablespace FROM "${info.schema}".${PartitionTablespacesTable.TableName}
+       |          WHERE type_name = '${info.name}' AND table_type = '$WriteAheadTableSuffix';
+       |        IF partition_tablespace IS NULL THEN
+       |          partition_tablespace := '';
+       |          index_space := '';
+       |        ELSE
+       |          partition_tablespace := ' TABLESPACE ' || quote_ident(partition_tablespace);
+       |          index_space := ' USING INDEX' || partition_tablespace;
+       |        END IF;
        |
        |        -- requires ACCESS EXCLUSIVE
        |        EXECUTE 'ALTER TABLE $writePartition RENAME TO ' || quote_ident('${table.name.raw}_' || cur_partition);
        |        -- requires SHARE UPDATE EXCLUSIVE
        |        EXECUTE 'CREATE TABLE IF NOT EXISTS $writePartition (' ||
        |          ' CONSTRAINT ' || quote_ident('${table.name.raw}_pkey_' || next_partition) ||
-       |          ' PRIMARY KEY (fid, ${info.cols.dtg.name})${table.tablespace.index})' ||
-       |          ' INHERITS (${table.name.full})${table.storage}${table.tablespace.table}';
+       |          ' PRIMARY KEY (fid, ${info.cols.dtg.name})' || index_space || ')' ||
+       |          ' INHERITS (${table.name.full})${table.storage}' || partition_tablespace;
        |        EXECUTE 'CREATE INDEX IF NOT EXISTS ' ||
        |          quote_ident('${table.name.raw}_${info.cols.dtg.raw}_' || next_partition) ||
-       |          ' ON $writePartition (${info.cols.dtg.name})${table.tablespace.table}';
+       |          ' ON $writePartition (${info.cols.dtg.name})' || partition_tablespace;
        |${info.cols.geoms.map { col =>
     s"""        EXECUTE 'CREATE INDEX IF NOT EXISTS ' ||
        |          quote_ident('spatial_${table.name.raw}_${col.raw.toLowerCase(Locale.US)}_' || next_partition) ||
-       |          ' ON $writePartition USING gist(${col.name})${table.tablespace.table}';""".stripMargin }.mkString("\n") }
+       |          ' ON $writePartition USING gist(${col.name})' || partition_tablespace;""".stripMargin }.mkString("\n") }
        |${info.cols.indexed.map { col =>
     s"""        EXECUTE 'CREATE INDEX IF NOT EXISTS ' ||
        |          quote_ident('${table.name.raw}_${col.raw}_' || next_partition) ||
-       |          ' ON $writePartition (${col.name})${table.tablespace.table}';""".stripMargin }.mkString("\n") }
+       |          ' ON $writePartition (${col.name})' || partition_tablespace;""".stripMargin }.mkString("\n") }
        |
        |        COMMIT; -- releases our locks
        |

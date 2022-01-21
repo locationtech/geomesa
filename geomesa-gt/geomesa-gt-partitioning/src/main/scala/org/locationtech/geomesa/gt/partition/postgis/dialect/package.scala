@@ -154,12 +154,12 @@ package object dialect {
    * @param tablespace table space
    * @param storage storage opts (auto vacuum)
    */
-  case class TableConfig(name: TableName, tablespace: TableSpace, storage: String)
+  case class TableConfig(name: TableName, tablespace: Option[String], storage: String)
 
   object TableConfig {
     def apply(schema: String, name: String, tablespace: Option[String], vacuum: Boolean = true): TableConfig = {
       val storage = if (vacuum) { "" } else { " WITH (autovacuum_enabled = false)" }
-      TableConfig(TableName(schema, name), TableSpace(tablespace), storage)
+      TableConfig(TableName(schema, name), tablespace.filter(_.nonEmpty), storage)
     }
   }
 
@@ -174,51 +174,6 @@ package object dialect {
 
   object TableName {
     def apply(schema: String, raw: String): TableName = TableName(s""""$schema"."$raw"""", s""""$raw"""", raw)
-  }
-
-  sealed trait TableSpace {
-
-    /**
-     * Name of the table space
-     *
-     * @return
-     */
-    def name: String
-
-    /**
-     * Sql to specify the tablespace when creating a table
-     *
-     * @return
-     */
-    def table: String
-
-    /**
-     * Sql to specify the table space when creating an index
-     *
-     * @return
-     */
-    def index: String
-  }
-
-  object TableSpace {
-
-    def apply(tablespace: Option[String]): TableSpace = {
-      tablespace match {
-        case None => DefaultTableSpace
-        case Some(t) => NamedTableSpace(t)
-      }
-    }
-
-    case object DefaultTableSpace extends TableSpace {
-      override val name: String = ""
-      override val table: String = ""
-      override val index: String = ""
-    }
-
-    case class NamedTableSpace(name: String) extends TableSpace {
-      override val table: String = s" TABLESPACE $name"
-      override val index: String = s" USING INDEX TABLESPACE $name"
-    }
   }
 
   /**
@@ -371,6 +326,31 @@ package object dialect {
   }
 
   /**
+   * A table trigger with an associated function definition
+   */
+  trait SqlTriggerFunction extends SqlFunction {
+
+    def triggerName(info: TypeInfo): String = s"${name(info)}_trigger"
+
+    protected def table(info: TypeInfo): TableName
+
+    protected def action: String
+
+    override protected def createStatements(info: TypeInfo): Seq[String] = {
+      // there is no "create or replace" for triggers to we have to drop it first
+      val drop = s"""DROP TRIGGER IF EXISTS "${triggerName(info)}" ON ${table(info).full};"""
+      val create =
+        s"""CREATE TRIGGER "${triggerName(info)}"
+           |  $action ON ${table(info).full}
+           |  FOR EACH ROW EXECUTE PROCEDURE "${name(info)}"();""".stripMargin
+      Seq(drop, create)
+    }
+
+    override protected def dropStatements(info: TypeInfo): Seq[String] =
+      Seq(s"""DROP TRIGGER IF EXISTS "${triggerName(info)}" ON ${table(info).full};""") ++ super.dropStatements(info)
+  }
+
+  /**
    * A procedure definition
    */
   trait SqlProcedure extends SqlStatements {
@@ -422,5 +402,4 @@ package object dialect {
     abstract override protected def dropStatements(info: TypeInfo): Seq[String] =
       Seq(s"SELECT cron.unschedule('${jobName(info)}');") ++ super.dropStatements(info)
   }
-
 }

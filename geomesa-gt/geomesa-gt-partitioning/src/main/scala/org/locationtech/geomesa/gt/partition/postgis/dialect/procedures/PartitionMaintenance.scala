@@ -36,9 +36,6 @@ object PartitionMaintenance extends SqlProcedure with CronSchedule {
   override protected def invocation(info: TypeInfo): String = s"""CALL "${name(info)}"()"""
 
   private def proc(info: TypeInfo): String = {
-    val callPrune = if (info.partitions.maxPartitions.isEmpty) { "" }  else {
-      s"""CALL "${DropAgedOffPartitions.name(info)}"(cur_time);"""
-    }
     s"""CREATE OR REPLACE PROCEDURE "${name(info)}"() LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
@@ -48,7 +45,7 @@ object PartitionMaintenance extends SqlProcedure with CronSchedule {
        |      cur_time := now();
        |      CALL "${PartitionWriteAheadLog.name(info)}"(cur_time);
        |      CALL "${MergeWriteAheadPartitions.name(info)}"(cur_time);
-       |      $callPrune
+       |      CALL "${DropAgedOffPartitions.name(info)}"(cur_time);
        |    END;
        |  $$BODY$$;
        |""".stripMargin

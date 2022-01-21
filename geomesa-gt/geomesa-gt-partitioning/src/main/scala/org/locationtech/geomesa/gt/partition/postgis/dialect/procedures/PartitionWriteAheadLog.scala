@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
-import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.WriteAheadTable
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, WriteAheadTable}
 
 /**
  * Partitions the write ahead table into the recent and/or main partition tables
@@ -86,14 +86,28 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              partition_start := truncate_to_partition(min_dtg, $hours);
        |              partition_end := partition_start + INTERVAL '$hours HOURS';
        |              partition_parent := '${mainPartitions.name.raw}';
-       |              partition_tablespace := '${mainPartitions.storage}${mainPartitions.tablespace.table}';
        |              partition_name_format := 'YYYY_MM_DD_HH24';
+       |              SELECT table_space INTO partition_tablespace FROM "${info.schema}".${PartitionTablespacesTable.TableName}
+       |                WHERE type_name = '${info.name}' AND table_type = '$PartitionedTableSuffix';
+       |              IF partition_tablespace IS NULL THEN
+       |                partition_tablespace := '${mainPartitions.storage}';
+       |              ELSE
+       |                partition_tablespace := '${mainPartitions.storage} TABLESPACE ' ||
+       |                  quote_ident(partition_tablespace);
+       |              END IF;
        |            ELSE
        |              partition_start := truncate_to_ten_minutes(min_dtg);
        |              partition_end := partition_start + INTERVAL '10 MINUTES';
        |              partition_parent := '${writeAheadPartitions.name.raw}';
-       |              partition_tablespace := '${writeAheadPartitions.storage}${writeAheadPartitions.tablespace.table}';
        |              partition_name_format := 'YYYY_MM_DD_HH24_MI';
+       |              SELECT table_space INTO partition_tablespace FROM "${info.schema}".${PartitionTablespacesTable.TableName}
+       |                WHERE type_name = '${info.name}' AND table_type = '$PartitionedWriteAheadTableSuffix';
+       |              IF partition_tablespace IS NULL THEN
+       |                partition_tablespace := '${writeAheadPartitions.storage}';
+       |              ELSE
+       |                partition_tablespace := '${writeAheadPartitions.storage} TABLESPACE ' ||
+       |                  quote_ident(partition_tablespace);
+       |              END IF;
        |            END IF;
        |
        |            partition_name := partition_parent || '_' || to_char(partition_start, partition_name_format);
