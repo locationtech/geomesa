@@ -27,6 +27,7 @@ User Manual
    redis/index
    filesystem/index
    kudu/index
+   postgis/index
    lambda/index
    ds_views
    geojson

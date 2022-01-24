@@ -37,6 +37,10 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-gt-tools_${scala.binary.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-gt-partitioning_${scala.binary.version}</artifactId>
+        </dependency>
     </dependencies>
 
     <profiles>

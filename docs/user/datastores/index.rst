@@ -42,6 +42,7 @@ Specific back-end implementations are described in the following chapters:
  * :doc:`/user/redis/index`
  * :doc:`/user/filesystem/index`
  * :doc:`/user/kudu/index`
+ * :doc:`/user/postgis/index`
  * :doc:`/user/lambda/index`
 
 Additional information on using GeoTools can be found in the
