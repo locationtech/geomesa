@@ -24,8 +24,7 @@ object WriteAheadTable extends SqlStatements {
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     val table = info.tables.writeAhead
     val partition = writesPartition(info).qualified
-    val seq =
-      s"CREATE SEQUENCE IF NOT EXISTS ${escape(table.name.raw, "seq")} AS smallint MINVALUE 1 MAXVALUE 999 CYCLE;"
+    val seq = s"CREATE SEQUENCE IF NOT EXISTS ${escape(table.name.raw, "seq")} AS smallint MINVALUE 1 MAXVALUE 999 CYCLE;"
     // rename the table created by the JdbcDataStore to be the write ahead table
     val rename = s"ALTER TABLE ${info.tables.view.name.qualified} RENAME TO ${table.name.quoted};"
     // drop the index created by the JDBC data store on the parent table, as all the data is in the inherited table

@@ -517,26 +517,43 @@ package object dialect {
    */
   trait SqlTriggerFunction extends SqlFunction {
 
+    /**
+     * Name of the trigger
+     *
+     * @param info type info
+     * @return
+     */
     def triggerName(info: TypeInfo): TriggerName = TriggerName(s"${name(info).raw}_trigger")
 
+    /**
+     * Table that the trigger is applied to
+     *
+     * @param info type info
+     * @return
+     */
     protected def table(info: TypeInfo): TableIdentifier
 
+    /**
+     * Triggered action (e.g. "INSTEAD OF INSERT", "BEFORE INSERT", "INSTEAD OF DELETE", etc)
+     *
+     * @return
+     */
     protected def action: String
 
     override protected def createStatements(info: TypeInfo): Seq[String] = {
-      // there is no "create or replace" for triggers to we have to drop it first
-      val drop = s"DROP TRIGGER IF EXISTS ${triggerName(info).quoted} ON ${table(info).qualified};"
+      // there is no "create or replace" for triggers so we have to drop it first
       val create =
         s"""CREATE TRIGGER ${triggerName(info).quoted}
            |  $action ON ${table(info).qualified}
            |  FOR EACH ROW EXECUTE PROCEDURE ${name(info).quoted}();""".stripMargin
-      Seq(drop, create)
+      Seq(dropTrigger(info), create)
     }
 
-    override protected def dropStatements(info: TypeInfo): Seq[String] = {
-      Seq(s"DROP TRIGGER IF EXISTS ${triggerName(info).quoted} ON ${table(info).qualified};") ++
-          super.dropStatements(info)
-    }
+    override protected def dropStatements(info: TypeInfo): Seq[String] =
+      Seq(dropTrigger(info)) ++ super.dropStatements(info)
+
+    private def dropTrigger(info: TypeInfo): String =
+      s"DROP TRIGGER IF EXISTS ${triggerName(info).quoted} ON ${table(info).qualified};"
   }
 
   /**

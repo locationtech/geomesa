@@ -18,11 +18,11 @@ import java.util.Locale
  */
 object PrimaryKeyTable extends Sql {
 
-  val Name: String = MetadataTablePrimaryKeyFinder.DEFAULT_TABLE.toLowerCase(Locale.US)
+  val Name: TableName = TableName(MetadataTablePrimaryKeyFinder.DEFAULT_TABLE.toLowerCase(Locale.US))
 
   override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
     // we need to define the primary key separately since the main view can't have any primary key columns
-    val table = s"${info.schema.quoted}.$Name"
+    val table = s"${info.schema.quoted}.${Name.quoted}"
     val create =
       s"""CREATE TABLE IF NOT EXISTS $table (
          |  table_schema character varying,
@@ -40,10 +40,10 @@ object PrimaryKeyTable extends Sql {
   }
 
   override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
-    val rs = ex.cx.getMetaData.getTables(null, info.schema.raw, Name, null)
+    val rs = ex.cx.getMetaData.getTables(null, info.schema.raw, Name.raw, null)
     val exists = try { rs.next() } finally { rs.close() }
     if (exists) {
-      val entry = s"DELETE FROM ${info.schema.quoted}.$Name WHERE table_schema = ? AND table_name = ?;"
+      val entry = s"DELETE FROM ${info.schema.quoted}.${Name.quoted} WHERE table_schema = ? AND table_name = ?;"
       ex.executeUpdate(entry, Seq(info.schema.raw, info.tables.view.name.raw))
     }
   }
