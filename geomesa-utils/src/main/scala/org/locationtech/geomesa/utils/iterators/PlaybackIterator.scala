@@ -130,8 +130,8 @@ class PlaybackIterator(ds: DataStore,
             )
             ff.during(dtgProp, ff.literal(period))
           }
-          val query = new Query(typeName, filter.map(ff.and(_, during)).getOrElse(during), transforms)
-          query.setSortBy(sort)
+          val query = new Query(typeName, filter.map(ff.and(_, during)).getOrElse(during), transforms: _*)
+          query.setSortBy(sort: _*)
           // prevent ContentDataStore from sorting on disk
           query.getHints.put(Hints.MAX_MEMORY_SORT, java.lang.Integer.MAX_VALUE)
 

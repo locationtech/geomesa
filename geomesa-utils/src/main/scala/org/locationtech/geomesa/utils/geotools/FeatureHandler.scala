@@ -11,8 +11,9 @@ package org.locationtech.geomesa.utils.geotools
 import java.io.{BufferedWriter, File, FileWriter}
 
 import org.locationtech.jts.geom.Geometry
-import org.geotools.data.{Base64, DataUtilities}
+import org.geotools.data.DataUtilities
 import org.geotools.feature.FeatureIterator
+import org.geotools.util.Base64
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.identity.FeatureId

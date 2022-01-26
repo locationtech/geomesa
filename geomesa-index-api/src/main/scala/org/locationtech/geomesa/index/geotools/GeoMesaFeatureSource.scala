@@ -12,7 +12,6 @@ import java.awt.RenderingHints.Key
 import java.net.URI
 import java.util
 import java.util.Collections
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
@@ -22,7 +21,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.conf.QueryHints.{COST_EVALUATION, QUERY_INDEX}
 import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCountMaxFeatures
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.{DelegatingResourceInfo, GeoMesaQueryCapabilities}
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.{CachingFeatureSource, DelegatingResourceInfo, GeoMesaQueryCapabilities}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -131,7 +130,7 @@ object GeoMesaFeatureSource {
     override def isOffsetSupported = false
     override def isReliableFIDSupported = true
     override def isUseProvidedFIDSupported = true
-    override def supportsSorting(sortAttributes: Array[SortBy]) = true
+    override def supportsSorting(sortAttributes: SortBy*): Boolean = true
   }
 
   trait CachingFeatureSource extends GeoMesaFeatureSource {
@@ -153,7 +152,7 @@ object GeoMesaFeatureSource {
         featureCache.get(query)
       } else {
         // Uses mergesort
-        new SortedSimpleFeatureCollection(featureCache.get(query), query.getSortBy)
+        new SortedSimpleFeatureCollection(featureCache.get(query), query.getSortBy: _*)
       }
     }
 

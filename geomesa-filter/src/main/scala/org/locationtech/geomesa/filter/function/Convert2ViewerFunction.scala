@@ -13,10 +13,10 @@ import java.time.temporal.{ChronoField, Temporal}
 import java.util.Date
 
 import org.locationtech.jts.geom.{Geometry, Point}
-import org.geotools.data.Base64
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl._
+import org.geotools.util.Base64
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteArrayCallback
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.opengis.temporal.Instant
