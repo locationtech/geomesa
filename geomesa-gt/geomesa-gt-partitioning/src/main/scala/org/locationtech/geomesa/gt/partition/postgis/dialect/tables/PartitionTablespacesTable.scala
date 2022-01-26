@@ -14,34 +14,33 @@ package tables
  */
 object PartitionTablespacesTable extends Sql {
 
-  val TableName = "partition_tablespaces"
+  val Name: TableName = TableName("partition_tablespaces")
 
   override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
+    val table = s"${info.schema.quoted}.${Name.quoted}"
     val create =
-      s"""CREATE TABLE IF NOT EXISTS "${info.schema}".$TableName (
+      s"""CREATE TABLE IF NOT EXISTS $table (
          |  type_name text not null,
          |  table_type text not null,
          |  table_space text
          |);""".stripMargin
     ex.execute(create)
 
-    val insertSql =
-      s"""INSERT INTO "${info.schema}".$TableName (type_name, table_type, table_space) VALUES (?, ?, ?);"""
+    val insertSql = s"INSERT INTO $table (type_name, table_type, table_space) VALUES (?, ?, ?);"
 
     def insert(suffix: String, table: TableConfig): Unit =
-      ex.executeUpdate(insertSql, Seq(info.name, suffix, table.tablespace.orNull))
+      ex.executeUpdate(insertSql, Seq(info.typeName, suffix, table.tablespace.map(_.raw).orNull))
 
-    insert(WriteAheadTableSuffix, info.tables.writeAhead)
-    insert(PartitionedWriteAheadTableSuffix, info.tables.writeAheadPartitions)
-    insert(PartitionedTableSuffix, info.tables.mainPartitions)
+    insert(WriteAheadTableSuffix.raw, info.tables.writeAhead)
+    insert(PartitionedWriteAheadTableSuffix.raw, info.tables.writeAheadPartitions)
+    insert(PartitionedTableSuffix.raw, info.tables.mainPartitions)
   }
 
   override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
-    val rs = ex.cx.getMetaData.getTables(null, info.schema, TableName, null)
+    val rs = ex.cx.getMetaData.getTables(null, info.schema.raw, Name.raw, null)
     val exists = try { rs.next() } finally { rs.close() }
     if (exists) {
-      val entry = s"""DELETE FROM "${info.schema}"."$TableName" WHERE type_name = ?;"""
-      ex.executeUpdate(entry, Seq(info.name))
+      ex.executeUpdate(s"DELETE FROM ${info.schema.quoted}.${Name.quoted} WHERE type_name = ?;", Seq(info.typeName))
     }
   }
 }

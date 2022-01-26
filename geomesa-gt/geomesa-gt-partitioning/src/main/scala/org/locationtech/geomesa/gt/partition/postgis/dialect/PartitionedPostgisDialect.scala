@@ -47,14 +47,13 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   override def getDesiredTablesType: Array[String] = Array("VIEW")
 
   override def encodeTableName(raw: String, sql: StringBuffer): Unit = {
-    sql.append('"').append(raw)
     if (dropping.get) {
       // redirect from the view as DROP TABLE is hard-coded by the JDBC data store,
       // and cascade the drop to delete any write ahead partitions
-      sql.append(WriteAheadTableSuffix).append('"').append(" CASCADE")
+      sql.append(escape(raw + WriteAheadTableSuffix.raw)).append(" CASCADE")
       dropping.remove()
     } else {
-      sql.append('"')
+      sql.append(escape(raw))
     }
   }
 
@@ -109,7 +108,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
     sft.getUserData.remove(JDBCDataStore.JDBC_READ_ONLY)
 
     // populate user data
-    val sql = s"""select key, value from "$schemaName".${UserDataTable.TableName} where type_name = ?"""
+    val sql = s"select key, value from ${escape(schemaName)}.${UserDataTable.Name.quoted} where type_name = ?"
     WithClose(cx.prepareStatement(sql)) { statement =>
       statement.setString(1, sft.getTypeName)
       WithClose(statement.executeQuery()) { rs =>

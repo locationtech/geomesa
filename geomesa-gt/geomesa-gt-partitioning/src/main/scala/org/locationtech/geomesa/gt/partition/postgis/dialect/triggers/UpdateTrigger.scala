@@ -14,9 +14,9 @@ package triggers
  */
 object UpdateTrigger extends SqlTriggerFunction {
 
-  override def name(info: TypeInfo): String = s"update_to_${info.name}"
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"update_to_${info.typeName}")
 
-  override protected def table(info: TypeInfo): TableName = info.tables.view.name
+  override protected def table(info: TypeInfo): TableIdentifier = info.tables.view.name
 
   override protected def action: String = "INSTEAD OF UPDATE"
 
@@ -24,25 +24,25 @@ object UpdateTrigger extends SqlTriggerFunction {
     Seq(function(info)) ++ super.createStatements(info)
 
   private def function(info: TypeInfo): String = {
-    val updateFields = info.cols.all.map(c => s"${c.name} = NEW.${c.name}").mkString(",")
-    val where = s"fid = OLD.fid AND ${info.cols.dtg.name} = OLD.${info.cols.dtg.name}"
+    val updateFields = info.cols.all.map(c => s"${c.quoted} = NEW.${c.quoted}").mkString(",")
+    val where = s"fid = OLD.fid AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}"
 
-    s"""CREATE OR REPLACE FUNCTION "${name(info)}"() RETURNS trigger AS
+    s"""CREATE OR REPLACE FUNCTION ${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    DECLARE
        |      del_count integer;
        |    BEGIN
-       |      UPDATE ${info.tables.writeAhead.name.full} SET $updateFields WHERE $where;
+       |      UPDATE ${info.tables.writeAhead.name.qualified} SET $updateFields WHERE $where;
        |      IF NOT FOUND THEN
-       |        DELETE FROM ${info.tables.writeAheadPartitions.name.full} WHERE $where;
+       |        DELETE FROM ${info.tables.writeAheadPartitions.name.qualified} WHERE $where;
        |        GET DIAGNOSTICS del_count := ROW_COUNT;
        |        IF del_count > 0 THEN
-       |          INSERT INTO ${info.tables.writeAhead.name.full} VALUES(NEW.*);
+       |          INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
        |        ELSE
-       |          DELETE FROM ${info.tables.mainPartitions.name.full} WHERE $where;
+       |          DELETE FROM ${info.tables.mainPartitions.name.qualified} WHERE $where;
        |          GET DIAGNOSTICS del_count := ROW_COUNT;
        |          IF del_count > 0 THEN
-       |            INSERT INTO ${info.tables.writeAhead.name.full} VALUES(NEW.*);
+       |            INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
        |          ELSE
        |            RETURN NULL;
        |          END IF;

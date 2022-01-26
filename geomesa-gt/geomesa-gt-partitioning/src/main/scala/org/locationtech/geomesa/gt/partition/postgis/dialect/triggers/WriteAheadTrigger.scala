@@ -16,9 +16,9 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.WriteAheadTa
  */
 object WriteAheadTrigger extends SqlTriggerFunction {
 
-  override def name(info: TypeInfo): String = s"insert_to_wa_writes_${info.name}"
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"insert_to_wa_writes_${info.typeName}")
 
-  override protected def table(info: TypeInfo): TableName = info.tables.writeAhead.name
+  override protected def table(info: TypeInfo): TableIdentifier = info.tables.writeAhead.name
 
   override protected def action: String = "BEFORE INSERT"
 
@@ -26,10 +26,10 @@ object WriteAheadTrigger extends SqlTriggerFunction {
     Seq(function(info)) ++ super.createStatements(info)
 
   private def function(info: TypeInfo): String =
-    s"""CREATE OR REPLACE FUNCTION "${name(info)}"() RETURNS trigger AS
+    s"""CREATE OR REPLACE FUNCTION ${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    BEGIN
-       |      INSERT INTO ${WriteAheadTable.writesPartition(info)} VALUES (NEW.*) ON CONFLICT DO NOTHING;
+       |      INSERT INTO ${WriteAheadTable.writesPartition(info).qualified} VALUES (NEW.*) ON CONFLICT DO NOTHING;
        |      RETURN NULL;
        |    END;
        |  $$BODY$$

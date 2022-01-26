@@ -14,9 +14,9 @@ package triggers
  */
 object DeleteTrigger extends SqlTriggerFunction {
 
-  override def name(info: TypeInfo): String = s"delete_from_${info.name}"
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"delete_from_${info.typeName}")
 
-  override protected def table(info: TypeInfo): TableName = info.tables.view.name
+  override protected def table(info: TypeInfo): TableIdentifier = info.tables.view.name
 
   override protected def action: String = "INSTEAD OF DELETE"
 
@@ -25,9 +25,9 @@ object DeleteTrigger extends SqlTriggerFunction {
 
   private def function(info: TypeInfo): String = {
     def delete(table: TableConfig): String =
-      s"DELETE FROM ${table.name.full} WHERE fid = OLD.fid AND ${info.cols.dtg.name} = OLD.${info.cols.dtg.name}"
+      s"DELETE FROM ${table.name.qualified} WHERE fid = OLD.fid AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}"
 
-    s"""CREATE OR REPLACE FUNCTION "${name(info)}"() RETURNS trigger AS
+    s"""CREATE OR REPLACE FUNCTION ${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    DECLARE
        |      del_count integer;

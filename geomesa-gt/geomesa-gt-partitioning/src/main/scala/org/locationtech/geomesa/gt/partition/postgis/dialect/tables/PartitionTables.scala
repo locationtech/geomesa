@@ -22,29 +22,29 @@ object PartitionTables extends SqlStatements {
     // note: don't include storage opts since these are parent partition tables
     val (tableTs, indexTs) = table.tablespace match {
       case None => ("", "")
-      case Some(ts) => (s""" TABLESPACE "$ts"""", s""" USING INDEX TABLESPACE "$ts"""")
+      case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
     }
     val create =
-      s"""CREATE TABLE IF NOT EXISTS ${table.name.full} (
-         |  LIKE ${info.tables.writeAhead.name.full} INCLUDING DEFAULTS INCLUDING CONSTRAINTS,
-         |  CONSTRAINT "${s"${table.name.raw}_pkey"}" PRIMARY KEY (fid, ${info.cols.dtg.name})$indexTs
-         |) PARTITION BY RANGE(${info.cols.dtg.name})$tableTs;""".stripMargin
+      s"""CREATE TABLE IF NOT EXISTS ${table.name.qualified} (
+         |  LIKE ${info.tables.writeAhead.name.qualified} INCLUDING DEFAULTS INCLUDING CONSTRAINTS,
+         |  CONSTRAINT ${escape(table.name.raw, "pkey")} PRIMARY KEY (fid, ${info.cols.dtg.quoted})$indexTs
+         |) PARTITION BY RANGE(${info.cols.dtg.quoted})$tableTs;""".stripMargin
     // note: brin doesn't support 'include' cols
     val geomIndex =
-      s"""CREATE INDEX IF NOT EXISTS "${table.name.raw}_${info.cols.geom.raw}"
-         |  ON ${table.name.full}
-         |  USING $indexType(${info.cols.geom.name})$tableTs;""".stripMargin
+      s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, info.cols.geom.raw)}
+         |  ON ${table.name.qualified}
+         |  USING $indexType(${info.cols.geom.quoted})$tableTs;""".stripMargin
     val dtgIndex =
-      s"""CREATE INDEX IF NOT EXISTS "${table.name.raw}_${info.cols.dtg.raw}"
-         |  ON ${table.name.full} (${info.cols.dtg.name})$tableTs;""".stripMargin
+      s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, info.cols.dtg.raw)}
+         |  ON ${table.name.qualified} (${info.cols.dtg.quoted})$tableTs;""".stripMargin
     val indices = info.cols.indexed.map { col =>
-      s"""CREATE INDEX IF NOT EXISTS s"${table.name.raw}_${col.raw}"
-         |  ON ${table.name.full} (${col.name})$tableTs;""".stripMargin
+      s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, col.raw)}
+         |  ON ${table.name.qualified} (${col.quoted})$tableTs;""".stripMargin
     }
     Seq(create, geomIndex, dtgIndex) ++ indices
   }
 
   override protected def dropStatements(info: TypeInfo): Seq[String] =
     Seq(info.tables.writeAheadPartitions, info.tables.mainPartitions)
-        .map(table => s"DROP TABLE IF EXISTS ${table.name.full};")
+        .map(table => s"DROP TABLE IF EXISTS ${table.name.qualified};")
 }

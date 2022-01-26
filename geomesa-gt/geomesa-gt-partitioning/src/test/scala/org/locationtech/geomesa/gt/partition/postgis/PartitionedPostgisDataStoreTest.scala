@@ -38,9 +38,9 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
           "pg.partitions.max=2",
-          "pg.partitions.tablespace.wa=wa",
-          "pg.partitions.tablespace.wa-partitions=wa_partition",
-          "pg.partitions.tablespace.main=partition"*/
+          "pg.partitions.tablespace.wa=partition",
+          "pg.partitions.tablespace.wa-partitions=partition",
+          "pg.partitions.tablespace.main=partition",*/
         ).mkString(",")
 
   val methods =

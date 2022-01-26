@@ -14,9 +14,9 @@ package triggers
  */
 object InsertTrigger extends SqlTriggerFunction {
 
-  override def name(info: TypeInfo): String = s"insert_to_${info.name}"
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"insert_to_${info.typeName}")
 
-  override protected def table(info: TypeInfo): TableName = info.tables.view.name
+  override protected def table(info: TypeInfo): TableIdentifier = info.tables.view.name
 
   override protected def action: String = "INSTEAD OF INSERT"
 
@@ -24,10 +24,10 @@ object InsertTrigger extends SqlTriggerFunction {
     Seq(function(info)) ++ super.createStatements(info)
 
   private def function(info: TypeInfo): String =
-    s"""CREATE OR REPLACE FUNCTION "${name(info)}"() RETURNS trigger AS
+    s"""CREATE OR REPLACE FUNCTION ${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    BEGIN
-       |      INSERT INTO ${info.tables.writeAhead.name.full} VALUES(NEW.*);
+       |      INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
        |      RETURN NEW;
        |    END;
        |  $$BODY$$

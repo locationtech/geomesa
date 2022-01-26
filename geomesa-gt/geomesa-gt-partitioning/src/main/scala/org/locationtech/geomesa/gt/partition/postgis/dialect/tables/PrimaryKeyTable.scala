@@ -18,9 +18,11 @@ import java.util.Locale
  */
 object PrimaryKeyTable extends Sql {
 
+  val Name: String = MetadataTablePrimaryKeyFinder.DEFAULT_TABLE.toLowerCase(Locale.US)
+
   override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
     // we need to define the primary key separately since the main view can't have any primary key columns
-    val table = s""""${info.schema}"."${MetadataTablePrimaryKeyFinder.DEFAULT_TABLE.toLowerCase(Locale.US)}""""
+    val table = s"${info.schema.quoted}.$Name"
     val create =
       s"""CREATE TABLE IF NOT EXISTS $table (
          |  table_schema character varying,
@@ -30,20 +32,19 @@ object PrimaryKeyTable extends Sql {
          |  pk_policy character varying,
          |  pk_sequence character varying
          |);""".stripMargin
-    val cleanup = s"""DELETE FROM $table WHERE table_schema = ? AND table_name = ?;"""
-    val entry = s"""INSERT INTO $table(table_schema, table_name, pk_column_idx, pk_column) VALUES (?, ?, ?, ?);"""
+    val cleanup = s"DELETE FROM $table WHERE table_schema = ? AND table_name = ?;"
+    val entry = s"INSERT INTO $table(table_schema, table_name, pk_column_idx, pk_column) VALUES (?, ?, ?, ?);"
     ex.execute(create)
-    ex.executeUpdate(cleanup, Seq(info.schema, info.tables.view.name.raw))
-    ex.executeUpdate(entry, Seq(info.schema, info.tables.view.name.raw, 0, "fid"))
+    ex.executeUpdate(cleanup, Seq(info.schema.raw, info.tables.view.name.raw))
+    ex.executeUpdate(entry, Seq(info.schema.raw, info.tables.view.name.raw, 0, "fid"))
   }
 
   override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
-    val table = MetadataTablePrimaryKeyFinder.DEFAULT_TABLE.toLowerCase(Locale.US)
-    val rs = ex.cx.getMetaData.getTables(null, info.schema, table, null)
+    val rs = ex.cx.getMetaData.getTables(null, info.schema.raw, Name, null)
     val exists = try { rs.next() } finally { rs.close() }
     if (exists) {
-      val entry = s"""DELETE FROM "${info.schema}"."$table" WHERE table_schema = ? AND table_name = ?;"""
-      ex.executeUpdate(entry, Seq(info.tables.schema, info.tables.view.name.raw))
+      val entry = s"DELETE FROM ${info.schema.quoted}.$Name WHERE table_schema = ? AND table_name = ?;"
+      ex.executeUpdate(entry, Seq(info.schema.raw, info.tables.view.name.raw))
     }
   }
 }
