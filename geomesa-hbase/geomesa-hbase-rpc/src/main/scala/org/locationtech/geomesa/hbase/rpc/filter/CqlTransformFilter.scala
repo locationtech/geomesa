@@ -10,7 +10,6 @@ package org.locationtech.geomesa.hbase.rpc.filter
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.Filter.ReturnCode
@@ -20,7 +19,9 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
+import org.locationtech.geomesa.hbase.hbase.HBaseServerSystemProperties
 import org.locationtech.geomesa.hbase.rpc.filter.CqlTransformFilter.DelegateFilter
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.conf.FilterCompatibility
@@ -287,8 +288,12 @@ object CqlTransformFilter extends StrictLogging {
 
       val cqlLength = ByteArrays.readInt(bytes, offset)
       offset += 4
-      val cql = if (cqlLength == 0) { null } else {
-        IteratorCache.filter(sft, spec, new String(bytes, offset, cqlLength,StandardCharsets.UTF_8))
+      val cql = {
+        if (HBaseServerSystemProperties.HRegionFilterCache.toBoolean.get) {
+          IteratorCache.filter(sft, spec, new String(bytes, offset, cqlLength,StandardCharsets.UTF_8))
+        } else {
+          FastFilterFactory.toFilter(sft,new String(bytes,offset,cqlLength,StandardCharsets.UTF_8))
+        }
       }
       offset += cqlLength
 

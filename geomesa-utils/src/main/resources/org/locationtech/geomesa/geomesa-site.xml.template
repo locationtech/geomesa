@@ -342,4 +342,12 @@
         <final>false</final>
     </property>
 
+    <property>
+        <name>geomesa.hbase.filter.cache.enabled</name>
+        <value>true</value>
+        <description>Set the filter for whether HBase Region caches queries, true by default. When true, HRegion caches the filter but it may case the JVM crush by OOM.
+        </description>
+        <final>false</final>
+    </property>
+
 </configuration>
