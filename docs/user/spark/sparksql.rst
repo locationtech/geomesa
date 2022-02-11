@@ -334,6 +334,8 @@ There are several configs to take care of when creating Spark session object:
   The default value of ``spark.geomesa.sedona.udf.prefix`` is ``"sedona_"``. When this option was explicitly set to
   empty string, Spark JTS functions will be overriden by functions from Apache Sedona with the same name.
 
+- ``SQLTypes.init`` must be called to register UDFs and UDAFs provided by Apache Sedona.
+
 Geometric predicate function calls to Apache Sedona functions can be pushed down to DataStore by GeoMesa SparkSQL:
 
 .. code-block:: scala
