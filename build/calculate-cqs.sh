@@ -6,7 +6,7 @@
 # 3. Any direct test scope dependencies require a single 'test' CQ
 # 4. Any transitive provided or test dependencies can be disregarded for IP purposes
 
-LC_ALL=C # ensure stable sort order across different locales
+export LC_ALL=C # ensure stable sort order across different locales
 
 rm build/cqs.tsv 2>/dev/null
 mvn dependency:tree -Dstyle.color=never > build/deps-raw

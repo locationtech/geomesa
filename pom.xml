@@ -109,7 +109,7 @@
         <kafka.jopt.version>5.0.4</kafka.jopt.version> <!-- corresponding versions: 5.0.4, 5.0.4, 4.9, 3.2 -->
         <confluent.version>5.1.0</confluent.version>
         <confluent.avro.version>1.8.2</confluent.avro.version>
-        <sedona.version>1.0.1-incubating</sedona.version>
+        <sedona.version>1.1.1-incubating</sedona.version>
         <jts2geojson.version>0.16.1</jts2geojson.version> <!-- for testing Apache Sedona integration -->
 
         <slf4j.version>1.7.25</slf4j.version> <!-- 1.7.x is for hadoop 2 and accumulo 1.5.x -->
