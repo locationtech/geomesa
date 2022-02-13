@@ -146,22 +146,22 @@ class SparkSQLWithSedonaTest extends Specification with LazyLogging {
   }
 
   "push down sedona predicates" >> {
+    val gtFilter = ECQL.toFilter("bbox(geom, -30, 30, -10, 50)")
+    val expectedCount = ds.getFeatureSource("points").getFeatures(gtFilter).size()
+
     val sql =
       """SELECT name, geom FROM points WHERE
         | sedona_ST_Intersects(geom, sedona_ST_PolygonFromEnvelope(-30.0, 30.0, -10.0, 50.0))
-        | AND name > '5'
         |""".stripMargin
-    val gtFilter = ECQL.toFilter("bbox(geom, -30, 30, -10, 50) AND name > '5'")
     val df = spark.sql(sql)
     df.queryExecution.optimizedPlan.children must haveLength(1)
     df.queryExecution.optimizedPlan.children.head must beAnInstanceOf[LogicalRelation]
-    val expectedCount = ds.getFeatureSource("points").getFeatures(gtFilter).size()
+    df.count() mustEqual expectedCount
 
     // Predicate can also be a mix of GeoMesa Spark JTS UDF with Apache Sedona Catalyst expressions
     val sql2 =
       """SELECT name, geom FROM points WHERE
         | sedona_ST_Intersects(geom, st_makeBox2d(st_point(-30, 30), st_point(-10, 50)))
-        | AND name > '5'
         |""".stripMargin
     val df2 = spark.sql(sql2)
     df2.queryExecution.optimizedPlan.children must haveLength(1)
