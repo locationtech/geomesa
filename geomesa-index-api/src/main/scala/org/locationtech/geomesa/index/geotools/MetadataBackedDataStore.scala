@@ -240,6 +240,8 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
         throw new IllegalArgumentException(s"Schema '$typeName' does not exist")
       }
 
+      GeoMesaSchemaValidator.validate(schema)
+
       validateSchemaUpdate(previousSft, schema)
 
       val sft = SimpleFeatureTypes.mutable(schema)
