@@ -10,6 +10,8 @@ package org.locationtech.geomesa.spark
 
 import org.apache.sedona.sql.UDF.Catalog
 import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.catalyst.FunctionIdentifier
+import org.apache.spark.sql.catalyst.expressions.ExpressionInfo
 import org.apache.spark.sql.sedona_sql.strategy.join.JoinQueryDetector
 
 package object sedona {
@@ -42,8 +44,14 @@ package object sedona {
 
   private def registerUdfs(sqlContext: SQLContext, prefix: String): Unit = {
     val sparkSession = sqlContext.sparkSession
-    Catalog.expressions.foreach(f => sparkSession.sessionState.functionRegistry.createOrReplaceTempFunction(
-      prefix + f.getClass.getSimpleName.dropRight(1), f))
+    Catalog.expressions.foreach(f => {
+      val functionIdentifier = FunctionIdentifier(prefix + f.getClass.getSimpleName.dropRight(1))
+      val expressionInfo = new ExpressionInfo(
+        f.getClass.getCanonicalName,
+        functionIdentifier.database.orNull,
+        functionIdentifier.funcName)
+      sparkSession.sessionState.functionRegistry.registerFunction(functionIdentifier, expressionInfo, f)
+    })
     Catalog.aggregateExpressions_UDAF.foreach(f => sparkSession.udf.register(prefix + f.getClass.getSimpleName, f))
   }
 }
