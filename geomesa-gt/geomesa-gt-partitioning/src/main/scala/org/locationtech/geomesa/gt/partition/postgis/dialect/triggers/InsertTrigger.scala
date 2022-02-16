@@ -12,31 +12,25 @@ package triggers
 /**
  * Trigger to delegate inserts from the main view to the sub tables
  */
-object InsertTrigger extends SqlFunction {
+object InsertTrigger extends SqlTriggerFunction {
 
-  override def name(info: TypeInfo): String = s"insert_to_${info.name}"
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"insert_to_${info.typeName}")
 
-  override protected def createStatements(info: TypeInfo): Seq[String] = Seq(function(info)) ++ trigger(info)
+  override protected def table(info: TypeInfo): TableIdentifier = info.tables.view.name
+
+  override protected def action: String = "INSTEAD OF INSERT"
+
+  override protected def createStatements(info: TypeInfo): Seq[String] =
+    Seq(function(info)) ++ super.createStatements(info)
 
   private def function(info: TypeInfo): String =
-    s"""CREATE OR REPLACE FUNCTION "${name(info)}"() RETURNS trigger AS
+    s"""CREATE OR REPLACE FUNCTION ${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    BEGIN
-       |      INSERT INTO ${info.tables.writeAhead.name.full} VALUES(NEW.*);
+       |      INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
        |      RETURN NEW;
        |    END;
        |  $$BODY$$
        |LANGUAGE plpgsql VOLATILE
        |COST 100;""".stripMargin
-
-  // note: trigger gets automatically dropped when main view is dropped
-  private def trigger(info: TypeInfo): Seq[String] = {
-    val trigger = s"${name(info)}_trigger"
-    val drop = s"""DROP TRIGGER IF EXISTS "$trigger" ON ${info.tables.view.name.full};"""
-    val create =
-      s"""CREATE TRIGGER "$trigger"
-         |  INSTEAD OF INSERT ON ${info.tables.view.name.full}
-         |  FOR EACH ROW EXECUTE PROCEDURE "${name(info)}"();""".stripMargin
-    Seq(drop, create)
-  }
 }

@@ -69,6 +69,9 @@ and ``pg.partitions.tablespace.main``. See :ref:`pg_partition_table_design` for 
     SimpleFeatureType sft = ....;
     sft.getUserData().put("pg.partitions.tablespace.wa", "fasttablespace");
 
+Once the schema has been created, the tablespaces are stored in the ``partition_tablespaces`` table. This table
+can be modified manually to change the location used for new partitions.
+
 Configuring the Maintenance Schedule
 ------------------------------------
 

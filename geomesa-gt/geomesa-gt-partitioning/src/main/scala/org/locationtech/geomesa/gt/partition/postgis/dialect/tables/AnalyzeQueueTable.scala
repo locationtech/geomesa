@@ -16,7 +16,7 @@ object AnalyzeQueueTable extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     val create =
-      s"""CREATE TABLE IF NOT EXISTS ${info.tables.analyzeQueue.name.full} (
+      s"""CREATE TABLE IF NOT EXISTS ${info.tables.analyzeQueue.name.qualified} (
          |  partition_name text,
          |  enqueued timestamp without time zone
          |);""".stripMargin
@@ -24,5 +24,5 @@ object AnalyzeQueueTable extends SqlStatements {
   }
 
   override protected def dropStatements(info: TypeInfo): Seq[String] =
-    Seq(s"DROP TABLE IF EXISTS ${info.tables.analyzeQueue.name.full};")
+    Seq(s"DROP TABLE IF EXISTS ${info.tables.analyzeQueue.name.qualified};")
 }

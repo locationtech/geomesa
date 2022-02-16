@@ -9,12 +9,14 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.PartitionTablespacesTable
+
 /**
  * Merge recent write-ahead partitions and move them into the main partition table
  */
 object MergeWriteAheadPartitions extends SqlProcedure {
 
-  override def name(info: TypeInfo): String = s"${info.name}_merge_wa_partitions"
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeName}_merge_wa_partitions")
 
   override protected def createStatements(info: TypeInfo): Seq[String] = Seq(proc(info))
 
@@ -22,10 +24,11 @@ object MergeWriteAheadPartitions extends SqlProcedure {
     val hours = info.partitions.hoursPerPartition
     val writeAheadPartitions = info.tables.writeAheadPartitions
     val mainPartitions = info.tables.mainPartitions
-    val dtgCol = info.cols.dtg.name
-    val geomCol = info.cols.geom.name
+    val partitionsTable = s"${info.schema.quoted}.${PartitionTablespacesTable.Name.quoted}"
+    val dtgCol = info.cols.dtg.quoted
+    val geomCol = info.cols.geom.quoted
 
-    s"""CREATE OR REPLACE PROCEDURE "${name(info)}"(cur_time timestamp without time zone) LANGUAGE plpgsql AS
+    s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
        |      min_dtg timestamp without time zone;         -- min date in our partitioned tables
@@ -33,7 +36,6 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |      partition_start timestamp without time zone; -- start bounds for the partition we're writing
        |      partition_end timestamp without time zone;   -- end bounds for the partition we're writing
        |      partition_name text;                         -- partition table name
-       |      partition_parent text;                       -- partition parent table name
        |      partition_tablespace text;                   -- partition tablespace
        |      write_ahead_partitions text[];               -- names of the partitions we're migrating
        |      write_ahead_partition text;                  -- name of current partition
@@ -46,25 +48,33 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |      -- move data from the write ahead partitions to the main partitions
        |      LOOP
        |        -- find the range of dates in the write ahead partition tables
-       |        SELECT min($dtgCol) INTO min_dtg FROM ${writeAheadPartitions.name.full}
+       |        SELECT min($dtgCol) INTO min_dtg FROM ${writeAheadPartitions.name.qualified}
        |          WHERE $dtgCol < main_cutoff;
        |        EXIT WHEN min_dtg IS NULL;
        |
        |        partition_start := truncate_to_partition(min_dtg, $hours);
        |        partition_end := partition_start + INTERVAL '$hours HOURS';
-       |        partition_name := '${mainPartitions.name.raw}' || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24');
+       |        partition_name := ${mainPartitions.name.asLiteral} || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24');
        |
-       |        SELECT EXISTS(SELECT FROM pg_tables WHERE schemaname = '${info.schema}' AND tablename = partition_name)
+       |        SELECT EXISTS(SELECT FROM pg_tables WHERE schemaname = ${info.schema.asLiteral} AND tablename = partition_name)
        |          INTO pexists;
        |
        |        -- create the partition table if it doesn't exist
        |        IF NOT pexists THEN
+       |          SELECT table_space INTO partition_tablespace FROM $partitionsTable
+       |            WHERE type_name = ${literal(info.typeName)} AND table_type = ${PartitionedTableSuffix.quoted};
+       |          IF partition_tablespace IS NULL THEN
+       |            partition_tablespace := '';
+       |          ELSE
+       |            partition_tablespace := ' TABLESPACE ' || quote_ident(partition_tablespace);
+       |          END IF;
        |          -- upper bounds are exclusive
        |          -- this won't have any indices until we attach it to the parent partition table
-       |          EXECUTE 'CREATE TABLE "${info.schema}".' || quote_ident(partition_name) ||
-       |            ' (LIKE ${mainPartitions.name.full} INCLUDING DEFAULTS INCLUDING CONSTRAINTS)${mainPartitions.tablespace.table}';
+       |          EXECUTE 'CREATE TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |            ' (LIKE ${mainPartitions.name.qualified} INCLUDING DEFAULTS INCLUDING CONSTRAINTS)' ||
+       |            partition_tablespace;
        |          -- creating a constraint allows it to be attached to the parent without any additional checks
-       |          EXECUTE 'ALTER TABLE  "${info.schema}".' || quote_ident(partition_name) ||
+       |          EXECUTE 'ALTER TABLE  ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |            ' ADD CONSTRAINT ' || quote_ident(partition_name || '_constraint') ||
        |            ' CHECK ( $dtgCol >= ' || quote_literal(partition_start) ||
        |            ' AND $dtgCol < ' || quote_literal(partition_end) || ' );';
@@ -73,13 +83,13 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |        -- find the write ahead partitions we're copying from
        |        -- order the results to ensure we get locks in a consistent order to avoid deadlocks
        |        write_ahead_partitions := Array(
-       |          SELECT '"${info.schema}".' || quote_ident(pg_class.relname)
+       |          SELECT '${info.schema.quoted}.' || quote_ident(pg_class.relname)
        |            FROM pg_catalog.pg_inherits
        |            INNER JOIN pg_catalog.pg_class ON (pg_inherits.inhrelid = pg_class.oid)
        |            INNER JOIN pg_catalog.pg_namespace ON (pg_class.relnamespace = pg_namespace.oid)
-       |            WHERE inhparent = '${writeAheadPartitions.name.raw}'::regclass
-       |              AND pg_class.relname >= '${writeAheadPartitions.name.raw}' || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24_MI')
-       |              AND pg_class.relname < '${writeAheadPartitions.name.raw}' || '_' || to_char(partition_end, 'YYYY_MM_DD_HH24_MI')
+       |            WHERE inhparent = ${writeAheadPartitions.name.asLiteral}::regclass
+       |              AND pg_class.relname >= ${writeAheadPartitions.name.asLiteral} || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24_MI')
+       |              AND pg_class.relname < ${writeAheadPartitions.name.asLiteral} || '_' || to_char(partition_end, 'YYYY_MM_DD_HH24_MI')
        |            ORDER BY 1
        |          );
        |
@@ -96,24 +106,24 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |          ' AS SELECT * FROM ' || array_to_string(write_ahead_partitions, ' UNION ALL SELECT * FROM ');
        |
        |        -- copy rows from write ahead partitions to main partition table
-       |        EXECUTE 'INSERT INTO "${info.schema}".' || quote_ident(partition_name) ||
+       |        EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |          ' SELECT * FROM ' || quote_ident(partition_name || '_tmp_migrate') ||
        |          '   ORDER BY st_geohash($geomCol), $dtgCol' ||
        |          '   ON CONFLICT DO NOTHING';
        |
        |        IF NOT pexists THEN
-       |          EXECUTE 'ALTER TABLE ${mainPartitions.name.full}' ||
-       |            ' ATTACH PARTITION "${info.schema}".' || quote_ident(partition_name) ||
+       |          EXECUTE 'ALTER TABLE ${mainPartitions.name.qualified}' ||
+       |            ' ATTACH PARTITION ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |            ' FOR VALUES FROM (' || quote_literal(partition_start) ||
        |            ') TO (' || quote_literal(partition_end) || ' );';
        |          -- now that we've attached the table we can drop the redundant constraint
-       |          EXECUTE 'ALTER TABLE "${info.schema}".' || quote_ident(partition_name) ||
+       |          EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |            ' DROP CONSTRAINT ' || quote_ident(partition_name || '_constraint');
        |          RAISE NOTICE 'A partition has been created %', partition_name;
        |        ELSE
        |          -- store record of unsorted row counts which could negatively impact BRIN index scans
        |          GET DIAGNOSTICS unsorted_count := ROW_COUNT;
-       |          INSERT INTO ${info.tables.sortQueue.name.full}(partition_name, unsorted_count, enqueued)
+       |          INSERT INTO ${info.tables.sortQueue.name.qualified}(partition_name, unsorted_count, enqueued)
        |            VALUES (partition_name, unsorted_count, now());
        |          RAISE NOTICE 'Inserting % rows into existing partition %, queries may be impacted',
        |                unsorted_count, partition_name;
@@ -127,7 +137,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |        END LOOP;
        |
        |        -- mark the partition to be analyzed in a separate thread
-       |        INSERT INTO ${info.tables.analyzeQueue.name.full}(partition_name, enqueued)
+       |        INSERT INTO ${info.tables.analyzeQueue.name.qualified}(partition_name, enqueued)
        |          VALUES (partition_name, now());
        |
        |        -- commit after each move, also releases the table locks

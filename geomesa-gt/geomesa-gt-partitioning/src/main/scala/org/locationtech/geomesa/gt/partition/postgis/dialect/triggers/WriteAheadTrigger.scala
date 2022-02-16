@@ -14,30 +14,24 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.WriteAheadTa
 /**
  * Trigger to delegate writes from the write ahead table to the _writes partition
  */
-object WriteAheadTrigger extends SqlFunction {
+object WriteAheadTrigger extends SqlTriggerFunction {
 
-  override def name(info: TypeInfo): String = s"insert_to_wa_writes_${info.name}"
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"insert_to_wa_writes_${info.typeName}")
 
-  override protected def createStatements(info: TypeInfo): Seq[String] = Seq(function(info)) ++ trigger(info)
+  override protected def table(info: TypeInfo): TableIdentifier = info.tables.writeAhead.name
+
+  override protected def action: String = "BEFORE INSERT"
+
+  override protected def createStatements(info: TypeInfo): Seq[String] =
+    Seq(function(info)) ++ super.createStatements(info)
 
   private def function(info: TypeInfo): String =
-    s"""CREATE OR REPLACE FUNCTION "${name(info)}"() RETURNS trigger AS
+    s"""CREATE OR REPLACE FUNCTION ${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    BEGIN
-       |      INSERT INTO ${WriteAheadTable.writesPartition(info)} VALUES (NEW.*);
+       |      INSERT INTO ${WriteAheadTable.writesPartition(info).qualified} VALUES (NEW.*) ON CONFLICT DO NOTHING;
        |      RETURN NULL;
        |    END;
        |  $$BODY$$
        |LANGUAGE plpgsql;""".stripMargin
-
-  // note: trigger gets automatically dropped when associated table is dropped
-  private def trigger(info: TypeInfo): Seq[String] = {
-    val trigger = s"${name(info)}_trigger"
-    val drop = s"""DROP TRIGGER IF EXISTS "$trigger" ON ${info.tables.writeAhead.name.full};"""
-    val create =
-      s"""CREATE TRIGGER "$trigger"
-         |  BEFORE INSERT ON ${info.tables.writeAhead.name.full}
-         |  FOR EACH ROW EXECUTE FUNCTION "${name(info)}"();""".stripMargin
-    Seq(drop, create)
-  }
 }

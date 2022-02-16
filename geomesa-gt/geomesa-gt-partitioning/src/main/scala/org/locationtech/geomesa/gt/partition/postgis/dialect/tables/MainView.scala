@@ -16,13 +16,13 @@ object MainView extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     Seq(
-      s"""CREATE OR REPLACE VIEW ${info.tables.view.name.full} AS
-         |  SELECT * FROM ${info.tables.writeAhead.name.full} UNION ALL
-         |  SELECT * FROM ${info.tables.writeAheadPartitions.name.full} UNION ALL
-         |  SELECT * FROM ${info.tables.mainPartitions.name.full};""".stripMargin
+      s"""CREATE OR REPLACE VIEW ${info.tables.view.name.qualified} AS
+         |  SELECT * FROM ${info.tables.writeAhead.name.qualified} UNION ALL
+         |  SELECT * FROM ${info.tables.writeAheadPartitions.name.qualified} UNION ALL
+         |  SELECT * FROM ${info.tables.mainPartitions.name.qualified};""".stripMargin
     )
   }
 
   override protected def dropStatements(info: TypeInfo): Seq[String] =
-    Seq(s"DROP VIEW IF EXISTS ${info.tables.view.name.full};")
+    Seq(s"DROP VIEW IF EXISTS ${info.tables.view.name.qualified};")
 }

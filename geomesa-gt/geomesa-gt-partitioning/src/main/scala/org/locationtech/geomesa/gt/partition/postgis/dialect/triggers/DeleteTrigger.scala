@@ -12,17 +12,22 @@ package triggers
 /**
  * Trigger to delegate deletes from the main view to the sub tables
  */
-object DeleteTrigger extends SqlFunction {
+object DeleteTrigger extends SqlTriggerFunction {
 
-  override def name(info: TypeInfo): String = s"delete_from_${info.name}"
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"delete_from_${info.typeName}")
 
-  override protected def createStatements(info: TypeInfo): Seq[String] = Seq(function(info)) ++ trigger(info)
+  override protected def table(info: TypeInfo): TableIdentifier = info.tables.view.name
+
+  override protected def action: String = "INSTEAD OF DELETE"
+
+  override protected def createStatements(info: TypeInfo): Seq[String] =
+    Seq(function(info)) ++ super.createStatements(info)
 
   private def function(info: TypeInfo): String = {
     def delete(table: TableConfig): String =
-      s"DELETE FROM ${table.name.full} WHERE fid = OLD.fid AND ${info.cols.dtg.name} = OLD.${info.cols.dtg.name}"
+      s"DELETE FROM ${table.name.qualified} WHERE fid = OLD.fid AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}"
 
-    s"""CREATE OR REPLACE FUNCTION "${name(info)}"() RETURNS trigger AS
+    s"""CREATE OR REPLACE FUNCTION ${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    DECLARE
        |      del_count integer;
@@ -45,16 +50,5 @@ object DeleteTrigger extends SqlFunction {
        |  $$BODY$$
        |LANGUAGE plpgsql VOLATILE
        |COST 100;""".stripMargin
-  }
-
-  // note: trigger gets automatically dropped when main view is dropped
-  private def trigger(info: TypeInfo): Seq[String] = {
-    val trigger = s"${name(info)}_trigger"
-    val drop = s"""DROP TRIGGER IF EXISTS "$trigger" ON ${info.tables.view.name.full};"""
-    val create =
-      s"""CREATE TRIGGER "$trigger"
-         |  INSTEAD OF DELETE ON ${info.tables.view.name.full}
-         |  FOR EACH ROW EXECUTE PROCEDURE "${name(info)}"();""".stripMargin
-    Seq(drop, create)
   }
 }
