@@ -225,7 +225,9 @@ class KafkaDataStore(
 
     WithClose(AdminClient.create(props)) { admin =>
       if (admin.listTopics().names().get.contains(topic)) {
-        logger.warn(s"Topic [$topic] already exists - it may contain stale data")
+        logger.warn(
+          s"Topic [$topic] already exists - it may contain invalid data and/or not " +
+              "match the expected topic configuration")
       } else {
         val newTopic =
           new NewTopic(topic, config.topics.partitions, config.topics.replication.toShort)
