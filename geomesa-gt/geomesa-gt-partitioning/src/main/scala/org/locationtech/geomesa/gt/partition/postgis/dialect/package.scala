@@ -19,16 +19,66 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import java.io.Closeable
 import java.sql.{Connection, PreparedStatement}
+import java.util.regex.Pattern
 import scala.util.Try
 import scala.util.control.NonFatal
 
 package object dialect {
 
-  private[dialect] val WriteAheadTableSuffix            = "_wa"
-  private[dialect] val PartitionedWriteAheadTableSuffix = "_wa_partition"
-  private[dialect] val PartitionedTableSuffix           = "_partition"
-  private[dialect] val AnalyzeTableSuffix               = "_analyze_queue"
-  private[dialect] val SortTableSuffix                  = "_sort_queue"
+  private val DoubleQuote = "\""
+  private val NamePattern = Pattern.compile(DoubleQuote, Pattern.LITERAL)
+
+  private val SingleQuote = "'"
+  private val LiteralPattern = Pattern.compile(SingleQuote, Pattern.LITERAL)
+
+  private[dialect] val WriteAheadTableSuffix            = SqlLiteral("_wa")
+  private[dialect] val PartitionedWriteAheadTableSuffix = SqlLiteral("_wa_partition")
+  private[dialect] val PartitionedTableSuffix           = SqlLiteral("_partition")
+  private[dialect] val AnalyzeTableSuffix               = SqlLiteral("_analyze_queue")
+  private[dialect] val SortTableSuffix                  = SqlLiteral("_sort_queue")
+
+  /**
+   * Escape a sql identifier
+   *
+   * @param name name
+   * @return
+   */
+  def escape(name: String): String = quoteAndReplace(name, NamePattern, DoubleQuote)
+
+  /**
+   * Escape a sql identifier, creating the identifier based on different parts, concatenated
+   * together with `_`
+   *
+   * @param name0 first part
+   * @param name1 second part
+   * @param nameN additional parts
+   * @return
+   */
+  def escape(name0: String, name1: String, nameN: String*): String =
+    escape((Seq(name0, name1) ++ nameN).mkString("_"))
+
+  /**
+   * Quote a literal string
+   *
+   * @param string string literal
+   * @return
+   */
+  def literal(string: String): String = quoteAndReplace(string, LiteralPattern, SingleQuote)
+
+  /**
+   * Quote a literal string, creating the string based on different parts, concatenated
+   * together with `_`
+   *
+   * @param string0 first value
+   * @param string1 seconds value
+   * @param stringN additional values
+   * @return
+   */
+  def literal(string0: String, string1: String, stringN: String*): String =
+    literal((Seq(string0, string1) ++ stringN).mkString("_"))
+
+  private def quoteAndReplace(string: String, pattern: Pattern, quote: String): String =
+    s"$quote${pattern.matcher(string).replaceAll(quote + quote)}$quote"
 
   /**
    * Wrapper to facilitate jdbc calls.
@@ -95,26 +145,31 @@ package object dialect {
    * All the info for a feature type used by the partitioning scheme
    *
    * @param schema database schema (e.g. "public")
-   * @param name feature type name
+   * @param typeName feature type name
    * @param tables table names
    * @param cols columns
    * @param partitions partition config
    */
-  case class TypeInfo(schema: String, name: String, tables: Tables, cols: Columns, partitions: PartitionInfo)
+  case class TypeInfo(schema: SchemaName, typeName: String, tables: Tables, cols: Columns, partitions: PartitionInfo)
 
   object TypeInfo {
     def apply(schema: String, sft: SimpleFeatureType): TypeInfo = {
       val tables = Tables(sft, schema)
       val columns = Columns(sft)
       val partitions = PartitionInfo(sft)
-      TypeInfo(schema, sft.getTypeName, tables, columns, partitions)
+      TypeInfo(SchemaName(schema), sft.getTypeName, tables, columns, partitions)
     }
+  }
+
+  case class SchemaName(quoted: String, raw: String) extends SqlIdentifier
+
+  object SchemaName {
+    def apply(schema: String): SchemaName = SchemaName(escape(schema), schema)
   }
 
   /**
    * Tables used by the partitioning system
    *
-   * @param schema database schema name (e.g. "public")
    * @param view primary view of all partitions
    * @param writeAhead write ahead table
    * @param writeAheadPartitions recent partitions table
@@ -123,7 +178,6 @@ package object dialect {
    * @param sortQueue sort queue table
    */
   case class Tables(
-      schema: String,
       view: TableConfig,
       writeAhead: TableConfig,
       writeAheadPartitions: TableConfig,
@@ -138,12 +192,12 @@ package object dialect {
     def apply(sft: SimpleFeatureType, schema: String): Tables = {
       val view = TableConfig(schema, sft.getTypeName, None)
       // we disable autovacuum for write ahead tables, as they are transient and get dropped fairly quickly
-      val writeAhead = TableConfig(schema, view.name.raw + WriteAheadTableSuffix, sft.getWriteAheadTableSpace, vacuum = false)
-      val writeAheadPartitions = TableConfig(schema, view.name.raw + PartitionedWriteAheadTableSuffix, sft.getWriteAheadPartitionsTableSpace, vacuum = false)
-      val mainPartitions = TableConfig(schema, view.name.raw + PartitionedTableSuffix, sft.getMainTableSpace)
-      val analyzeQueue = TableConfig(schema, view.name.raw + AnalyzeTableSuffix, sft.getMainTableSpace)
-      val sortQueue = TableConfig(schema, view.name.raw + SortTableSuffix, sft.getMainTableSpace)
-      Tables(schema, view, writeAhead, writeAheadPartitions, mainPartitions, analyzeQueue, sortQueue)
+      val writeAhead = TableConfig(schema, view.name.raw + WriteAheadTableSuffix.raw, sft.getWriteAheadTableSpace, vacuum = false)
+      val writeAheadPartitions = TableConfig(schema, view.name.raw + PartitionedWriteAheadTableSuffix.raw, sft.getWriteAheadPartitionsTableSpace, vacuum = false)
+      val mainPartitions = TableConfig(schema, view.name.raw + PartitionedTableSuffix.raw, sft.getMainTableSpace)
+      val analyzeQueue = TableConfig(schema, view.name.raw + AnalyzeTableSuffix.raw, sft.getMainTableSpace)
+      val sortQueue = TableConfig(schema, view.name.raw + SortTableSuffix.raw, sft.getMainTableSpace)
+      Tables(view, writeAhead, writeAheadPartitions, mainPartitions, analyzeQueue, sortQueue)
     }
   }
 
@@ -154,72 +208,67 @@ package object dialect {
    * @param tablespace table space
    * @param storage storage opts (auto vacuum)
    */
-  case class TableConfig(name: TableName, tablespace: TableSpace, storage: String)
+  case class TableConfig(name: TableIdentifier, tablespace: Option[TableSpace], storage: Storage)
 
   object TableConfig {
     def apply(schema: String, name: String, tablespace: Option[String], vacuum: Boolean = true): TableConfig = {
-      val storage = if (vacuum) { "" } else { " WITH (autovacuum_enabled = false)" }
-      TableConfig(TableName(schema, name), TableSpace(tablespace), storage)
+      val storage = if (vacuum) { Storage.Nothing } else { Storage.AutoVacuumDisabled }
+      val ts = tablespace.collect { case t if t.nonEmpty => TableSpace(t) }
+      TableConfig(TableIdentifier(schema, name), ts, storage)
     }
+  }
+
+  sealed trait Storage {
+    def opts: String
+  }
+
+  object Storage {
+    case object Nothing extends Storage {
+      override val opts: String = ""
+    }
+    case object AutoVacuumDisabled extends Storage {
+      override val opts: String = " WITH (autovacuum_enabled = false)"
+    }
+  }
+
+  /**
+   * Tablespace
+   *
+   * @param quoted escaped name
+   * @param raw raw name
+   */
+  case class TableSpace(quoted: String, raw: String) extends SqlIdentifier
+
+  object TableSpace {
+    def apply(tablespace: String): TableSpace = TableSpace(escape(tablespace), tablespace)
   }
 
   /**
    * Table name
    *
-   * @param full fully qualified and escaped name
-   * @param unqualified escaped name without the schema
+   * @param qualified fully qualified and escaped name
+   * @param quoted escaped name without the schema
    * @param raw unqualified name without escaping
    */
-  case class TableName(full: String, unqualified: String, raw: String)
+  case class TableIdentifier(qualified: String, quoted: String, raw: String) extends QualifiedSqlIdentifier
+
+  object TableIdentifier {
+    def apply(schema: String, raw: String): TableIdentifier =
+      TableIdentifier(s"${escape(schema)}.${escape(raw)}", escape(raw), raw)
+  }
+
+  /**
+   * A table name, but without any schema information
+   *
+   * @param quoted escaped name
+   * @param raw name without escaping
+   */
+  case class TableName(quoted: String, raw: String) extends SqlIdentifier
 
   object TableName {
-    def apply(schema: String, raw: String): TableName = TableName(s""""$schema"."$raw"""", s""""$raw"""", raw)
+    def apply(name: String): TableName  = TableName(escape(name), name)
   }
 
-  sealed trait TableSpace {
-
-    /**
-     * Name of the table space
-     *
-     * @return
-     */
-    def name: String
-
-    /**
-     * Sql to specify the tablespace when creating a table
-     *
-     * @return
-     */
-    def table: String
-
-    /**
-     * Sql to specify the table space when creating an index
-     *
-     * @return
-     */
-    def index: String
-  }
-
-  object TableSpace {
-
-    def apply(tablespace: Option[String]): TableSpace = {
-      tablespace match {
-        case None => DefaultTableSpace
-        case Some(t) => NamedTableSpace(t)
-      }
-    }
-
-    case object DefaultTableSpace extends TableSpace {
-      override val name: String = ""
-      override val table: String = ""
-      override val index: String = ""
-    }
-
-    case class NamedTableSpace(name: String) extends TableSpace {
-      override val table: String = s" TABLESPACE $name"
-      override val index: String = s" USING INDEX TABLESPACE $name"
-    }
-  }
 
   /**
    * Columns names for the feature type
@@ -272,14 +321,14 @@ package object dialect {
   /**
    * Column name
    *
-   * @param name escaped name
+   * @param quoted escaped name
    * @param raw unescaped name
    */
-  case class ColumnName(name: String, raw: String)
+  case class ColumnName(quoted: String, raw: String) extends SqlIdentifier
 
   object ColumnName {
     def apply(d: AttributeDescriptor): ColumnName = apply(d.getLocalName)
-    def apply(raw: String): ColumnName = ColumnName(s""""$raw"""", raw)
+    def apply(raw: String): ColumnName = ColumnName(escape(raw), raw)
   }
 
   /**
@@ -303,6 +352,82 @@ package object dialect {
       require(cronMinute.forall(m => m >= 0 && m < 9), s"Cron minute must be between 0 and 8: ${cronMinute.orNull}")
       PartitionInfo(hours, sft.getMaxPartitions, cronMinute)
     }
+  }
+
+  /**
+   * Trigger name
+   *
+   * @param quoted escaped name
+   * @param raw raw name
+   */
+  case class TriggerName(quoted: String, raw: String) extends SqlIdentifier
+
+  object TriggerName {
+    def apply(name: String): TriggerName = TriggerName(escape(name), name)
+  }
+
+  /**
+   * Function name
+   *
+   * @param quoted escaped name
+   * @param raw raw name
+   */
+  case class FunctionName(quoted: String, raw: String) extends SqlIdentifier
+
+  object FunctionName {
+    def apply(name: String): FunctionName = FunctionName(escape(name), name)
+  }
+
+  /**
+   * Identifier for sql objects
+   */
+  trait SqlIdentifier {
+
+    /**
+     * Escaped and quoted name
+     *
+     * @return
+     */
+    def quoted: String
+
+    /**
+     * Raw, unqualified name, without escaping
+     *
+     * @return
+     */
+    def raw: String
+
+    /**
+     * Get as a quoted literal instead of an identifier
+     *
+     * @return
+     */
+    def asLiteral: String = literal(raw)
+  }
+
+  /**
+   * Identifier for qualified sql objects (i.e. with schemas)
+   */
+  trait QualifiedSqlIdentifier extends SqlIdentifier {
+
+    /**
+     * Fully qualified and escaped name
+     *
+     * @return
+     */
+    def qualified: String
+  }
+
+  /**
+   * A sql literal
+   *
+   * @param quoted escaped and quoted value
+   * @param raw raw value
+   */
+  case class SqlLiteral(quoted: String, raw: String)
+
+  object SqlLiteral {
+    def apply(value: String): SqlLiteral = SqlLiteral(literal(value), value)
   }
 
   /**
@@ -354,23 +479,6 @@ package object dialect {
   }
 
   /**
-   * A function definition
-   */
-  trait SqlFunction extends SqlStatements {
-
-    /**
-     * The name of the function
-     *
-     * @param info type info
-     * @return
-     */
-    def name(info: TypeInfo): String
-
-    override protected def dropStatements(info: TypeInfo): Seq[String] =
-      Seq(s"""DROP FUNCTION IF EXISTS "${name(info)}";""")
-  }
-
-  /**
    * A procedure definition
    */
   trait SqlProcedure extends SqlStatements {
@@ -381,10 +489,71 @@ package object dialect {
      * @param info type info
      * @return
      */
-    def name(info: TypeInfo): String
+    def name(info: TypeInfo): FunctionName
 
     override protected def dropStatements(info: TypeInfo): Seq[String] =
-      Seq(s"""DROP PROCEDURE IF EXISTS "${name(info)}";""")
+      Seq(s"DROP PROCEDURE IF EXISTS ${name(info).quoted};")
+  }
+
+  /**
+   * A function definition
+   */
+  trait SqlFunction extends SqlStatements {
+
+    /**
+     * The name of the function
+     *
+     * @param info type info
+     * @return
+     */
+    def name(info: TypeInfo): FunctionName
+
+    override protected def dropStatements(info: TypeInfo): Seq[String] =
+      Seq(s"DROP FUNCTION IF EXISTS ${name(info).quoted};")
+  }
+
+  /**
+   * A table trigger with an associated function definition
+   */
+  trait SqlTriggerFunction extends SqlFunction {
+
+    /**
+     * Name of the trigger
+     *
+     * @param info type info
+     * @return
+     */
+    def triggerName(info: TypeInfo): TriggerName = TriggerName(s"${name(info).raw}_trigger")
+
+    /**
+     * Table that the trigger is applied to
+     *
+     * @param info type info
+     * @return
+     */
+    protected def table(info: TypeInfo): TableIdentifier
+
+    /**
+     * Triggered action (e.g. "INSTEAD OF INSERT", "BEFORE INSERT", "INSTEAD OF DELETE", etc)
+     *
+     * @return
+     */
+    protected def action: String
+
+    override protected def createStatements(info: TypeInfo): Seq[String] = {
+      // there is no "create or replace" for triggers so we have to drop it first
+      val create =
+        s"""CREATE TRIGGER ${triggerName(info).quoted}
+           |  $action ON ${table(info).qualified}
+           |  FOR EACH ROW EXECUTE PROCEDURE ${name(info).quoted}();""".stripMargin
+      Seq(dropTrigger(info), create)
+    }
+
+    override protected def dropStatements(info: TypeInfo): Seq[String] =
+      Seq(dropTrigger(info)) ++ super.dropStatements(info)
+
+    private def dropTrigger(info: TypeInfo): String =
+      s"DROP TRIGGER IF EXISTS ${triggerName(info).quoted} ON ${table(info).qualified};"
   }
 
   /**
@@ -398,7 +567,7 @@ package object dialect {
      * @param info type info
      * @return
      */
-    def jobName(info: TypeInfo): String
+    def jobName(info: TypeInfo): SqlLiteral
 
     /**
      * The cron schedule, e.g. "* * * * *"
@@ -406,7 +575,7 @@ package object dialect {
      * @param info type info
      * @return
      */
-    protected def schedule(info: TypeInfo): String
+    protected def schedule(info: TypeInfo): SqlLiteral
 
     /**
      * The statement to execute for each cron run
@@ -414,13 +583,12 @@ package object dialect {
      * @param info type info
      * @return
      */
-    protected def invocation(info: TypeInfo): String
+    protected def invocation(info: TypeInfo): SqlLiteral
 
     override protected def createStatements(info: TypeInfo): Seq[String] =
-      Seq(s"SELECT cron.schedule('${jobName(info)}', '${schedule(info)}', '${invocation(info)}');")
+      Seq(s"SELECT cron.schedule(${jobName(info).quoted}, ${schedule(info).quoted}, ${invocation(info).quoted});")
 
     abstract override protected def dropStatements(info: TypeInfo): Seq[String] =
-      Seq(s"SELECT cron.unschedule('${jobName(info)}');") ++ super.dropStatements(info)
+      Seq(s"SELECT cron.unschedule(${jobName(info).quoted});") ++ super.dropStatements(info)
   }
-
 }

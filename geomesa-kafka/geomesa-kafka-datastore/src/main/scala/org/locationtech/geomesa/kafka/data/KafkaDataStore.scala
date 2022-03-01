@@ -49,7 +49,7 @@ import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-import java.io.{Closeable, IOException}
+import java.io.{Closeable, IOException, StringReader}
 import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
 import java.util.{Collections, Properties, UUID}
 import scala.concurrent.duration.Duration
@@ -225,9 +225,13 @@ class KafkaDataStore(
 
     WithClose(AdminClient.create(props)) { admin =>
       if (admin.listTopics().names().get.contains(topic)) {
-        logger.warn(s"Topic [$topic] already exists - it may contain stale data")
+        logger.warn(
+          s"Topic [$topic] already exists - it may contain invalid data and/or not " +
+              "match the expected topic configuration")
       } else {
-        val newTopic = new NewTopic(topic, config.topics.partitions, config.topics.replication.toShort)
+        val newTopic =
+          new NewTopic(topic, config.topics.partitions, config.topics.replication.toShort)
+              .configs(KafkaDataStore.topicConfig(sft))
         admin.createTopics(Collections.singletonList(newTopic)).all().get
       }
     }
@@ -385,6 +389,7 @@ class KafkaDataStore(
 object KafkaDataStore extends LazyLogging {
 
   val TopicKey = "geomesa.kafka.topic"
+  val TopicConfigKey = "kafka.topic.config"
 
   val MetadataPath = "metadata"
 
@@ -393,11 +398,20 @@ object KafkaDataStore extends LazyLogging {
   val LoadIntervalProperty: SystemProperty = SystemProperty("geomesa.kafka.load.interval", "1s")
 
   // marker to trigger the cq engine index when using the deprecated enable flag
-  private [kafka] val CqIndexFlag: (String, CQIndexType) = null
+  private[kafka] val CqIndexFlag: (String, CQIndexType) = null
 
   def topic(sft: SimpleFeatureType): String = sft.getUserData.get(TopicKey).asInstanceOf[String]
 
   def setTopic(sft: SimpleFeatureType, topic: String): Unit = sft.getUserData.put(TopicKey, topic)
+
+  def topicConfig(sft: SimpleFeatureType): java.util.Map[String, String] = {
+    val props = new Properties()
+    val config = sft.getUserData.get(TopicConfigKey).asInstanceOf[String]
+    if (config != null) {
+      props.load(new StringReader(config))
+    }
+    props.asInstanceOf[java.util.Map[String, String]]
+  }
 
   def producer(config: KafkaDataStoreConfig): Producer[Array[Byte], Array[Byte]] = {
     import org.apache.kafka.clients.producer.ProducerConfig._

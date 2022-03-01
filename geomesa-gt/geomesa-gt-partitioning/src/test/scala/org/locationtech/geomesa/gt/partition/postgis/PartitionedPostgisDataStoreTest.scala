@@ -23,6 +23,7 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
 @RunWith(classOf[JUnitRunner])
@@ -37,15 +38,16 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
           "pg.partitions.max=2",
-          "pg.partitions.tablespace.wa=wa",
-          "pg.partitions.tablespace.wa-partitions=wapa",
-          "pg.partitions.tablespace.main=main"*/
+          "pg.partitions.tablespace.wa=partition",
+          "pg.partitions.tablespace.wa-partitions=partition",
+          "pg.partitions.tablespace.main=partition",*/
         ).mkString(",")
 
   val methods =
     Methods(
-      create = true,
-      write = true,
+      create = false,
+      recreate = false,
+      write = false,
       update = false,
       delete = false,
       remove = false
@@ -80,18 +82,24 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 
         if (methods.create) {
           ds.createSchema(sft)
-        } else {
+        } else if (methods.recreate) {
           WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
             val dialect = ds.asInstanceOf[JDBCDataStore].dialect match {
               case p: PartitionedPostgisDialect => p
               case p: PostGISPSDialect =>
-                val m = p.getClass.getDeclaredMethod("getDelegate")
+                @tailrec
+                def unwrap(c: Class[_]): Class[_] =
+                  if (c == classOf[PostGISPSDialect]) { c } else { unwrap(c.getSuperclass) }
+                val m = unwrap(p.getClass).getDeclaredMethod("getDelegate")
                 m.setAccessible(true)
                 m.invoke(p).asInstanceOf[PartitionedPostgisDialect]
             }
             dialect.recreateFunctions("public", sft, cx)
           }
         }
+
+        val userData = ds.getSchema(sft.getTypeName).getUserData.asScala
+        userData must containAllOf(sft.getUserData.asScala.toSeq)
 
         val now = System.currentTimeMillis()
 
@@ -154,5 +162,5 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
     }
   }
 
-  case class Methods(create: Boolean, write: Boolean, update: Boolean, delete: Boolean, remove: Boolean)
+  case class Methods(create: Boolean, recreate: Boolean, write: Boolean, update: Boolean, delete: Boolean, remove: Boolean)
 }

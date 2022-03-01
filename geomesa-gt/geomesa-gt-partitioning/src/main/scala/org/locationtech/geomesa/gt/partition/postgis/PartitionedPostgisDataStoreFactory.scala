@@ -11,6 +11,9 @@ package org.locationtech.geomesa.gt.partition.postgis
 import org.geotools.data.postgis.{PostGISDialect, PostGISPSDialect, PostgisNGDataStoreFactory}
 import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect
+import org.opengis.feature.simple.SimpleFeatureType
+
+import java.sql.{Connection, DatabaseMetaData}
 
 class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 
@@ -33,25 +36,37 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
     val ds = super.createDataStoreInternal(store, params)
     val dialect = new PartitionedPostgisDialect(ds)
 
-    // TODO copy any other configs?
     ds.getSQLDialect match {
       case d: PostGISDialect =>
-        dialect.setLooseBBOXEnabled(d.isLooseBBOXEnabled)
+        dialect.setEncodeBBOXFilterAsEnvelope(d.isEncodeBBOXFilterAsEnvelope)
         dialect.setEstimatedExtentsEnabled(d.isEstimatedExtentsEnabled)
         dialect.setFunctionEncodingEnabled(d.isFunctionEncodingEnabled)
+        dialect.setLooseBBOXEnabled(d.isLooseBBOXEnabled)
         dialect.setSimplifyEnabled(d.isSimplifyEnabled)
-        dialect.setEncodeBBOXFilterAsEnvelope(d.isEncodeBBOXFilterAsEnvelope)
         ds.setSQLDialect(dialect)
 
       case d: PostGISPSDialect =>
-        dialect.setLooseBBOXEnabled(d.isLooseBBOXEnabled)
-        dialect.setFunctionEncodingEnabled(d.isFunctionEncodingEnabled)
-        // TODO dialect.setEstimatedExtentsEnabled(d.isEstimatedExtentsEnabled)
-        // TODO dialect.setSimplifyEnabled(d.isSimplifyEnabled)
         dialect.setEncodeBBOXFilterAsEnvelope(d.isEncodeBBOXFilterAsEnvelope)
+        dialect.setFunctionEncodingEnabled(d.isFunctionEncodingEnabled)
+        dialect.setLooseBBOXEnabled(d.isLooseBBOXEnabled)
+
+        // these configs aren't exposed through the PS dialect so re-calculate them from the params
+        val est = PostgisNGDataStoreFactory.ESTIMATED_EXTENTS.lookUp(params.asInstanceOf[java.util.Map[String, _]])
+        dialect.setEstimatedExtentsEnabled(est == null || est == java.lang.Boolean.TRUE)
+        val simplify = PostgisNGDataStoreFactory.SIMPLIFY.lookUp(params.asInstanceOf[java.util.Map[String, _]])
+        dialect.setSimplifyEnabled(simplify == null || simplify == java.lang.Boolean.TRUE)
+
         ds.setSQLDialect(new PostGISPSDialect(ds, dialect) {
-          // fix bug with PostGISPSDialect dialect not delegating this method
+          // fix bug with PostGISPSDialect dialect not delegating these methods
           override def getDefaultVarcharSize: Int = dialect.getDefaultVarcharSize
+          override def encodeTableName(raw: String, sql: StringBuffer): Unit = dialect.encodeTableName(raw, sql)
+          override def postCreateFeatureType(
+              featureType: SimpleFeatureType,
+              metadata: DatabaseMetaData,
+              schemaName: String,
+              cx: Connection): Unit = {
+            dialect.postCreateFeatureType(featureType, metadata, schemaName, cx)
+          }
         })
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")

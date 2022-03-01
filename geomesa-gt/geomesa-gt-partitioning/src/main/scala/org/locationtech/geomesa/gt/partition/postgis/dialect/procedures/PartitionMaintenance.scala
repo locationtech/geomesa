@@ -16,39 +16,36 @@ import scala.util.hashing.MurmurHash3
  */
 object PartitionMaintenance extends SqlProcedure with CronSchedule {
 
-  override def name(info: TypeInfo): String = s"${info.name}_partition_maintenance"
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeName}_partition_maintenance")
 
-  override def jobName(info: TypeInfo): String = s"${info.name}-part-maintenance"
+  override def jobName(info: TypeInfo): SqlLiteral = SqlLiteral(s"${info.typeName}-part-maintenance")
 
   override protected def createStatements(info: TypeInfo): Seq[String] =
     Seq(proc(info)) ++ super.createStatements(info)
 
-  override protected def schedule(info: TypeInfo): String = {
+  override protected def schedule(info: TypeInfo): SqlLiteral = {
     val minute = info.partitions.cronMinute.getOrElse {
       // spread out the cron schedule so that all the feature types don't run at the exact same time
       // also don't run at same minute as roll-write-ahead (i.e. use 0-8)
-      math.abs(MurmurHash3.stringHash(info.name) % 9)
+      math.abs(MurmurHash3.stringHash(info.typeName) % 9)
     }
     val minutes = Seq(0, 10, 20, 30, 40, 50).map(_ + minute).mkString(",")
-    s"$minutes * * * *"
+    SqlLiteral(s"$minutes * * * *")
   }
 
-  override protected def invocation(info: TypeInfo): String = s"""CALL "${name(info)}"()"""
+  override protected def invocation(info: TypeInfo): SqlLiteral = SqlLiteral(s"CALL ${name(info).quoted}()")
 
   private def proc(info: TypeInfo): String = {
-    val callPrune = if (info.partitions.maxPartitions.isEmpty) { "" }  else {
-      s"""CALL "${DropAgedOffPartitions.name(info)}"(cur_time);"""
-    }
-    s"""CREATE OR REPLACE PROCEDURE "${name(info)}"() LANGUAGE plpgsql AS
+    s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}() LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
        |      cur_time timestamp without time zone;        -- current time
        |    BEGIN
        |      -- constants
        |      cur_time := now();
-       |      CALL "${PartitionWriteAheadLog.name(info)}"(cur_time);
-       |      CALL "${MergeWriteAheadPartitions.name(info)}"(cur_time);
-       |      $callPrune
+       |      CALL ${PartitionWriteAheadLog.name(info).quoted}(cur_time);
+       |      CALL ${MergeWriteAheadPartitions.name(info).quoted}(cur_time);
+       |      CALL ${DropAgedOffPartitions.name(info).quoted}(cur_time);
        |    END;
        |  $$BODY$$;
        |""".stripMargin

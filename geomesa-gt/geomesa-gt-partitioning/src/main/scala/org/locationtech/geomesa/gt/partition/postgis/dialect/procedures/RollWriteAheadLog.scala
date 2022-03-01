@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
-import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.WriteAheadTable
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, WriteAheadTable}
 
 import java.util.Locale
 
@@ -19,62 +19,78 @@ import java.util.Locale
  */
 object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 
-  override def name(info: TypeInfo): String = s"${info.name}_roll_wa"
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeName}_roll_wa")
 
-  override def jobName(info: TypeInfo): String = s"${info.name}-roll-wa"
+  override def jobName(info: TypeInfo): SqlLiteral = SqlLiteral(s"${info.typeName}-roll-wa")
 
-  override protected def schedule(info: TypeInfo): String = "9,19,29,39,49,59 * * * *"
+  override protected def schedule(info: TypeInfo): SqlLiteral = SqlLiteral("9,19,29,39,49,59 * * * *")
 
-  override protected def invocation(info: TypeInfo): String = s"""CALL "${name(info)}"()"""
+  override protected def invocation(info: TypeInfo): SqlLiteral = SqlLiteral(s"CALL ${name(info).quoted}()")
 
   override protected def createStatements(info: TypeInfo): Seq[String] =
     Seq(proc(info)) ++ super.createStatements(info)
 
   private def proc(info: TypeInfo): String = {
+    def literalPrefix(string0: String, string1: String, stringN: String*): String =
+      literal(string0, string1, stringN ++ Seq(""): _*)
+
     val table = info.tables.writeAhead
-    val writePartition = WriteAheadTable.writesPartition(info)
-    s"""CREATE OR REPLACE PROCEDURE "${name(info)}"() LANGUAGE plpgsql AS
+    val writePartition = WriteAheadTable.writesPartition(info).qualified
+    val partitionsTable = s"${info.schema.quoted}.${PartitionTablespacesTable.Name.quoted}"
+
+    s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}() LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
        |      seq_val smallint;
-       |      cur_partition text;  -- rename of the _writes table
-       |      next_partition text; -- next partition that will be created from the _writes table
+       |      cur_partition text;        -- rename of the _writes table
+       |      next_partition text;       -- next partition that will be created from the _writes table
+       |      partition_tablespace text; -- table space command
+       |      index_space text;          -- index table space command
        |    BEGIN
        |
        |      -- get the required locks up front to avoid deadlocks with inserts
-       |      LOCK TABLE ONLY ${table.name.full} IN SHARE UPDATE EXCLUSIVE MODE;
+       |      LOCK TABLE ONLY ${table.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |      LOCK TABLE $writePartition IN ACCESS EXCLUSIVE MODE;
        |
        |      -- don't re-create the table if there hasn't been any data inserted
        |      IF EXISTS(SELECT 1 FROM $writePartition) THEN
-       |        SELECT nextval('${table.name.raw + "_seq"}') INTO seq_val;
+       |        SELECT nextval(${literal(table.name.raw, "seq")}) INTO seq_val;
        |
        |        -- format the table name to be 3 digits, with leading zeros as needed
        |        cur_partition := lpad((seq_val - 1)::text, 3, '0');
        |        next_partition := lpad(seq_val::text, 3, '0');
+       |        SELECT table_space INTO partition_tablespace FROM $partitionsTable
+       |          WHERE type_name = ${literal(info.typeName)} AND table_type = ${WriteAheadTableSuffix.quoted};
+       |        IF partition_tablespace IS NULL THEN
+       |          partition_tablespace := '';
+       |          index_space := '';
+       |        ELSE
+       |          partition_tablespace := ' TABLESPACE ' || quote_ident(partition_tablespace);
+       |          index_space := ' USING INDEX' || partition_tablespace;
+       |        END IF;
        |
        |        -- requires ACCESS EXCLUSIVE
-       |        EXECUTE 'ALTER TABLE $writePartition RENAME TO ' || quote_ident('${table.name.raw}_' || cur_partition);
+       |        EXECUTE 'ALTER TABLE $writePartition RENAME TO ' || quote_ident(${literal(table.name.raw + "_")} || cur_partition);
        |        -- requires SHARE UPDATE EXCLUSIVE
        |        EXECUTE 'CREATE TABLE IF NOT EXISTS $writePartition (' ||
-       |          ' CONSTRAINT ' || quote_ident('${table.name.raw}_pkey_' || next_partition) ||
-       |          ' PRIMARY KEY (fid, ${info.cols.dtg.name})${table.tablespace.index})' ||
-       |          ' INHERITS (${table.name.full})${table.storage}${table.tablespace.table}';
+       |          ' CONSTRAINT ' || quote_ident(${literalPrefix(table.name.raw, "pkey")} || next_partition) ||
+       |          ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})' || index_space || ')' ||
+       |          ' INHERITS (${table.name.qualified})${table.storage.opts}' || partition_tablespace;
        |        EXECUTE 'CREATE INDEX IF NOT EXISTS ' ||
-       |          quote_ident('${table.name.raw}_${info.cols.dtg.raw}_' || next_partition) ||
-       |          ' ON $writePartition (${info.cols.dtg.name})${table.tablespace.table}';
+       |          quote_ident(${literalPrefix(table.name.raw, info.cols.dtg.raw)} || next_partition) ||
+       |          ' ON $writePartition (${info.cols.dtg.quoted})' || partition_tablespace;
        |${info.cols.geoms.map { col =>
     s"""        EXECUTE 'CREATE INDEX IF NOT EXISTS ' ||
-       |          quote_ident('spatial_${table.name.raw}_${col.raw.toLowerCase(Locale.US)}_' || next_partition) ||
-       |          ' ON $writePartition USING gist(${col.name})${table.tablespace.table}';""".stripMargin }.mkString("\n") }
+       |          quote_ident(${literalPrefix("spatial", table.name.raw, col.raw.toLowerCase(Locale.US))} || next_partition) ||
+       |          ' ON $writePartition USING gist(${col.quoted})' || partition_tablespace;""".stripMargin }.mkString("\n") }
        |${info.cols.indexed.map { col =>
     s"""        EXECUTE 'CREATE INDEX IF NOT EXISTS ' ||
-       |          quote_ident('${table.name.raw}_${col.raw}_' || next_partition) ||
-       |          ' ON $writePartition (${col.name})${table.tablespace.table}';""".stripMargin }.mkString("\n") }
+       |          quote_ident(${literalPrefix(table.name.raw, col.raw)} || next_partition) ||
+       |          ' ON $writePartition (${col.quoted})' || partition_tablespace;""".stripMargin }.mkString("\n") }
        |
        |        COMMIT; -- releases our locks
        |
-       |        EXECUTE 'ANALYZE ' || quote_ident('${table.name.raw}_' || cur_partition);
+       |        EXECUTE 'ANALYZE ' || quote_ident(${literal(table.name.raw + "_")} || cur_partition);
        |
        |      END IF;
        |    END;
