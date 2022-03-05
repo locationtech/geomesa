@@ -17,6 +17,8 @@ zookeeper_install_version="%%zookeeper.version.recommended%%"
 guava_install_version="%%guava.version%%"
 jopt_install_version="%%kafka.jopt.version%%"
 
+function version_ge() { test "$(echo "$@" | tr " " "n" | sort -rV | head -n 1)" == "$1"; }
+
 function dependencies() {
   local classpath="$1"
 
@@ -42,14 +44,11 @@ function dependencies() {
     "log4j:log4j:1.2.17:jar"
   )
 
-  local zk_maj_ver="$(expr match "$zk_version" '\([0-9][0-9]*\)\.')"
-  local zk_min_ver="$(expr match "$zk_version" '[0-9][0-9]*\.\([0-9][0-9]*\)')"
-  local zk_bug_ver="$(expr match "$zk_version" '[0-9][0-9]*\.[0-9][0-9]*\.\([0-9][0-9]*\)')"
-
   # compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)
-  if [[ "$zk_maj_ver" -ge 3 && "$zk_min_ver" -ge 5 && "$zk_bug_ver" -ge 5 ]]; then
+  JUTE_FROM_VERSION="3.5.5"
+  if version_ge ${zk_version} $JUTE_FROM_VERSION; then
     gavs+=(
-      "org.apache.zookeeper:zookeeper-jute:$zk_version:jar"
+      "org.apache.zookeeper:zookeeper-jute:${zk_version}:jar"
     )
   fi
 
