@@ -17,7 +17,7 @@ zookeeper_install_version="%%zookeeper.version.recommended%%"
 guava_install_version="%%guava.version%%"
 jopt_install_version="%%kafka.jopt.version%%"
 
-function version_ge() { test "$(echo "$@" | tr " " "n" | sort -rV | head -n 1)" == "$1"; }
+function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
 function dependencies() {
   local classpath="$1"

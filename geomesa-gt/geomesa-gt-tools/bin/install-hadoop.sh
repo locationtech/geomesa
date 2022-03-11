@@ -26,7 +26,7 @@ htrace4_core_version="4.1.0-incubating"
 guava_version="%%guava.version%%"
 com_log_version="1.1.3"
 
-function version_ge() { test "$(echo "$@" | tr " " "n" | sort -rV | head -n 1)" == "$1"; }
+function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
 # Load common functions and setup
 if [ -z "${%%tools.dist.name%%_HOME}" ]; then
