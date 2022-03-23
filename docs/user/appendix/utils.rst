@@ -6,42 +6,50 @@ Useful utilities are found in the ``geomesa-utils`` module.
 Simple Feature Wrapper Generation
 ---------------------------------
 
-Tools can generate wrapper classes for simple feature types defined in
-TypeSafe Config files. Your config files should be under
-src/main/resources. Add the following snippet to your pom, specifying
-the package you would like the generated class to reside in:
+GeoMesa can be used to generate Scala
+`value classes <https://docs.scala-lang.org/overviews/core/value-classes.html>`__
+for simple feature types defined in TypeSafe Config files. Classes will be generated
+for any feature types found on the classpath. To use with Maven, add the following
+snippet to your pom, specifying the package you would like the generated class to reside in:
 
 .. code-block:: xml
 
-    <build>
-        ...
+      <dependencies>
+        <dependency>
+          <groupId>org.locationtech.geomesa</groupId>
+          <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
+        </dependency>
+      </dependencies>
+
+      <build>
         <plugins>
-            ...
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.3.2</version>
-                <executions>
-                    <execution>
-                        <id>generate-sft-wrappers</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                        <configuration>
-                            <mainClass>org.locationtech.geomesa.utils.geotools.GenerateFeatureWrappers</mainClass>
-                            <cleanupDaemonThreads>false</cleanupDaemonThreads>
-                            <killAfter>-1</killAfter>
-                            <arguments>
-                                <argument>${project.basedir}</argument>
-                                <argument>org.foo.mypackage</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.0.0</version>
+            <executions>
+              <execution>
+                <id>generate-sft-wrappers</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>java</goal>
+                </goals>
+                <configuration>
+                  <mainClass>org.locationtech.geomesa.utils.geotools.GenerateRichFeatureModels</mainClass>
+                  <addResourcesToClasspath>true</addResourcesToClasspath>
+                  <cleanupDaemonThreads>false</cleanupDaemonThreads>
+                  <killAfter>-1</killAfter>
+                  <arguments>
+                    <argument>${project.basedir}</argument>
+                    <argument>com.example.geomesa</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
-    </build>
+      </build>
+
 
 .. _geohash:
 
