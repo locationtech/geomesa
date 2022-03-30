@@ -8,43 +8,32 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.io.{File, FileWriter}
-
 import com.typesafe.config.ConfigFactory
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.{File, FileWriter}
 
+@deprecated("replaced with GenerateRichFeatureModels")
 case class AttributeDetails(unsafeName: String, index: Int, clazz: String) {
-  val name = unsafeName.replaceAll("\\W", "_")
+  val name: String = unsafeName.replaceAll("\\W", "_")
   def getter: String = s"def $name(): $clazz = sf.getAttribute($index).asInstanceOf[$clazz]"
   def optionGetter: String = s"def ${name}Opt(): Option[$clazz] = Option($name())"
   def setter: String = s"def set${name.capitalize}(x: $clazz): Unit = sf.setAttribute($index, x)"
 }
 
+@deprecated("replaced with GenerateRichFeatureModels")
 object AttributeDetails {
-  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
-
   def apply(ad: AttributeDescriptor, sft: SimpleFeatureType): AttributeDetails = {
-    val majorBinding = classToString(Some(ad.getType.getBinding))
-    val binding = if (ad.isList) {
-      val subtype = classToString(Option(ad.getListType()))
-      s"$majorBinding[$subtype]"
-    } else if (ad.isMap) {
-      val types = ad.getMapTypes()
-      val keyType = classToString(Option(types._1))
-      val valueType = classToString(Option(types._2))
-      s"$majorBinding[$keyType,$valueType]"
-    } else {
-      majorBinding
-    }
+    val binding = GenerateRichFeatureModels.getAttributeBinding(ad)
     AttributeDetails(ad.getLocalName, sft.indexOf(ad.getLocalName), binding)
   }
-
-  private def classToString(clas: Option[Class[_]]) = clas.map(_.getCanonicalName).getOrElse("String")
 }
 
+@deprecated("replaced with GenerateRichFeatureModels")
 object GenerateFeatureWrappers {
+
+  import scala.collection.JavaConverters._
 
   val className = "SimpleFeatureWrappers"
 
@@ -72,9 +61,7 @@ object GenerateFeatureWrappers {
    * @return
    */
   def buildClass(sft: SimpleFeatureType, tab: String): String = {
-    import scala.collection.JavaConversions._
-
-    val attrs = sft.getAttributeDescriptors.map(AttributeDetails(_, sft))
+    val attrs = sft.getAttributeDescriptors.asScala.map(AttributeDetails(_, sft))
 
     val sb = new StringBuilder()
     sb.append(s"${tab}implicit class ${sft.getTypeName}")
