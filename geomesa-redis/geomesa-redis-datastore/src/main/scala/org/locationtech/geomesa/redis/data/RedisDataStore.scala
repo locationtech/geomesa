@@ -57,7 +57,8 @@ class RedisDataStore(val connection: JedisPool, override val config: RedisDataSt
     }
 
     // disable shards
-    sft.setZShards(0)
+    sft.setZ2Shards(0)
+    sft.setZ3Shards(0)
     sft.setIdShards(0)
     sft.setAttributeShards(0)
 

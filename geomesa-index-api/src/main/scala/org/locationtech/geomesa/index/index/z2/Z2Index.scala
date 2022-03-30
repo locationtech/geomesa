@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.index
 package z2
 
-import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.api.ShardStrategy.Z2ShardStrategy
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
@@ -24,7 +24,7 @@ class Z2Index protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, versio
   def this(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geom: String, mode: IndexMode) =
     this(ds, sft, Z2Index.version, geom, mode)
 
-  override val keySpace: Z2IndexKeySpace = new Z2IndexKeySpace(sft, ZShardStrategy(sft), geom)
+  override val keySpace: Z2IndexKeySpace = new Z2IndexKeySpace(sft, Z2ShardStrategy(sft), geom)
 
   override val tieredKeySpace: Option[IndexKeySpace[_, _]] = None
 }

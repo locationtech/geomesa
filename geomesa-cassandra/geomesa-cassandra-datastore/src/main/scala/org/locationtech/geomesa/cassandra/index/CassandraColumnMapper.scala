@@ -37,8 +37,8 @@ object CassandraColumnMapper {
   def apply(index: GeoMesaFeatureIndex[_, _]): CassandraColumnMapper = {
     index.name match {
       case IdIndex.name                             => IdColumnMapper(index.sft)
-      case Z3Index.name | XZ3Index.name             => Z3ColumnMapper(index.sft.getZShards)
-      case Z2Index.name | XZ2Index.name             => Z2ColumnMapper(index.sft.getZShards)
+      case Z3Index.name | XZ3Index.name             => Z3ColumnMapper(index.sft.getZ3Shards)
+      case Z2Index.name | XZ2Index.name             => Z2ColumnMapper(index.sft.getZ2Shards)
       case AttributeIndex.name if index.version > 7 => AttributeColumnMapper(index.sft.getAttributeShards)
       case AttributeIndex.name                      => SharedAttributeColumnMapper
       case _ => throw new IllegalArgumentException(s"Unexpected index: ${index.identifier}")

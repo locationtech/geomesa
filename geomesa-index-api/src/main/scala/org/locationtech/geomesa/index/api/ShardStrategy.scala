@@ -60,8 +60,12 @@ object ShardStrategy {
     override val length: Int = 0
   }
 
-  object ZShardStrategy {
-    def apply(sft: SimpleFeatureType): ShardStrategy = ShardStrategy(sft.getZShards)
+  object Z2ShardStrategy {
+    def apply(sft: SimpleFeatureType): ShardStrategy = ShardStrategy(sft.getZ2Shards)
+  }
+
+  object Z3ShardStrategy {
+    def apply(sft: SimpleFeatureType): ShardStrategy = ShardStrategy(sft.getZ3Shards)
   }
 
   object AttributeShardStrategy {

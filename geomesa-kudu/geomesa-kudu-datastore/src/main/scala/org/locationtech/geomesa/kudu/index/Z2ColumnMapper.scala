@@ -29,7 +29,7 @@ class Z2ColumnMapper(index: GeoMesaFeatureIndex[_, _]) extends KuduColumnMapper(
     val options = new CreateTableOptions()
 
     // add hash splits based on our shards, which we don't need to actually store as a separate column
-    val shards = index.sft.getZShards
+    val shards = index.sft.getZ2Shards
     if (shards > 1) {
       options.addHashPartitions(Collections.singletonList(FeatureIdAdapter.name), shards)
     }
