@@ -49,7 +49,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     count = sft.getAttributeCount
     if (attributes == null || attributes.length < count) {
       attributes = Array.ofDim[(Array[Byte], Int, Int)](count)
-      attributeVis = Array.ofDim[String](count)
+      attributeVis = Array.fill(count)("")
     }
     nullBytesV2 = null // lazily initialized when we hit v2 encoded data
   }
@@ -103,13 +103,13 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       i += 1
     }
 
-    val attributeVisString = attributeVis.mkString(",")
+    val vis = attributeVis.mkString(",")
     // The magic number "34" is brought to you by adding up
     //   Class and size info for the key and value (2 bytes for the class, and 2 for the size per key and value).
     //     2*(2+2) = 8
     //   The size of the key ("geomesa.feature.visibility".size = 26)
-    //   And the size of the attributeVisString.
-    length += 34 + attributeVisString.length
+    //   And the size of the attribute vis string.
+    length += 34 + vis.length
     val value = Array.ofDim[Byte](length)
     val output = new Output(value)
     output.writeByte(KryoFeatureSerializer.Version3)
@@ -133,7 +133,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
         System.arraycopy(bytes, offset, value, valueCursor, len)
         valueCursor += len
       }
-      attributes(i) = null // reset for next time through with new keys/values
+      // reset for next time through with new keys/values
+      attributes(i) = null
+      attributeVis(i) = ""
       i += 1
     }
     output.writeInt(valueCursor - 4) // user-data offset. Note no user data has actually been copied in.
@@ -142,8 +144,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     nulls.serialize(output)
 
     output.setPosition(valueCursor)
-    val map = Collections.singletonMap(FEATURE_VISIBILITY, attributeVisString)
-    KryoUserDataSerialization.serialize(output, map)
+    KryoUserDataSerialization.serialize(output, Collections.singletonMap(FEATURE_VISIBILITY, vis))
     new Value(value)
   }
 
