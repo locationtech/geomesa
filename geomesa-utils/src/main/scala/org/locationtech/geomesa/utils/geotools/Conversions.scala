@@ -303,8 +303,13 @@ object RichSimpleFeatureType extends Conversions {
     def getUserDataPrefixes: Seq[String] =
       Seq(GeomesaPrefix) ++ userData[String](UserDataPrefix).map(_.split(",")).getOrElse(Array.empty)
 
-    def setZShards(splits: Int): Unit = sft.getUserData.put(IndexZShards, splits.toString)
-    def getZShards: Int = userData(IndexZShards).map(int).getOrElse(4)
+    def setZ2Shards(splits: Int): Unit = sft.getUserData.put(IndexZ2Shards, splits.toString)
+    def getZ2Shards: Int =
+      userData(IndexZ2Shards).map(int).getOrElse(userData(IndexZShards).map(int).getOrElse(4))
+
+    def setZ3Shards(splits: Int): Unit = sft.getUserData.put(IndexZ3Shards, splits.toString)
+    def getZ3Shards: Int =
+      userData(IndexZ3Shards).map(int).getOrElse(userData(IndexZShards).map(int).getOrElse(4))
 
     def setAttributeShards(splits: Int): Unit = sft.getUserData.put(IndexAttributeShards, splits.toString)
     def getAttributeShards: Int = userData(IndexAttributeShards).map(int).getOrElse(4)

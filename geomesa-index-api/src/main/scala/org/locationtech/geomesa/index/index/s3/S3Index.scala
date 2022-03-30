@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.index
 package s3
 
-import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
@@ -31,7 +31,7 @@ class S3Index protected (
     this(ds, sft, S3Index.version, geomField, dtgField, mode)
 
   override val keySpace: IndexKeySpace[S3IndexValues, S3IndexKey] =
-    new S3IndexKeySpace(sft, ZShardStrategy(sft), geom, dtg)
+    new S3IndexKeySpace(sft, Z3ShardStrategy(sft), geom, dtg)
 
   override def tieredKeySpace: Option[IndexKeySpace[_, _]] = None
 }

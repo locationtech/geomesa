@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.index.z2.legacy
 
-import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.api.ShardStrategy.Z2ShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.LegacyTableNaming
@@ -27,7 +27,7 @@ class XZ2IndexV1(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geom: String, 
     extends XZ2Index(ds, sft, 1, geom, mode) with LegacyTableNaming[XZ2IndexValues, Long] {
 
   override val keySpace: XZ2IndexKeySpace =
-    new XZ2IndexKeySpaceV1(sft, sft.getTableSharingBytes, ZShardStrategy(sft), geom)
+    new XZ2IndexKeySpaceV1(sft, sft.getTableSharingBytes, Z2ShardStrategy(sft), geom)
 
   override protected val tableNameKey: String = "table.xz2.v1"
 }

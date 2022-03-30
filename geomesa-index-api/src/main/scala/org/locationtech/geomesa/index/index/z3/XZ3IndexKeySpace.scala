@@ -16,7 +16,7 @@ import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, XZ3SFC}
 import org.locationtech.geomesa.filter.FilterValues
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
-import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, ZShardStrategy}
+import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, Z3ShardStrategy}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
@@ -253,7 +253,7 @@ object XZ3IndexKeySpace extends IndexKeySpaceFactory[XZ3IndexValues, Z3IndexKey]
         classOf[Date].isAssignableFrom(sft.getDescriptor(attributes.last).getType.getBinding)
 
   override def apply(sft: SimpleFeatureType, attributes: Seq[String], tier: Boolean): XZ3IndexKeySpace = {
-    val shards = if (tier) { NoShardStrategy } else { ZShardStrategy(sft) }
+    val shards = if (tier) { NoShardStrategy } else { Z3ShardStrategy(sft) }
     new XZ3IndexKeySpace(sft, shards, attributes.head, attributes.last)
   }
 }

@@ -441,6 +441,8 @@ object MetadataBackedDataStore {
       IndexS3Interval,
       IndexXzPrecision,
       IndexZShards,
+      IndexZ2Shards,
+      IndexZ3Shards,
       IndexIdShards,
       IndexAttributeShards
     )

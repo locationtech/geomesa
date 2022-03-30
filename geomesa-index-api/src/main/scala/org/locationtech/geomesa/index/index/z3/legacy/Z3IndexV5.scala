@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.index.z3.legacy
 import java.util.Date
 
 import org.locationtech.geomesa.curve.BinnedTime
-import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.z3.legacy.Z3IndexV5.Z3IndexKeySpaceV5
@@ -41,7 +41,7 @@ class Z3IndexV5 protected (ds: GeoMesaDataStore[_],
 
   // noinspection ScalaDeprecation
   override val keySpace: Z3IndexKeySpace =
-    new Z3IndexKeySpaceV5(sft, sft.getTableSharingBytes, ZShardStrategy(sft), geom, dtg)
+    new Z3IndexKeySpaceV5(sft, sft.getTableSharingBytes, Z3ShardStrategy(sft), geom, dtg)
 }
 
 object Z3IndexV5 {

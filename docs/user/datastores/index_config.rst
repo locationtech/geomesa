@@ -311,11 +311,12 @@ shards are more important as the tables might never split due to size. Setting t
 reduce performance, as it requires more calculations to be performed per query.
 
 The number of shards is set when calling ``createSchema``. It may be specified through the simple feature type
-user data using the key ``geomesa.z.splits``. See :ref:`set_sft_options` for details on setting user data.
+user data using the keys ``geomesa.z2.splits`` or ``geomesa.z3.splits`` for two and three dimensional indices
+respectively. See :ref:`set_sft_options` for details on setting user data.
 
 .. code-block:: java
 
-    sft.getUserData().put("geomesa.z.splits", "4");
+    sft.getUserData().put("geomesa.z3.splits", "4");
 
 .. _customizing_z_index:
 

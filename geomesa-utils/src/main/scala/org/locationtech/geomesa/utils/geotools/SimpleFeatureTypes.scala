@@ -46,7 +46,6 @@ object SimpleFeatureTypes {
     val IndexXzPrecision      = "geomesa.xz.precision"
     val IndexZ3Interval       = "geomesa.z3.interval"
     val IndexS3Interval       = "geomesa.s3.interval"
-    val IndexZShards          = "geomesa.z.splits"
     val Keywords              = "geomesa.keywords"
     val MixedGeometries       = "geomesa.mixed.geometries"
     val OverrideDtgJoin       = "override.index.dtg.join"
@@ -63,6 +62,10 @@ object SimpleFeatureTypes {
     val TemporalPriority      = "geomesa.temporal.priority"
     val UpdateBackupMetadata  = "schema.update.backup.metadata"
     val UpdateRenameTables    = "schema.update.rename.tables"
+
+    val IndexZShards  = "geomesa.z.splits"
+    val IndexZ2Shards = "geomesa.z2.splits"
+    val IndexZ3Shards = "geomesa.z3.splits"
 
     @deprecated("replaced with IndexS3Interval")
     val S3_INTERVAL_KEY: String = IndexS3Interval
