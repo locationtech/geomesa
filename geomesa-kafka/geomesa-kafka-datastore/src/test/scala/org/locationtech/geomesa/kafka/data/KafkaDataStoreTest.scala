@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, SynchronousQueue, TimeUnit}
-import java.util.{Collections, Date}
 import com.typesafe.scalalogging.LazyLogging
+import kafka.admin.ConfigCommand.{ConfigEntity, Entity}
+import kafka.zk.{AdminZkClient, KafkaZkClient}
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig}
+import org.apache.kafka.common.utils.Time
 import org.geotools.data._
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
@@ -29,7 +28,6 @@ import org.locationtech.geomesa.kafka.EmbeddedKafka
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
-import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
@@ -46,10 +44,14 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, SynchronousQueue, TimeUnit}
+import java.util.{Collections, Date}
+
 @RunWith(classOf[JUnitRunner])
 class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
-  import scala.collection.JavaConversions._
   import scala.collection.JavaConverters._
   import scala.concurrent.duration._
 
@@ -75,16 +77,17 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
   val gf = JTSFactoryFinder.getGeometryFactory
   val paths = new AtomicInteger(0)
 
+  def getUniquePath: String = s"geomesa/${paths.getAndIncrement()}/test/"
+
   def getStore(zkPath: String, consumers: Int, extras: Map[String, AnyRef] = Map.empty): KafkaDataStore = {
     val params = baseParams ++ Map("kafka.zk.path" -> zkPath, "kafka.consumer.count" -> consumers) ++ extras
-    DataStoreFinder.getDataStore(params).asInstanceOf[KafkaDataStore]
+    DataStoreFinder.getDataStore(params.asJava).asInstanceOf[KafkaDataStore]
   }
 
-  def createStorePair(name: String,
-                      params: Map[String, AnyRef] = Map.empty): (KafkaDataStore, KafkaDataStore, SimpleFeatureType) = {
+  def createStorePair(params: Map[String, AnyRef] = Map.empty): (KafkaDataStore, KafkaDataStore, SimpleFeatureType) = {
     // note: the topic gets set in the user data, so don't re-use the same sft instance
     val sft = SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val path = s"geomesa/$name/test/${paths.getAndIncrement()}"
+    val path = getUniquePath
     (getStore(path, 0, params), getStore(path, 1, params), sft)
   }
 
@@ -93,8 +96,8 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     "return correctly from canProcess" >> {
       import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams._
       val factory = new KafkaDataStoreFactory
-      factory.canProcess(Map.empty[String, Serializable]) must beFalse
-      factory.canProcess(Map(Brokers.key -> "test", Zookeepers.key -> "test")) must beTrue
+      factory.canProcess(Collections.emptyMap[String, java.io.Serializable]) must beFalse
+      factory.canProcess(Map[String, java.io.Serializable](Brokers.key -> "test", Zookeepers.key -> "test").asJava) must beTrue
     }
 
     "handle old read-back params" >> {
@@ -149,7 +152,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           } else {
             Map.empty[String, String]
           }
-          createStorePair("createdelete", params)
+          createStorePair(params)
         } finally {
           TableBasedMetadata.Expiry.threadLocalValue.remove()
         }
@@ -194,7 +197,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         } else {
           Map.empty[String, String]
         }
-        val (producer, consumer, sft) = createStorePair("writeupdatedelete", params)
+        val (producer, consumer, sft) = createStorePair(params)
         try {
           producer.createSchema(sft)
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
@@ -253,8 +256,8 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       foreach(Seq(true, false)) { cqEngine =>
         var auths: Set[String] = null
         val provider = new AuthorizationsProvider() {
-          import scala.collection.JavaConversions._
-          override def getAuthorizations: java.util.List[String] = auths.toList
+          import scala.collection.JavaConverters._
+          override def getAuthorizations: java.util.List[String] = auths.toList.asJava
           override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
         }
         val params = if (cqEngine) {
@@ -262,7 +265,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         } else {
           Map.empty[String, String]
         }
-        val (producer, consumer, sft) = createStorePair("vis", params + (AuthProviderParam.key -> provider))
+        val (producer, consumer, sft) = createStorePair(params + (AuthProviderParam.key -> provider))
         try {
           producer.createSchema(sft)
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
@@ -301,7 +304,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     }
 
     "require visibilities on write" >> {
-      val (producer, consumer, sft) = createStorePair("reqvis")
+      val (producer, consumer, sft) = createStorePair()
       try {
         sft.getUserData.put(Configs.RequireVisibility, "true")
         producer.createSchema(sft)
@@ -332,7 +335,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         } else {
           Map("kafka.cache.expiry" -> "100ms", "kafka.cache.executor" -> (executor, ticker))
         }
-        val (producer, consumer, sft) = createStorePair("expire", params)
+        val (producer, consumer, sft) = createStorePair(params)
         try {
           producer.createSchema(sft)
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
@@ -362,7 +365,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
               containTheSameElementsAs(Seq(f0, f1)))
 
           // expire the cache
-          expirations.foreach(_.runnable.run())
+          expirations.asScala.foreach(_.runnable.run())
 
           // verify feature has expired - hit the cache directly
           SelfClosingIterator(store.getFeatures.features) must beEmpty
@@ -392,7 +395,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           )
           if (cqEngine) { base + ("kafka.index.cqengine" -> "geom:default,name:unique") } else { base }
         }
-        val (producer, consumer, sft) = createStorePair("dynamic-expire", params)
+        val (producer, consumer, sft) = createStorePair(params)
         try {
           producer.createSchema(sft)
           val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
@@ -469,7 +472,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           there was one(executor).schedule(ArgumentMatchers.eq(expirations.get(2).runnable), ArgumentMatchers.eq(300L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
 
           // expire the cache
-          expirations.foreach(_.runnable.run())
+          expirations.asScala.foreach(_.runnable.run())
 
           // verify feature has expired - hit the cache directly
           SelfClosingIterator(store.getFeatures.features) must beEmpty
@@ -484,7 +487,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
     "clear on startup" >> {
       val params = Map("kafka.producer.clear" -> "true")
-      val (producer, consumer, sft) = createStorePair("clear-on-startup", params)
+      val (producer, consumer, sft) = createStorePair(params)
       try {
         producer.createSchema(sft)
         val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
@@ -517,7 +520,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     }
 
     "support listeners" >> {
-      val (producer, consumer, sft) = createStorePair("listeners")
+      val (producer, consumer, sft) = createStorePair()
       try {
         val id = "fid-0"
         val numUpdates = 1
@@ -560,7 +563,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
     "support listeners without indexing" >> {
       val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
-      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
+      val (producer, consumer, sft) = createStorePair(params)
       try {
         val id = "fid-0"
         val numUpdates = 1
@@ -602,7 +605,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     }
 
     "support transactions" >> {
-      val (producer, consumer, _) = createStorePair("transactions")
+      val (producer, consumer, _) = createStorePair()
       try {
         val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
         producer.createSchema(sft)
@@ -660,7 +663,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           |}
           |
           |""".stripMargin
-      val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
+      val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
       try {
         val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
         producer.createSchema(sft)
@@ -753,14 +756,14 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         KafkaDataStoreParams.ConsumerCount.key -> "2",
         KafkaDataStoreParams.TopicPartitions.key -> "2"
       )
-      val (producer, consumer, sft) = createStorePair("batch-consumers", params)
+      val (producer, consumer, sft) = createStorePair(params)
       try {
         val id = "fid-0"
         val numUpdates = 3
         val maxLon = 80.0
 
         val seen = new AtomicBoolean(false)
-        var results = new CopyOnWriteArrayList[SimpleFeature]().asScala
+        val results = new CopyOnWriteArrayList[SimpleFeature]().asScala
 
         val processor = new GeoMessageProcessor() {
           override def consume(records: Seq[GeoMessage]): BatchResult = {
@@ -813,7 +816,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         KafkaDataStoreParams.ConsumerCount.key -> "2",
         KafkaDataStoreParams.TopicPartitions.key -> "2"
       )
-      val (producer, consumer, sft) = createStorePair("batch-consumers-pause", params)
+      val (producer, consumer, sft) = createStorePair(params)
       try {
         val id = "fid-0"
         val numUpdates = 3
@@ -904,12 +907,32 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         client.close()
       }
     }
+
+    "configure topics by feature type" in {
+      val ds = getStore(getUniquePath, 0)
+      try {
+        val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;")
+        sft.getUserData.put("kafka.topic.config", "cleanup.policy=compact\nretention.ms=86400000")
+        ds.createSchema(sft)
+        val topic = KafkaDataStore.topic(ds.getSchema(sft.getTypeName))
+        WithClose(KafkaZkClient(kafka.zookeepers, isSecure = false, 30000, 30000, Int.MaxValue, Time.SYSTEM)) { zkClient =>
+          val admin = new AdminZkClient(zkClient)
+          val entity = ConfigEntity(Entity("topics", Some(topic)), None)
+          val configs = entity.getAllEntities(zkClient).flatMap { e =>
+            admin.fetchEntityConfig(e.root.entityType, e.fullSanitizedName).asScala
+          }
+          configs.toMap mustEqual Map("cleanup.policy" -> "compact", "retention.ms" -> "86400000")
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
   }
 
   "KafkaDataStoreFactory" should {
     "clean zkPath" >> {
-      def getNamespace(path: String): String =
-        KafkaDataStoreFactory.createZkNamespace(Map(KafkaDataStoreParams.ZkPath.getName -> path))
+      def getNamespace(path: java.io.Serializable): String =
+        KafkaDataStoreFactory.createZkNamespace(Map(KafkaDataStoreParams.ZkPath.getName -> path).asJava)
 
       // a well formed path starts does not start or end with a /
       getNamespace("foo/bar/baz") mustEqual "foo/bar/baz"
@@ -930,7 +953,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
   "KafkaFeatureSource" should {
     "handle Query instances with null TypeName (GeoServer querylayer extension implementation nuance)" >> {
-      val (p, c, sft) = createStorePair("querylayer")
+      val (p, c, sft) = createStorePair()
       p.createSchema(sft)
       val fs = c.getFeatureSource(sft.getTypeName)
       val q = new Query(null, Filter.INCLUDE)

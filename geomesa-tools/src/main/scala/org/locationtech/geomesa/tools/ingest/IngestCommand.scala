@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -166,7 +166,7 @@ trait IngestCommand[DS <: DataStore]
     mode match {
       case RunModes.Local =>
         Command.user.info("Running ingestion in local mode")
-        new LocalConverterIngest(ds, sft, converter, inputs, params.threads)
+        new LocalConverterIngest(ds, connection.asJava, sft, converter, inputs, params.threads)
 
       case RunModes.Distributed =>
         Command.user.info(s"Running ingestion in distributed ${if (params.combineInputs) "combine " else "" }mode")

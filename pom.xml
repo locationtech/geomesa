@@ -127,7 +127,7 @@
         <!-- bump version right before performing releases for the README and the documentation -->
         <geomesa.release.version>3.3.0</geomesa.release.version>
         <geomesa.devel.version>3.4.0-SNAPSHOT</geomesa.devel.version>
-        <copyright.year>2021</copyright.year>
+        <copyright.year>2022</copyright.year>
 
         <!-- recommended installation versions -->
         <accumulo.version.recommended>2.0.0</accumulo.version.recommended>
@@ -510,6 +510,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-geojson-rest_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-gt-partitioning_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2603,10 +2608,12 @@
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
                             <validHeader>build/copyright/ccri-dstl.txt</validHeader>
+                            <validHeader>build/copyright/ccri-dstl-mitre.txt</validHeader>
                             <validHeader>build/copyright/dstl.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
                             <validHeader>build/copyright/mitre.txt</validHeader>
+                            <validHeader>build/copyright/ccri-mitre.txt</validHeader>
                         </validHeaders>
                         <properties>
                             <year>${copyright.year}</year>
