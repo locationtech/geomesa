@@ -104,11 +104,12 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     }
 
     val vis = attributeVis.mkString(",")
-    // The magic number "34" is brought to you by adding up
-    //   Class and size info for the key and value (2 bytes for the class, and 2 for the size per key and value).
-    //     2*(2+2) = 8
-    //   The size of the key ("geomesa.feature.visibility".size = 26)
-    //   And the size of the attribute vis string.
+    // The magic number "34" is brought to you by adding up the user data serialization, which is:
+    //   4  -> writing an int for the size of the map
+    //   2  -> writing a string representing the class of the key (`$s`)
+    //   26 -> writing the key ("geomesa.feature.visibility".size = 26)
+    //   2  -> writing a string representing the class of the value (`$s`)
+    //   And the size of the attribute vis string
     length += 34 + vis.length
     val value = Array.ofDim[Byte](length)
     val output = new Output(value)
@@ -144,7 +145,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     nulls.serialize(output)
 
     output.setPosition(valueCursor)
-    KryoUserDataSerialization.serialize(output, Collections.singletonMap(FEATURE_VISIBILITY, vis))
+    KryoUserDataSerialization.serializeAscii(output, Collections.singletonMap(FEATURE_VISIBILITY, vis))
     new Value(value)
   }
 
