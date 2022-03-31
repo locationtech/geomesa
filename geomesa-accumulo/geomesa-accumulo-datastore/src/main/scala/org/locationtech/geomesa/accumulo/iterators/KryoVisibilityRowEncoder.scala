@@ -14,7 +14,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RowEncodingIterator
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
+import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureSerialization}
 import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, Metadata}
 import org.locationtech.geomesa.index.iterators.IteratorCache
@@ -103,14 +103,11 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       i += 1
     }
 
-    val vis = attributeVis.mkString(",")
-    // The magic number "34" is brought to you by adding up the user data serialization, which is:
-    //   4  -> writing an int for the size of the map
-    //   2  -> writing a string representing the class of the key (`$s`)
-    //   26 -> writing the key ("geomesa.feature.visibility".size = 26)
-    //   2  -> writing a string representing the class of the value (`$s`)
-    //   And the size of the attribute vis string
-    length += 34 + vis.length
+    // generate the serialized vis separately, as we can't reliably calculate it's size up front
+    val vis = KryoFeatureSerialization.getOutput(null)
+    KryoUserDataSerialization.serialize(vis, Collections.singletonMap(FEATURE_VISIBILITY, attributeVis.mkString(",")))
+
+    length += vis.position()
     val value = Array.ofDim[Byte](length)
     val output = new Output(value)
     output.writeByte(KryoFeatureSerializer.Version3)
@@ -144,8 +141,9 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     // write nulls - we should already be in the right position
     nulls.serialize(output)
 
-    output.setPosition(valueCursor)
-    KryoUserDataSerialization.serializeAscii(output, Collections.singletonMap(FEATURE_VISIBILITY, vis))
+    // copy in user data
+    System.arraycopy(vis.getBuffer, 0, value, valueCursor, vis.position())
+
     new Value(value)
   }
 
