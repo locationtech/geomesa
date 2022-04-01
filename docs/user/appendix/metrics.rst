@@ -132,6 +132,7 @@ Configuration Property Description
 ``type``               Must be ``graphite``
 ``url``                The connection string to the Graphite instance
 ``prefix``             Prefix prepended to all metric names
+``ssl``                Boolean to enable or disable SSL connections
 ====================== ===============================================================================================
 
 Example configuration:
@@ -141,11 +142,15 @@ Example configuration:
   {
     type           = "graphite"
     url            = "localhost:9000"
+    ssl            = false
     prefix         = "example"
     rate-units     = "seconds"
     duration-units = "milliseconds"
     interval       = "10 seconds"
   }
+
+If SSL is enabled, standard Java system properties can be used to control key stores and trust stores, i.e.
+``javax.net.ssl.keyStore``, etc.
 
 Extensions
 ----------
