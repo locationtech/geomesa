@@ -22,6 +22,7 @@ import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
+import org.geotools.data.simple._
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
@@ -103,6 +104,37 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
         m.get.getAttribute(2) must beNull
         m.get.getAttribute(3) mustEqual mixedFeature.getAttribute(3)
       }
+    }
+
+    "delete one record" in {
+      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+      val fs: SimpleFeatureStore = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
+
+      val queryBefore = new Query(sftName, ECQL.toFilter("IN('user')"))
+      val resultsBefore = SelfClosingIterator(ds.getFeatureReader(queryBefore, Transaction.AUTO_COMMIT)).toSeq
+      resultsBefore.size mustEqual 1
+
+      fs.removeFeatures(ECQL.toFilter("IN('user')"))
+
+      val queryAfter = new Query(sftName, ECQL.toFilter("IN('user')"))
+      val resultsAfter = SelfClosingIterator(ds.getFeatureReader(queryAfter, Transaction.AUTO_COMMIT)).toSeq
+      resultsAfter.size mustEqual 0
+    }
+
+    "delete all records" in {
+      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+      val fs: SimpleFeatureStore = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
+
+      val queryBefore = new Query(sftName, ECQL.toFilter("INCLUDE"))
+      val resultsBefore = SelfClosingIterator(ds.getFeatureReader(queryBefore, Transaction.AUTO_COMMIT)).toSeq
+      resultsBefore.size mustEqual 2 // We deleted one record in the prior test
+
+      fs.removeFeatures(ECQL.toFilter("INCLUDE"))
+
+      val queryAfter = new Query(sftName, ECQL.toFilter("INCLUDE"))
+      val resultsAfter = SelfClosingIterator(ds.getFeatureReader(queryAfter, Transaction.AUTO_COMMIT)).toSeq
+      resultsAfter.size mustEqual 0
+      ok
     }
   }
 }
