@@ -3,3 +3,4 @@ sphinx-tabs==1.1.10
 recommonmark==0.4.0
 sphinx-rtd-theme==0.4.2
 docutils<0.18
+jinja2<3.1.0

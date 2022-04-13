@@ -22,6 +22,8 @@ following sections.
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConverterErrorMode``        | Override the converter error mode (``skip-bad-records`` or ``raise-errors``)            |
 +-------------------------------+-----------------------------------------------------------------------------------------+
+| ``ConverterMetricReporters``  | Override the converter metrics reporters (see below)                                    |
++-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConvertFlowFileAttributes`` | Expose flow file attributes to the converter framework, referenced by name              |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 
@@ -80,3 +82,22 @@ are available:
     Configuration via flow file attributes should be used with care, as any misconfigurations may multiply.
     For example, setting ``geomesa.sft.name`` to a non-recurring value could end up creating a new schema for each
     flow file, potentially crashing your database by creating too many tables.
+
+Converter Metrics
+~~~~~~~~~~~~~~~~~
+
+GeoMesa supports publishing metrics on the ingest conversion process. See :ref:`converter_metrics` and
+:ref:`geomesa_metrics` for details. The GeoMesa NiFi converter processors allow the metrics reporters to be
+configured directly in NiFi with the ``ConverterMetricReporters`` property, instead of in the converter definition.
+The property expects a TypeSafe Config block defining the reporters or list of reporters, for example:
+
+
+::
+
+  {
+    type     = "slf4j"
+    units    = "milliseconds"
+    interval = "60 seconds"
+    logger   = "org.locationtech.geomesa.metrics"
+    level    = "debug"
+  }
