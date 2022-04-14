@@ -28,10 +28,12 @@ trait EnrichmentCacheFactory {
 }
 
 object EnrichmentCache {
+
+  lazy private val factories = ServiceLoader.load[EnrichmentCacheFactory]()
+
   def apply(conf: Config): EnrichmentCache = {
-    ServiceLoader.load[EnrichmentCacheFactory]()
-        .find(_.canProcess(conf))
-        .getOrElse(throw new RuntimeException("Could not find applicable EnrichmentCache"))
+    factories.find(_.canProcess(conf))
+        .getOrElse(throw new RuntimeException(s"Could not find applicable EnrichmentCache for config: $conf"))
         .build(conf)
   }
 }
