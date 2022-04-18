@@ -210,10 +210,10 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "Prevent reserved words in spec" in {
       "throw an exception if reserved words are found" >> {
-        createNewSchema("name:String,dtg:Date,*Location:Point:srid=4326") must throwAn[IllegalArgumentException]
+        createNewSchema("name:String,dtg:Date,*Point:Point:srid=4326") must throwAn[IllegalArgumentException]
       }
       "allow for override" >> {
-        val sft = createNewSchema("name:String,dtg:Date,*Location:Point:srid=4326;override.reserved.words=true")
+        val sft = createNewSchema("name:String,dtg:Date,*Point:Point:srid=4326;override.reserved.words=true")
         sft.getGeometryDescriptor.getType.getBinding mustEqual classOf[Point]
       }
     }
