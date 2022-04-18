@@ -27,7 +27,6 @@ Note that this list is case insensitive.
 * IS
 * LIKE
 * LINESTRING
-* LOCATION
 * MULTILINESTRING
 * MULTIPOINT
 * MULTIPOLYGON

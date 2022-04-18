@@ -28,7 +28,7 @@ object FeatureUtils {
   // sourced from the following:
   //   https://github.com/geotools/geotools/blob/master/modules/library/cql/src/main/jjtree/ECQLGrammar.jjt
   //   http://docs.geotools.org/latest/userguide/library/cql/internal.html
-  val ReservedWords = HashSet(
+  val ReservedWords: Set[String] = HashSet(
     "AFTER",
     "AND",
     "BEFORE",
@@ -50,7 +50,6 @@ object FeatureUtils {
     "IS",
     "LIKE",
     "LINESTRING",
-    "LOCATION",
     "MULTILINESTRING",
     "MULTIPOINT",
     "MULTIPOLYGON",
