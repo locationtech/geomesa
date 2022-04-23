@@ -52,7 +52,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
 
   "sql data tests" should {
 
-    "not using sedon" >> {
+    "not using sedona" >> {
       isUsingSedona must beFalse
     }
 
