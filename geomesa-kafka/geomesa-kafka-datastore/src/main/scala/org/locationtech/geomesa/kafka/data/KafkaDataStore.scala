@@ -58,7 +58,7 @@ import scala.util.{Failure, Success, Try}
 class KafkaDataStore(
     val config: KafkaDataStoreConfig,
     val metadata: GeoMesaMetadata[String],
-    serialization: GeoMessageSerializerFactory
+    private[kafka] val serialization: GeoMessageSerializerFactory
   ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
 
   import KafkaDataStore.TopicKey
