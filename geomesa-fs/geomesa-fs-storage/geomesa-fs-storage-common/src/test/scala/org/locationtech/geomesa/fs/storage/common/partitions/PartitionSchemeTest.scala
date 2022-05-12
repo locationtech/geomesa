@@ -41,8 +41,9 @@ class PartitionSchemeTest extends Specification with AllExpectations {
     "partition based on attribute" >> {
       val ps = PartitionSchemeFactory.load(sft, NamedOptions("attribute", Map("partitioned-attribute" -> "name")))
       ps.getPartitionName(sf) mustEqual "test"
-      ps.getSimplifiedFilters(ECQL.toFilter("name IN ('foo', 'bar')")) must
-          beSome(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("foo", "bar"), partial = false)))
+      ps.getSimplifiedFilters(ECQL.toFilter("name IN ('foo', 'bar')")) must beOneOf(
+        Some(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("foo", "bar"), partial = false))),
+        Some(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("bar", "foo"), partial = false))))
       ps.getSimplifiedFilters(ECQL.toFilter("name IN ('foo', 'bar')"), Some("foo")) must
           beSome(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("foo"), partial = false)))
       ps.getSimplifiedFilters(ECQL.toFilter("name < 'foo' and name > 'bar'")) must beNone

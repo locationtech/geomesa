@@ -54,7 +54,7 @@ object FilterValues {
       if (intersections.isEmpty) {
         FilterValues.disjoint
       } else {
-        FilterValues(intersections, left.precise && right.precise)
+        FilterValues(intersections.distinct, left.precise && right.precise)
       }
     }
   }
