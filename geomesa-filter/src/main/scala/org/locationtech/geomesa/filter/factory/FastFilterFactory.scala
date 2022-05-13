@@ -112,7 +112,7 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
                        exp2: Expression,
                        matchCase: Boolean,
                        matchAction: MatchAction): PropertyIsGreaterThan = {
-    if (matchCase || matchAction != MatchAction.ANY) {
+    if (matchAction != MatchAction.ANY) {
       super.greater(exp1, exp2, matchCase, matchAction)
     } else {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
@@ -150,7 +150,7 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
                               exp2: Expression,
                               matchCase: Boolean,
                               matchAction: MatchAction): PropertyIsGreaterThanOrEqualTo = {
-    if (matchCase || matchAction != MatchAction.ANY) {
+    if (matchAction != MatchAction.ANY) {
       super.greaterOrEqual(exp1, exp2, matchCase, matchAction)
     } else {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
@@ -186,7 +186,7 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
                     exp2: Expression,
                     matchCase: Boolean,
                     matchAction: MatchAction): PropertyIsLessThan = {
-    if (matchCase || matchAction != MatchAction.ANY) {
+    if (matchAction != MatchAction.ANY) {
       super.less(exp1, exp2, matchCase, matchAction)
     } else {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
@@ -224,7 +224,7 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
                            exp2: Expression,
                            matchCase: Boolean,
                            matchAction: MatchAction): PropertyIsLessThanOrEqualTo = {
-    if (matchCase || matchAction != MatchAction.ANY) {
+    if (matchAction != MatchAction.ANY) {
       super.lessOrEqual(exp1, exp2, matchCase, matchAction)
     } else {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
