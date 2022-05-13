@@ -352,74 +352,14 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     }
   }
 
-  /**
-   * @see org.geotools.data.DataStore#getFeatureReader(org.geotools.data.Query, org.geotools.data.Transaction)
-   * @param query query to execute
-   * @param transaction transaction to use (currently ignored)
-   * @return feature reader
-   */
-  override def getFeatureReader(query: Query, transaction: Transaction): GeoMesaFeatureReader = {
-    require(query.getTypeName != null, "Type name is required in the query")
-    val sft = getSchema(query.getTypeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
-    }
+  override private[geomesa] def getFeatureReader(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      query: Query): GeoMesaFeatureReader = {
     if (transaction != Transaction.AUTO_COMMIT) {
       logger.warn("Ignoring transaction - not supported")
     }
-    getFeatureReader(sft, query)
-  }
-
-  /**
-    * Internal method to get a feature reader without reloading the simple feature type. We don't expose this
-    * widely as we want to ensure that the sft has been loaded from our catalog
-    *
-    * @param sft simple feature type
-    * @param query query
-    * @return
-    */
-  private [geotools] def getFeatureReader(sft: SimpleFeatureType, query: Query): GeoMesaFeatureReader =
     GeoMesaFeatureReader(sft, query, queryPlanner, config.queries.timeout, config.audit)
-
-  /**
-   * Create a general purpose writer that is capable of updates and deletes.
-   * Does <b>not</b> allow inserts.
-   *
-   * @see org.geotools.data.DataStore#getFeatureWriter(java.lang.String, org.opengis.filter.Filter,
-   *        org.geotools.data.Transaction)
-   * @param typeName feature type name
-   * @param filter cql filter to select features for update/delete
-   * @param transaction transaction (currently ignored)
-   * @return feature writer
-   */
-  override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): FlushableFeatureWriter = {
-    val sft = getSchema(typeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
-    }
-    if (transaction != Transaction.AUTO_COMMIT) {
-      logger.warn("Ignoring transaction - not supported")
-    }
-    getFeatureWriter(sft, Some(filter))
-  }
-
-  /**
-   * Creates a feature writer only for writing - does not allow updates or deletes.
-   *
-   * @see org.geotools.data.DataStore#getFeatureWriterAppend(java.lang.String, org.geotools.data.Transaction)
-   * @param typeName feature type name
-   * @param transaction transaction (currently ignored)
-   * @return feature writer
-   */
-  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): FlushableFeatureWriter = {
-    val sft = getSchema(typeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
-    }
-    if (transaction != Transaction.AUTO_COMMIT) {
-      logger.warn("Ignoring transaction - not supported")
-    }
-    getFeatureWriter(sft, None)
   }
 
   /**
@@ -430,8 +370,15 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     * @param filter if defined, will do an updating write, otherwise will do an appending write
     * @return
     */
-  private [geotools] def getFeatureWriter(sft: SimpleFeatureType, filter: Option[Filter]): FlushableFeatureWriter =
+  override private[geomesa] def getFeatureWriter(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      filter: Option[Filter]): FlushableFeatureWriter = {
+    if (transaction != Transaction.AUTO_COMMIT) {
+      logger.warn("Ignoring transaction - not supported")
+    }
     GeoMesaFeatureWriter(this, sft, manager.indices(sft, mode = IndexMode.Write), filter)
+  }
 
   /**
     * Writes to the specified indices

@@ -18,10 +18,11 @@ import org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
-import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore}
+import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{Query, Transaction}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
@@ -282,51 +283,32 @@ class KafkaDataStore(
     new KafkaFeatureStore(this, sft, runner, cache(typeName))
   }
 
-  override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader = {
-    val sft = getSchema(query.getTypeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
-    }
+  private[geomesa] def getFeatureReader(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      query: Query): GeoMesaFeatureReader = {
     // kick off the kafka consumers for this sft, if not already started
     caches.get(layerViewLookup.getOrElse(query.getTypeName, query.getTypeName))
     GeoMesaFeatureReader(sft, query, runner, None, config.audit)
   }
 
-  override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): KafkaFeatureWriter = {
-    val sft = getSchema(typeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
-    } else if (layerViewLookup.contains(typeName)) {
-      throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
+  override private[geomesa] def getFeatureWriter(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      filter: Option[Filter]): FlushableFeatureWriter = {
+    if (layerViewLookup.contains(sft.getTypeName)) {
+      throw new IllegalArgumentException(
+        s"Schema '${sft.getTypeName}' is a read-only view of '${layerViewLookup(sft.getTypeName)}'")
     }
     val producer = getTransactionalProducer(transaction)
-    val writer =
-      if (sft.isVisibilityRequired) {
-        new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter) with RequiredVisibilityWriter
-      } else {
-        new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter)
-      }
-    if (config.clearOnStart && cleared.add(typeName)) {
-      writer.clear()
+    val vis = sft.isVisibilityRequired
+    val writer = filter match {
+      case None if vis    => new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
+      case None           => new AppendKafkaFeatureWriter(sft, producer, config.serialization)
+      case Some(f) if vis => new ModifyKafkaFeatureWriter(sft, producer, config.serialization, f) with RequiredVisibilityWriter
+      case Some(f)        => new ModifyKafkaFeatureWriter(sft, producer, config.serialization, f)
     }
-    writer
-  }
-
-  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): KafkaFeatureWriter = {
-    val sft = getSchema(typeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
-    } else if (layerViewLookup.contains(typeName)) {
-      throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
-    }
-    val producer = getTransactionalProducer(transaction)
-    val writer =
-      if (sft.isVisibilityRequired) {
-        new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
-      } else {
-        new AppendKafkaFeatureWriter(sft, producer, config.serialization)
-      }
-    if (config.clearOnStart && cleared.add(typeName)) {
+    if (config.clearOnStart && cleared.add(sft.getTypeName)) {
       writer.clear()
     }
     writer
