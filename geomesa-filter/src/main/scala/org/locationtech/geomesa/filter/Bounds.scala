@@ -219,12 +219,38 @@ object Bounds {
   }
 
   /**
-    * Takes the union of two bound sequences. Naive implementation that just concatenates
+    * Takes the union of two bound sequences.
     *
     * @param left first bounds
     * @param right second bounds
     * @tparam T type parameter
     * @return union
     */
-  def union[T](left: Seq[Bounds[T]], right: Seq[Bounds[T]]): Seq[Bounds[T]] = left ++ right
+  def union[T](left: Seq[Bounds[T]], right: Seq[Bounds[T]]): Seq[Bounds[T]] = {
+
+    def mergeOverlapping[T](bound: Bounds[T], rest: Seq[Bounds[T]]): Seq[Bounds[T]] = {
+      rest match {
+        case Seq() => Seq(bound)
+        case head +: tail => bound.upper match {
+          case Bound(None, _) => Seq(bound)
+          case Bound(Some(x), incX) => head.lower match {
+            case Bound(None, inc) =>
+              mergeOverlapping(Bounds(head.lower, largerUpperBound(bound.upper, head.upper)), tail)
+            case Bound(Some(y), incY) =>
+              val c = y.asInstanceOf[Comparable[Any]].compareTo(x)
+              if (c < 0 || (c == 0 && (incX || incY)))
+                mergeOverlapping(Bounds(bound.lower, largerUpperBound(bound.upper, head.upper)), tail)
+              else
+                bound +: mergeOverlapping(head, tail)
+          }
+        }
+      }
+    }
+
+    val bounds = (left ++ right).sortWith { case (a, b) => smallerLowerBound(a.lower, b.lower) == a.lower }
+    bounds match {
+      case Seq() => bounds
+      case head +: tail => mergeOverlapping(head, tail)
+    }
+  }
 }

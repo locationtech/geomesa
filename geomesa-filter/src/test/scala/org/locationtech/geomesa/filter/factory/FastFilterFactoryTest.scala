@@ -113,5 +113,13 @@ class FastFilterFactoryTest extends Specification {
         }
       }
     }
+    "comparison operators should have consistent semantics" >> {
+      val sft = SimpleFeatureTypes.createType("test", "s:String")
+      val sf = ScalaSimpleFeature.create(sft, "id", "5")
+      FastFilterFactory.toFilter(sft, "s > '100'").evaluate(sf) must beTrue
+      FastFilterFactory.toFilter(sft, "s >= '100'").evaluate(sf) must beTrue
+      FastFilterFactory.toFilter(sft, "s < '100'").evaluate(sf) must beFalse
+      FastFilterFactory.toFilter(sft, "s <= '100'").evaluate(sf) must beFalse
+    }
   }
 }
