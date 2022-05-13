@@ -187,11 +187,11 @@ Z3 frequency               Z3Frequency         ``Z3Frequency("geom","dtg",<time 
 histogram                  Histogram           ``Histogram("foo",<bins>,<min>,<max>)``
 Z3 histogram               Z3Histogram         ``Z3Histogram("geom","dtg",<time period>,<bins>)``
 descriptive statistics     DescriptiveStats    ``DescriptiveStats("foo","bar")``
-multiple stats             SeqStat             ``Count(),MinMax("foo")``
+multiple stats             SeqStat             ``Count();MinMax("foo")``
 grouped stats              GroupBy             ``GroupBy("foo",MinMax("bar"))``
 ========================== =================== =======================================================
 
-As seen in the table above, multiple stats can be calculated at once through comma delimiting. In addition,
+As seen in the table above, multiple stats can be calculated at once through semi-colon delimiting. In addition,
 stats can be calculated on grouped values by using ``GroupBy`` on a nested stat expression.
 
 The Z3 frequency and histogram are special stats that will operate on the Z3 value created from the geometry and date.
