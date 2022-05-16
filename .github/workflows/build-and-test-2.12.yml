@@ -25,10 +25,37 @@ jobs:
             ${{ runner.os }}-maven-
       - name: Build with Maven
         run: ./build/mvn clean install -Pbigtable -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
-      - name: Unit Tests
+      - name: Unit tests
+        id: test
         run: mvn -o surefire:test -Pbigtable -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
-      - name: HBase Tests
+        continue-on-error: true
+      - name: Unit tests (retry)
+        id: test-retry
+        if: steps.test.outcome=='failure'
+        run: mvn -o surefire:test -Pbigtable -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+      - name: Unit test status
+        if: always()
+        run: |
+          if ${{ steps.test.outcome=='success' || steps.test-retry.outcome=='success' }}; then
+             echo "tests passed"
+          else
+             exit 1
+          fi
+      - name: HBase 1.4 unit tests
+        id: hbase-test
         run: mvn -o surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+      - name: HBase 1.4 unit tests (retry)
+        id: hbase-test-retry
+        if: steps.hbase-test.outcome=='failure'
+        run: mvn -o surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+      - name: HBase 1.4 unit test status
+        if: always()
+        run: |
+          if ${{ steps.hbase-test.outcome=='success' || steps.hbase-test-retry.outcome=='success' }}; then
+             echo "tests passed"
+          else
+             exit 1
+          fi
       - name: Integration Tests
         run: mvn failsafe:integration-test -Pbigtable -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
       - name: Remove geomesa artifacts
