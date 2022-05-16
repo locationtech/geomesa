@@ -93,7 +93,7 @@ package object streams {
    *
    * @param params data store params
    */
-  private[streams] class SerializerCache(params: java.util.Map[String, Any]) {
+  class SerializerCache(params: java.util.Map[String, Any]) {
 
     private val topicsByTypeName = new ConcurrentHashMap[String, String]()
     private val serializersByTopic = new ConcurrentHashMap[String, GeoMesaMessageSerializer]()
@@ -186,7 +186,7 @@ package object streams {
    * @param sft feature type
    * @param internal nested serializer
    */
-  private[streams] class GeoMesaMessageSerializer(val sft: SimpleFeatureType, internal: SimpleFeatureSerializer) {
+  class GeoMesaMessageSerializer(val sft: SimpleFeatureType, val internal: SimpleFeatureSerializer) {
 
     import scala.collection.JavaConverters._
 
