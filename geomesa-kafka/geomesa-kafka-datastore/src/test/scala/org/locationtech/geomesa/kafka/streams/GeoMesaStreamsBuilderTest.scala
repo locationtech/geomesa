@@ -12,7 +12,9 @@ import com.typesafe.scalalogging.StrictLogging
 import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord, KafkaConsumer}
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, LongDeserializer, StringDeserializer}
-import org.apache.kafka.streams.processor.WallclockTimestampExtractor
+import org.apache.kafka.streams
+import org.apache.kafka.streams.kstream.{Transformer, TransformerSupplier}
+import org.apache.kafka.streams.processor.{ProcessorContext, WallclockTimestampExtractor}
 import org.apache.kafka.streams.{StreamsConfig, TopologyTestDriver}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
@@ -29,7 +31,7 @@ import org.specs2.runner.JUnitRunner
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{Collections, Properties}
+import java.util.{Collections, Date, Properties}
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.DurationInt
 
@@ -104,10 +106,20 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
         buf
       }
 
+      val timestampExtractor = new TimestampExtractingTransformer()
+
       val builder = GeoMesaStreamsBuilder(params)
+
+      // pull out the timestamps with an identity transform for later comparison
+      val streamFeatures = builder.stream(sft.getTypeName).transform[String, GeoMesaMessage](
+        new TransformerSupplier[String, GeoMesaMessage, streams.KeyValue[String, GeoMesaMessage]]() {
+          override def get(): Transformer[String, GeoMesaMessage, streams.KeyValue[String, GeoMesaMessage]] =
+            timestampExtractor
+        })
+
       // word count example copied from https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.html#scala-dsl
       val textLines: KStream[String, String] =
-        builder.stream(sft.getTypeName).map((k, v) => (k, v.attributes.map(_.toString.replaceAll(" ", "_")).mkString(" ")))
+        streamFeatures.map((k, v) => (k, v.attributes.map(_.toString.replaceAll(" ", "_")).mkString(" ")))
       val wordCounts: KTable[String, Long] =
         textLines
             .flatMapValues(textLine => textLine.split(" +"))
@@ -136,6 +148,10 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
             .map { case (k, v) => k -> v.length.toLong }
 
       output mustEqual expected
+
+      val expectedTimestamps = features.map(_.getAttribute("dtg").asInstanceOf[Date].getTime)
+      foreach(timestampExtractor.timestamps)(_._2 must haveLength(1))
+      timestampExtractor.timestamps.map(_._2.head) must containTheSameElementsAs(expectedTimestamps)
     }
 
     "write to geomesa topics" in {
@@ -198,4 +214,22 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
     kafka.close()
     logger.info("Stopped embedded kafka/zk")
   }
+
+  class TimestampExtractingTransformer
+      extends Transformer[String, GeoMesaMessage, org.apache.kafka.streams.KeyValue[String, GeoMesaMessage]]() {
+
+    private var context: ProcessorContext = _
+
+    val timestamps = scala.collection.mutable.Map.empty[String, ArrayBuffer[Long]]
+
+    override def init(context: ProcessorContext): Unit = this.context = context
+
+    override def transform(key: String, value: GeoMesaMessage): streams.KeyValue[String, GeoMesaMessage] = {
+      timestamps.getOrElseUpdate(key, ArrayBuffer.empty) += context.timestamp()
+      new streams.KeyValue(key, value)
+    }
+
+    override def close(): Unit = {}
+  }
+
 }

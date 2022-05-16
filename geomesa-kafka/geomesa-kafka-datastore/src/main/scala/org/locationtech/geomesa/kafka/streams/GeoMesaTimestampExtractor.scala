@@ -9,11 +9,12 @@
 package org.locationtech.geomesa.kafka.streams
 
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.apache.kafka.streams.processor.{FailOnInvalidTimestamp, TimestampExtractor}
+import org.apache.kafka.streams.processor.TimestampExtractor
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{EventTimeConfig, ExpiryTimeConfig, FilteredExpiryConfig}
 import org.locationtech.geomesa.kafka.data.{KafkaDataStoreFactory, KafkaDataStoreParams}
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.Expression
 
 import java.util.concurrent.ConcurrentHashMap
@@ -27,13 +28,15 @@ object GeoMesaTimestampExtractor {
    * @return
    */
   def apply(params: java.util.Map[String, _]): TimestampExtractor = {
-    val lazyParams = new java.util.HashMap[String, Any](params)
+    val paramsWithLazyFeatures = new java.util.HashMap[String, Any](params)
     // set lazy features so we don't deserialize the whole message just to get the timestamp
-    lazyParams.put(KafkaDataStoreParams.LazyFeatures.key, "true")
+    paramsWithLazyFeatures.put(KafkaDataStoreParams.LazyFeatures.key, "true")
     // disable consumers if not already done
-    lazyParams.put(KafkaDataStoreParams.ConsumerCount.key, 0)
+    paramsWithLazyFeatures.put(KafkaDataStoreParams.ConsumerCount.key, 0)
 
-    val config = KafkaDataStoreFactory.buildConfig(lazyParams.asInstanceOf[java.util.Map[String, java.io.Serializable]])
+    // check for event time config
+    val config =
+      KafkaDataStoreFactory.buildConfig(paramsWithLazyFeatures.asInstanceOf[java.util.Map[String, java.io.Serializable]])
 
     val event: PartialFunction[ExpiryTimeConfig, String] = {
       case EventTimeConfig(_, exp, true) => exp
@@ -47,8 +50,8 @@ object GeoMesaTimestampExtractor {
     }
 
     expression match {
-      case None => new FailOnInvalidTimestamp()
-      case Some(e) => new EventTimestampExtractor(e, lazyParams)
+      case None => new DefaultDateExtractor(paramsWithLazyFeatures)
+      case Some(e) => new EventTimestampExtractor(e, paramsWithLazyFeatures)
     }
   }
 
@@ -58,35 +61,75 @@ object GeoMesaTimestampExtractor {
    * @param expression expression for the timestamp
    * @param params data store params
    */
-  class EventTimestampExtractor(expression: String, params: java.util.Map[String, _]) extends TimestampExtractor {
+  class EventTimestampExtractor(expression: String, params: java.util.Map[String, _])
+      extends FeatureTimestampExtractor(params) {
+    override protected def loadExpression(sft: SimpleFeatureType): Option[Expression] =
+      Option(FastFilterFactory.toExpression(sft, expression))
+  }
+
+  /**
+   * Timestamp extractor that will pull the timestamp from the serialized feature
+   *
+   * @param params data store params
+   */
+  class DefaultDateExtractor(params: java.util.Map[String, _]) extends FeatureTimestampExtractor(params) {
+
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    override protected def loadExpression(sft: SimpleFeatureType): Option[Expression] =
+      sft.getDtgField.map(FastFilterFactory.toExpression(sft, _))
+  }
+
+  /**
+   * Base class for extracting timestamps from simple features
+   *
+   * @param params data store params
+   */
+  private[streams] abstract class FeatureTimestampExtractor(params: java.util.Map[String, _])
+      extends TimestampExtractor {
 
     private val cache = new SerializerCache(params.asInstanceOf[java.util.Map[String, Any]])
-    private val expressions = new ConcurrentHashMap[String, Expression]
+    private val expressions = new ConcurrentHashMap[String, Option[Expression]]
 
-    private val expressionLoader = new java.util.function.Function[String, Expression]() {
-      override def apply(topic: String): Expression =
-        FastFilterFactory.toExpression(cache.serializer(topic).sft, expression)
+    private val expressionLoader = new java.util.function.Function[String, Option[Expression]]() {
+      override def apply(topic: String): Option[Expression] =
+        loadExpression(cache.serializer(topic).sft)
     }
 
     // track last-used serializer so we don't have to look them up by hash each
     // time if we're just reading/writing to one topic (which is the standard use-case)
     @volatile
-    private var last: (String, Expression) = ("", null)
+    private var last: (String, Option[Expression]) = ("", null)
+
+    protected def loadExpression(sft: SimpleFeatureType): Option[Expression]
 
     override def extract(record: ConsumerRecord[AnyRef, AnyRef], previousTimestamp: Long): Long = {
-      if (record.value() == null) {
-        record.timestamp() // delete
-      } else {
-        val topic = record.topic()
-        val serializer = cache.serializer(topic)
-        val (lastTopic, lastExpression) = last
-        val expression = if (lastTopic == topic) { lastExpression } else {
-          val expression = expressions.computeIfAbsent(topic, expressionLoader)
-          // should be thread-safe due to volatile
-          last = (topic, expression)
-          expression
-        }
-        FeatureStateFactory.time(expression, serializer.internal.deserialize(record.value().asInstanceOf[Array[Byte]]))
+      record.value() match {
+        case null =>
+          record.timestamp()
+
+        case m: GeoMesaMessage if m.action == MessageAction.Upsert =>
+          val topic = record.topic()
+          val (lastTopic, lastExpression) = last
+          val expression = if (lastTopic == topic) { lastExpression } else {
+            val expression = expressions.computeIfAbsent(topic, expressionLoader)
+            // should be thread-safe due to volatile
+            last = (topic, expression)
+            expression
+          }
+          expression match {
+            case None => record.timestamp()
+            case Some(e) => FeatureStateFactory.time(e, cache.serializer(topic).wrap(m))
+          }
+
+        case m: GeoMesaMessage if m.action == MessageAction.Delete =>
+          record.timestamp()
+
+        case _: GeoMesaMessage =>
+          throw new NotImplementedError() // if we forget to handle a message action
+
+        case v =>
+          throw new IllegalArgumentException(s"Expected a GeoMesaMessage but got: ${v.getClass.getName} $v")
       }
     }
   }

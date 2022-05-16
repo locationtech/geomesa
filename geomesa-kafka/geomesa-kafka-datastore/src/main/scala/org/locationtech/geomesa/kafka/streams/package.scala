@@ -186,7 +186,7 @@ package object streams {
    * @param sft feature type
    * @param internal nested serializer
    */
-  private[streams] class GeoMesaMessageSerializer(val sft: SimpleFeatureType, val internal: SimpleFeatureSerializer) {
+  private[streams] class GeoMesaMessageSerializer(val sft: SimpleFeatureType, internal: SimpleFeatureSerializer) {
 
     import scala.collection.JavaConverters._
 
@@ -198,7 +198,7 @@ package object streams {
 
     def serialize(data: GeoMesaMessage): Array[Byte] = {
       data.action match {
-        case MessageAction.Upsert => internal.serialize(new SerializableFeature(converters, data.attributes.toIndexedSeq, data.userData))
+        case MessageAction.Upsert => internal.serialize(wrap(data))
         case MessageAction.Delete => null
         case null => throw new NullPointerException("action is null")
         case _ => throw new NotImplementedError(s"No serialization implemented for action '${data.action}'")
@@ -219,6 +219,15 @@ package object streams {
         GeoMesaMessage.upsert(feature.getAttributes.asScala, userData)
       }
     }
+
+    /**
+     * Wrap a message as a simple feature
+     *
+     * @param message message
+     * @return
+     */
+    def wrap(message: GeoMesaMessage): SimpleFeature =
+      new SerializableFeature(converters, message.attributes.toIndexedSeq, message.userData)
   }
 
   /**

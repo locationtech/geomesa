@@ -30,7 +30,7 @@ import scala.concurrent.duration.Duration
 class GeoMesaStreamsBuilder(
     val builder: StreamsBuilder,
     val serde: GeoMesaSerde,
-    timestampExtractor: TimestampExtractor,
+    val timestampExtractor: TimestampExtractor,
     resetPolicy: Option[AutoOffsetReset]) {
 
   implicit val consumed: Consumed[String, GeoMesaMessage] = {
