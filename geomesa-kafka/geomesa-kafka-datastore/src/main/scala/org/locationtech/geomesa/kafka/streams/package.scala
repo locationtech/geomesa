@@ -93,7 +93,7 @@ package object streams {
    *
    * @param params data store params
    */
-  class SerializerCache(params: java.util.Map[String, Any]) {
+  class SerializerCache(params: java.util.Map[String, _]) {
 
     private val topicsByTypeName = new ConcurrentHashMap[String, String]()
     private val serializersByTopic = new ConcurrentHashMap[String, GeoMesaMessageSerializer]()
