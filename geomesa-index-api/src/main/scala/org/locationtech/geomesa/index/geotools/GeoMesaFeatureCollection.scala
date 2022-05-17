@@ -10,9 +10,8 @@ package org.locationtech.geomesa.index.geotools
 
 import java.util.Collections
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
-
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource, SimpleFeatureStore}
 import org.geotools.data.store.DataFeatureCollection
 import org.geotools.data.util.NullProgressListener
 import org.geotools.data.{FeatureReader, Query, Transaction}
@@ -74,7 +73,13 @@ class GeoMesaFeatureCollection(source: GeoMesaFeatureSource, original: Query)
 
   override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     source.ds match {
-      case gm: GeoMesaDataStore[_] => gm.getFeatureReader(source.sft, query) // don't reload the sft
+      case gm: MetadataBackedDataStore =>
+        val transaction = source match {
+          case s: SimpleFeatureStore => s.getTransaction
+          case _ => Transaction.AUTO_COMMIT
+        }
+        gm.getFeatureReader(source.sft, transaction, query) // don't reload the sft
+
       case ds => ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
     }
   }
