@@ -93,3 +93,27 @@ The following shows how to persist data back to a GeoMesa topic:
 
     val topology = builder.build()
     // construct the streams app as normal
+
+Joins and Topic Partitioning
+----------------------------
+
+.. warning::
+
+    Kafka streams operations that require co-partitioning will usually require a re-partition step when used
+    with data from GeoMesa 3.4.x or earlier.
+
+For feature types created prior to version 3.5.0, GeoMesa will use a custom partitioner for data
+written to Kafka. When using Kafka Streams operations that require co-partitioning, such as joins, the
+GeoMesa topic will need to be re-partitioned.
+
+Existing feature types can be updated to use the default Kafka partitioner, which will allow for joins without
+re-partitioning. However, note that updates for a given feature may go to the wrong partition, which may result
+in older data being returned when GeoMesa is queried. This will generally resolve itself over time as Kafka log
+retention policies delete the older data (unless Kafka log compaction is enabled for the topic).
+
+To update an existing feature type, add the user data entry ``geomesa.kafka.partitioning=default``. Through the
+GeoMesa command-line tools, the following command will disable custom partitioning:
+
+.. code-block:: bash
+
+  geomesa-kafka update-schema --add-user-data "geomesa.kafka.partitioning:default"

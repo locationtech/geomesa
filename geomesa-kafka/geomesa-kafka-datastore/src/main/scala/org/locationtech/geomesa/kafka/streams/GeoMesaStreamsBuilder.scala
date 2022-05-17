@@ -14,7 +14,7 @@ import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.kstream.GlobalKTable
 import org.apache.kafka.streams.processor.TimestampExtractor
 import org.apache.kafka.streams.scala.kstream._
-import org.apache.kafka.streams.scala.{ByteArrayKeyValueStore, Serdes, StreamsBuilder}
+import org.apache.kafka.streams.scala.{ByteArrayKeyValueStore, StreamsBuilder}
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory
 
 import scala.concurrent.duration.Duration
@@ -33,14 +33,14 @@ class GeoMesaStreamsBuilder(
     val timestampExtractor: TimestampExtractor,
     resetPolicy: Option[AutoOffsetReset]) {
 
-  implicit val consumed: Consumed[String, GeoMesaMessage] = {
-    val c = Consumed.`with`(timestampExtractor)(Serdes.String, serde)
-    resetPolicy.foreach(c.withOffsetResetPolicy)
-    c
-  }
+  import org.apache.kafka.streams.scala.Serdes.String
 
-  implicit val produced: Produced[String, GeoMesaMessage] =
-    Produced.`with`(new GeoMessageStreamPartitioner())(Serdes.String, serde)
+  private implicit val s: GeoMesaSerde = serde
+
+  implicit val consumed: Consumed[String, GeoMesaMessage] = resetPolicy match {
+    case None => Consumed.`with`(timestampExtractor)
+    case Some(p) => Consumed.`with`(timestampExtractor, p)
+  }
 
   /**
    * Create a stream of updates for a given feature type
@@ -98,7 +98,15 @@ class GeoMesaStreamsBuilder(
    * @param typeName feature type name
    * @param stream stream to persist
    */
-  def to(typeName: String, stream: KStream[String, GeoMesaMessage]): Unit = stream.to(serde.topic(typeName))
+  def to(typeName: String, stream: KStream[String, GeoMesaMessage]): Unit = {
+    implicit val produced: Produced[String, GeoMesaMessage] =
+      if (serde.usesDefaultPartitioning(typeName)) {
+        Produced.`with`
+      } else {
+        Produced.`with`(new GeoMessageStreamPartitioner())
+      }
+    stream.to(serde.topic(typeName))
+  }
 
   /**
    * Convenience method to build the underlying topology

@@ -16,17 +16,12 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 /**
  * Serde for reading and writing to GeoMesa Kafka topics
  */
-class GeoMesaSerde extends Serde[GeoMesaMessage] {
+class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 
   private val impl = new GeoMesaSerializer()
 
-  /**
-   * Gets the topic associated with a feature type
-   *
-   * @param typeName feature type name
-   * @return
-   */
-  def topic(typeName: String): String = impl.topic(typeName)
+  override def topic(typeName: String): String = impl.topic(typeName)
+  override def usesDefaultPartitioning(typeName: String): Boolean = impl.usesDefaultPartitioning(typeName)
 
   override def configure(configs: java.util.Map[String, _], isKey: Boolean): Unit =
     impl.configure(configs, isKey)
@@ -39,19 +34,15 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] {
 
 object GeoMesaSerde {
 
-  class GeoMesaSerializer extends Serializer[GeoMesaMessage] with Deserializer[GeoMesaMessage] {
+  class GeoMesaSerializer extends Serializer[GeoMesaMessage] with Deserializer[GeoMesaMessage] with HasTopicMetadata {
 
     // track serialization/deserialization separately to avoid cache thrashing
     private var serializerCache: SerializerCache = _
     private var deserializerCache: SerializerCache = _
 
-    /**
-     * Gets the topic associated with a feature type
-     *
-     * @param typeName feature type name
-     * @return
-     */
-    def topic(typeName: String): String = serializerCache.topic(typeName)
+    override def topic(typeName: String): String = serializerCache.topic(typeName)
+    override def usesDefaultPartitioning(typeName: String): Boolean =
+      serializerCache.usesDefaultPartitioning(typeName)
 
     override def configure(configs: java.util.Map[String, _], isKey: Boolean): Unit = {
       require(!isKey, "GeoMesaSerializer does not support key serialization")

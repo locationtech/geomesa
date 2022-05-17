@@ -198,7 +198,7 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
         // initialize kafka consumers for the store
         ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT).close()
         // send the mocked messages to the actual embedded kafka topic
-        WithClose(KafkaDataStore.producer(ds.config)) { producer =>
+        WithClose(KafkaDataStore.producer(ds.config.brokers, Map.empty)) { producer =>
           kryoMessages.foreach(producer.send)
         }
         eventually(40, 100.millis) {

@@ -74,6 +74,28 @@ package object streams {
   }
 
   /**
+   * Trait for provided metadata about a feature type topic
+   */
+  trait HasTopicMetadata {
+
+    /**
+     * Gets the topic associated with a feature type
+     *
+     * @param typeName feature type name
+     * @return
+     */
+    def topic(typeName: String): String
+
+    /**
+     * Gets the partitioning associated with a feature type
+     *
+     * @param typeName feature type name
+     * @return true if Kafka default partitioning is used, false if custom partitioning is used
+     */
+    def usesDefaultPartitioning(typeName: String): Boolean
+  }
+
+  /**
    * Kafka partitioner for GeoMesa messages, to make sure all updates for a given
    * feature go to the same partition
    */
@@ -93,13 +115,13 @@ package object streams {
    *
    * @param params data store params
    */
-  class SerializerCache(params: java.util.Map[String, _]) {
+  class SerializerCache(params: java.util.Map[String, _]) extends HasTopicMetadata {
 
-    private val topicsByTypeName = new ConcurrentHashMap[String, String]()
+    private val metadataByTypeName = new ConcurrentHashMap[String, SchemaMetadata]()
     private val serializersByTopic = new ConcurrentHashMap[String, GeoMesaMessageSerializer]()
 
-    private val topicLoader = new java.util.function.Function[String, String]() {
-      override def apply(typeName: String): String = loadTopic(typeName)
+    private val metadataLoader = new java.util.function.Function[String, SchemaMetadata]() {
+      override def apply(typeName: String): SchemaMetadata = loadMetadata(typeName)
     }
 
     private val serializerLoader = new java.util.function.Function[String, GeoMesaMessageSerializer]() {
@@ -111,13 +133,10 @@ package object streams {
     @volatile
     private var last: (String, GeoMesaMessageSerializer) = ("", null)
 
-    /**
-     * Gets the topic associated with a feature type
-     *
-     * @param typeName feature type name
-     * @return
-     */
-    def topic(typeName: String): String = topicsByTypeName.computeIfAbsent(typeName, topicLoader)
+    override def topic(typeName: String): String = metadataByTypeName.computeIfAbsent(typeName, metadataLoader).topic
+
+    override def usesDefaultPartitioning(typeName: String): Boolean =
+      metadataByTypeName.computeIfAbsent(typeName, metadataLoader).usesDefaultPartitioning
 
     /**
      * Gets the serializer associated with a topic
@@ -135,10 +154,10 @@ package object streams {
       }
     }
 
-    private def loadTopic(typeName: String): String = {
+    private def loadMetadata(typeName: String): SchemaMetadata = {
       withDataStore { ds =>
         ds.getSchema(typeName) match {
-          case sft => KafkaDataStore.topic(sft)
+          case sft => SchemaMetadata(KafkaDataStore.topic(sft), KafkaDataStore.usesDefaultPartitioning(sft))
           case null =>
             throw new IllegalArgumentException(
               s"Schema '$typeName' does not exist in the configured store. " +
@@ -178,6 +197,8 @@ package object streams {
         case ds => throw new IllegalArgumentException(s"Expected a KafkaDataStore but got ${ds.getClass.getName}")
       }
     }
+
+    private case class SchemaMetadata(topic: String, usesDefaultPartitioning: Boolean)
   }
 
   /**

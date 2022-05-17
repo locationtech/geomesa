@@ -14,6 +14,7 @@ import kafka.zk.{AdminZkClient, KafkaZkClient}
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig}
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.utils.Time
 import org.geotools.data._
 import org.geotools.filter.identity.FeatureIdImpl
@@ -118,6 +119,18 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       try {
         ds.createSchema(SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"))
         ds.getSchema("kafka").getUserData.get(KafkaDataStore.TopicKey) mustEqual s"$path-kafka".replaceAll("/", "-")
+        ds.getSchema("kafka").getUserData.get(KafkaDataStore.PartitioningKey) mustEqual KafkaDataStore.PartitioningDefault
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "use default kafka partitioning" >> {
+      val path = s"geomesa/topics/test/${paths.getAndIncrement()}"
+      val ds = getStore(path, 0)
+      try {
+        ds.createSchema(SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"))
+        KafkaDataStore.usesDefaultPartitioning(ds.getSchema("kafka")) must beTrue
       } finally {
         ds.dispose()
       }
