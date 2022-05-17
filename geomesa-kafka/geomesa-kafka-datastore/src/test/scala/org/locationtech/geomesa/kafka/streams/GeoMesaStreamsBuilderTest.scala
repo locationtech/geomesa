@@ -172,7 +172,7 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
       val builder = GeoMesaStreamsBuilder(params)
 
       val input: KStream[String, String] =
-        builder.builder.stream[String, String]("input-topic")(implicitly[Consumed[String, String]].withTimestampExtractor(new WallclockTimestampExtractor()))
+        builder.wrapped.stream[String, String]("input-topic")(implicitly[Consumed[String, String]].withTimestampExtractor(new WallclockTimestampExtractor()))
       val output: KStream[String, GeoMesaMessage] =
         input.mapValues { lines =>
           GeoMesaMessage.upsert(lines.split(","))

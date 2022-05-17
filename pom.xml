@@ -2536,8 +2536,8 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <!-- 3.0.0-M1 was released 2018-09-23. -->
-                    <version>3.0.0-M1</version>
+                    <!-- 3.0.0-M2 was released 2021-12-27. -->
+                    <version>3.0.0-M2</version>
                     <configuration>
                         <deployAtEnd>true</deployAtEnd>
                     </configuration>

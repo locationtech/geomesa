@@ -22,13 +22,13 @@ import scala.concurrent.duration.Duration
 /**
  * Wrapper for a kafka streams builder that will configure serialization based on a GeoMesa Kafka feature store
  *
- * @param builder streams builder
+ * @param wrapped streams builder
  * @param serde serialization for geomesa messages
  * @param timestampExtractor timestamp extractor
  * @param resetPolicy reset policy
  */
 class GeoMesaStreamsBuilder(
-    val builder: StreamsBuilder,
+    val wrapped: StreamsBuilder,
     val serde: GeoMesaSerde,
     val timestampExtractor: TimestampExtractor,
     resetPolicy: Option[AutoOffsetReset]) {
@@ -48,7 +48,7 @@ class GeoMesaStreamsBuilder(
    * @param typeName feature type name
    * @return
    */
-  def stream(typeName: String): KStream[String, GeoMesaMessage] = builder.stream(serde.topic(typeName))
+  def stream(typeName: String): KStream[String, GeoMesaMessage] = wrapped.stream(serde.topic(typeName))
 
   /**
    * Create a table for a given feature type
@@ -56,7 +56,7 @@ class GeoMesaStreamsBuilder(
    * @param typeName feature type name
    * @return
    */
-  def table(typeName: String): KTable[String, GeoMesaMessage] = builder.table(serde.topic(typeName))
+  def table(typeName: String): KTable[String, GeoMesaMessage] = wrapped.table(serde.topic(typeName))
 
   /**
    * Create a table for a given feature type
@@ -68,7 +68,7 @@ class GeoMesaStreamsBuilder(
   def table(
       typeName: String,
       materialized: Materialized[String, GeoMesaMessage, ByteArrayKeyValueStore]): KTable[String, GeoMesaMessage] =
-    builder.table(serde.topic(typeName), materialized)
+    wrapped.table(serde.topic(typeName), materialized)
 
   /**
    * Create a global table for a given feature type
@@ -77,7 +77,7 @@ class GeoMesaStreamsBuilder(
    * @return
    */
   def globalTable(typeName: String): GlobalKTable[String, GeoMesaMessage] =
-    builder.globalTable(serde.topic(typeName))
+    wrapped.globalTable(serde.topic(typeName))
 
   /**
    * Create a global table for a given feature type
@@ -89,7 +89,7 @@ class GeoMesaStreamsBuilder(
   def globalTable(
       typeName: String,
       materialized: Materialized[String, GeoMesaMessage, ByteArrayKeyValueStore]): GlobalKTable[String, GeoMesaMessage] =
-    builder.globalTable(serde.topic(typeName), materialized)
+    wrapped.globalTable(serde.topic(typeName), materialized)
 
   /**
    * Write the stream to the given feature type, which must already exist. The messages
@@ -105,7 +105,7 @@ class GeoMesaStreamsBuilder(
    *
    * @return
    */
-  def build(): Topology = builder.build()
+  def build(): Topology = wrapped.build()
 }
 
 object GeoMesaStreamsBuilder {
