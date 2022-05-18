@@ -19,7 +19,7 @@ import java.net.URL
 import java.nio.charset.StandardCharsets
 
 class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: ConfluentFeatureSerializer)
-    extends GeoMessageSerializer(sft, null, null, null, 0) {
+    extends GeoMessageSerializer(sft, serializer, null, null, 0) {
 
   override def serialize(msg: GeoMessage): (Array[Byte], Array[Byte], Map[String, Array[Byte]]) =
     throw new NotImplementedError("Confluent data store is read-only")

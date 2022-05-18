@@ -44,17 +44,17 @@ object ConfluentFeatureSerializer {
 }
 
 class ConfluentFeatureSerializer(
-  sft: SimpleFeatureType,
-  schemaRegistryClient: SchemaRegistryClient,
-  schemaOverride: Option[Schema] = None,
-  val options: Set[SerializationOption] = Set.empty
-) extends SimpleFeatureSerializer with LazyLogging {
+    sft: SimpleFeatureType,
+    schemaRegistryClient: SchemaRegistryClient,
+    schemaOverride: Option[Schema] = None,
+    val options: Set[SerializationOption] = Set.empty
+  ) extends SimpleFeatureSerializer with LazyLogging {
 
-  private val kafkaAvroDeserializer = new ThreadLocal[KafkaAvroDeserializer]() {
+  private val kafkaAvroDeserializers = new ThreadLocal[KafkaAvroDeserializer]() {
     override def initialValue(): KafkaAvroDeserializer = new KafkaAvroDeserializer(schemaRegistryClient)
   }
 
-  private val featureReader = new ThreadLocal[ConfluentFeatureReader]() {
+  private val featureReaders = new ThreadLocal[ConfluentFeatureReader]() {
     override def initialValue(): ConfluentFeatureReader = {
       val schema = schemaOverride.getOrElse {
         val schemaId = Option(sft.getUserData.get(ConfluentMetadata.SchemaIdKey))
@@ -70,9 +70,9 @@ class ConfluentFeatureSerializer(
   }
 
   override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
-    val record = kafkaAvroDeserializer.get.deserialize("", bytes).asInstanceOf[GenericRecord]
+    val record = kafkaAvroDeserializers.get.deserialize("", bytes).asInstanceOf[GenericRecord]
 
-    val feature = featureReader.get.read(id, record)
+    val feature = featureReaders.get.read(id, record)
 
     // set the feature visibility if it exists
     Option(sft.getUserData.get(GeoMesaAvroVisibilityField.KEY)).map(_.asInstanceOf[String]).foreach { fieldName =>
@@ -87,19 +87,25 @@ class ConfluentFeatureSerializer(
     feature
   }
 
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize("", bytes)
+
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    deserialize("", bytes, offset, length)
+
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
+    val buf = if (offset == 0 && length == bytes.length) { bytes } else {
+      val buf = Array.ofDim[Byte](length)
+      System.arraycopy(bytes, offset, buf, 0, length)
+      buf
+    }
+    deserialize(id, buf)
+  }
+
   // implement the following if we need them
 
   override def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError()
 
-  override def deserialize(bytes: Array[Byte]): SimpleFeature = throw new NotImplementedError()
-
-  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-    throw new NotImplementedError()
-
   override def deserialize(id: String, in: InputStream): SimpleFeature =
-    throw new NotImplementedError()
-
-  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
     throw new NotImplementedError()
 
   override def serialize(feature: SimpleFeature): Array[Byte] =
