@@ -75,13 +75,14 @@ class ConfluentFeatureSerializer(
     val feature = featureReaders.get.read(id, record)
 
     // set the feature visibility if it exists
-    Option(sft.getUserData.get(GeoMesaAvroVisibilityField.KEY)).map(_.asInstanceOf[String]).foreach { fieldName =>
-      try {
-        SecurityUtils.setFeatureVisibility(feature, record.get(fieldName).toString)
-      } catch {
-        case NonFatal(ex) => throw new IllegalArgumentException(s"Error setting feature visibility using" +
-          s"field '$fieldName': ${ex.getMessage}")
-      }
+    sft.getUserData.get(GeoMesaAvroVisibilityField.KEY) match {
+      case null => // no-op
+      case fieldName =>
+        record.get(fieldName.toString) match {
+          case null => // no-op
+          case vis => SecurityUtils.setFeatureVisibility(feature, vis.toString)
+        }
+
     }
 
     feature
