@@ -423,6 +423,7 @@ object MergedDataStoreView {
 
     override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
       // note: unlike most methods in this class, this will return if any of the merged stores provide a response
+<<<<<<< HEAD
       def getSingle(statAndFilter: (GeoMesaStats, Option[Filter])): Option[Long] =
         statAndFilter._1.getCount(sft, mergeFilter(sft, filter, statAndFilter._2), exact, queryHints)
 
@@ -434,6 +435,7 @@ object MergedDataStoreView {
       } else {
         stats.flatMap(getSingle).reduceLeftOption(_ + _)
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -607,6 +609,12 @@ object MergedDataStoreView {
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+      val counts = stats.flatMap { case (stat, f) => stat.getCount(sft, mergeFilter(sft, filter, f), exact, queryHints) }
+      counts.reduceLeftOption(_ + _)
+>>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 6f8af866fb (GEOMESA-3202 Check for disjoint date queries in merged view store)
     }
 
     override def getMinMax[T](
@@ -615,6 +623,7 @@ object MergedDataStoreView {
         filter: Filter,
         exact: Boolean): Option[MinMax[T]] = {
       // note: unlike most methods in this class, this will return if any of the merged stores provide a response
+<<<<<<< HEAD
       def getSingle(statAndFilter: (GeoMesaStats, Option[Filter])): Option[MinMax[T]] =
         statAndFilter._1.getMinMax[T](sft, attribute, mergeFilter(sft, filter, statAndFilter._2), exact)
 
@@ -625,6 +634,7 @@ object MergedDataStoreView {
         results.asScala.reduceLeftOption(_ + _)
       } else {
         stats.flatMap(getSingle).reduceLeftOption(_ + _)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -657,6 +667,12 @@ object MergedDataStoreView {
 >>>>>>> bdd2bd6424 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 985fbd05df (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+      val bounds = stats.flatMap { case (stat, f) =>
+        stat.getMinMax[T](sft, attribute, mergeFilter(sft, filter, f), exact)
+>>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 6f8af866fb (GEOMESA-3202 Check for disjoint date queries in merged view store)
       }
 <<<<<<< HEAD
 <<<<<<< HEAD
