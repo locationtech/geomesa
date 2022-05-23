@@ -1362,6 +1362,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1370,6 +1371,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1387,6 +1390,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+<<<<<<< HEAD
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -1417,6 +1421,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 226f1d6822 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
         q.setHints(new Hints(hints))
         store.getFeatureReader(mergeFilter(sft, q, filter), Transaction.AUTO_COMMIT)
 <<<<<<< HEAD
@@ -1469,8 +1475,11 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 =======
         q.setHints(new Hints(hints))
@@ -1521,6 +1530,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 226f1d6822 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 =======
 =======
         q.setHints(new Hints(hints))
@@ -1611,6 +1621,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> bdd2bd6424 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 226f1d6822 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
       }
 
       if (hints.isDensityQuery) {
@@ -6560,13 +6572,17 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 226f1d6822 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -6590,6 +6606,10 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 =======
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> b71311c31d (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> bdd2bd6424 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -6599,8 +6619,11 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 985fbd05df (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 6f8af866fb (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -6627,10 +6650,13 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 985fbd05df (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 226f1d6822 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
       val q = new Query(query)
       q.setHints(new Hints(hints))
       store.getFeatureReader(mergeFilter(sft, q, filter), Transaction.AUTO_COMMIT)
@@ -6644,8 +6670,11 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -6653,10 +6682,15 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 >>>>>>> 226f1d6822 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+>>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -6716,6 +6750,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> bdd2bd6424 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 226f1d6822 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -6847,6 +6882,10 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+>>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
     }
 
     def getSingle(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): CloseableIterator[SimpleFeature] = {
