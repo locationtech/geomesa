@@ -49,6 +49,7 @@ class MergedFeatureSourceView(
   override def getSchema: SimpleFeatureType = sft
 
   override def getCount(query: Query): Int = {
+<<<<<<< HEAD
     val total =
       if (parallel) {
         def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Int = {
@@ -72,6 +73,7 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -79,11 +81,14 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> 7933021402 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+>>>>>>> e22e621f59 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
     // if one of our sources can't get a count (i.e. is negative), give up and return -1
     val total = sources.foldLeft(0) { case (sum, (source, filter)) =>
       lazy val count = source.getCount(mergeFilter(sft, query, filter))
       if (sum < 0 || count < 0) { -1 } else { sum + count }
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -109,6 +114,9 @@ class MergedFeatureSourceView(
 >>>>>>> 7933021402 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> e22e621f59 (GEOMESA-3202 Check for disjoint date queries in merged view store)
     if (query.isMaxFeaturesUnlimited) {
       total
     } else {
@@ -319,10 +327,20 @@ class MergedFeatureSourceView(
 =======
     sources.foreach {
       case (source, filter) =>
+<<<<<<< HEAD
         val source_bounds = source.getBounds(mergeFilter(query, filter))
 >>>>>>> 6a4564f89 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+<<<<<<< HEAD
 >>>>>>> 234114a499 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+<<<<<<< HEAD
 >>>>>>> 4c216bcec1 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+=======
+=======
+        val source_bounds = source.getBounds(mergeFilter(sft, query, filter))
+>>>>>>> 051bc58bc (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 63a7a37cdc (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> e22e621f59 (GEOMESA-3202 Check for disjoint date queries in merged view store)
         if(source_bounds != null){
           bounds.expandToInclude(source_bounds)
         }
