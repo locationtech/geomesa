@@ -208,9 +208,19 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data._
+<<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 >>>>>>> 6f8af866fb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 85e1bb3bb8 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 import org.geotools.feature.{AttributeTypeBuilder, FeatureTypes, NameImpl}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
@@ -293,6 +303,7 @@ package object view extends LazyLogging {
     })
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 <<<<<<< HEAD
 >>>>>>> 5e0c1295b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -328,9 +339,20 @@ package object view extends LazyLogging {
 =======
 >>>>>>> c5c38a96d0 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> 85e1bb3bb8 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 >>>>>>> 6f8af866fb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 85e1bb3bb8 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 
   private val dateBounds: LoadingCache[(String, Filter), Option[FilterValues[Bounds[ZonedDateTime]]]] =
     Caffeine.newBuilder().build(new CacheLoader[(String, Filter), Option[FilterValues[Bounds[ZonedDateTime]]]]() {
@@ -612,9 +634,19 @@ package object view extends LazyLogging {
 =======
 =======
           dateBounds.get((dtg, f)).flatMap { left =>
+<<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 >>>>>>> 6f8af866fb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 85e1bb3bb8 (GEOMESA-3202 Check for disjoint date queries in merged view store)
             val right = FilterHelper.extractIntervals(filter, dtg)
             val merged = FilterValues.and[Bounds[ZonedDateTime]](Bounds.intersection)(left, right)
             if (merged.disjoint) {
