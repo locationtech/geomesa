@@ -148,8 +148,8 @@ class S2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
     * @return
     */
   override def getRanges(values: S2IndexValues, multiplier: Int): Iterator[ScanRange[Long]] = {
-    val S2IndexValues(_, _, xy) = values
-    if (xy.isEmpty) {
+    val S2IndexValues(_, geoms, xy) = values
+    if (geoms.disjoint) {
       Iterator.empty
     } else {
       // note: `target` will always be Some, as ScanRangesTarget has a default value
