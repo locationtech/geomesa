@@ -49,6 +49,10 @@ object FilterValues {
   def and[T](intersect: (T, T) => Option[T])(left: FilterValues[T], right: FilterValues[T]): FilterValues[T] = {
     if (left.disjoint || right.disjoint) {
       FilterValues.disjoint
+    } else if (left.isEmpty) {
+      right
+    } else if (right.isEmpty) {
+      left
     } else {
       val intersections = left.values.flatMap(v => right.values.flatMap(intersect(_, v)))
       if (intersections.isEmpty) {
