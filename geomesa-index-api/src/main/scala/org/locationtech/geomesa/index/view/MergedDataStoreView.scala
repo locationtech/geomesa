@@ -1538,6 +1538,7 @@ object MergedDataStoreView {
 >>>>>>> 985fbd05df (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 =======
@@ -1566,6 +1567,12 @@ object MergedDataStoreView {
 >>>>>>> 985fbd05df (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> c5c38a96d0 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+      val seq = if (parallel) { stats.par } else { stats }
+      seq.flatMap(getSingle).reduceLeftOption(_ + _)
+>>>>>>> eea6a40fa (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 3c1f67aecd (GEOMESA-3202 Check for disjoint date queries in merged view store)
       val counts = stats.flatMap { case (stat, f) => stat.getCount(sft, mergeFilter(sft, filter, f), exact, queryHints) }
       counts.reduceLeftOption(_ + _)
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -2226,6 +2233,7 @@ object MergedDataStoreView {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -2387,6 +2395,8 @@ object MergedDataStoreView {
 <<<<<<< HEAD
 >>>>>>> 53fd6a4104 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+>>>>>>> 3c1f67aecd (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
       val seq = if (parallel) { stats.par } else { stats }
       seq.flatMap(getSingle).reduceLeftOption(_ + _)
 <<<<<<< HEAD
@@ -2444,12 +2454,21 @@ object MergedDataStoreView {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+      val seq = if (parallel) { stats.par } else { stats }
+      seq.flatMap(getSingle).reduceLeftOption(_ + _)
+>>>>>>> 81fe057376 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 3c1f67aecd (GEOMESA-3202 Check for disjoint date queries in merged view store)
       val bounds = stats.flatMap { case (stat, f) =>
         stat.getMinMax[T](sft, attribute, mergeFilter(sft, filter, f), exact)
       }
       bounds.reduceLeftOption(_ + _)
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2466,6 +2485,8 @@ object MergedDataStoreView {
 >>>>>>> 45f0dd2bea (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 78f21a0c32 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 3c1f67aecd (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
@@ -2623,6 +2644,7 @@ object MergedDataStoreView {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> eea6a40fa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 81fe057376 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -2772,6 +2794,11 @@ object MergedDataStoreView {
 >>>>>>> 53fd6a4104 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> eea6a40fa (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 81fe057376 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 3c1f67aecd (GEOMESA-3202 Check for disjoint date queries in merged view store)
     }
 
     override def getEnumeration[T](
