@@ -49,6 +49,7 @@ class MergedFeatureSourceView(
   override def getSchema: SimpleFeatureType = sft
 
   override def getCount(query: Query): Int = {
+<<<<<<< HEAD
     val total =
       if (parallel) {
         def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Int = {
@@ -94,6 +95,11 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 39517d146a (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -183,6 +189,7 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -199,6 +206,8 @@ class MergedFeatureSourceView(
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> b91cc883ba (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 39517d146a (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -212,6 +221,7 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -305,6 +315,8 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 39517d146a (GEOMESA-3202 Check for disjoint date queries in merged view store)
     if (query.isMaxFeaturesUnlimited) {
       total
     } else {
@@ -1741,9 +1753,16 @@ class MergedFeatureSourceView(
 =======
     sources.foreach {
       case (source, filter) =>
+<<<<<<< HEAD
         val source_bounds = source.getBounds(mergeFilter(query, filter))
 >>>>>>> 6a4564f895 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+<<<<<<< HEAD
 >>>>>>> a11f24a7cd (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+=======
+        val source_bounds = source.getBounds(mergeFilter(sft, query, filter))
+>>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 39517d146a (GEOMESA-3202 Check for disjoint date queries in merged view store)
         if(source_bounds != null){
           bounds.expandToInclude(source_bounds)
         }
