@@ -28,7 +28,11 @@ import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.FilterHelper
+<<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.mockito.ArgumentMatchers
@@ -37,7 +41,11 @@ import org.opengis.filter.Filter
 <<<<<<< HEAD
 =======
 import org.specs2.matcher.Matchers
+<<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -54,7 +62,11 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 
   import scala.collection.JavaConverters._
 
+<<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
   import org.locationtech.geomesa.filter.andFilters
 
   val sft = SimpleFeatureTypes.createImmutableType("test",
@@ -86,7 +98,11 @@ class MergedDataStoreViewTest extends Specification with Mockito {
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 =======
       val view = new MergedDataStoreView(stores, deduplicate = false)
+<<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
       WithClose(view.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))(_.hasNext)
       foreach(stores) { case (store, Some(filter)) =>
         val query = new Query(sft.getTypeName, filter)
@@ -100,7 +116,11 @@ class MergedDataStoreViewTest extends Specification with Mockito {
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 =======
       val view = new MergedDataStoreView(stores, deduplicate = false)
+<<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 
       val noDates = Seq("IN ('1', '2')", "foo = 'bar'", "age = 21", "bbox(geom,120,45,130,55)")
       foreach(noDates.map(ECQL.toFilter)) { f =>
@@ -118,7 +138,11 @@ class MergedDataStoreViewTest extends Specification with Mockito {
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 =======
       val view = new MergedDataStoreView(stores, deduplicate = false)
+<<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 
       val before = Seq("dtg during 2022-02-01T00:00:00.000Z/2022-02-01T12:00:00.000Z and name = 'alice'")
       foreach(before.map(ECQL.toFilter)) { f =>
@@ -140,7 +164,11 @@ class MergedDataStoreViewTest extends Specification with Mockito {
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 =======
       val view = new MergedDataStoreView(stores, deduplicate = false)
+<<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 
       val after = Seq("dtg during 2022-02-04T00:00:00.000Z/2022-02-04T12:00:00.000Z and name = 'alice'")
       foreach(after.map(ECQL.toFilter)) { f =>
@@ -162,7 +190,11 @@ class MergedDataStoreViewTest extends Specification with Mockito {
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 =======
       val view = new MergedDataStoreView(stores, deduplicate = false)
+<<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 
       val after = Seq("dtg during 2022-02-01T00:00:00.000Z/2022-02-04T12:00:00.000Z and name = 'alice'")
       foreach(after.map(ECQL.toFilter)) { f =>
@@ -223,6 +255,10 @@ class MergedDataStoreViewTest extends Specification with Mockito {
     override def hasNext: Boolean = false
     override def close(): Unit = closed = true
 =======
+<<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
   }
 }
