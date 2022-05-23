@@ -95,6 +95,7 @@ object MergedDataStoreView {
       def getSingle(statAndFilter: (GeoMesaStats, Option[Filter])): Option[Long] =
         statAndFilter._1.getCount(sft, mergeFilter(sft, filter, statAndFilter._2), exact, queryHints)
 
+<<<<<<< HEAD
       if (parallel) {
         val results = new CopyOnWriteArrayList[Long]()
         stats.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
@@ -102,6 +103,10 @@ object MergedDataStoreView {
       } else {
         stats.flatMap(getSingle).reduceLeftOption(_ + _)
       }
+=======
+      val seq = if (parallel) { stats.par } else { stats }
+      seq.flatMap(getSingle).reduceLeftOption(_ + _)
+>>>>>>> eea6a40fa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
       val counts = stats.flatMap { case (stat, f) => stat.getCount(sft, mergeFilter(sft, filter, f), exact, queryHints) }
       counts.reduceLeftOption(_ + _)
@@ -118,6 +123,7 @@ object MergedDataStoreView {
       def getSingle(statAndFilter: (GeoMesaStats, Option[Filter])): Option[MinMax[T]] =
         statAndFilter._1.getMinMax[T](sft, attribute, mergeFilter(sft, filter, statAndFilter._2), exact)
 
+<<<<<<< HEAD
       if (parallel) {
         val results = new CopyOnWriteArrayList[MinMax[T]]()
         stats.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
@@ -129,6 +135,16 @@ object MergedDataStoreView {
         stat.getMinMax[T](sft, attribute, mergeFilter(sft, filter, f), exact)
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
       }
+=======
+      val seq = if (parallel) { stats.par } else { stats }
+      seq.flatMap(getSingle).reduceLeftOption(_ + _)
+=======
+      val bounds = stats.flatMap { case (stat, f) =>
+        stat.getMinMax[T](sft, attribute, mergeFilter(sft, filter, f), exact)
+      }
+      bounds.reduceLeftOption(_ + _)
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> eea6a40fa (GEOMESA-3202 Check for disjoint date queries in merged view store)
     }
 
     override def getEnumeration[T](
