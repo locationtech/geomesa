@@ -49,6 +49,7 @@ class MergedFeatureSourceView(
   override def getSchema: SimpleFeatureType = sft
 
   override def getCount(query: Query): Int = {
+<<<<<<< HEAD
     val total =
       if (parallel) {
         def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Int = {
@@ -65,6 +66,7 @@ class MergedFeatureSourceView(
           if (sum < 0 || count < 0) { -1 } else { sum + count }
         }
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -154,11 +156,15 @@ class MergedFeatureSourceView(
 >>>>>>> 226f1d6822 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+>>>>>>> 5e0c1295b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
     // if one of our sources can't get a count (i.e. is negative), give up and return -1
     val total = sources.foldLeft(0) { case (sum, (source, filter)) =>
       lazy val count = source.getCount(mergeFilter(sft, query, filter))
       if (sum < 0 || count < 0) { -1 } else { sum + count }
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -283,6 +289,9 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> 5e0c1295b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
     if (query.isMaxFeaturesUnlimited) {
       total
     } else {
@@ -1654,8 +1663,12 @@ class MergedFeatureSourceView(
 =======
     sources.foreach {
       case (source, filter) =>
+<<<<<<< HEAD
         val source_bounds = source.getBounds(mergeFilter(query, filter))
 >>>>>>> b54a3f28ef (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+        val source_bounds = source.getBounds(mergeFilter(sft, query, filter))
+>>>>>>> 5e0c1295b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
         if(source_bounds != null){
           bounds.expandToInclude(source_bounds)
         }
