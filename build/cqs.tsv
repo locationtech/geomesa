@@ -21,7 +21,7 @@ com.github.pureconfig:pureconfig-macros_2.12	0.11.1	compile
 com.github.stephenc.findbugs:findbugs-annotations	1.3.9-1	compile
 com.googlecode.concurrent-trees:concurrent-trees	2.6.1	compile
 com.googlecode.cqengine:cqengine	3.0.0	compile
-com.google.code.gson:gson	2.8.1	compile
+com.google.code.gson:gson	2.8.9	compile
 com.googlecode.json-simple:json-simple	1.1.1	compile
 com.googlecode.juniversalchardet:juniversalchardet	1.0.3	compile
 com.google.errorprone:error_prone_annotations	2.3.3	compile
