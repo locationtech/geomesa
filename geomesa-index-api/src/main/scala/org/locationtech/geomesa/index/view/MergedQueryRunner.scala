@@ -55,6 +55,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 
     val query = configureQuery(sft, original)
     val hints = query.getHints
+    val maxFeatures = if (query.isMaxFeaturesUnlimited) { None } else { Option(query.getMaxFeatures) }
 
     if (hints.isStatsQuery || hints.isArrowQuery) {
       // for stats and arrow queries, suppress the reduce step for gm stores so that we can do the merge here
@@ -91,12 +92,17 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
             readers.map(SelfClosingIterator(_))
           }
 
-        Option(query.getSortBy).filterNot(_.isEmpty) match {
+        val results = Option(query.getSortBy).filterNot(_.isEmpty) match {
           case None => SelfClosingIterator(iters.iterator).flatMap(i => i)
           case Some(sort) =>
             val sortSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
             // the delegate stores should sort their results, so we can sort merge them
             new SortedMergeIterator(iters)(SimpleFeatureOrdering(sortSft, sort))
+        }
+
+        maxFeatures match {
+          case None => results
+          case Some(m) => results.take(m)
         }
       }
     }

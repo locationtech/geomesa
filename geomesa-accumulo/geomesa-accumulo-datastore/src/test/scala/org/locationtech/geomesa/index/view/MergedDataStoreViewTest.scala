@@ -103,7 +103,8 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       val query = new Query(sftName)
       query.setMaxFeatures(1)
       query.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
-      ds.getFeatureSource(sft.getTypeName).getCount(query) mustEqual 1
+      mergedDs.getFeatureSource(sft.getTypeName).getCount(query) mustEqual 1
+      SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(1)
     }
 
     "load multiple datastores" in {
