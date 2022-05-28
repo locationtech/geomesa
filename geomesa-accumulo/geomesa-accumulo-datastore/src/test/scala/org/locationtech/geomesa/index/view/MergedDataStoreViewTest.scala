@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -103,7 +103,8 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       val query = new Query(sftName)
       query.setMaxFeatures(1)
       query.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
-      ds.getFeatureSource(sft.getTypeName).getCount(query) mustEqual 1
+      mergedDs.getFeatureSource(sft.getTypeName).getCount(query) mustEqual 1
+      SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(1)
     }
 
     "load multiple datastores" in {

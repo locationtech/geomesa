@@ -10,7 +10,19 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.12</artifactId>
     <packaging>pom</packaging>
+<<<<<<< HEAD
     <version>3.4.0-SNAPSHOT</version>
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+    <version>3.5.0-SNAPSHOT</version>
+=======
+    <version>3.3.0-SNAPSHOT</version>
+>>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+    <version>3.4.0-SNAPSHOT</version>
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> locationtech-main
 
     <licenses>
         <license>
@@ -125,9 +137,25 @@
         <!-- *** documentation *** -->
 
         <!-- bump version right before performing releases for the README and the documentation -->
+<<<<<<< HEAD
         <geomesa.release.version>3.3.0</geomesa.release.version>
         <geomesa.devel.version>3.4.0-SNAPSHOT</geomesa.devel.version>
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+        <geomesa.release.version>3.4.0</geomesa.release.version>
+        <geomesa.devel.version>3.5.0-SNAPSHOT</geomesa.devel.version>
+        <copyright.year>2022</copyright.year>
+=======
+        <geomesa.release.version>3.2.0</geomesa.release.version>
+        <geomesa.devel.version>3.3.0-SNAPSHOT</geomesa.devel.version>
+=======
+        <geomesa.release.version>3.3.0</geomesa.release.version>
+        <geomesa.devel.version>3.4.0-SNAPSHOT</geomesa.devel.version>
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> locationtech-main
         <copyright.year>2021</copyright.year>
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
         <!-- recommended installation versions -->
         <accumulo.version.recommended>2.0.0</accumulo.version.recommended>
@@ -510,6 +538,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-geojson-rest_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-gt-partitioning_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1435,7 +1468,7 @@
             <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
-                <version>2.8.1</version>
+                <version>2.8.9</version>
             </dependency>
             <dependency>
                 <groupId>com.jayway.jsonpath</groupId>
@@ -2603,10 +2636,12 @@
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
                             <validHeader>build/copyright/ccri-dstl.txt</validHeader>
+                            <validHeader>build/copyright/ccri-dstl-mitre.txt</validHeader>
                             <validHeader>build/copyright/dstl.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
                             <validHeader>build/copyright/mitre.txt</validHeader>
+                            <validHeader>build/copyright/ccri-mitre.txt</validHeader>
                         </validHeaders>
                         <properties>
                             <year>${copyright.year}</year>

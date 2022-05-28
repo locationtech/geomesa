@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -75,6 +75,7 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
       case null => null
       case m => throw new IllegalArgumentException(s"Expected a java.util.Map but got $m:${m.getClass.getName}")
     }
+<<<<<<< HEAD
   }
 
   private val listItem = TransformerFunction.pure("listItem") { args =>
@@ -86,6 +87,28 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
   }
 
   private val transformList = new TransformList(null)
+=======
+  }
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+
+  private val listItem = TransformerFunction.pure("listItem") { args =>
+    args(0) match {
+      case list: java.util.List[Any] => list.get(args(1).asInstanceOf[Int])
+      case null => null
+      case list => throw new IllegalArgumentException(s"Expected a java.util.List but got $list:${list.getClass.getName}")
+    }
+  }
+
+  private val transformList = new TransformList(null)
+<<<<<<< HEAD
+=======
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> locationtech-main
 }
 
 object CollectionFunctionFactory {

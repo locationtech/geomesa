@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
- * Portions Crown Copyright (c) 2016-2021 Dstl
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2022 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -46,7 +46,19 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
       if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
         sc.emptyRDD[SimpleFeature]
       } else {
+<<<<<<< HEAD
         val config = new JobConf(conf)
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+        val config = new JobConf(conf)
+=======
+        val config = new Configuration(conf)
+>>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+        val config = new JobConf(conf)
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> locationtech-main
         GeoMesaAccumuloInputFormat.configure(config, paramsAsJava, qp, Some(ds.auths))
         sc.newAPIHadoopRDD(config, classOf[GeoMesaAccumuloInputFormat], classOf[Text], classOf[SimpleFeature]).map(_._2)
       }

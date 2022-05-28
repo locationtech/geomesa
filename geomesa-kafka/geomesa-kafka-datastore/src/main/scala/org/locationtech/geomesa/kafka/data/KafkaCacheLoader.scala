@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -102,7 +102,19 @@ object KafkaCacheLoader extends LazyLogging {
       message match {
         case m: Change => cache.fireChange(timestamp, m.feature); cache.put(m.feature)
         case m: Delete => cache.fireDelete(timestamp, m.id, cache.query(m.id).orNull); cache.remove(m.id)
+<<<<<<< HEAD
         case _: Clear  => cache.fireClear(timestamp); cache.clear()
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+        case _: Clear  => cache.fireClear(timestamp); cache.clear()
+=======
+        case m: Clear  => cache.fireClear(timestamp); cache.clear()
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+        case _: Clear  => cache.fireClear(timestamp); cache.clear()
+>>>>>>> 60b8016be (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> locationtech-main
         case m => throw new IllegalArgumentException(s"Unknown message: $m")
       }
     }
@@ -144,7 +156,19 @@ object KafkaCacheLoader extends LazyLogging {
         message match {
           case m: Change => toLoad.cache.fireChange(timestamp, m.feature); cache.put(m.feature)
           case m: Delete => toLoad.cache.fireDelete(timestamp, m.id, cache.query(m.id).orNull); cache.remove(m.id)
+<<<<<<< HEAD
           case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+          case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
+=======
+          case m: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+          case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
+>>>>>>> 60b8016be (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+>>>>>>> locationtech-main
           case m => throw new IllegalArgumentException(s"Unknown message: $m")
         }
         // once we've hit the max offset for the partition, remove from the offset map to indicate we're done

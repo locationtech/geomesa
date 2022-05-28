@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -51,7 +51,19 @@ class KafkaStore(
 
   private val offsetManager = config.offsetManager
 
+<<<<<<< HEAD
   private val producer = KafkaStore.producer(sft, config.producerConfig)
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+  private val producer = KafkaStore.producer(sft, config.producerConfig)
+=======
+  private val producer = KafkaStore.producer(config.producerConfig)
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+  private val producer = KafkaStore.producer(sft, config.producerConfig)
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> locationtech-main
 
   private val topic = KafkaStore.topic(config.zkNamespace, sft)
 

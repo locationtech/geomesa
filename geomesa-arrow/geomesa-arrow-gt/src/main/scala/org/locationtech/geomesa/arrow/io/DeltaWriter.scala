@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -108,8 +108,10 @@ class DeltaWriter(
     }
   }
 
-  // writer per-dictionary
-  private val dictionaryWriters = writers.collect { case d: DictionaryFieldWriter => d }
+  // writer per-dictionary - keep in dictionary field order
+  private val dictionaryWriters = dictionaryFields.flatMap { field =>
+    writers.collectFirst { case d: DictionaryFieldWriter if d.attribute.name == field => d }
+  }
 
   // single writer to write out all vectors at once (not including dictionaries)
   private val writer = new BatchWriter(vector, ipcOpts)
@@ -771,7 +773,7 @@ object DeltaWriter extends StrictLogging {
     }
   }
 
-  private sealed abstract class FieldWriter(attribute: ArrowAttributeWriter) {
+  private sealed abstract class FieldWriter(val attribute: ArrowAttributeWriter) {
     def write(i: Int, f: SimpleFeature): Unit
     def setValueCount(i: Int): Unit = attribute.setValueCount(i)
   }

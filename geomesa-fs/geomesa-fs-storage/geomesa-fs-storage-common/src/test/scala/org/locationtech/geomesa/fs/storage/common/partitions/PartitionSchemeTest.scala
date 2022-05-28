@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -41,8 +41,9 @@ class PartitionSchemeTest extends Specification with AllExpectations {
     "partition based on attribute" >> {
       val ps = PartitionSchemeFactory.load(sft, NamedOptions("attribute", Map("partitioned-attribute" -> "name")))
       ps.getPartitionName(sf) mustEqual "test"
-      ps.getSimplifiedFilters(ECQL.toFilter("name IN ('foo', 'bar')")) must
-          beSome(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("foo", "bar"), partial = false)))
+      ps.getSimplifiedFilters(ECQL.toFilter("name IN ('foo', 'bar')")) must beOneOf(
+        Some(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("foo", "bar"), partial = false))),
+        Some(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("bar", "foo"), partial = false))))
       ps.getSimplifiedFilters(ECQL.toFilter("name IN ('foo', 'bar')"), Some("foo")) must
           beSome(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("foo"), partial = false)))
       ps.getSimplifiedFilters(ECQL.toFilter("name < 'foo' and name > 'bar'")) must beNone

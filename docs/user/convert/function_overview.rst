@@ -105,6 +105,18 @@ List and Map Functions
 -  ``parseList``
 -  ``parseMap``
 -  ``transformListItems``
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+
+Encoding Functions
+~~~~~~~~~~~~~~~~~~
+
+-  ``base64Encode``
+-  ``base64Decode``
+=======
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> locationtech-main
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~

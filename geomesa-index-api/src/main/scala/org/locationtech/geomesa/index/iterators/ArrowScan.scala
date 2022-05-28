@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -161,7 +161,8 @@ object ArrowScan extends LazyLogging {
     }
 
     if (hints.isArrowDoublePass ||
-          dictionaryFields.forall(f => providedDictionaries.contains(f) || cachedDictionaries.contains(f))) {
+        (dictionaryFields.nonEmpty &&
+            dictionaryFields.forall(f => providedDictionaries.contains(f) || cachedDictionaries.contains(f)))) {
       logger.warn("Running deprecated Arrow double pass scan - switch to delta scans instead")
       // we have all the dictionary values, or we will run a query to determine them up front
       val dictionaries = createDictionaries(stats, sft, filter, dictionaryFields, providedDictionaries, cachedDictionaries)

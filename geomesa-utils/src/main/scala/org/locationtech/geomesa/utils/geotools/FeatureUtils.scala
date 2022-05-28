@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -28,7 +28,7 @@ object FeatureUtils {
   // sourced from the following:
   //   https://github.com/geotools/geotools/blob/master/modules/library/cql/src/main/jjtree/ECQLGrammar.jjt
   //   http://docs.geotools.org/latest/userguide/library/cql/internal.html
-  val ReservedWords = HashSet(
+  val ReservedWords: Set[String] = HashSet(
     "AFTER",
     "AND",
     "BEFORE",
@@ -50,7 +50,6 @@ object FeatureUtils {
     "IS",
     "LIKE",
     "LINESTRING",
-    "LOCATION",
     "MULTILINESTRING",
     "MULTIPOINT",
     "MULTIPOLYGON",

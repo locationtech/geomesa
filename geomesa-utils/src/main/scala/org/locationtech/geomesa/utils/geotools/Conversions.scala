@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -304,7 +304,15 @@ object RichSimpleFeatureType extends Conversions {
       Seq(GeomesaPrefix) ++ userData[String](UserDataPrefix).map(_.split(",")).getOrElse(Array.empty)
 
     def setZShards(splits: Int): Unit = sft.getUserData.put(IndexZShards, splits.toString)
+    @deprecated("use z2/z3 specific methods")
     def getZShards: Int = userData(IndexZShards).map(int).getOrElse(4)
+    def setZ2Shards(splits: Int): Unit = sft.getUserData.put(IndexZ2Shards, splits.toString)
+    def getZ2Shards: Int =
+      userData(IndexZ2Shards).map(int).getOrElse(userData(IndexZShards).map(int).getOrElse(4))
+
+    def setZ3Shards(splits: Int): Unit = sft.getUserData.put(IndexZ3Shards, splits.toString)
+    def getZ3Shards: Int =
+      userData(IndexZ3Shards).map(int).getOrElse(userData(IndexZShards).map(int).getOrElse(4))
 
     def setAttributeShards(splits: Int): Unit = sft.getUserData.put(IndexAttributeShards, splits.toString)
     def getAttributeShards: Int = userData(IndexAttributeShards).map(int).getOrElse(4)

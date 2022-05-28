@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,6 +8,19 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDateTime, ZoneOffset}
+import java.util.{Collections, Date}
+
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> locationtech-main
 import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -412,6 +425,11 @@ class ExpressionTest extends Specification {
     }
     "parse point geometries" >> {
       val exp = Expression("point($1, $2)")
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locationtech-main
       exp.apply(Array("", Double.box(45.0), Double.box(46.0))) mustEqual WKTUtils.read("POINT(45 46)")
       exp.eval(Array("", 45.0, 46.0)) mustEqual WKTUtils.read("POINT(45 46)")
 
@@ -436,6 +454,50 @@ class ExpressionTest extends Specification {
           .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
       m.eval(Array("", 45.0, 46.0, 47.0)).asInstanceOf[Point]
           .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
+<<<<<<< HEAD
+=======
+=======
+      exp.apply(Array("", Double.box(45.0), Double.box(45.0))).asInstanceOf[Point].getCoordinate mustEqual new Coordinate(45.0, 45.0)
+      exp.eval(Array("", 45.0, 45.0)).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(45.0, 45.0)
+=======
+      exp.apply(Array("", Double.box(45.0), Double.box(46.0))) mustEqual WKTUtils.read("POINT(45 46)")
+      exp.eval(Array("", 45.0, 46.0)) mustEqual WKTUtils.read("POINT(45 46)")
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+
+      val trans = Expression("point($0)")
+      trans.apply(Array("POINT(50 52)")) mustEqual WKTUtils.read("POINT(50 52)")
+      trans.eval(Array("POINT(50 52)")) mustEqual WKTUtils.read("POINT(50 52)")
+
+<<<<<<< HEAD
+      // turn "Geometry" into "Point"
+      val geoFac = new GeometryFactory()
+      val geom = geoFac.createPoint(new Coordinate(55, 56)).asInstanceOf[Geometry]
+      foreach(Seq(trans.apply(Array(geom)), trans.eval(Array(geom)))) { res =>
+        res must not(beNull)
+        res.getClass mustEqual classOf[Point]
+        res.asInstanceOf[Point] mustEqual geoFac.createPoint(new Coordinate(55, 56))
+      }
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+      val z = Expression("point($1,$2,$3)")
+      z.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47))).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new Coordinate(45.0, 46.0, 47).toString
+      z.eval(Array("", 45.0, 46.0, 47.0)).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new Coordinate(45.0, 46.0, 47).toString
+
+      val zm = Expression("point($1,$2,$3,$4)")
+      zm.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47), Double.box(48))).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new CoordinateXYZM(45.0, 46.0, 47, 48).toString
+      zm.eval(Array("", 45.0, 46.0, 47.0, 48)).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new CoordinateXYZM(45.0, 46.0, 47, 48).toString
+
+      val m = Expression("pointM($1,$2,$3)")
+      m.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47))).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
+      m.eval(Array("", 45.0, 46.0, 47.0)).asInstanceOf[Point]
+          .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> locationtech-main
     }
     "parse multipoint wkt and objects" >> {
       val geoFac = new GeometryFactory()
@@ -451,6 +513,21 @@ class ExpressionTest extends Specification {
         res.getClass mustEqual classOf[MultiPoint]
         res.asInstanceOf[MultiPoint] mustEqual WKTUtils.read("Multipoint((45.0 45.0), (50 52))")
       }
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    }
+    "parse multipoint from x/y coords" >> {
+      val expected = WKTUtils.read("MultiPoint((45.0 45.0), (50 52))")
+      expected must not(beNull)
+      val trans = Expression("multipoint($0, $1)")
+      val x = Seq(45, 50).asJava
+      val y = Seq(45, 52).asJava
+      trans.apply(Array(x, y)) mustEqual expected
+      trans.eval(Array(x, y)) mustEqual expected
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locationtech-main
     }
     "parse multipoint from x/y coords" >> {
       val expected = WKTUtils.read("MultiPoint((45.0 45.0), (50 52))")
@@ -475,6 +552,21 @@ class ExpressionTest extends Specification {
         res.getClass mustEqual classOf[LineString]
         res.asInstanceOf[LineString] mustEqual WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
       }
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    }
+    "parse linestring from x/y coords" >> {
+      val expected = WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
+      expected must not(beNull)
+      val trans = Expression("linestring($0, $1)")
+      val x = Seq(102, 103, 104, 105).asJava
+      val y = Seq(0, 1, 0, 1).asJava
+      trans.apply(Array(x, y)) mustEqual expected
+      trans.eval(Array(x, y)) mustEqual expected
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locationtech-main
     }
     "parse linestring from x/y coords" >> {
       val expected = WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
@@ -577,6 +669,30 @@ class ExpressionTest extends Specification {
           "GeometryCollection(Linestring(102 0, 103 1, 104 0, 105 1), " +
           "multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), ((10 0, 11 0, 11 1, 10 1, 10 0))))")
       }
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    }
+    "parse null geometries" >> {
+      val functions =
+        Seq(
+          "point($0)",
+          "point($0, $1)",
+          "linestring($0)",
+          "multipoint($0)",
+          "polygon($0)",
+          "multilinestring($0)",
+          "multipolygon($0)",
+          "geometrycollection($0)",
+          "geometry($0)"
+        )
+      foreach(functions.map(Expression.apply)) { exp =>
+        exp.apply(Array(null, null)) must beNull
+        exp.eval(Array(null, null)) must beNull
+      }
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locationtech-main
     }
     "parse null geometries" >> {
       val functions =
@@ -608,6 +724,11 @@ class ExpressionTest extends Specification {
     }
     "generate md5 hashes" >> {
       val exp = Expression("md5($0)")
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locationtech-main
       exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
       exp.eval(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
     }
@@ -617,6 +738,20 @@ class ExpressionTest extends Specification {
       exp.apply(Array("foo".getBytes)) mustEqual "6145f501578671e2877dba2be487af7e"
       exp.eval(Array("foo")) mustEqual "6145f501578671e2877dba2be487af7e"
       exp.eval(Array("foo".getBytes)) mustEqual "6145f501578671e2877dba2be487af7e"
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+      val hashedResult = exp.eval(Array(testBytes)).asInstanceOf[String]
+      hashedResult mustEqual "53587708703184a0b6f8952425c21d9f"
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+      exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
+      exp.eval(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> locationtech-main
     }
     "generate uuids" >> {
       val exp = Expression("uuid()")
@@ -644,6 +779,13 @@ class ExpressionTest extends Specification {
       }
     }
     "encode bytes as base64 strings" >> {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> locationtech-main
       foreach(Seq("base64($0)", "base64Encode($0)")) { expression =>
         val exp = Expression(expression)
         exp.apply(Array(testBytes)) mustEqual Base64.encodeBase64URLSafeString(testBytes)
@@ -655,6 +797,17 @@ class ExpressionTest extends Specification {
       val exp = Expression("base64Decode($0)")
       exp.apply(Array(encoded)) mustEqual testBytes
       exp.eval(Array(encoded)) mustEqual testBytes
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+      val exp = Expression("base64($0)")
+      exp.apply(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
+      exp.eval(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> locationtech-main
     }
     "handle whitespace in functions" >> {
       val variants = Seq(
@@ -1076,6 +1229,19 @@ class ExpressionTest extends Specification {
         res.asInstanceOf[java.util.List[Int]].size() mustEqual 3
         res.asInstanceOf[java.util.List[Int]].asScala mustEqual List(1, 2, 3)
       }
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    }
+    "parse null lists" >> {
+      val trans = Expression("parseList('int', $0)")
+      trans.apply(Array(null)) must beNull
+      trans.apply(Array("")) mustEqual Collections.emptyList[Int]()
+      trans.eval(Array(null)) must beNull
+      trans.eval(Array("")) mustEqual Collections.emptyList[Int]()
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locationtech-main
     }
     "parse null lists" >> {
       val trans = Expression("parseList('int', $0)")
@@ -1108,8 +1274,21 @@ class ExpressionTest extends Specification {
     }
     "parse null maps" >> {
       val trans = Expression("parseMap('String->Int', $0)")
+<<<<<<< HEAD
       trans.apply(Array(null)) must beNull
       trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+      trans.apply(Array(null)) must beNull
+      trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
+=======
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+      trans.apply(Array(null)) must beNull
+      trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locationtech-main
       trans.eval(Array(null)) must beNull
       trans.eval(Array("")) mustEqual Collections.emptyMap[String, Int]()
     }

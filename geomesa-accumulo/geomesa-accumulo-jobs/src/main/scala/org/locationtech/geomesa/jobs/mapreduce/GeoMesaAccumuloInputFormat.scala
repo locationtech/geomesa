@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
- * Portions Crown Copyright (c) 2016-2021 Dstl
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2022 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -149,8 +149,22 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
       params: java.util.Map[String, _],
       plan: AccumuloQueryPlan,
       auths: Option[Authorizations]): Unit = {
+<<<<<<< HEAD
     // all accumulo input config methods requires a job
     // assertion: only the JobConf is updated - to get credentials pass in a JobConf instead of Configuration
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+    // all accumulo input config methods requires a job
+    // assertion: only the JobConf is updated - to get credentials pass in a JobConf instead of Configuration
+=======
+    // assertion: all accumulo input config requires a job, but really just updates the job conf
+>>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+    // all accumulo input config methods requires a job
+    // assertion: only the JobConf is updated - to get credentials pass in a JobConf instead of Configuration
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> locationtech-main
     val job = new Job(conf)
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -28,7 +28,19 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 
   // noinspection ScalaDeprecation
   override def functions: Seq[TransformerFunction] =
+<<<<<<< HEAD
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+    Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
+=======
+    Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject)
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+    Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> locationtech-main
 
   @deprecated("use toString")
   private val jsonToString = TransformerFunction.pure("jsonToString", "json2string") { args =>
@@ -128,11 +140,25 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     }
   }
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> locationtech-main
   private val newJsonObject = TransformerFunction.pure("newJsonObject") { args =>
     val obj = new JsonObject()
     var i = 1
     while (i < args.length) {
       val key = args(i -1).toString
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> locationtech-main
       args(i) match {
         case null => // skip nulls
         case j: JsonElement => obj.add(key, j)
@@ -141,8 +167,30 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
         case j: Boolean => obj.add(key, new JsonPrimitive(j))
         case j: Date    => obj.add(key, new JsonPrimitive(DateParsing.formatDate(j)))
         case j          => obj.add(key, gson.toJsonTree(j))
+<<<<<<< HEAD
       }
 
+=======
+<<<<<<< HEAD
+      }
+
+=======
+      val value = args(i) match {
+        case null => JsonNull.INSTANCE
+        case j: JsonElement => j
+        case j: String  => new JsonPrimitive(j)
+        case j: Number  => new JsonPrimitive(j)
+        case j: Boolean => new JsonPrimitive(j)
+        case j: Date    => new JsonPrimitive(DateParsing.formatDate(j))
+        case j          => gson.toJsonTree(j)
+      }
+      obj.add(key, value)
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+      }
+
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> locationtech-main
       i += 2
     }
     obj
@@ -158,5 +206,13 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     }
   }
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> locationtech-main
   private def getPrimitive(p: JsonPrimitive): Any = if (p.isBoolean) { p.getAsBoolean } else { p.getAsString }
 }

@@ -934,6 +934,13 @@ Example: ``transformListItems(list('1','2','3'),'stringToDouble($0)')``
 The expression to apply must be defined as a string. In the example shown, the list will be converted
 from ``List[String]`` to ``List[Double]``.
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> locationtech-main
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
 
@@ -956,6 +963,14 @@ Usage: ``base64Decode($0)``
 
 Example: ``base64Decode('Zm9v')``
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> locationtech-main
 State Functions
 ~~~~~~~~~~~~~~~
 

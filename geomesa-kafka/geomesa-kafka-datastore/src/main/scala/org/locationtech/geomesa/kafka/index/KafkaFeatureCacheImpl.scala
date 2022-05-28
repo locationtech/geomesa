@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -38,8 +38,21 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
   override val views: Seq[KafkaFeatureCacheView] =
     layerViews.map(view => KafkaFeatureCacheView(view, createSupport(view.viewSft)))
 
+<<<<<<< HEAD
   logger.debug(s"Initialized KafkaFeatureCache with factory $factory and support $support")
 
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+  logger.debug(s"Initialized KafkaFeatureCache with factory $factory and support $support")
+
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+  logger.debug(s"Initialized KafkaFeatureCache with factory $factory and support $support")
+
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> locationtech-main
   /**
     * Note: this method is not thread-safe. The `state` and `index` can get out of sync if the same feature
     * is updated simultaneously from two different threads

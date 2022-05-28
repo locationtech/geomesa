@@ -1,5 +1,13 @@
 /***********************************************************************
+<<<<<<< HEAD
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> locationtech-main
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -27,10 +35,30 @@ class MetadataJsonTest extends Specification {
 
   lazy val conf = new Configuration()
   lazy val fc = FileContext.getFileContext(conf)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locationtech-main
 
   "MetadataJson" should {
     "persist and replace system properties (and environment variables)" in {
       skipped("fails in github actions")
+<<<<<<< HEAD
+=======
+=======
+  val schemeOptions =
+
+  "MetadataJson" should {
+    "persist and replace system properties (and environment variables)" in {
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+
+  "MetadataJson" should {
+    "persist and replace system properties (and environment variables)" in {
+      skipped("fails in github actions")
+>>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> locationtech-main
       withPath { context =>
         val prop = "MetadataJsonTest.foo"
         val interpolated = "${" + prop + "}"

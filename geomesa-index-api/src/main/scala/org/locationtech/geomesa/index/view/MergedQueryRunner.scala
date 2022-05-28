@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -55,6 +55,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 
     val query = configureQuery(sft, original)
     val hints = query.getHints
+    val maxFeatures = if (query.isMaxFeaturesUnlimited) { None } else { Option(query.getMaxFeatures) }
 
     if (hints.isStatsQuery || hints.isArrowQuery) {
       // for stats and arrow queries, suppress the reduce step for gm stores so that we can do the merge here
@@ -91,12 +92,31 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
             readers.map(SelfClosingIterator(_))
           }
 
+<<<<<<< HEAD
         Option(query.getSortBy).filterNot(_.isEmpty) match {
+=======
+<<<<<<< HEAD
+        val results = Option(query.getSortBy).filterNot(_.isEmpty) match {
+=======
+        Option(query.getSortBy).filterNot(_.isEmpty) match {
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> locationtech-main
           case None => SelfClosingIterator(iters.iterator).flatMap(i => i)
           case Some(sort) =>
             val sortSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
             // the delegate stores should sort their results, so we can sort merge them
             new SortedMergeIterator(iters)(SimpleFeatureOrdering(sortSft, sort))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+        }
+
+        maxFeatures match {
+          case None => results
+          case Some(m) => results.take(m)
+=======
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> locationtech-main
         }
       }
     }

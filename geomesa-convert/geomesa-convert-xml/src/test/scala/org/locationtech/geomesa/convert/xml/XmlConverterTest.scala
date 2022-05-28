@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -72,7 +72,10 @@ class XmlConverterTest extends Specification {
           |     { name = "number", path = "number",           transform = "$0::integer" }
           |     { name = "color",  path = "color",            transform = "trim($0)" }
           |     { name = "weight", path = "physical/@weight", transform = "$0::double" }
-          |     { name = "source", path = "/doc/DataSource/name/text()" }
+          |     { name = "pathSource", path = "/doc/DataSource/name/text()" }
+          |     { name = "relativeSource", transform = "xpath('../DataSource/name/text()', $0)" }
+          |     { name = "rootSource", transform = "xpath('/doc/DataSource/name/text()', $1)" }
+          |     { name = "source", transform = "concat($pathSource,'-',$relativeSource,'-',$rootSource)" }
           |   ]
           | }
         """.stripMargin)
@@ -83,11 +86,11 @@ class XmlConverterTest extends Specification {
         features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
         features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
         features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml-myxml-myxml"
         features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
         features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
         features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-        features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml-myxml-myxml"
       }
     }
 

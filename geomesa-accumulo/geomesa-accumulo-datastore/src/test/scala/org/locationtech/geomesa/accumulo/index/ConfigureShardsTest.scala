@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,7 +14,7 @@ import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.IndexZShards
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{IndexZ2Shards, IndexZ3Shards}
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -28,7 +28,7 @@ class ConfigureShardsTest extends Specification with TestWithFeatureType {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.z.splits='8'"
+  val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.z3.splits='8'"
 
   val features: Seq[ScalaSimpleFeature] = {
     (0 until 100).map { i =>
@@ -65,9 +65,15 @@ class ConfigureShardsTest extends Specification with TestWithFeatureType {
       shardSet must haveSize(8)
     }
 
-    "throw exception" >> {
+    "throw exception on invalid z2 shards" >> {
       val sftPrivate = SimpleFeatureTypes.createType("private", spec)
-      sftPrivate.getUserData.put(IndexZShards, "128")
+      sftPrivate.getUserData.put(IndexZ2Shards, "128")
+      GeoMesaSchemaValidator.validate(sftPrivate) must throwAn[IllegalArgumentException]
+    }
+
+    "throw exception on invalid z3 shards" >> {
+      val sftPrivate = SimpleFeatureTypes.createType("private", spec)
+      sftPrivate.getUserData.put(IndexZ3Shards, "128")
       GeoMesaSchemaValidator.validate(sftPrivate) must throwAn[IllegalArgumentException]
     }
   }

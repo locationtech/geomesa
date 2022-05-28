@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.geotools
-
-import java.util.{List => jList}
 
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
@@ -23,7 +21,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.identity.FeatureId
 
-import scala.collection.JavaConversions._
+import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 
 class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeatureType, runner: QueryRunner)
@@ -31,9 +29,9 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
 
   private var transaction: Transaction = Transaction.AUTO_COMMIT
 
-  override def addFeatures(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]): jList[FeatureId] = {
+  override def addFeatures(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]): java.util.List[FeatureId] = {
     if (collection.isEmpty) {
-      return List.empty[FeatureId]
+      return Collections.emptyList[FeatureId]()
     }
 
     val fids = new java.util.ArrayList[FeatureId](collection.size())
@@ -131,9 +129,6 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
 
   override def setTransaction(transaction: Transaction): Unit = {
     require(transaction != null, "Transaction can't be null - did you mean Transaction.AUTO_COMMIT?")
-    if (ds.isInstanceOf[GeoMesaDataStore[_]] && transaction != Transaction.AUTO_COMMIT) {
-      logger.warn("Ignoring transaction - not supported")
-    }
     this.transaction = transaction
   }
 
@@ -147,7 +142,7 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
 
   private def writer(filter: Option[Filter]): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
     ds match {
-      case gm: GeoMesaDataStore[_] => gm.getFeatureWriter(sft, filter)
+      case gm: MetadataBackedDataStore => gm.getFeatureWriter(sft, transaction, filter)
       case _ if filter.isEmpty => ds.getFeatureWriterAppend(sft.getTypeName, transaction)
       case _ => ds.getFeatureWriter(sft.getTypeName, filter.get, transaction)
     }

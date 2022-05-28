@@ -154,7 +154,7 @@ commands. Note that this can be slow, so it is usually better to use ``GEOMESA_H
             export HADOOP_HOME=/path/to/hadoop
             export HBASE_HOME=/path/to/hbase
             export GEOMESA_HBASE_HOME=/opt/geomesa
-            export PATH="${PATH}:${GEOMESA_HOME}/bin"
+            export PATH="${PATH}:${GEOMESA_HBASE_HOME}/bin"
 
     .. group-tab:: Amazon EMR
 

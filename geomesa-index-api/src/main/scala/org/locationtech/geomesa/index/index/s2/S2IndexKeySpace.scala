@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,7 +13,7 @@ import org.locationtech.geomesa.curve.S2SFC
 import org.locationtech.geomesa.filter.{FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.api
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
-import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, ZShardStrategy}
+import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, Z2ShardStrategy}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.QueryHints.LOOSE_BBOX
 import org.locationtech.geomesa.index.conf.QueryProperties
@@ -215,7 +215,7 @@ object S2IndexKeySpace extends IndexKeySpaceFactory[S2IndexValues, Long] {
       classOf[Point].isAssignableFrom(sft.getDescriptor(attributes.head).getType.getBinding)
 
   override def apply(sft: SimpleFeatureType, attributes: Seq[String], tier: Boolean): S2IndexKeySpace = {
-    val shards = if (tier) { NoShardStrategy } else { ZShardStrategy(sft) }
+    val shards = if (tier) { NoShardStrategy } else { Z2ShardStrategy(sft) }
     new S2IndexKeySpace(sft, shards, attributes.head)
   }
 }

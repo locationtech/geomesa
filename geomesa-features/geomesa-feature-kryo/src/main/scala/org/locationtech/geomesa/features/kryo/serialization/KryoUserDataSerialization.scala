@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -53,9 +53,31 @@ object KryoUserDataSerialization extends LazyLogging {
   private implicit val ordering: Ordering[(AnyRef, AnyRef)] = Ordering.by(_._1.toString)
 
   def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit =
+<<<<<<< HEAD
     serialize(out, javaMap, withoutFidHints = false)
 
   def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef], withoutFidHints: Boolean): Unit = {
+=======
+<<<<<<< HEAD
+    serialize(out, javaMap, withoutFidHints = false, writeAscii = false)
+
+  def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef], withoutFidHints: Boolean): Unit =
+    serialize(out, javaMap, withoutFidHints, writeAscii = false)
+
+  def serializeAscii(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit =
+    serialize(out, javaMap, withoutFidHints = true, writeAscii = true)
+
+  private def serialize(
+      out: Output,
+      javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef],
+      withoutFidHints: Boolean,
+      writeAscii: Boolean): Unit = {
+=======
+    serialize(out, javaMap, withoutFidHints = false)
+
+  def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef], withoutFidHints: Boolean): Unit = {
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> locationtech-main
     import scala.collection.JavaConverters._
 
     // write in sorted order to keep consistent output
@@ -72,12 +94,12 @@ object KryoUserDataSerialization extends LazyLogging {
 
     toWrite.foreach { case (key, value) =>
       out.writeString(baseClassMappings.getOrElse(key.getClass, key.getClass.getName))
-      write(out, key)
+      write(out, key, writeAscii)
       if (value == null) {
         out.writeString(nullMapping)
       } else {
         out.writeString(baseClassMappings.getOrElse(value.getClass, value.getClass.getName))
-        write(out, value)
+        write(out, value, writeAscii)
       }
     }
   }
@@ -119,8 +141,8 @@ object KryoUserDataSerialization extends LazyLogging {
     }
   }
 
-  private def write(out: Output, value: AnyRef): Unit = value match {
-    case v: String                 => out.writeString(v)
+  private def write(out: Output, value: AnyRef, writeAscii: Boolean = false): Unit = value match {
+    case v: String                 => if (writeAscii) { out.writeAscii(v) } else { out.writeString(v) }
     case v: java.lang.Integer      => out.writeInt(v)
     case v: java.lang.Long         => out.writeLong(v)
     case v: java.lang.Float        => out.writeFloat(v)

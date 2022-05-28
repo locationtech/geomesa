@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,7 +14,14 @@ import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 
 import com.codahale.metrics.Counter
+<<<<<<< HEAD
 import com.typesafe.scalalogging.LazyLogging
+=======
+<<<<<<< HEAD
+import com.typesafe.scalalogging.LazyLogging
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locationtech-main
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.locationtech.geomesa.convert.EvaluationContext

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -18,10 +18,17 @@ import org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
-import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore}
+import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{Query, Transaction}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+import org.locationtech.geomesa.index.FlushableFeatureWriter
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> locationtech-main
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
@@ -49,7 +56,15 @@ import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+<<<<<<< HEAD
 import java.io.{Closeable, IOException}
+=======
+<<<<<<< HEAD
+import java.io.{Closeable, IOException, StringReader}
+=======
+import java.io.{Closeable, IOException}
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> locationtech-main
 import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
 import java.util.{Collections, Properties, UUID}
 import scala.concurrent.duration.Duration
@@ -225,9 +240,13 @@ class KafkaDataStore(
 
     WithClose(AdminClient.create(props)) { admin =>
       if (admin.listTopics().names().get.contains(topic)) {
-        logger.warn(s"Topic [$topic] already exists - it may contain stale data")
+        logger.warn(
+          s"Topic [$topic] already exists - it may contain invalid data and/or not " +
+              "match the expected topic configuration")
       } else {
-        val newTopic = new NewTopic(topic, config.topics.partitions, config.topics.replication.toShort)
+        val newTopic =
+          new NewTopic(topic, config.topics.partitions, config.topics.replication.toShort)
+              .configs(KafkaDataStore.topicConfig(sft))
         admin.createTopics(Collections.singletonList(newTopic)).all().get
       }
     }
@@ -278,33 +297,57 @@ class KafkaDataStore(
     new KafkaFeatureStore(this, sft, runner, cache(typeName))
   }
 
+<<<<<<< HEAD
+  private[geomesa] def getFeatureReader(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      query: Query): GeoMesaFeatureReader = {
+=======
   override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader = {
     val sft = getSchema(query.getTypeName)
     if (sft == null) {
       throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
     }
+<<<<<<< HEAD
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> locationtech-main
     // kick off the kafka consumers for this sft, if not already started
     caches.get(layerViewLookup.getOrElse(query.getTypeName, query.getTypeName))
     GeoMesaFeatureReader(sft, query, runner, None, config.audit)
   }
 
+<<<<<<< HEAD
+  override private[geomesa] def getFeatureWriter(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      filter: Option[Filter]): FlushableFeatureWriter = {
+    if (layerViewLookup.contains(sft.getTypeName)) {
+      throw new IllegalArgumentException(
+        s"Schema '${sft.getTypeName}' is a read-only view of '${layerViewLookup(sft.getTypeName)}'")
+=======
   override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): KafkaFeatureWriter = {
     val sft = getSchema(typeName)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     } else if (layerViewLookup.contains(typeName)) {
       throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
+<<<<<<< HEAD
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> locationtech-main
     }
     val producer = getTransactionalProducer(transaction)
-    val writer =
-      if (sft.isVisibilityRequired) {
-        new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter) with RequiredVisibilityWriter
-      } else {
-        new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter)
-      }
-    if (config.clearOnStart && cleared.add(typeName)) {
-      writer.clear()
+    val vis = sft.isVisibilityRequired
+    val writer = filter match {
+      case None if vis    => new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
+      case None           => new AppendKafkaFeatureWriter(sft, producer, config.serialization)
+      case Some(f) if vis => new ModifyKafkaFeatureWriter(sft, producer, config.serialization, f) with RequiredVisibilityWriter
+      case Some(f)        => new ModifyKafkaFeatureWriter(sft, producer, config.serialization, f)
     }
+<<<<<<< HEAD
+    if (config.clearOnStart && cleared.add(sft.getTypeName)) {
+=======
     writer
   }
 
@@ -323,6 +366,7 @@ class KafkaDataStore(
         new AppendKafkaFeatureWriter(sft, producer, config.serialization)
       }
     if (config.clearOnStart && cleared.add(typeName)) {
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
       writer.clear()
     }
     writer
@@ -385,6 +429,7 @@ class KafkaDataStore(
 object KafkaDataStore extends LazyLogging {
 
   val TopicKey = "geomesa.kafka.topic"
+  val TopicConfigKey = "kafka.topic.config"
 
   val MetadataPath = "metadata"
 
@@ -393,11 +438,20 @@ object KafkaDataStore extends LazyLogging {
   val LoadIntervalProperty: SystemProperty = SystemProperty("geomesa.kafka.load.interval", "1s")
 
   // marker to trigger the cq engine index when using the deprecated enable flag
-  private [kafka] val CqIndexFlag: (String, CQIndexType) = null
+  private[kafka] val CqIndexFlag: (String, CQIndexType) = null
 
   def topic(sft: SimpleFeatureType): String = sft.getUserData.get(TopicKey).asInstanceOf[String]
 
   def setTopic(sft: SimpleFeatureType, topic: String): Unit = sft.getUserData.put(TopicKey, topic)
+
+  def topicConfig(sft: SimpleFeatureType): java.util.Map[String, String] = {
+    val props = new Properties()
+    val config = sft.getUserData.get(TopicConfigKey).asInstanceOf[String]
+    if (config != null) {
+      props.load(new StringReader(config))
+    }
+    props.asInstanceOf[java.util.Map[String, String]]
+  }
 
   def producer(config: KafkaDataStoreConfig): Producer[Array[Byte], Array[Byte]] = {
     import org.apache.kafka.clients.producer.ProducerConfig._

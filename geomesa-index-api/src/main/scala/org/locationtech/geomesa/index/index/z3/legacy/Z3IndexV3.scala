@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.index.z3.legacy
 
 import java.nio.charset.StandardCharsets
 
-import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.z3.legacy.Z3IndexV3.Z3IndexKeySpaceV3
@@ -31,7 +31,7 @@ class Z3IndexV3 protected (ds: GeoMesaDataStore[_],
     this(ds, sft, 3, geom, dtg, mode)
 
   // note: this index doesn't ever have table sharing
-  override val keySpace: Z3IndexKeySpace = new Z3IndexKeySpaceV3(sft, ZShardStrategy(sft), geom, dtg)
+  override val keySpace: Z3IndexKeySpace = new Z3IndexKeySpaceV3(sft, Z3ShardStrategy(sft), geom, dtg)
 }
 
 object Z3IndexV3 {

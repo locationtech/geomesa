@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,9 +8,7 @@
 
 package org.locationtech.geomesa.index.index.z2.legacy
 
-import java.nio.charset.StandardCharsets
-
-import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.api.ShardStrategy.Z2ShardStrategy
 import org.locationtech.geomesa.index.api.{RowKeyValue, ShardStrategy, WritableFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.z2.Z2IndexKeySpace
@@ -19,6 +17,8 @@ import org.locationtech.geomesa.index.index.z2.legacy.Z2IndexV3.Z2IndexKeySpaceV
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.nio.charset.StandardCharsets
+
 // deprecated non-point support in favor of xz, ids in row key, per-attribute vis
 class Z2IndexV2(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geom: String, mode: IndexMode)
     extends Z2IndexV3(ds, sft, 2, geom, mode) {
@@ -26,7 +26,7 @@ class Z2IndexV2(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geom: String, m
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val keySpace: Z2IndexKeySpace =
-    new Z2IndexKeySpaceV2(sft, sft.getTableSharingBytes, ZShardStrategy(sft), geom)
+    new Z2IndexKeySpaceV2(sft, sft.getTableSharingBytes, Z2ShardStrategy(sft), geom)
 }
 
 object Z2IndexV2 {

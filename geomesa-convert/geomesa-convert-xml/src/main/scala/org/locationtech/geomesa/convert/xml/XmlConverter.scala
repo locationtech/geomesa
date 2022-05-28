@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -55,7 +55,15 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
       parsed: CloseableIterator[Element],
       ec: EvaluationContext): CloseableIterator[Array[Any]] = {
 
+<<<<<<< HEAD
     val array = Array.ofDim[Any](1)
+=======
+<<<<<<< HEAD
+    val array = Array.ofDim[Any](2)
+=======
+    val array = Array.ofDim[Any](1)
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locationtech-main
 
     helper.get.rootPath match {
       case None =>

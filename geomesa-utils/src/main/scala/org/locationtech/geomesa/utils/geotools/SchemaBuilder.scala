@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -455,6 +455,28 @@ object SchemaBuilder {
       * @return user data builder for chaining calls
       */
     def zShards(shards: Int): U = userData(Configs.IndexZShards, shards.toString)
+
+    /**
+     * Specify the number of shards to use for the Z2 indices. Shards can provide distribution
+     * across nodes in a cluster, but also require more nodes to be scanned when querying.
+     *
+     * Default value is 4
+     *
+     * @param shards number of shards
+     * @return user data builder for chaining calls
+     */
+    def z2Shards(shards: Int): U = userData(Configs.IndexZ2Shards, shards.toString)
+
+    /**
+     * Specify the number of shards to use for the Z3 indices. Shards can provide distribution
+     * across nodes in a cluster, but also require more nodes to be scanned when querying.
+     *
+     * Default value is 4
+     *
+     * @param shards number of shards
+     * @return user data builder for chaining calls
+     */
+    def z3Shards(shards: Int): U = userData(Configs.IndexZ2Shards, shards.toString)
 
     /**
       * Specify the number of shards to use for the attribute index. Shards can provide distribution
