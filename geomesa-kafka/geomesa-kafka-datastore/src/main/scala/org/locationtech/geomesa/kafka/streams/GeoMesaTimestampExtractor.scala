@@ -11,8 +11,7 @@ package org.locationtech.geomesa.kafka.streams
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.streams.processor.TimestampExtractor
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.kafka.data.KafkaDataStore.{EventTimeConfig, ExpiryTimeConfig, FilteredExpiryConfig}
-import org.locationtech.geomesa.kafka.data.{KafkaDataStoreFactory, KafkaDataStoreParams}
+import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.Expression
@@ -35,21 +34,10 @@ object GeoMesaTimestampExtractor {
     paramsWithLazyFeatures.put(KafkaDataStoreParams.ConsumerCount.key, 0)
 
     // check for event time config
-    val config =
-      KafkaDataStoreFactory.buildConfig(paramsWithLazyFeatures.asInstanceOf[java.util.Map[String, java.io.Serializable]])
-
-    val event: PartialFunction[ExpiryTimeConfig, String] = {
-      case EventTimeConfig(_, exp, true) => exp
+    val eventTime = if (!KafkaDataStoreParams.EventTimeOrdering.lookup(params)) { None } else {
+      KafkaDataStoreParams.EventTime.lookupOpt(params)
     }
-
-    val expression = config.indices.expiry match {
-      case o if event.isDefinedAt(o) => Some(event.apply(o))
-      // all filters use the same event time ordering
-      case FilteredExpiryConfig(filters) if event.isDefinedAt(filters.head._2) => Some(event.apply(filters.head._2))
-      case _ => None
-    }
-
-    expression match {
+    eventTime match {
       case None => new DefaultDateExtractor(paramsWithLazyFeatures)
       case Some(e) => new EventTimestampExtractor(e, paramsWithLazyFeatures)
     }
