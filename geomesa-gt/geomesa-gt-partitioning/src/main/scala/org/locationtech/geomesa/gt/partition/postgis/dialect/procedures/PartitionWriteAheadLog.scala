@@ -61,7 +61,9 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |          INNER JOIN pg_catalog.pg_class ON (pg_inherits.inhrelid = pg_class.oid)
        |          INNER JOIN pg_catalog.pg_namespace ON (pg_class.relnamespace = pg_namespace.oid)
        |          WHERE inhparent = ${writeAhead.name.asRegclass}
+<<<<<<< HEAD
        |          AND relname != write_partition
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -101,6 +103,8 @@ object PartitionWriteAheadLog extends SqlProcedure {
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> a6add7b0b1 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
        |          AND relname != ${WriteAheadTable.writesPartition(info).asLiteral}
 <<<<<<< HEAD
 >>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -131,6 +135,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |          AND relname != ${WriteAheadTable.writesPartition(info).asLiteral}
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 0f44f9b8ab (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -193,6 +198,8 @@ object PartitionWriteAheadLog extends SqlProcedure {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a6add7b0b1 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
        |          ORDER BY name
        |      LOOP
        |
