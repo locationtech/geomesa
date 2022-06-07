@@ -39,7 +39,11 @@ object WriteAheadTable extends SqlStatements {
     val move = table.tablespace.toSeq.map { ts =>
       s"ALTER TABLE ${table.name.qualified} SET TABLESPACE ${ts.quoted};"
     }
+<<<<<<< HEAD
 >>>>>>> c61a3b395b (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+>>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+>>>>>>> cdf6c5eb97 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
     val (tableTs, indexTs) = table.tablespace match {
       case None => ("", "")
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
