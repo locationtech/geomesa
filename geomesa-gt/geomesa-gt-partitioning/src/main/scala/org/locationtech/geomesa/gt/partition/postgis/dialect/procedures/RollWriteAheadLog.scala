@@ -51,6 +51,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |      LOCK TABLE ONLY ${table.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |
        |      -- don't re-create the table if there hasn't been any data inserted
+<<<<<<< HEAD
        |      EXECUTE 'SELECT EXISTS(SELECT 1 FROM ${info.schema.quoted}.' || quote_ident(cur_partition) || ')'
        |          INTO pexists;
        |      IF pexists THEN
@@ -63,6 +64,11 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |
        |        UPDATE ${info.schema.quoted}.${SequenceTable.Name.quoted} SET value = seq_val
        |          WHERE type_name = ${literal(info.typeName)};
+=======
+       |      -- call to format fixes errors with non-lower-case identifiers
+       |      IF EXISTS(SELECT 1 FROM $writePartition) THEN
+       |        SELECT nextval(format('%I', ${literal(table.name.raw, "seq")})) INTO seq_val;
+>>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
        |
        |        -- format the table name to be 3 digits, with leading zeros as needed
        |        next_partition := ${literal(table.name.raw + "_")} || lpad(seq_val::text, 3, '0');
