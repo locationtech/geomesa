@@ -18,6 +18,28 @@ object WriteAheadTable extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     val table = info.tables.writeAhead
+<<<<<<< HEAD
+=======
+    val partition = writesPartition(info).qualified
+    val seq = s"CREATE SEQUENCE IF NOT EXISTS ${escape(table.name.raw, "seq")} AS smallint MINVALUE 1 MAXVALUE 999 CYCLE;"
+    // rename the table created by the JdbcDataStore to be the write ahead table
+    val rename =
+      s"""DO $$$$
+         |BEGIN
+         |  IF NOT EXISTS (SELECT FROM pg_tables WHERE schemaname = ${info.schema.asLiteral} AND tablename = ${table.name.asLiteral}) THEN
+         |    ALTER TABLE ${info.tables.view.name.qualified} RENAME TO ${table.name.quoted};
+         |  ELSE
+         |    DROP TABLE ${info.tables.view.name.qualified};
+         |  END IF;
+         |END$$$$;""".stripMargin
+    // drop the index created by the JDBC data store on the parent table, as all the data is in the inherited table
+    val dropIndices = info.cols.geoms.map { col =>
+      s"DROP INDEX IF EXISTS ${escape("spatial", info.tables.view.name.raw, col.raw.toLowerCase(Locale.US))};"
+    }
+    val move = table.tablespace.toSeq.map { ts =>
+      s"ALTER TABLE ${table.name.qualified} SET TABLESPACE ${ts.quoted};"
+    }
+>>>>>>> c61a3b395b (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
     val (tableTs, indexTs) = table.tablespace match {
       case None => ("", "")
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
