@@ -658,6 +658,7 @@ import org.testcontainers.utility.DockerImageName
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 69a6e5986e (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -672,6 +673,8 @@ import org.testcontainers.utility.DockerImageName
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> ce17eba7ba (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
@@ -691,10 +694,14 @@ import org.testcontainers.utility.DockerImageName
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 =======
 >>>>>>> ce17eba7ba (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> fae2cdacf2 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 =======
 >>>>>>> 69a6e5986e (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -725,6 +732,8 @@ import org.testcontainers.utility.DockerImageName
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 import java.sql.Connection
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
@@ -773,8 +782,11 @@ import java.util.logging.{Handler, Level, LogRecord}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c0571b43e1 (GEOMESA-3262 Postgis - add config to skip whole world filters)
+=======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
 =======
@@ -810,17 +822,24 @@ import java.util.Collections
 >>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
 >>>>>>> 75d5a347f8 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
 =======
+<<<<<<< HEAD
 =======
 import java.util.Collections
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 import scala.annotation.tailrec
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> ce17eba7ba (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> fae2cdacf2 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -866,6 +885,8 @@ import java.util.Collections
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> c0571b43e1 (GEOMESA-3262 Postgis - add config to skip whole world filters)
+=======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -2507,15 +2528,19 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> fae2cdacf2 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
@@ -2533,6 +2558,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fae2cdacf2 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
       skipped("requires postgis instance")
 =======
       if (!methods.any) {
@@ -2559,6 +2588,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
@@ -2573,6 +2605,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> fae2cdacf2 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -2599,6 +2632,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
       val params =
         Map(
           "dbtype"   -> PartitionedPostgisDataStoreParams.DbType.sample,
@@ -2619,12 +2654,17 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fae2cdacf2 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 1e4bec1171 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+=======
+>>>>>>> fae2cdacf2 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
   "PartitionedPostgisDataStore" should {
@@ -2635,8 +2675,11 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 <<<<<<< HEAD
@@ -2657,6 +2700,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 =======
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ce17eba7ba (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 <<<<<<< HEAD
@@ -2695,6 +2739,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> ce17eba7ba (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> fae2cdacf2 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
       val ds = DataStoreFinder.getDataStore(params.asJava)
       ds must not(beNull)
 
@@ -3012,6 +3060,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (methods.create) {
           if (ds.getTypeNames.contains(sft.getTypeName)) {
             logger.warn("Schema already exists, skipping create")
@@ -3187,6 +3236,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> fae2cdacf2 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 =======
 >>>>>>> 69a6e5986e (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -3230,6 +3280,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
           val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
           schema must not(beNull)
           schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
@@ -3315,6 +3367,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 =======
 >>>>>>> 794a6f66c3 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ce17eba7ba (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -3434,7 +3487,14 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 =======
 >>>>>>> cad359442f (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+<<<<<<< HEAD
 >>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+=======
+=======
+=======
+>>>>>>> ce17eba7ba (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> fae2cdacf2 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
         val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
         schema must not(beNull)
         schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
@@ -5362,13 +5422,29 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> a91558bd4 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
           val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
           schema must not(beNull)
           schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
           logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+<<<<<<< HEAD
 >>>>>>> c3367776f (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+<<<<<<< HEAD
 >>>>>>> 794a6f66c3 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+<<<<<<< HEAD
 >>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+=======
+=======
+=======
+=======
+        val userData = Try(ds.getSchema(sft.getTypeName)).map(_.getUserData.asScala).getOrElse(null)
+        userData must not(beNull)
+        userData must containAllOf(sft.getUserData.asScala.toSeq)
+>>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> a91558bd4 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> ce17eba7ba (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> cb94395705 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 
           // write some data
           WithClose(new DefaultTransaction()) { tx =>
