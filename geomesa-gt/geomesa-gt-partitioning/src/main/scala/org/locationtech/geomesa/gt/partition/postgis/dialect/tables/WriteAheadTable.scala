@@ -115,6 +115,7 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 50746157c5 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
@@ -129,6 +130,10 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> d43301c50b (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> b8634a9aef (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+=======
+>>>>>>> 50746157c5 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+>>>>>>> b04e08ea20 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> c61a3b395b (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
@@ -137,6 +142,9 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b04e08ea20 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
@@ -160,6 +168,7 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> c61a3b395b (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> e39e1eda4e (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 50746157c5 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
@@ -206,6 +215,10 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> d43301c50b (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> b8634a9aef (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+=======
+>>>>>>> 50746157c5 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+>>>>>>> b04e08ea20 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
     val (tableTs, indexTs) = table.tablespace match {
       case None => ("", "")
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
