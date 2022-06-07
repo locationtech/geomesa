@@ -109,10 +109,16 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
           }
         }
 
+<<<<<<< HEAD
         val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
         schema must not(beNull)
         schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
         logger.info(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+=======
+        val userData = Try(ds.getSchema(sft.getTypeName)).map(_.getUserData.asScala).getOrElse(null)
+        userData must not(beNull)
+        userData must containAllOf(sft.getUserData.asScala.toSeq)
+>>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 
         val now = System.currentTimeMillis()
 
