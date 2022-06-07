@@ -39,6 +39,7 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 7d3c180a16 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
@@ -62,6 +63,8 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 2b1154ca34 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
 >>>>>>> 7d3c180a16 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> 1ba7d8749d (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
@@ -81,6 +84,7 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> 7d3c180a16 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> eab5f5c2d7 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 7e938f4284 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
@@ -98,6 +102,8 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 2b1154ca34 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
     val partition = writesPartition(info).qualified
     val seq = s"CREATE SEQUENCE IF NOT EXISTS ${escape(table.name.raw, "seq")} AS smallint MINVALUE 1 MAXVALUE 999 CYCLE;"
     // rename the table created by the JdbcDataStore to be the write ahead table
@@ -130,10 +136,14 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2b1154ca34 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> 50746157c5 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> eab5f5c2d7 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+<<<<<<< HEAD
 =======
 >>>>>>> 7e938f4284 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
@@ -148,6 +158,8 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> 50746157c5 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> b04e08ea20 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+>>>>>>> 2b1154ca34 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> c61a3b395b (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
@@ -171,8 +183,11 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 2b1154ca34 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> 7d3c180a16 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
@@ -205,6 +220,7 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> 7d3c180a16 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> eab5f5c2d7 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -247,6 +263,8 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 2b1154ca34 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
     val (tableTs, indexTs) = table.tablespace match {
       case None => ("", "")
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
