@@ -560,6 +560,7 @@ import org.testcontainers.utility.DockerImageName
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 69a6e5986e (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -568,6 +569,8 @@ import org.testcontainers.utility.DockerImageName
 >>>>>>> 6bd2f89dcd (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> ce17eba7ba (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
@@ -580,6 +583,7 @@ import org.testcontainers.utility.DockerImageName
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> a9343b6734 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 =======
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -610,6 +614,8 @@ import org.testcontainers.utility.DockerImageName
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 import java.sql.Connection
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
@@ -618,6 +624,7 @@ import java.util.{Collections, Locale}
 <<<<<<< HEAD
 import scala.collection.mutable.ArrayBuffer
 =======
+<<<<<<< HEAD
 =======
 import java.util.Collections
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -663,6 +670,7 @@ import java.util.Collections
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -719,6 +727,12 @@ import scala.annotation.tailrec
 >>>>>>> 1e4bec1171 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+import scala.annotation.tailrec
+>>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> a9343b6734 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -2070,6 +2084,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2119,6 +2136,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
       skipped("requires postgis instance")
 >>>>>>> a9343b6734 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -2143,6 +2161,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
       val params =
         Map(
           "dbtype"   -> PartitionedPostgisDataStoreParams.DbType.sample,
@@ -2162,10 +2182,13 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fae2cdacf2 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 1e4bec1171 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
   "PartitionedPostgisDataStore" should {
@@ -2188,6 +2211,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> a9343b6734 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -2225,6 +2249,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
       val ds = DataStoreFinder.getDataStore(params.asJava)
       ds must not(beNull)
 
@@ -2428,6 +2454,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (methods.create) {
           if (ds.getTypeNames.contains(sft.getTypeName)) {
             logger.warn("Schema already exists, skipping create")
@@ -2577,6 +2604,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 >>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> b7a3bd4175 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -2626,11 +2654,15 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> e7dfbc3fc1 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a9343b6734 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
           val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
           schema must not(beNull)
           schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
           logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2651,6 +2683,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> b7a3bd4175 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 6de7ca735b (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> a9343b6734 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
         val userData = Try(ds.getSchema(sft.getTypeName)).map(_.getUserData.asScala).getOrElse(null)
         userData must not(beNull)
         userData must containAllOf(sft.getUserData.asScala.toSeq)
@@ -2659,6 +2695,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 =======
 >>>>>>> 203dda21b9 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -2930,6 +2969,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> a9343b6734 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 =======
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -3000,6 +3040,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 42af7673bd (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 6de7ca735b (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 
           // write some data
           WithClose(new DefaultTransaction()) { tx =>
