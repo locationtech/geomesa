@@ -30,9 +30,14 @@ class AvroConverter(sft: SimpleFeatureType, config: AvroConfig, fields: Seq[Basi
     extends AbstractConverter[GenericRecord, AvroConfig, BasicField, BasicOptions](sft, config, fields, options) {
 
   private val schema = config.schema match {
+    case SchemaEmbedded => None
     case SchemaString(s) => Some(new Parser().parse(s))
-    case SchemaFile(s)   => Some(new Parser().parse(getClass.getResourceAsStream(s)))
-    case SchemaEmbedded  => None
+    case SchemaFile(s) =>
+      val loader = Option(Thread.currentThread.getContextClassLoader).getOrElse(getClass.getClassLoader)
+      val res = Option(loader.getResourceAsStream(s)).orElse(Option(getClass.getResourceAsStream(s))).getOrElse {
+        throw new IllegalArgumentException(s"Could not load schema resource at $s")
+      }
+      Some(new Parser().parse(res))
   }
 
   // if required, set the raw bytes in the result array
