@@ -24,6 +24,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.annotation.tailrec
+import scala.util.Try
 import scala.util.control.NonFatal
 
 @RunWith(classOf[JUnitRunner])
@@ -64,9 +65,9 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
           "host"     -> "localhost",
           "port"     -> "5432",
           "schema"   -> "public",
-          "database" -> "geodata",
+          "database" -> "postgres",
           "user"     -> "postgres",
-          "passwd"   -> "gimmee",
+          "passwd"   -> "postgres",
           "Batch insert size"  -> "10",
           "Commit size"        -> "20",
           "preparedStatements" -> "true"
@@ -98,7 +99,8 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
           }
         }
 
-        val userData = ds.getSchema(sft.getTypeName).getUserData.asScala
+        val userData = Try(ds.getSchema(sft.getTypeName)).map(_.getUserData.asScala).getOrElse(null)
+        userData must not(beNull)
         userData must containAllOf(sft.getUserData.asScala.toSeq)
 
         val now = System.currentTimeMillis()

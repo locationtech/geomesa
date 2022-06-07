@@ -53,8 +53,9 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |      LOCK TABLE $writePartition IN ACCESS EXCLUSIVE MODE;
        |
        |      -- don't re-create the table if there hasn't been any data inserted
+       |      -- call to format fixes errors with non-lower-case identifiers
        |      IF EXISTS(SELECT 1 FROM $writePartition) THEN
-       |        SELECT nextval(${literal(table.name.raw, "seq")}) INTO seq_val;
+       |        SELECT nextval(format('%I', ${literal(table.name.raw, "seq")})) INTO seq_val;
        |
        |        -- format the table name to be 3 digits, with leading zeros as needed
        |        cur_partition := lpad((seq_val - 1)::text, 3, '0');
