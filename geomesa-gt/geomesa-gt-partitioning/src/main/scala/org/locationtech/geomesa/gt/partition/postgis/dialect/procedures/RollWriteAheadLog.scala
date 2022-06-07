@@ -51,6 +51,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |      LOCK TABLE ONLY ${table.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |
        |      -- don't re-create the table if there hasn't been any data inserted
+<<<<<<< HEAD
        |      EXECUTE 'SELECT EXISTS(SELECT 1 FROM ${info.schema.quoted}.' || quote_ident(cur_partition) || ')'
        |          INTO pexists;
        |      IF pexists THEN
@@ -86,6 +87,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -104,6 +106,8 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> bf6b23321d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 48c6002574 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
@@ -124,10 +128,14 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bf6b23321d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 48c6002574 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 25cedeff6a (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 8d6784b70d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
@@ -229,6 +237,8 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> bf6b23321d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
        |      -- call to format fixes errors with non-lower-case identifiers
        |      IF EXISTS(SELECT 1 FROM $writePartition) THEN
        |        SELECT nextval(format('%I', ${literal(table.name.raw, "seq")})) INTO seq_val;
@@ -238,8 +248,11 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 495444cdb7 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> 25cedeff6a (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 <<<<<<< HEAD
 >>>>>>> 4d7cc37021 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -265,10 +278,13 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> bf6b23321d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 48c6002574 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -312,7 +328,15 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 =======
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> 48c6002574 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> 25cedeff6a (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> bf6b23321d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
        |
        |        -- format the table name to be 3 digits, with leading zeros as needed
        |        next_partition := ${literal(table.name.raw + "_")} || lpad(seq_val::text, 3, '0');
