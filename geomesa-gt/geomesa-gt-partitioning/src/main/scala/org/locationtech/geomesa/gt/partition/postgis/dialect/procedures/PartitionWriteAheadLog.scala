@@ -91,6 +91,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -329,6 +330,11 @@ object PartitionWriteAheadLog extends SqlProcedure {
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> eabc30be69 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 9bc1fe9da1 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+=======
+       |          AND relname != ${WriteAheadTable.writesPartition(info).asLiteral}
+>>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> eabc30be69 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
        |          ORDER BY name
        |      LOOP
        |
