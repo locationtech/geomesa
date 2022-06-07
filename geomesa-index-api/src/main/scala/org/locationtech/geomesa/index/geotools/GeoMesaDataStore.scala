@@ -8,11 +8,7 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.io.IOException
-import java.util.Collections
-import java.util.concurrent.TimeUnit
-
-import com.github.benmanes.caffeine.cache.{AsyncCacheLoader, CacheLoader, Caffeine}
+import com.github.benmanes.caffeine.cache.{AsyncCacheLoader, AsyncLoadingCache, CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.locationtech.geomesa.index.FlushableFeatureWriter
@@ -37,6 +33,9 @@ import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.io.IOException
+import java.util.Collections
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -323,7 +322,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
       }
 
       // get the remote version if it's available, but don't wait for it
-      GeoMesaDataStore.versions.get(new VersionKey(this)).getNow(Right(None)) match {
+      GeoMesaDataStore.versions.get(VersionKey(this)).getNow(Right(None)) match {
         case Left(e) => throw e
         case Right(version) =>
           version.foreach { v =>
@@ -454,6 +453,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
    * @see org.geotools.data.DataAccess#dispose()
    */
   override def dispose(): Unit = {
+    Try(GeoMesaDataStore.liveStores.get(VersionKey(config.catalog, getClass)).remove(this))
     CloseWithLogging(stats)
     config.audit.foreach { case (writer, _, _) => CloseWithLogging(writer) }
     super.dispose()
@@ -496,7 +496,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     * @return iterator version, if data store has iterators
     */
   def getDistributedVersion: Option[SemanticVersion] = {
-    GeoMesaDataStore.versions.get(new VersionKey(this)).get() match {
+    GeoMesaDataStore.versions.get(VersionKey(this)).get() match {
       case Right(v) => v
       case Left(e)  => throw e
     }
@@ -616,17 +616,22 @@ object GeoMesaDataStore extends LazyLogging {
 
   import org.locationtech.geomesa.index.conf.SchemaProperties.{CheckDistributedVersion, ValidateDistributedClasspath}
 
+  import scala.collection.JavaConverters._
+
+  private val liveStores = new ConcurrentHashMap[VersionKey, java.util.Set[GeoMesaDataStore[_]]]()
+
   private val loader: AsyncCacheLoader[VersionKey, Either[Exception, Option[SemanticVersion]]] =
     new CacheLoader[VersionKey, Either[Exception, Option[SemanticVersion]]]() {
       override def load(key: VersionKey): Either[Exception, Option[SemanticVersion]] = {
-        if (key.ds.getTypeNames.length == 0) {
-          // short-circuit load - should try again next time cache is accessed
-          throw new RuntimeException("Can't load remote versions if there are no feature types")
-        }
         if (CheckDistributedVersion.toBoolean.contains(false)) { Right(None) } else {
-          val clientVersion = key.ds.getClientVersion
+          val ds = Option(liveStores.get(key)).flatMap(_.asScala.find(_.getTypeNames.nonEmpty)).orNull
+          if (ds == null) {
+            // short-circuit load - should try again next time cache is accessed
+            throw new RuntimeException("Can't load remote versions if there are no feature types")
+          }
+          val clientVersion = ds.getClientVersion
           // use lenient parsing to account for versions like 1.3.5.1
-          val iterVersions = key.ds.loadIteratorVersions.map(v => SemanticVersion(v, lenient = true))
+          val iterVersions = ds.loadIteratorVersions.map(v => SemanticVersion(v, lenient = true))
 
           def message: String = "Classpath errors detected: configured server-side iterators do not match " +
               s"client version. Client version: $clientVersion, server versions: ${iterVersions.mkString(", ")}"
@@ -652,7 +657,8 @@ object GeoMesaDataStore extends LazyLogging {
       }
     }
 
-  private val versions = Caffeine.newBuilder().refreshAfterWrite(1, TimeUnit.DAYS).buildAsync(loader)
+  private val versions: AsyncLoadingCache[VersionKey, Either[Exception, Option[SemanticVersion]]] =
+    Caffeine.newBuilder().refreshAfterWrite(1, TimeUnit.DAYS).buildAsync(loader)
 
   /**
     * Kick off an asynchronous call to load remote iterator versions
@@ -660,9 +666,15 @@ object GeoMesaDataStore extends LazyLogging {
     * @param ds datastore
     */
   def initRemoteVersion(ds: GeoMesaDataStore[_]): Unit = {
+    val key = VersionKey(ds)
+    val loader = new java.util.function.Function[VersionKey, java.util.Set[GeoMesaDataStore[_]]]() {
+      override def apply(t: VersionKey): java.util.Set[GeoMesaDataStore[_]] =
+        Collections.newSetFromMap(new ConcurrentHashMap[GeoMesaDataStore[_], java.lang.Boolean])
+    }
+    liveStores.computeIfAbsent(key, loader).add(ds)
     // can't get remote version if there aren't any tables
     if (ds.getTypeNames.length > 0) {
-      versions.get(new VersionKey(ds))
+      versions.get(key)
     }
   }
 
@@ -725,19 +737,11 @@ object GeoMesaDataStore extends LazyLogging {
   }
 
   /**
-    * Cache key that bases equality on data store class and catalog, but allows for loading remote version
-    * from datastore
-    *
-    * @param ds data store
+    * Cache key that for looking up remote versions
     */
-  private class VersionKey(val ds: GeoMesaDataStore[_]) {
+  private case class VersionKey(catalog: String, clas: Class[_])
 
-    override def equals(other: Any): Boolean = other match {
-      case that: VersionKey => ds.config.catalog == that.ds.config.catalog && ds.getClass == that.ds.getClass
-      case _ => false
-    }
-
-    override def hashCode(): Int =
-      Seq(ds.config.catalog, ds.getClass).map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  private object VersionKey{
+    def apply(ds: GeoMesaDataStore[_]): VersionKey = VersionKey(ds.config.catalog, ds.getClass)
   }
 }
