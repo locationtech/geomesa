@@ -30,6 +30,7 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -52,6 +53,9 @@ object WriteAheadTable extends SqlStatements {
 =======
 =======
 >>>>>>> 7e938f4284 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+=======
+>>>>>>> 478b92b696 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
     val partition = writesPartition(info).qualified
     val seq = s"CREATE SEQUENCE IF NOT EXISTS ${escape(table.name.raw, "seq")} AS smallint MINVALUE 1 MAXVALUE 999 CYCLE;"
     // rename the table created by the JdbcDataStore to be the write ahead table
@@ -71,6 +75,7 @@ object WriteAheadTable extends SqlStatements {
     val move = table.tablespace.toSeq.map { ts =>
       s"ALTER TABLE ${table.name.qualified} SET TABLESPACE ${ts.quoted};"
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -129,6 +134,9 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> 1ba7d8749d (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> 7e938f4284 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+>>>>>>> c61a3b395b (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+>>>>>>> 478b92b696 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
     val (tableTs, indexTs) = table.tablespace match {
       case None => ("", "")
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
