@@ -52,6 +52,7 @@ Parameter                            Type    Description
                                              all existing messages are processed. However, feature listeners will still be invoked as normal.
                                              See :ref:`kafka_initial_load`
 ``kafka.consumer.count``             Integer Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)
+``kafka.consumer.group-prefix``      String  Prefix to use for kafka group ID, to more easily identify particular data stores
 ``kafka.consumer.start-on-demand``   Boolean The default behavior is to start consuming a topic only when that feature type is first requested.
                                              This can reduce load if some layers are never queried. Note that care should be taken when setting
                                              this to false, as the store will immediately start consuming from Kafka for all known feature types,
