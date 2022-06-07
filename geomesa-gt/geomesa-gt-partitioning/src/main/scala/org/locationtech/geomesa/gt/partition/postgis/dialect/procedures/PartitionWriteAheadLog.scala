@@ -65,6 +65,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |          AND relname != write_partition
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
        |          AND relname != ${WriteAheadTable.writesPartition(info).asLiteral}
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -179,6 +180,11 @@ object PartitionWriteAheadLog extends SqlProcedure {
 =======
 >>>>>>> 2eb5450278 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> locationtech-main
+=======
+=======
+       |          AND relname != ${WriteAheadTable.writesPartition(info).asLiteral}
+>>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> eabc30be69 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
        |          ORDER BY name
        |      LOOP
        |

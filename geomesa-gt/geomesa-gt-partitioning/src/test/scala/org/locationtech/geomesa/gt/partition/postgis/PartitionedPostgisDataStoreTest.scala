@@ -2020,6 +2020,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
         logger.info(s"Existing type names: ${ds.getTypeNames.mkString(", ")}")
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -2195,11 +2196,15 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> eabc30be69 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
           val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
           schema must not(beNull)
           schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
           logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2372,6 +2377,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> locationtech-main
+=======
+>>>>>>> eabc30be69 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
         val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
         schema must not(beNull)
         schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
@@ -2379,6 +2386,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 =======
         logger.info(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2436,10 +2444,14 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> locationtech-main
+=======
+=======
+>>>>>>> eabc30be69 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
         val userData = Try(ds.getSchema(sft.getTypeName)).map(_.getUserData.asScala).getOrElse(null)
         userData must not(beNull)
         userData must containAllOf(sft.getUserData.asScala.toSeq)
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2572,6 +2584,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> locationtech-main
+=======
+>>>>>>> 203dda21b (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> 48c6002574 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> eabc30be69 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 
           // write some data
           WithClose(new DefaultTransaction()) { tx =>
