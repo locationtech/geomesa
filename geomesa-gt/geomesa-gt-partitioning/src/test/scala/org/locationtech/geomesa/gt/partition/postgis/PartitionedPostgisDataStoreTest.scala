@@ -4361,6 +4361,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -4803,7 +4804,11 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+>>>>>>> bf6b23321d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 25cedeff6a (GEOMESA-3208 Postgis - Fix camel-case feature type names)
         val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
         schema must not(beNull)
         schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
@@ -4811,6 +4816,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 =======
         logger.info(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -4892,11 +4898,14 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 =======
 =======
+>>>>>>> 25cedeff6a (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
         val userData = Try(ds.getSchema(sft.getTypeName)).map(_.getUserData.asScala).getOrElse(null)
         userData must not(beNull)
         userData must containAllOf(sft.getUserData.asScala.toSeq)
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 203dda21b (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f9969bc4e9 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 <<<<<<< HEAD
@@ -4916,6 +4925,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 25cedeff6a (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 
           // write some data
           WithClose(new DefaultTransaction()) { tx =>
