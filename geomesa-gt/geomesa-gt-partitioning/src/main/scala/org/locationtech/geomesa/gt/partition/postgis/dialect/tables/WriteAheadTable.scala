@@ -33,6 +33,11 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 7d3c180a16 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+>>>>>>> 1116449a74 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -90,6 +95,7 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 50746157c5 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
@@ -98,6 +104,8 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> 7e938f4284 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> 27b2ae4d07 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+>>>>>>> 1116449a74 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> c61a3b395b (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
@@ -110,6 +118,7 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -157,6 +166,11 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+>>>>>>> 7d3c180a16 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+>>>>>>> 1116449a74 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
     val (tableTs, indexTs) = table.tablespace match {
       case None => ("", "")
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
