@@ -88,6 +88,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreParams.Zookeepers,
       KafkaDataStoreParams.ZkPath,
       KafkaDataStoreParams.ConsumerCount,
+      KafkaDataStoreParams.ConsumerGroupPrefix,
       KafkaDataStoreParams.ConsumerConfig,
       KafkaDataStoreParams.ConsumerReadBack,
       KafkaDataStoreParams.CacheExpiry,
@@ -125,9 +126,14 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
     val consumers = {
       val count = ConsumerCount.lookup(params).intValue
+      val prefix = ConsumerGroupPrefix.lookupOpt(params) match {
+        case None => ""
+        case Some(p) if p.endsWith("-") => p
+        case Some(p) => s"$p-"
+      }
       val props = ConsumerConfig.lookupOpt(params).map(_.asScala.toMap).getOrElse(Map.empty[String, String])
       val readBack = ConsumerReadBack.lookupOpt(params)
-      KafkaDataStore.ConsumerConfig(count, props, readBack)
+      KafkaDataStore.ConsumerConfig(count, prefix, props, readBack)
     }
 
     val producers = {
