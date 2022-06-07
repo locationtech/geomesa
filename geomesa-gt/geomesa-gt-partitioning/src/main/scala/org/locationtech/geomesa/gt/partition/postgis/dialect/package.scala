@@ -250,7 +250,9 @@ package object dialect {
    * @param quoted escaped name without the schema
    * @param raw unqualified name without escaping
    */
-  case class TableIdentifier(qualified: String, quoted: String, raw: String) extends QualifiedSqlIdentifier
+  case class TableIdentifier(qualified: String, quoted: String, raw: String) extends QualifiedSqlIdentifier {
+    def asRegclass: String = s"${literal(qualified)}::regclass"
+  }
 
   object TableIdentifier {
     def apply(schema: String, raw: String): TableIdentifier =

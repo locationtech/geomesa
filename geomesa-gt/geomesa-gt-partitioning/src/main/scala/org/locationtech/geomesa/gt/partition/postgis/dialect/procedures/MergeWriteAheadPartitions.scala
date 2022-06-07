@@ -87,7 +87,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |            FROM pg_catalog.pg_inherits
        |            INNER JOIN pg_catalog.pg_class ON (pg_inherits.inhrelid = pg_class.oid)
        |            INNER JOIN pg_catalog.pg_namespace ON (pg_class.relnamespace = pg_namespace.oid)
-       |            WHERE inhparent = ${writeAheadPartitions.name.asLiteral}::regclass
+       |            WHERE inhparent = ${writeAheadPartitions.name.asRegclass}
        |              AND pg_class.relname >= ${writeAheadPartitions.name.asLiteral} || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24_MI')
        |              AND pg_class.relname < ${writeAheadPartitions.name.asLiteral} || '_' || to_char(partition_end, 'YYYY_MM_DD_HH24_MI')
        |            ORDER BY 1

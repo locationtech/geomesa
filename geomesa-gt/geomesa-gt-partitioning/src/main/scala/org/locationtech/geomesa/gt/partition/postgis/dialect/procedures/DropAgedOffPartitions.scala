@@ -38,7 +38,7 @@ object DropAgedOffPartitions extends SqlProcedure {
        |        partition_start := main_cutoff - INTERVAL '${hours * info.partitions.maxPartitions.getOrElse(0)} HOURS';
        |        FOR partition_name IN
        |          SELECT relid
-       |            FROM pg_partition_tree(${literal(info.schema.raw + "." + mainPartitions.name.raw)}::regclass)
+       |            FROM pg_partition_tree(${mainPartitions.name.asRegclass})
        |            WHERE parentrelid IS NOT NULL
        |            AND (SELECT relname FROM pg_class WHERE oid = relid) <= ${literal(mainPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24')
        |        LOOP
