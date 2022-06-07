@@ -33,11 +33,15 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.DockerImageName
 
+<<<<<<< HEAD
 import java.sql.Connection
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
 import java.util.{Collections, Locale}
 import scala.collection.mutable.ArrayBuffer
+=======
+import scala.annotation.tailrec
+>>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -129,6 +133,24 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     }
 
     "work" in {
+<<<<<<< HEAD
+=======
+      skipped("requires postgis instance")
+      val params =
+        Map(
+          "dbtype"   -> PartitionedPostgisDataStoreParams.DbType.sample,
+          "host"     -> "localhost",
+          "port"     -> "5432",
+          "schema"   -> "public",
+          "database" -> "postgres",
+          "user"     -> "postgres",
+          "passwd"   -> "postgres",
+          "Batch insert size"  -> "10",
+          "Commit size"        -> "20",
+          "preparedStatements" -> "true"
+        )
+
+>>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
       val ds = DataStoreFinder.getDataStore(params.asJava)
       ds must not(beNull)
 
@@ -142,10 +164,16 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
           ds.createSchema(sft)
 
+<<<<<<< HEAD
           val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
           schema must not(beNull)
           schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
           logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+=======
+        val userData = Try(ds.getSchema(sft.getTypeName)).map(_.getUserData.asScala).getOrElse(null)
+        userData must not(beNull)
+        userData must containAllOf(sft.getUserData.asScala.toSeq)
+>>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 
           // write some data
           WithClose(new DefaultTransaction()) { tx =>
