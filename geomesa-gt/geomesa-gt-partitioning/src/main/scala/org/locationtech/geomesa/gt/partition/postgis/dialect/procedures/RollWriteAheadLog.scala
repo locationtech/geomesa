@@ -90,13 +90,17 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fd1708e975 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> 969cec534e (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 8d6784b70d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 2eb5450278 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
@@ -120,6 +124,10 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 =======
 =======
 >>>>>>> fd1708e975 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> 2eb5450278 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> 969cec534e (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 48c6002574 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 0f44f9b8ab (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -129,8 +137,11 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fd1708e975 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> 969cec534e (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 85b4d3f0dc (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> a9343b6734 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -157,10 +168,13 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 >>>>>>> 85b4d3f0dc (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 2eb5450278 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 8d6784b70d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> fd1708e975 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> 969cec534e (GEOMESA-3208 Postgis - Fix camel-case feature type names)
        |      -- call to format fixes errors with non-lower-case identifiers
        |      IF EXISTS(SELECT 1 FROM $writePartition) THEN
        |        SELECT nextval(format('%I', ${literal(table.name.raw, "seq")})) INTO seq_val;
@@ -174,8 +188,11 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fd1708e975 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> 969cec534e (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 495444cdb7 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
@@ -183,10 +200,15 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 =======
 >>>>>>> 8d6784b70d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2eb5450278 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> fd1708e975 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+=======
+>>>>>>> 2eb5450278 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> 969cec534e (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -246,6 +268,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 0f44f9b8ab (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 8d6784b70d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 2eb5450278 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -377,6 +400,10 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> fd1708e975 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+=======
+>>>>>>> 2eb5450278 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> 969cec534e (GEOMESA-3208 Postgis - Fix camel-case feature type names)
        |
        |        -- format the table name to be 3 digits, with leading zeros as needed
        |        next_partition := ${literal(table.name.raw + "_")} || lpad(seq_val::text, 3, '0');
