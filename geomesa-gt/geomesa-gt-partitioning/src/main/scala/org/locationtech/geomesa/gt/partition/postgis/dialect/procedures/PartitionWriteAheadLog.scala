@@ -53,7 +53,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |          FROM pg_catalog.pg_inherits
        |          INNER JOIN pg_catalog.pg_class ON (pg_inherits.inhrelid = pg_class.oid)
        |          INNER JOIN pg_catalog.pg_namespace ON (pg_class.relnamespace = pg_namespace.oid)
-       |          WHERE inhparent = ${writeAhead.name.asLiteral}::regclass
+       |          WHERE inhparent = ${writeAhead.name.asRegclass}
        |          AND relname != ${WriteAheadTable.writesPartition(info).asLiteral}
        |          ORDER BY name
        |      LOOP
