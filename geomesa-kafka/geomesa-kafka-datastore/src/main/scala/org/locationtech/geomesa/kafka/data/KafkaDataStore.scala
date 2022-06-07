@@ -486,13 +486,13 @@ object KafkaDataStore extends LazyLogging {
   }
 
   // creates a consumer and sets to the latest offsets
-  private [kafka] def consumers(
+  private[kafka] def consumers(
       brokers: String,
       topic: String,
       config: ConsumerConfig): Seq[Consumer[Array[Byte], Array[Byte]]] = {
     require(config.count > 0, "Number of consumers must be greater than 0")
 
-    val props = Map(GROUP_ID_CONFIG -> UUID.randomUUID().toString) ++ config.properties
+    val props = Map(GROUP_ID_CONFIG -> s"${config.groupPrefix}${UUID.randomUUID()}") ++ config.properties
     lazy val partitions = Collections.newSetFromMap(new ConcurrentHashMap[Int, java.lang.Boolean])
 
     logger.debug(s"Creating ${config.count} consumers for topic [$topic] with group-id [${props(GROUP_ID_CONFIG)}]")
@@ -591,7 +591,12 @@ object KafkaDataStore extends LazyLogging {
       metrics: Option[GeoMesaMetrics],
       namespace: Option[String]) extends NamespaceConfig
 
-  case class ConsumerConfig(count: Int, properties: Map[String, String], readBack: Option[Duration])
+  case class ConsumerConfig(
+      count: Int,
+      groupPrefix: String,
+      properties: Map[String, String],
+      readBack: Option[Duration]
+    )
 
   case class ProducerConfig(properties: Map[String, String])
 
