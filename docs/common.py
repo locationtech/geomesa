@@ -155,6 +155,7 @@ rst_epilog = """
 .. |release_version_literal| replace:: ``%(release_version)s``
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 .. |scala_binary_version| replace:: %(scala_binary_version)s
 
 .. |scala_release_version| replace:: ``%(scala_binary_version)s-%(release_version)s``
@@ -173,6 +174,11 @@ rst_epilog = """
        "spark_version": target.versions.spark_version,
 =======
 .. |release_version| replace:: ``%(release_version)s``
+=======
+.. |release_version| replace:: %(release_version)s
+
+.. |release_version_literal| replace:: ``%(release_version)s``
+>>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. |scala_binary_version| replace:: %(scala_binary_version)s
 
