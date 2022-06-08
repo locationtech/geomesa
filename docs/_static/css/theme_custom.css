@@ -45,6 +45,7 @@ code,.rst-content tt,.rst-content code {
 .rst-content pre.literal-block {
   background: #e5e5e5;
   border-radius: 3px;
+<<<<<<< HEAD
   display: block;
   overflow: auto;
   padding: 12px;
@@ -81,6 +82,11 @@ a:hover {
 
 .wy-side-nav-search>a,.wy-side-nav-search .wy-dropdown>a {
   color: #2a6ebb;
+=======
+  padding: 12px 12px;
+  display: block;
+  overflow: auto;
+>>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
 }
 
 .wy-menu-vertical {

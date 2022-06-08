@@ -286,8 +286,13 @@ Afterwards, this simple HTML will load a Leaflet map with the data.
 
     <html>
       <meta charset="utf-8"/>
+<<<<<<< HEAD
       <link rel="stylesheet" href="https://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
       <script src="https://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+=======
+      <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+      <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+>>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
       <script src="theAboveJavascriptFile.js"></script>
       <body>
