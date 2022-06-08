@@ -298,12 +298,17 @@ Afterwards, this simple HTML will load a Leaflet map with the data.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e007dde981 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 80c85285b7 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+=======
+>>>>>>> e007dde981 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 682ce8edbb (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -311,11 +316,15 @@ Afterwards, this simple HTML will load a Leaflet map with the data.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 682ce8edbb (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> e007dde981 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 =======
 >>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> d13d2eab26 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -326,6 +335,8 @@ Afterwards, this simple HTML will load a Leaflet map with the data.
 >>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 682ce8edbb (GEOMESA-3176 Docs - fix download links in install instructions)
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
       <script src="theAboveJavascriptFile.js"></script>
       <body>
