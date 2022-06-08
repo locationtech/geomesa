@@ -34,6 +34,7 @@ Dataproc.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bdcaf0ab5e (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -80,6 +81,8 @@ Dataproc.
 >>>>>>> b42125fac1 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 813488e18c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
 >>>>>>> c5e182765 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -251,7 +254,12 @@ Dataproc.
 =======
 =======
 >>>>>>> 85663f71c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 813488e18c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> a12ea194c (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
 .. code-block:: shell
 
    $ gcloud components install cbt
@@ -330,6 +338,7 @@ Now, configure the installation by downloading and unpacking the GeoMesa distrib
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dace2085b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -383,6 +392,8 @@ Now, configure the installation by downloading and unpacking the GeoMesa distrib
 =======
 >>>>>>> 9abc630fdf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 =======
 >>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 85663f71c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -401,10 +412,13 @@ Now, configure the installation by downloading and unpacking the GeoMesa distrib
 =======
 >>>>>>> ad3cedc4d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> a12ea194c (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 >>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -416,6 +430,8 @@ Now, configure the installation by downloading and unpacking the GeoMesa distrib
 >>>>>>> bd3233180f (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 9abc630fdf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
@@ -487,7 +503,14 @@ Now, configure the installation by downloading and unpacking the GeoMesa distrib
 =======
 =======
 >>>>>>> ad3cedc4d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 9abc630fdf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> a12ea194c (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -783,9 +806,22 @@ Now, configure the installation by downloading and unpacking the GeoMesa distrib
 =======
 =======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> ad3cedc4d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 9abc630fdf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> a12ea194c (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
 appropriately, and including the hbase-site.xml in the spark runtime jar. First set the version you want to use:
 
 .. parsed-literal::
@@ -837,6 +873,7 @@ Then download and configure the distribution:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4524373ac (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -887,10 +924,14 @@ Then download and configure the distribution:
 =======
 >>>>>>> 9abc630fdf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 =======
 >>>>>>> 85663f71c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> ad3cedc4d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> a12ea194c (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 4b70e7f8f (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -1408,10 +1449,15 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 appropriately, and including the hbase-site.xml in the spark runtime jar:
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 279de44d3 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -1420,10 +1466,14 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 =======
 =======
+=======
+>>>>>>> a12ea194c (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD
 =======
 >>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 85663f71c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
 appropriately, and including the hbase-site.xml in the spark runtime jar:
@@ -1474,9 +1524,20 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 =======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> ad3cedc4d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 9abc630fdf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+>>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> a12ea194c (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. code-block:: shell
 
@@ -1527,6 +1588,7 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 45ad5d11f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -1587,6 +1649,8 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 >>>>>>> 9abc630fdf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 >>>>>>> 76618c8da (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 947761ec9b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -1611,6 +1675,8 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 >>>>>>> 85663f71c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> ad3cedc4d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> a12ea194c (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -1829,16 +1895,30 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 =======
 =======
+>>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> ad3cedc4d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 9abc630fdf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+>>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> a12ea194c (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
    $ tar xvf geomesa-bigtable_${VERSION}-bin.tar.gz
 =======
    $ tar zxvf geomesa-bigtable_${VERSION}-bin.tar.gz
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1915,6 +1995,8 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 >>>>>>> 9abc630fdf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 =======
 >>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 85663f71c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1931,10 +2013,13 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 >>>>>>> ad3cedc4d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> a12ea194c (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 >>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1946,6 +2031,8 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 >>>>>>> bd3233180f (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 9abc630fdf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
@@ -2017,7 +2104,14 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 =======
 >>>>>>> ad3cedc4d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 9abc630fdf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> a12ea194c (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
    $ tar xvf geomesa-bigtable_${VERSION}-bin.tar.gz
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -2342,9 +2436,23 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 =======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> ad3cedc4d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 9abc630fdf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+=======
+   $ tar xvf geomesa-bigtable_${VERSION}-bin.tar.gz
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> a12ea194c (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 5c3f315bc0 (GEOMESA-3176 Docs - fix download links in install instructions)
    $ ln -s geomesa-bigtable_${VERSION} geomesa
    $ export PATH=$PATH:~/geomesa/bin
    $ export HADOOP_HOME=/usr/lib/hadoop
