@@ -1563,6 +1563,7 @@ rst_epilog = """
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 .. |spark_required_version| replace:: 3.3.x
 
 .. |spark_supported_versions| replace:: version 3.3.x
@@ -1572,6 +1573,8 @@ rst_epilog = """
 <<<<<<< HEAD
 =======
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 71c56e6b77 (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD
 .. |release_version_literal| replace:: ``%(release_version)s``
 =======
@@ -3125,6 +3128,11 @@ rst_epilog = """
 =======
 =======
 .. |release_version| replace:: ``%(release_version)s``
+=======
+.. |release_version| replace:: %(release_version)s
+
+.. |release_version_literal| replace:: ``%(release_version)s``
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. |scala_binary_version| replace:: %(scala_binary_version)s
 
