@@ -2837,6 +2837,9 @@
                                     <regexMessage>property scala.binary.version doesn't match compiler version</regexMessage>
                                     <regex>2.12</regex>
                                 </requireProperty>
+                                <requireMavenVersion>
+                                    <version>[3.5.2,)</version>
+                                </requireMavenVersion>
                             </rules>
                         </configuration>
                     </execution>
