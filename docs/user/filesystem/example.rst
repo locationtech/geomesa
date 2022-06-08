@@ -43,6 +43,7 @@ folder which contains an example csv file that we will ingest. First set the ver
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 419e2b9752 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -81,6 +82,8 @@ folder which contains an example csv file that we will ingest. First set the ver
 >>>>>>> 165fb93a09 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 80c85285b7 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -554,6 +557,12 @@ Then download and extract the binary distribution:
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 7813a31aa (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 71c56e6b77 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. parsed-literal::
 
@@ -571,6 +580,7 @@ Then download and extract the binary distribution:
 >>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 Then download and extract the binary distribution:
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> d13d2eab26 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -822,6 +832,8 @@ Then download and extract the binary distribution:
 =======
 =======
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 80c85285b7 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 
@@ -1863,7 +1875,12 @@ Then download and extract the binary distribution:
   ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 7813a31aa (GEOMESA-3176 Docs - fix download links in install instructions)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1883,9 +1900,15 @@ Then download and extract the binary distribution:
 >>>>>>> 3382f42b39 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 .. note::
+=======
+.. parsed-literal::
+>>>>>>> 80c85285b7 (GEOMESA-3176 Docs - fix download links in install instructions)
 
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
+    $ export TAG="|release_version|"
+    # note: |scala_binary_version| is the Scala build version
+    $ export VERSION="|scala_binary_version|-${TAG}"
+
+Then download and extract the binary distribution:
 
 >>>>>>> 27afb28ab6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 .. code-block:: bash
@@ -1894,6 +1917,7 @@ Then download and extract the binary distribution:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-fs_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-fs_${VERSION}-bin.tar.gz
     $ cd geomesa-fs_${VERSION}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2626,6 +2650,8 @@ Then download and extract the binary distribution:
 >>>>>>> 718bbd04559 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> a05737c9e76 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 32e2fa72437 (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD
 =======
 >>>>>>> b9c0fc77b9 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -2848,6 +2874,8 @@ Then download and extract the binary distribution:
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 27afb28ab6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 80c85285b7 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
 >>>>>>> 23c0241798 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -3336,6 +3364,8 @@ Then download and extract the binary distribution:
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 71c56e6b77 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -7554,8 +7584,21 @@ Then download and extract the binary distribution:
 =======
 =======
 >>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 27afb28ab6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 7813a31aa (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 71c56e6b77 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 80c85285b7 (GEOMESA-3176 Docs - fix download links in install instructions)
     $ cat examples/ingest/csv/example.csv
 >>>>>>> 759250a5978 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
