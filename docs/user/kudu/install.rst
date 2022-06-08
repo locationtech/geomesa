@@ -30,6 +30,7 @@ Installing GeoMesa Kudu
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -48,6 +49,8 @@ Installing GeoMesa Kudu
 >>>>>>> 8dec77199d (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -103,6 +106,7 @@ Installing GeoMesa Kudu
 >>>>>>> 93fa8c797f (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 =======
 >>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -153,6 +157,8 @@ Installing GeoMesa Kudu
 >>>>>>> 703374130f (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 93fa8c797f (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 8dec77199d (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 .. note::
 
     The examples below expect a version to be set in the environment:
@@ -163,6 +169,7 @@ Installing GeoMesa Kudu
         # note: |scala_binary_version| is the Scala build version
         $ export VERSION="|scala_binary_version|-${TAG}"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -194,6 +201,8 @@ Installing GeoMesa Kudu
 >>>>>>> 7b2b25cc3c (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 8dec77199d (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -276,6 +285,7 @@ Installing GeoMesa Kudu
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -348,6 +358,10 @@ Installing GeoMesa Kudu
 >>>>>>> 8dec77199d (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 Installing the Binary Distribution
 ----------------------------------
 
@@ -356,6 +370,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -672,6 +687,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -4968,6 +4985,7 @@ Download and extract it somewhere convenient:
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 Download and extract it somewhere convenient:
 >>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -5669,6 +5687,11 @@ Download and extract it somewhere convenient:
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+Download and extract it somewhere convenient:
+>>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. code-block:: bash
 
@@ -5676,6 +5699,7 @@ Download and extract it somewhere convenient:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-kudu_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-kudu_${VERSION}-bin.tar.gz
     $ cd geomesa-kudu_${VERSION}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5992,6 +6016,8 @@ Download and extract it somewhere convenient:
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -9283,6 +9309,7 @@ Download and extract it somewhere convenient:
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -10088,6 +10115,10 @@ Download and extract it somewhere convenient:
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. _kudu_install_source:
 
@@ -10169,6 +10200,7 @@ Test the command that invokes the GeoMesa Tools:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e007dde981 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -10181,6 +10213,8 @@ Test the command that invokes the GeoMesa Tools:
 >>>>>>> 8dec77199d (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -10374,6 +10408,9 @@ The output should look like this::
     $ bin/geomesa-kudu
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 .. code-block:: bash
 
@@ -10382,6 +10419,7 @@ The output should look like this::
 The output should look like this::
 
 >>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 =======
 .. code::
 
@@ -10480,6 +10518,8 @@ The output should look like this::
 >>>>>>> 8dec77199d (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
     INFO  Usage: geomesa-kudu [command] [command options]
       Commands:
       ...
