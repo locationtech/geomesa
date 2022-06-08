@@ -4,6 +4,17 @@ FileSystem Data Store Example
 In this simple example we will ingest a small CSV into a local filesystem data store partitioned by an daily,z2-2bit
 scheme. To begin, start by untaring the geomesa-fs distribution. Inside this distribution you will find an examples
 folder which contains an example csv file that we will ingest. First set the version you want to use:
+<<<<<<< HEAD
+
+.. parsed-literal::
+
+    $ export TAG="|release_version|"
+    # note: |scala_binary_version| is the Scala build version
+    $ export VERSION="|scala_binary_version|-${TAG}"
+
+Then download and extract the binary distribution:
+=======
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. parsed-literal::
 
@@ -13,11 +24,6 @@ folder which contains an example csv file that we will ingest. First set the ver
 
 Then download and extract the binary distribution:
 
-.. note::
-
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
-
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
@@ -25,9 +31,12 @@ Then download and extract the binary distribution:
     $ tar xvf geomesa-fs_${VERSION}-bin.tar.gz
     $ cd geomesa-fs_${VERSION}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
     $ cat examples/ingest/csv/example.csv
 
 The output should look like::
