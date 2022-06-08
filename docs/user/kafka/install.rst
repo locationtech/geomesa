@@ -7,6 +7,16 @@ Installing GeoMesa Kafka
     However, not all features are supported for versions prior to 1.0. The runtime classpath requires Kafka
     version 2+, but should be compatible with brokers back to Kafka 0.10.
 
+.. note::
+
+    The examples below expect a version to be set in the environment:
+
+    .. parsed-literal::
+
+        $ export TAG="|release_version|"
+        # note: |scala_binary_version| is the Scala build version
+        $ export VERSION="|scala_binary_version|-${TAG}"
+
 Installing from the Binary Distribution
 ---------------------------------------
 
@@ -15,21 +25,14 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
-.. note::
-
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
-
-Extract it somewhere convenient:
+Download and extract it somewhere convenient:
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-kafka_${VERSION}-bin.tar.gz"
-    $ tar xzvf geomesa-kafka_${VERSION}-bin.tar.gz
+    $ tar xvf geomesa-kafka_${VERSION}-bin.tar.gz
     $ cd geomesa-kafka_${VERSION}
-    $ ls
-    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt
 
 .. _kafka_install_source:
 
@@ -72,9 +75,12 @@ Do this with the following command:
 
 Test the command that invokes the GeoMesa Tools:
 
-.. code::
+.. code-block:: bash
 
     $ geomesa-kafka
+
+The output should look like this::
+
     Usage: geomesa-kafka [command] [command options]
       Commands:
         ...

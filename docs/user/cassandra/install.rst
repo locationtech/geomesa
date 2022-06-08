@@ -5,6 +5,16 @@ Installing GeoMesa Cassandra
 
     GeoMesa currently supports Cassandra version |cassandra_version|.
 
+.. note::
+
+    The examples below expect a version to be set in the environment:
+
+    .. parsed-literal::
+
+        $ export TAG="|release_version|"
+        # note: |scala_binary_version| is the Scala build version
+        $ export VERSION="|scala_binary_version|-${TAG}"
+
 Connecting to Cassandra
 -----------------------
 
@@ -46,12 +56,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
-.. note::
-
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
-
-Extract it somewhere convenient:
+Download and extract it somewhere convenient:
 
 .. code-block:: bash
 
@@ -59,8 +64,6 @@ Extract it somewhere convenient:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-cassandra_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-cassandra_${VERSION}-bin.tar.gz
     $ cd geomesa-cassandra_${VERSION}
-    $ ls
-    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
 .. _cassandra_install_source:
 
@@ -113,6 +116,9 @@ Run ``geomesa-cassandra`` without arguments to confirm that the tools work.
 .. code::
 
     $ bin/geomesa-cassandra
+
+The output should look like this::
+
     INFO  Usage: geomesa-cassandra [command] [command options]
       Commands:
       ...

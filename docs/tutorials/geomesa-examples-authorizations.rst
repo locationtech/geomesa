@@ -83,13 +83,11 @@ can be set through user data in a simple feature:
 
 .. code-block:: java
 
-    import org.locationtech.geomesa.security.SecurityUtils;
-    ...
-    SimpleFeature sf = ...
+    SimpleFeature sf = ...;
     // set user data directly
     sf.getUserData().put(SecurityUtils.FEATURE_VISIBILITY, "user&admin");
     // alternatively, use static utility methods
-    SecurityUtils.setFeatureVisibilities(sf, "user", "admin");
+    org.locationtech.geomesa.security.SecurityUtils.setFeatureVisibilities(sf, "user", "admin");
 
 For more information on feature-level visibilities, see :doc:`./geomesa-examples-featurelevelvis`.
 
@@ -180,15 +178,11 @@ You can see the visibilities that are currently enabled for your user through th
 
     $ accumulo shell -u <username> -p <password>
 
-    Shell - Apache Accumulo Interactive Shell
-    - 
-    - version: 1.8.1
-    - instance name: xxxxx
-    - instance id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    - 
-    - type 'help' for a list of available commands
-    - 
-    myuser@mycloud> getauths
+Once in the shell:
+
+.. code-block:: bash
+
+    > getauths
     user,admin
 
 If your user does not already have authorizations, you can add them
@@ -196,10 +190,10 @@ through the Accumulo shell with the ``addauths`` command:
 
 .. code-block:: bash
 
-    myuser@mycloud> getauths
+    > getauths
     user
-    myuser@mycloud> addauths -s admin -u myuser
-    myuser@mycloud> getauths
+    > addauths -s admin -u myuser
+    > getauths
     user,admin
 
 .. note::
@@ -212,7 +206,7 @@ square brackets when you scan the index tables through the Accumulo shell:
 
 .. code-block:: bash
 
-    myuser@mycloud> scan -t mytable_id
+    > scan -t mytable_id
     \x0100700230-fdfe-422e-b4d1-8072db6f3dda SFT: [user]    \x02\x00\x00\x01b00700230...
 
 Download and Build the Tutorial

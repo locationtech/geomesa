@@ -285,14 +285,14 @@ Afterwards, this simple HTML will load a Leaflet map with the data.
 .. code-block:: html
 
     <html>
-	<meta charset="utf-8"/>
-	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
-	<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<script src="theAboveJavascriptFile.js"></script>
-	<body>
-		<div id="map" style="height: 100%"></div>
-	</body>
+      <meta charset="utf-8"/>
+      <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+      <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+      <script src="theAboveJavascriptFile.js"></script>
+      <body>
+        <div id="map" style="height: 100%"></div>
+      </body>
     </html>
 
 The end result will look something like this:

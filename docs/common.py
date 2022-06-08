@@ -35,7 +35,8 @@ from recommonmark.parser import CommonMarkParser
 # ones.
 extensions = [
     'sphinx.ext.mathjax',
-    'sphinx_tabs.tabs'
+    'sphinx_tabs.tabs',
+    'sphinx_copybutton'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -123,7 +124,9 @@ rst_epilog = """
 
 .. |spark_supported_versions| replace:: versions 2.4.x, 3.0.x and 3.1.x
 
-.. |release_version| replace:: ``%(release_version)s``
+.. |release_version| replace:: %(release_version)s
+
+.. |release_version_literal| replace:: ``%(release_version)s``
 
 .. |scala_binary_version| replace:: %(scala_binary_version)s
 
@@ -369,3 +372,9 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# strip out the leading `$` in bash and `>` accumulo examples
+copybutton_prompt_text = "[$>] "
+copybutton_prompt_is_regexp = True
+# but keep all lines, as we also have a lot of scala/java examples that don't have prompts
+copybutton_only_copy_prompt_lines = False
