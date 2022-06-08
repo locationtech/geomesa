@@ -42,6 +42,14 @@ code,.rst-content tt,.rst-content code {
   padding: 3px 5px;
 }
 
+.rst-content pre.literal-block {
+  background: #e5e5e5;
+  border-radius: 3px;
+  padding: 12px 12px;
+  display: block;
+  overflow: auto;
+}
+
 .wy-menu-vertical {
   height: 100%;
 }

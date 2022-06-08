@@ -115,7 +115,7 @@ Run the following command:
 
 .. code:: bash
 
-    geomesa remove-schema -u <username> -p <password> -c cmd_tutorial -f feature
+    $ geomesa-accumulo remove-schema -u <username> -p <password> -c cmd_tutorial -f feature
 
 NOTE: Running this command will take a bit longer than the previous two,
 as it will delete three tables in Accumulo, as well as remove the
