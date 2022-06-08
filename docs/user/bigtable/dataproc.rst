@@ -138,6 +138,7 @@ Dataproc.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 419e2b9752 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -1822,6 +1823,8 @@ Dataproc.
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3d5144418e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> d13d2eab26 (GEOMESA-3176 Docs - fix download links in install instructions)
 .. code-block:: shell
 
    $ gcloud components install cbt
@@ -2035,6 +2038,7 @@ Now, configure the installation by downloading and unpacking the GeoMesa distrib
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 07a6a5c291 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -5044,6 +5048,8 @@ Now, configure the installation by downloading and unpacking the GeoMesa distrib
 >>>>>>> 1bcc513539 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d13d2eab26 (GEOMESA-3176 Docs - fix download links in install instructions)
 appropriately, and including the hbase-site.xml in the spark runtime jar. First set the version you want to use:
 
 .. parsed-literal::
@@ -5053,6 +5059,7 @@ appropriately, and including the hbase-site.xml in the spark runtime jar. First 
     $ export VERSION="|scala_binary_version|-${TAG}"
 
 Then download and configure the distribution:
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8688,6 +8695,8 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 appropriately, and including the hbase-site.xml in the spark runtime jar:
 >>>>>>> 3d5144418e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> d13d2eab26 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. code-block:: shell
 
@@ -8873,6 +8882,7 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -14209,6 +14219,9 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
    $ tar zxvf geomesa-bigtable_${VERSION}-bin.tar.gz
 >>>>>>> 3d5144418e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+   $ tar xvf geomesa-bigtable_${VERSION}-bin.tar.gz
+>>>>>>> d13d2eab26 (GEOMESA-3176 Docs - fix download links in install instructions)
    $ ln -s geomesa-bigtable_${VERSION} geomesa
    $ export PATH=$PATH:~/geomesa/bin
    $ export HADOOP_HOME=/usr/lib/hadoop
