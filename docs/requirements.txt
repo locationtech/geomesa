@@ -4633,10 +4633,30 @@ sphinx-copybutton==0.5.0
 =======
 <<<<<<< HEAD
 jinja2<3.1.0
+<<<<<<< HEAD
 sphinx-copybutton==0.5.0
 =======
 >>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> ff6a156f4 (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> 1bd1f7a3d7 (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> 21cbd8ebbf (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> e67ed789c7 (Fix docutils version for Sphinx docs build)
+=======
+=======
+=======
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+sphinx-copybutton==0.5.0
+>>>>>>> bea966ce8 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 2aa923cc9 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 10ade3dcd1 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 86bc039842 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 3f60902092 (GEOMESA-3176 Docs - fix download links in install instructions)
