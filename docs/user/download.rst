@@ -9,14 +9,18 @@ Versions and Downloads
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
     The current recommended version of GeoMesa is |release_version_literal|.
 =======
     The current recommended version of GeoMesa is |release_version|.
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -26,6 +30,11 @@ Versions and Downloads
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+    The current recommended version of GeoMesa is |release_version_literal|.
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 GeoMesa requires `Java`__ to run. GeoMesa supports Java LTS versions 8, 11 and 17.
 
@@ -89,7 +98,11 @@ and then include the desired ``geomesa-*`` dependencies:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
+=======
+      <artifactId>geomesa-utils_${scala.abi.version}</artifactId>
+>>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
       <version>${geomesa.version}</version>
 =======
       <artifactId>geomesa-utils_2.12</artifactId>
@@ -99,6 +112,7 @@ and then include the desired ``geomesa-*`` dependencies:
       <artifactId>geomesa-utils_${scala.abi.version}</artifactId>
       <version>${geomesa.version}</version>
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 =======
       <artifactId>geomesa-utils_${scala.abi.version}</artifactId>
       <version>${geomesa.version}</version>
@@ -114,6 +128,8 @@ and then include the desired ``geomesa-*`` dependencies:
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
     </dependency>
 
 For cutting-edge development, nightly snapshots are available from Eclipse:
