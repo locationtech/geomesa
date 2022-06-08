@@ -18,6 +18,7 @@ Installing GeoMesa Redis
         # note: |scala_binary_version| is the Scala build version
         $ export VERSION="|scala_binary_version|-${TAG}"
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 
 .. note::
 
@@ -36,6 +37,8 @@ Installing GeoMesa Redis
 =======
         $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
 
 Installing the Binary Distribution
 ----------------------------------
@@ -132,6 +135,7 @@ __ https://github.com/locationtech/geomesa/releases
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f71fa3c0e1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -1157,6 +1161,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> 1df8328338 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
 Download and extract it somewhere convenient:
 =======
 .. note::
@@ -1178,6 +1184,7 @@ Download and extract it somewhere convenient:
 >>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2523,6 +2530,11 @@ Download and extract it somewhere convenient:
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+Download and extract it somewhere convenient:
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. code-block:: bash
 
@@ -2617,6 +2629,7 @@ Download and extract it somewhere convenient:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
@@ -4408,9 +4421,12 @@ Download and extract it somewhere convenient:
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -4429,6 +4445,10 @@ Download and extract it somewhere convenient:
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. _redis_install_source:
 
