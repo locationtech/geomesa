@@ -33,6 +33,7 @@ Installing GeoMesa Cassandra
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -55,6 +56,8 @@ Installing GeoMesa Cassandra
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 088d9e36a5 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 731987cbc8 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
         # note: |scala_binary_version| is the Scala build version
         $ export VERSION="|scala_binary_version|-${TAG}"
@@ -93,6 +96,7 @@ Installing GeoMesa Cassandra
 >>>>>>> 93fa8c797f (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -176,6 +180,8 @@ Installing GeoMesa Cassandra
 =======
 >>>>>>> 93fa8c797f (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 088d9e36a5 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 731987cbc8 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 Connecting to Cassandra
 -----------------------
@@ -505,6 +511,7 @@ __ https://github.com/locationtech/geomesa/releases
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0753bfcbe4 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -907,6 +914,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 9293965a7d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 731987cbc8 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> f71fa3c0e1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -4022,6 +4031,7 @@ __ https://github.com/locationtech/geomesa/releases
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -5271,6 +5281,10 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> dbd932fed6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 9293965a7d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 731987cbc8 (GEOMESA-3176 Docs - fix download links in install instructions)
 Download and extract it somewhere convenient:
 =======
 .. note::
@@ -5574,6 +5588,7 @@ Download and extract it somewhere convenient:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 610d4a0e13 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -5878,6 +5893,8 @@ Download and extract it somewhere convenient:
 >>>>>>> f958055259 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> dbd932fed6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 731987cbc8 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> f71fa3c0e1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -10322,13 +10339,17 @@ Download and extract it somewhere convenient:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 731987cbc8 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
 Download and extract it somewhere convenient:
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -11732,6 +11753,8 @@ Download and extract it somewhere convenient:
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 9293965a7d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 731987cbc8 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. code-block:: bash
 
@@ -12026,6 +12049,7 @@ Download and extract it somewhere convenient:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -12400,6 +12424,8 @@ Download and extract it somewhere convenient:
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 9293965a7d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 731987cbc8 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
@@ -19569,9 +19595,12 @@ Download and extract it somewhere convenient:
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -19596,7 +19625,14 @@ Download and extract it somewhere convenient:
 =======
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 9293965a7d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 731987cbc8 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. _cassandra_install_source:
 
