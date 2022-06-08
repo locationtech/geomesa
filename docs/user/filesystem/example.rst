@@ -52,6 +52,7 @@ folder which contains an example csv file that we will ingest. First set the ver
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 419e2b9752 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -109,6 +110,8 @@ folder which contains an example csv file that we will ingest. First set the ver
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -144,6 +147,7 @@ folder which contains an example csv file that we will ingest. First set the ver
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -182,6 +186,10 @@ folder which contains an example csv file that we will ingest. First set the ver
 >>>>>>> 731987cbc8 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. parsed-literal::
 
@@ -307,10 +315,13 @@ Then download and extract the binary distribution:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 731987cbc8 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 <<<<<<< HEAD
 >>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -584,6 +595,7 @@ Then download and extract the binary distribution:
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
@@ -620,6 +632,18 @@ Then download and extract the binary distribution:
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
+
+.. parsed-literal::
+
+    $ export TAG="|release_version|"
+    # note: |scala_binary_version| is the Scala build version
+    $ export VERSION="|scala_binary_version|-${TAG}"
+
+Then download and extract the binary distribution:
+>>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. parsed-literal::
 
@@ -2900,6 +2924,7 @@ Then download and extract the binary distribution:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     $ cat examples/csv/example.csv
 =======
 =======
@@ -3502,6 +3527,8 @@ Then download and extract the binary distribution:
 >>>>>>> c06d84c500a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 9d31324a87e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 661c9923956 (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD
 =======
 >>>>>>> b9c0fc77b9 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -3542,6 +3569,8 @@ Then download and extract the binary distribution:
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
 >>>>>>> 338d952d43 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -4656,6 +4685,7 @@ Then download and extract the binary distribution:
 =======
 >>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
+<<<<<<< HEAD
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d1fa26b39d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -4786,6 +4816,8 @@ Then download and extract the binary distribution:
 >>>>>>> e6e1f4bdd5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 3eb12f79a9 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -4794,10 +4826,13 @@ Then download and extract the binary distribution:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 30cd5ab927 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> c7403e8a5f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
 
@@ -7783,6 +7818,7 @@ Then download and extract the binary distribution:
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -10101,6 +10137,10 @@ Then download and extract the binary distribution:
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 4fd46f4f99 (GEOMESA-3176 Docs - fix download links in install instructions)
     $ cat examples/ingest/csv/example.csv
 >>>>>>> 759250a5978 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
