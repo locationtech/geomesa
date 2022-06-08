@@ -30,11 +30,11 @@ The GeoMesa source distribution may be cloned from GitHub:
     $ cd geomesa
 
 This downloads the latest development version. To check out the code for the latest stable release
-(``$VERSION`` = |release_version|):
+(``$VERSION`` = |release_version_literal|):
 
 .. code-block:: bash
 
-    $ git checkout tags/geomesa-$VERSION -b geomesa-$VERSION 
+    $ git checkout tags/geomesa-$VERSION -b geomesa-$VERSION
 
 Building and dependency management for GeoMesa is handled by `Maven <http://maven.apache.org/>`__.
 The Maven ``pom.xml`` file in the root directory of the source distribution contains a
