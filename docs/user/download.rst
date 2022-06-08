@@ -106,6 +106,7 @@ Versions and Downloads
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     The current recommended version of GeoMesa is |release_version_literal|.
 =======
 =======
@@ -2728,11 +2729,19 @@ Versions and Downloads
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
     The current recommended version of GeoMesa is |release_version_literal|.
 =======
     The current recommended version of GeoMesa is |release_version|.
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+    The current recommended version of GeoMesa is |release_version_literal|.
+>>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 <<<<<<< HEAD
 GeoMesa requires `Java`__ to run. GeoMesa supports Java LTS versions 8, 11 and 17.
@@ -2765,6 +2774,7 @@ __ https://github.com/locationtech/geomesa/releases
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 10ade3dcd1 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -2772,10 +2782,13 @@ __ https://github.com/locationtech/geomesa/releases
 =======
 >>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
+>>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 Older versions can be downloaded from the `Eclipse Maven repository`__.
 
 __ https://repo.eclipse.org/content/repositories/geomesa-releases/org/locationtech/geomesa
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2799,6 +2812,9 @@ __ https://repo.eclipse.org/content/repositories/geomesa-releases/org/locationte
 =======
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
 Maven Integration
 -----------------
 
@@ -2835,6 +2851,7 @@ and then include the desired ``geomesa-*`` dependencies:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       <scala.abi.version>\ |scala_binary_version|\ </scala.abi.version>
 <<<<<<< HEAD
@@ -2863,12 +2880,18 @@ and then include the desired ``geomesa-*`` dependencies:
       <scala.abi.version>\ |scala_binary_version|\ </scala.abi.version>
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 308738bcef (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+=======
+      <scala.abi.version>\ |scala_binary_version|\ </scala.abi.version>
+>>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
     </properties>
 
 .. code-block:: xml
 
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4976,13 +4999,22 @@ and then include the desired ``geomesa-*`` dependencies:
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
       <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
       <version>${geomesa.version}</version>
 =======
       <artifactId>geomesa-utils_2.12</artifactId>
       <version>3.0.0</version>
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+      <artifactId>geomesa-utils_${scala.abi.version}</artifactId>
+      <version>${geomesa.version}</version>
+>>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
     </dependency>
 
 For cutting-edge development, nightly snapshots are available from Eclipse:
