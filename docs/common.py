@@ -356,6 +356,7 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0fbf9e83e2 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -371,9 +372,12 @@ rst_epilog = """
 =======
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> d25af58f86 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4cc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 15e9985047 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -974,12 +978,17 @@ rst_epilog = """
 >>>>>>> ffe4f9fd41 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 15e9985047 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> d25af58f86 (GEOMESA-3176 Docs - fix download links in install instructions)
 .. |release_version| replace:: %(release_version)s
 
 .. |release_version_literal| replace:: ``%(release_version)s``
 =======
 .. |release_version| replace:: ``%(release_version)s``
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -997,6 +1006,9 @@ rst_epilog = """
 =======
 <<<<<<< HEAD
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+<<<<<<< HEAD
+>>>>>>> d25af58f86 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1620,6 +1632,7 @@ rst_epilog = """
 >>>>>>> 6eb31fb652 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 15e9985047 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 07a6a5c291 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1650,12 +1663,19 @@ rst_epilog = """
 =======
 =======
 >>>>>>> ffe4f9fd41 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 15e9985047 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> d25af58f86 (GEOMESA-3176 Docs - fix download links in install instructions)
 .. |release_version| replace:: %(release_version)s
 
 .. |release_version_literal| replace:: ``%(release_version)s``
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d25af58f86 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> cdb4102515 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1875,7 +1895,13 @@ rst_epilog = """
 =======
 =======
 >>>>>>> 0e68e9f4cc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 15e9985047 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> d25af58f86 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. |scala_binary_version| replace:: %(scala_binary_version)s
 
