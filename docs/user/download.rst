@@ -86,6 +86,9 @@ Versions and Downloads
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fdf0e4fe88 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 0833709340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -652,6 +655,7 @@ Versions and Downloads
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -9086,10 +9090,13 @@ Versions and Downloads
 =======
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 0833709340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> fdf0e4fe88 (GEOMESA-3176 Docs - fix download links in install instructions)
     The current recommended version of GeoMesa is |release_version_literal|.
 =======
     The current recommended version of GeoMesa is |release_version|.
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10970,6 +10977,8 @@ Versions and Downloads
 >>>>>>> 498d1c9c26 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0833709340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> fdf0e4fe88 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -20707,6 +20716,7 @@ Versions and Downloads
 =======
 =======
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 0833709340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> aa7b9bf205 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -20762,9 +20772,12 @@ Versions and Downloads
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> fdf0e4fe88 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 =======
     The current recommended version of GeoMesa is |release_version_literal|.
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 >>>>>>> baeb44a4a8 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
@@ -20787,6 +20800,9 @@ Versions and Downloads
 =======
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 0833709340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> fdf0e4fe88 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 <<<<<<< HEAD
 GeoMesa requires `Java`__ to run. GeoMesa supports Java LTS versions |java_supported_versions|.
@@ -21951,6 +21967,7 @@ and then include the desired ``geomesa-*`` dependencies:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> f561a0faec (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -33249,12 +33266,16 @@ and then include the desired ``geomesa-*`` dependencies:
 >>>>>>> b03141c1bb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0833709340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> fdf0e4fe88 (GEOMESA-3176 Docs - fix download links in install instructions)
       <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
 =======
 =======
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
       <artifactId>geomesa-utils_${scala.abi.version}</artifactId>
 >>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
       <version>${geomesa.version}</version>
@@ -33270,7 +33291,13 @@ and then include the desired ``geomesa-*`` dependencies:
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b03141c1bb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> fdf0e4fe88 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 =======
 =======
@@ -33318,6 +33345,7 @@ and then include the desired ``geomesa-*`` dependencies:
       <artifactId>geomesa-utils_${scala.abi.version}</artifactId>
       <version>${geomesa.version}</version>
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -33479,6 +33507,7 @@ and then include the desired ``geomesa-*`` dependencies:
 =======
 =======
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 76618c8da3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -34669,6 +34698,10 @@ and then include the desired ``geomesa-*`` dependencies:
 =======
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 0833709340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> fdf0e4fe88 (GEOMESA-3176 Docs - fix download links in install instructions)
     </dependency>
 
 For cutting-edge development, nightly snapshots are available from Eclipse:
