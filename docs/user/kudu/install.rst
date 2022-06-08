@@ -15,6 +15,7 @@ Installing GeoMesa Kudu
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -211,6 +212,8 @@ Installing GeoMesa Kudu
 =======
 >>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> locationtech-main
+=======
+>>>>>>> baeb44a4a8 (GEOMESA-3176 Docs - fix download links in install instructions)
 .. note::
 
     The examples below expect a version to be set in the environment:
@@ -221,6 +224,7 @@ Installing GeoMesa Kudu
         # note: |scala_binary_version| is the Scala build version
         $ export VERSION="|scala_binary_version|-${TAG}"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -487,6 +491,8 @@ Installing GeoMesa Kudu
 >>>>>>> locationtech-main
 =======
 >>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> baeb44a4a8 (GEOMESA-3176 Docs - fix download links in install instructions)
 Installing the Binary Distribution
 ----------------------------------
 
@@ -495,6 +501,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7657,6 +7664,9 @@ Download and extract it somewhere convenient:
 >>>>>>> locationtech-main
 =======
 >>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+Download and extract it somewhere convenient:
+>>>>>>> baeb44a4a8 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. code-block:: bash
 
@@ -7664,6 +7674,7 @@ Download and extract it somewhere convenient:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-kudu_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-kudu_${VERSION}-bin.tar.gz
     $ cd geomesa-kudu_${VERSION}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13414,6 +13425,8 @@ Download and extract it somewhere convenient:
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 >>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> baeb44a4a8 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. _kudu_install_source:
 
@@ -13470,6 +13483,7 @@ Do this with the following command:
 
 Test the command that invokes the GeoMesa Tools:
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13933,6 +13947,14 @@ The output should look like this::
 
     $ bin/geomesa-kudu
 >>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+.. code-block:: bash
+
+    $ bin/geomesa-kudu
+
+The output should look like this::
+
+>>>>>>> baeb44a4a8 (GEOMESA-3176 Docs - fix download links in install instructions)
     INFO  Usage: geomesa-kudu [command] [command options]
       Commands:
       ...
