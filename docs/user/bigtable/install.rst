@@ -30,6 +30,7 @@ Installing GeoMesa Bigtable
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -162,6 +163,10 @@ Installing GeoMesa Bigtable
 >>>>>>> d13d2eab26 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> d498bef1ce (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> f1fe65810a (GEOMESA-3176 Docs - fix download links in install instructions)
 .. note::
 
     The examples below expect a version to be set in the environment:
@@ -172,6 +177,7 @@ Installing GeoMesa Bigtable
         # note: |scala_binary_version| is the Scala build version
         $ export VERSION="|scala_binary_version|-${TAG}"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -209,9 +215,12 @@ Installing GeoMesa Bigtable
 =======
 >>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
+>>>>>>> f1fe65810a (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -375,6 +384,8 @@ Installing GeoMesa Bigtable
 =======
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d498bef1ce (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> f1fe65810a (GEOMESA-3176 Docs - fix download links in install instructions)
 .. _install_bigtable_tools:
 
 Installing the Binary Distribution
@@ -385,6 +396,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -769,6 +781,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d498bef1ce (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> f1fe65810a (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -4258,6 +4272,7 @@ Download and extract it somewhere convenient:
 >>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c5e1827657 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6211,6 +6226,8 @@ Download and extract it somewhere convenient:
 =======
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d498bef1ce (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> f1fe65810a (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. code-block:: bash
 
@@ -6412,6 +6429,7 @@ Download and extract it somewhere convenient:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -6602,6 +6620,8 @@ Download and extract it somewhere convenient:
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d498bef1ce (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> f1fe65810a (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -11096,7 +11116,12 @@ Download and extract it somewhere convenient:
     $ ls
     bin  conf  dist  docs  examples  lib  LICENSE.txt  logs
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> d498bef1ce (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> f1fe65810a (GEOMESA-3176 Docs - fix download links in install instructions)
 
 To run the command-line tools, the configuration file ``hbase-site.xml`` must be on the classpath. This can
 be accomplished by placing the file in the ``conf`` folder. For more information, see `Connecting to Cloud Bigtable
