@@ -341,6 +341,7 @@ This downloads the latest development version. To check out the code for the lat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6f1e1da646 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -409,6 +410,8 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> a5b0374ee2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 682ce8edbb (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -516,6 +519,7 @@ This downloads the latest development version. To check out the code for the lat
 =======
 >>>>>>> e007dde981 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
+<<<<<<< HEAD
 >>>>>>> 66c2e4df7e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 760781f8dd (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -904,6 +908,8 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 1bb69524c2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> a5b0374ee2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 682ce8edbb (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4cc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1231,8 +1237,11 @@ This downloads the latest development version. To check out the code for the lat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a5b0374ee2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 682ce8edbb (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 71c56e6b77 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> e27137ff78 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1764,6 +1773,7 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 71c56e6b77 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> e007dde981 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 =======
 >>>>>>> 66c2e4df7e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -2050,6 +2060,8 @@ This downloads the latest development version. To check out the code for the lat
 =======
 >>>>>>> 1bb69524c2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> a5b0374ee2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 682ce8edbb (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -5899,9 +5911,25 @@ This downloads the latest development version. To check out the code for the lat
 
     $ git checkout tags/geomesa-$VERSION -b geomesa-$VERSION 
 >>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 1bb69524c2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> a5b0374ee2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+(``$VERSION`` = |release_version_literal|):
+
+.. code-block:: bash
+
+    $ git checkout tags/geomesa-$VERSION -b geomesa-$VERSION
+>>>>>>> 7813a31aa (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 71c56e6b77 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> e007dde981 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> 682ce8edbb (GEOMESA-3176 Docs - fix download links in install instructions)
 
 Building and dependency management for GeoMesa is handled by `Maven <http://maven.apache.org/>`__.
 The Maven ``pom.xml`` file in the root directory of the source distribution contains a
