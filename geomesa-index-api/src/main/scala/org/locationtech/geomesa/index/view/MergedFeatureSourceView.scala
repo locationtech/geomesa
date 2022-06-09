@@ -48,7 +48,7 @@ class MergedFeatureSourceView(
   override def getCount(query: Query): Int = {
     // if one of our sources can't get a count (i.e. is negative), give up and return -1
     val total = sources.foldLeft(0) { case (sum, (source, filter)) =>
-      lazy val count = source.getCount(mergeFilter(query, filter))
+      lazy val count = source.getCount(mergeFilter(sft, query, filter))
       if (sum < 0 || count < 0) { -1 } else { sum + count }
     }
     if (query.isMaxFeaturesUnlimited) {
@@ -71,7 +71,7 @@ class MergedFeatureSourceView(
     val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
     sources.foreach {
       case (source, filter) =>
-        val source_bounds = source.getBounds(mergeFilter(query, filter))
+        val source_bounds = source.getBounds(mergeFilter(sft, query, filter))
         if(source_bounds != null){
           bounds.expandToInclude(source_bounds)
         }

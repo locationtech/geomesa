@@ -8,19 +8,29 @@
 
 package org.locationtech.geomesa.index
 
-import java.io.IOException
+import com.github.benmanes.caffeine.cache.{Cache, Caffeine}
+import com.typesafe.scalalogging.LazyLogging
 
+import java.io.IOException
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{DataStore, DefaultServiceInfo, LockingManager, Query, ServiceInfo, Transaction}
 import org.geotools.feature.{AttributeTypeBuilder, FeatureTypes, NameImpl}
+import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
 import org.opengis.feature.`type`.{GeometryDescriptor, Name}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-package object view {
+import java.time.ZonedDateTime
+
+package object view extends LazyLogging {
 
   import org.locationtech.geomesa.filter.andFilters
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  private val dateBounds: Cache[(String, Filter), FilterValues[Bounds[ZonedDateTime]]] =
+    Caffeine.newBuilder().build()
 
   /**
     * Helper method to merge a filtered data store query
@@ -29,12 +39,12 @@ package object view {
     * @param filter data store filter
     * @return
     */
-  def mergeFilter(query: Query, filter: Option[Filter]): Query = {
-    filter match {
-      case None => query
-      case Some(f) =>
+  def mergeFilter(sft: SimpleFeatureType, query: Query, filter: Option[Filter]): Query = {
+    mergeFilter(sft, query.getFilter, filter) match {
+      case f if f.eq(query.getFilter) => query
+      case f =>
         val q = new Query(query)
-        q.setFilter(if (q.getFilter == Filter.INCLUDE) { f } else { andFilters(Seq(q.getFilter, f)) })
+        q.setFilter(f)
         q
     }
   }
@@ -46,10 +56,29 @@ package object view {
     * @param option data store filter
     * @return
     */
-  def mergeFilter(filter: Filter, option: Option[Filter]): Filter = {
+  def mergeFilter(sft: SimpleFeatureType, filter: Filter, option: Option[Filter]): Filter = {
     option match {
       case None => filter
-      case Some(f) => if (filter == Filter.INCLUDE) { f } else { andFilters(Seq(filter, f)) }
+      case Some(f) if filter == Filter.INCLUDE => f
+      case Some(f) =>
+        // check for disjoint dates between the store filter and the query filter
+        val intersected = sft.getDtgField.flatMap { dtg =>
+          val loader = new java.util.function.Function[(String, Filter), FilterValues[Bounds[ZonedDateTime]]]() {
+            override def apply(t: (String, Filter)): FilterValues[Bounds[ZonedDateTime]] =
+              FilterHelper.extractIntervals(t._2, dtg)
+          }
+          val left = dateBounds.get((sft.getTypeName, f), loader)
+          val right = FilterHelper.extractIntervals(filter, dtg)
+          val merged = FilterValues.and[Bounds[ZonedDateTime]](Bounds.intersection)(left, right)
+          if (merged.disjoint) {
+            logger.debug(s"Suppressing query with filter (${ECQL.toCQL(filter)}) AND (${ECQL.toCQL(f)})")
+            Some(Filter.EXCLUDE)
+          } else {
+            None
+          }
+        }
+
+        intersected.getOrElse(andFilters(Seq(filter, f)))
     }
   }
 
