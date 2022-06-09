@@ -12,6 +12,7 @@ import org.geotools.data.postgis.{PostGISDialect, PostGISPSDialect, PostgisNGDat
 import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 
 import java.sql.{Connection, DatabaseMetaData}
 
@@ -67,6 +68,8 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
               cx: Connection): Unit = {
             dialect.postCreateFeatureType(featureType, metadata, schemaName, cx)
           }
+          override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
+            dialect.splitFilter(filter, schema)
         })
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
