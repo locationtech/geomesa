@@ -69,7 +69,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         val q = new Query(query)
         // make sure to coy the hints so they aren't shared
         q.setHints(new Hints(hints))
-        store.getFeatureReader(mergeFilter(q, filter), Transaction.AUTO_COMMIT)
+        store.getFeatureReader(mergeFilter(sft, q, filter), Transaction.AUTO_COMMIT)
       }
 
       if (hints.isDensityQuery) {
@@ -176,7 +176,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
     val readers = stores.map { case (store, filter) =>
       val q = new Query(query)
       q.setHints(new Hints(hints))
-      store.getFeatureReader(mergeFilter(q, filter), Transaction.AUTO_COMMIT)
+      store.getFeatureReader(mergeFilter(sft, q, filter), Transaction.AUTO_COMMIT)
     }
 
     val results = SelfClosingIterator(readers.iterator).flatMap { reader =>

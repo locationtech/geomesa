@@ -10,7 +10,6 @@ package org.locationtech.geomesa.index.api
 
 import java.nio.charset.StandardCharsets
 import java.util.UUID
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex.IdFromRow
@@ -31,7 +30,7 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.opengis.filter.{ExcludeFilter, Filter}
 
 /**
   * Represents a particular indexing strategy
@@ -264,15 +263,20 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 
     indexValues match {
       case None =>
-        // check that full table scans are allowed
-        if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
+        if (filter.filter.exists(_.isInstanceOf[ExcludeFilter])) {
+          QueryStrategy(filter, Seq.empty, Seq.empty, Seq.empty, ecql, hints, indexValues)
+        } else {
           // check that full table scans are allowed
-          QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
-        }
-        val keyRanges = Seq(UnboundedRange(null))
-        val byteRanges = Seq(BoundedByteRange(sharing, ByteArrays.rowFollowingPrefix(sharing)))
+          if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
+            // check that full table scans are allowed
+            QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+          }
 
-        QueryStrategy(filter, byteRanges, keyRanges, Seq.empty, ecql, hints, indexValues)
+          val keyRanges = Seq(UnboundedRange(null))
+          val byteRanges = Seq(BoundedByteRange(sharing, ByteArrays.rowFollowingPrefix(sharing)))
+
+          QueryStrategy(filter, byteRanges, keyRanges, Seq.empty, ecql, hints, indexValues)
+        }
 
       case Some(values) =>
         val keyRanges = keySpace.getRanges(values).toSeq

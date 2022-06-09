@@ -63,7 +63,7 @@ object MergedDataStoreView {
 
     override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
       // note: unlike most methods in this class, this will return if any of the merged stores provide a response
-      val counts = stats.flatMap { case (stat, f) => stat.getCount(sft, mergeFilter(filter, f), exact, queryHints) }
+      val counts = stats.flatMap { case (stat, f) => stat.getCount(sft, mergeFilter(sft, filter, f), exact, queryHints) }
       counts.reduceLeftOption(_ + _)
     }
 
@@ -74,7 +74,7 @@ object MergedDataStoreView {
         exact: Boolean): Option[MinMax[T]] = {
       // note: unlike most methods in this class, this will return if any of the merged stores provide a response
       val bounds = stats.flatMap { case (stat, f) =>
-        stat.getMinMax[T](sft, attribute, mergeFilter(filter, f), exact)
+        stat.getMinMax[T](sft, attribute, mergeFilter(sft, filter, f), exact)
       }
       bounds.reduceLeftOption(_ + _)
     }
@@ -84,7 +84,7 @@ object MergedDataStoreView {
         attribute: String,
         filter: Filter,
         exact: Boolean): Option[EnumerationStat[T]] = {
-      merge((stat, f) => stat.getEnumeration[T](sft, attribute, mergeFilter(filter, f), exact))
+      merge((stat, f) => stat.getEnumeration[T](sft, attribute, mergeFilter(sft, filter, f), exact))
     }
 
     override def getFrequency[T](
@@ -93,7 +93,7 @@ object MergedDataStoreView {
         precision: Int,
         filter: Filter,
         exact: Boolean): Option[Frequency[T]] = {
-      merge((stat, f) => stat.getFrequency[T](sft, attribute, precision, mergeFilter(filter, f), exact))
+      merge((stat, f) => stat.getFrequency[T](sft, attribute, precision, mergeFilter(sft, filter, f), exact))
     }
 
     override def getTopK[T](
@@ -101,7 +101,7 @@ object MergedDataStoreView {
         attribute: String,
         filter: Filter,
         exact: Boolean): Option[TopK[T]] = {
-      merge((stat, f) => stat.getTopK[T](sft, attribute, mergeFilter(filter, f), exact))
+      merge((stat, f) => stat.getTopK[T](sft, attribute, mergeFilter(sft, filter, f), exact))
     }
 
     override def getHistogram[T](
@@ -112,7 +112,7 @@ object MergedDataStoreView {
         max: T,
         filter: Filter,
         exact: Boolean): Option[Histogram[T]] = {
-      merge((stat, f) => stat.getHistogram[T](sft, attribute, bins, min, max, mergeFilter(filter, f), exact))
+      merge((stat, f) => stat.getHistogram[T](sft, attribute, bins, min, max, mergeFilter(sft, filter, f), exact))
     }
 
     override def getZ3Histogram(
@@ -123,7 +123,7 @@ object MergedDataStoreView {
         bins: Int,
         filter: Filter,
         exact: Boolean): Option[Z3Histogram] = {
-      merge((stat, f) => stat.getZ3Histogram(sft, geom, dtg, period, bins, mergeFilter(filter, f), exact))
+      merge((stat, f) => stat.getZ3Histogram(sft, geom, dtg, period, bins, mergeFilter(sft, filter, f), exact))
     }
 
     override def getStat[T <: Stat](
@@ -131,7 +131,7 @@ object MergedDataStoreView {
         query: String,
         filter: Filter,
         exact: Boolean): Option[T] = {
-      merge((stat, f) => stat.getStat(sft, query, mergeFilter(filter, f), exact))
+      merge((stat, f) => stat.getStat(sft, query, mergeFilter(sft, filter, f), exact))
     }
 
     override def close(): Unit = CloseWithLogging(stats.map(_._1))
