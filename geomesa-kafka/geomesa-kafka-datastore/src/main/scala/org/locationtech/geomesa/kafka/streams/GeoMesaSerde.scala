@@ -32,7 +32,9 @@ package org.locationtech.geomesa.kafka.streams
 
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams
+<<<<<<< HEAD
 import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.TypeSpecificSerde
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -66,6 +68,8 @@ import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.TypeSpecificSerde
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> f06b6e106b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.GeoMesaSerializer
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
@@ -83,6 +87,7 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -163,10 +168,17 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.GeoMesaSerializer
+import org.locationtech.geomesa.utils.io.CloseWithLogging
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> f06b6e106b (GEOMESA-3198 Kafka streams integration (#2854))
 
 /**
  * Serde for reading and writing to GeoMesa Kafka topics
  */
+<<<<<<< HEAD
 class GeoMesaSerde
     extends Serde[GeoMesaMessage]
         with Serializer[GeoMesaMessage]
@@ -223,6 +235,7 @@ class GeoMesaSerde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
@@ -233,6 +246,8 @@ class GeoMesaSerde
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f06b6e106b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 =======
@@ -287,6 +302,7 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -464,10 +480,29 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
   override def close(): Unit = {}
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
+
+  private val impl = new GeoMesaSerializer()
+
+  override def topic(typeName: String): String = impl.topic(typeName)
+  override def usesDefaultPartitioning(typeName: String): Boolean = impl.usesDefaultPartitioning(typeName)
+
+  override def configure(configs: java.util.Map[String, _], isKey: Boolean): Unit =
+    impl.configure(configs, isKey)
+
+  override def serializer(): Serializer[GeoMesaMessage] = impl
+  override def deserializer(): Deserializer[GeoMesaMessage] = impl
+
+  override def close(): Unit = CloseWithLogging(Option(impl))
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> f06b6e106b (GEOMESA-3198 Kafka streams integration (#2854))
 }
 
 object GeoMesaSerde {
 
+<<<<<<< HEAD
   /**
    * Serde for a given feature type - does not consider the topic being read
    *
@@ -497,6 +532,11 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> f06b6e106b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
@@ -567,6 +607,7 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -577,6 +618,8 @@ object GeoMesaSerde {
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 7258020868 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f06b6e106b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -595,6 +638,7 @@ object GeoMesaSerde {
     override def serialize(topic: String, data: GeoMesaMessage): Array[Byte] = serializer.serialize(data)
     override def deserialize(topic: String, data: Array[Byte]): GeoMesaMessage = serializer.deserialize(data)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -648,6 +692,11 @@ object GeoMesaSerde {
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> f06b6e106b (GEOMESA-3198 Kafka streams integration (#2854))
     override def close(): Unit = {}
   }
 }
