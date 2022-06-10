@@ -138,12 +138,16 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
             dialect.splitFilter(filter, schema)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f31d66ef5 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 <<<<<<< HEAD
           override def getDesiredTablesType: Array[String] = dialect.getDesiredTablesType
 =======
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> f9fc40305 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
         })
 <<<<<<< HEAD
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -158,6 +162,8 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> f31d66ef5 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
         })
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 <<<<<<< HEAD
