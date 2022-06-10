@@ -7,6 +7,7 @@
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 >>>>>>> 133afd3681 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -14,7 +15,13 @@
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> a7c0500a81 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 0452af77a1 (GEOMESA-3198 Kafka streams integration (#2854))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -27,6 +34,7 @@ import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams
 <<<<<<< HEAD
 import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.TypeSpecificSerde
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -63,6 +71,12 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.GeoMesaSerializer
+import org.locationtech.geomesa.utils.io.CloseWithLogging
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 
 /**
  * Serde for reading and writing to GeoMesa Kafka topics
@@ -116,6 +130,7 @@ class GeoMesaSerde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 =======
@@ -174,6 +189,8 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+>>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 
   private val impl = new GeoMesaSerializer()
@@ -188,6 +205,7 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
   override def deserializer(): Deserializer[GeoMesaMessage] = impl
 
   override def close(): Unit = CloseWithLogging(Option(impl))
+<<<<<<< HEAD
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -198,6 +216,9 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 }
 
 object GeoMesaSerde {
@@ -224,12 +245,15 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
   class GeoMesaSerializer extends Serializer[GeoMesaMessage] with Deserializer[GeoMesaMessage] with HasTopicMetadata {
 
@@ -260,6 +284,7 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -285,6 +310,9 @@ object GeoMesaSerde {
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
     override def close(): Unit = {}
   }
 }
