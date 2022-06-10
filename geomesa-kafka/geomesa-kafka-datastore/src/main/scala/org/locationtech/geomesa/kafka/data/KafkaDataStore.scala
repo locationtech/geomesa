@@ -2184,6 +2184,7 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5ca0cd6de5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -2263,6 +2264,8 @@ class KafkaDataStore(
 =======
 >>>>>>> 5d8c5baea0 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> 8ce502793e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 =======
 >>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 581f1dd15 (GEOMESA-3100 Kafka layer views (#2784))
@@ -2295,6 +2298,8 @@ class KafkaDataStore(
 =======
 >>>>>>> e0773a1bd7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> 5fa4cd5eac (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 =======
 >>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 9236b0208 (GEOMESA-3100 Kafka layer views (#2784))
@@ -2303,11 +2308,14 @@ class KafkaDataStore(
 >>>>>>> 1b8cbf843 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 30fda14bf2 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+>>>>>>> 7b8c9b548 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> fc2f65fc3 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+<<<<<<< HEAD
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 <<<<<<< HEAD
@@ -2383,7 +2391,12 @@ class KafkaDataStore(
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
 =======
+<<<<<<< HEAD
 >>>>>>> e0773a1bd7 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 7b8c9b548 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 5fa4cd5eac (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> d0dc799ff1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -2695,6 +2708,7 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e7f3e6588 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -2705,6 +2719,12 @@ class KafkaDataStore(
 =======
 >>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> e0773a1bd7 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 7b8c9b548 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 5fa4cd5eac (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 4e12cd412 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
@@ -2749,6 +2769,7 @@ class KafkaDataStore(
 >>>>>>> 4e12cd412 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> fc2f65fc3 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 =======
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
@@ -2824,11 +2845,17 @@ class KafkaDataStore(
 =======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> e0773a1bd7 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 7b8c9b548 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 5fa4cd5eac (GEOMESA-3198 Kafka streams integration (#2854))
   @volatile
   private var producerInitialized = false
 
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2926,6 +2953,8 @@ class KafkaDataStore(
 =======
 >>>>>>> 5d8c5baea0 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> 8ce502793e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 >>>>>>> 65a3a6e36 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 9e910620b3 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -2956,6 +2985,8 @@ class KafkaDataStore(
 =======
 >>>>>>> e0773a1bd7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> 5fa4cd5eac (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 >>>>>>> 4231e686d (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 69e3273ac1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -2964,6 +2995,8 @@ class KafkaDataStore(
 >>>>>>> ac0357d36 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 7b8c9b548 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> ffbc2ce32a (GEOMESA-3100 Kafka layer views (#2784))
@@ -2982,6 +3015,7 @@ class KafkaDataStore(
 =======
 >>>>>>> fc2f65fc3 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
@@ -3036,7 +3070,12 @@ class KafkaDataStore(
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> e0773a1bd7 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 7b8c9b548 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 5fa4cd5eac (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
@@ -3134,6 +3173,7 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 29a2fa060e (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
@@ -3148,12 +3188,18 @@ class KafkaDataStore(
 =======
 >>>>>>> 9b15c8e14c (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> 8ce502793e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 >>>>>>> 6f6887eb8 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> fdf51402cf (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 41bda2df98 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 614fcb6bc3 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 7b8c9b548 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 5fa4cd5eac (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
@@ -3204,10 +3250,13 @@ class KafkaDataStore(
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> c57b5f538a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
 >>>>>>> 3ebcdb99d9 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 8ce502793e (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> fc2f65fc3 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
@@ -3388,12 +3437,23 @@ class KafkaDataStore(
 =======
 =======
 >>>>>>> a62b956fb (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> e0773a1bd7 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 5d8c5baea0 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+=======
+=======
+>>>>>>> fc2f65fc3 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 7b8c9b548 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 5fa4cd5eac (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 8ce502793e (GEOMESA-3198 Kafka streams integration (#2854))
   // only instantiate the producer if needed
   private val defaultProducer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))
   // noinspection ScalaDeprecation
   private val partitionedProducer = new LazyProducer(KafkaDataStore.producer(config))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3557,6 +3617,8 @@ class KafkaDataStore(
 =======
 >>>>>>> ec680351e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+>>>>>>> 8ce502793e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 30fda14bf2 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -3570,7 +3632,12 @@ class KafkaDataStore(
 =======
 =======
 >>>>>>> d98371fa50 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> ec680351e0 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> 5fa4cd5eac (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 8ce502793e (GEOMESA-3198 Kafka streams integration (#2854))
 
   // view type name -> actual type name
   private val layerViewLookup =
@@ -3682,7 +3749,12 @@ class KafkaDataStore(
 =======
 =======
 >>>>>>> 3be3e5d3e (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> d98371fa50 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> 7b8c9b548 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 5fa4cd5eac (GEOMESA-3198 Kafka streams integration (#2854))
 
   // view type name -> actual type name
   private val layerViewLookup =
@@ -3707,6 +3779,8 @@ class KafkaDataStore(
     config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
 =======
 >>>>>>> d657014c8 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> fc2f65fc3 (GEOMESA-3198 Kafka streams integration (#2854))
 
   // view type name -> actual type name
   private val layerViewLookup =
@@ -3717,10 +3791,14 @@ class KafkaDataStore(
   // view type name -> actual type name
   private val layerViewLookup =
     config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
+=======
+>>>>>>> 4e12cd412 (GEOMESA-3198 Kafka streams integration (#2854))
 
   // view type name -> actual type name
   private val layerViewLookup =
     config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 
   // view type name -> actual type name
   private val layerViewLookup =
