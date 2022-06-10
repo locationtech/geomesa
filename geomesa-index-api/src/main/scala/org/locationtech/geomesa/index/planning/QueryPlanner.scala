@@ -202,6 +202,12 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+=======
+>>>>>>> d022c4bef (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -487,6 +493,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 =======
 >>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 1846781d8e (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -550,6 +557,12 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 >>>>>>> 00d9ed0bf2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> locationtech-main
+=======
+=======
+>>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
           if (qs.values.isEmpty && qs.ranges.nonEmpty) {
             qs.filter.secondary.foreach { f =>
               logger.warn(
@@ -572,6 +585,9 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 00d9ed0bf2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -934,6 +950,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 <<<<<<< HEAD
 =======
 >>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+<<<<<<< HEAD
 =======
 >>>>>>> b26fc9b517 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 1846781d8e (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -1069,6 +1086,12 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 =======
 >>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
           ds.adapter.createQueryPlan(qs)
         }
       }
