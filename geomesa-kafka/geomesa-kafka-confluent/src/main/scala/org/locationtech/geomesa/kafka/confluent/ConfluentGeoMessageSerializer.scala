@@ -20,6 +20,12 @@ import java.nio.charset.StandardCharsets
 
 class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: ConfluentFeatureSerializer)
     extends GeoMessageSerializer(sft, serializer, null, null, 0) {
+<<<<<<< HEAD
+=======
+
+  override def serialize(msg: GeoMessage): (Array[Byte], Array[Byte], Map[String, Array[Byte]]) =
+    throw new NotImplementedError("Confluent data store is read-only")
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 
   override def deserialize(
       key: Array[Byte],
