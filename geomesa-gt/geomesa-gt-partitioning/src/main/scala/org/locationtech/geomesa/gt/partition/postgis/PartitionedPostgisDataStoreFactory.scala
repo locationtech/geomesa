@@ -1034,6 +1034,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 64b3066584 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
@@ -1045,6 +1046,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 =======
 >>>>>>> b8426b262b (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
+>>>>>>> c4c6c99862 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
 >>>>>>> f31d66ef5f (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> d1cc27725e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -1054,8 +1057,12 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 =======
 >>>>>>> ddf486214c (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
+>>>>>>> ae3269b03f (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
 >>>>>>> f31d66ef5 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> 69cf24f7a0 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+>>>>>>> d1cc27725 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 <<<<<<< HEAD
 >>>>>>> 9fb20ad56c (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -1118,18 +1125,27 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3a9e2ecffe (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+>>>>>>> c4c6c99862 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> f31d66ef5f (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 <<<<<<< HEAD
 >>>>>>> 69cf24f7a0 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> ae3269b03f (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> 3a9e2ecffe (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> ae3269b03f (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> c4c6c99862 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
         })
 <<<<<<< HEAD
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -1303,6 +1319,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 =======
 =======
 >>>>>>> d1cc27725 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
         })
 <<<<<<< HEAD
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -1494,6 +1511,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 =======
 =======
 =======
+=======
+>>>>>>> c4c6c99862 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
         })
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> 713060f3a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
