@@ -507,6 +507,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f31d66ef5f (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
@@ -524,10 +525,13 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 =======
 >>>>>>> d1cc27725 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
+>>>>>>> e219fae656 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
 <<<<<<< HEAD
           override def getDesiredTablesType: Array[String] = dialect.getDesiredTablesType
 =======
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f9fc403058 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -706,6 +710,9 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> f9fc40305 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> e219fae656 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
         })
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> f5b2148366 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
