@@ -60,6 +60,7 @@ package object streams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -118,6 +119,9 @@ package object streams {
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
    * Data model for a GeoMesa data store message, used as the value in a Kafka record
    *
    * @param action message action
@@ -163,6 +167,7 @@ package object streams {
   }
 
   /**
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -253,6 +258,9 @@ package object streams {
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
    * Trait for provided metadata about a feature type topic
    */
   trait HasTopicMetadata {
@@ -361,6 +369,7 @@ package object streams {
               val internal = ds.serialization(sft).serializer
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
               val internal = ds.serialization(sft, ds.config.serialization, `lazy` = false).serializer
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -475,6 +484,11 @@ package object streams {
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+=======
+              val internal = ds.serialization(sft, ds.config.serialization, `lazy` = false).serializer
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
               return new GeoMesaMessageSerializer(sft, internal)
 
             case t => topics += t
@@ -537,6 +551,7 @@ package object streams {
         GeoMesaMessage.upsert(feature.getAttributes.asScala.toSeq, userData)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         GeoMesaMessage.upsert(feature.getAttributes.asScala, userData)
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -651,6 +666,11 @@ package object streams {
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+=======
+        GeoMesaMessage.upsert(feature.getAttributes.asScala, userData)
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
       }
     }
 
@@ -675,6 +695,7 @@ package object streams {
    *   * @see [[org.locationtech.geomesa.features.avro.serialization.SimpleFeatureDatumWriter#write]]
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    *   * @see [[org.locationtech.geomesa.features.avro.AvroSimpleFeatureWriter#write]]
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -789,6 +810,11 @@ package object streams {
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+=======
+   *   * @see [[org.locationtech.geomesa.features.avro.AvroSimpleFeatureWriter#write]]
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
    *
    * @param converters attribute converters to enforce feature type schema
    * @param attributes message attributes

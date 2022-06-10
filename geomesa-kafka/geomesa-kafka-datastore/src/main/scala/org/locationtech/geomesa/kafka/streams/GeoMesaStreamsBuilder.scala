@@ -41,6 +41,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Serde
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -149,6 +150,10 @@ import org.apache.kafka.common.serialization.Serde
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.kstream.GlobalKTable
@@ -174,6 +179,7 @@ class GeoMesaStreamsBuilder(
     timestampExtractor: TimestampExtractor,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -239,9 +245,12 @@ class GeoMesaStreamsBuilder(
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
 =======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
     val serde: GeoMesaSerde,
     val timestampExtractor: TimestampExtractor,
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -303,6 +312,8 @@ class GeoMesaStreamsBuilder(
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
     resetPolicy: Option[AutoOffsetReset]) {
 
   import org.apache.kafka.streams.scala.Serdes.String
@@ -326,6 +337,7 @@ class GeoMesaStreamsBuilder(
   /**
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -434,6 +446,10 @@ class GeoMesaStreamsBuilder(
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
    * Create a stream of updates for a given feature type
    *
    * @param typeName feature type name
@@ -637,6 +653,7 @@ object GeoMesaStreamsBuilder {
     val reset = Option(resetPolicy).orElse(resetConfig(params))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -717,6 +734,9 @@ object GeoMesaStreamsBuilder {
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
       streamsBuilder: StreamsBuilder): GeoMesaStreamsBuilder = {
     val jParams = params.asJava
     val serde = new GeoMesaSerde()
@@ -724,6 +744,7 @@ object GeoMesaStreamsBuilder {
     val builder = Option(streamsBuilder).getOrElse(new StreamsBuilder())
     val timestamps = Option(timestampExtractor).getOrElse(GeoMesaTimestampExtractor(jParams))
     val reset = Option(resetPolicy).orElse(resetConfig(jParams))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
@@ -790,6 +811,9 @@ object GeoMesaStreamsBuilder {
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
     new GeoMesaStreamsBuilder(builder, serde, timestamps, reset)
   }
 

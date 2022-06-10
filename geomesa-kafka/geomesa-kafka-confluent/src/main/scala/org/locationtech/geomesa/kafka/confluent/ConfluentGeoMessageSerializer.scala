@@ -33,6 +33,7 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -273,6 +274,13 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locationtech-main
+=======
+=======
+
+  override def serialize(msg: GeoMessage): (Array[Byte], Array[Byte], Map[String, Array[Byte]]) =
+    throw new NotImplementedError("Confluent data store is read-only")
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 
   override def deserialize(
       key: Array[Byte],

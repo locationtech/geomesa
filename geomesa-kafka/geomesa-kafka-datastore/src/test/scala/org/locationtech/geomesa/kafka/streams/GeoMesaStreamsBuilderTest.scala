@@ -632,6 +632,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
         buf.toSeq
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         buf
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -746,6 +747,11 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+=======
+        buf
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
       }
 
       val timestampExtractor = new TimestampExtractingTransformer()
@@ -775,6 +781,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "word-count-test")
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -889,6 +896,11 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+=======
+      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
       props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234")
 
       val output = scala.collection.mutable.Map.empty[String, java.lang.Long]
@@ -1041,6 +1053,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "write-test")
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -1155,6 +1168,11 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+=======
+      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
       props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234")
 
       val kryoMessages = ArrayBuffer.empty[ProducerRecord[Array[Byte], Array[Byte]]]

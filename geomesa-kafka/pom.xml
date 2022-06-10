@@ -10770,6 +10770,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10828,6 +10829,9 @@
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -10978,6 +10982,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 <<<<<<< HEAD
@@ -11066,4 +11071,7 @@
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 </project>
