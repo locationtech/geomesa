@@ -150,6 +150,7 @@ object FilterHelper {
                        handleExclusiveBounds: Boolean = false): FilterValues[Bounds[ZonedDateTime]] = {
     extractAttributeBounds(filter, attribute, classOf[Date]).map { bounds =>
       var lower, upper: Bound[ZonedDateTime] = null
+      // this if check determines if rounding will be used and if we need to account for narrow ranges
       if (!handleExclusiveBounds || bounds.lower.value.isEmpty || bounds.upper.value.isEmpty ||
           (bounds.lower.inclusive && bounds.upper.inclusive)) {
         lower = createDateTime(bounds.lower, roundSecondsUp, handleExclusiveBounds)

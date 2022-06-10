@@ -213,7 +213,11 @@ object Bounds {
     val lower = largerLowerBound(left.lower, right.lower)
     val upper = smallerUpperBound(right.upper, left.upper)
     (lower.value, upper.value) match {
-      case (Some(lo), Some(up)) if lo.asInstanceOf[Comparable[Any]].compareTo(up) > 0 => None
+      case (Some(lo), Some(up)) =>
+        lo.asInstanceOf[Comparable[Any]].compareTo(up) match {
+          case i if i > 0 || (i == 0 && (!lower.inclusive || !upper.inclusive)) => None
+          case _ => Some(Bounds(lower, upper))
+        }
       case _ => Some(Bounds(lower, upper))
     }
   }
@@ -228,22 +232,24 @@ object Bounds {
     */
   def union[T](left: Seq[Bounds[T]], right: Seq[Bounds[T]]): Seq[Bounds[T]] = {
 
-    def mergeOverlapping[T](bound: Bounds[T], rest: Seq[Bounds[T]]): Seq[Bounds[T]] = {
+    def mergeOverlapping(bound: Bounds[T], rest: Seq[Bounds[T]]): Seq[Bounds[T]] = {
       rest match {
         case Seq() => Seq(bound)
-        case head +: tail => bound.upper match {
-          case Bound(None, _) => Seq(bound)
-          case Bound(Some(x), incX) => head.lower match {
-            case Bound(None, inc) =>
-              mergeOverlapping(Bounds(head.lower, largerUpperBound(bound.upper, head.upper)), tail)
-            case Bound(Some(y), incY) =>
-              val c = y.asInstanceOf[Comparable[Any]].compareTo(x)
-              if (c < 0 || (c == 0 && (incX || incY)))
-                mergeOverlapping(Bounds(bound.lower, largerUpperBound(bound.upper, head.upper)), tail)
-              else
-                bound +: mergeOverlapping(head, tail)
+        case head +: tail =>
+          bound.upper match {
+            case Bound(None, _) => Seq(bound)
+            case Bound(Some(x), incX) =>
+              head.lower match {
+                case Bound(None, _) =>
+                  mergeOverlapping(Bounds(head.lower, largerUpperBound(bound.upper, head.upper)), tail)
+                case Bound(Some(y), incY) =>
+                  val c = y.asInstanceOf[Comparable[Any]].compareTo(x)
+                  if (c < 0 || (c == 0 && (incX || incY)))
+                    mergeOverlapping(Bounds(bound.lower, largerUpperBound(bound.upper, head.upper)), tail)
+                  else
+                    bound +: mergeOverlapping(head, tail)
+              }
           }
-        }
       }
     }
 

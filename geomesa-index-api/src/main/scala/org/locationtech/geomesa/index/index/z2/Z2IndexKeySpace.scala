@@ -97,8 +97,10 @@ class Z2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
   }
 
   override def getRanges(values: Z2IndexValues, multiplier: Int): Iterator[ScanRange[Long]] = {
-    val Z2IndexValues(_, _, xy) = values
-    if (xy.isEmpty) { Iterator.empty } else {
+    val Z2IndexValues(_, geoms, xy) = values
+    if (geoms.disjoint) {
+      Iterator.empty
+    } else {
       // note: `target` will always be Some, as ScanRangesTarget has a default value
       val target = QueryProperties.ScanRangesTarget.option.map(t => math.max(1, t.toInt / multiplier))
       sfc.ranges(xy, 64, target).iterator.map(r => BoundedRange(r.lower, r.upper))
@@ -117,7 +119,6 @@ class Z2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
           val lower = ByteArrays.toBytes(lo)
           val upper = ByteArrays.toBytesFollowingPrefix(hi)
           sharding.shards.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
-
         case r => throw new IllegalArgumentException(s"Unexpected range type $r")
       }
     }

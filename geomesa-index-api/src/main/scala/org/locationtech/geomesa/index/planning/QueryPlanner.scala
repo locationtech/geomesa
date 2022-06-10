@@ -147,7 +147,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
           val qs = strategy.getQueryStrategy(hints, output)
           // query guard hook
           interceptors(sft).foreach(_.guard(qs).foreach(e => throw e))
-          if (qs.values.isEmpty) {
+          if (qs.values.isEmpty && qs.ranges.nonEmpty) {
             qs.filter.secondary.foreach { f =>
               logger.warn(
                 s"Running full table scan on ${qs.index.name} index for schema " +
