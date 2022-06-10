@@ -62,6 +62,7 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e792102d4b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -73,9 +74,12 @@ import org.apache.kafka.clients.producer.Producer
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+>>>>>>> 57d901cb17 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 8d7834ec11 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -132,6 +136,8 @@ import org.apache.kafka.clients.producer.Producer
 =======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> f06b6e106b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 57d901cb17 (GEOMESA-3198 Kafka streams integration (#2854))
 import org.locationtech.geomesa.utils.concurrent.LazyCloseable
 =======
 <<<<<<< HEAD
@@ -160,6 +166,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8d7834ec11 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -176,14 +183,21 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 >>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
+>>>>>>> 8d7834ec11 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 57d901cb17 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e792102d4b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 57d901cb17 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -195,6 +209,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -253,6 +268,11 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> 1b8cbf843 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 8d7834ec11 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 57d901cb17 (GEOMESA-3198 Kafka streams integration (#2854))
 
 import java.io.Closeable
 
