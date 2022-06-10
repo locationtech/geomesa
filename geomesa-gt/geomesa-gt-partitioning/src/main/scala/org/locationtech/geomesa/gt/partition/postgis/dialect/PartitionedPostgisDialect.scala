@@ -11,6 +11,7 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.data.postgis.PostGISDialect
 import org.geotools.jdbc.JDBCDataStore
+import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunctionVisitor
 import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.{LogCleaner, TruncateToPartition, TruncateToTenMinutes}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
@@ -18,6 +19,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.triggers.{DeleteTri
 import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 
 import java.sql.{Connection, DatabaseMetaData}
 
@@ -146,6 +148,9 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
     // rename the sft so that configuration is applied to the write ahead table
     super.postDropTable(schemaName, SimpleFeatureTypes.renameSft(sft, info.tables.writeAhead.name.raw), cx)
   }
+
+  override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
+    super.splitFilter(LiteralFunctionVisitor(filter), schema)
 }
 
 object PartitionedPostgisDialect {
