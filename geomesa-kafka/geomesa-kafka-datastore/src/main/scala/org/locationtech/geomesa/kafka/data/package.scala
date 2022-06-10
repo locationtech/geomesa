@@ -3,7 +3,11 @@
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -39,6 +43,7 @@ package object data {
       extends LazyCloseable[Producer[Array[Byte], Array[Byte]]](create)
 =======
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
+<<<<<<< HEAD
 =======
 =======
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
@@ -48,6 +53,8 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
 
 import java.io.Closeable
 
@@ -69,5 +76,9 @@ package object data {
       }
     }
   }
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
 }
