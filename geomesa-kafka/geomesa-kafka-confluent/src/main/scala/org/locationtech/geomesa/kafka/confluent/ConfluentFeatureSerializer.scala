@@ -119,6 +119,7 @@ object ConfluentFeatureSerializer {
     }
   }
 
+<<<<<<< HEAD
   /**
    * Mapping between Avro schema and SimpleFeatureType
    *
@@ -272,6 +273,26 @@ class ConfluentFeatureSerializer(
           }
         } else {
           None
+=======
+class ConfluentFeatureSerializer(
+    sft: SimpleFeatureType,
+    schemaRegistryClient: SchemaRegistryClient,
+    schemaOverride: Option[Schema] = None,
+    val options: Set[SerializationOption] = Set.empty
+  ) extends SimpleFeatureSerializer with LazyLogging {
+
+  private val kafkaAvroDeserializers = new ThreadLocal[KafkaAvroDeserializer]() {
+    override def initialValue(): KafkaAvroDeserializer = new KafkaAvroDeserializer(schemaRegistryClient)
+  }
+
+  private val featureReaders = new ThreadLocal[ConfluentFeatureReader]() {
+    override def initialValue(): ConfluentFeatureReader = {
+      val schema = schemaOverride.getOrElse {
+        val schemaId = Option(sft.getUserData.get(ConfluentMetadata.SchemaIdKey))
+          .map(_.asInstanceOf[String].toInt).getOrElse {
+          throw new IllegalStateException(s"Cannot create ConfluentFeatureSerializer because SimpleFeatureType " +
+            s"'${sft.getTypeName}' does not have schema id at key '${ConfluentMetadata.SchemaIdKey}'")
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
         }
 
 <<<<<<< HEAD
@@ -281,12 +302,16 @@ class ConfluentFeatureSerializer(
       val conversionToFeature = conversion.map(_.getFieldReader(schema, field.name()))
       val conversionToAvro = conversion.map(_.getFieldWriter(schema, field.name()))
 
+<<<<<<< HEAD
       FieldMapping(sft.indexOf(d.getLocalName), field.pos(), defaultValue(field), conversionToFeature, conversionToAvro)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
   override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
     val record = kafkaAvroDeserializers.get.deserialize("", bytes).asInstanceOf[GenericRecord]
@@ -304,6 +329,7 @@ class ConfluentFeatureSerializer(
 
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -311,6 +337,8 @@ class ConfluentFeatureSerializer(
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
     }
 
     // visibility field index in the avro schema
@@ -318,10 +346,28 @@ class ConfluentFeatureSerializer(
       case f if Option(f.getProp(GeoMesaAvroVisibilityField.KEY)).exists(_.toBoolean) => f.pos()
     }
 
+<<<<<<< HEAD
     // avro fields with default values that aren't part of the feature type
     private val defaultFields = schema.getFields.asScala.flatMap(f => defaultValue(f).map(v => f.pos() -> v)).filter {
       case (pos, _) => !fieldMappings.exists(_.schemaIndex == pos) && !visibilityField.contains(pos)
     }
+=======
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize("", bytes)
+
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    deserialize("", bytes, offset, length)
+
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
+    val buf = if (offset == 0 && length == bytes.length) { bytes } else {
+      val buf = Array.ofDim[Byte](length)
+      System.arraycopy(bytes, offset, buf, 0, length)
+      buf
+    }
+    deserialize(id, buf)
+  }
+
+  // implement the following if we need them
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 
     /**
      * Checks for required fields in the avro schema that are not part of the feature type
@@ -336,6 +382,7 @@ class ConfluentFeatureSerializer(
       }.toSeq
     }
 
+<<<<<<< HEAD
     /**
      * Serialize a feature as Avro
      *
@@ -353,6 +400,7 @@ class ConfluentFeatureSerializer(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 =======
@@ -360,6 +408,8 @@ class ConfluentFeatureSerializer(
 =======
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> c6591bc391 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
@@ -416,7 +466,13 @@ class ConfluentFeatureSerializer(
 =======
 =======
 >>>>>>> 3be3e5d3e (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> d98371fa50 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+=======
+>>>>>>> 73f3a8cb6 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> c6591bc391 (GEOMESA-3198 Kafka streams integration (#2854))
   override def deserialize(id: String, in: InputStream): SimpleFeature =
     throw new NotImplementedError()
 
@@ -436,6 +492,7 @@ class ConfluentFeatureSerializer(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
@@ -447,6 +504,8 @@ class ConfluentFeatureSerializer(
 =======
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c6591bc391 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
@@ -463,7 +522,12 @@ class ConfluentFeatureSerializer(
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 73f3a8cb6 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> c6591bc391 (GEOMESA-3198 Kafka streams integration (#2854))
         try {
           feature.getAttribute(m.sftIndex) match {
             case null => m.default.foreach(d => record.put(m.schemaIndex, d))
