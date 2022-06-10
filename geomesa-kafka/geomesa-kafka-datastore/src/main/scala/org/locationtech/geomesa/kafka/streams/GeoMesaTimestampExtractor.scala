@@ -7,12 +7,16 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -22,6 +26,8 @@
 =======
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
