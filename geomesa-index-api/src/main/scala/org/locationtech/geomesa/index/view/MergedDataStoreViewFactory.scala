@@ -81,8 +81,9 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
     }
 
     val deduplicate = DeduplicateParam.lookup(params).booleanValue()
+    val parallel = ParallelScanParam.lookup(params).booleanValue()
 
-    new MergedDataStoreView(stores.result, deduplicate, namespace)
+    new MergedDataStoreView(stores.result, deduplicate, parallel, namespace)
   }
 
   override def getDisplayName: String = DisplayName
@@ -134,8 +135,16 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
       readWrite = ReadWriteFlag.ReadOnly
     )
 
+  val ParallelScanParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "geomesa.merged.scan.parallel",
+      "Scan each store in parallel, instead of sequentially",
+      default = java.lang.Boolean.FALSE,
+      readWrite = ReadWriteFlag.ReadOnly
+    )
+
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
-    ConfigLoaderParam.toArray ++ Array(ConfigParam, DeduplicateParam)
+    ConfigLoaderParam.toArray ++ Array[GeoMesaParam[_ <: AnyRef]](ConfigParam, DeduplicateParam, ParallelScanParam)
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     params.containsKey(ConfigParam.key) || ConfigLoaderParam.exists(p => params.containsKey(p.key))

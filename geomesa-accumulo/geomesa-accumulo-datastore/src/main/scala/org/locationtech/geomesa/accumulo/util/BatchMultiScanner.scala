@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.util
 
-import java.util.Map.Entry
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{Executors, Future, LinkedBlockingQueue, TimeUnit}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{Connector, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
@@ -20,29 +16,36 @@ import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, 
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
-import scala.collection.JavaConversions._
+import java.util.Map.Entry
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{Executors, Future, LinkedBlockingQueue, TimeUnit}
 
 /**
-  * Runs a join scan against two tables
-  *
-  * @param connector connector
-  * @param in input scan
-  * @param join join scan
-  * @param joinFunction maps results of input scan to ranges for join scan
-  * @param auths scan authorizations
-  * @param numThreads threads
-  * @param batchSize batch size
-  */
+ * Runs a join scan against two tables
+ *
+ * @param connector connector
+ * @param in input scan
+ * @param join join scan
+ * @param joinFunction maps results of input scan to ranges for join scan
+ * @param auths scan authorizations
+ * @param partitionParallelScans parallelize scans against partitioned tables (vs execute sequentially)
+ * @param timeout query timeout
+ * @param numThreads threads
+ * @param batchSize batch size
+ */
 class BatchMultiScanner(
     connector: Connector,
     in: ScannerBase,
     join: BatchScanPlan,
     joinFunction: JoinFunction,
     auths: Authorizations,
+    partitionParallelScans: Boolean,
     timeout: Option[Timeout],
     numThreads: Int = 12,
     batchSize: Int = 32768
   ) extends CloseableIterator[java.util.Map.Entry[Key, Value]] with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   require(batchSize > 0, f"Illegal batchSize ($batchSize%d). Value must be > 0")
   require(numThreads > 0, f"Illegal numThreads ($numThreads%d). Value must be > 0")
@@ -83,7 +86,7 @@ class BatchMultiScanner(
   executor.submit(new Runnable {
     override def run(): Unit = {
       try {
-        in.iterator().foreach(inQ.put)
+        in.asScala.foreach(inQ.put)
       } finally {
         inDone.set(true)
       }
@@ -98,10 +101,10 @@ class BatchMultiScanner(
           val entry = inQ.poll(5, TimeUnit.MILLISECONDS)
           if (entry != null) {
             val entries = collection.mutable.ListBuffer(entry)
-            inQ.drainTo(entries)
+            inQ.drainTo(entries.asJava)
             val task = executor.submit(new Runnable {
               override def run(): Unit = {
-                val iterator = join.copy(ranges = entries.map(joinFunction)).scan(connector, auths, timeout)
+                val iterator = join.copy(ranges = entries.map(joinFunction)).scan(connector, auths, partitionParallelScans, timeout)
                 try {
                   iterator.foreach(outQ.put)
                 } finally {

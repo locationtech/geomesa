@@ -14,11 +14,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.awt.RenderingHints
-import java.io.{IOException, Serializable}
-import java.nio.charset.StandardCharsets
-import java.util.Locale
-
 import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, KerberosToken, PasswordToken}
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
@@ -32,6 +27,11 @@ import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+
+import java.awt.RenderingHints
+import java.io.{IOException, Serializable}
+import java.nio.charset.StandardCharsets
+import java.util.Locale
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -97,6 +97,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       GenerateStatsParam,
       AuditQueriesParam,
       LooseBBoxParam,
+      PartitionParallelScansParam,
       CachingParam,
       AuthsParam,
       ForceEmptyAuthsParam
@@ -198,7 +199,8 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       recordThreads = RecordThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params),
-      caching = CachingParam.lookup(params)
+      caching = CachingParam.lookup(params),
+      parallelPartitionScans = PartitionParallelScansParam.lookup(params)
     )
 
     val remote = RemoteScansEnabled(
@@ -284,7 +286,8 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       recordThreads: Int,
       timeout: Option[Long],
       looseBBox: Boolean,
-      caching: Boolean
+      caching: Boolean,
+      parallelPartitionScans: Boolean
     ) extends DataStoreQueryConfig
 
   case class RemoteScansEnabled(arrow: Boolean, bin: Boolean, density: Boolean, stats: Boolean)

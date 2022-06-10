@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.index.geotools
 
+import org.locationtech.geomesa.index.PartitionParallelScan
+
 import java.io.Serializable
 import java.util.concurrent.TimeUnit
-
 import org.locationtech.geomesa.index.conf.{QueryProperties, StatsProperties}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
@@ -24,6 +25,7 @@ object GeoMesaDataStoreFactory {
   private val GenerateStatsSysParam = SystemPropertyBooleanParam(StatsProperties.GenerateStats)
   private val QueryThreadsSysParam = SystemPropertyIntegerParam(QueryProperties.QueryThreads)
   private val TimeoutSysParam = SystemPropertyDurationParam(QueryProperties.QueryTimeout)
+  private val PartitionParallelScanSysParam = SystemPropertyBooleanParam(PartitionParallelScan)
 
   private val DeprecatedTimeout =
     ConvertedParam[Duration, java.lang.Long]("queryTimeout", v => Duration(v, TimeUnit.SECONDS))
@@ -97,6 +99,15 @@ object GeoMesaDataStoreFactory {
       readWrite = ReadWriteFlag.WriteOnly
     )
 
+  val PartitionParallelScansParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "geomesa.partition.scan.parallel",
+      "Run scans in parallel for partitioned stores",
+      default = false,
+      systemProperty = Some(PartitionParallelScanSysParam),
+      readWrite = ReadWriteFlag.ReadOnly
+    )
+
   val NamespaceParam = new GeoMesaParam[String]("namespace", "Namespace")
 
   trait NamespaceConfig {
@@ -116,6 +127,7 @@ object GeoMesaDataStoreFactory {
     def timeout: Option[Long]
     def looseBBox: Boolean
     def caching: Boolean
+    def parallelPartitionScans: Boolean
   }
 
   // noinspection TypeAnnotation
@@ -133,6 +145,7 @@ object GeoMesaDataStoreFactory {
     val QueryThreadsParam  = GeoMesaDataStoreFactory.QueryThreadsParam
     val QueryTimeoutParam  = GeoMesaDataStoreFactory.QueryTimeoutParam
     val CachingParam       = GeoMesaDataStoreFactory.CachingParam
+    val PartitionParallelScansParam = GeoMesaDataStoreFactory.PartitionParallelScansParam
 
     val LooseBBoxParam =
       if (looseBBoxDefault) { GeoMesaDataStoreFactory.LooseBBoxParam } else { GeoMesaDataStoreFactory.StrictBBoxParam }

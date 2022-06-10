@@ -8,15 +8,12 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util.Map.Entry
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{Connector, IteratorSetting, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.util.BatchMultiScanner
-import org.locationtech.geomesa.index.PartitionParallelScan
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.utils.Explainer
@@ -24,6 +21,8 @@ import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.filter.Filter
+
+import java.util.Map.Entry
 
 /**
   * Accumulo-specific query plan
@@ -113,7 +112,7 @@ object AccumuloQueryPlan extends LazyLogging {
       // convert the relative timeout to an absolute timeout up front
       val timeout = ds.config.queries.timeout.map(Timeout.apply)
       // note: calculate authorizations up front so that multi-threading doesn't mess up auth providers
-      scan(ds.connector, ds.auths, timeout)
+      scan(ds.connector, ds.auths, ds.config.queries.parallelPartitionScans, timeout)
     }
 
     /**
@@ -121,14 +120,16 @@ object AccumuloQueryPlan extends LazyLogging {
      *
      * @param connector connector
      * @param auths auths
+     * @param partitionParallelScans parallelize scans across multiple partitions (vs execute them serially)
      * @param timeout absolute stop time, as sys time
      * @return
      */
     def scan(
         connector: Connector,
         auths: Authorizations,
+        partitionParallelScans: Boolean,
         timeout: Option[Timeout]): CloseableIterator[Entry[Key, Value]] = {
-      if (PartitionParallelScan.toBoolean.contains(true)) {
+      if (partitionParallelScans) {
         // kick off all the scans at once
         tables.map(scanner(connector, _, auths, timeout)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ ++ _)
       } else {
@@ -185,13 +186,14 @@ object AccumuloQueryPlan extends LazyLogging {
       // calculate authorizations up front so that multi-threading doesn't mess up auth providers
       val auths = ds.auths
       val joinTables = joinQuery.tables.iterator
-      if (PartitionParallelScan.toBoolean.contains(true)) {
+      if (ds.config.queries.parallelPartitionScans) {
         // kick off all the scans at once
-        tables.map(scanner(ds.connector, _, joinTables.next, auths, timeout))
+        tables.map(scanner(ds.connector, _, joinTables.next, auths, partitionParallelScans = true, timeout))
             .foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ ++ _)
       } else {
         // kick off the scans sequentially as they finish
-        SelfClosingIterator(tables.iterator).flatMap(scanner(ds.connector, _, joinTables.next, auths, timeout))
+        SelfClosingIterator(tables.iterator)
+            .flatMap(scanner(ds.connector, _, joinTables.next, auths, partitionParallelScans = false, timeout))
       }
     }
 
@@ -200,6 +202,7 @@ object AccumuloQueryPlan extends LazyLogging {
         table: String,
         joinTable: String,
         auths: Authorizations,
+        partitionParallelScans: Boolean,
         timeout: Option[Timeout]): CloseableIterator[Entry[Key, Value]] = {
       val primary = if (ranges.lengthCompare(1) == 0) {
         val scanner = connector.createScanner(table, auths)
@@ -212,7 +215,7 @@ object AccumuloQueryPlan extends LazyLogging {
       }
       configure(primary)
       val join = joinQuery.copy(tables = Seq(joinTable))
-      new BatchMultiScanner(connector, primary, join, joinFunction, auths, timeout)
+      new BatchMultiScanner(connector, primary, join, joinFunction, auths, partitionParallelScans, timeout)
     }
   }
 

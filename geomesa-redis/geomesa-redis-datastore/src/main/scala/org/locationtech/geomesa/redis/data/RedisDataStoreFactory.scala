@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.redis.data
 
-import java.awt.RenderingHints
-import java.io.Serializable
-import java.net.URI
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.geotools.data.DataAccessFactory.Param
@@ -26,6 +22,9 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.util.JedisURIHelper
 
+import java.awt.RenderingHints
+import java.io.Serializable
+import java.net.URI
 import scala.util.Try
 
 class RedisDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
@@ -76,6 +75,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       GenerateStatsParam,
       AuditQueriesParam,
       LooseBBoxParam,
+      PartitionParallelScansParam,
       CachingParam,
       AuthsParam,
       ForceEmptyAuthsParam
@@ -131,7 +131,8 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       threads = QueryThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params).booleanValue(),
-      caching = CachingParam.lookup(params)
+      caching = CachingParam.lookup(params),
+      parallelPartitionScans = PartitionParallelScansParam.lookup(params)
     )
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
@@ -155,7 +156,8 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       threads: Int,
       timeout: Option[Long],
       looseBBox: Boolean,
-      caching: Boolean
+      caching: Boolean,
+      parallelPartitionScans: Boolean
     ) extends DataStoreQueryConfig
 }
 

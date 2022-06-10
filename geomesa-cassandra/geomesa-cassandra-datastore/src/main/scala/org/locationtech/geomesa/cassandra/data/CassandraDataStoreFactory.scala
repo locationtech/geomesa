@@ -12,7 +12,6 @@ package org.locationtech.geomesa.cassandra.data
 import java.awt.RenderingHints
 import java.io.Serializable
 import java.util
-
 import com.datastax.driver.core._
 import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, TokenAwarePolicy}
 import org.geotools.data.DataAccessFactory.Param
@@ -88,7 +87,8 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
       threads = QueryThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params),
-      caching = CachingParam.lookup(params)
+      caching = CachingParam.lookup(params),
+      parallelPartitionScans = PartitionParallelScansParam.lookup(params)
     )
 
     val authProvider = new DefaultAuthorizationsProvider()
@@ -143,6 +143,7 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       Params.GenerateStatsParam,
       Params.AuditQueriesParam,
       Params.LooseBBoxParam,
+      Params.PartitionParallelScansParam,
       Params.CachingParam,
       Params.QueryThreadsParam,
       Params.QueryTimeoutParam
@@ -208,6 +209,7 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       threads: Int,
       timeout: Option[Long],
       looseBBox: Boolean,
-      caching: Boolean
+      caching: Boolean,
+      parallelPartitionScans: Boolean
     ) extends DataStoreQueryConfig
 }
