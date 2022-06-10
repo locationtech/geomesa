@@ -665,7 +665,9 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
             }
           }
         }
+<<<<<<< HEAD
         buf.toSeq
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -705,6 +707,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
         buf
 <<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -735,6 +739,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
         buf
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -797,6 +802,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
       }
 
       val timestampExtractor = new TimestampExtractingTransformer()
@@ -822,7 +829,9 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
       wordCounts.toStream.to("word-count")
 
       val props = new Properties()
+<<<<<<< HEAD
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "word-count-test")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -862,6 +871,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
 <<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -892,6 +903,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -954,6 +966,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
       props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234")
 
       val output = scala.collection.mutable.Map.empty[String, java.lang.Long]
@@ -1112,7 +1126,9 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
       builder.to(sft.getTypeName, output)
 
       val props = new Properties()
+<<<<<<< HEAD
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "write-test")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1152,6 +1168,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
 <<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -1182,6 +1200,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1244,6 +1263,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
       props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234")
 
       val kryoMessages = ArrayBuffer.empty[ProducerRecord[Array[Byte], Array[Byte]]]
