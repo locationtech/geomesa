@@ -115,6 +115,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
@@ -621,6 +622,9 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 .. code-block:: scala
 
     import org.apache.kafka.streams.scala.ImplicitConversions._
@@ -651,6 +655,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
     val topology = builder.build()
     // construct the streams app as normal
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -703,6 +708,8 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 
 Write Example
 -------------
@@ -791,6 +798,7 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1285,6 +1293,9 @@ The following shows how to persist data back to a GeoMesa topic:
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 .. code-block:: scala
 
     import org.apache.kafka.streams.scala.ImplicitConversions._
@@ -1314,6 +1325,7 @@ The following shows how to persist data back to a GeoMesa topic:
     val topology = builder.build()
     // construct the streams app as normal
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1366,6 +1378,8 @@ The following shows how to persist data back to a GeoMesa topic:
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 
 Joins and Topic Partitioning
 ----------------------------
