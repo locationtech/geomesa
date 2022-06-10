@@ -94,7 +94,11 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
             }
           }
         }
+<<<<<<< HEAD
         buf.toSeq
+=======
+        buf
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
       }
 
       val timestampExtractor = new TimestampExtractingTransformer()
@@ -120,7 +124,11 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
       wordCounts.toStream.to("word-count")
 
       val props = new Properties()
+<<<<<<< HEAD
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "word-count-test")
+=======
+      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
       props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234")
 
       val output = scala.collection.mutable.Map.empty[String, java.lang.Long]
@@ -173,7 +181,11 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
       builder.to(sft.getTypeName, output)
 
       val props = new Properties()
+<<<<<<< HEAD
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "write-test")
+=======
+      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
       props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234")
 
       val kryoMessages = ArrayBuffer.empty[ProducerRecord[Array[Byte], Array[Byte]]]
