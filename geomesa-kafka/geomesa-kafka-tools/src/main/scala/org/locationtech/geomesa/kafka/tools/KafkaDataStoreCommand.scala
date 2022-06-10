@@ -9,9 +9,8 @@
 package org.locationtech.geomesa.kafka.tools
 
 import java.io.File
-
 import org.apache.kafka.clients.producer.Producer
-import org.locationtech.geomesa.kafka.data.KafkaDataStore
+import org.locationtech.geomesa.kafka.data.{KafkaDataStore, KafkaDataStoreParams}
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
@@ -28,14 +27,15 @@ trait KafkaDataStoreCommand extends DataStoreCommand[KafkaDataStore] {
       if (params.fromBeginning) { "Inf" } else { null }
     }
     Map[String, String](
-      KafkaDataStoreFactoryParams.Brokers.getName          -> params.brokers,
-      KafkaDataStoreFactoryParams.Zookeepers.getName       -> params.zookeepers,
-      KafkaDataStoreFactoryParams.ZkPath.getName           -> params.zkPath,
-      KafkaDataStoreFactoryParams.ConsumerCount.getName    -> params.numConsumers.toString,
-      KafkaDataStoreFactoryParams.TopicPartitions.getName  -> params.partitions.toString,
-      KafkaDataStoreFactoryParams.TopicReplication.getName -> params.replication.toString,
-      KafkaDataStoreFactoryParams.ConsumerReadBack.getName -> readBack,
-      KafkaDataStoreFactoryParams.CacheExpiry.getName      -> "0s"
+      KafkaDataStoreParams.Brokers.getName          -> params.brokers,
+      KafkaDataStoreParams.Zookeepers.getName       -> params.zookeepers,
+      KafkaDataStoreParams.ZkPath.getName           -> params.zkPath,
+      KafkaDataStoreParams.ConsumerCount.getName    -> params.numConsumers.toString,
+      KafkaDataStoreParams.TopicPartitions.getName  -> params.partitions.toString,
+      KafkaDataStoreParams.TopicReplication.getName -> params.replication.toString,
+      KafkaDataStoreParams.ConsumerReadBack.getName -> readBack,
+      KafkaDataStoreParams.CacheExpiry.getName      -> "0s",
+      "kafka.schema.registry.url"                   -> params.schemaRegistryUrl
     ).filter(_._2 != null)
   }
 }

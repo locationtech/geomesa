@@ -31,8 +31,18 @@ object ConfluentKafkaDataStore {
     val serialization = new ConfluentGeoMessageSerializerFactory(schemaRegistryUrl, topicToSchema)
 
     new KafkaDataStore(config, metadata, serialization) {
+      override protected def preSchemaCreate(sft: SimpleFeatureType): Unit =
+        throw new NotImplementedError(
+          "Confluent Kafka stores do not support creating schemas, " +
+              "the schemas must be added to the schema registry separately")
       override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit =
-        throw new NotImplementedError("Confluent Kafka stores do not support updateSchema")
+        throw new NotImplementedError(
+          "Confluent Kafka stores do not support updating schemas, " +
+              "the schemas must be updated in the schema registry separately")
+      override protected def onSchemaDeleted(sft: SimpleFeatureType): Unit =
+        throw new NotImplementedError(
+          "Confluent Kafka stores do not support deleting schemas, " +
+              "the schemas must be removed from the schema registry separately")
     }
   }
 }

@@ -28,6 +28,9 @@ specify Zookeepers with ``--zookeepers`` (or ``-z``).
 Kafka stores metadata under a particular path in Zookeeper - this can be thought of as a namespace
 for feature types. Use ``--zkpath`` (or ``-p``) to override the default path.
 
+To connect to :ref:`Confluent Schema Registry <confluent_kds>` topics, use ``--schema-registry``
+to provide the registry URL.
+
 Commands
 --------
 

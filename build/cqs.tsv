@@ -303,6 +303,7 @@ org.springframework.security:spring-security-core	5.1.1.RELEASE	provided
 org.springframework.security:spring-security-web	5.1.1.RELEASE	provided
 org.springframework:spring-web	4.3.18.RELEASE	provided
 
+com.kjetland:mbknor-jackson-jsonschema_2.12	1.0.39	test
 io.confluent:kafka-schema-registry	5.1.0	test
 io.confluent:kafka-schema-registry	tests:5.1.0	test
 junit:junit	4.13.1	test

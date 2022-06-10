@@ -303,11 +303,12 @@ class KafkaDataStore(
     }
     val producer = getTransactionalProducer(sft, transaction)
     val vis = sft.isVisibilityRequired
+    val serializer = serialization.apply(sft, config.serialization, `lazy` = false)
     val writer = filter match {
-      case None if vis    => new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
-      case None           => new AppendKafkaFeatureWriter(sft, producer, config.serialization)
-      case Some(f) if vis => new ModifyKafkaFeatureWriter(sft, producer, config.serialization, f) with RequiredVisibilityWriter
-      case Some(f)        => new ModifyKafkaFeatureWriter(sft, producer, config.serialization, f)
+      case None if vis    => new AppendKafkaFeatureWriter(sft, producer, serializer) with RequiredVisibilityWriter
+      case None           => new AppendKafkaFeatureWriter(sft, producer, serializer)
+      case Some(f) if vis => new ModifyKafkaFeatureWriter(sft, producer, serializer, f) with RequiredVisibilityWriter
+      case Some(f)        => new ModifyKafkaFeatureWriter(sft, producer, serializer, f)
     }
     if (config.clearOnStart && cleared.add(sft.getTypeName)) {
       writer.clear()

@@ -11,12 +11,12 @@ package org.locationtech.geomesa.features.avro
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.joda.time.format.ISODateTimeFormat
-import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
+import org.locationtech.geomesa.utils.text.{DateParsing, WKBUtils, WKTUtils}
 import org.locationtech.jts.geom._
 import org.opengis.feature.simple.SimpleFeatureType
 
 import java.nio.ByteBuffer
+import java.time.format.DateTimeFormatter
 import java.util.{Date, Locale}
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
@@ -214,7 +214,7 @@ object AvroSimpleFeatureTypeParser {
     protected val valueMatcher: PartialFunction[(String, Schema.Field), T]
 
     override final def parse(field: Schema.Field): Option[T] = {
-      Option(field.getProp(KEY)).map(_.toLowerCase(Locale.ENGLISH)).map { value =>
+      Option(field.getProp(KEY)).map(_.toLowerCase(Locale.US)).map { value =>
         valueMatcher.lift.apply((value, field)).getOrElse {
           throw GeoMesaAvroProperty.InvalidPropertyValueException(value, KEY)
         }
@@ -244,11 +244,30 @@ object AvroSimpleFeatureTypeParser {
   abstract class GeoMesaAvroDeserializableEnumProperty[T, K: ClassTag] extends GeoMesaAvroEnumProperty[T] {
     // case clauses to match the value of the enum to a function to deserialize the data
     protected val fieldReaderMatcher: PartialFunction[T, AnyRef => K]
+    protected val fieldWriterMatcher: PartialFunction[T, K => AnyRef]
 
     final def getFieldReader(schema: Schema, fieldName: String): AnyRef => K = {
       try {
         parse(schema.getField(fieldName)).map { value =>
-          fieldReaderMatcher.lift.apply(value).getOrElse {
+          if (fieldReaderMatcher.isDefinedAt(value)) {
+            fieldReaderMatcher.apply(value)
+          } else {
+            throw GeoMesaAvroProperty.InvalidPropertyValueException(value.toString, KEY)
+          }
+        }.getOrElse {
+          throw GeoMesaAvroDeserializableEnumProperty.MissingPropertyException(fieldName, KEY)
+        }
+      } catch {
+        case NonFatal(ex) => throw GeoMesaAvroDeserializableEnumProperty.DeserializerException[K](fieldName, ex)
+      }
+    }
+
+    final def getFieldWriter(schema: Schema, fieldName: String): K => AnyRef = {
+      try {
+        parse(schema.getField(fieldName)).map { value =>
+          if (fieldWriterMatcher.isDefinedAt(value)) {
+            fieldWriterMatcher.apply(value)
+          } else {
             throw GeoMesaAvroProperty.InvalidPropertyValueException(value.toString, KEY)
           }
         }.getOrElse {
@@ -290,9 +309,24 @@ object AvroSimpleFeatureTypeParser {
       case (WKB, field) => assertFieldType(field, Schema.Type.BYTES); WKB
     }
 
-    protected val fieldReaderMatcher: PartialFunction[String, AnyRef => Geometry] = {
+    override protected val fieldReaderMatcher: PartialFunction[String, AnyRef => Geometry] = {
       case WKT => data => WKTUtils.read(data.toString)
-      case WKB => data => WKBUtils.read(data.asInstanceOf[ByteBuffer].array())
+      case WKB => data => WKBUtils.read(unwrap(data.asInstanceOf[ByteBuffer]))
+    }
+
+    override protected val fieldWriterMatcher: PartialFunction[String, Geometry => AnyRef] = {
+      case WKT => geom => WKTUtils.write(geom)
+      case WKB => geom => ByteBuffer.wrap(WKBUtils.write(geom))
+    }
+
+    private def unwrap(buf: ByteBuffer): Array[Byte] = {
+      if (buf.hasArray && buf.arrayOffset() == 0 && buf.limit() == buf.array().length) {
+        buf.array()
+      } else {
+        val array = Array.ofDim[Byte](buf.limit())
+        buf.get(array)
+        array
+      }
     }
   }
 
@@ -382,10 +416,16 @@ object AvroSimpleFeatureTypeParser {
       case (ISO_DATETIME, field) => assertFieldType(field, Schema.Type.STRING); ISO_DATETIME
     }
 
-    protected val fieldReaderMatcher: PartialFunction[String, AnyRef => Date] = {
+    override protected val fieldReaderMatcher: PartialFunction[String, AnyRef => Date] = {
       case EPOCH_MILLIS => data => new Date(data.asInstanceOf[java.lang.Long])
-      case ISO_DATE => data => ISODateTimeFormat.dateParser().parseDateTime(data.toString).toDate
-      case ISO_DATETIME => data => ISODateTimeFormat.dateTimeParser().parseDateTime(data.toString).toDate
+      case ISO_DATE => data => DateParsing.parseDate(data.toString, DateTimeFormatter.ISO_DATE)
+      case ISO_DATETIME => data => DateParsing.parseDate(data.toString, DateTimeFormatter.ISO_DATE_TIME)
+    }
+
+    override protected val fieldWriterMatcher: PartialFunction[String, Date => AnyRef] = {
+      case EPOCH_MILLIS => date => Long.box(date.getTime)
+      case ISO_DATE => date => DateParsing.formatDate(date, DateTimeFormatter.ISO_DATE)
+      case ISO_DATETIME => date => DateParsing.formatDate(date, DateTimeFormatter.ISO_DATE_TIME)
     }
   }
 

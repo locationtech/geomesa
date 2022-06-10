@@ -29,6 +29,9 @@ trait KafkaDataStoreParams {
   @Parameter(names = Array("-p", "--zkpath"), description = "Zookeeper path where feature schemas are saved")
   var zkPath: String = KafkaDataStoreFactory.DefaultZkPath
 
+  @Parameter(names = Array("--schema-registry"), description = "URL to a Confluent Schema Registry")
+  var schemaRegistryUrl: String = _
+
   def numConsumers: Int
   def replication: Int
   def partitions: Int

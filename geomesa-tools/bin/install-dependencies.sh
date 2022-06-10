@@ -14,6 +14,7 @@
 # configure HOME and CONF_DIR, then load geomesa-env.sh
 export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
 export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%tools.dist.name%%_HOME/conf}"
+export GEOMESA_DEPENDENCIES="${GEOMESA_DEPENDENCIES:-dependencies.sh}"
 
 if [[ -f "${GEOMESA_CONF_DIR}/geomesa-env.sh" ]]; then
   . "${GEOMESA_CONF_DIR}/geomesa-env.sh"
@@ -22,11 +23,11 @@ else
   exit 1
 fi
 
-if [[ -f "${GEOMESA_CONF_DIR}/dependencies.sh" ]]; then
-  echo >&2 "Reading dependencies from ${GEOMESA_CONF_DIR}/dependencies.sh"
-  . "${GEOMESA_CONF_DIR}/dependencies.sh"
+if [[ -f "${GEOMESA_CONF_DIR}/${GEOMESA_DEPENDENCIES}" ]]; then
+  echo >&2 "Reading dependencies from ${GEOMESA_CONF_DIR}/${GEOMESA_DEPENDENCIES}"
+  . "${GEOMESA_CONF_DIR}/${GEOMESA_DEPENDENCIES}"
 else
-  echo >&2 "ERROR: could not read '${GEOMESA_CONF_DIR}/dependencies.sh', aborting script"
+  echo >&2 "ERROR: could not read '${GEOMESA_CONF_DIR}/${GEOMESA_DEPENDENCIES}', aborting script"
   exit 2
 fi
 

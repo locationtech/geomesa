@@ -8,22 +8,21 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import java.io.Flushable
-import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.producer.{Producer, ProducerRecord}
 import org.geotools.data.Transaction
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.kafka.RecordVersions
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
 import org.locationtech.geomesa.security.VisibilityChecker
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{Filter, Id}
+
+import java.io.Flushable
+import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
 
 trait KafkaFeatureWriter extends SimpleFeatureWriter with Flushable {
 
@@ -41,12 +40,10 @@ object KafkaFeatureWriter {
   class AppendKafkaFeatureWriter(
       sft: SimpleFeatureType,
       producer: KafkaFeatureProducer,
-      serialization: SerializationType
+      protected val serializer: GeoMessageSerializer
     ) extends KafkaFeatureWriter with LazyLogging {
 
     protected val topic: String = KafkaDataStore.topic(sft)
-
-    protected val serializer: GeoMessageSerializer = GeoMessageSerializer(sft, serialization)
 
     protected val feature = new ScalaSimpleFeature(sft, "-1")
 
@@ -98,9 +95,9 @@ object KafkaFeatureWriter {
   class ModifyKafkaFeatureWriter(
       sft: SimpleFeatureType,
       producer: KafkaFeatureProducer,
-      serialization: SerializationType,
+      serializer: GeoMessageSerializer,
       filter: Filter
-    ) extends AppendKafkaFeatureWriter(sft, producer, serialization) {
+    ) extends AppendKafkaFeatureWriter(sft, producer, serializer) {
 
     import scala.collection.JavaConverters._
 
