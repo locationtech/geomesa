@@ -120,7 +120,11 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 
     val topology = builder.build()
     // construct the streams app as normal
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 
 Write Example
 -------------
@@ -213,7 +217,11 @@ The following shows how to persist data back to a GeoMesa topic:
 
     val topology = builder.build()
     // construct the streams app as normal
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 
 Joins and Topic Partitioning
 ----------------------------
