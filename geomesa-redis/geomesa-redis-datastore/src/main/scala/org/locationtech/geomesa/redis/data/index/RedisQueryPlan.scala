@@ -108,7 +108,7 @@ object RedisQueryPlan {
     override def scan(ds: RedisDataStore): CloseableIterator[Array[Byte]] = {
       val iter = tables.iterator.map(_.getBytes(StandardCharsets.UTF_8))
       val scans = iter.map(singleTableScan(ds, _))
-      if (PartitionParallelScan.toBoolean.contains(true)) {
+      if (ds.config.queries.parallelPartitionScans) {
         // kick off all the scans at once
         scans.foldLeft(CloseableIterator.empty[Array[Byte]])(_ ++ _)
       } else {

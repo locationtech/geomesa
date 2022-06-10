@@ -213,6 +213,7 @@ object TestGeoMesaDataStore {
       override val timeout: Option[Long] = None
       override val caching: Boolean = false
       override def looseBBox: Boolean = TestConfig.this.looseBBox
+      override def parallelPartitionScans: Boolean = false
     }
     override val namespace: Option[String] = None
   }

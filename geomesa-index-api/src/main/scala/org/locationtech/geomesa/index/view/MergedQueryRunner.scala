@@ -37,9 +37,14 @@ import org.opengis.filter.Filter
  * @param ds merged data store
  * @param stores delegate stores
  * @param deduplicate deduplicate the results between stores
+ * @param parallel run scans in parallel (vs sequentially)
  */
-class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filter])], deduplicate: Boolean)
-    extends QueryRunner with LazyLogging {
+class MergedQueryRunner(
+    ds: HasGeoMesaStats,
+    stores: Seq[(Queryable, Option[Filter])],
+    deduplicate: Boolean,
+    parallel: Boolean
+  ) extends QueryRunner with LazyLogging {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
@@ -180,7 +185,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
       store.getFeatureReader(mergeFilter(sft, q, filter), Transaction.AUTO_COMMIT)
     }
 
-    val results = SelfClosingIterator(readers.iterator).flatMap { reader =>
+    def getSingle(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val schema = reader.getFeatureType
       if (schema == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
         // arrow processing has been handled by the store already
@@ -194,13 +199,13 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
       }
     }
 
-    reduce(results)
+    reduce(doParallelScan(readers, getSingle))
   }
 
   private def densityQuery(sft: SimpleFeatureType,
                            readers: Seq[FeatureReader[SimpleFeatureType, SimpleFeature]],
                            hints: Hints): CloseableIterator[SimpleFeature] = {
-    SelfClosingIterator(readers.iterator).flatMap { reader =>
+    def getSingle(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val schema = reader.getFeatureType
       if (schema == DensityScan.DensitySft) {
         // density processing has been handled by the store already
@@ -211,13 +216,14 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         LocalQueryRunner.transform(copy, CloseableIterator(reader), None, hints, None)
       }
     }
+
+    doParallelScan(readers, getSingle)
   }
 
   private def statsQuery(sft: SimpleFeatureType,
                          readers: Seq[FeatureReader[SimpleFeatureType, SimpleFeature]],
                          hints: Hints): CloseableIterator[SimpleFeature] = {
-    // do the reduce here, as we can't merge json stats
-    val results = SelfClosingIterator(readers.iterator).flatMap { reader =>
+    def getSingle(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val schema = reader.getFeatureType
       if (schema == StatsScan.StatsSft) {
         // stats processing has been handled by the store already
@@ -228,13 +234,17 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         LocalQueryRunner.transform(copy, CloseableIterator(reader), None, hints, None)
       }
     }
+
+    val results = doParallelScan(readers, getSingle)
+
+    // do the reduce here, as we can't merge json stats
     StatsScan.StatsReducer(sft, hints)(results)
   }
 
   private def binQuery(sft: SimpleFeatureType,
                        readers: Seq[FeatureReader[SimpleFeatureType, SimpleFeature]],
                        hints: Hints): CloseableIterator[SimpleFeature] = {
-    SelfClosingIterator(readers.iterator).flatMap { reader =>
+    def getSingle(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val schema = reader.getFeatureType
       if (schema == BinaryOutputEncoder.BinEncodedSft) {
         // bin processing has been handled by the store already
@@ -245,6 +255,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         LocalQueryRunner.transform(copy, CloseableIterator(reader), None, hints, None)
       }
     }
+
+    doParallelScan(readers, getSingle)
   }
 
   override protected [geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
@@ -258,6 +270,16 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
       StatsScan.StatsSft
     } else {
       super.getReturnSft(sft, hints)
+    }
+  }
+
+  private def doParallelScan(
+      readers: Seq[FeatureReader[SimpleFeatureType, SimpleFeature]],
+      single: FeatureReader[SimpleFeatureType, SimpleFeature] => CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
+    if (parallel) {
+      SelfClosingIterator(readers.par.map(single).iterator).flatMap(i => i)
+    } else {
+      SelfClosingIterator(readers.iterator).flatMap(single)
     }
   }
 }

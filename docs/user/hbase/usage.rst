@@ -61,6 +61,7 @@ Parameter                                    Type    Description
 ``hbase.coprocessor.yield.partial.results``  Boolean Toggle coprocessors yielding partial results
 ``hbase.coprocessor.scan.parallel``          Boolean Toggle extremely parallel coprocessor scans (bounded by RPC threads)
 ``geomesa.stats.generate``                   Boolean Toggle collection of statistics (currently not implemented)
+``geomesa.partition.scan.parallel``          Boolean For partitioned schemas, execute scans in parallel instead of sequentially
 ``geomesa.query.caching``                    Boolean Toggle caching of results
 ===========================================  ======= ========================================================================================
 

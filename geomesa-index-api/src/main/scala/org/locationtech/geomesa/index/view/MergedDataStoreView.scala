@@ -33,21 +33,22 @@ import org.opengis.filter.Filter
 class MergedDataStoreView(
     val stores: Seq[(DataStore, Option[Filter])],
     deduplicate: Boolean,
+    parallel: Boolean,
     namespace: Option[String] = None
   ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaStats {
 
   require(stores.nonEmpty, "No delegate stores configured")
 
   private[view] val runner =
-    new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f }, deduplicate)
+    new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f }, deduplicate, parallel)
 
-  override val stats: GeoMesaStats = new MergedStats(stores)
+  override val stats: GeoMesaStats = new MergedStats(stores, parallel)
 
   override def getFeatureSource(name: Name): SimpleFeatureSource = getFeatureSource(name.getLocalPart)
 
   override def getFeatureSource(typeName: String): SimpleFeatureSource = {
     val sources = stores.map { case (store, filter) => (store.getFeatureSource(typeName), filter) }
-    new MergedFeatureSourceView(this, sources, getSchema(typeName))
+    new MergedFeatureSourceView(this, sources, parallel, getSchema(typeName))
   }
 
   override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader =
@@ -56,9 +57,9 @@ class MergedDataStoreView(
 
 object MergedDataStoreView {
 
-  class MergedStats(stores: Seq[(DataStore, Option[Filter])]) extends GeoMesaStats {
+  class MergedStats(stores: Seq[(DataStore, Option[Filter])], parallel: Boolean) extends GeoMesaStats {
 
-    private val stats = stores.map {
+    private val stats: Seq[(GeoMesaStats, Option[Filter])] = stores.map {
       case (s: HasGeoMesaStats, f) => (s.stats, f)
       case (s, f) => (new UnoptimizedRunnableStats(s), f)
     }
@@ -67,8 +68,11 @@ object MergedDataStoreView {
 
     override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
       // note: unlike most methods in this class, this will return if any of the merged stores provide a response
-      val counts = stats.flatMap { case (stat, f) => stat.getCount(sft, mergeFilter(sft, filter, f), exact, queryHints) }
-      counts.reduceLeftOption(_ + _)
+      def getSingle(statAndFilter: (GeoMesaStats, Option[Filter])): Option[Long] =
+        statAndFilter._1.getCount(sft, mergeFilter(sft, filter, statAndFilter._2), exact, queryHints)
+
+      val seq = if (parallel) { stats.par } else { stats }
+      seq.flatMap(getSingle).reduceLeftOption(_ + _)
     }
 
     override def getMinMax[T](
@@ -77,10 +81,11 @@ object MergedDataStoreView {
         filter: Filter,
         exact: Boolean): Option[MinMax[T]] = {
       // note: unlike most methods in this class, this will return if any of the merged stores provide a response
-      val bounds = stats.flatMap { case (stat, f) =>
-        stat.getMinMax[T](sft, attribute, mergeFilter(sft, filter, f), exact)
-      }
-      bounds.reduceLeftOption(_ + _)
+      def getSingle(statAndFilter: (GeoMesaStats, Option[Filter])): Option[MinMax[T]] =
+        statAndFilter._1.getMinMax[T](sft, attribute, mergeFilter(sft, filter, statAndFilter._2), exact)
+
+      val seq = if (parallel) { stats.par } else { stats }
+      seq.flatMap(getSingle).reduceLeftOption(_ + _)
     }
 
     override def getEnumeration[T](
@@ -141,10 +146,15 @@ object MergedDataStoreView {
     override def close(): Unit = CloseWithLogging(stats.map(_._1))
 
     private def merge[T <: Stat](query: (GeoMesaStats, Option[Filter]) => Option[T]): Option[T] = {
-      // lazily evaluate each stat as we only return Some if all the child stores do
-      val head = query(stats.head._1, stats.head._2)
-      stats.tail.foldLeft(head) { case (result, (stat, filter)) =>
-        for { r <- result; n <- query(stat, filter) } yield { (r + n).asInstanceOf[T] }
+      if (parallel) {
+        val all = stats.par.map { case (s, f) => query(s, f) }
+        all.reduceLeft((res, next) => for { r <- res; n <- next } yield { (r + n).asInstanceOf[T] })
+      } else {
+        // lazily evaluate each stat as we only return Some if all the child stores do
+        val head = query(stats.head._1, stats.head._2)
+        stats.tail.foldLeft(head) { case (result, (stat, filter)) =>
+          for { r <- result; n <- query(stat, filter) } yield { (r + n).asInstanceOf[T] }
+        }
       }
     }
   }

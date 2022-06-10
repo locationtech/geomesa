@@ -43,6 +43,7 @@ Parameter                              Type    Description
 ``geomesa.query.caching``              Boolean Toggle caching of results
 ``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries
 ``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
+``geomesa.partition.scan.parallel``    Boolean For partitioned schemas, execute scans in parallel instead of sequentially
 ====================================== ======= ====================================================================================
 
 More information on using GeoTools can be found in the `GeoTools user guide

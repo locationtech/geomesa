@@ -9,24 +9,24 @@
 package org.locationtech.geomesa.index.view
 
 import org.geotools.data.simple.SimpleFeatureReader
-import org.geotools.data.{DataStore, Query, Transaction}
+import org.geotools.data.{DataStore, FeatureReader, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.mockito.ArgumentMatchers
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.specs2.matcher.Matchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.mutable.ArrayBuffer
+
 @RunWith(classOf[JUnitRunner])
 class MergedDataStoreViewTest extends Specification with Mockito {
-
-  import scala.collection.JavaConverters._
 
   import org.locationtech.geomesa.filter.andFilters
 
@@ -55,7 +55,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
   "MergedDataStoreView" should {
     "pass through INCLUDE filters" in {
       val stores = this.stores()
-      val view = new MergedDataStoreView(stores, deduplicate = false)
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
       WithClose(view.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))(_.hasNext)
       foreach(stores) { case (store, Some(filter)) =>
         val query = new Query(sft.getTypeName, filter)
@@ -65,7 +65,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 
     "pass through queries that don't conflict with the default filter" in {
       val stores = this.stores()
-      val view = new MergedDataStoreView(stores, deduplicate = false)
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 
       val noDates = Seq("IN ('1', '2')", "foo = 'bar'", "age = 21", "bbox(geom,120,45,130,55)")
       foreach(noDates.map(ECQL.toFilter)) { f =>
@@ -79,7 +79,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 
     "filter out queries from stores that aren't applicable - before" in {
       val stores = this.stores()
-      val view = new MergedDataStoreView(stores, deduplicate = false)
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 
       val before = Seq("dtg during 2022-02-01T00:00:00.000Z/2022-02-01T12:00:00.000Z and name = 'alice'")
       foreach(before.map(ECQL.toFilter)) { f =>
@@ -97,7 +97,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 
     "filter out queries from stores that aren't applicable - after" in {
       val stores = this.stores()
-      val view = new MergedDataStoreView(stores, deduplicate = false)
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 
       val after = Seq("dtg during 2022-02-04T00:00:00.000Z/2022-02-04T12:00:00.000Z and name = 'alice'")
       foreach(after.map(ECQL.toFilter)) { f =>
@@ -115,7 +115,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 
     "filter out queries from stores that aren't applicable - overlapping" in {
       val stores = this.stores()
-      val view = new MergedDataStoreView(stores, deduplicate = false)
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
 
       val after = Seq("dtg during 2022-02-01T00:00:00.000Z/2022-02-04T12:00:00.000Z and name = 'alice'")
       foreach(after.map(ECQL.toFilter)) { f =>
@@ -126,5 +126,53 @@ class MergedDataStoreViewTest extends Specification with Mockito {
         }
       }
     }
+
+    "close iterators with parallel scans" in {
+      val stores = this.stores()
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = true)
+
+      val readers = ArrayBuffer.empty[CloseableFeatureReader]
+      stores.foreach { case (store, _) =>
+        store.getFeatureReader(ArgumentMatchers.any(), ArgumentMatchers.any()) returns {
+          val reader = new CloseableFeatureReader()
+          readers += reader
+          reader
+        }
+      }
+
+      WithClose(view.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))(_.hasNext)
+      readers must haveLength(stores.length)
+      foreach(readers)(_.closed must beTrue)
+    }
+
+    "close iterators with parallel push-down scans" in {
+      val stores = this.stores()
+      val view = new MergedDataStoreView(stores, deduplicate = false, parallel = true)
+
+      val readers = ArrayBuffer.empty[CloseableFeatureReader]
+      stores.foreach { case (store, _) =>
+        store.getFeatureReader(ArgumentMatchers.any(), ArgumentMatchers.any()) returns {
+          val reader = new CloseableFeatureReader(BinaryOutputEncoder.BinEncodedSft)
+          readers += reader
+          reader
+        }
+      }
+
+      val query = new Query(sft.getTypeName, Filter.INCLUDE)
+      query.getHints.put(QueryHints.BIN_GEOM, "geom")
+      query.getHints.put(QueryHints.BIN_DTG, "dtg")
+      query.getHints.put(QueryHints.BIN_TRACK, "name")
+      WithClose(view.getFeatureReader(query, Transaction.AUTO_COMMIT))(_.hasNext)
+      readers must haveLength(stores.length)
+      foreach(readers)(_.closed must beTrue)
+    }
+  }
+
+  class CloseableFeatureReader(val getFeatureType: SimpleFeatureType = sft)
+      extends FeatureReader[SimpleFeatureType, SimpleFeature] {
+    var closed: Boolean = false
+    override def next(): SimpleFeature = null
+    override def hasNext: Boolean = false
+    override def close(): Unit = closed = true
   }
 }
