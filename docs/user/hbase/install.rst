@@ -5,6 +5,16 @@ Installing GeoMesa HBase
 
     GeoMesa currently supports HBase |hbase_supported_versions|.
 
+.. note::
+
+    The examples below expect a version to be set in the environment:
+
+    .. parsed-literal::
+
+        $ export TAG="|release_version|"
+        # note: |scala_binary_version| is the Scala build version
+        $ export VERSION="|scala_binary_version|-${TAG}"
+
 GeoMesa supports traditional HBase installations as well as HBase running on `Amazon's EMR <https://aws.amazon.com/emr/>`_
 , `Hortonworks' Data Platform (HDP) <https://hortonworks.com/products/data-center/hdp/>`_, and the
 `Cloudera Distribution of Hadoop (CDH) <https://www.cloudera.com/products/enterprise-data-hub.html>`_. For details
@@ -19,12 +29,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
-.. note::
-
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
-
-Extract it somewhere convenient:
+Download and extract it somewhere convenient:
 
 .. code-block:: bash
 
@@ -32,8 +37,6 @@ Extract it somewhere convenient:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-hbase_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-hbase_${VERSION}-bin.tar.gz
     $ cd geomesa-hbase_${VERSION}
-    $ ls
-    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
 .. _hbase_install_source:
 
@@ -70,13 +73,13 @@ this directory as follows:
 
     .. code-block:: bash
 
-      hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar ${hbase.dynamic.jars.dir}/
+      $ hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar ${hbase.dynamic.jars.dir}/
 
   .. group-tab:: HBase 1.x
 
     .. code-block:: bash
 
-      hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar ${hbase.dynamic.jars.dir}/
+      $ hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar ${hbase.dynamic.jars.dir}/
 
 If running on top of Amazon S3, you will need to use the ``aws s3`` command line tool.
 
@@ -86,13 +89,13 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 
     .. code-block:: bash
 
-      aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
+      $ aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
 
   .. group-tab:: HBase 1.x
 
     .. code-block:: bash
 
-      aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
+      $ aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
 
 If required, you may disable distributed processing by setting the system property ``geomesa.hbase.remote.filtering``
 to ``false``. Note that this may have an adverse effect on performance.
@@ -151,10 +154,10 @@ commands. Note that this can be slow, so it is usually better to use ``GEOMESA_H
 
         .. code-block:: bash
 
-            export HADOOP_HOME=/path/to/hadoop
-            export HBASE_HOME=/path/to/hbase
-            export GEOMESA_HBASE_HOME=/opt/geomesa
-            export PATH="${PATH}:${GEOMESA_HBASE_HOME}/bin"
+            $ export HADOOP_HOME=/path/to/hadoop
+            $ export HBASE_HOME=/path/to/hbase
+            $ export GEOMESA_HBASE_HOME=/opt/geomesa
+            $ export PATH="${PATH}:${GEOMESA_HBASE_HOME}/bin"
 
     .. group-tab:: Amazon EMR
 
@@ -168,10 +171,10 @@ commands. Note that this can be slow, so it is usually better to use ``GEOMESA_H
 
         .. code-block:: bash
 
-            export GEOMESA_HADOOP_CLASSPATH=$(hadoop classpath)
-            export GEOMESA_HBASE_CLASSPATH=$(hbase classpath)
-            export GEOMESA_HBASE_HOME=/opt/geomesa
-            export PATH="${PATH}:${GEOMESA_HBASE_HOME}/bin"
+            $ export GEOMESA_HADOOP_CLASSPATH=$(hadoop classpath)
+            $ export GEOMESA_HBASE_CLASSPATH=$(hbase classpath)
+            $ export GEOMESA_HBASE_HOME=/opt/geomesa
+            $ export PATH="${PATH}:${GEOMESA_HBASE_HOME}/bin"
 
     .. group-tab:: HDP
 
@@ -179,10 +182,10 @@ commands. Note that this can be slow, so it is usually better to use ``GEOMESA_H
 
         .. code-block:: bash
 
-            export HADOOP_HOME=/usr/hdp/current/hadoop-client/
-            export HBASE_HOME=/usr/hdp/current/hbase-client/
-            export GEOMESA_HBASE_HOME=/opt/geomesa
-            export PATH="${PATH}:${GEOMESA_HBASE_HOME}/bin"
+            $ export HADOOP_HOME=/usr/hdp/current/hadoop-client/
+            $ export HBASE_HOME=/usr/hdp/current/hbase-client/
+            $ export GEOMESA_HBASE_HOME=/opt/geomesa
+            $ export PATH="${PATH}:${GEOMESA_HBASE_HOME}/bin"
 
     .. group-tab:: Standalone
 
@@ -241,16 +244,18 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
     $ echo 'export PATH=${GEOMESA_HBASE_HOME}/bin:$PATH' >> ~/.bashrc
     $ source ~/.bashrc
     $ which geomesa-hbae
-    /path/to/geomesa-hbase_${VERSION}/bin/geomesa-hbase
 
 Running Commands
 ^^^^^^^^^^^^^^^^
 
 Test the command that invokes the GeoMesa Tools:
 
-.. code::
+.. code-block:: bash
 
     $ geomesa-hbase
+
+The output should look like this::
+
     Usage: geomesa-hbase [command] [command options]
       Commands:
       ...

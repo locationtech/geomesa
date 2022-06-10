@@ -34,7 +34,7 @@ object PartitionSort extends SqlProcedure {
        |      ELSE
        |        partition_names := Array(
        |          SELECT relid
-       |            FROM pg_partition_tree(${literal(info.schema.raw + "." + info.tables.mainPartitions.name.raw)}::regclass)
+       |            FROM pg_partition_tree(${info.tables.mainPartitions.name.asRegclass})
        |            WHERE parentrelid IS NOT NULL
        |            ORDER BY relid
        |        );

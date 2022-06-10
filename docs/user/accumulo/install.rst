@@ -5,6 +5,16 @@ Installing GeoMesa Accumulo
 
     GeoMesa currently supports Accumulo |accumulo_supported_versions|.
 
+.. note::
+
+    The examples below expect a version to be set in the environment:
+
+    .. parsed-literal::
+
+        $ export TAG="|release_version|"
+        # note: |scala_binary_version| is the Scala build version
+        $ export VERSION="|scala_binary_version|-${TAG}"
+
 Installing from the Binary Distribution
 ---------------------------------------
 
@@ -13,21 +23,15 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
-.. note::
 
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
-
-Extract it somewhere convenient:
+Download and extract it somewhere convenient:
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_${TAG}/geomesa-accumulo_${VERSION}-bin.tar.gz"
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-accumulo_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-accumulo_${VERSION}-bin.tar.gz
     $ cd geomesa-accumulo_${VERSION}
-    $ ls
-    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
 .. _accumulo_install_source:
 
@@ -83,6 +87,11 @@ Then configure the namespace classpath through the Accumulo shell:
 .. code-block:: bash
 
     $ accumulo shell -u root
+
+Once in the shell:
+
+.. code-block:: bash
+
     > createnamespace myNamespace
     > grant NameSpace.CREATE_TABLE -ns myNamespace -u myUser
     > config -s general.vfs.context.classpath.myNamespace=hdfs://NAME_NODE_FDQN:9000/accumulo/classpath/myNamespace/[^.].*.jar
@@ -171,9 +180,12 @@ Running Commands
 
 Test the command that invokes the GeoMesa Tools:
 
-.. code::
+.. code-block:: bash
 
     $ geomesa-accumulo
+
+The output should look like this::
+
     Usage: geomesa-accumulo [command] [command options]
       Commands:
       ...

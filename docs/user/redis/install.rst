@@ -5,6 +5,16 @@ Installing GeoMesa Redis
 
     GeoMesa currently supports Redis version |redis_version|.
 
+.. note::
+
+    The examples below expect a version to be set in the environment:
+
+    .. parsed-literal::
+
+        $ export TAG="|release_version|"
+        # note: |scala_binary_version| is the Scala build version
+        $ export VERSION="|scala_binary_version|-${TAG}"
+
 Installing the Binary Distribution
 ----------------------------------
 
@@ -13,12 +23,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
-.. note::
-
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
-
-Extract it somewhere convenient:
+Download and extract it somewhere convenient:
 
 .. code-block:: bash
 
@@ -26,8 +31,6 @@ Extract it somewhere convenient:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-redis_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-redis_${VERSION}-bin.tar.gz
     $ cd geomesa-redis_${VERSION}
-    $ ls
-    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
 .. _redis_install_source:
 
@@ -56,9 +59,12 @@ GeoMesa comes with a set of command line tools for managing Redis features locat
 
 Test the command that invokes the GeoMesa Tools:
 
-.. code::
+.. code-block:: bash
 
     $ ./bin/geomesa-redis
+
+The output should look like this::
+
     INFO  Usage: geomesa-redis [command] [command options]
       Commands:
       ...

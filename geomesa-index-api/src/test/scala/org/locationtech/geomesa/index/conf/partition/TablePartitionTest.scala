@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.conf.partition
 
-import java.util.Date
-
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -21,6 +19,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Date
 import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
@@ -74,13 +73,19 @@ class TablePartitionTest extends Specification {
     }
 
     "extract partitions from disjoint filters" in {
-      val filter = ECQL.toFilter("dtg < '2018-01-01T00:00:00.000Z' AND dtg > '2018-02-01T00:00:00.000Z'")
-      val partitionOption = TablePartition(ds, sft)
-      partitionOption must beSome
-      val partition = partitionOption.get
-      val partitionsOption = partition.partitions(filter)
-      partitionsOption must beSome
-      partitionsOption.get must beEmpty
+      val filters = Seq(
+        "dtg < '2018-01-01T00:00:00.000Z' AND dtg > '2018-02-01T00:00:00.000Z'",
+        "dtg >= '2014-01-01T12:00:00.000Z' and dtg < '2014-01-01T12:00:00.001Z' and dtg < '2014-01-01T12:00:00.000Z'",
+        "dtg < '2022-04-18T17:36:47.042Z' AND dtg < '2022-05-17T16:00:00.000Z' AND dtg < '2022-05-20T17:36:46.000Z' AND dtg > '2022-04-20T17:36:46.000Z'"
+      )
+      foreach(filters.map(ECQL.toFilter)) { filter =>
+        val partitionOption = TablePartition(ds, sft)
+        partitionOption must beSome
+        val partition = partitionOption.get
+        val partitionsOption = partition.partitions(filter)
+        partitionsOption must beSome
+        partitionsOption.get must beEmpty
+      }
     }
 
     "extract nothing from non-selective filters" in {

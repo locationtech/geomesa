@@ -208,32 +208,37 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
     * @return
     */
   override def getRanges(values: S3IndexValues, multiplier: Int): Iterator[ScanRange[S3IndexKey]] = {
+    val S3IndexValues(s3, _, geoms, xy, intervals, timesByBin, unboundedBins) = values
 
-    val S3IndexValues(s3, _, _, xy, _, timesByBin, unboundedBins) = values
-
-    // note: `target` will always be Some, as ScanRangesTarget has a default value
-    val target = QueryProperties.ScanRangesTarget.option.map { t =>
-      math.max(1, if (timesByBin.isEmpty) { t.toInt } else { t.toInt / timesByBin.size } / multiplier)
-    }
-
-    val s2CellId = s3.ranges(xy, -1, target)
-
-    val bounded = timesByBin.iterator.flatMap { case (bin, times) =>
-      times.flatMap { time =>
-        s2CellId.map(s => BoundedRange(S3IndexKey(bin, s.lower, time._1), S3IndexKey(bin, s.upper, time._2)))
+    if (geoms.disjoint || intervals.disjoint) {
+      Iterator.empty
+    } else if (timesByBin.isEmpty && unboundedBins.isEmpty) {
+      Iterator.single(UnboundedRange(null))
+    } else {
+      // note: `target` will always be Some, as ScanRangesTarget has a default value
+      val target = QueryProperties.ScanRangesTarget.option.map { t =>
+        math.max(1, if (timesByBin.isEmpty) { t.toInt } else { t.toInt / timesByBin.size } / multiplier)
       }
-    }
 
-    val unbounded = unboundedBins.iterator.map {
-      case (0, Short.MaxValue)     => UnboundedRange(S3IndexKey(0, 0L, 0))
-      case (lower, Short.MaxValue) => LowerBoundedRange(S3IndexKey(lower, 0L, 0))
-      case (0, upper)              => UpperBoundedRange(S3IndexKey(upper, 0L, Int.MaxValue))
-      case (lower, upper) =>
-        logger.error(s"Unexpected unbounded bin endpoints: $lower:$upper")
-        UnboundedRange(S3IndexKey(0, 0L, 0))
-    }
+      val s2CellId = s3.ranges(xy, -1, target)
 
-    bounded ++ unbounded
+      val bounded = timesByBin.iterator.flatMap { case (bin, times) =>
+        times.flatMap { time =>
+          s2CellId.map(s => BoundedRange(S3IndexKey(bin, s.lower, time._1), S3IndexKey(bin, s.upper, time._2)))
+        }
+      }
+
+      val unbounded = unboundedBins.iterator.map {
+        case (0, Short.MaxValue)     => UnboundedRange(S3IndexKey(0, 0L, 0))
+        case (lower, Short.MaxValue) => LowerBoundedRange(S3IndexKey(lower, 0L, 0))
+        case (0, upper)              => UpperBoundedRange(S3IndexKey(upper, 0L, Int.MaxValue))
+        case (lower, upper) =>
+          logger.error(s"Unexpected unbounded bin endpoints: $lower:$upper")
+          UnboundedRange(S3IndexKey(0, 0L, 0))
+      }
+
+      bounded ++ unbounded
+    }
   }
 
   /**

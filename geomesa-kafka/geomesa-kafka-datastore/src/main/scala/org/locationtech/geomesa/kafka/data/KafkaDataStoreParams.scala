@@ -134,6 +134,14 @@ trait KafkaDataStoreParams extends NamespaceParams {
       readWrite = ReadWriteFlag.ReadOnly
     )
 
+  val ConsumerGroupPrefix =
+    new GeoMesaParam[String](
+      "kafka.consumer.group-prefix",
+      "Prefix to use for kafka group ID, to more easily identify particular data stores",
+      supportsNiFiExpressions = true,
+      readWrite = ReadWriteFlag.ReadOnly
+    )
+
   val SerializationType =
     new GeoMesaParam[String](
       "kafka.serialization.type",

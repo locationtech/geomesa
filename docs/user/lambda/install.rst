@@ -1,6 +1,16 @@
 Installing GeoMesa Lambda
 =========================
 
+.. note::
+
+    The examples below expect a version to be set in the environment:
+
+    .. parsed-literal::
+
+        $ export TAG="|release_version|"
+        # note: |scala_binary_version| is the Scala build version
+        $ export VERSION="|scala_binary_version|-${TAG}"
+
 Installing from the Binary Distribution
 ---------------------------------------
 
@@ -9,12 +19,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
-.. note::
-
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
-
-Extract it somewhere convenient:
+Download and extract it somewhere convenient:
 
 .. code-block:: bash
 
@@ -22,8 +27,6 @@ Extract it somewhere convenient:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-lambda_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-lambda_${VERSION}-bin.tar.gz
     $ cd geomesa-lambda_${VERSION}
-    $ ls
-    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
 .. _lambda_install_source:
 
@@ -68,7 +71,7 @@ In order to run map/reduce jobs, the Hadoop ``*-site.xml`` configuration files f
 must be on the classpath. If ``HADOOP_HOME`` is not set, then copy them into ``geomesa-lamdba_${VERSION}/conf``.
 
 GeoMesa also provides the ability to add additional JARs to the classpath using the environmental variable
-``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
+``GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
 classpath, giving it highest precedence in the classpath. Users can provide directories of jar files or individual
 files using a colon (``:``) as a delimiter. These entries will also be added the the map-reduce libjars variable.
 
@@ -85,9 +88,12 @@ Do this with the following command:
 
 Test the command that invokes the GeoMesa Tools:
 
-.. code::
+.. code-block:: bash
 
     $ geomesa-lambda
+
+The output should look like this::
+
     Usage: geomesa-lambda [command] [command options]
       Commands:
       ...
