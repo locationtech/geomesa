@@ -1,5 +1,13 @@
 /***********************************************************************
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 133afd3681 (GEOMESA-3198 Kafka streams integration (#2854))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -28,6 +36,54 @@ import scala.collection.mutable.ArrayBuffer
 package object streams {
 
   /**
+<<<<<<< HEAD
+=======
+   * Data model for a GeoMesa data store message, used as the value in a Kafka record
+   *
+   * @param action message action
+   * @param attributes attributes of the simple feature represented by this message
+   * @param userData user data of the simple feature represented by this message
+   */
+  case class GeoMesaMessage(action: MessageAction, attributes: Seq[AnyRef], userData: Map[String, String] = Map.empty)
+
+  object GeoMesaMessage {
+
+    /**
+     * Create an upsert message
+     *
+     * @param attributes feature attribute values
+     * @return
+     */
+    def upsert(attributes: Seq[AnyRef]): GeoMesaMessage = GeoMesaMessage(MessageAction.Upsert, attributes)
+
+    /**
+     * Create an upsert message
+     *
+     * @param attributes feature attribute values
+     * @param userData feature user data
+     * @return
+     */
+    def upsert(attributes: Seq[AnyRef], userData: Map[String, String]): GeoMesaMessage =
+      GeoMesaMessage(MessageAction.Upsert, attributes, userData)
+
+    /**
+     * Create a delete message
+     *
+     * @return
+     */
+    def delete(): GeoMesaMessage = GeoMesaMessage(MessageAction.Delete, Seq.empty)
+  }
+
+  /**
+   * Types of messages
+   */
+  object MessageAction extends Enumeration {
+    type MessageAction = Value
+    val Upsert, Delete = Value
+  }
+
+  /**
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
    * Trait for provided metadata about a feature type topic
    */
   trait HasTopicMetadata {
@@ -132,7 +188,11 @@ package object streams {
           val sft = ds.getSchema(typeNames(i))
           KafkaDataStore.topic(sft) match {
             case t if t == topic =>
+<<<<<<< HEAD
               val internal = ds.serialization(sft).serializer
+=======
+              val internal = ds.serialization(sft, ds.config.serialization, `lazy` = false).serializer
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
               return new GeoMesaMessageSerializer(sft, internal)
 
             case t => topics += t
@@ -191,7 +251,11 @@ package object streams {
           }
           builder.result
         }
+<<<<<<< HEAD
         GeoMesaMessage.upsert(feature.getAttributes.asScala.toSeq, userData)
+=======
+        GeoMesaMessage.upsert(feature.getAttributes.asScala, userData)
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
       }
     }
 
@@ -212,7 +276,11 @@ package object streams {
    *
    * See
    *   * @see [[org.locationtech.geomesa.features.kryo.impl.KryoFeatureSerialization#writeFeature]]
+<<<<<<< HEAD
    *   * @see [[org.locationtech.geomesa.features.avro.serialization.SimpleFeatureDatumWriter#write]]
+=======
+   *   * @see [[org.locationtech.geomesa.features.avro.AvroSimpleFeatureWriter#write]]
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
    *
    * @param converters attribute converters to enforce feature type schema
    * @param attributes message attributes
