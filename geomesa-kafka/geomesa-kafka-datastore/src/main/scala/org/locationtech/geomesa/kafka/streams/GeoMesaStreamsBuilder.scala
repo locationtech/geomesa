@@ -56,8 +56,15 @@ import org.apache.kafka.common.serialization.Serde
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.kstream.GlobalKTable
@@ -122,8 +129,15 @@ class GeoMesaStreamsBuilder(
 =======
     val serde: GeoMesaSerde,
     val timestampExtractor: TimestampExtractor,
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
     resetPolicy: Option[AutoOffsetReset]) {
 
   import org.apache.kafka.streams.scala.Serdes.String
@@ -178,8 +192,15 @@ class GeoMesaStreamsBuilder(
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
    * Create a stream of updates for a given feature type
    *
    * @param typeName feature type name
@@ -424,6 +445,7 @@ object GeoMesaStreamsBuilder {
     val timestamps = Option(timestampExtractor).getOrElse(GeoMesaTimestampExtractor(jParams))
     val reset = Option(resetPolicy).orElse(resetConfig(jParams))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -437,6 +459,12 @@ object GeoMesaStreamsBuilder {
 =======
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
     new GeoMesaStreamsBuilder(builder, serde, timestamps, reset)
   }
 
