@@ -18,6 +18,7 @@ package org.locationtech.geomesa.kafka
 
 import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.utils.concurrent.LazyCloseable
 
 package object data {
@@ -29,6 +30,11 @@ package object data {
       extends LazyCloseable[Producer[Array[Byte], Array[Byte]]](create)
 =======
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
+=======
+=======
+import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 
 import java.io.Closeable
 

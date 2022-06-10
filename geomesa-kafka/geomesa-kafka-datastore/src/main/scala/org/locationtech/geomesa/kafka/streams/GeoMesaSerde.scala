@@ -23,7 +23,11 @@ import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.TypeSpecificSerde
 =======
 import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.GeoMesaSerializer
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 
 /**
  * Serde for reading and writing to GeoMesa Kafka topics
@@ -86,7 +90,11 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
   override def deserializer(): Deserializer[GeoMesaMessage] = impl
 
   override def close(): Unit = CloseWithLogging(Option(impl))
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 }
 
 object GeoMesaSerde {
@@ -133,7 +141,11 @@ object GeoMesaSerde {
     override def deserialize(topic: String, data: Array[Byte]): GeoMesaMessage =
       deserializerCache.serializer(topic).deserialize(data)
 
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
     override def close(): Unit = {}
   }
 }
