@@ -34931,6 +34931,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -35051,6 +35052,9 @@
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -35199,6 +35203,7 @@
         </dependencies>
     </dependencyManagement>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -35408,4 +35413,7 @@
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 </project>
