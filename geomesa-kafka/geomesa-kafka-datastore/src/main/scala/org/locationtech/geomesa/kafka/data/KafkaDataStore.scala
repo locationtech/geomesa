@@ -699,7 +699,9 @@ class KafkaDataStore(
     val config: KafkaDataStoreConfig,
     val metadata: GeoMesaMetadata[String],
     private[kafka] val serialization: GeoMessageSerializerFactory
+<<<<<<< HEAD
   ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with LocalLocking {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -713,6 +715,11 @@ class KafkaDataStore(
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+  ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 
   import KafkaDataStore.TopicKey
   import org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG
@@ -725,6 +732,7 @@ class KafkaDataStore(
   // note: sharing a single producer is generally faster
   // http://kafka.apache.org/0110/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1079,15 +1087,23 @@ class KafkaDataStore(
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
   @volatile
   private var producerInitialized = false
 
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 17f13b3a7a (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
   // only instantiate the producer if needed
   private val defaultProducer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))
   // noinspection ScalaDeprecation
   private val partitionedProducer = new LazyProducer(KafkaDataStore.producer(config))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1219,10 +1235,14 @@ class KafkaDataStore(
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 
   // view type name -> actual type name
   private val layerViewLookup =
     config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 
   // view type name -> actual type name
   private val layerViewLookup =
@@ -2227,7 +2247,7 @@ class KafkaDataStore(
 =======
 =======
     }
-    val producer = getTransactionalProducer(transaction)
+    val producer = getTransactionalProducer(sft, transaction)
     val vis = sft.isVisibilityRequired
     val writer = filter match {
       case None if vis    => new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
@@ -2312,6 +2332,14 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+  private def getTransactionalProducer(sft: SimpleFeatureType, transaction: Transaction): KafkaFeatureProducer = {
+    val useDefaultPartitioning = KafkaDataStore.usesDefaultPartitioning(sft)
+
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
     if (transaction == null || transaction == Transaction.AUTO_COMMIT) {
       val producer = if (useDefaultPartitioning) { defaultProducer.instance } else { partitionedProducer.instance }
 =======
