@@ -569,6 +569,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dda4841622 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -615,6 +616,8 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> edc8a66bcf (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 12ae1c3224 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 62d59495fc (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -686,6 +689,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 =======
 >>>>>>> 49337228be (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -955,6 +959,10 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> edc8a66bcf (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 12ae1c3224 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> b26fc9b517 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 0d3cbc99a2 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -1314,10 +1322,13 @@ class AttributeIndexTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7fd052e7d2 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> a317af9cbb (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 914ec419f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 7ef22a4bb2 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -1391,6 +1402,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> d488f41800 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 49337228be (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -1488,6 +1500,10 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> edc8a66bcf (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 12ae1c3224 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 0d3cbc99a (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -1904,6 +1920,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -1926,6 +1943,10 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> a0080e0bc3 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 47d1ea3e58 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+=======
+>>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 5e66748475 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 =======
@@ -1935,6 +1956,9 @@ class AttributeIndexTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 0e67f36558 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 =======
@@ -1962,6 +1986,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 =======
 >>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
+<<<<<<< HEAD
 >>>>>>> 0e67f36558 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> f502df5b55 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -1994,8 +2019,11 @@ class AttributeIndexTest extends Specification with LazyLogging {
 =======
 >>>>>>> a0080e0bc3 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 54fb5ef95 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2053,6 +2081,10 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> a0080e0bc3 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 9513a4f9a1 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> ce2ad87199 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 =======
@@ -2298,8 +2330,11 @@ class AttributeIndexTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 12ae1c3224 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 8290d4c47d (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -2893,6 +2928,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 =======
 >>>>>>> 8290d4c47d (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 =======
 >>>>>>> 7fd052e7d2 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -3511,6 +3547,8 @@ class AttributeIndexTest extends Specification with LazyLogging {
 =======
 >>>>>>> 49337228be (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 12ae1c3224 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 
     "handle filter.EXCLUDE with query hint" in {
       val ds = new TestGeoMesaDataStore(true)
@@ -3740,6 +3778,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 368c971e25 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -3792,6 +3831,8 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> edc8a66bcf (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 12ae1c3224 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 =======
 >>>>>>> ba7f2715c5 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -3931,6 +3972,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 =======
 >>>>>>> 49337228be (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -4180,6 +4222,10 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> edc8a66bcf (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 12ae1c3224 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 9bde42cc4b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> b26fc9b517 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -4597,6 +4643,9 @@ class AttributeIndexTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 914ec419f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 <<<<<<< HEAD
@@ -4695,6 +4744,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> d488f41800 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 49337228be (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -4808,9 +4858,14 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> edc8a66bcf (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 12ae1c3224 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4859,6 +4914,8 @@ class AttributeIndexTest extends Specification with LazyLogging {
 =======
 >>>>>>> 1bb9e950cb (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
 >>>>>>> 098897eb4d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> da4aaa8268 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -4868,6 +4925,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> c843b1759d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 016cb417cc (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -4921,6 +4979,10 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> 75e5f895f3 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 1bb9e950cb (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 54fb5ef951 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 =======
@@ -5007,8 +5069,11 @@ class AttributeIndexTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1bb9e950cb (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 8290d4c47d (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 =======
@@ -5115,6 +5180,10 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> c843b1759d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 016cb417cc (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 8290d4c47d (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 0d3cbc99a (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -5830,10 +5899,14 @@ class AttributeIndexTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 49337228be (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 =======
 >>>>>>> f502df5b55 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -5866,6 +5939,8 @@ class AttributeIndexTest extends Specification with LazyLogging {
 =======
 >>>>>>> 49337228be (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 12ae1c3224 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 5e66748475 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 =======
@@ -6097,10 +6172,13 @@ class AttributeIndexTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7fd052e7d2 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> a317af9cbb (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 =======
 >>>>>>> 914ec419f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -6733,6 +6811,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 =======
 >>>>>>> d488f41800 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 49337228be (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -7426,5 +7505,9 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> edc8a66bcf (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 12ae1c3224 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+=======
+>>>>>>> aa97c88bce (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> 711988934b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
   }
 }
