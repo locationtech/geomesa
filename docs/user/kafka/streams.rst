@@ -101,12 +101,15 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 .. code-block:: scala
 =======
@@ -189,6 +192,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+<<<<<<< HEAD
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
@@ -293,6 +297,8 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 .. code-block:: scala
 
     import org.apache.kafka.streams.scala.ImplicitConversions._
@@ -324,6 +330,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
     // construct the streams app as normal
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -335,7 +342,12 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 =======
 =======
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 
 Write Example
 -------------
@@ -410,12 +422,15 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 .. code-block:: scala
 =======
@@ -495,6 +510,7 @@ The following shows how to persist data back to a GeoMesa topic:
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+<<<<<<< HEAD
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
@@ -596,6 +612,8 @@ The following shows how to persist data back to a GeoMesa topic:
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 .. code-block:: scala
 
     import org.apache.kafka.streams.scala.ImplicitConversions._
@@ -626,6 +644,7 @@ The following shows how to persist data back to a GeoMesa topic:
     // construct the streams app as normal
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -637,7 +656,12 @@ The following shows how to persist data back to a GeoMesa topic:
 =======
 =======
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 
 Joins and Topic Partitioning
 ----------------------------
