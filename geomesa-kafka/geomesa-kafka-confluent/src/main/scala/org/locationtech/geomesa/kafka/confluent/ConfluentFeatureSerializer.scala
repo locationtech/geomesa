@@ -373,6 +373,7 @@ class ConfluentFeatureSerializer(
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
     }
 
+<<<<<<< HEAD
     // visibility field index in the avro schema
     private val visibilityField = schema.getFields.asScala.collectFirst {
       case f if Option(f.getProp(GeoMesaAvroVisibilityField.KEY)).exists(_.toBoolean) => f.pos()
@@ -443,6 +444,7 @@ class ConfluentFeatureSerializer(
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 <<<<<<< HEAD
@@ -476,6 +478,9 @@ class ConfluentFeatureSerializer(
 =======
 <<<<<<< HEAD
 >>>>>>> 88e1e7d3ff (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+<<<<<<< HEAD
+>>>>>>> 7442d73a4d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
   override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
     val record = kafkaAvroDeserializers.get.deserialize("", bytes).asInstanceOf[GenericRecord]
@@ -514,6 +519,7 @@ class ConfluentFeatureSerializer(
 
   override def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError()
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> d657014c8 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -559,6 +565,9 @@ class ConfluentFeatureSerializer(
 =======
 =======
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> d657014c8 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 7442d73a4d (GEOMESA-3198 Kafka streams integration (#2854))
   override def deserialize(id: String, in: InputStream): SimpleFeature =
     throw new NotImplementedError()
 
