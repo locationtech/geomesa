@@ -10,7 +10,15 @@ package org.locationtech.geomesa.gt.partition.postgis
 
 import org.geotools.data.postgis.{PostGISDialect, PostGISPSDialect, PostgisNGDataStoreFactory}
 import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
+<<<<<<< HEAD
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
+=======
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect
+import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
+
+import java.sql.{Connection, DatabaseMetaData}
+>>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 
 class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 
@@ -53,7 +61,24 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
         val simplify = PostgisNGDataStoreFactory.SIMPLIFY.lookUp(params)
         dialect.setSimplifyEnabled(simplify == null || simplify == java.lang.Boolean.TRUE)
 
+<<<<<<< HEAD
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
+=======
+        ds.setSQLDialect(new PostGISPSDialect(ds, dialect) {
+          // fix bug with PostGISPSDialect dialect not delegating these methods
+          override def getDefaultVarcharSize: Int = dialect.getDefaultVarcharSize
+          override def encodeTableName(raw: String, sql: StringBuffer): Unit = dialect.encodeTableName(raw, sql)
+          override def postCreateFeatureType(
+              featureType: SimpleFeatureType,
+              metadata: DatabaseMetaData,
+              schemaName: String,
+              cx: Connection): Unit = {
+            dialect.postCreateFeatureType(featureType, metadata, schemaName, cx)
+          }
+          override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
+            dialect.splitFilter(filter, schema)
+        })
+>>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
     }
