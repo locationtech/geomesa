@@ -121,8 +121,11 @@ import org.apache.kafka.common.serialization.Serde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -274,6 +277,7 @@ import org.apache.kafka.common.serialization.Serde
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -333,6 +337,13 @@ import org.apache.kafka.common.serialization.Serde
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locationtech-main
+=======
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.kstream.GlobalKTable
@@ -383,8 +394,11 @@ class GeoMesaStreamsBuilder(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -480,11 +494,22 @@ class GeoMesaStreamsBuilder(
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
     val serde: GeoMesaSerde,
     val timestampExtractor: TimestampExtractor,
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
+<<<<<<< HEAD
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -550,6 +575,7 @@ class GeoMesaStreamsBuilder(
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -643,6 +669,11 @@ class GeoMesaStreamsBuilder(
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
     resetPolicy: Option[AutoOffsetReset]) {
 
   import org.apache.kafka.streams.scala.Serdes.String
@@ -691,8 +722,11 @@ class GeoMesaStreamsBuilder(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -844,6 +878,7 @@ class GeoMesaStreamsBuilder(
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -903,6 +938,13 @@ class GeoMesaStreamsBuilder(
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locationtech-main
+=======
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
    * Create a stream of updates for a given feature type
    *
    * @param typeName feature type name
@@ -1127,6 +1169,7 @@ object GeoMesaStreamsBuilder {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -1143,6 +1186,8 @@ object GeoMesaStreamsBuilder {
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f06b6e106b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 <<<<<<< HEAD
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
@@ -1239,6 +1284,7 @@ object GeoMesaStreamsBuilder {
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
@@ -1266,6 +1312,12 @@ object GeoMesaStreamsBuilder {
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locationtech-main
+=======
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
       streamsBuilder: StreamsBuilder): GeoMesaStreamsBuilder = {
     val jParams = params.asJava
     val serde = new GeoMesaSerde()
@@ -1274,6 +1326,11 @@ object GeoMesaStreamsBuilder {
     val timestamps = Option(timestampExtractor).getOrElse(GeoMesaTimestampExtractor(jParams))
     val reset = Option(resetPolicy).orElse(resetConfig(jParams))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1381,6 +1438,7 @@ object GeoMesaStreamsBuilder {
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
@@ -1432,6 +1490,12 @@ object GeoMesaStreamsBuilder {
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
     new GeoMesaStreamsBuilder(builder, serde, timestamps, reset)
   }
 
