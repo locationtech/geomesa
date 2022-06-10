@@ -13235,6 +13235,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -13254,10 +13255,13 @@
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13284,6 +13288,10 @@
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -13445,6 +13453,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -13459,6 +13468,8 @@
 >>>>>>> f06b6e106b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -13490,6 +13501,7 @@
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -13539,4 +13551,6 @@
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
 </project>
