@@ -175,6 +175,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c7527e3843 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
@@ -189,6 +190,8 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 >>>>>>> 3d9764749f (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> d022c4befe (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -217,6 +220,8 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 8caa458e72 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
 >>>>>>> d022c4bef (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 592e71a19e (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -226,6 +231,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 =======
 >>>>>>> 5b15f98fa (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
+<<<<<<< HEAD
 >>>>>>> 1f18a8088 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> e53e7db1e2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -254,6 +260,8 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 >>>>>>> 4c943341c (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> 3d9764749f (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
           if (qs.values.isEmpty && qs.ranges.nonEmpty) {
             qs.filter.secondary.foreach { f =>
               logger.warn(
@@ -285,12 +293,15 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a3651df0c4 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> b7410da0d3 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 3d9764749f (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> d022c4befe (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 =======
@@ -317,8 +328,11 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 =======
 >>>>>>> 8caa458e72 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
+<<<<<<< HEAD
 >>>>>>> 83be617313 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
+=======
+>>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> d022c4bef (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -336,10 +350,14 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 5b15f98fa (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 8caa458e72 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -408,6 +426,9 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 8caa458e72 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
           ds.adapter.createQueryPlan(qs)
         }
       }
