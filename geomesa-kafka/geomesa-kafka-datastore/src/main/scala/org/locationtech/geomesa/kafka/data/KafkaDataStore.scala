@@ -421,11 +421,11 @@ object KafkaDataStore extends LazyLogging {
   /**
    * Create a Kafka producer
    *
-   * @param boostrapServers Kafka bootstrap servers config
+   * @param bootstrapServers Kafka bootstrap servers config
    * @param properties Kafka producer properties
    * @return
    */
-  def producer(boostrapServers: String, properties: Map[String, String]): Producer[Array[Byte], Array[Byte]] = {
+  def producer(bootstrapServers: String, properties: Map[String, String]): Producer[Array[Byte], Array[Byte]] = {
     import org.apache.kafka.clients.producer.ProducerConfig._
 
     val props = new Properties()
@@ -435,7 +435,7 @@ object KafkaDataStore extends LazyLogging {
     props.put(LINGER_MS_CONFIG, Int.box(3)) // helps improve batching at the expense of slight delays in write
     props.put(KEY_SERIALIZER_CLASS_CONFIG, classOf[ByteArraySerializer].getName)
     props.put(VALUE_SERIALIZER_CLASS_CONFIG, classOf[ByteArraySerializer].getName)
-    props.put(BOOTSTRAP_SERVERS_CONFIG, boostrapServers)
+    props.put(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
     properties.foreach { case (k, v) => props.put(k, v) }
     new KafkaProducer[Array[Byte], Array[Byte]](props)
   }
