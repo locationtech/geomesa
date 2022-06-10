@@ -94,10 +94,14 @@
             <version>${confluent.version}</version>
             <scope>test</scope>
             <exclusions>
+                <!-- exclude scala jars so that we can bring in 2.12 or 2.11 as appropriate -->
                 <exclusion>
-                    <!-- exclude 2.11 jar so that we can bring in 2.12 or 2.11 as appropriate-->
                     <groupId>org.apache.kafka</groupId>
                     <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.kjetland</groupId>
+                    <artifactId>mbknor-jackson-jsonschema_2.12</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -108,16 +112,32 @@
             <classifier>tests</classifier>
             <scope>test</scope>
             <exclusions>
+                <!-- exclude scala jars so that we can bring in 2.12 or 2.11 as appropriate -->
                 <exclusion>
-                    <!-- exclude 2.11 jar so that we can bring in 2.12 or 2.11 as appropriate-->
                     <groupId>org.apache.kafka</groupId>
                     <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.kjetland</groupId>
+                    <artifactId>mbknor-jackson-jsonschema_2.12</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
         <dependency>
+            <!-- from kafka-schema-registry, above -->
+            <groupId>com.kjetland</groupId>
+            <artifactId>mbknor-jackson-jsonschema_${scala.binary.version}</artifactId>
+            <version>1.0.39</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-kafka-datastore_${scala.binary.version}</artifactId>
+            <classifier>tests</classifier>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

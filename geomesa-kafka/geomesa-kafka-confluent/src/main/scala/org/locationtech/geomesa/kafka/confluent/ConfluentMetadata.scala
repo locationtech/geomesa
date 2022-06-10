@@ -22,8 +22,7 @@ import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
-class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient,
-                        sftOverrides: Map[String, SimpleFeatureType] = Map.empty)
+class ConfluentMetadata(schemaRegistry: SchemaRegistryClient, sftOverrides: Map[String, SimpleFeatureType] = Map.empty)
   extends GeoMesaMetadata[String] with LazyLogging {
 
   private val topicSftCache: LoadingCache[String, String] = {
@@ -57,15 +56,19 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient,
   }
 
   override def read(typeName: String, key: String, cache: Boolean): Option[String] = {
-    if (key != GeoMesaMetadata.AttributesKey) {
-      logger.warn(s"Requested read on ConfluentMetadata with unsupported key $key. " +
-        s"ConfluentMetadata only supports ${GeoMesaMetadata.AttributesKey}")
-      None
-    } else {
+    if (key == GeoMesaMetadata.AttributesKey) {
       if (!cache) {
         topicSftCache.invalidate(typeName)
       }
       Option(topicSftCache.get(typeName))
+    } else if (typeName == "migration" && key == "check") {
+      // skip metadata migration check since there's nothing to migrate
+      Some("true")
+    } else {
+      logger.warn(
+        s"Requested read on ConfluentMetadata with unsupported key $key. " +
+            s"ConfluentMetadata only supports ${GeoMesaMetadata.AttributesKey}")
+      None
     }
   }
 

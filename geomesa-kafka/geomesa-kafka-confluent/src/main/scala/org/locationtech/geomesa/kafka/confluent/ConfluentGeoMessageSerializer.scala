@@ -21,32 +21,27 @@ import java.nio.charset.StandardCharsets
 class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: ConfluentFeatureSerializer)
     extends GeoMessageSerializer(sft, serializer, null, null, 0) {
 
-  override def serialize(msg: GeoMessage): (Array[Byte], Array[Byte], Map[String, Array[Byte]]) =
-    throw new NotImplementedError("Confluent data store is read-only")
-
   override def deserialize(
       key: Array[Byte],
       value: Array[Byte],
       headers: Map[String, Array[Byte]],
       timestamp: Long): GeoMessage = {
-    if (key.isEmpty) { Clear } else {
-      val id = new String(key, StandardCharsets.UTF_8)
-      if (value == null) { Delete(id) } else { Change(serializer.deserialize(id, value)) }
-    }
+    // by-pass header and old version checks
+    super.deserialize(key, value, serializer)
   }
 }
 
 object ConfluentGeoMessageSerializer {
-  class ConfluentGeoMessageSerializerFactory(
-    schemaRegistryUrl: URL,
-    schemaOverrides: Map[String, Schema]
-  ) extends GeoMessageSerializerFactory {
+
+  class ConfluentGeoMessageSerializerFactory(schemaRegistryUrl: URL, schemaOverrides: Map[String, Schema])
+      extends GeoMessageSerializerFactory {
     override def apply(
         sft: SimpleFeatureType,
         serialization: SerializationType,
         `lazy`: Boolean): GeoMessageSerializer = {
-      val serializer = ConfluentFeatureSerializer.builder(sft, schemaRegistryUrl, schemaOverrides.get(sft.getTypeName))
-        .withoutId.withUserData.build()
+      val serializer =
+        ConfluentFeatureSerializer.builder(sft, schemaRegistryUrl, schemaOverrides.get(sft.getTypeName))
+            .withoutId.withUserData.build()
       new ConfluentGeoMessageSerializer(sft, serializer)
     }
   }
