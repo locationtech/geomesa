@@ -703,12 +703,15 @@ org.apache.spark:spark-sql_2.12	3.3.1	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 org.scala-lang:scala-compiler	2.12.17	provided
 =======
 =======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> 8d7834ec11 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.0	provided
 org.apache.accumulo:accumulo-start	2.0.0	provided
@@ -742,7 +745,37 @@ org.scala-lang:scala-compiler	2.12.13	provided
 =======
 org.scala-lang:scala-compiler	2.12.17	provided
 >>>>>>> 8add6fe71 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+org.scala-lang:scala-compiler	2.12.17	provided
+=======
+=======
+org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.0	provided
+org.apache.accumulo:accumulo-start	2.0.0	provided
+org.apache.hadoop:hadoop-annotations	2.8.5	provided
+org.apache.hadoop:hadoop-client	2.8.5	provided
+org.apache.hadoop:hadoop-common	2.8.5	provided
+org.apache.hadoop:hadoop-distcp	2.8.5	provided
+org.apache.hadoop:hadoop-hdfs	2.8.5	provided
+org.apache.hadoop:hadoop-mapreduce-client-common	2.8.5	provided
+org.apache.hadoop:hadoop-mapreduce-client-core	2.8.5	provided
+org.apache.hadoop:hadoop-yarn-api	2.8.5	provided
+org.apache.hadoop:hadoop-yarn-common	2.8.5	provided
+org.apache.hbase:hbase-server	2.2.3	provided
+org.apache.kafka:kafka_2.12	2.1.1	provided
+org.apache.kafka:kafka-clients	2.1.1	provided
+org.apache.kafka:kafka-streams	2.1.1	provided
+org.apache.kafka:kafka-streams-scala_2.12	2.1.1	provided
+org.apache.spark:spark-catalyst_2.12	2.4.7	provided
+org.apache.spark:spark-core_2.12	2.4.7	provided
+org.apache.spark:spark-sql_2.12	2.4.7	provided
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+org.scala-lang:scala-compiler	2.12.13	provided
+>>>>>>> 1b8cbf843 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 30fda14bf2 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 8d7834ec11 (GEOMESA-3198 Kafka streams integration (#2854))
 org.slf4j:slf4j-reload4j	1.7.36	provided
 <<<<<<< HEAD
 org.springframework.security:spring-security-core	5.8.3	provided
@@ -807,10 +840,19 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 30fda14bf2 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 8d7834ec11 (GEOMESA-3198 Kafka streams integration (#2854))
 org.apache.arrow:arrow-vector	tests:11.0.0	test
 >>>>>>> 484744b8297 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 2e299e67fda (GEOMESA-3198 Kafka streams integration (#2854))
@@ -882,8 +924,17 @@ org.apache.accumulo:accumulo-test	2.0.0	test
 org.apache.arrow:arrow-vector	tests:0.16.0	test
 org.apache.camel:camel-netty4	2.24.1	test
 org.apache.cassandra:cassandra-all	3.0.0	test
+<<<<<<< HEAD
 >>>>>>> f01ac238e (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+=======
+=======
+>>>>>>> 1b8cbf843 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 30fda14bf2 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 8d7834ec11 (GEOMESA-3198 Kafka streams integration (#2854))
 org.apache.curator:curator-test	2.7.1	test
 org.apache.hadoop:hadoop-minicluster	2.8.5	test
 org.apache.hbase:hbase-testing-util	1.4.12	test
@@ -891,6 +942,7 @@ org.apache.hbase:hbase-testing-util	2.2.3	test
 org.apache.kafka:kafka_2.12	test:2.1.1	test
 org.apache.kafka:kafka-clients	test:2.1.1	test
 org.apache.kafka:kafka-streams-test-utils	2.1.1	test
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -936,10 +988,17 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 >>>>>>> 1b8cbf843 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> 8d7834ec11 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 org.cassandraunit:cassandra-unit	2.2.2.1	test
 >>>>>>> 1b8cbf843 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 30fda14bf2 (GEOMESA-3198 Kafka streams integration (#2854))
 org.cassandraunit:cassandra-unit	2.2.2.1	test
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> f01ac238e (GEOMESA-3198 Kafka streams integration (#2854))
