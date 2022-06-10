@@ -56,14 +56,20 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
       ec: EvaluationContext): CloseableIterator[Array[Any]] = {
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     val array = Array.ofDim[Any](1)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> geomesa-kafka
     val array = Array.ofDim[Any](2)
 =======
     val array = Array.ofDim[Any](1)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> geomesa-kafka
 
     helper.get.rootPath match {
       case None =>

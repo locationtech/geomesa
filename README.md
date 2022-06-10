@@ -38,11 +38,14 @@ geospatial analytics.
 ## Downloads
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Current release: [3.3.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.3.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> geomesa-kafka
 **Current release: [3.4.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.4.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -57,7 +60,10 @@ geospatial analytics.
 **Current release: [3.3.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.3.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> geomesa-kafka
   [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-hbase_2.12-3.3.0-bin.tar.gz) |
   [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-accumulo_2.12-3.3.0-bin.tar.gz) |
   [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-cassandra_2.12-3.3.0-bin.tar.gz) |
@@ -66,9 +72,13 @@ geospatial analytics.
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-fs_2.12-3.3.0-bin.tar.gz) |
   [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-bigtable_2.12-3.3.0-bin.tar.gz)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> locationtech-main
+=======
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> geomesa-kafka
 
 ### Verifying Downloads
 
@@ -83,14 +93,20 @@ Then verify the file:
 
 ```bash
 <<<<<<< HEAD
+<<<<<<< HEAD
 $ gpg2 --verify geomesa-accumulo_2.12-3.3.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.3.0-bin.tar.gz
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> geomesa-kafka
 $ gpg2 --verify geomesa-accumulo_2.12-3.4.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.4.0-bin.tar.gz
 =======
 $ gpg2 --verify geomesa-accumulo_2.12-3.3.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.3.0-bin.tar.gz
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> geomesa-kafka
 ```
 
 The keys currently used for signing are:
@@ -111,14 +127,20 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-hbase-datastore_2.12</artifactId>
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>3.3.0</version>
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> geomesa-kafka
   <version>3.4.0</version>
 =======
   <version>3.3.0</version>
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> geomesa-kafka
 </dependency>
 ```
 
@@ -143,12 +165,24 @@ GeoMesa in your project, add the following repositories to your pom:
 ### Nightly Snapshots
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Snapshot versions are published nightly to the Eclipse repository:
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 Snapshot versions are published nightly to the Eclipse repository:
 =======
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+Snapshot versions are published nightly to the Eclipse repository:
+=======
+>>>>>>> geomesa-kafka
 ```xml
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
@@ -171,10 +205,25 @@ To download from the LocationTech Maven repository (required for older versions)
 
 For nightly snapshot integration, add:
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 =======
 Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+Snapshot versions are published nightly to the Eclipse repository:
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+Snapshot versions are published nightly to the Eclipse repository:
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> geomesa-kafka
 
 ```xml
 <repository>
@@ -201,14 +250,20 @@ DataStore implementations:
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>3.3.0</version>
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> geomesa-kafka
   <version>3.4.0</version>
 =======
   <version>3.3.0</version>
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> geomesa-kafka
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
@@ -235,14 +290,20 @@ resolvers ++= Seq(
 // Select desired modules
 libraryDependencies ++= Seq(
 <<<<<<< HEAD
+<<<<<<< HEAD
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.3.0"
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> geomesa-kafka
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.4.0"
 =======
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.3.0"
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> geomesa-kafka
 )
 ```
 
@@ -250,6 +311,21 @@ libraryDependencies ++= Seq(
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> geomesa-kafka
 **Development version: 3.4.0-SNAPSHOT**
 =======
 <<<<<<< HEAD
@@ -257,20 +333,50 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 =======
 >>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
+=======
+>>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> geomesa-kafka
 **Development version: 3.5.0-SNAPSHOT**
 =======
 **Development version: 4.0.0-SNAPSHOT**
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> geomesa-kafka
 =======
 **Development version: 3.3.0-SNAPSHOT**
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 **Development version: 3.4.0-SNAPSHOT**
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+**Development version: 3.3.0-SNAPSHOT**
+>>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> geomesa-kafka
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)

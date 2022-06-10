@@ -4,10 +4,24 @@ recommonmark==0.4.0
 sphinx-rtd-theme==0.4.2
 docutils<0.18
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 jinja2<3.1.0
 <<<<<<< HEAD
+=======
+jinja2<3.1.0
+<<<<<<< HEAD
+sphinx-copybutton==0.5.0
+=======
+>>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
+=======
+<<<<<<< HEAD
+>>>>>>> geomesa-kafka
 >>>>>>> locationtech-main
 =======
 sphinx-copybutton==0.5.0
 >>>>>>> bea966ce8 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
+=======
+>>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
+>>>>>>> geomesa-kafka

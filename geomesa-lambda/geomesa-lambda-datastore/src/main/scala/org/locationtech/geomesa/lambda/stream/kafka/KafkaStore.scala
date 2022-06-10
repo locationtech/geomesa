@@ -52,6 +52,7 @@ class KafkaStore(
   private val offsetManager = config.offsetManager
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 =======
 <<<<<<< HEAD
@@ -64,6 +65,31 @@ class KafkaStore(
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+  private val producer = KafkaStore.producer(sft, config.producerConfig)
+=======
+  private val producer = KafkaStore.producer(config.producerConfig)
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+  private val producer = KafkaStore.producer(sft, config.producerConfig)
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+  private val producer = KafkaStore.producer(sft, config.producerConfig)
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> geomesa-kafka
 
   private val topic = KafkaStore.topic(config.zkNamespace, sft)
 

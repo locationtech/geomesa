@@ -18,10 +18,20 @@ import java.util.{Collections, Date}
 <<<<<<< HEAD
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+<<<<<<< HEAD
+>>>>>>> geomesa-kafka
+<<<<<<< HEAD
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> locationtech-main
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
+=======
+>>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> geomesa-kafka
 import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.ConfigCommand.{ConfigEntity, Entity}
 import kafka.zk.{AdminZkClient, KafkaZkClient}
@@ -675,6 +685,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       }
     }
 
+<<<<<<< HEAD
     "support listeners without indexing" >> {
       val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
       val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
@@ -718,6 +729,8 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       }
     }
 
+=======
+>>>>>>> geomesa-kafka
     "support transactions" >> {
       val (producer, consumer, _) = createStorePair()
       try {
@@ -779,19 +792,37 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           |""".stripMargin
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> geomesa-kafka
       val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
+=======
+>>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> geomesa-kafka
       val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
 =======
       val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> geomesa-kafka
       try {
         val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
         producer.createSchema(sft)

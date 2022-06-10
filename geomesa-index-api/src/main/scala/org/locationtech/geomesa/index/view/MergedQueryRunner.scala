@@ -93,22 +93,31 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
           }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         Option(query.getSortBy).filterNot(_.isEmpty) match {
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> geomesa-kafka
         val results = Option(query.getSortBy).filterNot(_.isEmpty) match {
 =======
         Option(query.getSortBy).filterNot(_.isEmpty) match {
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> geomesa-kafka
           case None => SelfClosingIterator(iters.iterator).flatMap(i => i)
           case Some(sort) =>
             val sortSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
             // the delegate stores should sort their results, so we can sort merge them
             new SortedMergeIterator(iters)(SimpleFeatureOrdering(sortSft, sort))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> geomesa-kafka
         }
 
         maxFeatures match {
@@ -116,7 +125,10 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
           case Some(m) => results.take(m)
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> geomesa-kafka
         }
       }
     }
