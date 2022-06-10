@@ -472,6 +472,7 @@ class ConfluentFeatureSerializer(
 >>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
     }
 
+<<<<<<< HEAD
     // visibility field index in the avro schema
     private val visibilityField = schema.getFields.asScala.collectFirst {
       case f if Option(f.getProp(GeoMesaAvroVisibilityField.KEY)).exists(_.toBoolean) => f.pos()
@@ -584,6 +585,7 @@ class ConfluentFeatureSerializer(
 =======
 >>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+<<<<<<< HEAD
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
 =======
@@ -604,6 +606,8 @@ class ConfluentFeatureSerializer(
 =======
 =======
 >>>>>>> eef10da74 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 60bcd014c8 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
@@ -751,6 +755,7 @@ class ConfluentFeatureSerializer(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> cf6eae6fac (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -761,6 +766,8 @@ class ConfluentFeatureSerializer(
 >>>>>>> dd78652449 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 9e6068980e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 7a8c39eda5 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
 <<<<<<< HEAD
@@ -809,6 +816,7 @@ class ConfluentFeatureSerializer(
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 60bcd014c8 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 1c64e1adc3 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -890,6 +898,8 @@ class ConfluentFeatureSerializer(
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 7a8c39eda5 (GEOMESA-3198 Kafka streams integration (#2854))
   override def deserialize(id: String, in: InputStream): SimpleFeature =
     throw new NotImplementedError()
 
