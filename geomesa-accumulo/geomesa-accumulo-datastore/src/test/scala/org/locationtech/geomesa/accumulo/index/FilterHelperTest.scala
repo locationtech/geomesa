@@ -8,24 +8,23 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import java.time.temporal.ChronoUnit
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
-import org.locationtech.geomesa.filter.Bounds
-import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.FilterHelper._
+import org.locationtech.geomesa.filter.andFilters
+import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
-import org.opengis.filter.{And, Filter}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.time.chrono.ChronoZonedDateTime
+import java.time.temporal.ChronoUnit
+import java.time.{LocalDateTime, ZoneOffset, ZonedDateTime}
+import java.util.Date
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
@@ -75,140 +74,188 @@ class FilterHelperTest extends Specification with LazyLogging {
   def between(dt1: ZonedDateTime, dt2: ZonedDateTime): Filter = ff.between(dtp, dt2lit(dt1), dt2lit(dt2))
   def between(dtTuple: (ZonedDateTime, ZonedDateTime)): Filter = between(dtTuple._1, dtTuple._2)
 
-  def interval(dtTuple: (ZonedDateTime, ZonedDateTime)) = (dtTuple._1, dtTuple._2)
-  def afterInterval(dt: ZonedDateTime): (ZonedDateTime, ZonedDateTime)  = (dt, max)
-  def beforeInterval(dt: ZonedDateTime): (ZonedDateTime, ZonedDateTime) = (min, dt)
-
-  val extractDT: (Seq[Filter]) => (ZonedDateTime, ZonedDateTime) = {
-    import scala.collection.JavaConversions._
-    (f) => extractIntervals(ff.and(f), dtFieldName).values.headOption
-        .map(b => (b.lower.value.orNull, b.upper.value.orNull))
-        .getOrElse(null, null)
+  sealed trait DateBound extends Comparable[DateBound] {
+    def dt: ZonedDateTime
+    def inclusive: Boolean
   }
 
-  def decomposeAnd(f: Filter): Seq[Filter] = {
-    import scala.collection.JavaConversions._
-    f match {
-      case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)
-      case f: Filter => Seq(f)
+  case class LowerBound(dt: ZonedDateTime, inclusive: Boolean) extends DateBound {
+    override def compareTo(o: DateBound): Int =  o match {
+      case UnboundedLower => 1
+      case UnboundedUpper => -1
+      case _: UpperBound => -1
+      case LowerBound(b, i) =>
+        dt.compareTo(b) match {
+          case 0 if inclusive == i => 0
+          case 0 if inclusive => -1
+          case 0 => 1
+          case i => i
+        }
+    }
+  }
+  case class UpperBound(dt: ZonedDateTime, inclusive: Boolean) extends DateBound {
+    override def compareTo(o: DateBound): Int = o match {
+      case UnboundedLower => 1
+      case UnboundedUpper => -1
+      case _: LowerBound => 1
+      case UpperBound(b, i) =>
+        dt.compareTo(b) match {
+          case 0 if inclusive == i => 0
+          case 0 if inclusive => 1
+          case 0 => -1
+          case i => i
+        }
+    }
+  }
+  case object UnboundedLower extends DateBound {
+    override val dt: ZonedDateTime = ZonedDateTime.ofLocal(LocalDateTime.MIN, ZoneOffset.UTC, ZoneOffset.UTC)
+    override val inclusive: Boolean = true
+    override def compareTo(o: DateBound): Int = o match {
+      case UnboundedLower => 0
+      case _ => -1
+    }
+  }
+  case object UnboundedUpper extends DateBound {
+    override val dt: ZonedDateTime = ZonedDateTime.ofLocal(LocalDateTime.MAX, ZoneOffset.UTC, ZoneOffset.UTC)
+    override val inclusive: Boolean = true
+    override def compareTo(o: DateBound): Int = o match {
+      case UnboundedUpper => 0
+      case _ => 1
     }
   }
 
-  def extractDateTime(fs: String): (ZonedDateTime, ZonedDateTime) = {
+  case class DateBounds(lower: DateBound, upper: DateBound)
+
+  def afterInterval(dt: ZonedDateTime, inclusive: Boolean = false): DateBounds =
+    DateBounds(LowerBound(dt, inclusive), UnboundedUpper)
+  def beforeInterval(dt: ZonedDateTime, inclusive: Boolean = false): DateBounds =
+    DateBounds(UnboundedLower, UpperBound(dt, inclusive))
+  def betweenInterval(dtTuple: (ZonedDateTime, ZonedDateTime)) =
+    DateBounds(LowerBound(dtTuple._1, inclusive = true), UpperBound(dtTuple._2, inclusive = true))
+  def duringInterval(dtTuple: (ZonedDateTime, ZonedDateTime)) =
+    DateBounds(LowerBound(dtTuple._1, inclusive = false), UpperBound(dtTuple._2, inclusive = false))
+
+  def extractDT(f: Seq[Filter], handleExclusiveBounds: Boolean = false): Option[DateBounds] = {
+    val extracted = extractIntervals(andFilters(f), dtFieldName, handleExclusiveBounds = handleExclusiveBounds)
+    if (extracted.disjoint) { None } else {
+      extracted.values must haveLength(1)
+      extracted.values.headOption.map { b =>
+        val lo = b.lower.value.map(v => LowerBound(v, b.lower.inclusive)).getOrElse(UnboundedLower)
+        val hi = b.upper.value.map(v => UpperBound(v, b.upper.inclusive)).getOrElse(UnboundedUpper)
+        DateBounds(lo, hi)
+      }
+    }
+  }
+
+  def extractDateTime(fs: String): Option[DateBounds] = {
     val filter = ECQL.toFilter(fs)
-    val filters = decomposeAnd(filter)
+    val filters = org.locationtech.geomesa.filter.decomposeAnd(filter)
     extractDT(filters)
   }
 
   def sortDates(dates: Seq[ZonedDateTime]): (ZonedDateTime, ZonedDateTime) = {
-    val sorted = dates.sortBy(d => (d.toEpochSecond * 1000) + (d.getNano / 1000000))
-    val start = sorted(0)
-    val end = sorted(1)
+    val Seq(start, end) = dates.sorted(Ordering.ordered[ChronoZonedDateTime[_]])
     (start, end)
+  }
+
+  def overlap(i1: DateBounds, i2: DateBounds): Option[DateBounds] = {
+    val lower = if (i1.lower.compareTo(i2.lower) >= 0) { i1.lower } else { i2.lower }
+    val upper = if (i2.upper.compareTo(i1.upper) <= 0) { i2.upper } else { i1.upper }
+    if (lower.dt.isAfter(upper.dt) || (lower.dt == upper.dt && (!lower.inclusive || !upper.inclusive))) {
+      None
+    } else {
+      Some(DateBounds(lower, upper))
+    }
   }
 
   "extractTemporal " should {
     "return 0000 to date for all Before-date and date-After filters" in {
       forall(dts) { dt =>
-        val expectedInterval = beforeInterval(dt)
-        extractDT(Seq(fBeforeDate(dt))) must equalTo(expectedInterval)
-        extractDT(Seq(fDateAfter(dt)))  must equalTo(expectedInterval)
-        extractDT(Seq(fLTDate(dt)))     must equalTo(expectedInterval)
-        extractDT(Seq(fLEDate(dt)))     must equalTo(expectedInterval)
-        extractDT(Seq(fDateGT(dt)))     must equalTo(expectedInterval)
-        extractDT(Seq(fDateGE(dt)))     must equalTo(expectedInterval)
+        val expectedInclusiveInterval = beforeInterval(dt, inclusive = true)
+        val expectedExclusiveInterval = beforeInterval(dt, inclusive = false)
+        extractDT(Seq(fBeforeDate(dt))) must beSome(expectedExclusiveInterval)
+        extractDT(Seq(fDateAfter(dt)))  must beSome(expectedExclusiveInterval)
+        extractDT(Seq(fLTDate(dt)))     must beSome(expectedExclusiveInterval)
+        extractDT(Seq(fLEDate(dt)))     must beSome(expectedInclusiveInterval)
+        extractDT(Seq(fDateGT(dt)))     must beSome(expectedExclusiveInterval)
+        extractDT(Seq(fDateGE(dt)))     must beSome(expectedInclusiveInterval)
       }
     }
 
     "return date to 9999 for After-date and date-Before filters" in {
       forall(dts) { dt =>
-        val expectedInterval = afterInterval(dt)
-        extractDT(Seq(fDateBefore(dt))) must equalTo(expectedInterval)
-        extractDT(Seq(fAfterDate(dt)))  must equalTo(expectedInterval)
-        extractDT(Seq(fDateLT(dt)))     must equalTo(expectedInterval)
-        extractDT(Seq(fDateLE(dt)))     must equalTo(expectedInterval)
-        extractDT(Seq(fGTDate(dt)))     must equalTo(expectedInterval)
-        extractDT(Seq(fGEDate(dt)))     must equalTo(expectedInterval)
-      }
-    }
-
-    "return date to 9999 for date-Before filters" in {
-      forall(dts) { dt =>
-        val extractedInterval = extractDT(Seq(fDateBefore(dt)))
-        val expectedInterval = afterInterval(dt)
-        extractedInterval must equalTo(expectedInterval)
+        val expectedInclusiveInterval = afterInterval(dt, inclusive = true)
+        val expectedExclusiveInterval = afterInterval(dt, inclusive = false)
+        extractDT(Seq(fDateBefore(dt))) must beSome(expectedExclusiveInterval)
+        extractDT(Seq(fAfterDate(dt)))  must beSome(expectedExclusiveInterval)
+        extractDT(Seq(fDateLT(dt)))     must beSome(expectedExclusiveInterval)
+        extractDT(Seq(fDateLE(dt)))     must beSome(expectedInclusiveInterval)
+        extractDT(Seq(fGTDate(dt)))     must beSome(expectedExclusiveInterval)
+        extractDT(Seq(fGEDate(dt)))     must beSome(expectedInclusiveInterval)
       }
     }
 
     "return date1 to date2 for during filters" in {
       forall(dts.combinations(2).map(sortDates).toSeq) { case (start, end) =>
-
         val filter = during(start, end)
-
         val extractedInterval = extractDT(Seq(filter))
-        val expectedInterval = (start, end)
+        val expectedInterval = duringInterval(start -> end)
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
-        extractedInterval must equalTo(expectedInterval)
+        extractedInterval must beSome(expectedInterval)
       }
     }
 
     "offset dates for during filters" in {
       forall(dts.combinations(2).map(sortDates).toSeq) { case (start, end) =>
         val filter = during(start, end)
-        val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).values.head
-        val expectedInterval = Bounds(Bound(Some(start.plusSeconds(1)), inclusive = true), Bound(Some(end.minusSeconds(1)), inclusive = true))
+        val extractedInterval = extractDT(Seq(filter), handleExclusiveBounds = true)
+        val expectedInterval = DateBounds(LowerBound(start.plusSeconds(1), inclusive = true), UpperBound(end.minusSeconds(1), inclusive = true))
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
-        extractedInterval must equalTo(expectedInterval)
+        extractedInterval must beSome(expectedInterval)
       }
       val r = new Random(-7)
       forall(dts.combinations(2).map(sortDates).toSeq) { case (s, e) =>
-        val start = s.plus(r.nextInt(998) + 1, ChronoUnit.MILLIS)
-        val end = e.plus(r.nextInt(998) + 1, ChronoUnit.MILLIS)
-        val filter = during(start, end)
-        val extractedInterval = extractIntervals(filter, dtFieldName, handleExclusiveBounds = true).values.head
-        val expectedInterval = Bounds(Bound(Some(s.plusSeconds(1)), inclusive = true), Bound(Some(e), inclusive = true))
+        val filter = during(s.plus(r.nextInt(998) + 1, ChronoUnit.MILLIS), e.plus(r.nextInt(998) + 1, ChronoUnit.MILLIS))
+        val extractedInterval = extractDT(Seq(filter), handleExclusiveBounds = true)
+        val expectedInterval = DateBounds(LowerBound(s.plusSeconds(1), inclusive = true), UpperBound(e, inclusive = true))
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
-        extractedInterval must equalTo(expectedInterval)
+        extractedInterval must beSome(expectedInterval)
       }
     }
 
     "return date1 to date2 for between filters" in {
       forall(dtPairs) { case (start, end) =>
-
         val filter = between(start, end)
-
         val extractedInterval = extractDT(Seq(filter))
-        val expectedInterval = (start, end)
+        val expectedInterval = betweenInterval(start -> end)
         logger.debug(s"Extracted interval $extractedInterval from filter ${ECQL.toCQL(filter)}")
-        extractedInterval must equalTo(expectedInterval)
+        extractedInterval must beSome(expectedInterval)
       }
     }
 
     "return appropriate interval for 'and'ed between/during filters" in {
       forall(dtPairs.combinations(2).toSeq) { dtTuples =>
-        val t1 = dtTuples(0)
-        val t2 = dtTuples(1)
-
+        val Seq(t1, t2) = dtTuples
         val betweenFilters = Seq(between(t1), between(t2))
         val duringFilters = Seq(during(t1), during(t2))
         val mixedFilters1 = Seq(during(t1), between(t2))
         val mixedFilters2 = Seq(between(t1), during(t2))
+
+        val expectedBetween = overlap(betweenInterval(t1), betweenInterval(t2))
+        val expectedDuring = overlap(duringInterval(t1), duringInterval(t2))
+        val expectedMix1 = overlap(duringInterval(t1), betweenInterval(t2))
+        val expectedMix2 = overlap(betweenInterval(t1), duringInterval(t2))
 
         val extractedBetweenInterval = extractDT(betweenFilters)
         val extractedDuringInterval = extractDT(duringFilters)
         val extractedMixed1Interval = extractDT(mixedFilters1)
         val extractedMixed2Interval = extractDT(mixedFilters2)
 
-        val expectedStart = math.max(t1._1.toInstant.toEpochMilli, t2._1.toInstant.toEpochMilli)
-        val expectedEnd = math.min(t1._2.toInstant.toEpochMilli, t2._2.toInstant.toEpochMilli)
-        val expectedInterval = if (expectedStart > expectedEnd) (null, null) else
-          (ZonedDateTime.ofInstant(Instant.ofEpochMilli(expectedStart), ZoneOffset.UTC),
-            ZonedDateTime.ofInstant(Instant.ofEpochMilli(expectedEnd), ZoneOffset.UTC))
         logger.debug(s"Extracted interval $extractedBetweenInterval from filters ${betweenFilters.map(ECQL.toCQL)}")
-        extractedBetweenInterval mustEqual expectedInterval
-        extractedDuringInterval mustEqual expectedInterval
-        extractedMixed1Interval mustEqual expectedInterval
-        extractedMixed2Interval mustEqual expectedInterval
+        extractedBetweenInterval mustEqual expectedBetween
+        extractedDuringInterval mustEqual expectedDuring
+        extractedMixed1Interval mustEqual expectedMix1
+        extractedMixed2Interval mustEqual expectedMix2
       }
     }
 
@@ -222,27 +269,23 @@ class FilterHelperTest extends Specification with LazyLogging {
 
         val betweenFilter = between(dtPair)
         val duringFilter = during(dtPair)
-        val pairInterval = interval(dtPair)
+        val betweenDtInterval = betweenInterval(dtPair)
+        val duringDtInterval = duringInterval(dtPair)
 
-        def overlap(i1: (ZonedDateTime, ZonedDateTime), i2: (ZonedDateTime, ZonedDateTime)) = {
-          val s = math.max(Option(i1._1).map(_.toInstant.toEpochMilli).getOrElse(0L), Option(i2._1).map(_.toInstant.toEpochMilli).getOrElse(0L))
-          val e = math.min(Option(i1._2).map(_.toInstant.toEpochMilli).getOrElse(Long.MaxValue), Option(i2._2).map(_.toInstant.toEpochMilli).getOrElse(Long.MaxValue))
-          if (s > e) (null, null) else (ZonedDateTime.ofInstant(Instant.ofEpochMilli(s), ZoneOffset.UTC), ZonedDateTime.ofInstant(Instant.ofEpochMilli(e), ZoneOffset.UTC))
-        }
         val afterAndBetween = extractDT(Seq(afterDtFilter, betweenFilter))
-        val afterAndBetweenInterval = overlap(afterDtInterval, pairInterval)
+        val afterAndBetweenInterval = overlap(afterDtInterval, betweenDtInterval)
         afterAndBetween must equalTo(afterAndBetweenInterval)
 
         val beforeAndBetween = extractDT(Seq(beforeDtFilter, betweenFilter))
-        val beforeAndBetweenInterval = overlap(beforeDtInterval, pairInterval)
+        val beforeAndBetweenInterval = overlap(beforeDtInterval, betweenDtInterval)
         beforeAndBetween must equalTo(beforeAndBetweenInterval)
 
         val afterAndDuring = extractDT(Seq(afterDtFilter, duringFilter))
-        val afterAndDuringInterval = overlap(afterDtInterval, pairInterval)
+        val afterAndDuringInterval = overlap(afterDtInterval, duringDtInterval)
         afterAndDuring must equalTo(afterAndDuringInterval)
 
         val beforeAndDuring = extractDT(Seq(beforeDtFilter, duringFilter))
-        val beforeAndDuringInterval = overlap(beforeDtInterval, pairInterval)
+        val beforeAndDuringInterval = overlap(beforeDtInterval, duringDtInterval)
         beforeAndDuring must equalTo(beforeAndDuringInterval)
       }
     }
@@ -252,15 +295,13 @@ class FilterHelperTest extends Specification with LazyLogging {
     "handle empty sequences" in {
      val emptyFilterSeq = Seq[Filter]()
      val filteredSeq = filterListAsAnd(emptyFilterSeq)
-
-      filteredSeq.isDefined must beFalse
+      filteredSeq must beNone
     }
 
     "handle sequences with just one entry" in {
-      val processed = baseFilters.flatMap{filter => filterListAsAnd(decomposeAnd(filter))}
+      val processed = baseFilters.flatMap{filter => filterListAsAnd(org.locationtech.geomesa.filter.decomposeAnd(filter))}
       val difference = processed diff baseFilters
-
-      difference.isEmpty must beTrue
+      difference must beEmpty
     }
   }
 }
