@@ -31,6 +31,7 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -44,9 +45,12 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+>>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 
   override def serialize(msg: GeoMessage): (Array[Byte], Array[Byte], Map[String, Array[Byte]]) =
     throw new NotImplementedError("Confluent data store is read-only")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -90,6 +94,9 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 
   override def deserialize(
       key: Array[Byte],
