@@ -10,8 +10,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 >>>>>>> 133afd3681 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -21,6 +24,7 @@
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> a7c0500a81 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
@@ -28,6 +32,8 @@
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 0452af77a1 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> 2c2075dde8 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -39,7 +45,12 @@
 =======
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> 39fae2ee18 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 2c2075dde8 (GEOMESA-3198 Kafka streams integration (#2854))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -56,6 +67,7 @@ package org.locationtech.geomesa.kafka.streams
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -70,6 +82,10 @@ package org.locationtech.geomesa.kafka.streams
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord, KafkaConsumer}
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer, LongDeserializer, StringDeserializer}
@@ -85,8 +101,11 @@ import com.typesafe.scalalogging.StrictLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord, KafkaConsumer}
@@ -101,6 +120,7 @@ import org.apache.kafka.streams.processor.{ProcessorContext, WallclockTimestampE
 import org.apache.kafka.streams.test.TestRecord
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -154,6 +174,16 @@ import org.apache.kafka.streams.processor.{ProcessorContext, WallclockTimestampE
 import org.apache.kafka.streams.test.TestRecord
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord, KafkaConsumer}
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.serialization.{ByteArrayDeserializer, LongDeserializer, StringDeserializer}
+import org.apache.kafka.streams
+import org.apache.kafka.streams.kstream.{Transformer, TransformerSupplier}
+import org.apache.kafka.streams.processor.{ProcessorContext, WallclockTimestampExtractor}
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 import org.apache.kafka.streams.{StreamsConfig, TopologyTestDriver}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
@@ -166,6 +196,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -176,6 +207,8 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 import org.locationtech.geomesa.kafka.KafkaContainerTest
 =======
 import org.locationtech.geomesa.kafka.EmbeddedKafka
@@ -194,6 +227,7 @@ import org.locationtech.geomesa.kafka.EmbeddedKafka
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -210,6 +244,8 @@ import org.locationtech.geomesa.kafka.KafkaContainerTest
 import org.locationtech.geomesa.kafka.KafkaContainerTest
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
@@ -223,12 +259,15 @@ import org.locationtech.geomesa.utils.io.WithClose
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 import org.specs2.mutable.Specification
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -237,13 +276,17 @@ import org.specs2.mutable.Specification
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
 import org.specs2.mutable.Specification
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -261,6 +304,8 @@ import org.specs2.mutable.Specification
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 import org.specs2.runner.JUnitRunner
 
 import java.nio.charset.StandardCharsets
@@ -279,6 +324,7 @@ import scala.concurrent.duration.DurationInt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -293,6 +339,10 @@ import scala.concurrent.duration.DurationInt
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 
   import org.apache.kafka.streams.scala.ImplicitConversions._
@@ -306,8 +356,11 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -320,6 +373,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
   import org.apache.kafka.streams.scala.serialization.Serdes._
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -369,6 +423,14 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
   import org.apache.kafka.streams.scala.serialization.Serdes._
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+
+  import org.apache.kafka.streams.scala.ImplicitConversions._
+  import org.apache.kafka.streams.scala.Serdes._
+  import org.apache.kafka.streams.scala.kstream._
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 
   import scala.collection.JavaConverters._
 
@@ -387,6 +449,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -401,6 +464,10 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
   var kafka: EmbeddedKafka = _
 
@@ -414,6 +481,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -440,6 +508,14 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
   private val zkPaths = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]())
 
   def getParams(zkPath: String): Map[String, String] = {
@@ -453,6 +529,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -467,6 +544,10 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
       "kafka.brokers"            -> brokers,
       "kafka.zookeepers"         -> zookeepers,
 =======
@@ -476,13 +557,17 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
       "kafka.brokers"            -> brokers,
       "kafka.zookeepers"         -> zookeepers,
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -504,6 +589,11 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
       "kafka.topic.partitions"   -> "1",
       "kafka.topic.replication"  -> "1",
       "kafka.consumer.read-back" -> "Inf",
@@ -534,6 +624,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -544,6 +635,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
 =======
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.brokers)
@@ -562,6 +655,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -578,6 +672,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
@@ -879,12 +975,16 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -900,6 +1000,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 =======
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
         val inputTopic = testDriver.createInputTopic(kryoTopic, new ByteArraySerializer(), new ByteArraySerializer())
         messages.foreach(m => inputTopic.pipeInput(new TestRecord[Array[Byte],Array[Byte]](m)))
         val outputTopic = testDriver.createOutputTopic("word-count", new StringDeserializer(), new LongDeserializer())
@@ -913,6 +1015,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -927,6 +1030,10 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
         messages.foreach(testDriver.pipeInput)
         var out = testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer())
@@ -937,6 +1044,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -963,6 +1071,14 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
         }
       }
 
@@ -1142,12 +1258,16 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -1163,6 +1283,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 =======
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
         val inputTopic = testDriver.createInputTopic("input-topic", new ByteArraySerializer(), new ByteArraySerializer())
         testInput.foreach(m => inputTopic.pipeInput(new TestRecord[Array[Byte],Array[Byte]](m)))
         val outputTopic = testDriver.createOutputTopic(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer())
@@ -1176,6 +1298,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -1190,6 +1313,10 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
         testInput.foreach(testDriver.pipeInput)
         var out = testDriver.readOutput(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer())
@@ -1200,6 +1327,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -1226,6 +1354,14 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
         }
       }
 
@@ -1252,6 +1388,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -1266,6 +1403,10 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
   step {
     logger.info("Stopping embedded kafka/zk")
@@ -1277,6 +1418,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -1303,6 +1445,14 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
   class TimestampExtractingTransformer
       extends Transformer[String, GeoMesaMessage, org.apache.kafka.streams.KeyValue[String, GeoMesaMessage]]() {
 
