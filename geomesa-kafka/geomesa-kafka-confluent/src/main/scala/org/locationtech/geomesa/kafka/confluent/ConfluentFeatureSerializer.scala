@@ -119,6 +119,7 @@ object ConfluentFeatureSerializer {
     }
   }
 
+<<<<<<< HEAD
   /**
    * Mapping between Avro schema and SimpleFeatureType
    *
@@ -272,6 +273,26 @@ class ConfluentFeatureSerializer(
           }
         } else {
           None
+=======
+class ConfluentFeatureSerializer(
+    sft: SimpleFeatureType,
+    schemaRegistryClient: SchemaRegistryClient,
+    schemaOverride: Option[Schema] = None,
+    val options: Set[SerializationOption] = Set.empty
+  ) extends SimpleFeatureSerializer with LazyLogging {
+
+  private val kafkaAvroDeserializers = new ThreadLocal[KafkaAvroDeserializer]() {
+    override def initialValue(): KafkaAvroDeserializer = new KafkaAvroDeserializer(schemaRegistryClient)
+  }
+
+  private val featureReaders = new ThreadLocal[ConfluentFeatureReader]() {
+    override def initialValue(): ConfluentFeatureReader = {
+      val schema = schemaOverride.getOrElse {
+        val schemaId = Option(sft.getUserData.get(ConfluentMetadata.SchemaIdKey))
+          .map(_.asInstanceOf[String].toInt).getOrElse {
+          throw new IllegalStateException(s"Cannot create ConfluentFeatureSerializer because SimpleFeatureType " +
+            s"'${sft.getTypeName}' does not have schema id at key '${ConfluentMetadata.SchemaIdKey}'")
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
         }
 
 <<<<<<< HEAD
@@ -306,7 +327,10 @@ class ConfluentFeatureSerializer(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> f06b6e106b (GEOMESA-3198 Kafka streams integration (#2854))
@@ -382,6 +406,7 @@ class ConfluentFeatureSerializer(
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 7258020868 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -405,6 +430,12 @@ class ConfluentFeatureSerializer(
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locationtech-main
+=======
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
   override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
     val record = kafkaAvroDeserializers.get.deserialize("", bytes).asInstanceOf[GenericRecord]
 
@@ -423,6 +454,11 @@ class ConfluentFeatureSerializer(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -562,7 +598,14 @@ class ConfluentFeatureSerializer(
 =======
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
     }
 
     // visibility field index in the avro schema
@@ -676,6 +719,9 @@ class ConfluentFeatureSerializer(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
 >>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
@@ -1137,6 +1183,7 @@ class ConfluentFeatureSerializer(
 <<<<<<< HEAD
 =======
 >>>>>>> 8f7e439e4e (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 =======
 >>>>>>> a9b549cd7b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -1226,6 +1273,12 @@ class ConfluentFeatureSerializer(
 =======
 >>>>>>> 8f7e439e4e (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 05587eaa83 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locationtech-main
+=======
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
   override def deserialize(id: String, in: InputStream): SimpleFeature =
     throw new NotImplementedError()
 
@@ -1288,6 +1341,9 @@ class ConfluentFeatureSerializer(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1606,6 +1662,7 @@ class ConfluentFeatureSerializer(
 <<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> a9b549cd7b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -1728,6 +1785,11 @@ class ConfluentFeatureSerializer(
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
         try {
           feature.getAttribute(m.sftIndex) match {
             case null => m.default.foreach(d => record.put(m.schemaIndex, d))
