@@ -5868,6 +5868,7 @@ import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 2e299e67fda (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 <<<<<<< HEAD
@@ -6022,6 +6023,9 @@ import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig}
 =======
 <<<<<<< HEAD
 >>>>>>> 97b02f9c465 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+<<<<<<< HEAD
+>>>>>>> 851c5f3fa34 (GEOMESA-3198 Kafka streams integration (#2854))
 import org.apache.kafka.common.config.ConfigResource
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -6155,6 +6159,9 @@ import org.apache.kafka.clients.producer.KafkaProducer
 >>>>>>> d4b3f310904 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> b1b49f5f0e2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+import org.apache.kafka.clients.producer.KafkaProducer
+>>>>>>> 1429db961c4 (GEOMESA-3198 Kafka streams integration (#2854))
 import org.apache.kafka.common.utils.Time
 >>>>>>> 484744b8297 (GEOMESA-3198 Kafka streams integration (#2854))
 import org.geotools.data._
