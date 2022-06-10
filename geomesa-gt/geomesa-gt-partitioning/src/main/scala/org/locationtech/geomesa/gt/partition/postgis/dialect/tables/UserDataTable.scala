@@ -14,7 +14,11 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 /**
  * Stores feature type user data
  */
-object UserDataTable extends Sql {
+object UserDataTable extends UserDataTable with AdvisoryLock {
+  override protected val lockId: Long = 8778078099312765227L
+}
+
+class UserDataTable extends Sql {
 
   val Name: TableName = TableName("geomesa_userdata")
 
