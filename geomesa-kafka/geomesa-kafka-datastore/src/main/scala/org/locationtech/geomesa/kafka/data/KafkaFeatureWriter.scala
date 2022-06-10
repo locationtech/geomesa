@@ -102,10 +102,10 @@ object KafkaFeatureWriter {
       filter: Filter
     ) extends AppendKafkaFeatureWriter(sft, producer, serialization) {
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     private val ids: Iterator[String] = filter match {
-      case ids: Id => ids.getIDs.iterator.map(_.toString)
+      case ids: Id => ids.getIDs.iterator.asScala.map(_.toString)
       case _ => throw new NotImplementedError("Only modify by ID is supported")
     }
 

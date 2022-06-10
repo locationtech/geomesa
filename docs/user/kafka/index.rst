@@ -41,3 +41,4 @@ To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quick
    feature_events
    layer_views
    confluent
+   streams

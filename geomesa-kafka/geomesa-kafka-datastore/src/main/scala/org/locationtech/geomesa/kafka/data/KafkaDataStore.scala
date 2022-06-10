@@ -14,7 +14,7 @@ import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
 import org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG
 import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, KafkaConsumer}
-import org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG
+import org.apache.kafka.clients.producer.ProducerConfig.{ACKS_CONFIG, PARTITIONER_CLASS_CONFIG}
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
@@ -59,7 +59,7 @@ import scala.util.{Failure, Success, Try}
 class KafkaDataStore(
     val config: KafkaDataStoreConfig,
     val metadata: GeoMesaMetadata[String],
-    serialization: GeoMessageSerializerFactory
+    private[kafka] val serialization: GeoMessageSerializerFactory
   ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
 
   import KafkaDataStore.TopicKey
@@ -73,14 +73,10 @@ class KafkaDataStore(
   // note: sharing a single producer is generally faster
   // http://kafka.apache.org/0110/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html
 
-  @volatile
-  private var producerInitialized = false
-
   // only instantiate the producer if needed
-  private lazy val producer = {
-    producerInitialized = true
-    KafkaDataStore.producer(config)
-  }
+  private val defaultProducer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))
+  // noinspection ScalaDeprecation
+  private val partitionedProducer = new LazyProducer(KafkaDataStore.producer(config))
 
   // view type name -> actual type name
   private val layerViewLookup =
@@ -194,6 +190,11 @@ class KafkaDataStore(
       case topic if topic.contains("/") => throw new IllegalArgumentException(s"Topic cannot contain '/': $topic")
       case topic => logger.debug(s"Using user-defined topic [$topic]")
     }
+    // disable our custom partitioner by default, as it messes with Kafka streams co-partition joining
+    // and it's not required since we switched our keys to be feature ids
+    if (!sft.getUserData.containsKey(KafkaDataStore.PartitioningKey)) {
+      sft.getUserData.put(KafkaDataStore.PartitioningKey, KafkaDataStore.PartitioningDefault)
+    }
     // remove table sharing as it's not relevant
     sft.getUserData.remove(TableSharing)
     sft.getUserData.remove(TableSharingPrefix)
@@ -300,7 +301,7 @@ class KafkaDataStore(
       throw new IllegalArgumentException(
         s"Schema '${sft.getTypeName}' is a read-only view of '${layerViewLookup(sft.getTypeName)}'")
     }
-    val producer = getTransactionalProducer(transaction)
+    val producer = getTransactionalProducer(sft, transaction)
     val vis = sft.isVisibilityRequired
     val writer = filter match {
       case None if vis    => new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
@@ -315,9 +316,8 @@ class KafkaDataStore(
   }
 
   override def dispose(): Unit = {
-    if (producerInitialized) {
-      CloseWithLogging(producer)
-    }
+    CloseWithLogging(defaultProducer)
+    CloseWithLogging(partitionedProducer)
     CloseWithLogging(caches.asMap.asScala.values)
     caches.invalidateAll()
     super.dispose()
@@ -326,20 +326,26 @@ class KafkaDataStore(
   // zookeeper locking methods
   override protected def zookeepers: String = config.zookeepers
 
-  private def getTransactionalProducer(transaction: Transaction): KafkaFeatureProducer = {
+  private def getTransactionalProducer(sft: SimpleFeatureType, transaction: Transaction): KafkaFeatureProducer = {
+    val useDefaultPartitioning = KafkaDataStore.usesDefaultPartitioning(sft)
+
     if (transaction == null || transaction == Transaction.AUTO_COMMIT) {
+      val producer = if (useDefaultPartitioning) { defaultProducer.producer } else { partitionedProducer.producer }
       return AutoCommitProducer(producer)
     }
 
     val state = transaction.getState(KafkaDataStore.TransactionStateKey)
     if (state == null) {
+      val partitioner = if (useDefaultPartitioning) { Map.empty } else {
+        Map(PARTITIONER_CLASS_CONFIG -> classOf[GeoMessagePartitioner].getName)
+      }
       // add kafka transactional id if it's not set, but force acks to "all" as required by kafka
       val props =
         Map(TRANSACTIONAL_ID_CONFIG -> UUID.randomUUID().toString) ++
-            this.config.producers.properties ++
+            partitioner ++
+            config.producers.properties ++
             Map(ACKS_CONFIG -> "all")
-      val config = this.config.copy(producers = this.config.producers.copy(properties = props))
-      val producer = KafkaTransactionState(KafkaDataStore.producer(config))
+      val producer = KafkaTransactionState(KafkaDataStore.producer(config.brokers, props))
       transaction.putState(KafkaDataStore.TransactionStateKey, producer)
       producer
     } else {
@@ -372,10 +378,13 @@ object KafkaDataStore extends LazyLogging {
 
   val TopicKey = "geomesa.kafka.topic"
   val TopicConfigKey = "kafka.topic.config"
+  val PartitioningKey = "geomesa.kafka.partitioning"
 
   val MetadataPath = "metadata"
 
   val TransactionStateKey = "geomesa.kafka.state"
+
+  val PartitioningDefault = "default"
 
   val LoadIntervalProperty: SystemProperty = SystemProperty("geomesa.kafka.load.interval", "1s")
 
@@ -395,7 +404,28 @@ object KafkaDataStore extends LazyLogging {
     props.asInstanceOf[java.util.Map[String, String]]
   }
 
+  def usesDefaultPartitioning(sft: SimpleFeatureType): Boolean =
+    sft.getUserData.get(PartitioningKey) == PartitioningDefault
+
+  @deprecated("Uses a custom partitioner which creates issues with Kafka streams. Use `producer(String, Map[String, String]) instead")
   def producer(config: KafkaDataStoreConfig): Producer[Array[Byte], Array[Byte]] = {
+    val props =
+      if (config.producers.properties.contains(PARTITIONER_CLASS_CONFIG)) {
+        config.producers.properties
+      } else {
+        config.producers.properties + (PARTITIONER_CLASS_CONFIG -> classOf[GeoMessagePartitioner].getName)
+      }
+    producer(config.brokers, props)
+  }
+
+  /**
+   * Create a Kafka producer
+   *
+   * @param bootstrapServers Kafka bootstrap servers config
+   * @param properties Kafka producer properties
+   * @return
+   */
+  def producer(bootstrapServers: String, properties: Map[String, String]): Producer[Array[Byte], Array[Byte]] = {
     import org.apache.kafka.clients.producer.ProducerConfig._
 
     val props = new Properties()
@@ -403,11 +433,10 @@ object KafkaDataStore extends LazyLogging {
     props.put(ACKS_CONFIG, "1") // mix of reliability and performance
     props.put(RETRIES_CONFIG, Int.box(3))
     props.put(LINGER_MS_CONFIG, Int.box(3)) // helps improve batching at the expense of slight delays in write
-    props.put(PARTITIONER_CLASS_CONFIG, classOf[GeoMessagePartitioner].getName)
     props.put(KEY_SERIALIZER_CLASS_CONFIG, classOf[ByteArraySerializer].getName)
     props.put(VALUE_SERIALIZER_CLASS_CONFIG, classOf[ByteArraySerializer].getName)
-    props.put(BOOTSTRAP_SERVERS_CONFIG, config.brokers)
-    config.producers.properties.foreach { case (k, v) => props.put(k, v) }
+    props.put(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
+    properties.foreach { case (k, v) => props.put(k, v) }
     new KafkaProducer[Array[Byte], Array[Byte]](props)
   }
 

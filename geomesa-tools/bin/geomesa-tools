@@ -98,6 +98,7 @@ elif [[ $1 = configure ]]; then
   geomesa_configure
 elif [[ $1 = scala-console ]]; then
   shift 1
+  load_classpath
   # scala console requires options to be passed in through java_opts
   export JAVA_OPTS="${GEOMESA_OPTS}"
   geomesa_scala_console "$(get_classpath)" "$@"
