@@ -9,6 +9,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -32,7 +33,13 @@
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> 67d93e2791 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 39fae2ee18 (GEOMESA-3198 Kafka streams integration (#2854))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -42,6 +49,7 @@
 package org.locationtech.geomesa.kafka
 
 import org.apache.kafka.clients.producer.Producer
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -120,6 +128,8 @@ import org.apache.kafka.clients.producer.Producer
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 import org.locationtech.geomesa.utils.concurrent.LazyCloseable
 =======
 <<<<<<< HEAD
@@ -139,6 +149,7 @@ package object data {
       extends LazyCloseable[Producer[Array[Byte], Array[Byte]]](create)
 =======
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -217,6 +228,8 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 
 import java.io.Closeable
 
@@ -241,6 +254,7 @@ package object data {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -253,4 +267,7 @@ package object data {
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 }
