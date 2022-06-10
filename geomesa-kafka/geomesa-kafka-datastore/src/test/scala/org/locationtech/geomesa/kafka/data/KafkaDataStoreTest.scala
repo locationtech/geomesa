@@ -24,6 +24,7 @@ import kafka.zk.{AdminZkClient, KafkaZkClient}
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig}
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.utils.Time
 import org.geotools.data._
 import org.geotools.filter.identity.FeatureIdImpl
