@@ -43,4 +43,8 @@ To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quick
 <<<<<<< HEAD
    zookeeper
 =======
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
