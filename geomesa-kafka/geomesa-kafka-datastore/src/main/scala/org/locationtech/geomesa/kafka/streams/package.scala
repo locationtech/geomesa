@@ -100,6 +100,7 @@ package object streams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -119,10 +120,13 @@ package object streams {
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -149,6 +153,10 @@ package object streams {
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
    * Data model for a GeoMesa data store message, used as the value in a Kafka record
    *
    * @param action message action
@@ -207,6 +215,7 @@ package object streams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -221,6 +230,8 @@ package object streams {
 >>>>>>> f06b6e106b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -252,6 +263,7 @@ package object streams {
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -301,6 +313,8 @@ package object streams {
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
    * Trait for provided metadata about a feature type topic
    */
   trait HasTopicMetadata {
@@ -426,6 +440,7 @@ package object streams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -448,6 +463,8 @@ package object streams {
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
 =======
               val internal = ds.serialization(sft, ds.config.serialization, `lazy` = false).serializer
 <<<<<<< HEAD
@@ -482,13 +499,17 @@ package object streams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
               val internal = ds.serialization(sft, ds.config.serialization, `lazy` = false).serializer
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -544,6 +565,8 @@ package object streams {
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
               return new GeoMesaMessageSerializer(sft, internal)
 
             case t => topics += t
@@ -623,6 +646,7 @@ package object streams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -645,6 +669,8 @@ package object streams {
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
 =======
         GeoMesaMessage.upsert(feature.getAttributes.asScala, userData)
 <<<<<<< HEAD
@@ -679,13 +705,17 @@ package object streams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
         GeoMesaMessage.upsert(feature.getAttributes.asScala, userData)
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -741,6 +771,8 @@ package object streams {
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
       }
     }
 
@@ -782,6 +814,7 @@ package object streams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -804,6 +837,8 @@ package object streams {
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
 =======
    *   * @see [[org.locationtech.geomesa.features.avro.AvroSimpleFeatureWriter#write]]
 <<<<<<< HEAD
@@ -838,13 +873,17 @@ package object streams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
    *   * @see [[org.locationtech.geomesa.features.avro.AvroSimpleFeatureWriter#write]]
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -900,6 +939,8 @@ package object streams {
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
    *
    * @param converters attribute converters to enforce feature type schema
    * @param attributes message attributes
