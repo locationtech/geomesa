@@ -4,10 +4,14 @@
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
