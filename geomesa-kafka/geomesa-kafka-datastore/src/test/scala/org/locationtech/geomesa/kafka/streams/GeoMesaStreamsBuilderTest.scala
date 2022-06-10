@@ -1,0 +1,235 @@
+/***********************************************************************
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
+
+package org.locationtech.geomesa.kafka.streams
+
+import com.typesafe.scalalogging.StrictLogging
+import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord, KafkaConsumer}
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.serialization.{ByteArrayDeserializer, LongDeserializer, StringDeserializer}
+import org.apache.kafka.streams
+import org.apache.kafka.streams.kstream.{Transformer, TransformerSupplier}
+import org.apache.kafka.streams.processor.{ProcessorContext, WallclockTimestampExtractor}
+import org.apache.kafka.streams.{StreamsConfig, TopologyTestDriver}
+import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.junit.runner.RunWith
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.kafka.EmbeddedKafka
+import org.locationtech.geomesa.kafka.data.KafkaDataStore
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
+
+import java.nio.charset.StandardCharsets
+import java.time.Duration
+import java.util.concurrent.ConcurrentHashMap
+import java.util.{Collections, Date, Properties}
+import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.duration.DurationInt
+
+@RunWith(classOf[JUnitRunner])
+class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
+
+  import org.apache.kafka.streams.scala.ImplicitConversions._
+  import org.apache.kafka.streams.scala.Serdes._
+  import org.apache.kafka.streams.scala.kstream._
+
+  import scala.collection.JavaConverters._
+
+  lazy val sft =
+    SimpleFeatureTypes.createImmutableType("streams", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+
+  lazy val features = Seq.tabulate(10) { i =>
+    ScalaSimpleFeature.create(sft, s"id$i", s"name$i", i % 2, s"2022-04-27T00:00:0$i.00Z", s"POINT(1 $i)")
+  }
+
+  var kafka: EmbeddedKafka = _
+
+  step {
+    logger.info("Starting embedded kafka/zk")
+    kafka = new EmbeddedKafka()
+    logger.info("Started embedded kafka/zk")
+  }
+
+  private val zkPaths = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]())
+
+  def getParams(zkPath: String): Map[String, String] = {
+    require(zkPaths.add(zkPath), s"zk path '$zkPath' is reused between tests, may cause conflicts")
+    Map(
+      "kafka.brokers"            -> kafka.brokers,
+      "kafka.zookeepers"         -> kafka.zookeepers,
+      "kafka.topic.partitions"   -> "1",
+      "kafka.topic.replication"  -> "1",
+      "kafka.consumer.read-back" -> "Inf",
+      "kafka.zk.path"            -> zkPath
+    )
+  }
+
+  "GeoMesaStreamsBuilder" should {
+    "read from geomesa topics" in {
+      val params = getParams("word/count")
+      // write features to the embedded kafka
+      val kryoTopic = WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+        ds.createSchema(sft)
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+        KafkaDataStore.topic(ds.getSchema(sft.getTypeName))
+      }
+
+      // read off the features from kafka
+      val messages: Seq[ConsumerRecord[Array[Byte], Array[Byte]]] = {
+        val props = new Properties()
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.brokers)
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "consume-kryo-topic")
+        val buf = ArrayBuffer.empty[ConsumerRecord[Array[Byte], Array[Byte]]]
+        WithClose(new KafkaConsumer[Array[Byte], Array[Byte]](props)) { consumer =>
+          consumer.subscribe(Collections.singleton(kryoTopic))
+          val start = System.currentTimeMillis()
+          while (buf.lengthCompare(10) < 0 && System.currentTimeMillis() - start < 10000) {
+            consumer.poll(Duration.ofMillis(100)).asScala.foreach { record =>
+              buf += record
+            }
+          }
+        }
+        buf
+      }
+
+      val timestampExtractor = new TimestampExtractingTransformer()
+
+      val builder = GeoMesaStreamsBuilder(params)
+
+      // pull out the timestamps with an identity transform for later comparison
+      val streamFeatures = builder.stream(sft.getTypeName).transform[String, GeoMesaMessage](
+        new TransformerSupplier[String, GeoMesaMessage, streams.KeyValue[String, GeoMesaMessage]]() {
+          override def get(): Transformer[String, GeoMesaMessage, streams.KeyValue[String, GeoMesaMessage]] =
+            timestampExtractor
+        })
+
+      // word count example copied from https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.html#scala-dsl
+      val textLines: KStream[String, String] =
+        streamFeatures.map((k, v) => (k, v.attributes.map(_.toString.replaceAll(" ", "_")).mkString(" ")))
+      val wordCounts: KTable[String, Long] =
+        textLines
+            .flatMapValues(textLine => textLine.split(" +"))
+            .groupBy((_, word) => word)
+            .count()(Materialized.as("counts-store"))
+
+      wordCounts.toStream.to("word-count")
+
+      val props = new Properties()
+      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
+      props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234")
+
+      val output = scala.collection.mutable.Map.empty[String, java.lang.Long]
+      WithClose(new TopologyTestDriver(builder.build(), props)) { testDriver =>
+        messages.foreach(testDriver.pipeInput)
+        var out = testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer())
+        while (out != null) {
+          output += out.key() -> out.value()
+          out = testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer())
+        }
+      }
+
+      val expected =
+        features.flatMap(_.getAttributes.asScala.map(_.toString.replaceAll(" ", "_")))
+            .groupBy(s => s)
+            .map { case (k, v) => k -> v.length.toLong }
+
+      output mustEqual expected
+
+      val expectedTimestamps = features.map(_.getAttribute("dtg").asInstanceOf[Date].getTime)
+      foreach(timestampExtractor.timestamps)(_._2 must haveLength(1))
+      timestampExtractor.timestamps.map(_._2.head) must containTheSameElementsAs(expectedTimestamps)
+    }
+
+    "write to geomesa topics" in {
+      val params = getParams("write/test")
+      // create the output feature type and topic
+      val kryoTopic = WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+        ds.createSchema(sft)
+        KafkaDataStore.topic(ds.getSchema(sft.getTypeName))
+      }
+
+      val testInput = features.map { sf =>
+        val offset = sf.getID.replace("id", "").toLong
+        val key = sf.getID.getBytes(StandardCharsets.UTF_8)
+        val value = sf.getAttributes.asScala.map(FastConverter.convert(_, classOf[String])).mkString(",")
+        new ConsumerRecord("input-topic", 0, offset, key, value.getBytes(StandardCharsets.UTF_8))
+      }
+
+      val builder = GeoMesaStreamsBuilder(params)
+
+      val input: KStream[String, String] =
+        builder.wrapped.stream[String, String]("input-topic")(implicitly[Consumed[String, String]].withTimestampExtractor(new WallclockTimestampExtractor()))
+      val output: KStream[String, GeoMesaMessage] =
+        input.mapValues { lines =>
+          GeoMesaMessage.upsert(lines.split(","))
+        }
+
+      builder.to(sft.getTypeName, output)
+
+      val props = new Properties()
+      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
+      props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234")
+
+      val kryoMessages = ArrayBuffer.empty[ProducerRecord[Array[Byte], Array[Byte]]]
+      WithClose(new TopologyTestDriver(builder.build(), props)) { testDriver =>
+        testInput.foreach(testDriver.pipeInput)
+        var out = testDriver.readOutput(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer())
+        while (out != null) {
+          kryoMessages += out
+          out = testDriver.readOutput(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer())
+        }
+      }
+
+      WithClose(DataStoreFinder.getDataStore(params.asJava)) { case ds: KafkaDataStore =>
+        // initialize kafka consumers for the store
+        ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT).close()
+        // send the mocked messages to the actual embedded kafka topic
+        WithClose(KafkaDataStore.producer(ds.config.brokers, Map.empty)) { producer =>
+          kryoMessages.foreach(producer.send)
+        }
+        eventually(40, 100.millis) {
+          val result = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+          result must containTheSameElementsAs(features)
+        }
+      }
+    }
+  }
+
+  step {
+    logger.info("Stopping embedded kafka/zk")
+    kafka.close()
+    logger.info("Stopped embedded kafka/zk")
+  }
+
+  class TimestampExtractingTransformer
+      extends Transformer[String, GeoMesaMessage, org.apache.kafka.streams.KeyValue[String, GeoMesaMessage]]() {
+
+    private var context: ProcessorContext = _
+
+    val timestamps = scala.collection.mutable.Map.empty[String, ArrayBuffer[Long]]
+
+    override def init(context: ProcessorContext): Unit = this.context = context
+
+    override def transform(key: String, value: GeoMesaMessage): streams.KeyValue[String, GeoMesaMessage] = {
+      timestamps.getOrElseUpdate(key, ArrayBuffer.empty) += context.timestamp()
+      new streams.KeyValue(key, value)
+    }
+
+    override def close(): Unit = {}
+  }
+
+}

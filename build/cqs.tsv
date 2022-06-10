@@ -293,6 +293,8 @@ org.apache.hadoop:hadoop-yarn-common	2.8.5	provided
 org.apache.hbase:hbase-server	2.2.3	provided
 org.apache.kafka:kafka_2.12	2.1.1	provided
 org.apache.kafka:kafka-clients	2.1.1	provided
+org.apache.kafka:kafka-streams	2.1.1	provided
+org.apache.kafka:kafka-streams-scala_2.12	2.1.1	provided
 org.apache.spark:spark-catalyst_2.12	2.4.7	provided
 org.apache.spark:spark-core_2.12	2.4.7	provided
 org.apache.spark:spark-sql_2.12	2.4.7	provided
@@ -315,6 +317,7 @@ org.apache.hbase:hbase-testing-util	1.4.12	test
 org.apache.hbase:hbase-testing-util	2.2.3	test
 org.apache.kafka:kafka_2.12	test:2.1.1	test
 org.apache.kafka:kafka-clients	test:2.1.1	test
+org.apache.kafka:kafka-streams-test-utils	2.1.1	test
 org.cassandraunit:cassandra-unit	2.2.2.1	test
 org.codehaus.groovy:groovy-jsr223	2.4.5	test
 org.geotools:gt-geometry	23.3	test
