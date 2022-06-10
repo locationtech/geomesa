@@ -16,7 +16,11 @@ import java.util.Locale
 /**
  * Primary key table used by the JDBC data store to specify primary key columns
  */
-object PrimaryKeyTable extends Sql {
+object PrimaryKeyTable extends PrimaryKeyTable with AdvisoryLock {
+  override protected val lockId: Long = 6133394343366639763L
+}
+
+class PrimaryKeyTable extends Sql {
 
   val Name: TableName = TableName(MetadataTablePrimaryKeyFinder.DEFAULT_TABLE.toLowerCase(Locale.US))
 

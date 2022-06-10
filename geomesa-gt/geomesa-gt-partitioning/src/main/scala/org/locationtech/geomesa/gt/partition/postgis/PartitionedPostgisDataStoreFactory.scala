@@ -70,6 +70,7 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
           }
           override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
             dialect.splitFilter(filter, schema)
+          override def getDesiredTablesType: Array[String] = dialect.getDesiredTablesType
         })
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
