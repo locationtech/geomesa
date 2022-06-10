@@ -24300,6 +24300,7 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 5f83b35214 (GEOMESA-3100 Kafka layer views (#2784))
@@ -24309,6 +24310,8 @@ class KafkaDataStore(
 >>>>>>> c32560b0f3 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 4bb2f200fc (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 7f390054c1 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> fa049272d1 (GEOMESA-3100 Kafka layer views (#2784))
@@ -27754,6 +27757,9 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a15eb29a2c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> c3b8425abd (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -31799,11 +31805,17 @@ class KafkaDataStore(
 >>>>>>> 95c83ca7f (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 4bb2f200fc (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 0a87723fd9 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 7f390054c1 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> a15eb29a2c (GEOMESA-3198 Kafka streams integration (#2854))
   @volatile
   private var producerInitialized = false
 
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -32058,8 +32070,12 @@ class KafkaDataStore(
 =======
 >>>>>>> 0a87723fd9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> a15eb29a2c (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 =======
 >>>>>>> 4bb2f200fc (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 7f390054c1 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> c32560b0f3 (GEOMESA-3100 Kafka layer views (#2784))
@@ -40076,6 +40092,7 @@ class KafkaDataStore(
 =======
 >>>>>>> 95c83ca7f (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4231e686dd (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 >>>>>>> d309fbbbbf (GEOMESA-3100 Kafka layer views (#2784))
@@ -40085,9 +40102,12 @@ class KafkaDataStore(
 =======
 =======
 =======
+>>>>>>> 7f390054c1 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> d657014c8 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> 3be3e5d3e0 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 88e1e7d3ff (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
@@ -40984,11 +41004,17 @@ class KafkaDataStore(
 =======
 >>>>>>> 95c83ca7f (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 4bb2f200fc (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 0a87723fd9 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 7f390054c1 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> a15eb29a2c (GEOMESA-3198 Kafka streams integration (#2854))
   // only instantiate the producer if needed
   private val defaultProducer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))
   // noinspection ScalaDeprecation
   private val partitionedProducer = new LazyProducer(KafkaDataStore.producer(config))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -43480,6 +43506,8 @@ class KafkaDataStore(
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 6bfa3b9109 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 7f390054c1 (GEOMESA-3198 Kafka streams integration (#2854))
 
   // view type name -> actual type name
   private val layerViewLookup =
@@ -43502,10 +43530,14 @@ class KafkaDataStore(
   // view type name -> actual type name
   private val layerViewLookup =
     config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
+=======
+>>>>>>> d657014c8 (GEOMESA-3198 Kafka streams integration (#2854))
 
   // view type name -> actual type name
   private val layerViewLookup =
     config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 
   // view type name -> actual type name
   private val layerViewLookup =
@@ -64332,8 +64364,12 @@ class KafkaDataStore(
 =======
 =======
     }
+<<<<<<< HEAD
     val producer = getTransactionalProducer(transaction)
 >>>>>>> 890b70c86 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+    val producer = getTransactionalProducer(sft, transaction)
+>>>>>>> d657014c8 (GEOMESA-3198 Kafka streams integration (#2854))
     val vis = sft.isVisibilityRequired
     val writer = filter match {
       case None if vis    => new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
