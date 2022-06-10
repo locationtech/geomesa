@@ -332,6 +332,7 @@ class ConfluentFeatureSerializer(
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
     }
 
+<<<<<<< HEAD
     // visibility field index in the avro schema
     private val visibilityField = schema.getFields.asScala.collectFirst {
       case f if Option(f.getProp(GeoMesaAvroVisibilityField.KEY)).exists(_.toBoolean) => f.pos()
@@ -386,6 +387,46 @@ class ConfluentFeatureSerializer(
       visibilityField.foreach { pos => record.put(pos, SecurityUtils.getVisibility(feature)) }
       fieldMappings.foreach { m =>
 =======
+<<<<<<< HEAD
+=======
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
+    val record = kafkaAvroDeserializers.get.deserialize("", bytes).asInstanceOf[GenericRecord]
+
+    val feature = featureReaders.get.read(id, record)
+
+    // set the feature visibility if it exists
+    sft.getUserData.get(GeoMesaAvroVisibilityField.KEY) match {
+      case null => // no-op
+      case fieldName =>
+        record.get(fieldName.toString) match {
+          case null => // no-op
+          case vis => SecurityUtils.setFeatureVisibility(feature, vis.toString)
+        }
+
+    }
+
+    feature
+  }
+
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize("", bytes)
+
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    deserialize("", bytes, offset, length)
+
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
+    val buf = if (offset == 0 && length == bytes.length) { bytes } else {
+      val buf = Array.ofDim[Byte](length)
+      System.arraycopy(bytes, offset, buf, 0, length)
+      buf
+    }
+    deserialize(id, buf)
+  }
+
+  // implement the following if we need them
+
+  override def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError()
+
+>>>>>>> d657014c8 (GEOMESA-3198 Kafka streams integration (#2854))
   override def deserialize(id: String, in: InputStream): SimpleFeature =
     throw new NotImplementedError()
 
