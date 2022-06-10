@@ -62,6 +62,7 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -118,6 +119,8 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 >>>>>>> 3ab56cb4cf (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> 5e000da485 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
@@ -264,6 +267,7 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 =======
 >>>>>>> 5e000da485 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> 406de071e1 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 =======
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -422,11 +426,14 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 =======
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 =======
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -445,6 +452,8 @@ import org.opengis.filter.Filter
 >>>>>>> 83c2c09260 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> 3ab56cb4cf (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+>>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> dcd872c1ac (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 =======
@@ -884,6 +893,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 import java.sql.{Connection, DatabaseMetaData}
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 5e000da485 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 <<<<<<< HEAD
 >>>>>>> 406de071e1 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -923,6 +933,10 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> dcd872c1ac (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> df43e72c50 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> 3ab56cb4cf (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+>>>>>>> 5e000da485 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> 406de071e1 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 
 class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with LazyLogging {
 =======
@@ -1094,12 +1108,16 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 406de071e1 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -1193,10 +1211,15 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 406de071e1 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 =======
 =======
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1209,9 +1232,14 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 =======
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
+=======
+>>>>>>> 406de071e1 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 =======
 >>>>>>> 5e000da485 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1316,6 +1344,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 =======
 >>>>>>> 713060f3a2 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+>>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
@@ -1635,6 +1665,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 406de071e1 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -1847,6 +1878,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 =======
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
         ds.setSQLDialect(new PostGISPSDialect(ds, dialect) {
           // fix bug with PostGISPSDialect dialect not delegating these methods
           override def getDefaultVarcharSize: Int = dialect.getDefaultVarcharSize
@@ -1860,6 +1893,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
           }
           override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
             dialect.splitFilter(filter, schema)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1940,6 +1974,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 =======
 >>>>>>> bded5d63b7 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
+>>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
 >>>>>>> f31d66ef5f (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> d1cc27725e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -1959,6 +1995,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> e219fae656 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> 09404b0462 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+>>>>>>> 406de071e1 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 <<<<<<< HEAD
 >>>>>>> 9fb20ad56c (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -2062,6 +2100,9 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> f9fc40305 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 <<<<<<< HEAD
@@ -2431,6 +2472,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> f9fc40305 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -2835,6 +2877,12 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+        })
+>>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> 5e000da485 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> 406de071e1 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
     }
