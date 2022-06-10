@@ -27,6 +27,7 @@ import org.geotools.util.factory.Hints
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
 =======
 =======
@@ -88,6 +89,14 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunct
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> 91b820951 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> 9fb20ad56c (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
+=======
+=======
+>>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunctionVisitor
+>>>>>>> 713060f3a2 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> f5b2148366 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.{LogCleaner, TruncateToPartition, TruncateToTenMinutes}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
@@ -399,11 +408,15 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f5b2148366 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
   override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] = {
     import PartitionedPostgisDialect.Config.ConfigConversions
     super.splitFilter(SplitFilterVisitor(filter, schema.isFilterWholeWorld), schema)
   }
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
@@ -426,6 +439,12 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+  override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
+    super.splitFilter(LiteralFunctionVisitor(filter), schema)
+<<<<<<< HEAD
+>>>>>>> 713060f3a2 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> f5b2148366 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 
   override def registerClassToSqlMappings(mappings: java.util.Map[Class[_], Integer]): Unit = {
     super.registerClassToSqlMappings(mappings)
@@ -532,6 +551,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
       "text"
     }
   }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -974,6 +994,10 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 >>>>>>> 42af7673b (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 6d3c0ecb75 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 75e1524a30 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> f5b2148366 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 }
 
 object PartitionedPostgisDialect {
