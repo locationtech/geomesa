@@ -37,7 +37,20 @@ object QueryProperties {
   val S2MaxCells: Int = S2CoverConfig(3)
 
   // allow for full table scans or preempt them due to size of data set
+<<<<<<< HEAD
   val BlockFullTableScans = SystemProperty("geomesa.scan.block-full-table", "false")
+=======
+  val BlockFullTableScans = new SystemProperty("geomesa.scan.block-full-table", "false") {
+    @deprecated("Deprecated with no replacement")
+    def onFullTableScan(typeName: String, filter: Filter): Unit = {
+      val block = blockFullTableScansForFeatureType(typeName).orElse(toBoolean).getOrElse(false)
+      if (block) {
+        throw new RuntimeException(s"Full-table scans are disabled. Query being stopped for $typeName: " +
+            org.locationtech.geomesa.filter.filterToString(filter))
+      }
+    }
+  }
+>>>>>>> 9e5293be2a (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 
   val BlockMaxThreshold: SystemProperty = SystemProperty("geomesa.scan.block-full-table.threshold", "1000")
 
