@@ -12,7 +12,11 @@ package tables
 /**
  * Stores tablespaces used by each feature type
  */
-object PartitionTablespacesTable extends Sql {
+object PartitionTablespacesTable extends PartitionTablespacesTable with AdvisoryLock {
+  override protected val lockId: Long = 2005234735580322669L
+}
+
+class PartitionTablespacesTable extends Sql {
 
   val Name: TableName = TableName("partition_tablespaces")
 

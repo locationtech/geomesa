@@ -10,7 +10,6 @@ package org.locationtech.geomesa.hbase.data
 
 import java.awt.RenderingHints
 import java.io.Serializable
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.HBaseConfiguration
@@ -54,6 +53,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params),
       caching = CachingParam.lookup(params),
+      parallelPartitionScans = PartitionParallelScansParam.lookup(params),
       maxRangesPerExtendedScan = MaxRangesPerExtendedScanParam.lookup(params)
     )
     val enabledCoprocessors = EnabledCoprocessors(
@@ -161,6 +161,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       GenerateStatsParam,
       AuditQueriesParam,
       LooseBBoxParam,
+      PartitionParallelScansParam,
       CachingParam,
       AuthsParam,
       ForceEmptyAuthsParam
@@ -190,6 +191,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       timeout: Option[Long],
       looseBBox: Boolean,
       caching: Boolean,
+      parallelPartitionScans: Boolean,
       maxRangesPerExtendedScan: Int
     ) extends DataStoreQueryConfig
 

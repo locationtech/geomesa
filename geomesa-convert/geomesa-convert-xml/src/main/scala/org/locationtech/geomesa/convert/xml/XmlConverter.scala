@@ -57,19 +57,25 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     val array = Array.ofDim[Any](1)
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> geomesa-kafka
+=======
+>>>>>>> feature/schema-registry
     val array = Array.ofDim[Any](2)
 =======
     val array = Array.ofDim[Any](1)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> geomesa-kafka
+=======
+>>>>>>> feature/schema-registry
 
     helper.get.rootPath match {
       case None =>

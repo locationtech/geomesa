@@ -37,9 +37,20 @@ import org.opengis.filter.Filter
  * @param ds merged data store
  * @param stores delegate stores
  * @param deduplicate deduplicate the results between stores
+<<<<<<< HEAD
+ * @param parallel run scans in parallel (vs sequentially)
+ */
+class MergedQueryRunner(
+    ds: HasGeoMesaStats,
+    stores: Seq[(Queryable, Option[Filter])],
+    deduplicate: Boolean,
+    parallel: Boolean
+  ) extends QueryRunner with LazyLogging {
+=======
  */
 class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filter])], deduplicate: Boolean)
     extends QueryRunner with LazyLogging {
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
@@ -94,19 +105,25 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         Option(query.getSortBy).filterNot(_.isEmpty) match {
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> geomesa-kafka
+=======
+>>>>>>> feature/schema-registry
         val results = Option(query.getSortBy).filterNot(_.isEmpty) match {
 =======
         Option(query.getSortBy).filterNot(_.isEmpty) match {
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> geomesa-kafka
+=======
+>>>>>>> feature/schema-registry
           case None => SelfClosingIterator(iters.iterator).flatMap(i => i)
           case Some(sort) =>
             val sortSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
@@ -114,10 +131,13 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
             new SortedMergeIterator(iters)(SimpleFeatureOrdering(sortSft, sort))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> geomesa-kafka
+=======
+>>>>>>> feature/schema-registry
         }
 
         maxFeatures match {
@@ -126,9 +146,12 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> geomesa-kafka
+=======
+>>>>>>> feature/schema-registry
         }
       }
     }
@@ -206,7 +229,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
       store.getFeatureReader(mergeFilter(sft, q, filter), Transaction.AUTO_COMMIT)
     }
 
-    val results = SelfClosingIterator(readers.iterator).flatMap { reader =>
+    def getSingle(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val schema = reader.getFeatureType
       if (schema == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
         // arrow processing has been handled by the store already
@@ -220,13 +243,13 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
       }
     }
 
-    reduce(results)
+    reduce(doParallelScan(readers, getSingle))
   }
 
   private def densityQuery(sft: SimpleFeatureType,
                            readers: Seq[FeatureReader[SimpleFeatureType, SimpleFeature]],
                            hints: Hints): CloseableIterator[SimpleFeature] = {
-    SelfClosingIterator(readers.iterator).flatMap { reader =>
+    def getSingle(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val schema = reader.getFeatureType
       if (schema == DensityScan.DensitySft) {
         // density processing has been handled by the store already
@@ -237,13 +260,14 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         LocalQueryRunner.transform(copy, CloseableIterator(reader), None, hints, None)
       }
     }
+
+    doParallelScan(readers, getSingle)
   }
 
   private def statsQuery(sft: SimpleFeatureType,
                          readers: Seq[FeatureReader[SimpleFeatureType, SimpleFeature]],
                          hints: Hints): CloseableIterator[SimpleFeature] = {
-    // do the reduce here, as we can't merge json stats
-    val results = SelfClosingIterator(readers.iterator).flatMap { reader =>
+    def getSingle(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val schema = reader.getFeatureType
       if (schema == StatsScan.StatsSft) {
         // stats processing has been handled by the store already
@@ -254,13 +278,17 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         LocalQueryRunner.transform(copy, CloseableIterator(reader), None, hints, None)
       }
     }
+
+    val results = doParallelScan(readers, getSingle)
+
+    // do the reduce here, as we can't merge json stats
     StatsScan.StatsReducer(sft, hints)(results)
   }
 
   private def binQuery(sft: SimpleFeatureType,
                        readers: Seq[FeatureReader[SimpleFeatureType, SimpleFeature]],
                        hints: Hints): CloseableIterator[SimpleFeature] = {
-    SelfClosingIterator(readers.iterator).flatMap { reader =>
+    def getSingle(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val schema = reader.getFeatureType
       if (schema == BinaryOutputEncoder.BinEncodedSft) {
         // bin processing has been handled by the store already
@@ -271,6 +299,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         LocalQueryRunner.transform(copy, CloseableIterator(reader), None, hints, None)
       }
     }
+
+    doParallelScan(readers, getSingle)
   }
 
   override protected [geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
@@ -284,6 +314,16 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
       StatsScan.StatsSft
     } else {
       super.getReturnSft(sft, hints)
+    }
+  }
+
+  private def doParallelScan(
+      readers: Seq[FeatureReader[SimpleFeatureType, SimpleFeature]],
+      single: FeatureReader[SimpleFeatureType, SimpleFeature] => CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
+    if (parallel) {
+      SelfClosingIterator(readers.par.map(single).iterator).flatMap(i => i)
+    } else {
+      SelfClosingIterator(readers.iterator).flatMap(single)
     }
   }
 }

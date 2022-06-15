@@ -593,4 +593,35 @@ package object dialect {
     abstract override protected def dropStatements(info: TypeInfo): Seq[String] =
       Seq(s"SELECT cron.unschedule(${jobName(info).quoted});") ++ super.dropStatements(info)
   }
+
+  /**
+   * Uses a postgres advisory lock to synchronize create and drop statements
+   */
+  trait AdvisoryLock extends Sql {
+
+    /**
+     * The lock id associated with this object
+     *
+     * @return
+     */
+    protected def lockId: Long
+
+    private def lock: String = s"SELECT pg_advisory_lock($lockId);"
+    private def unlock: String = s"SELECT pg_advisory_unlock($lockId);"
+
+    abstract override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
+      ex.execute(lock)
+      try { super.create(info) } finally {
+        ex.execute(unlock)
+      }
+    }
+
+    abstract override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
+      ex.execute(lock)
+      try { super.drop(info) } finally {
+        ex.execute(unlock)
+      }
+    }
+
+  }
 }

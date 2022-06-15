@@ -11,16 +11,22 @@ package vector
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 =======
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> feature/schema-registry
+=======
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 >>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+<<<<<<< HEAD
 >>>>>>> geomesa-kafka
+=======
+>>>>>>> feature/schema-registry
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, StructVector}
@@ -498,10 +504,13 @@ object ArrowAttributeWriter {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   class ArrowUuidWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
 =======
 =======
 >>>>>>> geomesa-kafka
+=======
+>>>>>>> feature/schema-registry
   @deprecated("replaced with ArrowNoFidWriter")
   object ArrowNoopWriter extends ArrowAttributeWriter {
     override def name: String = SimpleFeatureVector.FeatureIdField
@@ -512,12 +521,18 @@ object ArrowAttributeWriter {
 
     class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
   class ArrowUuidWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
 >>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 >>>>>>> geomesa-kafka
+=======
+=======
+  class ArrowUuidWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
+>>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+>>>>>>> feature/schema-registry
     extends ArrowAttributeWriter {
     val fieldType: FieldType = new FieldType(true, new ArrowType.FixedSizeList(2), null, metadata.asJava)
     override val vector: FixedSizeListVector = factory.apply(name, fieldType)
@@ -545,6 +560,7 @@ object ArrowAttributeWriter {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   class ArrowFeatureIdMinimalUuidWriter(name: String, factory: VectorFactory)
 =======
   class ArrowFeatureIdMinimalUuidWriter(val name: String, factory: VectorFactory)
@@ -555,6 +571,12 @@ object ArrowAttributeWriter {
   class ArrowFeatureIdMinimalUuidWriter(name: String, factory: VectorFactory)
 >>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 >>>>>>> geomesa-kafka
+=======
+  class ArrowFeatureIdMinimalUuidWriter(val name: String, factory: VectorFactory)
+=======
+  class ArrowFeatureIdMinimalUuidWriter(name: String, factory: VectorFactory)
+>>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+>>>>>>> feature/schema-registry
       extends ArrowAttributeWriter {
 
     override val vector: IntVector = factory.apply(name, MinorType.INT, Map.empty)

@@ -12,7 +12,11 @@ package functions
 /**
  * Truncates a timestamp to the closest partition boundary, based on the number of hours in each partition
  */
-object TruncateToPartition extends SqlStatements {
+object TruncateToPartition extends TruncateToPartition with AdvisoryLock {
+  override protected val lockId: Long = 1616433564832724520L
+}
+
+class TruncateToPartition extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     Seq(

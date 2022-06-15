@@ -10,7 +10,6 @@ package org.locationtech.geomesa.kafka.confluent
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.kafka.confluent.ConfluentKafkaDataStoreFactoryTest.generateSchemaOverrideConfig
-import org.locationtech.geomesa.kafka.confluent.ConfluentKafkaDataStoreTest._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -18,11 +17,13 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ConfluentKafkaDataStoreFactoryTest extends Specification {
 
+  import ConfluentKafkaDataStoreTest._
+
   "parseSchemaOverrides" should {
     "fail to parse schemas" >> {
       "when the config cannot be parsed" in {
         val config = "{[[[{{{]]"
-        val schemaJsonByTopic = Map(topic -> config)
+        val schemaJsonByTopic = Map("topic1" -> config)
         val schemaOverridesConfig = Some(generateSchemaOverrideConfig(schemaJsonByTopic))
 
         ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig) must
@@ -52,7 +53,7 @@ class ConfluentKafkaDataStoreFactoryTest extends Specification {
              |    }
              |  ]
              |}""".stripMargin
-        val schemaJsonByTopic = Map(topic -> schemaJson)
+        val schemaJsonByTopic = Map("topic1" -> schemaJson)
         val schemaOverridesConfig = Some(generateSchemaOverrideConfig(schemaJsonByTopic))
 
         ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig) must
@@ -60,7 +61,7 @@ class ConfluentKafkaDataStoreFactoryTest extends Specification {
       }
 
       "when one or more of the schemas cannot be converted to an SFT" in {
-        val schemaJsonByTopic = Map(topic -> badSchemaJson)
+        val schemaJsonByTopic = Map("topic1" -> badSchemaJson)
         val schemaOverridesConfig = Some(generateSchemaOverrideConfig(schemaJsonByTopic))
 
         ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig) must
@@ -78,14 +79,14 @@ class ConfluentKafkaDataStoreFactoryTest extends Specification {
 
     "succeed in parsing schemas" >> {
       "when there is one valid schema" in {
-        val schemaJsonByTopic = Map(topic -> schemaJson1)
+        val schemaJsonByTopic = Map("topic1" -> schemaJson1)
         val schemaOverridesConfig = Some(generateSchemaOverrideConfig(schemaJsonByTopic))
 
         val results = ConfluentKafkaDataStoreFactory.parseSchemaOverrides(schemaOverridesConfig)
 
         results.size mustEqual 1
 
-        val result = results(topic)
+        val result = results("topic1")
         SimpleFeatureTypes.encodeType(result._1, includeUserData = false) mustEqual encodedSft1
         result._2 mustEqual schema1
       }

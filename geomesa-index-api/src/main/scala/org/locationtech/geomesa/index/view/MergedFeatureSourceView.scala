@@ -31,11 +31,13 @@ import org.opengis.filter.sort.SortBy
   *
   * @param ds data store
   * @param sources delegate feature sources
+ *  @param parallel scan stores in parallel (vs sequentially)
   * @param sft simple feature type
   */
 class MergedFeatureSourceView(
     ds: MergedDataStoreView,
     sources: Seq[(SimpleFeatureSource, Option[Filter])],
+    parallel: Boolean,
     sft: SimpleFeatureType
   ) extends SimpleFeatureSource with LazyLogging {
 
@@ -46,11 +48,25 @@ class MergedFeatureSourceView(
   override def getSchema: SimpleFeatureType = sft
 
   override def getCount(query: Query): Int = {
+<<<<<<< HEAD
+    val total =
+      if (parallel) {
+        val counts = sources.par.map { case (source, f) => source.getCount(mergeFilter(sft, query, f)) }
+        counts.foldLeft(0)((sum, count) => if (sum < 0 || count < 0) { -1 } else { sum + count })
+      } else {
+        // if one of our sources can't get a count (i.e. is negative), give up and return -1
+        sources.foldLeft(0) { case (sum, (source, filter)) =>
+          lazy val count = source.getCount(mergeFilter(sft, query, filter))
+          if (sum < 0 || count < 0) { -1 } else { sum + count }
+        }
+      }
+=======
     // if one of our sources can't get a count (i.e. is negative), give up and return -1
     val total = sources.foldLeft(0) { case (sum, (source, filter)) =>
       lazy val count = source.getCount(mergeFilter(sft, query, filter))
       if (sum < 0 || count < 0) { -1 } else { sum + count }
     }
+>>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
     if (query.isMaxFeaturesUnlimited) {
       total
     } else {
@@ -59,31 +75,51 @@ class MergedFeatureSourceView(
   }
 
   override def getBounds: ReferencedEnvelope = {
-    val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-    sources.foreach {
-      case (source, None)    => bounds.expandToInclude(source.getBounds)
-      case (source, Some(f)) => bounds.expandToInclude(source.getBounds(new Query(sft.getTypeName, f)))
+    def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Option[ReferencedEnvelope] = {
+      sourceAndFilter match {
+        case (source, None)    => Option(source.getBounds)
+        case (source, Some(f)) => Option(source.getBounds(new Query(sft.getTypeName, f)))
+      }
     }
+
+    val sourceBounds = if (parallel) { sources.par.flatMap(getSingle).seq } else { sources.flatMap(getSingle) }
+
+    val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
+    sourceBounds.foreach(bounds.expandToInclude)
     bounds
   }
 
   override def getBounds(query: Query): ReferencedEnvelope = {
+    def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Option[ReferencedEnvelope] =
+      Option(sourceAndFilter._1.getBounds(mergeFilter(sft, query, sourceAndFilter._2)))
+
+    val sourceBounds = if (parallel) { sources.par.flatMap(getSingle).seq } else { sources.flatMap(getSingle) }
+
     val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
+<<<<<<< HEAD
+    sourceBounds.foreach(bounds.expandToInclude)
+=======
     sources.foreach {
       case (source, filter) =>
 <<<<<<< HEAD
         val source_bounds = source.getBounds(mergeFilter(sft, query, filter))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
         val source_bounds = source.getBounds(mergeFilter(sft, query, filter))
 =======
         val source_bounds = source.getBounds(mergeFilter(query, filter))
 >>>>>>> 22da407b4 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 >>>>>>> geomesa-kafka
+=======
+        val source_bounds = source.getBounds(mergeFilter(query, filter))
+>>>>>>> 22da407b4 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+>>>>>>> feature/schema-registry
         if(source_bounds != null){
           bounds.expandToInclude(source_bounds)
         }
     }
+>>>>>>> 22da407b4 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
     bounds
   }
 

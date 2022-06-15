@@ -11,7 +11,6 @@ package org.locationtech.geomesa.kudu.data
 import java.awt.RenderingHints
 import java.io.Serializable
 import java.nio.charset.StandardCharsets
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kudu.client.KuduClient
 import org.geotools.data.DataAccessFactory.Param
@@ -51,7 +50,8 @@ class KuduDataStoreFactory extends DataStoreFactorySpi {
       threads = QueryThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params),
-      caching = CachingParam.lookup(params)
+      caching = CachingParam.lookup(params),
+      parallelPartitionScans = PartitionParallelScansParam.lookup(params)
     )
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
@@ -94,7 +94,8 @@ object KuduDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       Params.AuditQueriesParam,
       Params.GenerateStatsParam,
       Params.StatisticsParam,
-      Params.CachingParam
+      Params.CachingParam,
+      Params.PartitionParallelScansParam
     )
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
@@ -192,6 +193,7 @@ object KuduDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       threads: Int,
       timeout: Option[Long],
       looseBBox: Boolean,
-      caching: Boolean
+      caching: Boolean,
+      parallelPartitionScans: Boolean
     ) extends DataStoreQueryConfig
 }
