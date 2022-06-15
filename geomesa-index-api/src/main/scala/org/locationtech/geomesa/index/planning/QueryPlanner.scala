@@ -204,6 +204,9 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bad30768f2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 =======
 =======
@@ -629,6 +632,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 >>>>>>> bc58bb16eb (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1116,6 +1120,10 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 =======
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+=======
+>>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> bad30768f2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
           ds.adapter.createQueryPlan(qs)
         }
       }
