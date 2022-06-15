@@ -40,6 +40,7 @@ object QueryProperties {
   // noinspection TypeAnnotation
   // allow for full table scans or preempt them due to size of data set
   val BlockFullTableScans = new SystemProperty("geomesa.scan.block-full-table", "false") {
+    @deprecated("Deprecated with no replacement")
     def onFullTableScan(typeName: String, filter: Filter): Unit = {
       val block = blockFullTableScansForFeatureType(typeName).orElse(toBoolean).getOrElse(false)
       if (block) {

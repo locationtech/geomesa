@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.index.api
 
-import java.nio.charset.StandardCharsets
-import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex.IdFromRow
 import org.locationtech.geomesa.index.api.WriteConverter.{TieredWriteConverter, WriteConverterImpl}
 import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.conf.QueryProperties.BlockFullTableScans
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.conf.splitter.TableSplitter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -31,6 +30,9 @@ import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{ExcludeFilter, Filter}
+
+import java.nio.charset.StandardCharsets
+import java.util.UUID
 
 /**
   * Represents a particular indexing strategy
@@ -269,7 +271,18 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
           // check that full table scans are allowed
           if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
             // check that full table scans are allowed
-            QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+            lazy val filterString =
+              org.locationtech.geomesa.filter.filterToString(filter.filter.getOrElse(Filter.INCLUDE))
+            val block =
+              QueryProperties.blockFullTableScansForFeatureType(sft.getTypeName)
+                  .orElse(BlockFullTableScans.toBoolean)
+                  .getOrElse(false)
+            if (block) {
+              throw new RuntimeException(
+                s"Full-table scans are disabled. Query being stopped for ${sft.getTypeName}: $filterString")
+            } else {
+              logger.warn(s"Running full table scan for schema '${sft.getTypeName}' with filter: $filterString")
+            }
           }
           val keyRanges = Seq(UnboundedRange(null))
           val byteRanges = Seq(BoundedByteRange(sharing, ByteArrays.rowFollowingPrefix(sharing)))
