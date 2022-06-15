@@ -65,6 +65,7 @@ object QueryProperties {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 1f18a80880 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -76,10 +77,13 @@ object QueryProperties {
 =======
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
+>>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
@@ -103,6 +107,10 @@ object QueryProperties {
 =======
 =======
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> 1f18a80880 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> 83be617313 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -112,8 +120,11 @@ object QueryProperties {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> 2aefae6145 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> 05abd783e4 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -140,6 +151,7 @@ object QueryProperties {
 >>>>>>> 2aefae6145 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 825515ce74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -163,6 +175,8 @@ object QueryProperties {
 =======
 >>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
   val BlockFullTableScans = new SystemProperty("geomesa.scan.block-full-table", "false") {
     @deprecated("Deprecated with no replacement")
     def onFullTableScan(typeName: String, filter: Filter): Unit = {
@@ -191,10 +205,13 @@ object QueryProperties {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8e01f6263e (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> c7527e3843 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
@@ -205,6 +222,7 @@ object QueryProperties {
 >>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+<<<<<<< HEAD
 =======
 >>>>>>> 8c519079d0 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
@@ -225,6 +243,8 @@ object QueryProperties {
 =======
 >>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> 9e5293be2a (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -277,6 +297,9 @@ object QueryProperties {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> 9e5293be2a (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> 05abd783e4 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -308,6 +331,7 @@ object QueryProperties {
 >>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> 83be617313 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -357,6 +381,10 @@ object QueryProperties {
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+=======
+>>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 
   val BlockMaxThreshold: SystemProperty = SystemProperty("geomesa.scan.block-full-table.threshold", "1000")
 
