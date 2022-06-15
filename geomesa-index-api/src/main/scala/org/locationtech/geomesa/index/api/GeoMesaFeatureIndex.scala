@@ -59,7 +59,10 @@ package org.locationtech.geomesa.index.api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 089a9f3f18 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> d022c4bef (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -945,11 +948,21 @@ import java.util.UUID
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> bad30768f2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
 import java.nio.charset.StandardCharsets
 import java.util.UUID
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 >>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 >>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+=======
+=======
+>>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> bad30768f2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> 089a9f3f18 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex.IdFromRow
@@ -1281,6 +1294,9 @@ import java.util.UUID
 =======
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 
+import java.nio.charset.StandardCharsets
+import java.util.UUID
+
 /**
   * Represents a particular indexing strategy
   *
@@ -1559,6 +1575,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 089a9f3f18 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 =======
 >>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -2080,7 +2099,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locationtech-main
 =======
 >>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 >>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+=======
+=======
+>>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> bad30768f2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> 089a9f3f18 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
             lazy val filterString =
               org.locationtech.geomesa.filter.filterToString(filter.filter.getOrElse(Filter.INCLUDE))
             val block =
@@ -2143,7 +2169,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 089a9f3f18 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> 4c943341c (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
@@ -2860,7 +2889,17 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
             QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 >>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+=======
+=======
+            QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+>>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> bad30768f2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> 089a9f3f18 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
           }
           val keyRanges = Seq(UnboundedRange(null))
           val byteRanges = Seq(BoundedByteRange(sharing, ByteArrays.rowFollowingPrefix(sharing)))
