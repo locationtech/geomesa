@@ -1,5 +1,13 @@
 /***********************************************************************
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> fb4b9418a7 (GEOMESA-3215 Postgis - support List-type attributes)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,20 +16,31 @@
 
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 
+<<<<<<< HEAD
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
+<<<<<<< HEAD
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
+=======
+=======
+>>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> a8e0698bf72 (GEOMESA-3215 Postgis - support List-type attributes)
 import org.geotools.data.postgis.PostGISPSDialect
 import org.geotools.jdbc.JDBCDataStore
 
+<<<<<<< HEAD
 import java.sql.{Connection, DatabaseMetaData, PreparedStatement, Types}
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+=======
+import java.sql.{Connection, DatabaseMetaData}
+>>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 
 class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPostgisDialect)
     extends PostGISPSDialect(store, delegate){
 
+<<<<<<< HEAD
   import PartitionedPostgisPsDialect.PreparedStatementKey
 
   import scala.collection.JavaConverters._
@@ -82,6 +101,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
     ps.setArray(column, super.convertToArray(array, componentTypeName, componentType, cx))
   }
 
+=======
+>>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
   override protected def convertToArray(
       value: Any, componentTypeName: String, componentType: Class[_], connection: Connection): java.sql.Array = {
     val array = value match {
@@ -92,6 +113,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
   }
 
   // fix bug with PostGISPSDialect dialect not delegating these methods
+<<<<<<< HEAD
   override def encodeCreateTable(sql: StringBuffer): Unit = delegate.encodeCreateTable(sql)
   override def getDefaultVarcharSize: Int = delegate.getDefaultVarcharSize
   override def encodeTableName(raw: String, sql: StringBuffer): Unit = delegate.encodeTableName(raw, sql)
@@ -99,6 +121,11 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
     delegate.encodePostCreateTable(tableName, sql)
   override def postCreateAttribute(att: AttributeDescriptor, tableName: String, schemaName: String, cx: Connection): Unit =
     delegate.postCreateAttribute(att, tableName, schemaName, cx)
+=======
+
+  override def getDefaultVarcharSize: Int = delegate.getDefaultVarcharSize
+  override def encodeTableName(raw: String, sql: StringBuffer): Unit = delegate.encodeTableName(raw, sql)
+>>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
   override def postCreateFeatureType(
       featureType: SimpleFeatureType,
       metadata: DatabaseMetaData,
@@ -112,6 +139,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
   override def encodePostColumnCreateTable(att: AttributeDescriptor, sql: StringBuffer): Unit =
     delegate.encodePostColumnCreateTable(att, sql)
 }
+<<<<<<< HEAD
 
 object PartitionedPostgisPsDialect {
 
@@ -131,3 +159,5 @@ object PartitionedPostgisPsDialect {
     }
   }
 }
+=======
+>>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
