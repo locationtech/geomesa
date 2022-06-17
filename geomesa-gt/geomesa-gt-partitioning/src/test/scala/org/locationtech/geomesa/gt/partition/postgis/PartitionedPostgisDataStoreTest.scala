@@ -10,7 +10,16 @@ package org.locationtech.geomesa.gt.partition.postgis
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
+<<<<<<< HEAD
 import org.geotools.feature.simple.SimpleFeatureBuilder
+=======
+import org.geotools.data.postgis.PostGISPSDialect
+<<<<<<< HEAD
+=======
+import org.geotools.data.{DataStoreFinder, DefaultTransaction, Query, Transaction}
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+import org.geotools.filter.identity.FeatureIdImpl
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
 import org.junit.runner.RunWith
@@ -39,7 +48,11 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 
   val hours = 1
   val spec =
+<<<<<<< HEAD
     "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
+=======
+    "name:List[String],age:Int,dtg:Date,*geom:Point:srid=4326;" +
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
         Seq(
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
@@ -105,6 +118,9 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
         ds.createSchema(sft)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
         val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
         schema must not(beNull)
         schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
@@ -112,12 +128,18 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
         logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 =======
         logger.info(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+<<<<<<< HEAD
 =======
         val userData = Try(ds.getSchema(sft.getTypeName)).map(_.getUserData.asScala).getOrElse(null)
         userData must not(beNull)
         userData must containAllOf(sft.getUserData.asScala.toSeq)
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 >>>>>>> 203dda21b (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+=======
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
 
         // write some data
         WithClose(new DefaultTransaction()) { tx =>
@@ -176,7 +198,38 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
           reader.hasNext must beFalse
         }
 
+<<<<<<< HEAD
         ds.removeSchema(sft.getTypeName)
+=======
+        if (methods.query) {
+          WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+            while (reader.hasNext) {
+<<<<<<< HEAD
+              logger.info(DataUtilities.encodeFeature(reader.next))
+=======
+              logger.info(reader.next.toString)
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+            }
+          }
+        }
+
+        if (methods.delete) {
+          (1 to 10).foreach { i =>
+            WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter(s"IN('fid$i')"), Transaction.AUTO_COMMIT)) { writer =>
+              if (writer.hasNext) {
+                writer.next()
+                writer.remove()
+              } else {
+                logger.warn(s"No entry found for delete fid$i")
+              }
+            }
+          }
+        }
+
+        if (methods.remove) {
+          ds.removeSchema(sft.getTypeName)
+        }
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
       } catch {
         case NonFatal(e) => logger.error("", e); ko
       } finally {
@@ -186,6 +239,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
     }
   }
 
+<<<<<<< HEAD
   step {
     if (container != null) {
       container.stop()
@@ -199,5 +253,25 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
         rs.getInt(1)
       }
     }
+=======
+  case class Methods(
+      create: Boolean,
+<<<<<<< HEAD
+      upgrade: Boolean,
+=======
+      recreate: Boolean,
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+      write: Boolean,
+      update: Boolean,
+      query: Boolean,
+      delete: Boolean,
+      remove: Boolean
+<<<<<<< HEAD
+    ) {
+    def any: Boolean = create || upgrade || write || update || query || delete || remove
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
   }
+=======
+    )
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 }
