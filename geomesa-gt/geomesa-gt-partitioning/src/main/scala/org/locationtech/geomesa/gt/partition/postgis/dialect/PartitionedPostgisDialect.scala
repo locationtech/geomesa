@@ -2335,10 +2335,89 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 =======
   override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
     super.splitFilter(LiteralFunctionVisitor(filter), schema)
+<<<<<<< HEAD
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> 91b820951 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> 9fb20ad56c (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> 56e5bdc2a5 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+=======
+=======
+=======
+
+  override def registerClassToSqlMappings(mappings: java.util.Map[Class[_], Integer]): Unit = {
+    super.registerClassToSqlMappings(mappings)
+    mappings.put(classOf[java.util.List[_]], Types.ARRAY)
+  }
+
+  override def registerSqlTypeNameToClassMappings(mappings: java.util.Map[String, Class[_]]): Unit = {
+    super.registerSqlTypeNameToClassMappings(mappings)
+    mappings.put("array", classOf[java.util.List[_]])
+  }
+
+  override def registerSqlTypeToSqlTypeNameOverrides(overrides: java.util.Map[Integer, String]): Unit = {
+    super.registerSqlTypeToSqlTypeNameOverrides(overrides)
+    overrides.put(Types.ARRAY, "ARRAY")
+  }
+
+  override def encodePostColumnCreateTable(att: AttributeDescriptor, sql: StringBuffer): Unit = {
+    super.encodePostColumnCreateTable(att, sql)
+    if (att.isList) {
+      // go back and encode the array type in the CQL create statement
+      val i = sql.lastIndexOf(" ARRAY")
+      if (i == sql.length() - 6) {
+        sql.insert(i, " " + getListTypeMapping(att.getListType()))
+      } else {
+        logger.warn(s"Found list-type attribute but no ARRAY column binding: $sql")
+      }
+    }
+  }
+
+  override def getMapping(columnMetaData: ResultSet, cx: Connection): Class[_] = {
+    val mapping = super.getMapping(columnMetaData, cx)
+    if (mapping != null && mapping.isArray) {
+      classOf[java.util.List[_]]
+    } else {
+      mapping
+    }
+  }
+
+  /**
+   * Gets the array type for a list/array column
+   *
+   * @param binding list-type binding
+   * @return
+   */
+  private def getListTypeMapping(binding: Class[_]): String = {
+    val mappings = new java.util.HashMap[String, Class[_]]()
+    registerSqlTypeNameToClassMappings(mappings)
+    var mapping: String = null
+    var partial: String = null
+    val iter = mappings.asScala.iterator
+    while (iter.hasNext && mapping == null) {
+      val (name, clas) = iter.next
+      if (clas == binding) {
+        mapping = name
+      } else if (partial == null && clas.isAssignableFrom(binding)) {
+        partial = name
+      }
+    }
+    if (mapping != null) {
+      mapping
+    } else if (partial != null) {
+      partial
+    } else {
+      logger.warn(s"Could not find list-type column for type ${binding.getName}")
+      "text"
+    }
+  }
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 47f8de1bb (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> afb207dc68 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 6bd2f89dcd (GEOMESA-3215 Postgis - support List-type attributes)
 }
 
 object PartitionedPostgisDialect {
