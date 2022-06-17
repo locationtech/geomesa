@@ -6,8 +6,15 @@
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+<<<<<<< HEAD
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 >>>>>>> fb4b9418a7 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> afb207dc68 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 1a6dc23ec5 (GEOMESA-3215 Postgis - support List-type attributes)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
