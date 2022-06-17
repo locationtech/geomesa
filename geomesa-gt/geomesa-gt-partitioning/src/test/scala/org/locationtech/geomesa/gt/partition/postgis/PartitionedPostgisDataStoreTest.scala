@@ -10,7 +10,7 @@ package org.locationtech.geomesa.gt.partition.postgis
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.postgis.PostGISPSDialect
-import org.geotools.data.{DataStoreFinder, DefaultTransaction, Transaction}
+import org.geotools.data.{DataStoreFinder, DefaultTransaction, Query, Transaction}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
@@ -23,6 +23,7 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Collections
 import scala.annotation.tailrec
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -34,7 +35,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 
   val hours = 1
   val spec =
-    "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;" +
+    "name:List[String],age:Int,dtg:Date,*geom:Point:srid=4326;" +
         Seq(
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
@@ -50,6 +51,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
       recreate = false,
       write = false,
       update = false,
+      query = false,
       delete = false,
       remove = false
     )
@@ -99,9 +101,10 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
           }
         }
 
-        val userData = Try(ds.getSchema(sft.getTypeName)).map(_.getUserData.asScala).getOrElse(null)
-        userData must not(beNull)
-        userData must containAllOf(sft.getUserData.asScala.toSeq)
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.info(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 
         val now = System.currentTimeMillis()
 
@@ -110,7 +113,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
             WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
               (1 to 10).foreach { i =>
                 val next = writer.next()
-                next.setAttribute("name", s"name$i")
+                next.setAttribute("name", Collections.singletonList(s"name$i"))
                 next.setAttribute("age", i)
                 next.setAttribute("dtg", new java.util.Date(now - (i * 20 * 60 * 1000))) // 20 minutes
                 next.setAttribute("geom", WKTUtils.read(s"POINT(0 $i)"))
@@ -137,6 +140,14 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
           }
         }
 
+        if (methods.query) {
+          WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+            while (reader.hasNext) {
+              logger.info(reader.next.toString)
+            }
+          }
+        }
+
         if (methods.delete) {
           (1 to 10).foreach { i =>
             WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter(s"IN('fid$i')"), Transaction.AUTO_COMMIT)) { writer =>
@@ -154,7 +165,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
           ds.removeSchema(sft.getTypeName)
         }
       } catch {
-        case NonFatal(e) => e.printStackTrace(); ko(e.toString)
+        case NonFatal(e) => logger.error("", e); ko
       } finally {
         if (ds != null) {
           ds.dispose()
@@ -164,5 +175,13 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
     }
   }
 
-  case class Methods(create: Boolean, recreate: Boolean, write: Boolean, update: Boolean, delete: Boolean, remove: Boolean)
+  case class Methods(
+      create: Boolean,
+      recreate: Boolean,
+      write: Boolean,
+      update: Boolean,
+      query: Boolean,
+      delete: Boolean,
+      remove: Boolean
+    )
 }

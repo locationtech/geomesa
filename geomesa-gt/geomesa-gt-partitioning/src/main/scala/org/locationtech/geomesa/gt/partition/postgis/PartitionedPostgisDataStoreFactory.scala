@@ -10,11 +10,7 @@ package org.locationtech.geomesa.gt.partition.postgis
 
 import org.geotools.data.postgis.{PostGISDialect, PostGISPSDialect, PostgisNGDataStoreFactory}
 import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
-
-import java.sql.{Connection, DatabaseMetaData}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 
 class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 
@@ -57,6 +53,7 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
         val simplify = PostgisNGDataStoreFactory.SIMPLIFY.lookUp(params.asInstanceOf[java.util.Map[String, _]])
         dialect.setSimplifyEnabled(simplify == null || simplify == java.lang.Boolean.TRUE)
 
+<<<<<<< HEAD
         ds.setSQLDialect(new PostGISPSDialect(ds, dialect) {
           // fix bug with PostGISPSDialect dialect not delegating these methods
           override def getDefaultVarcharSize: Int = dialect.getDefaultVarcharSize
@@ -75,6 +72,9 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 =======
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
         })
+=======
+        ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
+>>>>>>> c79be4f83 (GEOMESA-3215 Postgis - support List-type attributes)
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
     }
