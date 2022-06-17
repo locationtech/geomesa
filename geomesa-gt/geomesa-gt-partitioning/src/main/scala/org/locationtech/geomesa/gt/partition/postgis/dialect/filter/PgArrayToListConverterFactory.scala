@@ -8,6 +8,9 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 69a6e5986e (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
 >>>>>>> fb4b9418a7 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -16,12 +19,20 @@
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> afb207dc68 (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1a6dc23ec5 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 =======
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 4bc3de3352 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 69a6e5986e (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 297e1658f6 (GEOMESA-3215 Postgis - support List-type attributes)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
