@@ -64,6 +64,7 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b597cf01b8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
@@ -96,6 +97,8 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 >>>>>>> 95fa3152e7 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> f8a4dfe0b3 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 =======
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -105,13 +108,17 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -505,6 +512,8 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 >>>>>>> 36a7119501 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> f8a4dfe0b3 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 import org.geotools.data.postgis.PostGISPSDialect
 import org.geotools.jdbc.JDBCDataStore
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -545,6 +554,7 @@ import org.opengis.filter.Filter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 45ed5ccca0 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
@@ -758,6 +768,10 @@ import org.opengis.filter.Filter
 >>>>>>> 36a7119501 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> f8a4dfe0b3 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+=======
+>>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 import java.sql.{Connection, DatabaseMetaData, PreparedStatement, Types}
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -771,18 +785,22 @@ import java.sql.{Connection, DatabaseMetaData}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 import java.sql.{Connection, DatabaseMetaData, PreparedStatement, Types}
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 >>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1153,6 +1171,11 @@ import java.util.concurrent.TimeUnit
 >>>>>>> 36a7119501 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> f8a4dfe0b3 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+=======
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 
 class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPostgisDialect)
     extends PostGISPSDialect(store, delegate){
@@ -1191,6 +1214,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 45ed5ccca0 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
@@ -1431,6 +1455,10 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 >>>>>>> 36a7119501 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> f8a4dfe0b3 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+=======
+>>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
   import PartitionedPostgisPsDialect.PreparedStatementKey
 
   import scala.collection.JavaConverters._
@@ -1709,6 +1737,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -1723,11 +1752,14 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 =======
 >>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
+=======
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -2053,6 +2085,10 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 =======
 >>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> f8a4dfe0b3 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
   override protected def convertToArray(
       value: Any, componentTypeName: String, componentType: Class[_], connection: Connection): java.sql.Array = {
     val array = value match {
@@ -2196,8 +2232,15 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 
   override def getDefaultVarcharSize: Int = delegate.getDefaultVarcharSize
   override def encodeTableName(raw: String, sql: StringBuffer): Unit = delegate.encodeTableName(raw, sql)
+<<<<<<< HEAD
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 >>>>>>> 36a7119501 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
   override def postCreateFeatureType(
       featureType: SimpleFeatureType,
       metadata: DatabaseMetaData,
@@ -2211,6 +2254,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
   override def encodePostColumnCreateTable(att: AttributeDescriptor, sql: StringBuffer): Unit =
     delegate.encodePostColumnCreateTable(att, sql)
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2274,9 +2318,12 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 =======
 >>>>>>> 95fa3152e7 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
 >>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2535,6 +2582,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 =======
 >>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> f8a4dfe0b3 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 
 object PartitionedPostgisPsDialect {
 
@@ -2587,6 +2636,7 @@ object PartitionedPostgisPsDialect {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b597cf01b8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
@@ -2620,18 +2670,24 @@ object PartitionedPostgisPsDialect {
 =======
 >>>>>>> f8a4dfe0b3 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2965,3 +3021,5 @@ object PartitionedPostgisPsDialect {
 >>>>>>> 36a7119501 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> f8a4dfe0b3 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+>>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
