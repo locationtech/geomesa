@@ -28,7 +28,14 @@ import org.geotools.filter.identity.FeatureIdImpl
 >>>>>>> locationtech-main
 =======
 import org.geotools.data.postgis.PostGISPSDialect
+<<<<<<< HEAD
 import org.geotools.data.{DataStoreFinder, DefaultTransaction, Query, Transaction}
+=======
+<<<<<<< HEAD
+=======
+import org.geotools.data.{DataStoreFinder, DefaultTransaction, Query, Transaction}
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
 import org.geotools.filter.identity.FeatureIdImpl
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 47f8de1bb (GEOMESA-3215 Postgis - support List-type attributes)
@@ -77,6 +84,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   val spec =
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
     "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
 =======
 <<<<<<< HEAD
@@ -86,9 +96,11 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
     "name:List[String],age:Int,dtg:Date,*geom:Point:srid=4326;" +
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 =======
     "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
 >>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
@@ -97,6 +109,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 47f8de1bb (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> eb44b0e44 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+=======
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
         Seq(
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
@@ -207,6 +223,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
         schema must not(beNull)
         schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
@@ -227,11 +244,22 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 =======
 >>>>>>> f9969bc4e9 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
           val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
           schema must not(beNull)
           schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
           logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 >>>>>>> 47f8de1bb (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.info(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+<<<<<<< HEAD
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
 =======
         val userData = Try(ds.getSchema(sft.getTypeName)).map(_.getUserData.asScala).getOrElse(null)
         userData must not(beNull)
@@ -263,6 +291,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> a91558bd4 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 203dda21b (GEOMESA-3208 Postgis - Fix camel-case feature type names)
         val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
@@ -281,7 +310,13 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         userData must containAllOf(sft.getUserData.asScala.toSeq)
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 203dda21b (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 >>>>>>> f9969bc4e9 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+=======
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
 
           // write some data
           WithClose(new DefaultTransaction()) { tx =>
@@ -348,7 +383,15 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         if (methods.query) {
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
             while (reader.hasNext) {
+<<<<<<< HEAD
               logger.info(reader.next.toString)
+=======
+<<<<<<< HEAD
+              logger.info(DataUtilities.encodeFeature(reader.next))
+=======
+              logger.info(reader.next.toString)
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
             }
           }
         }
@@ -688,8 +731,19 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
   case class Methods(
       create: Boolean,
+<<<<<<< HEAD
       recreate: Boolean,
+<<<<<<< HEAD
 >>>>>>> 47f8de1bb (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+<<<<<<< HEAD
+      upgrade: Boolean,
+=======
+      recreate: Boolean,
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
       write: Boolean,
       update: Boolean,
       query: Boolean,
@@ -697,11 +751,21 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       remove: Boolean
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     ) {
     def any: Boolean = create || upgrade || write || update || query || delete || remove
 >>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
   }
 =======
+=======
+=======
+<<<<<<< HEAD
+    ) {
+    def any: Boolean = create || upgrade || write || update || query || delete || remove
+  }
+=======
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
     )
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> locationtech-main
