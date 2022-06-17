@@ -398,6 +398,7 @@ import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -422,6 +423,8 @@ import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 >>>>>>> 6494375eef (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 6de7ca735b (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 import org.opengis.feature.`type`.AttributeDescriptor
 <<<<<<< HEAD
@@ -466,6 +469,7 @@ import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.`type`.AttributeDescriptor
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -524,6 +528,13 @@ import org.opengis.feature.`type`.AttributeDescriptor
 >>>>>>> 6494375eef (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 6de7ca735b (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+=======
+import org.opengis.feature.`type`.AttributeDescriptor
+>>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 >>>>>>> a8e0698bf72 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -551,6 +562,7 @@ import scala.util.Try
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -575,6 +587,8 @@ import scala.util.Try
 >>>>>>> 6494375eef (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 6de7ca735b (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 <<<<<<< HEAD
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -615,6 +629,7 @@ import scala.util.Try
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -671,6 +686,12 @@ import scala.util.Try
 >>>>>>> 6494375eef (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 6de7ca735b (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+=======
+>>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
 
 class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(store) with StrictLogging {
 
@@ -2966,9 +2987,85 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 =======
   override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
     super.splitFilter(LiteralFunctionVisitor(filter), schema)
+<<<<<<< HEAD
 >>>>>>> dcd872c1ac (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> df43e72c50 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> 3ab56cb4cf (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+=======
+=======
+
+  override def registerClassToSqlMappings(mappings: java.util.Map[Class[_], Integer]): Unit = {
+    super.registerClassToSqlMappings(mappings)
+    mappings.put(classOf[java.util.List[_]], Types.ARRAY)
+  }
+
+  override def registerSqlTypeNameToClassMappings(mappings: java.util.Map[String, Class[_]]): Unit = {
+    super.registerSqlTypeNameToClassMappings(mappings)
+    mappings.put("array", classOf[java.util.List[_]])
+  }
+
+  override def registerSqlTypeToSqlTypeNameOverrides(overrides: java.util.Map[Integer, String]): Unit = {
+    super.registerSqlTypeToSqlTypeNameOverrides(overrides)
+    overrides.put(Types.ARRAY, "ARRAY")
+  }
+
+  override def encodePostColumnCreateTable(att: AttributeDescriptor, sql: StringBuffer): Unit = {
+    super.encodePostColumnCreateTable(att, sql)
+    if (att.isList) {
+      // go back and encode the array type in the CQL create statement
+      val i = sql.lastIndexOf(" ARRAY")
+      if (i == sql.length() - 6) {
+        sql.insert(i, " " + getListTypeMapping(att.getListType()))
+      } else {
+        logger.warn(s"Found list-type attribute but no ARRAY column binding: $sql")
+      }
+    }
+  }
+
+  override def getMapping(columnMetaData: ResultSet, cx: Connection): Class[_] = {
+    val mapping = super.getMapping(columnMetaData, cx)
+    if (mapping != null && mapping.isArray) {
+      classOf[java.util.List[_]]
+    } else {
+      mapping
+    }
+  }
+
+  /**
+   * Gets the array type for a list/array column
+   *
+   * @param binding list-type binding
+   * @return
+   */
+  private def getListTypeMapping(binding: Class[_]): String = {
+    val mappings = new java.util.HashMap[String, Class[_]]()
+    registerSqlTypeNameToClassMappings(mappings)
+    var mapping: String = null
+    var partial: String = null
+    val iter = mappings.asScala.iterator
+    while (iter.hasNext && mapping == null) {
+      val (name, clas) = iter.next
+      if (clas == binding) {
+        mapping = name
+      } else if (partial == null && clas.isAssignableFrom(binding)) {
+        partial = name
+      }
+    }
+    if (mapping != null) {
+      mapping
+    } else if (partial != null) {
+      partial
+    } else {
+      logger.warn(s"Could not find list-type column for type ${binding.getName}")
+      "text"
+    }
+  }
+>>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
 }
 
 object PartitionedPostgisDialect {
