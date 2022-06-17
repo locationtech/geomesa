@@ -134,18 +134,18 @@ object SimpleFeatureSpec {
   def attribute(sft: SimpleFeatureType, descriptor: AttributeDescriptor): AttributeSpec = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     val name = descriptor.getLocalName
     val binding = descriptor.getType.getBinding
-    val options = descriptor.getUserData.map { case (k, v) => k.toString -> v.toString }.toMap
+    val options = descriptor.getUserData.asScala.map { case (k, v) => k.toString -> v.toString }.toMap
 
     if (simpleTypeMap.contains(binding.getSimpleName)) {
       SimpleAttributeSpec(name, binding, options)
     } else if (geometryTypeMap.contains(binding.getSimpleName)) {
       val opts = if (sft != null && sft.getGeometryDescriptor == descriptor) { options + (OptDefault -> "true") } else { options }
       GeomAttributeSpec(name, binding.asInstanceOf[Class[_ <: Geometry]], opts)
-    } else if (classOf[java.util.List[_]].isAssignableFrom(binding)) {
+    } else if (classOf[java.util.List[_]].isAssignableFrom(binding) || binding.isArray) {
       val itemClass = Option(descriptor.getListType()).getOrElse(classOf[String])
       ListAttributeSpec(name, itemClass, options)
     } else if (classOf[java.util.Map[_, _]].isAssignableFrom(binding)) {
