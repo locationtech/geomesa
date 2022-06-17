@@ -43,6 +43,7 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -67,6 +68,8 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 >>>>>>> 6edc66c3cb (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> a26c0acbb7 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+>>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 5e000da485 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
@@ -167,6 +170,7 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 =======
 >>>>>>> f5b2148366 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -245,6 +249,10 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 >>>>>>> 6edc66c3cb (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> a26c0acbb7 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+=======
+>>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 =======
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect
@@ -268,8 +276,17 @@ import org.opengis.filter.Filter
 
 import java.sql.{Connection, DatabaseMetaData}
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> f5b2148366 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> a26c0acbb7 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+=======
+=======
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
 
 import java.sql.{Connection, DatabaseMetaData}
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -684,6 +701,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -724,6 +742,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> a26c0acbb7 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+>>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 =======
 =======
@@ -1015,12 +1035,16 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 =======
 >>>>>>> f5b2148366 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 =======
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 =======
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 =======
@@ -1123,6 +1147,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> 6edc66c3cb (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> a26c0acbb7 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+>>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
         ds.setSQLDialect(new PostGISPSDialect(ds, dialect) {
           // fix bug with PostGISPSDialect dialect not delegating these methods
           override def getDefaultVarcharSize: Int = dialect.getDefaultVarcharSize
@@ -1498,6 +1524,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> e219fae656 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
         })
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 <<<<<<< HEAD
 >>>>>>> f5b2148366 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -1700,9 +1727,22 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> e219fae656 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> c1eb5f889f (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
         })
+=======
+>>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> f5b2148366 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> a26c0acbb7 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+=======
+=======
+=======
+        ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
+>>>>>>> c79be4f83 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
     }
