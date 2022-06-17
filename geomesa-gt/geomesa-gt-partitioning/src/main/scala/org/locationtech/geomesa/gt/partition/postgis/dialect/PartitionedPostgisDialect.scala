@@ -18,12 +18,17 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.triggers.{DeleteTrigger, InsertTrigger, UpdateTrigger, WriteAheadTrigger}
 import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
+import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-import java.sql.{Connection, DatabaseMetaData}
+import java.sql.{Connection, DatabaseMetaData, ResultSet, Types}
 
 class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(store) with StrictLogging {
+
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+  import scala.collection.JavaConverters._
 
   // order of calls from JDBCDataStore during create schema:
   //  encodeCreateTable
@@ -151,6 +156,73 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 
   override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
     super.splitFilter(LiteralFunctionVisitor(filter), schema)
+
+  override def registerClassToSqlMappings(mappings: java.util.Map[Class[_], Integer]): Unit = {
+    super.registerClassToSqlMappings(mappings)
+    mappings.put(classOf[java.util.List[_]], Types.ARRAY)
+  }
+
+  override def registerSqlTypeNameToClassMappings(mappings: java.util.Map[String, Class[_]]): Unit = {
+    super.registerSqlTypeNameToClassMappings(mappings)
+    mappings.put("array", classOf[java.util.List[_]])
+  }
+
+  override def registerSqlTypeToSqlTypeNameOverrides(overrides: java.util.Map[Integer, String]): Unit = {
+    super.registerSqlTypeToSqlTypeNameOverrides(overrides)
+    overrides.put(Types.ARRAY, "ARRAY")
+  }
+
+  override def encodePostColumnCreateTable(att: AttributeDescriptor, sql: StringBuffer): Unit = {
+    super.encodePostColumnCreateTable(att, sql)
+    if (att.isList) {
+      // go back and encode the array type in the CQL create statement
+      val i = sql.lastIndexOf(" ARRAY")
+      if (i == sql.length() - 6) {
+        sql.insert(i, " " + getListTypeMapping(att.getListType()))
+      } else {
+        logger.warn(s"Found list-type attribute but no ARRAY column binding: $sql")
+      }
+    }
+  }
+
+  override def getMapping(columnMetaData: ResultSet, cx: Connection): Class[_] = {
+    val mapping = super.getMapping(columnMetaData, cx)
+    if (mapping != null && mapping.isArray) {
+      classOf[java.util.List[_]]
+    } else {
+      mapping
+    }
+  }
+
+  /**
+   * Gets the array type for a list/array column
+   *
+   * @param binding list-type binding
+   * @return
+   */
+  private def getListTypeMapping(binding: Class[_]): String = {
+    val mappings = new java.util.HashMap[String, Class[_]]()
+    registerSqlTypeNameToClassMappings(mappings)
+    var mapping: String = null
+    var partial: String = null
+    val iter = mappings.asScala.iterator
+    while (iter.hasNext && mapping == null) {
+      val (name, clas) = iter.next
+      if (clas == binding) {
+        mapping = name
+      } else if (partial == null && clas.isAssignableFrom(binding)) {
+        partial = name
+      }
+    }
+    if (mapping != null) {
+      mapping
+    } else if (partial != null) {
+      partial
+    } else {
+      logger.warn(s"Could not find list-type column for type ${binding.getName}")
+      "text"
+    }
+  }
 }
 
 object PartitionedPostgisDialect {
