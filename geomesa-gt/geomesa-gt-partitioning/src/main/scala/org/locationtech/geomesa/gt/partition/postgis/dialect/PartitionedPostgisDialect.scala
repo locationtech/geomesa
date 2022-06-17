@@ -1151,10 +1151,25 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
     super.splitFilter(LiteralFunctionVisitor(filter), schema)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 5e000da48 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> e694961e05 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> d30ebb4092 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> 4983e191e6 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+=======
+=======
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 1913bc4c2c (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 9d3260f1dc (GEOMESA-3215 Postgis - support List-type attributes)
 
   override def registerClassToSqlMappings(mappings: java.util.Map[Class[_], Integer]): Unit = {
     super.registerClassToSqlMappings(mappings)
@@ -1220,6 +1235,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
       case _ => // no-op
 =======
     super.encodePostColumnCreateTable(att, sql)
+<<<<<<< HEAD
     if (att.isJson()) {
       // replace 'VARCHAR' with jsonb
       val i = sql.lastIndexOf(" VARCHAR")
@@ -1229,6 +1245,9 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
         logger.warn(s"Found JSON-type attribute but no CHARACTER VARYING column binding: $sql")
       }
     } else if (att.isList) {
+=======
+    if (att.isList) {
+>>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
       // go back and encode the array type in the CQL create statement
       val i = sql.lastIndexOf(" ARRAY")
       if (i == sql.length() - 6) {
@@ -1278,6 +1297,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
       "text"
     }
   }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1360,6 +1380,9 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 =======
 <<<<<<< HEAD
 >>>>>>> ad8bba7bb7 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+<<<<<<< HEAD
+>>>>>>> 9d3260f1dc (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 <<<<<<< HEAD
   override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
@@ -1507,6 +1530,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 =======
 >>>>>>> 9fb20ad56c (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
+>>>>>>> 1913bc4c2c (GEOMESA-3215 Postgis - support List-type attributes)
+=======
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -1517,6 +1542,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 =======
 =======
 =======
+=======
+>>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 <<<<<<< HEAD
   override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
@@ -1533,6 +1560,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 =======
 =======
 =======
+<<<<<<< HEAD
 
   override def registerClassToSqlMappings(mappings: java.util.Map[Class[_], Integer]): Unit = {
     super.registerClassToSqlMappings(mappings)
@@ -1621,9 +1649,21 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 =======
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> 5e000da48 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> e694961e05 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> d30ebb4092 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> 4983e191e6 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+=======
+=======
+=======
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 1913bc4c2c (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 9d3260f1dc (GEOMESA-3215 Postgis - support List-type attributes)
 }
 
 object PartitionedPostgisDialect {
