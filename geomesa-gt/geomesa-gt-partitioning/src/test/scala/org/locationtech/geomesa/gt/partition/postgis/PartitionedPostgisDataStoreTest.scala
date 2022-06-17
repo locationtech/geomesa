@@ -158,6 +158,9 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
 import org.geotools.feature.simple.SimpleFeatureBuilder
 =======
 import org.geotools.data.postgis.PostGISPSDialect
@@ -167,9 +170,12 @@ import org.geotools.data.{DataStoreFinder, DefaultTransaction, Query, Transactio
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 import org.geotools.filter.identity.FeatureIdImpl
 >>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 =======
 import org.geotools.feature.simple.SimpleFeatureBuilder
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
 import org.junit.runner.RunWith
@@ -337,6 +343,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -382,6 +389,8 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
     "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
 =======
     "name:List[String],age:Int,dtg:Date,*geom:Point:srid=4326;" +
@@ -563,7 +572,16 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 =======
     "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+    "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
+=======
+    "name:List[String],age:Int,dtg:Date,*geom:Point:srid=4326;" +
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 42af7673bd (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
         Seq(
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
@@ -1726,10 +1744,15 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 25cedeff6a (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+=======
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
         val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
         schema must not(beNull)
         schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
@@ -1737,6 +1760,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
         logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 =======
         logger.info(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1821,11 +1845,15 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 =======
 >>>>>>> 25cedeff6a (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
+>>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
         val userData = Try(ds.getSchema(sft.getTypeName)).map(_.getUserData.asScala).getOrElse(null)
         userData must not(beNull)
         userData must containAllOf(sft.getUserData.asScala.toSeq)
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 >>>>>>> 203dda21b (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f9969bc4e9 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -1833,9 +1861,12 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 >>>>>>> b8e1d54867 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 =======
+>>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
@@ -1848,6 +1879,8 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 25cedeff6a (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
 
           // write some data
           WithClose(new DefaultTransaction()) { tx =>
@@ -2143,6 +2176,9 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
         ds.removeSchema(sft.getTypeName)
 =======
         if (methods.query) {
@@ -2174,6 +2210,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
           ds.removeSchema(sft.getTypeName)
         }
 >>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
@@ -2231,6 +2268,8 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 =======
         ds.removeSchema(sft.getTypeName)
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
       } catch {
         case NonFatal(e) => logger.error("", e); ko
       } finally {
@@ -2521,6 +2560,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 =======
   }
 
+<<<<<<< HEAD
   step {
     if (container != null) {
       container.stop()
@@ -2540,6 +2580,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -2551,6 +2592,28 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
   }
 <<<<<<< HEAD
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+  case class Methods(
+      create: Boolean,
+<<<<<<< HEAD
+      upgrade: Boolean,
+=======
+      recreate: Boolean,
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+      write: Boolean,
+      update: Boolean,
+      query: Boolean,
+      delete: Boolean,
+      remove: Boolean
+<<<<<<< HEAD
+    ) {
+    def any: Boolean = create || upgrade || write || update || query || delete || remove
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+  }
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
   case class Methods(
       create: Boolean,
@@ -2748,6 +2811,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
     )
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 42af7673bd (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -2826,4 +2890,6 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
 }
