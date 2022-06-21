@@ -1087,7 +1087,15 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
       case _ => // no-op
 =======
     super.encodePostColumnCreateTable(att, sql)
-    if (att.isList) {
+    if (att.isJson()) {
+      // replace 'VARCHAR' with jsonb
+      val i = sql.lastIndexOf(" VARCHAR")
+      if (i == sql.length() - 8) {
+        sql.replace(i + 1, i + 8, "JSONB")
+      } else {
+        logger.warn(s"Found JSON-type attribute but no CHARACTER VARYING column binding: $sql")
+      }
+    } else if (att.isList) {
       // go back and encode the array type in the CQL create statement
       val i = sql.lastIndexOf(" ARRAY")
       if (i == sql.length() - 6) {
