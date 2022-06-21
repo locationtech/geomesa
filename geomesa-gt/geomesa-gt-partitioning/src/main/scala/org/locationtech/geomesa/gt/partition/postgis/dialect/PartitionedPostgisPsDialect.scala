@@ -86,6 +86,7 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b597cf01b8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
@@ -126,6 +127,8 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 <<<<<<< HEAD
 import org.geotools.api.feature.`type`.AttributeDescriptor
@@ -549,11 +552,14 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 >>>>>>> 42af7673bd (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
 >>>>>>> 73db5e19227 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 =======
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 =======
@@ -562,6 +568,7 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 >>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> 8dc8f9c76d (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+<<<<<<< HEAD
 >>>>>>> e9a70d8c07 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 <<<<<<< HEAD
 >>>>>>> 0141c7f7075 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -699,10 +706,16 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 =======
 =======
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 >>>>>>> 83f6ff5ee17 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> 2c655b5973b (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 import org.geotools.data.postgis.PostGISPSDialect
 import org.geotools.jdbc.JDBCDataStore
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -822,6 +835,8 @@ import java.lang.invoke.{MethodHandle, MethodHandles, MethodType}
 >>>>>>> ff1819428c4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9aa5f736c60 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 7804dad87c9 (Merge branch 'a0x8o' into stag0)
 <<<<<<< HEAD
 =======
 >>>>>>> 45ed5ccca0 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -857,6 +872,8 @@ import java.lang.invoke.{MethodHandle, MethodHandles, MethodType}
 =======
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
 =======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> e243573ba4 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -885,11 +902,14 @@ import java.lang.invoke.{MethodHandle, MethodHandles, MethodType}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> ca40199e24c (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 =======
 >>>>>>> 4a81482925e (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
+=======
+>>>>>>> 7804dad87c9 (Merge branch 'a0x8o' into stag0)
 =======
 >>>>>>> 69a6e5986e (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> cb3bc2ee6a3 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -1162,7 +1182,12 @@ import java.lang.invoke.{MethodHandle, MethodHandles, MethodType}
 =======
 >>>>>>> 42af7673bd (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 >>>>>>> 9aa5f736c60 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> 7804dad87c9 (Merge branch 'a0x8o' into stag0)
 import java.sql.{Connection, DatabaseMetaData, PreparedStatement, Types}
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -1217,6 +1242,7 @@ import java.util.concurrent.TimeUnit
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e9a70d8c07 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
@@ -1233,11 +1259,14 @@ import java.util.concurrent.TimeUnit
 >>>>>>> 215bcb7385 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> 95fa3152e7 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 =======
 >>>>>>> 8dc8f9c76d (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> afb207dc68 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -1319,10 +1348,13 @@ import java.util.concurrent.TimeUnit
 >>>>>>> 215bcb7385 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> 95fa3152e7 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 import java.sql.{Connection, DatabaseMetaData, PreparedStatement, Types}
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 >>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1351,6 +1383,8 @@ import java.util.concurrent.TimeUnit
 >>>>>>> 215bcb7385 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> 95fa3152e7 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> e243573ba4 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 import java.sql.{Connection, DatabaseMetaData, PreparedStatement, Types}
@@ -1362,6 +1396,7 @@ import java.util.concurrent.TimeUnit
 >>>>>>> 42af7673bd (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 8dc8f9c76d (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1593,6 +1628,8 @@ import java.util.concurrent.TimeUnit
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 42af7673bd (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 
 class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPostgisDialect)
     extends PostGISPSDialect(store, delegate){
@@ -1635,6 +1672,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 45ed5ccca0 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
@@ -1668,6 +1706,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 =======
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
 =======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> e243573ba4 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -1679,6 +1719,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 42af7673bd (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1896,10 +1937,15 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> 8dc8f9c76d (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
   import PartitionedPostgisPsDialect.PreparedStatementKey
 
   import scala.collection.JavaConverters._
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1933,6 +1979,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
   import PartitionedPostgisPsDialect.PreparedStatementKey
 
 <<<<<<< HEAD
@@ -1950,6 +1998,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ce0f6336d5 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -2030,6 +2079,12 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+  import PartitionedPostgisPsDialect.PreparedStatementKey
+
+>>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> 8dc8f9c76d (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
   // cache for tracking json-type columns
   private val jsonColumns: LoadingCache[PreparedStatementKey, java.lang.Boolean] =
     Caffeine.newBuilder()
@@ -2060,6 +2115,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
     // json columns are string type in geotools, but we have to use setObject or else we get a binding error
     if (binding == classOf[String] && jsonColumns.get(new PreparedStatementKey(ps, column))) {
       ps.setObject(column, value, Types.OTHER)
+<<<<<<< HEAD
     } else if (binding == classOf[java.util.List[_]]) {
       // handle bug in jdbc store not calling setArrayValue in update statements
       value match {
@@ -2100,6 +2156,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2116,6 +2173,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 <<<<<<< HEAD
 >>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -2134,6 +2193,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 =======
 >>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> 8dc8f9c76d (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2195,6 +2255,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
     } else {
       super.setValue(value, binding, att, ps, column, cx)
     }
@@ -2235,6 +2297,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
     }
   }
 
+<<<<<<< HEAD
   // based on setArrayValue, but we don't have the attribute descriptor to use
   private def setArray(array: Array[_], ps: PreparedStatement, column: Int, cx: Connection): Unit = {
     val componentType = array(0).getClass
@@ -2330,6 +2393,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e9a70d8c07 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
@@ -2344,6 +2408,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 >>>>>>> 215bcb7385 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> 95fa3152e7 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 =======
@@ -2364,12 +2430,16 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e9a70d8c07 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 =======
 >>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> 8dc8f9c76d (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2642,6 +2712,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
   override protected def convertToArray(
       value: Any, componentTypeName: String, componentType: Class[_], connection: Connection): java.sql.Array = {
     val array = value match {
@@ -2876,6 +2948,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -2913,6 +2986,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 =======
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
 =======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
 >>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -2939,12 +3014,16 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e9a70d8c07 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 =======
 >>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> 8dc8f9c76d (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3191,6 +3270,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 
 object PartitionedPostgisPsDialect {
 
@@ -3247,6 +3328,7 @@ object PartitionedPostgisPsDialect {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b597cf01b8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
@@ -3287,6 +3369,8 @@ object PartitionedPostgisPsDialect {
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -3421,6 +3505,7 @@ object PartitionedPostgisPsDialect {
 =======
 >>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> 8dc8f9c76d (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3656,3 +3741,5 @@ object PartitionedPostgisPsDialect {
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> d0df7c5dc2 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
