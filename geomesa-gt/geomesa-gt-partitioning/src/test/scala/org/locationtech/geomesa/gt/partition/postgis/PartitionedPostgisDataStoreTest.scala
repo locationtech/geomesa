@@ -66,10 +66,14 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   val hours = 1
   val spec =
 <<<<<<< HEAD
+<<<<<<< HEAD
     "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
 =======
     "name:List[String],age:Int,dtg:Date,*geom:Point:srid=4326;" +
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+    "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
+>>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
         Seq(
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
@@ -223,6 +227,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
                 val next = writer.next()
                 next.setAttribute("name", Collections.singletonList(s"name$i"))
                 next.setAttribute("age", i)
+                next.setAttribute("props", s"""["name$i"]""")
                 next.setAttribute("dtg", new java.util.Date(now - (i * 20 * 60 * 1000))) // 20 minutes
                 next.setAttribute("geom", WKTUtils.read(s"POINT(0 $i)"))
                 next.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
