@@ -1045,11 +1045,18 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 1913bc4c2c (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> e243573ba (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> 789a0bdedd (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
     "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
 =======
 >>>>>>> f5a0fbbc4a (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -1355,12 +1362,16 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3ce7fe64a3 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> bc05759367 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> e9a70d8c07 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> 9d3260f1dc (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c3240dd4f8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -1390,6 +1401,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 13eb6ce8a8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> 3ce7fe64a3 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> c3240dd4f8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> bc05759367 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 =======
@@ -1400,8 +1415,11 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3ce7fe64a3 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> bc05759367 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> 789a0bdedd (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> 75e1524a30 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -1415,10 +1433,14 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> 9d3260f1dc (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> bc05759367 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> 789a0bdedd (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> c3240dd4f8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+<<<<<<< HEAD
 =======
 >>>>>>> 6edc66c3cb (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -1439,6 +1461,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 319ffdf066 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> 3ce7fe64a3 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> bc05759367 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
     "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
 >>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 <<<<<<< HEAD
@@ -1605,8 +1629,11 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3ce7fe64a3 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> bc05759367 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
 >>>>>>> 1913bc4c2c (GEOMESA-3215 Postgis - support List-type attributes)
@@ -1797,6 +1824,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> f5a0fbbc4a (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> 9d0679fff9 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c3240dd4f8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -2019,10 +2047,30 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 9d0679fff9 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> 69c3bad837 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
+=======
+=======
+>>>>>>> c3240dd4f8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> bc05759367 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 >>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 >>>>>>> 1913bc4c2c (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 >>>>>>> 9d3260f1dc (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 >>>>>>> 3ce7fe64a3 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+=======
+=======
+=======
+=======
+    "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
+>>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> e243573ba (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> 230ae6c3ab (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> 789a0bdedd (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> c3240dd4f8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+>>>>>>> bc05759367 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
         Seq(
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
