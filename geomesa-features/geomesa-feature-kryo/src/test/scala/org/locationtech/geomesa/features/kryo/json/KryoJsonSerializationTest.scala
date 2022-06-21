@@ -89,7 +89,45 @@ class KryoJsonSerializationTest extends Specification {
         recovered mustEqual json.replaceAll("[ \n]", "")
       }
     }
-    "correctly deserialize json-path" in {
+    "correctly serialize array json" in {
+      val out = new Output(128)
+      val jsons =
+        Seq(
+          """["a1","a2"]""",
+          """[1,2,3]""",
+          """[]"""
+        )
+
+      forall(jsons) { json =>
+        out.clear()
+        KryoJsonSerialization.serialize(out, json)
+        val bytes = out.toBytes
+        bytes must not(beEmpty)
+        val recovered = KryoJsonSerialization.deserializeAndRender(new Input(bytes))
+        recovered mustEqual json
+      }
+    }
+    "correctly serialize non-document json" in {
+      val out = new Output(128)
+      val jsons =
+        Seq(
+          "\"foo\"",
+          "2.1",
+          "2",
+          "false"
+        )
+
+      forall(jsons) { json =>
+        out.clear()
+        KryoJsonSerialization.serialize(out, json)
+        val bytes = out.toBytes
+        bytes must not(beEmpty)
+        val recovered = KryoJsonSerialization.deserializeAndRender(new Input(bytes))
+        recovered mustEqual json
+      }
+    }.pendingUntilFixed("json4s native doesn't support parsing primitives")
+
+    "correctly deserialize json-path for documents" in {
       implicit def toJsonPath(s: String): Seq[PathElement] = JsonPathParser.parse(s)
 
       val out = new Output(512)
@@ -124,6 +162,19 @@ class KryoJsonSerializationTest extends Specification {
       KryoJsonSerialization.deserialize(new Input(bytes), "$..type") mustEqual Seq("Feature", "Point", 20)
       KryoJsonSerialization.deserialize(new Input(bytes), "$.properties..*") mustEqual
           Seq(20, "value0", """{"this":"that"}""", "that")
+    }
+
+    "correctly deserialize json-path for arrays" in {
+      implicit def toJsonPath(s: String): Seq[PathElement] = JsonPathParser.parse(s)
+
+      val out = new Output(512)
+      val json = """["a1","a2"]"""
+      KryoJsonSerialization.serialize(out, json)
+      val bytes = out.toBytes
+
+      KryoJsonSerialization.deserialize(new Input(bytes), "$.foo") must beNull
+      KryoJsonSerialization.deserialize(new Input(bytes), "$[*]") mustEqual Seq("a1", "a2")
+      KryoJsonSerialization.deserialize(new Input(bytes), "$.length()") mustEqual 2
     }
   }
 }

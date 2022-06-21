@@ -14,7 +14,6 @@ import kafka.zk.{AdminZkClient, KafkaZkClient}
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig}
-import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.utils.Time
 import org.geotools.data._
 import org.geotools.filter.identity.FeatureIdImpl
@@ -331,6 +330,31 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           f1.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "USER&ADMIN")
           Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true)) must not(throwAn[Exception]) // ok
         }
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
+    "write/read json array attributes" >> {
+      val sft = SimpleFeatureTypes.createType("kafka", "name:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326")
+      val path = getUniquePath
+      val (producer, consumer) = (getStore(path, 0), getStore(path, 1))
+      try {
+        producer.createSchema(sft)
+        val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
+
+        val f0 = ScalaSimpleFeature.create(sft, "sm", "[\"smith1\",\"smith2\"]", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+        val f1 = ScalaSimpleFeature.create(sft, "jo", "[\"jones\"]", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
+
+        // initial write
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+
+        val q = new Query(sft.getTypeName)
+        eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+            containTheSameElementsAs(Seq(f0, f1)))
       } finally {
         consumer.dispose()
         producer.dispose()

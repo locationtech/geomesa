@@ -35,7 +35,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 
   val hours = 1
   val spec =
-    "name:List[String],age:Int,dtg:Date,*geom:Point:srid=4326;" +
+    "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
         Seq(
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
@@ -115,6 +115,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
                 val next = writer.next()
                 next.setAttribute("name", Collections.singletonList(s"name$i"))
                 next.setAttribute("age", i)
+                next.setAttribute("props", s"""["name$i"]""")
                 next.setAttribute("dtg", new java.util.Date(now - (i * 20 * 60 * 1000))) // 20 minutes
                 next.setAttribute("geom", WKTUtils.read(s"POINT(0 $i)"))
                 next.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
