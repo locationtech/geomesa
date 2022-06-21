@@ -285,6 +285,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -320,6 +321,8 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> b597cf01b8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
     "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
 =======
     "name:List[String],age:Int,dtg:Date,*geom:Point:srid=4326;" +
@@ -327,6 +330,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 =======
     "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
 >>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> e243573ba4 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -467,6 +471,8 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
     "name:List[String],age:Int,dtg:Date,*geom:Point:srid=4326;" +
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> b597cf01b8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
         Seq(
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
@@ -932,9 +938,13 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
                 next.setAttribute("name", Collections.singletonList(s"name$i"))
                 next.setAttribute("age", i)
 <<<<<<< HEAD
+<<<<<<< HEAD
                 next.setAttribute("props", s"""["name$i"]""")
 =======
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+                next.setAttribute("props", s"""["name$i"]""")
+>>>>>>> b597cf01b8 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
                 next.setAttribute("dtg", new java.util.Date(now - (i * 20 * 60 * 1000))) // 20 minutes
                 next.setAttribute("geom", WKTUtils.read(s"POINT(0 $i)"))
                 next.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
