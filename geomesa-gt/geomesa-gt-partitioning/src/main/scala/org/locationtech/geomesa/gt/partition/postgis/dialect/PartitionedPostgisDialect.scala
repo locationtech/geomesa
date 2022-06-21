@@ -2016,6 +2016,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 =======
 =======
     super.encodePostColumnCreateTable(att, sql)
+<<<<<<< HEAD
     if (att.isList) {
 <<<<<<< HEAD
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -2180,6 +2181,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
       case _ => // no-op
 =======
     super.encodePostColumnCreateTable(att, sql)
+=======
+>>>>>>> 11b6e79a03 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
     if (att.isJson()) {
       // replace 'VARCHAR' with jsonb
       val i = sql.lastIndexOf(" VARCHAR")
