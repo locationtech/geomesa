@@ -263,6 +263,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -794,6 +795,8 @@
 >>>>>>> 59f329fa0f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 61121ef513 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
 >>>>>>> b2177e9015 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -830,6 +833,8 @@
 >>>>>>> 14cf946af4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6c83981af3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 5dcf23da52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> e6079868d7 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -884,6 +889,7 @@
 =======
 >>>>>>> 1e39c0c27d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1151,6 +1157,10 @@
 >>>>>>> 14cf946af4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6c83981af3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 947a867d1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e6e1f4bdd5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1447,6 +1457,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b0d44cc502 (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -1457,6 +1468,10 @@
 >>>>>>> d437e1ce0e (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 53367e547d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 8adfab65bb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -2039,10 +2054,13 @@
 >>>>>>> 1e39c0c27d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3af7bba3ee (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> 61121ef513 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -2784,7 +2802,14 @@
 =======
 =======
 >>>>>>> 6c83981af3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 61121ef513 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -4974,6 +4999,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 81ee66102b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -7919,6 +7947,7 @@
 >>>>>>> 516fe7e9c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 1e39c0c27d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
@@ -8012,6 +8041,10 @@
 >>>>>>> dbd932fed6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -8751,6 +8784,7 @@
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 516fe7e9c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -11177,11 +11211,30 @@
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 516fe7e9c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> bc4062951d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 1e39c0c27d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 6c83981af3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 61121ef513 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+=======
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
