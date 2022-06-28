@@ -322,6 +322,7 @@ __ https://github.com/locationtech/geomesa/releases
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -388,6 +389,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> 2586fa6a40 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0fc6650ecf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -478,6 +481,7 @@ __ https://github.com/locationtech/geomesa/releases
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 71c56e6b77 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -694,6 +698,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0fc6650ecf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -2526,11 +2532,15 @@ Download and extract it somewhere convenient:
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 Download and extract it somewhere convenient:
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
@@ -3207,6 +3217,8 @@ Download and extract it somewhere convenient:
 >>>>>>> 2586fa6a40 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0fc6650ecf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 
 .. code-block:: bash
 
@@ -3214,6 +3226,7 @@ Download and extract it somewhere convenient:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-kudu_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-kudu_${VERSION}-bin.tar.gz
     $ cd geomesa-kudu_${VERSION}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3407,6 +3420,8 @@ Download and extract it somewhere convenient:
 >>>>>>> 2586fa6a40 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0fc6650ecf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -3710,6 +3725,8 @@ Download and extract it somewhere convenient:
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -5031,10 +5048,14 @@ Download and extract it somewhere convenient:
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
@@ -5788,6 +5809,8 @@ Download and extract it somewhere convenient:
 >>>>>>> 2586fa6a40 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0fc6650ecf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 
 .. _kudu_install_source:
 
