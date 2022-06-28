@@ -49,7 +49,6 @@ class MergedFeatureSourceView(
   override def getSchema: SimpleFeatureType = sft
 
   override def getCount(query: Query): Int = {
-<<<<<<< HEAD
     val total =
       if (parallel) {
         def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Int = {
@@ -66,6 +65,7 @@ class MergedFeatureSourceView(
           if (sum < 0 || count < 0) { -1 } else { sum + count }
         }
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -136,6 +136,8 @@ class MergedFeatureSourceView(
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> a83f02ec95 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -268,6 +270,7 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
@@ -359,6 +362,10 @@ class MergedFeatureSourceView(
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> a83f02ec95 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
     if (query.isMaxFeaturesUnlimited) {
       total
     } else {

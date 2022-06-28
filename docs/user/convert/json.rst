@@ -468,6 +468,7 @@ See below for an example.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> ba2e891f3d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -2036,6 +2037,8 @@ See below for an example.
 =======
 >>>>>>> 665046a461 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> 0da1bb22c5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -2094,6 +2097,8 @@ See below for an example.
 =======
 >>>>>>> c14e106409 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> f8f49130b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 4c9fb0f6e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -2135,6 +2140,8 @@ See below for an example.
 >>>>>>> 04d469083d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 72415e208a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 0cdf3f267 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -12216,6 +12223,8 @@ key. This is useful for GeoMesa's JSON attribute types, which currently require 
 >>>>>>> 7a670f84c (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> dc17df6c0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 jsonPath
 ~~~~~~~~
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
