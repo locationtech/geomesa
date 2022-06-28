@@ -78,6 +78,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e6ede6713f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -90,6 +91,8 @@
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -112,6 +115,7 @@
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -214,6 +218,8 @@
 =======
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -263,6 +269,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
@@ -313,6 +322,7 @@
 =======
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
@@ -413,6 +423,10 @@
 >>>>>>> a00c7a6183 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -445,10 +459,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a00c7a6183 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 9ab62f6a78 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -459,6 +476,7 @@
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 60be59afe8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -489,6 +507,8 @@
 =======
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 9cdd96d1c0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 92dccb4d7a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -530,6 +550,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -753,6 +776,7 @@
 =======
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
@@ -1147,6 +1171,10 @@
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
