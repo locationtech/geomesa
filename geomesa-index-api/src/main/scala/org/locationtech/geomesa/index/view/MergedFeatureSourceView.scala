@@ -49,7 +49,6 @@ class MergedFeatureSourceView(
   override def getSchema: SimpleFeatureType = sft
 
   override def getCount(query: Query): Int = {
-<<<<<<< HEAD
     val total =
       if (parallel) {
         def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Int = {
@@ -66,6 +65,7 @@ class MergedFeatureSourceView(
           if (sum < 0 || count < 0) { -1 } else { sum + count }
         }
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -137,6 +137,8 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 985fbd05df (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
     if (query.isMaxFeaturesUnlimited) {
       total
     } else {
@@ -178,8 +180,8 @@ class MergedFeatureSourceView(
     }
 
     val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-<<<<<<< HEAD
     sourceBounds.foreach(bounds.expandToInclude)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -210,6 +212,8 @@ class MergedFeatureSourceView(
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 =======
     sources.foreach {
       case (source, filter) =>
@@ -679,6 +683,7 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0ab344f339 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> 22da407b4 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
@@ -740,6 +745,10 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> 22da407b4 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 >>>>>>> 57b1217f56 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
     bounds
   }
 
