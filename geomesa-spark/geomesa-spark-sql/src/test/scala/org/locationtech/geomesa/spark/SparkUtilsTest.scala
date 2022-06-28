@@ -84,6 +84,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 81a5a4c61f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -120,6 +121,8 @@
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> afdad4a952 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 6255df1e67 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -178,6 +181,7 @@
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 3820b86465 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -284,6 +288,8 @@
 =======
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> afdad4a952 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -403,8 +409,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> afdad4a952 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 =======
@@ -449,6 +458,7 @@
 =======
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> db758c30eb (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -505,6 +515,8 @@
 =======
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> afdad4a952 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -807,12 +819,16 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 805ec1729c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
@@ -830,6 +846,10 @@
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> afdad4a952 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
@@ -908,6 +928,9 @@
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -1117,6 +1140,7 @@
 =======
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -1507,19 +1531,44 @@
 =======
 =======
 =======
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
+=======
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
 >>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 >>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 >>>>>>> f4e2dcfd1 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 >>>>>>> 805ec1729c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 >>>>>>> b11f0e2cf4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 >>>>>>> afdad4a952 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
+>>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
