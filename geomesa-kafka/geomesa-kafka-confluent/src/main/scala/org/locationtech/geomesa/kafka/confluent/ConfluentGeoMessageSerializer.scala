@@ -56,6 +56,7 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -94,6 +95,8 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -356,7 +359,12 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+>>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
 
   override def deserialize(
       key: Array[Byte],
