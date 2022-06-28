@@ -111,7 +111,6 @@ import org.opengis.filter.Filter
  * @param ds merged data store
  * @param stores delegate stores
  * @param deduplicate deduplicate the results between stores
-<<<<<<< HEAD
  * @param parallel run scans in parallel (vs sequentially)
  */
 class MergedQueryRunner(
@@ -138,10 +137,13 @@ class MergedQueryRunner(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 5d19c5d68e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -215,6 +217,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 8effb11c46 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -259,6 +262,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 5d19c5d68e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
@@ -1217,6 +1222,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3bba3c74cd (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -1260,6 +1266,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 54fb546133 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e0056031ea (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
         Option(query.getSortBy).filterNot(_.isEmpty) match {
 =======
 <<<<<<< HEAD
@@ -1400,6 +1408,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         val results = Option(query.getSortBy).filterNot(_.isEmpty) match {
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 206fa4e8ca (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1509,11 +1518,14 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 >>>>>>> f8f49130b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> e0056031ea (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
           case None => SelfClosingIterator(iters.iterator).flatMap(i => i)
           case Some(sort) =>
             val sortSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
             // the delegate stores should sort their results, so we can sort merge them
             new SortedMergeIterator(iters)(SimpleFeatureOrdering(sortSft, sort))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1551,6 +1563,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 54fb546133 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e0056031ea (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
         }
         QueryResult(resultSft, hints, run)
@@ -1765,13 +1779,18 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 3cb02b7b0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> f8f49130b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
         }
 
         maxFeatures match {
           case None => results
           case Some(m) => results.take(m)
+<<<<<<< HEAD
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
         }
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 0da1bb22c5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))

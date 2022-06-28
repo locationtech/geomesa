@@ -37,6 +37,7 @@ docutils<0.18
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 85dd4e1e2c (Fix docutils version for Sphinx docs build)
 =======
@@ -45,6 +46,8 @@ docutils<0.18
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 21cbd8ebbf (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 jinja2==3.1.2
 sphinx-copybutton==0.5.1
 <<<<<<< HEAD
@@ -402,6 +405,8 @@ pybtex
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 =======
+=======
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -537,6 +542,7 @@ sphinx-copybutton==0.5.0
 =======
 =======
 >>>>>>> 9d67a6996 (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> a9ad505df (Fix docutils version for Sphinx docs build)
 <<<<<<< HEAD
@@ -1565,6 +1571,20 @@ sphinx-copybutton==0.5.0
 =======
 =======
 >>>>>>> 9d67a6996 (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 >>>>>>> a9ad505df (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> e073acd0ab (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> 1d4a6f5278 (Fix docutils version for Sphinx docs build)
+=======
+=======
+=======
+=======
+jinja2<3.1.0
+sphinx-copybutton==0.5.0
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
