@@ -720,6 +720,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 44901ceea1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -732,6 +733,8 @@ import com.codahale.metrics.Counter
 >>>>>>> 32415f6b4d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> d554ef0b1a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 500975957 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -789,12 +792,16 @@ import com.codahale.metrics.Counter
 =======
 >>>>>>> 74df8be7bc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 3ea600ce0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> a2ac294bf (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 =======
 =======
 =======
@@ -1443,6 +1450,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> a2ac294bf (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 74df8be7bc (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -2860,9 +2868,21 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> a2ac294bf (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 74df8be7bc (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 868c873f5c (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> d554ef0b1a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+=======
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+>>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+>>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
