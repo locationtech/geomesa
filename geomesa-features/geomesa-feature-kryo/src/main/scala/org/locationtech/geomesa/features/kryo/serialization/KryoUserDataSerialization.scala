@@ -115,6 +115,7 @@ object KryoUserDataSerialization extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
@@ -139,6 +140,8 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b51333ce3c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -180,6 +183,7 @@ object KryoUserDataSerialization extends LazyLogging {
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 >>>>>>> 16bdf7af39 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
@@ -252,6 +256,8 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -547,6 +553,7 @@ object KryoUserDataSerialization extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
@@ -555,11 +562,18 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+=======
+=======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -680,6 +694,7 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
@@ -907,6 +922,10 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
     serialize(out, javaMap, withoutFidHints = false, writeAscii = false)
 
   def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef], withoutFidHints: Boolean): Unit =
@@ -982,6 +1001,7 @@ object KryoUserDataSerialization extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1004,6 +1024,8 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -1039,6 +1061,7 @@ object KryoUserDataSerialization extends LazyLogging {
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1110,6 +1133,10 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
@@ -1307,6 +1334,9 @@ object KryoUserDataSerialization extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
@@ -1367,6 +1397,7 @@ object KryoUserDataSerialization extends LazyLogging {
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1413,6 +1444,10 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
     serialize(out, javaMap, withoutFidHints = false)
 
   def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef], withoutFidHints: Boolean): Unit = {
@@ -1517,6 +1552,7 @@ object KryoUserDataSerialization extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1531,6 +1567,8 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> 735bf09be9 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -1553,6 +1591,7 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
@@ -1584,6 +1623,10 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> 735bf09be9 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 >>>>>>> 595c43086a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1831,6 +1874,7 @@ object KryoUserDataSerialization extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1839,11 +1883,18 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+=======
+=======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1999,6 +2050,7 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
@@ -2355,6 +2407,10 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
     import scala.collection.JavaConverters._
 
     // write in sorted order to keep consistent output
