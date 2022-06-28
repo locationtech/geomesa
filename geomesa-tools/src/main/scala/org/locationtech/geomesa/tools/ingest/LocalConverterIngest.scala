@@ -566,6 +566,7 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d2042eea397 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -1472,6 +1473,8 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 >>>>>>> 068ff0cf35a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 266d54eb294 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 5f3ccee3596 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2667,7 +2670,12 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 =======
 =======
 >>>>>>> ecb143206f (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> 266d54eb294 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+>>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 5f3ccee3596 (Merge branch 'feature/postgis-fixes')
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 =======
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
@@ -3548,6 +3556,8 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 =======
 >>>>>>> 251aea223c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+>>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> fa3a402d4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 3773ac3a73 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -3604,6 +3614,8 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 =======
 >>>>>>> 383515822f (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+>>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 8caee7452 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6d0e01a084 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -3628,6 +3640,8 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 >>>>>>> a2ac294bf (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> e6fdf0626 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> d04dc6d340 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -16529,10 +16543,25 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> a97477799 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> e6fdf0626 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> 383515822f (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> 251aea223c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> ecb143206f (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+=======
+=======
+=======
+import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+>>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+>>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
 import org.locationtech.geomesa.utils.text.TextTools
 
 import java.io.Flushable
