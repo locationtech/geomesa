@@ -78,6 +78,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -239,6 +240,8 @@
 >>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 87596394d3 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
 >>>>>>> 559080d1e2 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -253,6 +256,8 @@
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 098dce9ec6 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -306,8 +311,11 @@
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -548,7 +556,12 @@
 =======
 >>>>>>> 6d1dac8a25 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 098dce9ec6 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 87596394d3 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -613,6 +626,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
@@ -663,6 +679,7 @@
 =======
 >>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 6d1dac8a25 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
@@ -763,6 +780,10 @@
 >>>>>>> 292f229afd (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 098dce9ec6 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -795,10 +816,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 292f229afd (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 098dce9ec6 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 940738d77d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -809,6 +833,7 @@
 >>>>>>> 6d1dac8a25 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> ef927e4467 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -839,6 +864,8 @@
 =======
 >>>>>>> 6d1dac8a25 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 098dce9ec6 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 4aef7a70f3 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> e34f9cdeac (GEOMESA-3109 Json array to object converter function (#2788))
@@ -923,6 +950,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b368bb796e (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -933,6 +961,10 @@
 >>>>>>> fa8dd01af9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 4464bbe22c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -1232,10 +1264,13 @@
 >>>>>>> 6d1dac8a25 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> bac7bd4cef (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 =======
 >>>>>>> 87596394d3 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -1746,7 +1781,14 @@
 =======
 =======
 >>>>>>> 098dce9ec6 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 87596394d3 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at

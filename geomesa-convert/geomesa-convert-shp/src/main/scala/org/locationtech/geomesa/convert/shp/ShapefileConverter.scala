@@ -177,6 +177,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c0205a0050 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
@@ -217,6 +218,8 @@ import com.codahale.metrics.Counter
 >>>>>>> 5869a55e95 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 302df4295a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -281,6 +284,7 @@ import com.codahale.metrics.Counter
 >>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> aede893190 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
@@ -393,6 +397,8 @@ import com.codahale.metrics.Counter
 =======
 >>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 import com.typesafe.scalalogging.LazyLogging
@@ -528,8 +534,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -559,6 +568,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 >>>>>>> e18d6e4012 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> d1cf3ad8b5 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -591,6 +601,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 91dbd747c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> ddc2cffa3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -1508,10 +1520,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -1520,6 +1537,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
@@ -3972,6 +3992,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
@@ -6647,6 +6668,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 5869a55e95 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
