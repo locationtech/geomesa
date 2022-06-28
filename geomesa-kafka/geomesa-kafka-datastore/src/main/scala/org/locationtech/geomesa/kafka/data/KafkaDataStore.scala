@@ -22,66 +22,7 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{Query, Transaction}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
 import org.locationtech.geomesa.index.FlushableFeatureWriter
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-<<<<<<< HEAD
-import org.locationtech.geomesa.index.FlushableFeatureWriter
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-=======
->>>>>>> feature/schema-registry
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-import org.locationtech.geomesa.index.FlushableFeatureWriter
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
->>>>>>> geomesa-kafka
-=======
->>>>>>> feature/schema-registry
->>>>>>> locationtech-main
-=======
-import org.locationtech.geomesa.index.FlushableFeatureWriter
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> geomesa-kafka
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-=======
-import org.locationtech.geomesa.index.FlushableFeatureWriter
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
-import org.locationtech.geomesa.index.FlushableFeatureWriter
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/postgis-fixes
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
@@ -109,76 +50,7 @@ import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-<<<<<<< HEAD
->>>>>>> geomesa-kafka
-=======
-<<<<<<< HEAD
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
-=======
-<<<<<<< HEAD
->>>>>>> feature/schema-registry
-import java.io.{Closeable, IOException}
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> geomesa-kafka
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-=======
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
->>>>>>> feature/postgis-fixes
 import java.io.{Closeable, IOException, StringReader}
-=======
-import java.io.{Closeable, IOException}
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> locationtech-main
-=======
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-=======
-<<<<<<< HEAD
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
-<<<<<<< HEAD
->>>>>>> locationtech-main
-=======
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
->>>>>>> geomesa-kafka
-=======
-<<<<<<< HEAD
-=======
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
->>>>>>> feature/postgis-fixes
 import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
 import java.util.{Collections, Properties, UUID}
 import scala.concurrent.duration.Duration
@@ -201,109 +73,10 @@ class KafkaDataStore(
   // note: sharing a single producer is generally faster
   // http://kafka.apache.org/0110/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> feature/schema-registry
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
->>>>>>> geomesa-kafka
-=======
-=======
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> 4e12cd412 (GEOMESA-3198 Kafka streams integration (#2854))
-=======
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
->>>>>>> feature/postgis-fixes
-=======
-  @volatile
-  private var producerInitialized = false
-
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
->>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
->>>>>>> geomesa-kafka
-=======
-<<<<<<< HEAD
-=======
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-=======
->>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
->>>>>>> 4e12cd412 (GEOMESA-3198 Kafka streams integration (#2854))
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
->>>>>>> feature/postgis-fixes
   // only instantiate the producer if needed
   private val defaultProducer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))
   // noinspection ScalaDeprecation
   private val partitionedProducer = new LazyProducer(KafkaDataStore.producer(config))
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> feature/schema-registry
-<<<<<<< HEAD
-
-  // view type name -> actual type name
-  private val layerViewLookup =
-    config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
-=======
->>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
-<<<<<<< HEAD
->>>>>>> geomesa-kafka
-=======
-
-  // view type name -> actual type name
-  private val layerViewLookup =
-    config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
-=======
->>>>>>> 4e12cd412 (GEOMESA-3198 Kafka streams integration (#2854))
-
-  // view type name -> actual type name
-  private val layerViewLookup =
-    config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
-=======
->>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
->>>>>>> feature/schema-registry
-
-  // view type name -> actual type name
-  private val layerViewLookup =
-    config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
-
-  // view type name -> actual type name
-  private val layerViewLookup =
-    config.layerViewsConfig.flatMap { case (typeName, views) => views.map(_.typeName -> typeName).toMap }
 
   // view type name -> actual type name
   private val layerViewLookup =
@@ -511,64 +284,15 @@ class KafkaDataStore(
     new KafkaFeatureStore(this, sft, runner, cache(typeName))
   }
 
-<<<<<<< HEAD
   private[geomesa] def getFeatureReader(
       sft: SimpleFeatureType,
       transaction: Transaction,
       query: Query): GeoMesaFeatureReader = {
-=======
-  override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader = {
-    val sft = getSchema(query.getTypeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
-    }
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-<<<<<<< HEAD
->>>>>>> geomesa-kafka
-=======
-<<<<<<< HEAD
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-<<<<<<< HEAD
->>>>>>> feature/schema-registry
-<<<<<<< HEAD
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> locationtech-main
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> geomesa-kafka
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/postgis-fixes
     // kick off the kafka consumers for this sft, if not already started
     caches.get(layerViewLookup.getOrElse(query.getTypeName, query.getTypeName))
     GeoMesaFeatureReader(sft, query, runner, None, config.audit)
   }
 
-<<<<<<< HEAD
   override private[geomesa] def getFeatureWriter(
       sft: SimpleFeatureType,
       transaction: Transaction,
@@ -576,28 +300,6 @@ class KafkaDataStore(
     if (layerViewLookup.contains(sft.getTypeName)) {
       throw new IllegalArgumentException(
         s"Schema '${sft.getTypeName}' is a read-only view of '${layerViewLookup(sft.getTypeName)}'")
-=======
-  override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): KafkaFeatureWriter = {
-    val sft = getSchema(typeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
-    } else if (layerViewLookup.contains(typeName)) {
-      throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-<<<<<<< HEAD
->>>>>>> geomesa-kafka
-=======
-<<<<<<< HEAD
-=======
->>>>>>> feature/postgis-fixes
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
     }
     val producer = getTransactionalProducer(sft, transaction)
     val vis = sft.isVisibilityRequired
@@ -608,95 +310,7 @@ class KafkaDataStore(
       case Some(f) if vis => new ModifyKafkaFeatureWriter(sft, producer, serializer, f) with RequiredVisibilityWriter
       case Some(f)        => new ModifyKafkaFeatureWriter(sft, producer, serializer, f)
     }
-<<<<<<< HEAD
     if (config.clearOnStart && cleared.add(sft.getTypeName)) {
-=======
-    writer
-  }
-
-  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): KafkaFeatureWriter = {
-    val sft = getSchema(typeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
-    } else if (layerViewLookup.contains(typeName)) {
-      throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
-    }
-    val producer = getTransactionalProducer(transaction)
-=======
-<<<<<<< HEAD
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
-=======
-<<<<<<< HEAD
->>>>>>> feature/schema-registry
-<<<<<<< HEAD
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> locationtech-main
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> geomesa-kafka
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-    }
-    val producer = getTransactionalProducer(sft, transaction)
-=======
-    }
-    val producer = getTransactionalProducer(transaction)
->>>>>>> feature/postgis-fixes
-    val vis = sft.isVisibilityRequired
-    val writer = filter match {
-      case None if vis    => new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
-      case None           => new AppendKafkaFeatureWriter(sft, producer, config.serialization)
-      case Some(f) if vis => new ModifyKafkaFeatureWriter(sft, producer, config.serialization, f) with RequiredVisibilityWriter
-      case Some(f)        => new ModifyKafkaFeatureWriter(sft, producer, config.serialization, f)
-    }
-<<<<<<< HEAD
-    if (config.clearOnStart && cleared.add(sft.getTypeName)) {
-=======
-    writer
-  }
-
-  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): KafkaFeatureWriter = {
-    val sft = getSchema(typeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
-    } else if (layerViewLookup.contains(typeName)) {
-      throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
-    }
-    val producer = getTransactionalProducer(transaction)
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
->>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/postgis-fixes
-    val writer =
-      if (sft.isVisibilityRequired) {
-        new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
-      } else {
-        new AppendKafkaFeatureWriter(sft, producer, config.serialization)
-      }
-    if (config.clearOnStart && cleared.add(typeName)) {
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
       writer.clear()
     }
     writer

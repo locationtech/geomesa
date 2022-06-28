@@ -8,53 +8,6 @@
 
 package org.locationtech.geomesa.kafka.data
 
-<<<<<<< HEAD
-=======
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, SynchronousQueue, TimeUnit}
-import java.util.{Collections, Date}
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-<<<<<<< HEAD
->>>>>>> geomesa-kafka
-=======
-<<<<<<< HEAD
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-<<<<<<< HEAD
->>>>>>> feature/schema-registry
-<<<<<<< HEAD
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> locationtech-main
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> geomesa-kafka
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/postgis-fixes
 import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.ConfigCommand.{ConfigEntity, Entity}
 import kafka.zk.{AdminZkClient, KafkaZkClient}
@@ -75,7 +28,6 @@ import org.locationtech.geomesa.kafka.EmbeddedKafka
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
-import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
@@ -689,101 +641,6 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       }
     }
 
-    "support listeners without indexing" >> {
-      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
-      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
-      try {
-        val id = "fid-0"
-        val numUpdates = 1
-        val maxLon = 80.0
-
-        var latestLon = -1.0
-        var count = 0
-
-        val listener = new FeatureListener {
-          override def changed(event: FeatureEvent): Unit = {
-            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
-            feature.getID mustEqual id
-            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
-            count += 1
-          }
-        }
-
-        producer.createSchema(sft)
-        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
-        consumerStore.addFeatureListener(listener)
-
-        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          (numUpdates to 1 by -1).foreach { i =>
-            val ll = maxLon - maxLon / i
-            val sf = writer.next()
-            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
-            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
-            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-            writer.write()
-          }
-        }
-
-        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
-        latestLon must be equalTo 0.0
-      } finally {
-        consumer.dispose()
-        producer.dispose()
-      }
-    }
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "support listeners without indexing" >> {
-      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
-      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
-      try {
-        val id = "fid-0"
-        val numUpdates = 1
-        val maxLon = 80.0
-
-        var latestLon = -1.0
-        var count = 0
-
-        val listener = new FeatureListener {
-          override def changed(event: FeatureEvent): Unit = {
-            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
-            feature.getID mustEqual id
-            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
-            count += 1
-          }
-        }
-
-        producer.createSchema(sft)
-        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
-        consumerStore.addFeatureListener(listener)
-
-        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          (numUpdates to 1 by -1).foreach { i =>
-            val ll = maxLon - maxLon / i
-            val sf = writer.next()
-            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
-            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
-            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-            writer.write()
-          }
-        }
-
-        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
-        latestLon must be equalTo 0.0
-      } finally {
-        consumer.dispose()
-        producer.dispose()
-      }
-    }
-
-=======
->>>>>>> geomesa-kafka
-=======
->>>>>>> feature/schema-registry
-=======
->>>>>>> feature/postgis-fixes
     "support transactions" >> {
       val (producer, consumer, _) = createStorePair()
       try {
@@ -843,76 +700,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           |}
           |
           |""".stripMargin
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-<<<<<<< HEAD
->>>>>>> geomesa-kafka
-=======
-<<<<<<< HEAD
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
-=======
-<<<<<<< HEAD
->>>>>>> feature/schema-registry
-      val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> geomesa-kafka
-=======
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-=======
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
->>>>>>> feature/postgis-fixes
       val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
-=======
-      val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> locationtech-main
-=======
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-=======
-<<<<<<< HEAD
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
-<<<<<<< HEAD
->>>>>>> locationtech-main
-=======
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
->>>>>>> geomesa-kafka
-=======
-<<<<<<< HEAD
-=======
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> feature/schema-registry
-=======
->>>>>>> feature/postgis-fixes
       try {
         val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
         producer.createSchema(sft)

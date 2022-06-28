@@ -1,30 +1,5 @@
 /***********************************************************************
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
-=======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
->>>>>>> locationtech-main
-=======
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
-=======
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
->>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
->>>>>>> geomesa-kafka
-=======
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
-=======
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
->>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
->>>>>>> feature/schema-registry
-=======
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
-=======
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
->>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
->>>>>>> feature/postgis-fixes
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
