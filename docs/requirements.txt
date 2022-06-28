@@ -96,6 +96,7 @@ docutils<0.18
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -103,9 +104,12 @@ docutils<0.18
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 85dd4e1e2c (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -132,6 +136,8 @@ docutils<0.18
 =======
 >>>>>>> 85dd4e1e2c (Fix docutils version for Sphinx docs build)
 >>>>>>> 969831c5bd (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
 jinja2==3.1.2
 sphinx-copybutton==0.5.1
 <<<<<<< HEAD
@@ -1839,6 +1845,7 @@ sphinx-copybutton==0.5.0
 =======
 =======
 >>>>>>> 9d67a6996 (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> a9ad505df (Fix docutils version for Sphinx docs build)
@@ -3868,8 +3875,28 @@ sphinx-copybutton==0.5.0
 =======
 =======
 >>>>>>> 9d67a6996 (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
 >>>>>>> a9ad505df (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> e073acd0a (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> a5e16c7675 (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> 28845c6f17 (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> b27c22399a (Fix docutils version for Sphinx docs build)
+=======
+=======
+=======
+=======
+=======
+=======
+jinja2<3.1.0
+sphinx-copybutton==0.5.0
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
+>>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+>>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
