@@ -958,6 +958,7 @@ from ``List[String]`` to ``List[Double]``.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -1072,6 +1073,8 @@ from ``List[String]`` to ``List[Double]``.
 >>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 235691f96a (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
 
@@ -1094,6 +1097,7 @@ Usage: ``base64Decode($0)``
 
 Example: ``base64Decode('Zm9v')``
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1277,6 +1281,8 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 235691f96a (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 State Functions
 ~~~~~~~~~~~~~~~
 

@@ -40,6 +40,7 @@ This downloads the latest development version. To check out the code for the lat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -134,6 +135,9 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 28e2bfa2dc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b4320946b4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+(``$VERSION`` = |release_version_literal|):
+>>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 
 .. code-block:: bash
 
