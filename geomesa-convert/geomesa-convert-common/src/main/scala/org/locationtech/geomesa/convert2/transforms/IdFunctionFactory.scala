@@ -4073,6 +4073,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0e2f008100 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -4110,6 +4111,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 21308670a5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d55e1bd3e2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> b17adcecc (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> baa52efeb2 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -4359,7 +4362,17 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> 098dce9ec6 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+<<<<<<< HEAD
 >>>>>>> 727d0966f1 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+<<<<<<< HEAD
+>>>>>>> 09c8a6d2f (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 0686300b33 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
+>>>>>>> 549cf6291c (GEOMESA-3109 Json array to object converter function (#2788))
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 35e6dce247 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -4659,6 +4672,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 09c8a6d2f (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 0686300b33 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 549cf6291c (GEOMESA-3109 Json array to object converter function (#2788))
@@ -5623,10 +5637,26 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 <<<<<<< HEAD
 >>>>>>> 09c8a6d2f (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 0686300b33 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 549cf6291c (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> d55e1bd3e2 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> ac02d1cd3c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
+>>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
   private val murmur3_128: TransformerFunction =
     new NamedTransformerFunction(Seq("murmur3_128", "murmur3_64"), pure = true) {
       private val hasher = Hashing.murmur3_128()
@@ -11984,8 +12014,11 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ac02d1cd3c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 =======
@@ -12183,6 +12216,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 08e65a6d0f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -12442,6 +12476,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> d55e1bd3e2 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> ac02d1cd3c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
   // we've had some confusion around the names of these functions - the original function was murmur3_64,
   // which was then incorrectly renamed to murmur3_128. currently both these functions only return the first 64
   // bits of a 128 bit hash. the full 128-bit hash is now called murmurHash3 to avoid name conflicts
@@ -12599,6 +12635,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7f900d0b0b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -12673,6 +12710,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 5c45c012a4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> ac02d1cd3c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 33d667e156 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -12758,6 +12797,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> d55e1bd3e2 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 79bff6c04a (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -12908,6 +12948,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> d55e1bd3e2 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> ac02d1cd3c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> ea9667862 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -14763,10 +14805,13 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 09c8a6d2f (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 0686300b33 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -20360,6 +20405,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 09c8a6d2f (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 0686300b33 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -29068,10 +29114,28 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 09c8a6d2f (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 0686300b33 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 549cf6291c (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> d55e1bd3e2 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> ac02d1cd3c (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
+>>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
     }
 }
