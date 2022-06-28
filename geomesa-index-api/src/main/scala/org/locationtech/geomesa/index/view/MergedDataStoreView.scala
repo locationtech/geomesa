@@ -36,8 +36,8 @@ import java.util.concurrent.CopyOnWriteArrayList
 class MergedDataStoreView(
     val stores: Seq[(DataStore, Option[Filter])],
     deduplicate: Boolean,
-<<<<<<< HEAD
     parallel: Boolean,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -109,6 +109,8 @@ class MergedDataStoreView(
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 857489f8a0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
@@ -257,6 +259,7 @@ class MergedDataStoreView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 56f97cd271 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -279,6 +282,8 @@ class MergedDataStoreView(
 >>>>>>> 42bfd74c63 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
@@ -445,9 +450,20 @@ class MergedDataStoreView(
 =======
 =======
 >>>>>>> f8f49130b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 4c9fb0f6e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> b51d3046a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> b69b6b3ea1 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
     namespace: Option[String] = None
   ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
 =======
@@ -839,8 +855,8 @@ class MergedDataStoreView(
   require(stores.nonEmpty, "No delegate stores configured")
 
   private[view] val runner =
-<<<<<<< HEAD
     new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f }, deduplicate, parallel)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -914,6 +930,8 @@ class MergedDataStoreView(
 =======
 >>>>>>> d19a46c929 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+=======
     new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f }, deduplicate)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -957,6 +975,7 @@ class MergedDataStoreView(
     new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f }, deduplicate)
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 8effb11c46 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1075,6 +1094,10 @@ class MergedDataStoreView(
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d19a46c929 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
 
   override val stats: GeoMesaStats = new MergedStats(stores, parallel)
 
@@ -1110,7 +1133,6 @@ object MergedDataStoreView {
 
     override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
       // note: unlike most methods in this class, this will return if any of the merged stores provide a response
-<<<<<<< HEAD
       def getSingle(statAndFilter: (GeoMesaStats, Option[Filter])): Option[Long] =
         statAndFilter._1.getCount(sft, mergeFilter(sft, filter, statAndFilter._2), exact, queryHints)
 
@@ -1360,6 +1382,7 @@ object MergedDataStoreView {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f2b3dcc64f (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -1370,6 +1393,8 @@ object MergedDataStoreView {
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> a83f02ec95 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -1670,12 +1695,22 @@ object MergedDataStoreView {
 =======
 =======
 =======
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+=======
       val counts = stats.flatMap { case (stat, f) => stat.getCount(sft, mergeFilter(sft, filter, f), exact, queryHints) }
       counts.reduceLeftOption(_ + _)
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 2fc500c49 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 >>>>>>> 7933021402 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 >>>>>>> a83f02ec95 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+=======
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
     }
 
     override def getMinMax[T](
@@ -1684,7 +1719,6 @@ object MergedDataStoreView {
         filter: Filter,
         exact: Boolean): Option[MinMax[T]] = {
       // note: unlike most methods in this class, this will return if any of the merged stores provide a response
-<<<<<<< HEAD
       def getSingle(statAndFilter: (GeoMesaStats, Option[Filter])): Option[MinMax[T]] =
         statAndFilter._1.getMinMax[T](sft, attribute, mergeFilter(sft, filter, statAndFilter._2), exact)
 
