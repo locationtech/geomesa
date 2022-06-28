@@ -78,6 +78,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -239,6 +240,8 @@
 >>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> adbf85a21a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
 >>>>>>> 2537391cc6 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -253,6 +256,8 @@
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -306,8 +311,11 @@
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -548,7 +556,12 @@
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> adbf85a21a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -613,6 +626,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
@@ -663,6 +679,7 @@
 =======
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
@@ -763,6 +780,10 @@
 >>>>>>> 5f12c5b15a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -795,10 +816,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5f12c5b15a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1db60d5575 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -809,6 +833,7 @@
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -839,6 +864,8 @@
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 >>>>>>> dd5d6434b0 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 5bf7fcb2bf (GEOMESA-3071 Move all converter state into evaluation context)
@@ -923,6 +950,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b368bb796e (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -933,6 +961,10 @@
 >>>>>>> fa8dd01af9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 4464bbe22c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -1232,10 +1264,13 @@
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 27a8ff61e9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> adbf85a21a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -1746,7 +1781,14 @@
 =======
 =======
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> adbf85a21a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
