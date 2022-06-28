@@ -347,6 +347,7 @@ package org.locationtech.geomesa.convert2.transforms
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 4ea7c5729e (GEOMESA-3109 Json array to object converter function (#2788))
@@ -383,6 +384,8 @@ package org.locationtech.geomesa.convert2.transforms
 =======
 >>>>>>> d6e3d58599 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> 94213b24aa (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -409,6 +412,8 @@ package org.locationtech.geomesa.convert2.transforms
 =======
 =======
 >>>>>>> 35b3ecb03d (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -14648,8 +14653,16 @@ import java.util.{Collections, Date}
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 35b3ecb03d (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> d6e3d58599 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -22066,6 +22079,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 036676db27 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -22078,6 +22092,8 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 67238b4a03 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> 9e8a3c11c3 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -22088,6 +22104,8 @@ class ExpressionTest extends Specification {
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> e762caca54 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 =======
@@ -26195,8 +26213,16 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> b5c172e61 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> e762caca54 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 67238b4a03 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
       exp.apply(Array("", Double.box(45.0), Double.box(46.0))) mustEqual WKTUtils.read("POINT(45 46)")
       exp.eval(Array("", 45.0, 46.0)) mustEqual WKTUtils.read("POINT(45 46)")
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -26260,6 +26286,7 @@ class ExpressionTest extends Specification {
           .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
       m.eval(Array("", 45.0, 46.0, 47.0)).asInstanceOf[Point]
           .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
+<<<<<<< HEAD
 =======
       exp.apply(Array("", Double.box(45.0), Double.box(45.0))).asInstanceOf[Point].getCoordinate mustEqual new Coordinate(45.0, 45.0)
       exp.eval(Array("", 45.0, 45.0)).asInstanceOf[Point].getCoordinate must be equalTo new Coordinate(45.0, 45.0)
@@ -37797,8 +37824,16 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> b5c172e61 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> e762caca54 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 67238b4a03 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
     }
     "parse multipoint wkt and objects" >> {
       val geoFac = new GeometryFactory()
@@ -38040,6 +38075,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 50e677e046 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -38988,6 +39024,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 39ae2e950c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 323b1f8f17 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -39008,6 +39046,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -41238,6 +41278,8 @@ class ExpressionTest extends Specification {
       trans.eval(Array(x, y)) mustEqual expected
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
     }
     "parse multipoint from x/y coords" >> {
       val expected = WKTUtils.read("MultiPoint((45.0 45.0), (50 52))")
@@ -41488,6 +41530,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 50e677e046 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -42436,6 +42479,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 39ae2e950c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 323b1f8f17 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -42456,6 +42501,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -44686,6 +44733,8 @@ class ExpressionTest extends Specification {
       trans.eval(Array(x, y)) mustEqual expected
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
     }
     "parse linestring from x/y coords" >> {
       val expected = WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
@@ -45494,6 +45543,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 302df4295a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -45592,6 +45642,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 6843ec6035 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 39ae2e950c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -45615,12 +45667,6 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
-<<<<<<< HEAD
->>>>>>> 8caee74520 (GEOMESA-3071 Move all converter state into evaluation context)
-=======
-<<<<<<< HEAD
->>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
-=======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 <<<<<<< HEAD
@@ -45632,9 +45678,18 @@ class ExpressionTest extends Specification {
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 <<<<<<< HEAD
+>>>>>>> 8caee74520 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+<<<<<<< HEAD
+>>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+<<<<<<< HEAD
 =======
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -46018,6 +46073,10 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 39ae2e950c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
     }
     "parse null geometries" >> {
       val functions =
@@ -46036,6 +46095,7 @@ class ExpressionTest extends Specification {
         exp.apply(Array(null, null)) must beNull
         exp.eval(Array(null, null)) must beNull
       }
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -47951,6 +48011,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
@@ -47959,6 +48020,10 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -61988,6 +62053,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c5e1827657 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -62025,6 +62091,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 91bbd30a52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -62352,7 +62420,12 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
       exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
       exp.eval(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
     }
@@ -62362,6 +62435,7 @@ class ExpressionTest extends Specification {
       exp.apply(Array("foo".getBytes)) mustEqual "6145f501578671e2877dba2be487af7e"
       exp.eval(Array("foo")) mustEqual "6145f501578671e2877dba2be487af7e"
       exp.eval(Array("foo".getBytes)) mustEqual "6145f501578671e2877dba2be487af7e"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -63327,7 +63401,12 @@ class ExpressionTest extends Specification {
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 35b3ecb03d (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
     }
 =======
       exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
@@ -64037,6 +64116,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9536729782 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -64561,6 +64641,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 323b1f8f17 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d6e3d58599 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
       val exp = Expression("base64($0)")
       exp.apply(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
       exp.eval(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
@@ -70291,6 +70373,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 >>>>>>> 35b3ecb03d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
@@ -71649,6 +71732,9 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> 35b3ecb03d (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> d6e3d58599 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
       val exp = Expression("base64($0)")
       exp.apply(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
       exp.eval(Array(testBytes)) must be equalTo Base64.encodeBase64URLSafeString(testBytes)
@@ -76508,6 +76594,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
       foreach(Seq("base64($0)", "base64Encode($0)")) { expression =>
         val exp = Expression(expression)
         exp.apply(Array(testBytes)) mustEqual Base64.encodeBase64URLSafeString(testBytes)
@@ -76519,6 +76607,7 @@ class ExpressionTest extends Specification {
       val exp = Expression("base64Decode($0)")
       exp.apply(Array(encoded)) mustEqual testBytes
       exp.eval(Array(encoded)) mustEqual testBytes
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -76851,8 +76940,16 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 35b3ecb03d (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> d6e3d58599 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
     }
     "handle whitespace in functions" >> {
       val variants = Seq(
@@ -82435,6 +82532,7 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 5148ecd4cb (GEOMESA-3071 Move all converter state into evaluation context)
@@ -86385,6 +86483,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -86415,6 +86515,8 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
     }
     "parse null lists" >> {
       val trans = Expression("parseList('int', $0)")
@@ -86422,6 +86524,7 @@ class ExpressionTest extends Specification {
       trans.apply(Array("")) mustEqual Collections.emptyList[Int]()
       trans.eval(Array(null)) must beNull
       trans.eval(Array("")) mustEqual Collections.emptyList[Int]()
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -86581,6 +86684,8 @@ class ExpressionTest extends Specification {
       trans.eval(Array("")) mustEqual Collections.emptyList[Int]()
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -86762,6 +86867,7 @@ class ExpressionTest extends Specification {
     }
     "parse null maps" >> {
       val trans = Expression("parseMap('String->Int', $0)")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -87396,6 +87502,8 @@ class ExpressionTest extends Specification {
 >>>>>>> b9c5d724c6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 323b1f8f17 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
       trans.apply(Array(null)) must beNull
       trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
 <<<<<<< HEAD
@@ -87807,6 +87915,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 91bbd30a52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -89111,6 +89220,10 @@ class ExpressionTest extends Specification {
 >>>>>>> b9c5d724c6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 323b1f8f17 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
       trans.apply(Array(null)) must beNull
       trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
 <<<<<<< HEAD
@@ -95902,6 +96015,10 @@ class ExpressionTest extends Specification {
 =======
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+      trans.apply(Array(null)) must beNull
+      trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
       trans.eval(Array(null)) must beNull
       trans.eval(Array("")) mustEqual Collections.emptyMap[String, Int]()
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
