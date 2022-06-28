@@ -375,6 +375,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
 =======
@@ -1115,6 +1116,8 @@
 >>>>>>> 06ec496c863 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 6932b537494 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 6be29e9c222 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
@@ -1859,6 +1862,8 @@
 >>>>>>> 57268319970 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 52bfd3027ec ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 0f88177d291 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
 >>>>>>> 67c850bb2f ([maven-release-plugin] prepare for next development iteration)
@@ -3115,7 +3120,12 @@
 =======
 =======
 >>>>>>> 8114419c9f ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 52bfd3027ec ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 0f88177d291 (Merge branch 'feature/postgis-fixes')
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.4.0-SNAPSHOT</version>
@@ -3246,6 +3256,7 @@
 >>>>>>> 59c99fa93a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> e886d343d7 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3694,6 +3705,10 @@
 >>>>>>> fb138099ed (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 8114419c9f ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
         <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -7086,12 +7101,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 78d1db9c25 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> ef93a5f92d1 ([maven-release-plugin] prepare for next development iteration)
@@ -7559,6 +7577,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1f9d00f6c6c ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> b0e45d72fa2 ([maven-release-plugin] prepare for next development iteration)
@@ -7570,15 +7589,22 @@
 >>>>>>> 52bfd3027ec ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 0f88177d291 (Merge branch 'feature/postgis-fixes')
+=======
+=======
         <version>3.5.0-SNAPSHOT</version>
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ea557866879 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> a3f61ab9aa4 (Merge branch 'feature/postgis-fixes')
 =======
 =======
+=======
+>>>>>>> 0f88177d291 (Merge branch 'feature/postgis-fixes')
 =======
 =======
         <version>4.0.0</version>
@@ -14917,8 +14943,16 @@
 =======
 =======
 >>>>>>> 8114419c9f ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 52bfd3027ec ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 6932b537494 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 0f88177d291 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6be29e9c222 (Merge branch 'feature/postgis-fixes')
     </parent>
 
     <artifactId>geomesa-accumulo-datastore_2.12</artifactId>
