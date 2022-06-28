@@ -52,6 +52,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -161,6 +162,8 @@
 >>>>>>> 02dcfee926 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 0a5a85a9b4 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
@@ -301,7 +304,12 @@
 =======
 =======
 >>>>>>> 2adb521281 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 0a5a85a9b4 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -509,12 +517,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d136bd4a2c (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 93a68e91bb (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> bac7bd4cef (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
@@ -1034,7 +1045,12 @@
 =======
 >>>>>>> 9759ddc1b5 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 2adb521281 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 0a5a85a9b4 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+>>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
