@@ -26,9 +26,9 @@ import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosing
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients: LoadingCache[String, TransientStore])
-<<<<<<< HEAD
     extends MergedQueryRunner(
       ds, Seq(TransientQueryable(transients) -> None, DataStoreQueryable(persistence) -> None), true, false) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -106,6 +106,8 @@ class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients:
 =======
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b51333ce3c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -140,6 +142,7 @@ class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients:
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
@@ -207,6 +210,10 @@ class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients:
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
     extends MergedQueryRunner(ds, Seq(TransientQueryable(transients) -> None, DataStoreQueryable(persistence) -> None), true) {
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -324,8 +331,11 @@ class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 =======
@@ -400,6 +410,7 @@ class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients:
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 =======
     extends MergedQueryRunner(ds, Seq(TransientQueryable(transients) -> None, DataStoreQueryable(persistence) -> None), true) {
@@ -507,6 +518,8 @@ class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients:
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
