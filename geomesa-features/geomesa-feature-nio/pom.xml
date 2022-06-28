@@ -476,6 +476,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> c3f691a25b ([maven-release-plugin] prepare for next development iteration)
@@ -678,6 +679,8 @@
 >>>>>>> 2fe05f057a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 24200b1aeb ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 =======
@@ -933,6 +936,7 @@
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> d3687dfc62 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 0d712e6a7b (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -943,6 +947,8 @@
 >>>>>>> d3687dfc62 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> afd00e5fec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+=======
+>>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3e836f467f ([maven-release-plugin] prepare for next development iteration)
@@ -2331,6 +2337,8 @@
 =======
 >>>>>>> 8ae6289bbe ([maven-release-plugin] prepare for next development iteration)
 =======
+>>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> c3f691a25 ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -2341,6 +2349,8 @@
 >>>>>>> 0df4ab56d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 78d1db9c2 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 =======
 =======
 =======
@@ -18667,6 +18677,7 @@
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> a0515b751 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 78d1db9c2 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> 8ae6289bbe ([maven-release-plugin] prepare for next development iteration)
@@ -21147,11 +21158,30 @@
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> a0515b751 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 78d1db9c2 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 8ae6289bbe ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 3e836f467f ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 234c197780 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 24200b1aeb ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+=======
+=======
+=======
+        <version>3.5.0-SNAPSHOT</version>
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+>>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+>>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
