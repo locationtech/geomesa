@@ -79,13 +79,13 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 =======
 import org.geotools.data.simple.SimpleFeatureReader
-<<<<<<< HEAD
 import org.geotools.data.{DataStore, FeatureReader, Query, Transaction}
 >>>>>>> ed0b243ea9f (GEOMESA-3202 Check for disjoint date queries in merged view store)
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -181,6 +181,8 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> b71311c31d (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -208,6 +210,7 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -247,6 +250,8 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 >>>>>>> 6f8af866fb (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -319,8 +324,11 @@ import org.locationtech.geomesa.filter.FilterHelper
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9a8d532101 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -388,6 +396,7 @@ import org.locationtech.geomesa.filter.FilterHelper
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -475,6 +484,8 @@ import org.locationtech.geomesa.filter.FilterHelper
 =======
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 9a8d532101 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.mockito.ArgumentMatchers
@@ -482,6 +493,7 @@ import org.mockito.ArgumentMatchers
 =======
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -580,6 +592,10 @@ import org.opengis.filter.Filter
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
 import org.specs2.matcher.Matchers
 <<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -599,6 +615,7 @@ import org.specs2.matcher.Matchers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 33511dd1c3b (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -609,10 +626,14 @@ import org.specs2.matcher.Matchers
 =======
 >>>>>>> 8d705f40286 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+>>>>>>> 93b9463a003 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> a6ae93cb5f3 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 39517d146a (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 =======
 import org.specs2.matcher.Matchers
@@ -786,8 +807,11 @@ import org.specs2.matcher.Matchers
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 29b01d02901 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 93b9463a003 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 <<<<<<< HEAD
@@ -973,17 +997,22 @@ import org.specs2.matcher.Matchers
 >>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 9a8d532101 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 >>>>>>> f744dd7e1ca (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+>>>>>>> 93b9463a003 (Merge branch 'feature/postgis-fixes')
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-<<<<<<< HEAD
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
 class MergedDataStoreViewTest extends Specification with Mockito {
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1079,6 +1108,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> b71311c31d (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -1106,6 +1137,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -1145,6 +1177,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> 6f8af866fb (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 @RunWith(classOf[JUnitRunner])
 class MergedDataStoreViewTest extends Specification with Mockito {
 
@@ -1218,8 +1252,11 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9a8d532101 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1287,6 +1324,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -1374,6 +1412,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 =======
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 9a8d532101 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
   import org.locationtech.geomesa.filter.andFilters
 
   val sft = SimpleFeatureTypes.createImmutableType("test",
@@ -1401,8 +1441,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
   "MergedDataStoreView" should {
     "pass through INCLUDE filters" in {
       val stores = this.stores()
-<<<<<<< HEAD
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1500,6 +1540,10 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
       val view = new MergedDataStoreView(stores, deduplicate = false)
 <<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -1512,10 +1556,13 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 39517d146a (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 =======
       val view = new MergedDataStoreView(stores, deduplicate = false)
@@ -1598,6 +1645,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -1699,6 +1747,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 9a8d532101 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
       WithClose(view.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))(_.hasNext)
       foreach(stores) { case (store, Some(filter)) =>
         val query = new Query(sft.getTypeName, filter)
@@ -1708,8 +1758,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 
     "pass through queries that don't conflict with the default filter" in {
       val stores = this.stores()
-<<<<<<< HEAD
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1807,6 +1857,10 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
       val view = new MergedDataStoreView(stores, deduplicate = false)
 <<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -1819,10 +1873,13 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 39517d146a (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 =======
       val view = new MergedDataStoreView(stores, deduplicate = false)
@@ -1905,6 +1962,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -2006,6 +2064,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 9a8d532101 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 
       val noDates = Seq("IN ('1', '2')", "foo = 'bar'", "age = 21", "bbox(geom,120,45,130,55)")
       foreach(noDates.map(ECQL.toFilter)) { f =>
@@ -2019,8 +2079,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 
     "filter out queries from stores that aren't applicable - before" in {
       val stores = this.stores()
-<<<<<<< HEAD
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2118,6 +2178,10 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
       val view = new MergedDataStoreView(stores, deduplicate = false)
 <<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -2130,10 +2194,13 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 39517d146a (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 =======
       val view = new MergedDataStoreView(stores, deduplicate = false)
@@ -2216,6 +2283,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -2317,6 +2385,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 9a8d532101 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 
       val before = Seq("dtg during 2022-02-01T00:00:00.000Z/2022-02-01T12:00:00.000Z and name = 'alice'")
       foreach(before.map(ECQL.toFilter)) { f =>
@@ -2334,8 +2404,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 
     "filter out queries from stores that aren't applicable - after" in {
       val stores = this.stores()
-<<<<<<< HEAD
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2433,6 +2503,10 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
       val view = new MergedDataStoreView(stores, deduplicate = false)
 <<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -2445,10 +2519,13 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 39517d146a (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 =======
       val view = new MergedDataStoreView(stores, deduplicate = false)
@@ -2531,6 +2608,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -2632,6 +2710,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 9a8d532101 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 
       val after = Seq("dtg during 2022-02-04T00:00:00.000Z/2022-02-04T12:00:00.000Z and name = 'alice'")
       foreach(after.map(ECQL.toFilter)) { f =>
@@ -2649,8 +2729,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 
     "filter out queries from stores that aren't applicable - overlapping" in {
       val stores = this.stores()
-<<<<<<< HEAD
       val view = new MergedDataStoreView(stores, deduplicate = false, parallel = false)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2748,6 +2828,10 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
       val view = new MergedDataStoreView(stores, deduplicate = false)
 <<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -2760,10 +2844,13 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 39517d146a (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 =======
       val view = new MergedDataStoreView(stores, deduplicate = false)
@@ -2846,6 +2933,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -2947,6 +3035,8 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 9a8d532101 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 
       val after = Seq("dtg during 2022-02-01T00:00:00.000Z/2022-02-04T12:00:00.000Z and name = 'alice'")
       foreach(after.map(ECQL.toFilter)) { f =>
@@ -2957,7 +3047,6 @@ class MergedDataStoreViewTest extends Specification with Mockito {
         }
       }
     }
-<<<<<<< HEAD
 
     "close iterators with parallel scans" in {
       val stores = this.stores()
@@ -3048,6 +3137,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
@@ -3103,6 +3193,10 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
 <<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -3114,10 +3208,13 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 39517d146a (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -3193,6 +3290,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -3293,5 +3391,7 @@ class MergedDataStoreViewTest extends Specification with Mockito {
 >>>>>>> eea6a40faa (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> e82ce16cce (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 9a8d532101 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
   }
 }
