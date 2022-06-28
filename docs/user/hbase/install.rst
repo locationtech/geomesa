@@ -92,6 +92,7 @@ __ https://github.com/locationtech/geomesa/releases
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f71fa3c0e1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -140,6 +141,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c8a325e13c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -644,6 +647,7 @@ Download and extract it somewhere convenient:
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -700,6 +704,11 @@ Download and extract it somewhere convenient:
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+Download and extract it somewhere convenient:
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 
 .. code-block:: bash
 
@@ -707,6 +716,7 @@ Download and extract it somewhere convenient:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-hbase_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-hbase_${VERSION}-bin.tar.gz
     $ cd geomesa-hbase_${VERSION}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -790,6 +800,8 @@ Download and extract it somewhere convenient:
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c8a325e13c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1266,7 +1278,12 @@ Download and extract it somewhere convenient:
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 
 .. _hbase_install_source:
 
@@ -1341,6 +1358,7 @@ this directory as follows:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       $ hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar ${hbase.dynamic.jars.dir}/
 =======
       hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar ${hbase.dynamic.jars.dir}/
@@ -1391,6 +1409,8 @@ this directory as follows:
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c8a325e13c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1885,6 +1905,7 @@ this directory as follows:
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -1944,11 +1965,17 @@ this directory as follows:
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+      $ hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar ${hbase.dynamic.jars.dir}/
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 
   .. group-tab:: HBase 1.x
 
     .. code-block:: bash
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2047,6 +2074,8 @@ this directory as follows:
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c8a325e13c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -2613,6 +2642,7 @@ this directory as follows:
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 30bfb17e445 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -2717,7 +2747,15 @@ this directory as follows:
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> aa8f71ca922 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+      $ hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar ${hbase.dynamic.jars.dir}/
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> aaac9bf1b27 (Merge branch 'feature/postgis-fixes')
 
 If running on top of Amazon S3, you will need to use the ``aws s3`` command line tool.
 
@@ -2772,6 +2810,7 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       $ aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
 =======
       aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
@@ -2822,6 +2861,8 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c8a325e13c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -3316,6 +3357,7 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -3375,11 +3417,17 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+      $ aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 
   .. group-tab:: HBase 1.x
 
     .. code-block:: bash
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3478,6 +3526,8 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c8a325e13c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -4044,6 +4094,7 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 30bfb17e445 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -4148,7 +4199,15 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> aa8f71ca922 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+      $ aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> aaac9bf1b27 (Merge branch 'feature/postgis-fixes')
 
 If required, you may disable distributed processing by setting the system property ``geomesa.hbase.remote.filtering``
 to ``false``. Note that this may have an adverse effect on performance.
@@ -4339,6 +4398,7 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 23c0241798 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -4355,6 +4415,8 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 =======
 =======
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -4738,6 +4800,7 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
@@ -4794,6 +4857,10 @@ variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 
 Running Commands
 ^^^^^^^^^^^^^^^^
