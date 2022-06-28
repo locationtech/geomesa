@@ -482,6 +482,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
 =======
@@ -1440,6 +1441,8 @@
 >>>>>>> 9de6fdf1b6e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> ec4497119a1 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 257254c33da (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
@@ -2402,6 +2405,8 @@
 >>>>>>> c87c2b86489 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 328a44ecac8 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 0184ff5e3ef (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
 >>>>>>> 67c850bb2f ([maven-release-plugin] prepare for next development iteration)
@@ -2516,6 +2521,8 @@
 >>>>>>> 11ae0f596c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 9667bb87f8 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3a2e956065 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -2863,8 +2870,11 @@
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> fc25f2f36fd (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 0184ff5e3ef (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e02f74f029 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
@@ -4415,7 +4425,12 @@
 =======
 >>>>>>> d251393014 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 9667bb87f8 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 328a44ecac8 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+>>>>>>> 0184ff5e3ef (Merge branch 'feature/postgis-fixes')
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.4.0-SNAPSHOT</version>
@@ -8708,6 +8723,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 94d3a4d31c3 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 8363956f2e1 (Merge branch 'feature/postgis-fixes')
@@ -8721,6 +8737,10 @@
 >>>>>>> 5f8d5490880 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c29823dbe74 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+>>>>>>> 0184ff5e3ef (Merge branch 'feature/postgis-fixes')
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> ff5c21d0c5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -15175,6 +15195,7 @@
 >>>>>>> d251393014 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 78cb8f217d2 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> 012c31da4bc ([maven-release-plugin] prepare for next development iteration)
@@ -15182,6 +15203,8 @@
 =======
 =======
 >>>>>>> 328a44ecac8 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 0184ff5e3ef (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -20599,8 +20622,18 @@
 =======
 =======
 >>>>>>> 9667bb87f8 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 328a44ecac8 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> ec4497119a1 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+>>>>>>> 0184ff5e3ef (Merge branch 'feature/postgis-fixes')
+>>>>>>> 257254c33da (Merge branch 'feature/postgis-fixes')
     </parent>
 
     <artifactId>geomesa-archetypes_2.12</artifactId>
