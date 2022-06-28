@@ -5060,6 +5060,7 @@ $ gpg2 --verify geomesa-accumulo_2.12-3.5.0-bin.tar.gz.asc geomesa-accumulo_2.12
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Current release: [3.5.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.5.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -5095,6 +5096,8 @@ $ gpg2 --verify geomesa-accumulo_2.12-3.5.0-bin.tar.gz.asc geomesa-accumulo_2.12
 >>>>>>> f3dd0ac67 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> a0515b751 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 **Current release: [3.4.1](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.4.1)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -5105,6 +5108,7 @@ $ gpg2 --verify geomesa-accumulo_2.12-3.5.0-bin.tar.gz.asc geomesa-accumulo_2.12
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.4.1/geomesa-redis_2.12-3.4.1-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.4.1/geomesa-fs_2.12-3.4.1-bin.tar.gz) |
   [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.4.1/geomesa-bigtable_2.12-3.4.1-bin.tar.gz)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 0c5ed829b ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -5150,6 +5154,8 @@ $ gpg2 --verify geomesa-accumulo_2.12-3.5.0-bin.tar.gz.asc geomesa-accumulo_2.12
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-fs_2.12-3.3.0-bin.tar.gz) |
   [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-bigtable_2.12-3.3.0-bin.tar.gz)
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 
 ### Verifying Downloads
 
@@ -5281,6 +5287,7 @@ be changed to a different directory. On Windows you have to define
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 $ gpg2 --verify geomesa-accumulo_2.12-3.5.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.5.0-bin.tar.gz
 =======
 $ gpg2 --verify geomesa-accumulo_2.12-3.4.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.4.0-bin.tar.gz
@@ -5312,6 +5319,9 @@ $ gpg2 --verify geomesa-accumulo_2.12-3.4.0-bin.tar.gz.asc geomesa-accumulo_2.12
 =======
 $ gpg2 --verify geomesa-accumulo_2.12-3.3.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.3.0-bin.tar.gz
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+=======
+$ gpg2 --verify geomesa-accumulo_2.12-3.4.1-bin.tar.gz.asc geomesa-accumulo_2.12-3.4.1-bin.tar.gz
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 ```
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
@@ -36242,6 +36252,7 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>3.5.0</version>
 =======
   <version>3.4.0</version>
@@ -36273,6 +36284,9 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 =======
   <version>3.3.0</version>
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+  <version>3.4.1</version>
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 </dependency>
 ```
 
@@ -36309,6 +36323,7 @@ See [CITATION](CITATION)
 
 ### Nightly Snapshots
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -36560,6 +36575,9 @@ Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> a97477799 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+Snapshot versions are published nightly to the Eclipse repository:
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 
 ```xml
 <repository>
@@ -36585,6 +36603,7 @@ DataStore implementations:
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -36624,6 +36643,9 @@ DataStore implementations:
 =======
   <version>3.3.0</version>
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+  <version>3.4.1</version>
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
@@ -36649,6 +36671,7 @@ resolvers ++= Seq(
 
 // Select desired modules
 libraryDependencies ++= Seq(
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -36688,11 +36711,15 @@ libraryDependencies ++= Seq(
 =======
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.3.0"
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+=======
+  "org.locationtech.geomesa" %% "geomesa-utils" % "3.4.1"
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 )
 ```
 
 ## Building from Source
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -37157,6 +37184,9 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> a0515b751 ([maven-release-plugin] prepare for next development iteration)
+=======
+**Development version: 3.5.0-SNAPSHOT**
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
