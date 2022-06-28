@@ -156,6 +156,7 @@ Dataproc.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1fe65810a (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -290,6 +291,8 @@ Dataproc.
 >>>>>>> 798faeb761 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 7ca1082a3f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> c5e1827657 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1056,6 +1059,7 @@ Dataproc.
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -1953,6 +1957,8 @@ Dataproc.
 =======
 >>>>>>> 72bafaf54b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 7ca1082a3f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 .. code-block:: shell
 
    $ gcloud components install cbt
@@ -2190,6 +2196,7 @@ Now, configure the installation by downloading and unpacking the GeoMesa distrib
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 07a6a5c291 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -2426,6 +2433,8 @@ Now, configure the installation by downloading and unpacking the GeoMesa distrib
 >>>>>>> 7ca1082a3f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 4599715c51 (d)
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 07a6a5c291 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -3361,6 +3370,8 @@ Now, configure the installation by downloading and unpacking the GeoMesa distrib
 >>>>>>> 72bafaf54b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 89bdd3013e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -5479,8 +5490,16 @@ Now, configure the installation by downloading and unpacking the GeoMesa distrib
 =======
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 4599715c51 (d)
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 appropriately, and including the hbase-site.xml in the spark runtime jar. First set the version you want to use:
 
 .. parsed-literal::
@@ -5490,6 +5509,7 @@ appropriately, and including the hbase-site.xml in the spark runtime jar. First 
     $ export VERSION="|scala_binary_version|-${TAG}"
 
 Then download and configure the distribution:
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5822,6 +5842,8 @@ Then download and configure the distribution:
 >>>>>>> 7ca1082a3f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 4599715c51 (d)
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 15e9985047 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> d25af58f86 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -8081,6 +8103,8 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 0fbf9e83e2 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -9504,8 +9528,16 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 appropriately, and including the hbase-site.xml in the spark runtime jar:
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 4599715c51 (d)
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 
 .. code-block:: shell
 
@@ -9715,6 +9747,7 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -9928,6 +9961,8 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 >>>>>>> 4599715c51 (d)
 =======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4cc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -10003,6 +10038,7 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10633,6 +10669,10 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 4599715c51 (d)
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -15539,8 +15579,17 @@ appropriately, and including the hbase-site.xml in the spark runtime jar:
 =======
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 4599715c51 (d)
+=======
+=======
+=======
+   $ tar xvf geomesa-bigtable_${VERSION}-bin.tar.gz
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
    $ ln -s geomesa-bigtable_${VERSION} geomesa
    $ export PATH=$PATH:~/geomesa/bin
    $ export HADOOP_HOME=/usr/lib/hadoop
