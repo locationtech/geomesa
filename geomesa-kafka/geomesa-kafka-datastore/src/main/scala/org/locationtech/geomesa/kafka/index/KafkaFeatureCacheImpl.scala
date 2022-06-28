@@ -487,6 +487,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 943e0f6c2e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -521,6 +522,8 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 >>>>>>> 7535760dc9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 4dcfe983fa (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 984dd84de9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -573,6 +576,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 >>>>>>> 2db2756651 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> e9c220c2f9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
@@ -1160,6 +1164,10 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 >>>>>>> 7535760dc9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 4dcfe983fa (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
   logger.debug(s"Initialized KafkaFeatureCache with factory $factory and support $support")
 
 =======
@@ -18827,12 +18835,17 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 4dcfe983fa (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
   logger.debug(s"Initialized KafkaFeatureCache with factory $factory and support $support")
 
@@ -18841,10 +18854,13 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8ec26b8c2a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
   logger.debug(s"Initialized KafkaFeatureCache with factory $factory and support $support")
 
@@ -22429,6 +22445,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 >>>>>>> e9c220c2f9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 8ec26b8c2a (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -25350,6 +25367,8 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 =======
 >>>>>>> e9c220c2f9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 4dcfe983fa (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
   /**
     * Note: this method is not thread-safe. The `state` and `index` can get out of sync if the same feature
     * is updated simultaneously from two different threads
