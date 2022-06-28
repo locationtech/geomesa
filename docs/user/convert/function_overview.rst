@@ -218,6 +218,7 @@ List and Map Functions
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
@@ -1385,6 +1386,8 @@ Encoding Functions
 >>>>>>> 7a05bea24e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 8685eb198b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
@@ -1667,10 +1670,17 @@ Encoding Functions
 >>>>>>> ef1041e32f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 3f50ce5c7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> a05012d5a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> a9e41bce3a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
@@ -1785,6 +1795,7 @@ Encoding Functions
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 468ab7139 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -1866,6 +1877,8 @@ Encoding Functions
 
 -  ``base64Encode``
 -  ``base64Decode``
+=======
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
