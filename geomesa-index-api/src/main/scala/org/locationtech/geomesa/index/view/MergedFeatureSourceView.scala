@@ -49,7 +49,6 @@ class MergedFeatureSourceView(
   override def getSchema: SimpleFeatureType = sft
 
   override def getCount(query: Query): Int = {
-<<<<<<< HEAD
     val total =
       if (parallel) {
         def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Int = {
@@ -66,13 +65,6 @@ class MergedFeatureSourceView(
           if (sum < 0 || count < 0) { -1 } else { sum + count }
         }
       }
-=======
-    // if one of our sources can't get a count (i.e. is negative), give up and return -1
-    val total = sources.foldLeft(0) { case (sum, (source, filter)) =>
-      lazy val count = source.getCount(mergeFilter(sft, query, filter))
-      if (sum < 0 || count < 0) { -1 } else { sum + count }
-    }
->>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
     if (query.isMaxFeaturesUnlimited) {
       total
     } else {
