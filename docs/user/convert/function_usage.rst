@@ -1449,6 +1449,7 @@ from ``List[String]`` to ``List[Double]``.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7048ab588f (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -1767,6 +1768,8 @@ from ``List[String]`` to ``List[Double]``.
 >>>>>>> 95d2c10f10 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 01daab72fe (GEOMESA-3109 Json array to object converter function (#2788))
@@ -2261,6 +2264,7 @@ from ``List[String]`` to ``List[Double]``.
 >>>>>>> 9738e164f5 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> acd8285f80 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -2409,6 +2413,10 @@ from ``List[String]`` to ``List[Double]``.
 >>>>>>> 95d2c10f10 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1bc88f7e23 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -3064,6 +3072,7 @@ from ``List[String]`` to ``List[Double]``.
 >>>>>>> 38f95b1602 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> fd675cc6b6 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -3170,6 +3179,10 @@ from ``List[String]`` to ``List[Double]``.
 >>>>>>> 95d2c10f10 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 >>>>>>> e7b61a536 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 448369e575 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -3184,6 +3197,7 @@ from ``List[String]`` to ``List[Double]``.
 =======
 >>>>>>> 04d469083d (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 =======
@@ -3327,6 +3341,10 @@ from ``List[String]`` to ``List[Double]``.
 >>>>>>> 95d2c10f10 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 >>>>>>> c44517c36 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 6938112d54 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -9424,6 +9442,7 @@ from ``List[String]`` to ``List[Double]``.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -9432,6 +9451,8 @@ from ``List[String]`` to ``List[Double]``.
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 35b3ecb03 (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 7b395bc2b7 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -13105,10 +13126,25 @@ from ``List[String]`` to ``List[Double]``.
 =======
 =======
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 04d469083d (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 38f95b1602 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 9738e164f5 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
 
@@ -13641,6 +13677,7 @@ Example: ``base64Decode('Zm9v')``
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e6ede6713f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -13795,6 +13832,8 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> 95d2c10f10 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3b5854c1bb (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -14028,6 +14067,7 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 9738e164f5 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
@@ -14681,6 +14721,10 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> 95d2c10f10 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -15179,6 +15223,8 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 38f95b1602 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 008feb67a (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 7982d54d93 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -15215,8 +15261,11 @@ Example: ``base64Decode('Zm9v')``
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b54485f5a2 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -15520,6 +15569,7 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> acd8285f80 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -16128,6 +16178,8 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 9738e164f5 (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 99fd8486a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> a7ca1d57e6 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -22328,6 +22380,9 @@ Example: ``base64Decode('Zm9v')``
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 04d469083d (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 38f95b1602 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -24813,6 +24868,7 @@ Example: ``base64Decode('Zm9v')``
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 04d469083d (GEOMESA-3109 Json array to object converter function (#2788))
 <<<<<<< HEAD
 >>>>>>> 38f95b1602 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -28266,10 +28322,25 @@ Example: ``base64Decode('Zm9v')``
 =======
 >>>>>>> 4aef7a70f (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 235691f96 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 04d469083d (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 38f95b1602 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 9738e164f5 (GEOMESA-3109 Json array to object converter function (#2788))
+<<<<<<< HEAD
 >>>>>>> 805eebdbb2 (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 State Functions
 ~~~~~~~~~~~~~~~
 
