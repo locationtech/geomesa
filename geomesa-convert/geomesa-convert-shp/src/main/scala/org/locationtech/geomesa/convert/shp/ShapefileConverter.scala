@@ -2262,6 +2262,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1d9a0a9e20 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -2270,6 +2271,8 @@ import com.codahale.metrics.Counter
 >>>>>>> eb5c49104f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> e5009bc661 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 =======
@@ -2583,6 +2586,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 319ecdc02f (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> b89af2347e3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2593,8 +2599,11 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 64a645069b5 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 190b2701741 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 import java.io.InputStream
@@ -4226,7 +4235,12 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 319ecdc02f (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> e5009bc661 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> a53bb6e6e49 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 190b2701741 (Merge branch 'feature/postgis-fixes')
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext
