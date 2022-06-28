@@ -363,6 +363,7 @@ class FastFilterFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> f302a54949 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -575,6 +576,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> f8d3d445c0 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> 4599715c51 (d)
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -933,6 +936,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> 9638dc731e (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> a63cb7e74 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 >>>>>>> c3b0a1b6e3 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
@@ -2983,8 +2988,16 @@ class FastFilterFactoryTest extends Specification {
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 4599715c51 (d)
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
     "handle logical erasure of entire clauses" >> {
       val sft = SimpleFeatureTypes.createType("test", "a:Integer")
       val ecql = "(a = 0 AND a = 0) OR (a = 0 AND a = 1) OR (a = 0 AND a = 2)"
@@ -3163,6 +3176,7 @@ class FastFilterFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -3349,6 +3363,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> f8d3d445c0 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> 4599715c51 (d)
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 7acc3ea465 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
@@ -3757,6 +3773,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> 9638dc731e (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 67b361c856 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6298,8 +6316,16 @@ class FastFilterFactoryTest extends Specification {
 =======
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 4599715c51 (d)
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
     "create filter containing functions with embedded expressions" >> {
       val sft = SimpleFeatureTypes.createType("test", "f0:Integer,f1:Integer")
       val ecql = "min(f0 + 2, 4) < min(f1, 5)"
@@ -6475,6 +6501,7 @@ class FastFilterFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 32d312dc48 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
@@ -6665,6 +6692,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> f8d3d445c0 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> 4599715c51 (d)
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
         Result.foreach(1 to 10) { j =>
 =======
         Result.foreach(1 to 10){ j =>
@@ -6898,6 +6927,8 @@ class FastFilterFactoryTest extends Specification {
 =======
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c8a325e13c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -11202,13 +11233,23 @@ class FastFilterFactoryTest extends Specification {
         Result.foreach(1 to 10) { j =>
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 4599715c51 (d)
+=======
+=======
+=======
+        Result.foreach(1 to 10) { j =>
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
           val sf = ScalaSimpleFeature.create(sft, s"${i}_${j}", i, j)
           filterGeoMesa.evaluate(sf) mustEqual filterGeoTools.evaluate(sf)
         }
       }
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11267,18 +11308,24 @@ class FastFilterFactoryTest extends Specification {
 =======
 >>>>>>> ca13f8551e (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 907fb0b08a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -11421,6 +11468,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> ca13f8551e (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
     "comparison operators should have consistent semantics" >> {
       val sft = SimpleFeatureTypes.createType("test", "s:String")
       val sf = ScalaSimpleFeature.create(sft, "id", "5")
@@ -11459,6 +11508,7 @@ class FastFilterFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
@@ -11489,6 +11539,8 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> ca13f8551e (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11533,6 +11585,7 @@ class FastFilterFactoryTest extends Specification {
 =======
 >>>>>>> 7acc3ea46 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 >>>>>>> 907fb0b08a (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11685,11 +11738,14 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> 5430d59024 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 =======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> 7acc3ea46 (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -11757,5 +11813,7 @@ class FastFilterFactoryTest extends Specification {
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> ca13f8551e (GEOMESA-3067 Find attribute in Filters with Functions with embedded expressions correctly)
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
   }
 }
