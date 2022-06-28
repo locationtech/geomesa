@@ -157,6 +157,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -476,6 +477,8 @@
 >>>>>>> 4a8a0091b7 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 56d7dbab72 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
 >>>>>>> 92dc7a8411 (GEOMESA-3100 Kafka layer views (#2784))
@@ -1309,7 +1312,12 @@
 =======
 =======
 >>>>>>> 5aa646c0e8 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 56d7dbab72 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -6056,8 +6064,17 @@
 =======
 =======
 >>>>>>> d2cb939f51 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 5aa646c0e8 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> 56d7dbab72 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
