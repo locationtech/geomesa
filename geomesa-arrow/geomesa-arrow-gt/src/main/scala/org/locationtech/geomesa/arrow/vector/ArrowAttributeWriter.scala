@@ -64,6 +64,7 @@ package vector
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bc6a91d95a (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
@@ -86,6 +87,8 @@ package vector
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1e4476dff5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
@@ -121,6 +124,7 @@ package vector
 =======
 >>>>>>> dc888e30d5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
@@ -188,6 +192,10 @@ package vector
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1e4476dff5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 <<<<<<< HEAD
@@ -333,6 +341,9 @@ import java.util.{Date, UUID}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
@@ -353,6 +364,7 @@ import java.util.{Date, UUID}
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
@@ -386,6 +398,10 @@ import java.util.{Date, UUID}
 >>>>>>> b5288e37e7 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 >>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
@@ -413,6 +429,7 @@ import java.util.{Date, UUID}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b5efdbb687 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
@@ -421,6 +438,8 @@ import java.util.{Date, UUID}
 >>>>>>> b5288e37e7 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
@@ -437,6 +456,7 @@ import java.util.{Date, UUID}
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
@@ -465,6 +485,8 @@ import java.util.{Date, UUID}
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 >>>>>>> 822d0242c6 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 =======
@@ -618,6 +640,7 @@ import java.util.{Date, UUID}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
@@ -626,13 +649,20 @@ import java.util.{Date, UUID}
 >>>>>>> 1e4476dff5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 =======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+=======
+=======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4f321c1bc7 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 =======
 import java.nio.charset.StandardCharsets
@@ -755,6 +785,7 @@ import java.util.{Date, UUID}
 >>>>>>> dc888e30d5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 =======
 import java.nio.charset.StandardCharsets
@@ -929,6 +960,8 @@ import java.util.{Date, UUID}
 =======
 >>>>>>> dc888e30d5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 >>>>>>> 1e4476dff5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, StructVector}
@@ -1540,6 +1573,7 @@ object ArrowAttributeWriter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 428af1bfbc (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
@@ -1604,6 +1638,8 @@ object ArrowAttributeWriter {
 >>>>>>> 6368e16452 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 >>>>>>> e22002bb32 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> bb9821e80f (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
@@ -1704,6 +1740,7 @@ object ArrowAttributeWriter {
 >>>>>>> 8b66f4feb4 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 6cbf72ec3f (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
@@ -1872,6 +1909,8 @@ object ArrowAttributeWriter {
 =======
 >>>>>>> 8b66f4feb4 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 >>>>>>> e22002bb32 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
   class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
 =======
   class ArrowUuidWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
@@ -2487,6 +2526,9 @@ object ArrowAttributeWriter {
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
   class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
 =======
 =======
@@ -2823,6 +2865,7 @@ object ArrowAttributeWriter {
 =======
 >>>>>>> 4d7e13c598 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 >>>>>>> 8b66f4feb4 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
@@ -3433,12 +3476,18 @@ object ArrowAttributeWriter {
 >>>>>>> 6368e16452 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 >>>>>>> e22002bb32 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
   class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
 =======
 =======
 >>>>>>> 35d3871b3 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 >>>>>>> b51dd8f02 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
   @deprecated("replaced with ArrowNoFidWriter")
   object ArrowNoopWriter extends ArrowAttributeWriter {
     override def name: String = SimpleFeatureVector.FeatureIdField
@@ -3450,6 +3499,7 @@ object ArrowAttributeWriter {
     class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 022e7e92f (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 >>>>>>> 35d3871b3 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
@@ -3458,9 +3508,20 @@ object ArrowAttributeWriter {
 =======
   class ArrowUuidWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
 >>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+<<<<<<< HEAD
 >>>>>>> a362209f73 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+<<<<<<< HEAD
 >>>>>>> dc888e30d5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+<<<<<<< HEAD
 >>>>>>> 1e4476dff5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
     extends ArrowAttributeWriter {
     val fieldType: FieldType = new FieldType(true, new ArrowType.FixedSizeList(2), null, metadata.asJava)
     override val vector: FixedSizeListVector = factory.apply(name, fieldType)
@@ -3541,6 +3602,7 @@ object ArrowAttributeWriter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bc6a91d95a (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
@@ -3563,6 +3625,8 @@ object ArrowAttributeWriter {
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1e4476dff5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
@@ -3597,6 +3661,7 @@ object ArrowAttributeWriter {
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> dc888e30d5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
@@ -3664,6 +3729,10 @@ object ArrowAttributeWriter {
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1e4476dff5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
   class ArrowFeatureIdMinimalUuidWriter(val name: String, factory: VectorFactory)
 =======
   class ArrowFeatureIdMinimalUuidWriter(name: String, factory: VectorFactory)
@@ -3784,6 +3853,9 @@ object ArrowAttributeWriter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 0591c93159 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
@@ -3917,7 +3989,12 @@ object ArrowAttributeWriter {
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
   class ArrowFeatureIdMinimalUuidWriter(val name: String, factory: VectorFactory)
 =======
   class ArrowFeatureIdMinimalUuidWriter(name: String, factory: VectorFactory)
@@ -3949,6 +4026,7 @@ object ArrowAttributeWriter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b5efdbb687 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
@@ -3957,6 +4035,8 @@ object ArrowAttributeWriter {
 >>>>>>> b5288e37e7 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
@@ -3973,6 +4053,7 @@ object ArrowAttributeWriter {
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
@@ -4003,6 +4084,8 @@ object ArrowAttributeWriter {
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 >>>>>>> 822d0242c6 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 =======
@@ -4254,6 +4337,7 @@ object ArrowAttributeWriter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
@@ -4262,14 +4346,21 @@ object ArrowAttributeWriter {
 >>>>>>> 1e4476dff5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 =======
 =======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+=======
+=======
   class ArrowFeatureIdMinimalUuidWriter(val name: String, factory: VectorFactory)
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4f321c1bc7 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 =======
   class ArrowFeatureIdMinimalUuidWriter(val name: String, factory: VectorFactory)
 =======
@@ -4366,6 +4457,7 @@ object ArrowAttributeWriter {
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> dc888e30d5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
@@ -4485,6 +4577,10 @@ object ArrowAttributeWriter {
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1e4476dff5 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
       extends ArrowAttributeWriter {
 
     override val vector: IntVector = factory.apply(name, MinorType.INT, Map.empty)
