@@ -1200,10 +1200,13 @@ docutils<0.18
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> eb066bac1c (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 35ef27c7fd (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 64eaeeb073 (Fix docutils version for Sphinx docs build)
 =======
@@ -1214,6 +1217,7 @@ docutils<0.18
 >>>>>>> 381f1468e5 (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 058467aa6f (Fix docutils version for Sphinx docs build)
 =======
@@ -1260,6 +1264,8 @@ docutils<0.18
 =======
 >>>>>>> 381f1468e5 (Fix docutils version for Sphinx docs build)
 >>>>>>> 35ef27c7fd (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 >>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
 <<<<<<< HEAD
 >>>>>>> 0261d5eff (Fix docutils version for Sphinx docs build)
@@ -3089,6 +3095,7 @@ sphinx-copybutton==0.5.0
 =======
 >>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
 >>>>>>> 9d67a6996 (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 6e86b1d03 (Fix docutils version for Sphinx docs build)
 <<<<<<< HEAD
@@ -5077,7 +5084,24 @@ sphinx-copybutton==0.5.0
 =======
 >>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
 >>>>>>> 9d67a6996 (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 6e86b1d03 (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> c9243e7333 (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> 381f1468e5 (Fix docutils version for Sphinx docs build)
+<<<<<<< HEAD
 >>>>>>> 35ef27c7fd (Fix docutils version for Sphinx docs build)
+=======
+=======
+=======
+=======
+=======
+jinja2<3.1.0
+sphinx-copybutton==0.5.0
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+>>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
