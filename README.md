@@ -40,6 +40,7 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Current release: [3.3.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.3.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -49,6 +50,8 @@ geospatial analytics.
 >>>>>>> geomesa-kafka
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> feature/postgis-fixes
 **Current release: [3.4.1](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.4.1)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -60,9 +63,12 @@ geospatial analytics.
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.4.1/geomesa-fs_2.12-3.4.1-bin.tar.gz) |
   [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.4.1/geomesa-bigtable_2.12-3.4.1-bin.tar.gz)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 61d746ac2 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> feature/postgis-fixes
 **Current release: [3.4.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.4.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -73,6 +79,7 @@ geospatial analytics.
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.4.0/geomesa-redis_2.12-3.4.0-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.4.0/geomesa-fs_2.12-3.4.0-bin.tar.gz) |
   [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.4.0/geomesa-bigtable_2.12-3.4.0-bin.tar.gz)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -91,6 +98,13 @@ geospatial analytics.
 >>>>>>> geomesa-kafka
 =======
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+=======
+**Current release: [3.3.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.3.0)**
+
+  &nbsp;&nbsp;&nbsp;&nbsp;
+>>>>>>> feature/postgis-fixes
   [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-hbase_2.12-3.3.0-bin.tar.gz) |
   [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-accumulo_2.12-3.3.0-bin.tar.gz) |
   [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-cassandra_2.12-3.3.0-bin.tar.gz) |
@@ -98,6 +112,7 @@ geospatial analytics.
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-redis_2.12-3.3.0-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-fs_2.12-3.3.0-bin.tar.gz) |
   [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.3.0/geomesa-bigtable_2.12-3.3.0-bin.tar.gz)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -110,6 +125,9 @@ geospatial analytics.
 =======
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> feature/postgis-fixes
 
 ### Verifying Downloads
 
@@ -126,6 +144,7 @@ Then verify the file:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 $ gpg2 --verify geomesa-accumulo_2.12-3.3.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.3.0-bin.tar.gz
 =======
 <<<<<<< HEAD
@@ -141,17 +160,24 @@ $ gpg2 --verify geomesa-accumulo_2.12-3.3.0-bin.tar.gz.asc geomesa-accumulo_2.12
 >>>>>>> geomesa-kafka
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> feature/postgis-fixes
 $ gpg2 --verify geomesa-accumulo_2.12-3.4.1-bin.tar.gz.asc geomesa-accumulo_2.12-3.4.1-bin.tar.gz
 =======
 $ gpg2 --verify geomesa-accumulo_2.12-3.4.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.4.0-bin.tar.gz
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
 =======
+<<<<<<< HEAD
 $ gpg2 --verify geomesa-accumulo_2.12-3.4.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.4.0-bin.tar.gz
 >>>>>>> 61d746ac2 ([maven-release-plugin] prepare for next development iteration)
 =======
 $ gpg2 --verify geomesa-accumulo_2.12-3.3.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.3.0-bin.tar.gz
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> feature/schema-registry
+=======
+$ gpg2 --verify geomesa-accumulo_2.12-3.3.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.3.0-bin.tar.gz
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> feature/postgis-fixes
 ```
 
 The keys currently used for signing are:
@@ -174,6 +200,7 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>3.3.0</version>
 =======
 <<<<<<< HEAD
@@ -189,17 +216,24 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 >>>>>>> geomesa-kafka
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> feature/postgis-fixes
   <version>3.4.1</version>
 =======
   <version>3.4.0</version>
 >>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+<<<<<<< HEAD
   <version>3.4.0</version>
 >>>>>>> a1258aa46 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
   <version>3.3.0</version>
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> feature/schema-registry
+=======
+  <version>3.3.0</version>
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> feature/postgis-fixes
 </dependency>
 ```
 
@@ -223,6 +257,7 @@ GeoMesa in your project, add the following repositories to your pom:
 
 ### Nightly Snapshots
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -270,6 +305,15 @@ Snapshot versions are published nightly to the Eclipse repository:
 Snapshot versions are published nightly to the Eclipse repository:
 =======
 >>>>>>> feature/schema-registry
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+Snapshot versions are published nightly to the Eclipse repository:
+=======
+>>>>>>> feature/postgis-fixes
 ```xml
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
@@ -297,6 +341,7 @@ For nightly snapshot integration, add:
 =======
 Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -326,9 +371,14 @@ Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> feature/schema-registry
 =======
 =======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> feature/postgis-fixes
+=======
+=======
 Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> geomesa-kafka
 =======
@@ -345,6 +395,8 @@ Snapshot versions are published nightly to the Eclipse repository:
 =======
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> feature/postgis-fixes
 
 ```xml
 <repository>
@@ -373,6 +425,7 @@ DataStore implementations:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>3.3.0</version>
 =======
 <<<<<<< HEAD
@@ -388,17 +441,24 @@ DataStore implementations:
 >>>>>>> geomesa-kafka
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> feature/postgis-fixes
   <version>3.4.1</version>
 =======
   <version>3.4.0</version>
 >>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+<<<<<<< HEAD
   <version>3.4.0</version>
 >>>>>>> a1258aa46 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
   <version>3.3.0</version>
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> feature/schema-registry
+=======
+  <version>3.3.0</version>
+>>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> feature/postgis-fixes
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
@@ -427,6 +487,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.3.0"
 =======
 <<<<<<< HEAD
@@ -442,17 +503,24 @@ libraryDependencies ++= Seq(
 >>>>>>> geomesa-kafka
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> feature/postgis-fixes
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.4.1"
 =======
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.4.0"
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
 =======
+<<<<<<< HEAD
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.4.0"
 >>>>>>> 61d746ac2 ([maven-release-plugin] prepare for next development iteration)
 =======
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.3.0"
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> feature/schema-registry
+=======
+  "org.locationtech.geomesa" %% "geomesa-utils" % "3.3.0"
+>>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> feature/postgis-fixes
 )
 ```
 
@@ -462,6 +530,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -488,9 +557,14 @@ libraryDependencies ++= Seq(
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> feature/schema-registry
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> feature/postgis-fixes
+=======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
@@ -537,10 +611,15 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> feature/schema-registry
+=======
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> feature/postgis-fixes
 **Development version: 3.5.0-SNAPSHOT**
 =======
 **Development version: 4.0.0-SNAPSHOT**
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -567,6 +646,8 @@ libraryDependencies ++= Seq(
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> feature/postgis-fixes
 =======
 **Development version: 3.3.0-SNAPSHOT**
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -575,6 +656,7 @@ libraryDependencies ++= Seq(
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -593,12 +675,15 @@ libraryDependencies ++= Seq(
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> feature/schema-registry
 =======
+>>>>>>> feature/postgis-fixes
+=======
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 **Development version: 3.3.0-SNAPSHOT**
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -637,6 +722,10 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> feature/schema-registry
+=======
+=======
+>>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> feature/postgis-fixes
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)

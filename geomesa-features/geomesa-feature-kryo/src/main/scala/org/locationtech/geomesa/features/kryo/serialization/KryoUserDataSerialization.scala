@@ -56,6 +56,7 @@ object KryoUserDataSerialization extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     serialize(out, javaMap, withoutFidHints = false)
 
   def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef], withoutFidHints: Boolean): Unit = {
@@ -65,6 +66,8 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> geomesa-kafka
 =======
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> feature/postgis-fixes
     serialize(out, javaMap, withoutFidHints = false, writeAscii = false)
 
   def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef], withoutFidHints: Boolean): Unit =
@@ -85,11 +88,14 @@ object KryoUserDataSerialization extends LazyLogging {
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> geomesa-kafka
 =======
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> feature/postgis-fixes
     import scala.collection.JavaConverters._
 
     // write in sorted order to keep consistent output

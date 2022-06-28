@@ -17,6 +17,7 @@ import java.util.{Collections, Date}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -51,6 +52,9 @@ import java.util.{Collections, Date}
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> feature/postgis-fixes
 import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.ConfigCommand.{ConfigEntity, Entity}
 import kafka.zk.{AdminZkClient, KafkaZkClient}
@@ -730,6 +734,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     "support listeners without indexing" >> {
       val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
       val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
@@ -777,6 +782,8 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 >>>>>>> geomesa-kafka
 =======
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> feature/postgis-fixes
     "support transactions" >> {
       val (producer, consumer, _) = createStorePair()
       try {
@@ -840,6 +847,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -869,6 +877,8 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> feature/postgis-fixes
       val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
 =======
       val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
@@ -876,6 +886,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
@@ -900,6 +911,8 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> feature/postgis-fixes
       try {
         val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
         producer.createSchema(sft)

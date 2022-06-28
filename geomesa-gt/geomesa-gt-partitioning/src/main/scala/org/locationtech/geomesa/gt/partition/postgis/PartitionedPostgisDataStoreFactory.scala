@@ -54,6 +54,7 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
         dialect.setSimplifyEnabled(simplify == null || simplify == java.lang.Boolean.TRUE)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         ds.setSQLDialect(new PostGISPSDialect(ds, dialect) {
           // fix bug with PostGISPSDialect dialect not delegating these methods
           override def getDefaultVarcharSize: Int = dialect.getDefaultVarcharSize
@@ -75,6 +76,9 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 =======
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 >>>>>>> c79be4f83 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+        ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
+>>>>>>> feature/postgis-fixes
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
     }

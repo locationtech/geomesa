@@ -108,6 +108,7 @@ List and Map Functions
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> geomesa-kafka
@@ -146,6 +147,8 @@ Encoding Functions
 >>>>>>> 92dccb4d7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 30d431265 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> feature/postgis-fixes
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
@@ -164,7 +167,10 @@ Encoding Functions
 -  ``base64Decode``
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> feature/postgis-fixes
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~

@@ -359,6 +359,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -370,6 +371,8 @@ class AttributeIndexTest extends Specification with LazyLogging {
 =======
 >>>>>>> aa627812d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> feature/schema-registry
+=======
+>>>>>>> feature/postgis-fixes
 
     "handle filter.EXCLUDE with query hint" in {
       val ds = new TestGeoMesaDataStore(true)
@@ -389,6 +392,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
       results must beEmpty
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -408,5 +412,9 @@ class AttributeIndexTest extends Specification with LazyLogging {
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> aa627812d (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> feature/schema-registry
+=======
+=======
+>>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+>>>>>>> feature/postgis-fixes
   }
 }
