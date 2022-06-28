@@ -18,6 +18,7 @@ import java.net.URL
 class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: ConfluentFeatureSerializer)
     extends GeoMessageSerializer(sft, serializer, null, null, 0) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
   override def serialize(msg: GeoMessage): (Array[Byte], Array[Byte], Map[String, Array[Byte]]) =
@@ -27,6 +28,8 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> d657014c83 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 
   override def deserialize(
       key: Array[Byte],

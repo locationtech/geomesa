@@ -72,6 +72,7 @@ class KafkaStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 =======
   private val producer = KafkaStore.producer(config.producerConfig)
@@ -303,6 +304,9 @@ class KafkaStore(
 >>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> a974777993 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+  private val producer = KafkaStore.producer(sft, config.producerConfig)
+>>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 
   private val topic = LambdaDataStore.topic(sft, config.zkNamespace)
 

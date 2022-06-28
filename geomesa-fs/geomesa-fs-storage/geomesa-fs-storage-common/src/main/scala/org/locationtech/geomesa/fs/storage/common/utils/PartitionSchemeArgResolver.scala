@@ -4,6 +4,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -14,6 +15,8 @@
 >>>>>>> f23883eba7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> bfa6d08a0b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> d136bd4a2c (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
@@ -52,7 +55,13 @@
 =======
 =======
 >>>>>>> b36757a532 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> bfa6d08a0b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d136bd4a2c (Merge branch 'feature/postgis-fixes')
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
