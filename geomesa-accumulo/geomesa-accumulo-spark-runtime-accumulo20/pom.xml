@@ -249,6 +249,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -743,6 +744,8 @@
 =======
 >>>>>>> 663ac5f6665 ([maven-release-plugin] prepare for next development iteration)
 =======
+>>>>>>> 2e10de9c5f5 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 67c850bb2f ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 128d53e072 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -1215,12 +1218,19 @@
 =======
 >>>>>>> 35375d0fd0 ([maven-release-plugin] prepare for next development iteration)
 =======
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD
 =======
 >>>>>>> d8f34add8e ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 46c6d5a4e3 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
@@ -1781,8 +1791,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 46c6d5a4e3 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 =======
@@ -1868,10 +1881,14 @@
 =======
 >>>>>>> d8f34add8e ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> f2a21c06dd (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -2026,6 +2043,8 @@
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 46c6d5a4e3 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
         <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -4164,8 +4183,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 46c6d5a4e3 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
@@ -4307,6 +4329,7 @@
 =======
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
@@ -4515,6 +4538,8 @@
 =======
 >>>>>>> d8f34add8e ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 46c6d5a4e3 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
@@ -4662,17 +4687,24 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 46c6d5a4e3 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d8f34add8e ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> a63bd8ca7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -4691,6 +4723,8 @@
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 46c6d5a4e3 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
         <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -5686,6 +5720,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> e886d343d ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> aa7bb03d80 ([maven-release-plugin] prepare for next development iteration)
@@ -9459,6 +9496,7 @@
 >>>>>>> a0515b751 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e886d343d ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> aa7bb03d80 ([maven-release-plugin] prepare for next development iteration)
@@ -12641,12 +12679,34 @@
 =======
 =======
 >>>>>>> a0515b751 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> e886d343d ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> aa7bb03d80 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> e641403f0c ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> d8f34add8e ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 46c6d5a4e3 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 663ac5f6665 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+=======
+=======
+=======
+=======
+        <version>3.5.0-SNAPSHOT</version>
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
+>>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 2e10de9c5f5 (Merge branch 'feature/postgis-fixes')
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

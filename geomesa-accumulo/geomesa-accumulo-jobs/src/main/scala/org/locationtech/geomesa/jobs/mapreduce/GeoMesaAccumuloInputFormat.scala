@@ -475,6 +475,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> bd17bd131e (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -609,6 +610,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> c8431d18e4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 9dd4a005eb (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> a773c6ef65 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -770,6 +773,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 >>>>>>> 8ddbf27f07 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 1d4e479464 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1126,6 +1130,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 9e74e1d9b4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 9dd4a005eb (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> bd17bd131e (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> ca22354dd7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1225,6 +1231,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 260d67442f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 113b056da (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 6f73f22005 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -1285,6 +1293,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> e4ee051914 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> bd17bd131 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> c555446b8b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -1319,6 +1329,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 4f922d74c (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 1b5719bd3 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 =======
 <<<<<<< HEAD
 >>>>>>> c385f79943 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -15870,6 +15882,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5d46ff705f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -15878,6 +15891,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 27eec0d076 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
@@ -15894,6 +15909,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
@@ -15926,6 +15942,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d488f41800 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -16243,8 +16261,11 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 =======
@@ -16257,6 +16278,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
@@ -16280,6 +16302,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 27eec0d076 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 84634d919 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 >>>>>>> 3c4fc5a828 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -16413,12 +16439,16 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
@@ -16430,6 +16460,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 5e6674847 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 <<<<<<< HEAD
 >>>>>>> 5521d97d99 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -17844,6 +17878,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 1b5719bd3 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e4ee051914 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 >>>>>>> 260d67442f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -19401,10 +19436,25 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 0cdf3f267 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 1b5719bd3 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> e4ee051914 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 260d67442f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 9e74e1d9b4 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 9dd4a005eb (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
+>>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
     val job = new Job(conf)
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 
