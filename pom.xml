@@ -227,6 +227,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>5.1.0-SNAPSHOT</version>
 =======
 =======
@@ -661,6 +662,8 @@
 >>>>>>> fec4dcdc7b6 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> de7ad20f03f ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 3ad1a418a01 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
     <version>5.0.0-SNAPSHOT</version>
 =======
@@ -1099,6 +1102,8 @@
 >>>>>>> 0bb98b8a140 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> a91b137c96e ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 56c570abb92 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
 >>>>>>> 3a2e956065 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -1494,7 +1499,12 @@
 =======
 =======
 >>>>>>> 122ebbdef2 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> a91b137c96e ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 56c570abb92 (Merge branch 'feature/postgis-fixes')
     <version>4.1.0-SNAPSHOT</version>
 =======
     <version>3.4.0-SNAPSHOT</version>
@@ -1590,6 +1600,7 @@
 >>>>>>> 59c99fa93a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> e886d343d7 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
@@ -1746,6 +1757,10 @@
 >>>>>>> 2f2c035f6d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 122ebbdef2 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
     <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -3964,8 +3979,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 78d1db9c25 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> ef93a5f92d1 ([maven-release-plugin] prepare for next development iteration)
@@ -6823,6 +6841,7 @@
 <<<<<<< HEAD
 >>>>>>> e886d343d7 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 40961a9e73 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> bc3070aba35 ([maven-release-plugin] prepare for next development iteration)
@@ -6832,10 +6851,13 @@
 =======
 =======
 =======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+=======
 =======
     <version>3.5.0-SNAPSHOT</version>
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> b5d6d6cf864 (Merge branch 'feature/postgis-fixes')
@@ -7610,8 +7632,16 @@
 =======
 =======
 >>>>>>> 122ebbdef2 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> a91b137c96e ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> de7ad20f03f ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 56c570abb92 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 3ad1a418a01 (Merge branch 'feature/postgis-fixes')
 
     <licenses>
         <license>
@@ -8398,6 +8428,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <geomesa.release.version>5.0.1</geomesa.release.version>
 =======
 =======
@@ -8912,6 +8943,8 @@
 >>>>>>> d833c0371be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 4ee439087c1 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 0468f315f46 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
         <geomesa.release.version>5.0.0</geomesa.release.version>
 >>>>>>> f65c0d8670f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -9429,6 +9462,8 @@
 >>>>>>> 3c18e85ad18 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> de7ad20f03f ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 3ad1a418a01 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
         <geomesa.release.version>4.0.5</geomesa.release.version>
 =======
@@ -9947,6 +9982,8 @@
 >>>>>>> e9cb01ccf62 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> c95a51781f6 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 7bed5f441db (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
         <geomesa.release.version>4.0.4</geomesa.release.version>
 <<<<<<< HEAD
@@ -10163,6 +10200,8 @@
 >>>>>>> 8dfc0f359d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 122ebbdef2 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
         <geomesa.release.version>4.0.1</geomesa.release.version>
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
@@ -11069,6 +11108,7 @@
 >>>>>>> e886d343d7 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 7542c0e90a (Set latest release version to 3.5.1)
 =======
@@ -14287,6 +14327,8 @@
 =======
 >>>>>>> e886d343d7 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 122ebbdef2 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
         <geomesa.release.version>3.5.0</geomesa.release.version>
         <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
 <<<<<<< HEAD
@@ -14401,10 +14443,14 @@
         <geomesa.release.version>3.4.0</geomesa.release.version>
 >>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+        <geomesa.release.version>3.4.1</geomesa.release.version>
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
         <geomesa.devel.version>3.5.0-SNAPSHOT</geomesa.devel.version>
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> c5e182765 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <copyright.year>2022</copyright.year>
+<<<<<<< HEAD
 =======
         <geomesa.release.version>3.2.0</geomesa.release.version>
 <<<<<<< HEAD
@@ -14661,10 +14707,24 @@
 >>>>>>> a0515b751 ([maven-release-plugin] prepare for next development iteration)
         <copyright.year>2021</copyright.year>
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 40c466e757 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+>>>>>>> b71b0e3cfc (Merge branch 'feature/postgis-fixes')
 
         <!-- recommended installation versions -->
 <<<<<<< HEAD
