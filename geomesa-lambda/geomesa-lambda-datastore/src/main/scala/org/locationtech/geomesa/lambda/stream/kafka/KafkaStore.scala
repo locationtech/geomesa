@@ -598,6 +598,7 @@ class KafkaStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8e665b32ac (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -836,6 +837,8 @@ class KafkaStore(
 >>>>>>> f692371537 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> b9e86ce8ad (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -1194,6 +1197,7 @@ class KafkaStore(
 >>>>>>> 6adfbb9118 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 25172c18fe (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
@@ -1883,6 +1887,10 @@ class KafkaStore(
 >>>>>>> f692371537 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> b9e86ce8ad (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 =======
   private val producer = KafkaStore.producer(config.producerConfig)
@@ -3199,6 +3207,8 @@ class KafkaStore(
 =======
 >>>>>>> 86fd8c7136 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+>>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 3f50ce5c7 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> ef1041e32f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -3297,6 +3307,8 @@ class KafkaStore(
 =======
 >>>>>>> 68a193d485 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+>>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> b23b68a15 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -3355,6 +3367,8 @@ class KafkaStore(
 >>>>>>> ae5490a34 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 404627bdc (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 054a72ed9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> d04dc6d340 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -21817,10 +21831,13 @@ class KafkaStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 404627bdc (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
 >>>>>>> 68a193d485 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -23282,6 +23299,7 @@ class KafkaStore(
 >>>>>>> a97477799 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 404627bdc (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
 >>>>>>> 68a193d485 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -25645,11 +25663,30 @@ class KafkaStore(
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 1c744a07e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> a97477799 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 404627bdc (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> 68a193d485 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> 86fd8c7136 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> 25172c18fe (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> b9e86ce8ad (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+=======
+=======
+=======
+=======
+  private val producer = KafkaStore.producer(sft, config.producerConfig)
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
+>>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 
   private val topic = LambdaDataStore.topic(sft, config.zkNamespace)
 
