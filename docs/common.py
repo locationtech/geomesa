@@ -890,6 +890,7 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 0fbf9e83e2 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -1147,6 +1148,8 @@ rst_epilog = """
 =======
 >>>>>>> aea9fbe131 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 0fbf9e83e2 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 89bdd3013e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1192,6 +1195,7 @@ rst_epilog = """
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 >>>>>>> 269558cf9e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 3b4f3da2e1 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -1252,6 +1256,8 @@ rst_epilog = """
 >>>>>>> a16b64a4d1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> aea9fbe131 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4cc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -5927,6 +5933,9 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 >>>>>>> 9d708b240a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
@@ -6253,13 +6262,18 @@ rst_epilog = """
 >>>>>>> b4320946b4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> a16b64a4d1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 .. |release_version| replace:: %(release_version)s
 
 .. |release_version_literal| replace:: ``%(release_version)s``
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6589,6 +6603,9 @@ rst_epilog = """
 >>>>>>> 437d0aab1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> aea9fbe131 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 
 .. |scala_binary_version| replace:: %(scala_binary_version)s
 

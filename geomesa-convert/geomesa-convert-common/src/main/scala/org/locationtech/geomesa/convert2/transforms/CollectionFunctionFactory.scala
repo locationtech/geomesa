@@ -247,6 +247,7 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   }
 <<<<<<< HEAD
@@ -271,6 +272,8 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9cdd96d1c (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> b5c172e61d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 
   private val listItem = TransformerFunction.pure("listItem") { args =>
     args(0) match {
@@ -281,6 +284,7 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
   }
 
   private val transformList = new TransformList(null)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11177,8 +11181,11 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -16768,7 +16775,14 @@ class CollectionFunctionFactory extends TransformerFunctionFactory with Collecti
 =======
 =======
 >>>>>>> 88550fc09f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 96a1f60a2e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 }
 
 object CollectionFunctionFactory {
