@@ -378,6 +378,7 @@ This downloads the latest development version. To check out the code for the lat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6f1e1da646 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -520,6 +521,8 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 8171686fd2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 7925093789 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f67dd3371e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -735,6 +738,7 @@ This downloads the latest development version. To check out the code for the lat
 =======
 >>>>>>> fd5565dfba (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1162,6 +1166,10 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 8171686fd2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 7925093789 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4cc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1791,6 +1799,8 @@ This downloads the latest development version. To check out the code for the lat
 =======
 >>>>>>> 1df8328338 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 45ad5d11f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b009fd23f4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -2053,6 +2063,8 @@ This downloads the latest development version. To check out the code for the lat
 =======
 >>>>>>> 25063957fc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 76618c8da (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 947761ec9b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -2159,8 +2171,11 @@ This downloads the latest development version. To check out the code for the lat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7925093789 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 64e2e43818 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -2362,6 +2377,7 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> aff2787fc2 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -2648,6 +2664,8 @@ This downloads the latest development version. To check out the code for the lat
 =======
 >>>>>>> fd5565dfba (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 7925093789 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -4871,6 +4889,7 @@ This downloads the latest development version. To check out the code for the lat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4599715c51 (d)
 =======
@@ -4897,6 +4916,8 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> b47097b7bb (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 
 .. code-block:: bash
 
@@ -7195,6 +7216,8 @@ This downloads the latest development version. To check out the code for the lat
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 
 .. code-block:: bash
 
