@@ -692,6 +692,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b43795ad85 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
@@ -728,6 +729,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 7535760dc9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> ef96e7e067 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 984dd84de9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -786,6 +789,7 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 7ea0bdef54 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 8ec26b8c2a (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -1280,6 +1284,8 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 7ea0bdef54 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> ef96e7e067 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
         case _: Clear  => cache.fireClear(timestamp); cache.clear()
 =======
 =======
@@ -16357,12 +16363,16 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> ad15fc9fe3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 >>>>>>> 7ea0bdef54 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 =======
         case _: Clear  => cache.fireClear(timestamp); cache.clear()
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 8ec26b8c2a (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -19132,6 +19142,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> ad15fc9fe3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> 7ea0bdef54 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> ef96e7e067 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
         case m => throw new IllegalArgumentException(s"Unknown message: $m")
       }
     }
@@ -19605,6 +19617,7 @@ object KafkaCacheLoader extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b43795ad85 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
@@ -19641,6 +19654,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 7535760dc9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> ef96e7e067 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 984dd84de9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -19699,6 +19714,7 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> 7ea0bdef54 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 8ec26b8c2a (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -20193,6 +20209,8 @@ object KafkaCacheLoader extends LazyLogging {
 =======
 >>>>>>> 7ea0bdef54 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> ef96e7e067 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
           case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
 =======
 =======
@@ -35270,12 +35288,16 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> ad15fc9fe3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
 >>>>>>> 7ea0bdef54 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 =======
 =======
           case _: Clear  => toLoad.cache.fireClear(timestamp); cache.clear()
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 8ec26b8c2a (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -38045,6 +38067,8 @@ object KafkaCacheLoader extends LazyLogging {
 >>>>>>> ad15fc9fe3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> 7ea0bdef54 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
 >>>>>>> ef96e7e067 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
           case m => throw new IllegalArgumentException(s"Unknown message: $m")
         }
         // once we've hit the max offset for the partition, remove from the offset map to indicate we're done
