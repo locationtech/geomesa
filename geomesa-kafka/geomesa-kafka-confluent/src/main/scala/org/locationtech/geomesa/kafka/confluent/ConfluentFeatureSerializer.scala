@@ -119,7 +119,6 @@ object ConfluentFeatureSerializer {
     }
   }
 
-<<<<<<< HEAD
   /**
    * Mapping between Avro schema and SimpleFeatureType
    *
@@ -273,26 +272,6 @@ class ConfluentFeatureSerializer(
           }
         } else {
           None
-=======
-class ConfluentFeatureSerializer(
-    sft: SimpleFeatureType,
-    schemaRegistryClient: SchemaRegistryClient,
-    schemaOverride: Option[Schema] = None,
-    val options: Set[SerializationOption] = Set.empty
-  ) extends SimpleFeatureSerializer with LazyLogging {
-
-  private val kafkaAvroDeserializers = new ThreadLocal[KafkaAvroDeserializer]() {
-    override def initialValue(): KafkaAvroDeserializer = new KafkaAvroDeserializer(schemaRegistryClient)
-  }
-
-  private val featureReaders = new ThreadLocal[ConfluentFeatureReader]() {
-    override def initialValue(): ConfluentFeatureReader = {
-      val schema = schemaOverride.getOrElse {
-        val schemaId = Option(sft.getUserData.get(ConfluentMetadata.SchemaIdKey))
-          .map(_.asInstanceOf[String].toInt).getOrElse {
-          throw new IllegalStateException(s"Cannot create ConfluentFeatureSerializer because SimpleFeatureType " +
-            s"'${sft.getTypeName}' does not have schema id at key '${ConfluentMetadata.SchemaIdKey}'")
->>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
         }
 
 <<<<<<< HEAD
@@ -472,7 +451,6 @@ class ConfluentFeatureSerializer(
 >>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
     }
 
-<<<<<<< HEAD
     // visibility field index in the avro schema
     private val visibilityField = schema.getFields.asScala.collectFirst {
       case f if Option(f.getProp(GeoMesaAvroVisibilityField.KEY)).exists(_.toBoolean) => f.pos()
@@ -526,6 +504,7 @@ class ConfluentFeatureSerializer(
       defaultFields.foreach { case (i, v) => record.put(i, v) }
       visibilityField.foreach { pos => record.put(pos, SecurityUtils.getVisibility(feature)) }
       fieldMappings.foreach { m =>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -659,6 +638,9 @@ class ConfluentFeatureSerializer(
 =======
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 =======
 <<<<<<< HEAD
@@ -948,6 +930,7 @@ class ConfluentFeatureSerializer(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -978,6 +961,8 @@ class ConfluentFeatureSerializer(
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
@@ -1076,6 +1061,7 @@ class ConfluentFeatureSerializer(
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 1c64e1adc3 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -1187,6 +1173,8 @@ class ConfluentFeatureSerializer(
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
         try {
           feature.getAttribute(m.sftIndex) match {
             case null => m.default.foreach(d => record.put(m.schemaIndex, d))
