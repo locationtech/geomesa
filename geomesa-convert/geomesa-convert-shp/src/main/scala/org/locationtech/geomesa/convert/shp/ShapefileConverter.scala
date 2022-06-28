@@ -100,6 +100,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 302df4295a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -142,6 +143,8 @@ import com.codahale.metrics.Counter
 >>>>>>> 235643d3d2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> d2042eea397 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -234,6 +237,7 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -250,6 +254,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 235643d3d2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 91dbd747c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -754,6 +762,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> af68691d6fb (GEOMESA-3071 Move all converter state into evaluation context)
@@ -764,8 +775,11 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 10be5d2340b (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 709d36fab5e (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -2489,7 +2503,12 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 2cc10cb7932 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 709d36fab5e (Merge branch 'feature/postgis-fixes')
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext
