@@ -42,6 +42,7 @@ folder which contains an example csv file that we will ingest. First set the ver
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 419e2b9752 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -78,6 +79,8 @@ folder which contains an example csv file that we will ingest. First set the ver
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 165fb93a09 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -547,6 +550,10 @@ Then download and extract the binary distribution:
 >>>>>>> 15e9985047 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 10ade3dcd1 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 
 .. parsed-literal::
 
@@ -564,6 +571,7 @@ Then download and extract the binary distribution:
 >>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 Then download and extract the binary distribution:
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> d13d2eab26 (GEOMESA-3176 Docs - fix download links in install instructions)
 
@@ -812,6 +820,8 @@ Then download and extract the binary distribution:
 >>>>>>> 72919d0f84 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 .. note::
 =======
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 
@@ -1851,6 +1861,8 @@ Then download and extract the binary distribution:
 
   In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
   ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1874,6 +1886,7 @@ Then download and extract the binary distribution:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-fs_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-fs_${VERSION}-bin.tar.gz
     $ cd geomesa-fs_${VERSION}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2330,6 +2343,8 @@ Then download and extract the binary distribution:
 >>>>>>> 3382f42b39 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> db8a3a22b2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 23c0241798 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -2814,6 +2829,8 @@ Then download and extract the binary distribution:
 >>>>>>> 3382f42b39 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d4c5768cfa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6912,6 +6929,7 @@ Then download and extract the binary distribution:
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 97ec7d864a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 >>>>>>> 4599715c51 (d)
@@ -7013,7 +7031,14 @@ Then download and extract the binary distribution:
 =======
 =======
 >>>>>>> bdbced26d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> db8a3a22b2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
     $ cat examples/ingest/csv/example.csv
 
 The output should look like::
