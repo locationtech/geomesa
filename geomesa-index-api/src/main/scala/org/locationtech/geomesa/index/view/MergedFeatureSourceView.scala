@@ -49,7 +49,6 @@ class MergedFeatureSourceView(
   override def getSchema: SimpleFeatureType = sft
 
   override def getCount(query: Query): Int = {
-<<<<<<< HEAD
     val total =
       if (parallel) {
         def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Int = {
@@ -66,6 +65,7 @@ class MergedFeatureSourceView(
           if (sum < 0 || count < 0) { -1 } else { sum + count }
         }
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -130,6 +130,8 @@ class MergedFeatureSourceView(
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 00b6906403 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -245,6 +247,7 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -337,6 +340,10 @@ class MergedFeatureSourceView(
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 00b6906403 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
     if (query.isMaxFeaturesUnlimited) {
       total
     } else {
@@ -378,8 +385,8 @@ class MergedFeatureSourceView(
     }
 
     val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-<<<<<<< HEAD
     sourceBounds.foreach(bounds.expandToInclude)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -442,10 +449,13 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> 8692c9ad11 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 4c216bcec1 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
@@ -505,6 +515,8 @@ class MergedFeatureSourceView(
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
     sources.foreach {
       case (source, filter) =>
 <<<<<<< HEAD
@@ -2032,6 +2044,7 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -2048,6 +2061,8 @@ class MergedFeatureSourceView(
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 0ab344f339 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 >>>>>>> 22da407b4 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
@@ -2077,12 +2092,16 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2248,6 +2267,8 @@ class MergedFeatureSourceView(
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 8692c9ad11 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
     bounds
   }
 
