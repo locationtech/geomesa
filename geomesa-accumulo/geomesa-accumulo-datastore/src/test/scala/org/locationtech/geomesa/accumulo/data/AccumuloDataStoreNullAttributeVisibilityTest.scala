@@ -57,6 +57,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Crown Copyright (c) 2016-2024 Dstl
 =======
 =======
@@ -176,6 +177,8 @@
 >>>>>>> 31cf70f026 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 4f8169d03b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> d437e1ce0e (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -351,7 +354,12 @@
 =======
 =======
 >>>>>>> 2ac50f11ba (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 >>>>>>> 4f8169d03b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d437e1ce0e (Merge branch 'feature/postgis-fixes')
  * Crown Copyright (c) 2016-2023 Dstl
 =======
  * Crown Copyright (c) 2016-2021 Dstl
@@ -415,6 +423,7 @@
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dd15127a4b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -471,6 +480,8 @@
 =======
 >>>>>>> eb2fe3d44d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 2ac50f11ba (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
  * Crown Copyright (c) 2016-2023 Dstl
 =======
 =======
@@ -1185,6 +1196,8 @@
 >>>>>>> 4ccb35072 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> c8b485118 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
  * Crown Copyright (c) 2016-2023 Dstl
 =======
  * Crown Copyright (c) 2016-2022 Dstl
@@ -1198,10 +1211,25 @@
 =======
  * Crown Copyright (c) 2016-2021 Dstl
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 >>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 >>>>>>> 42fbaa6c7a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 >>>>>>> 874211d057 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 >>>>>>> a6586d74a7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+=======
+=======
+=======
+ * Crown Copyright (c) 2016-2022 Dstl
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d437e1ce0e (Merge branch 'feature/postgis-fixes')
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
