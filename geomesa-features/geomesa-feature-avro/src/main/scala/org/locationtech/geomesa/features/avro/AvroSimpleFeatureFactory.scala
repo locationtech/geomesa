@@ -19,7 +19,7 @@ import org.locationtech.geomesa.utils.text.{ObjectPoolFactory, ObjectPoolUtils}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class AvroSimpleFeatureFactory extends AbstractFeatureFactoryImpl {
 
@@ -58,7 +58,7 @@ object AvroSimpleFeatureFactory {
 
   def buildAvroFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String) =
     builderCache.get(sft).withResource { builder =>
-      builder.addAll(attrs)
+      builder.addAll(attrs.asJava)
       builder.buildFeature(id)
     }
 

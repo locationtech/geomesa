@@ -33,7 +33,7 @@ object RecordVersions extends LazyLogging {
       case Some(method) => (record, k, v) => method.invoke(record).asInstanceOf[Headers].add(k, v)
       case None =>
         logger.warn("This version of Kafka doesn't support message headers, serialization may be slower")
-        (_, _, _) => Unit
+        (_, _, _) => ()
     }
   }
 

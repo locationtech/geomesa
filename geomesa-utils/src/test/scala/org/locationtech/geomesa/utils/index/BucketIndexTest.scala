@@ -50,7 +50,7 @@ class BucketIndexTest extends Specification with LazyLogging {
           val r = new Random
           while (running.get) {
             val i = r.nextInt(numFeatures)
-            index.query(points(i)._2.getEnvelopeInternal).foreach(_ => Unit)
+            index.query(points(i)._2.getEnvelopeInternal).foreach(_ => ())
             queries += 1
           }
         }

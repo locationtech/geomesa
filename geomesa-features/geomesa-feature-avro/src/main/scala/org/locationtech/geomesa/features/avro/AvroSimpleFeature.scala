@@ -21,7 +21,7 @@ import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.Try
 
 
@@ -46,13 +46,13 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
   def setAttribute(index: Int, value: Object) = setAttributeNoConvert(index,
     FastConverter.convert(value, getFeatureType.getDescriptor(index).getType.getBinding).asInstanceOf[AnyRef])
 
-  def setAttributes(vals: JList[Object]) = vals.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
+  def setAttributes(vals: JList[Object]) = vals.toArray.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
   def setAttributes(vals: Array[Object])= vals.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
 
   def setAttributeNoConvert(index: Int, value: Object) = values(index) = value
   def setAttributeNoConvert(name: String, value: Object): Unit = setAttributeNoConvert(sft.indexOf(name), value)
   def setAttributeNoConvert(name: Name, value: Object): Unit = setAttributeNoConvert(name.getLocalPart, value)
-  def setAttributesNoConvert(vals: JList[Object]) = vals.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
+  def setAttributesNoConvert(vals: JList[Object]) = vals.toArray.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
   def setAttributesNoConvert(vals: Array[Object])= vals.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
 
   def getAttributeCount = values.length
@@ -85,13 +85,15 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
       setDefaultGeometry(null)
   }
 
-  def getProperties: JCollection[Property] =
-    getAttributes.zip(sft.getAttributeDescriptors).map {
+  def getProperties: JCollection[Property] = {
+    val attr = getAttributes.asScala.zip(sft.getAttributeDescriptors.asScala).map {
       case(attribute, attributeDescriptor) =>
-         new AttributeImpl(attribute, attributeDescriptor, id)
+         new AttributeImpl(attribute, attributeDescriptor, id).asInstanceOf[org.opengis.feature.Property]
       }
+    attr.asJavaCollection
+  }
   def getProperties(name: Name): JCollection[Property] = getProperties(name.getLocalPart)
-  def getProperties(name: String): JCollection[Property] = getProperties.filter(_.getName.toString == name)
+  def getProperties(name: String): JCollection[Property] = getProperties.asScala.filter(_.getName.toString == name).toSeq.asJava
   def getProperty(name: Name): Property = getProperty(name.getLocalPart)
   def getProperty(name: String): Property =
     Option(sft.getDescriptor(name)) match {
@@ -101,7 +103,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
 
   def getValue: JCollection[_ <: Property] = getProperties
 
-  def setValue(values: JCollection[Property]) = values.zipWithIndex.foreach { case (p, idx) =>
+  def setValue(values: JCollection[Property]) = values.asScala.zipWithIndex.foreach { case (p, idx) =>
     this.values(idx) = p.getValue
   }
 
@@ -109,7 +111,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
 
   def getName: Name = sft.getName
 
-  def getUserData = userData
+  def getUserData: java.util.Map[AnyRef, AnyRef] = userData.asJava
 
   def isNillable = true
 

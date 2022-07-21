@@ -17,14 +17,14 @@ import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.utils.io.PathUtils
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class CassandraIngestCommand extends IngestCommand[CassandraDataStore] with CassandraDataStoreCommand {
 
   override val params = new CassandraIngestParams
 
   override def execute(): Unit = {
-    if (params.files.exists(PathUtils.isRemote)) {
+    if (params.files.asScala.exists(PathUtils.isRemote _)) {
       throw new ParameterException("The Cassandra ingest tool does not support distributed ingest.")
     }
     super.execute()

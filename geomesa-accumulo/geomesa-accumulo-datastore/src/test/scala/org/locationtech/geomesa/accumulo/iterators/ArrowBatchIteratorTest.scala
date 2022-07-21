@@ -98,7 +98,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
               transform: Seq[String] = Seq.empty,
               ordered: Boolean = false): MatchResult[Any] = {
     val transformed = if (transform.isEmpty) { expected } else {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       val tsft = {
         val builder = new SimpleFeatureTypeBuilder
         builder.setName(expected.head.getFeatureType.getTypeName)

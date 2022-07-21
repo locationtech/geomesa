@@ -46,7 +46,7 @@ trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[D
       // sleep an additional bit so that the stat table gets configured
       Thread.sleep(1000)
       val queries = sft.getAttributeDescriptors.asScala.map(d => Stat.MinMax(d.getLocalName))
-      ds.stats.getStat[CountStat](sft, Stat.Count()) ++ ds.stats.getSeqStat[MinMax[Any]](sft, queries)
+      ds.stats.getStat[CountStat](sft, Stat.Count()) ++ ds.stats.getSeqStat[MinMax[Any]](sft, queries.toSeq)
     } else {
       ds.stats.writer.analyze(sft)
     }

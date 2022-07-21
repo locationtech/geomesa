@@ -167,7 +167,7 @@ object FeatureSpecificReader {
         } else {
           f
         }
-      }
+      }.toSeq
     }
   }
 }

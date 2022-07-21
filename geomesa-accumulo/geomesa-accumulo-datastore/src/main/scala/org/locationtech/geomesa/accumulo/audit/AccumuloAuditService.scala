@@ -37,7 +37,7 @@ class AccumuloAuditService(connector: Connector,
                                             dates: (ZonedDateTime, ZonedDateTime))
                                            (implicit ct: ClassTag[T]): Iterator[T] = {
     import scala.collection.JavaConverters._
-    val auths = new Authorizations(authProvider.getAuthorizations.asScala: _*)
+    val auths = new Authorizations(authProvider.getAuthorizations.asScala.toSeq: _*)
     val iter = reader.query(typeName, dates, auths)(transform(ct.runtimeClass.asInstanceOf[Class[T]]))
     iter.asInstanceOf[Iterator[T]]
   }

@@ -29,7 +29,7 @@ object IndexValueEncoder {
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   private val cache = new ConcurrentHashMap[ImmutableSimpleFeatureType, ImmutableSimpleFeatureType]()
 
@@ -60,7 +60,7 @@ object IndexValueEncoder {
     val builder = new SimpleFeatureTypeBuilder()
     builder.setNamespaceURI(null: String)
     builder.setName(sft.getTypeName + "--index")
-    builder.setAttributes(getIndexValueAttributes(sft))
+    builder.setAttributes(getIndexValueAttributes(sft).asJava)
     if (sft.getGeometryDescriptor != null) {
       builder.setDefaultGeometry(sft.getGeometryDescriptor.getLocalName)
     }
@@ -88,7 +88,7 @@ object IndexValueEncoder {
       }
       i += 1
     }
-    attributes
+    attributes.toSeq
   }
 
   /**

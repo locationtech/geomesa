@@ -336,13 +336,13 @@ object OrcInputFormatReader {
     private val converter = getConverter(binding)
 
     override def apply(input: OrcStruct, sf: SimpleFeature): Unit = {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       val value = input.getFieldValue(attribute).asInstanceOf[OrcList[_ <: WritableComparable[_]]]
       if (value == null) {
         sf.setAttribute(attribute, null)
       } else {
         val list = new java.util.ArrayList[AnyRef](value.size())
-        value.foreach(element => list.add(converter.convert(element)))
+        value.asScala.foreach(element => list.add(converter.convert(element)))
         sf.setAttribute(attribute, list)
       }
     }
@@ -354,13 +354,13 @@ object OrcInputFormatReader {
     private val valueConverter = getConverter(valueBinding)
 
     override def apply(input: OrcStruct, sf: SimpleFeature): Unit = {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       val value = input.getFieldValue(attribute).asInstanceOf[OrcMap[_ <: WritableComparable[_], _ <: WritableComparable[_]]]
       if (value == null) {
         sf.setAttribute(attribute, null)
       } else {
         val map = new java.util.HashMap[AnyRef, AnyRef](value.size())
-        value.foreach { case (k, v) => map.put(keyConverter.convert(k), valueConverter.convert(v)) }
+        value.asScala.foreach { case (k, v) => map.put(keyConverter.convert(k), valueConverter.convert(v)) }
         sf.setAttribute(attribute, map)
       }
     }

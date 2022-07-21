@@ -48,7 +48,7 @@ class VisibilityFilterFunction extends FunctionExpressionImpl(VisibilityFilterFu
       }
       if (vis == null || vis.isEmpty) { java.lang.Boolean.FALSE } else {
         cache.getOrElseUpdate(vis,
-          Try(Boolean.box(VisibilityEvaluator.parse(vis).evaluate(auths))).getOrElse(java.lang.Boolean.FALSE))
+          Try(Boolean.box(VisibilityEvaluator.parse(vis).evaluate(auths.toSeq))).getOrElse(java.lang.Boolean.FALSE))
       }
 
     case _ => java.lang.Boolean.FALSE

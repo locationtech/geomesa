@@ -76,7 +76,7 @@ object SparkUtils extends LazyLogging {
             sf: SimpleFeature => {
               val attr = sf.getAttribute(index)
               if (attr == null) { null } else {
-                val map = attr.asInstanceOf[java.util.Map[_, _]].asScala.toMap
+                val map = attr.asInstanceOf[java.util.Map[Any, Any]].asScala.toMap
                 if (keyType != TimestampType && valueType != TimestampType) { map } else {
                   map.map {
                     case (key, value) =>

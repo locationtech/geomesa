@@ -17,22 +17,21 @@ import com.jayway.jsonpath.spi.json.GsonJsonProvider
 import com.jayway.jsonpath.{Configuration, JsonPath, PathNotFoundException}
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert._
-import org.locationtech.geomesa.convert.json.JsonConverter._
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeatureType
 
-class JsonConverter(sft: SimpleFeatureType, config: JsonConfig, fields: Seq[JsonField], options: BasicOptions)
-    extends AbstractConverter[JsonElement, JsonConfig, JsonField, BasicOptions](sft, config, fields, options) {
+class JsonConverter(sft: SimpleFeatureType, config: JsonConverter.JsonConfig, fields: Seq[JsonConverter.JsonField], options: BasicOptions)
+    extends AbstractConverter[JsonElement, JsonConverter.JsonConfig, JsonConverter.JsonField, BasicOptions](sft, config, fields, options) {
 
   import scala.collection.JavaConverters._
 
   private val featurePath = config.featurePath.map(JsonPath.compile(_))
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[JsonElement] =
-    new JsonIterator(is, options.encoding, ec)
+    new JsonConverter.JsonIterator(is, options.encoding, ec)
 
   override protected def values(parsed: CloseableIterator[JsonElement],
                                 ec: EvaluationContext): CloseableIterator[Array[Any]] = {
@@ -46,7 +45,7 @@ class JsonConverter(sft: SimpleFeatureType, config: JsonConfig, fields: Seq[Json
       case Some(path) =>
         parsed.flatMap { element =>
           array(1) = element
-          path.read[JsonArray](element, JsonConfiguration).iterator.asScala.map { e =>
+          path.read[JsonArray](element, JsonConverter.JsonConfiguration).iterator.asScala.map { e =>
             array(0) = e
             array
           }

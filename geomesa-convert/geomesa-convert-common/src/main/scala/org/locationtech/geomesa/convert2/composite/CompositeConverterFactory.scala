@@ -29,7 +29,7 @@ class CompositeConverterFactory extends SimpleFeatureConverterFactory {
             SimpleFeatureConverter(sft, converterName) // load from a global named reference
           }
           (pred, converter)
-        }
+        }.toSeq
       Some(new CompositeConverter(sft, converters))
     }
   }

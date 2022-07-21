@@ -419,7 +419,7 @@ object OrcOutputFormatWriter {
     private val converter = getConverter(binding)
 
     override def apply(sf: SimpleFeature, output: OrcStruct): Unit = {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       val value = sf.getAttribute(attribute).asInstanceOf[java.util.List[AnyRef]]
       if (value == null) {
         output.setFieldValue(col, null)
@@ -431,7 +431,7 @@ object OrcOutputFormatWriter {
         } else {
           field.clear()
         }
-        value.foreach(v => field.add(converter.setValue(v, null)))
+        value.asScala.foreach(v => field.add(converter.setValue(v, null)))
       }
     }
   }
@@ -445,7 +445,7 @@ object OrcOutputFormatWriter {
     private val valueConverter = getConverter(valueBinding)
 
     override def apply(sf: SimpleFeature, output: OrcStruct): Unit = {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       val value = sf.getAttribute(attribute).asInstanceOf[java.util.Map[AnyRef, AnyRef]]
       if (value == null) {
         output.setFieldValue(col, null)
@@ -457,7 +457,7 @@ object OrcOutputFormatWriter {
         } else {
           field.clear()
         }
-        value.foreach { case (k, v) => field.put(keyConverter.setValue(k, null), valueConverter.setValue(v, null)) }
+        value.asScala.foreach { case (k, v) => field.put(keyConverter.setValue(k, null), valueConverter.setValue(v, null)) }
       }
     }
   }

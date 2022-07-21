@@ -21,7 +21,7 @@ import redis.clients.jedis.Jedis
 class MockRedis extends Jedis {
   var count = 0
   override def hgetAll(key: String): java.util.Map[String, String] = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
     if(count == 0) {
       count += 1
       Map("foo" -> "bar")

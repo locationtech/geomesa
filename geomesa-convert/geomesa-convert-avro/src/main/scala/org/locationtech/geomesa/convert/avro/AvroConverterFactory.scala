@@ -138,7 +138,7 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
         val converterConfig = AvroConfig(typeToProcess, SchemaEmbedded, Some(id), Map.empty, userData)
 
         val config = configConvert.to(converterConfig)
-            .withFallback(fieldConvert.to(fields))
+            .withFallback(fieldConvert.to(fields.toSeq))
             .withFallback(optsConvert.to(BasicOptions.default))
             .toConfig
 
@@ -209,9 +209,9 @@ object AvroConverterFactory {
     schema.getFields.asScala.foreach(mapField(_))
 
     // check if we can derive a geometry field
-    TypeInference.deriveGeometry(types).foreach(g => types += g)
+    TypeInference.deriveGeometry(types.toSeq).foreach(g => types += g)
 
-    types
+    types.toSeq
   }
 
   object AvroConfigConvert extends ConverterConfigConvert[AvroConfig] with OptionConvert {

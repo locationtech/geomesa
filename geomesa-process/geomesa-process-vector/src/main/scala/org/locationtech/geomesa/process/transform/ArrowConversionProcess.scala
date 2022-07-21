@@ -73,14 +73,14 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
               doublePass: java.lang.Boolean
              ): java.util.Iterator[Array[Byte]] = {
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     logger.debug(s"Running arrow encoding for ${features.getClass.getName}")
 
     val sft = features.getSchema
 
     // validate inputs
-    val toEncode: Seq[String] = Option(dictionaryFields).map(_.toSeq).getOrElse(Seq.empty)
+    val toEncode: Seq[String] = Option(dictionaryFields).map(_.asScala.toSeq).getOrElse(Seq.empty)
     toEncode.foreach { attribute =>
       if (sft.indexOf(attribute) == -1) {
         throw new IllegalArgumentException(s"Attribute $attribute doesn't exist in $sft")
@@ -116,7 +116,7 @@ object ArrowConversionProcess {
       doublePass: Boolean
     ) extends GeoMesaProcessVisitor with LazyLogging {
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     // for collecting results manually
     private lazy val manualVisitor: ArrowManualVisitor = {
@@ -133,9 +133,9 @@ object ArrowConversionProcess {
 
     override def getResult: ArrowResult = {
       if (result != null) {
-        ArrowResult(result)
+        ArrowResult(result.asJava)
       } else {
-        ArrowResult(manualVisitor.results)
+        ArrowResult(manualVisitor.results.asJava)
       }
     }
 

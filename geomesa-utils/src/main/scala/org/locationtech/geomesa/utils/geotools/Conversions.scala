@@ -301,7 +301,7 @@ object RichSimpleFeatureType extends Conversions {
 
     def setUserDataPrefixes(prefixes: Seq[String]): Unit = sft.getUserData.put(UserDataPrefix, prefixes.mkString(","))
     def getUserDataPrefixes: Seq[String] =
-      Seq(GeomesaPrefix) ++ userData[String](UserDataPrefix).map(_.split(",")).getOrElse(Array.empty)
+      (Seq(GeomesaPrefix) ++ userData[String](UserDataPrefix).map(_.split(",")).getOrElse(Array.empty)).toSeq
 
     def setZShards(splits: Int): Unit = sft.getUserData.put(IndexZShards, splits.toString)
     @deprecated("use z2/z3 specific methods")

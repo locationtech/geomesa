@@ -380,7 +380,7 @@ class FilterHelperTest extends Specification {
     }
 
     "deduplicate massive OR filters without stack overflow" >> {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       // actual count to get the old code to stack overflow varies depending on environment
       // with the fix, tested up to 100k without issue, but the specs checks take a long time with that many
       val count = 1000

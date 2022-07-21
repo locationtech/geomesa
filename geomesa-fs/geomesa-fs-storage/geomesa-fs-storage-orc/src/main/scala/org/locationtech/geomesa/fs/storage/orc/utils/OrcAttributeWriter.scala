@@ -494,7 +494,7 @@ object OrcAttributeWriter {
     private val valueWriter = getInnerWriter(valueBinding, vector.values)
 
     override def apply(sf: SimpleFeature, row: Int): Unit = {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
 
       val value = sf.getAttribute(attribute).asInstanceOf[java.util.Map[AnyRef, AnyRef]]
       if (value != null) {
@@ -504,9 +504,9 @@ object OrcAttributeWriter {
         vector.offsets(row) = vector.childCount
         vector.lengths(row) = length
         var i = 0
-        value.foreach { case (k, v) =>
+        value.asScala.foreach { case (k, v) =>
           keyWriter.setValue(k, vector.childCount + i)
-          valueWriter.setValue(v, vector.childCount + i)
+          valueWriter.setValue(v.asInstanceOf[AnyRef], vector.childCount + i)
           i += 1
         }
         vector.childCount += length

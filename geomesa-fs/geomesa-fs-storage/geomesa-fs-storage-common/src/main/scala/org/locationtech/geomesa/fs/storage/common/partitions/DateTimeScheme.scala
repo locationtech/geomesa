@@ -153,7 +153,7 @@ case class DateTimeScheme(formatter: DateTimeFormatter, stepUnit: ChronoUnit, st
         }
       }
 
-      Some((covered, intersecting))
+      Some((covered.toSeq, intersecting.toSeq))
     }
   }
 }

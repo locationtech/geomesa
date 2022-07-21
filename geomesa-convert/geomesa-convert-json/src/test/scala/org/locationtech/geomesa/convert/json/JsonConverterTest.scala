@@ -895,7 +895,7 @@ class JsonConverterTest extends Specification {
 
       forall(List((nestedJson, nestedConf), (simpleJson, simpleConf))) { case (json, conf) =>
         WithClose(SimpleFeatureConverter(advSft, conf)) { converter =>
-          import scala.collection.JavaConversions._
+          import scala.collection.JavaConverters._
 
           val ec = converter.createEvaluationContext()
           val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)

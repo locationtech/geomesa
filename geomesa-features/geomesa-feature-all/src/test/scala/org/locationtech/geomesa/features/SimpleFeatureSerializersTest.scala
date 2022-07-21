@@ -24,7 +24,7 @@ import org.specs2.matcher.{MatchResult, Matcher}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureSerializersTest extends Specification {

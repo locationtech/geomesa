@@ -61,7 +61,7 @@ trait IngestCommand[DS <: DataStore]
     }
 
     val inputs: Inputs = {
-      val files = Inputs(params.files.asScala)
+      val files = Inputs(params.files.asScala.toSeq)
       if (params.srcList) { files.asSourceList } else { files }
     }
 

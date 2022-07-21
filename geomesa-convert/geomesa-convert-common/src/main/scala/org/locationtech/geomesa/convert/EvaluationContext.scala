@@ -250,7 +250,7 @@ object EvaluationContext extends LazyLogging {
     private val transforms = fields.map(_.transforms.map(_.withContext(this)))
 
     // to support the deprecated `get` and `set` methods
-    private lazy val sortedGlobalValues = globalValues.toArray.sortBy(_._1)
+    private lazy val sortedGlobalValues: Array[(String, _ <: AnyRef)] = globalValues.toArray.sortBy(_._1).map(f => (f._1, f._2))
 
     override def accessor(name: String): FieldAccessor = {
       val i = fields.indexWhere(_.name == name)

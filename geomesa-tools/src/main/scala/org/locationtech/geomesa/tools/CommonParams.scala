@@ -220,7 +220,7 @@ trait IndicesParam {
 
   @throws[ParameterException]
   def loadIndices[DS <: GeoMesaDataStore[DS]](ds: DS, typeName: String, mode: IndexMode): Seq[GeoMesaFeatureIndex[_, _]] =
-    indexNames.asScala.map(IndexParam.loadIndex(ds, typeName, _, mode))
+    indexNames.asScala.map(IndexParam.loadIndex(ds, typeName, _, mode)).toSeq
 }
 
 trait DistributedRunParam {

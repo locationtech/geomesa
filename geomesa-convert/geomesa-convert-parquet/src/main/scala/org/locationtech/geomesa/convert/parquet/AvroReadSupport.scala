@@ -81,7 +81,7 @@ object AvroReadSupport {
   }
 
   class AvroRecordMaterializer(schema: MessageType) extends RecordMaterializer[GenericRecord] {
-    private val root = new GenericGroupConverter(schema.getFields.asScala)
+    private val root = new GenericGroupConverter(schema.getFields.asScala.toSeq)
     override def getCurrentRecord: GenericRecord = root.record
     override def getRootConverter: GroupConverter = root
   }
@@ -158,9 +158,9 @@ object AvroReadSupport {
 
         case _ =>
           if (group.getFields.asScala.forall(t => t.isPrimitive && t.isRepetition(Repetition.REPEATED))) {
-            new GroupedRepeatedConverter(group.getFields.asScala.map(_.asPrimitiveType), i, callback)
+            new GroupedRepeatedConverter(group.getFields.asScala.map(_.asPrimitiveType).toSeq, i, callback)
           } else {
-            new GenericGroupConverter(group.getFields.asScala) {
+            new GenericGroupConverter(group.getFields.asScala.toSeq) {
               override def end(): Unit = callback.set(i, record)
             }
           }

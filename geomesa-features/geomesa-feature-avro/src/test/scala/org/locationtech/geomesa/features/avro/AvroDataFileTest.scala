@@ -75,11 +75,11 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
 
       read2.getUserData.containsKey("zzz") must beTrue
 
-      import scala.collection.JavaConversions._
-      read1.getUserData.keys must containTheSameElementsAs[AnyRef](sf.getUserData.keys.toSeq)
-      read1.getUserData.values.toSeq must containTheSameElementsAs[AnyRef](sf.getUserData.values.toSeq)
-      read2.getUserData.keys must containTheSameElementsAs[AnyRef](sf2.getUserData.keys.toSeq)
-      read2.getUserData.values.toSeq must containTheSameElementsAs[AnyRef](sf2.getUserData.values.toSeq)
+      import scala.collection.JavaConverters._
+      read1.getUserData.asScala.keys must containTheSameElementsAs[AnyRef](sf.getUserData.asScala.keys.toSeq)
+      read1.getUserData.asScala.values.toSeq must containTheSameElementsAs[AnyRef](sf.getUserData.asScala.values.toSeq)
+      read2.getUserData.asScala.keys must containTheSameElementsAs[AnyRef](sf2.getUserData.asScala.keys.toSeq)
+      read2.getUserData.asScala.values.toSeq must containTheSameElementsAs[AnyRef](sf2.getUserData.asScala.values.toSeq)
     }
 
     "preserve lots of user data" >> {

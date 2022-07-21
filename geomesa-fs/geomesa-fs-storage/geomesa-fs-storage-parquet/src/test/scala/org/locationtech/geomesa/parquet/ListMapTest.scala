@@ -77,7 +77,7 @@ class ListMapTest extends Specification {
 
         import org.locationtech.geomesa.utils.geotools.Conversions._
 
-        import scala.collection.JavaConversions._
+        import scala.collection.JavaConverters._
         val sf = reader.read()
         sf.getAttributeCount mustEqual 3
         sf.getID must be equalTo "1"

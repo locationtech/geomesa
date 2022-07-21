@@ -23,7 +23,7 @@ import org.locationtech.geomesa.tools.status.{ConfigureCommand, EnvironmentComma
 import org.locationtech.geomesa.tools.utils.{GeoMesaIStringConverterFactory, NailgunServer}
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 trait Runner extends MethodProfiling with LazyLogging {
@@ -98,7 +98,7 @@ trait Runner extends MethodProfiling with LazyLogging {
   def usage(jc: JCommander): String = {
     val out = new StringBuilder()
     out.append(s"Usage: $name [command] [command options]\n")
-    val commands = jc.getCommands.map(_._1).toSeq.sorted
+    val commands = jc.getCommands.asScala.map(_._1).toSeq.sorted
     out.append("  Commands:\n")
     val maxLen = commands.map(_.length).max + 4
     commands.foreach { name =>
@@ -120,7 +120,7 @@ trait Runner extends MethodProfiling with LazyLogging {
 
   def autocompleteUsage(jc: JCommander, autocompleteInfo: AutocompleteInfo): Unit = {
     val file = new File(autocompleteInfo.path)
-    val commands = jc.getCommands.map(_._1).toSeq
+    val commands = jc.getCommands.asScala.map(_._1).toSeq
     val out = new StringBuilder
     out.append(
       s"""_${autocompleteInfo.commandName}(){
@@ -143,7 +143,7 @@ trait Runner extends MethodProfiling with LazyLogging {
          |        case $${COMP_WORDS[1]} in
         """.stripMargin)
     commands.foreach { command =>
-      val params = jc.getCommands.get(command).getParameters.filter(!_.getParameter.hidden()).flatMap(_.getParameter.names().filter(_.length != 2))
+      val params = jc.getCommands.get(command).getParameters.asScala.filter(!_.getParameter.hidden()).flatMap(_.getParameter.names().filter(_.length != 2))
         out.append(
       s"""            $command)
          |              COMPREPLY=( $$(compgen -W "${params.mkString(" ").replaceAll("[,\\s]+", " ")}" -- $${cur}));

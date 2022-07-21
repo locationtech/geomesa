@@ -71,7 +71,7 @@ class LocalDelegate extends FileSystemDelegate with LazyLogging {
           }
         }
         Files.walkFileTree(basepath, visitor)
-        result
+        result.toSeq
       }
     }
   }

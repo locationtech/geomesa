@@ -48,7 +48,7 @@ object SpatialRDD {
   def apply(rdd: RDD[SimpleFeature], schema: SimpleFeatureType) = new SpatialRDD(rdd, schema)
 
   implicit def toValueSeq(in: RDD[SimpleFeature] with Schema): RDD[Seq[AnyRef]] =
-    in.map(_.getAttributes.asScala)
+    in.map(_.getAttributes.asScala.toSeq)
 
   implicit def toKeyValueSeq(in: RDD[SimpleFeature] with Schema): RDD[Seq[(String, AnyRef)]] =
     in.map(_.getProperties.asScala.map(p => (p.getName.getLocalPart, p.getValue)).toSeq)

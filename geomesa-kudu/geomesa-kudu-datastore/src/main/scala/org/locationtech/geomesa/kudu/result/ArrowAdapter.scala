@@ -168,7 +168,7 @@ object ArrowAdapter extends KuduResultAdapterSerialization[ArrowAdapter] {
     if (adapter.config.providedDictionaries.isEmpty) {
       bb.putString(null)
     } else {
-      bb.putString(StringSerialization.encodeSeqMap(adapter.config.providedDictionaries.mapValues(_.toSeq)))
+      bb.putString(StringSerialization.encodeSeqMap(adapter.config.providedDictionaries.mapValues(_.toSeq).toMap))
     }
     bb.putString(adapter.config.sort.map(_._1).orNull)
     bb.putBool(adapter.config.sort.exists(_._2))

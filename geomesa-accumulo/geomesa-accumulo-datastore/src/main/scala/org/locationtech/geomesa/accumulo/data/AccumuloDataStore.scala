@@ -84,7 +84,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     *
     * @return
     */
-  def auths: Authorizations = new Authorizations(config.authProvider.getAuthorizations.asScala: _*)
+  def auths: Authorizations = new Authorizations(config.authProvider.getAuthorizations.asScala.toSeq: _*)
 
   override def delete(): Unit = {
     // note: don't delete the query audit table

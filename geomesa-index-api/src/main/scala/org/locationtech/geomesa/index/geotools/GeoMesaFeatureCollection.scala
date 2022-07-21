@@ -274,7 +274,7 @@ object GeoMesaFeatureCollection extends LazyLogging {
 
         case v: GroupByVisitor if v.getExpression.isInstanceOf[PropertyName] =>
           val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
-          groupBy(attribute, v.getGroupByAttributes.asScala, v.getAggregateVisitor) match {
+          groupBy(attribute, v.getGroupByAttributes.asScala.toSeq, v.getAggregateVisitor) match {
             case Some(result) => v.setValue(result)
             case None         => unoptimized(visitor, progress)
           }

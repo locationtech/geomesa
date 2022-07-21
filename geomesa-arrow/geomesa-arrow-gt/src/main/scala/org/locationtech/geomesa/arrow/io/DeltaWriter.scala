@@ -321,7 +321,7 @@ object DeltaWriter extends StrictLogging {
               }
             }
           (name, transfer)
-        }
+        }.toSeq
       }
 
       private val threadIterator = threadedBatches.iterator
@@ -511,7 +511,7 @@ object DeltaWriter extends StrictLogging {
               val transfer = fromVector.makeTransferPair(toVector)
               (fromIndex: Int, toIndex: Int) => transfer.copyValueSafe(fromIndex, toIndex)
             }
-          }
+          }.toSeq
           val mapVector = toLoad.underlying
           val dict = dictionaries.get(sortBy)
           val descriptor = sft.getDescriptor(sortBy)

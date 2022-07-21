@@ -15,7 +15,7 @@ import org.springframework.context.{ApplicationContext, ApplicationContextAware}
 import org.springframework.web.context.ServletContextAware
 
 import scala.beans.BeanProperty
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class SpringScalatraBootstrap extends ApplicationContextAware with ServletContextAware with LazyLogging {
 
@@ -25,7 +25,7 @@ class SpringScalatraBootstrap extends ApplicationContextAware with ServletContex
 
   def init(): Unit = {
     val richCtx = RichServletContext(servletContext)
-    val servlets = applicationContext.getBeansOfType(classOf[GeoMesaScalatraServlet])
+    val servlets = applicationContext.getBeansOfType(classOf[GeoMesaScalatraServlet]).asScala
     for ((name, servlet) <- servlets) {
       val path = s"$rootPath/${servlet.root}"
       logger.info(s"Mounting servlet bean '$name' at path '/$path'")

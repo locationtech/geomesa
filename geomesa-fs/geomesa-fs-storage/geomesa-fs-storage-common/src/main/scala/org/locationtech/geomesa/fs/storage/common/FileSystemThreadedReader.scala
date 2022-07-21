@@ -112,14 +112,14 @@ object FileSystemThreadedReader extends StrictLogging {
               group += file
             } else {
               if (group.nonEmpty) {
-                groups += group
+                groups += group.toSeq
                 group = scala.collection.mutable.ArrayBuffer.empty[StorageFilePath]
               }
               groups += Seq(file)
             }
           }
           if (group.nonEmpty) {
-            groups += group // add the last group
+            groups += group.toSeq // add the last group
           }
 
           // each chained reader task will register at most groups.length parties
@@ -129,7 +129,7 @@ object FileSystemThreadedReader extends StrictLogging {
             child = new Phaser(phaser)
           }
           child.register() // register new task
-          es.submit(new ChainedReaderTask(es, child, reader, groups.head, groups.tail, queue))
+          es.submit(new ChainedReaderTask(es, child, reader, groups.head, groups.tail.toSeq, queue))
         }
       } catch {
         case NonFatal(e) => es.shutdownNow(); throw e

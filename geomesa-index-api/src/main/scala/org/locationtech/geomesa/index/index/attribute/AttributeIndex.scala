@@ -91,7 +91,7 @@ object AttributeIndex extends ConfiguredIndex {
       } else {
         Seq.empty
       }
-    }
+    }.toSeq
   }
 
   /**

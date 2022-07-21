@@ -517,7 +517,7 @@ object KafkaDataStore extends LazyLogging {
         if (partitions.add(tp.partition())) {
           KafkaConsumerVersions.pause(consumer, tp)
           try {
-            if (readBack.isFinite()) {
+            if (readBack.isFinite) {
               val offset = Try {
                 val time = System.currentTimeMillis() - readBack.toMillis
                 KafkaConsumerVersions.offsetsForTimes(consumer, tp.topic, Seq(tp.partition), time).get(tp.partition)

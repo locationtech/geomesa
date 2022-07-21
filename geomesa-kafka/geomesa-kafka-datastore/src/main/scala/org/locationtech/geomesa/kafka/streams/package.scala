@@ -237,7 +237,7 @@ package object streams {
           }
           builder.result
         }
-        GeoMesaMessage.upsert(feature.getAttributes.asScala, userData)
+        GeoMesaMessage.upsert(feature.getAttributes.asScala.toSeq, userData)
       }
     }
 

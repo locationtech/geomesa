@@ -23,7 +23,7 @@ import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.jts.geom.{Geometry, LineString, Point}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class BinaryOutputEncoder private (toValues: ToValues) {
 
@@ -295,7 +295,7 @@ object BinaryOutputEncoder extends LazyLogging {
 
   private def dateArray(f: SimpleFeature, i: Int): Array[Long] = {
     val dates = f.getAttribute(i).asInstanceOf[java.util.List[Date]]
-    if (dates == null) { Array.empty } else { dates.map(_.getTime).toArray }
+    if (dates == null) { Array.empty } else { dates.asScala.map(_.getTime).toArray }
   }
 
   private trait ToValues {

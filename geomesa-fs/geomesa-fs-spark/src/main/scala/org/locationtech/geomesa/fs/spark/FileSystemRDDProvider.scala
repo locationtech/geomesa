@@ -103,7 +103,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
           }
         }
         if (defaults.nonEmpty) {
-          partitioned += ((defaultPartitions.mkString("', '"), fp.filter, defaults, false))
+          partitioned += ((defaultPartitions.mkString("', '"), fp.filter, defaults.toSeq, false))
         }
       }
 

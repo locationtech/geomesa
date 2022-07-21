@@ -31,7 +31,7 @@ import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.Try
 
 
@@ -173,7 +173,7 @@ object Version2ASF {
     asf
   }
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   val primitiveTypes =
     List(

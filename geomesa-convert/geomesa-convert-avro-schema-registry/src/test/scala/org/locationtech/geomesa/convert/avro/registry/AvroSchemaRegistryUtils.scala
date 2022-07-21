@@ -14,7 +14,6 @@ import org.apache.avro.Schema.Parser
 import org.apache.avro.generic.{GenericDatumWriter, GenericRecord, GenericRecordBuilder}
 import org.apache.avro.io.EncoderFactory
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 trait AvroSchemaRegistryUtils {

@@ -120,7 +120,7 @@ object SimpleFeatureSpecConfig {
     import org.locationtech.geomesa.utils.conf.ConfConversions.RichConfig
 
     val name = conf.getStringOpt(TypeNamePath)
-    val attributes = conf.getConfigListOpt("fields").getOrElse(conf.getConfigList(AttributesPath)).asScala.map(buildField)
+    val attributes = conf.getConfigListOpt("fields").getOrElse(conf.getConfigList(AttributesPath)).asScala.map(buildField).toSeq
     val opts = {
       val userDataConfig = conf.getConfigOpt(UserDataPath).getOrElse(ConfigFactory.empty)
       val base = userDataConfig.toStringMap()

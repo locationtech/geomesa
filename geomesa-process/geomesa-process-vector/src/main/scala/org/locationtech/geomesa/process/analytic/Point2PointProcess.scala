@@ -74,7 +74,7 @@ class Point2PointProcess extends GeoMesaProcess {
       SelfClosingIterator(data.features()).toList
         .groupBy(f => String.valueOf(f.getAttribute(groupingFieldIndex)))
         .filter { case (_, coll) => coll.lengthCompare(minPoints) > 0 }
-        .flatMap { case (_, coll) =>
+        .map { case (_, coll) =>
 
           val globalSorted = coll.sortBy(_.get[java.util.Date](sortFieldIndex))
 
@@ -105,11 +105,11 @@ class Point2PointProcess extends GeoMesaProcess {
           } else {
             results.map { case (_, sf) => sf }
           }
-        }
+        }.flatten
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
-    new ListFeatureCollection(sft, lineFeatures.toList)
+    new ListFeatureCollection(sft, lineFeatures.toList.asJava)
   }
 
   def getDayOfYear(sortFieldIndex: Int, f: SimpleFeature): Int =

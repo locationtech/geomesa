@@ -277,7 +277,7 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
       return super.or(filters.asInstanceOf[java.util.List[_]])
     }
 
-    val predicates = FilterHelper.flattenOr(filters.asScala)
+    val predicates = FilterHelper.flattenOr(filters.asScala.toSeq)
 
     val props = scala.collection.mutable.HashSet.empty[String]
     val literals = scala.collection.immutable.HashSet.newBuilder[AnyRef]

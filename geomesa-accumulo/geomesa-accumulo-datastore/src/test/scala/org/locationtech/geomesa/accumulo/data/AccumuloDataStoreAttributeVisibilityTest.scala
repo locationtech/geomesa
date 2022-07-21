@@ -27,7 +27,7 @@ import org.geotools.data.simple._
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   sequential
 

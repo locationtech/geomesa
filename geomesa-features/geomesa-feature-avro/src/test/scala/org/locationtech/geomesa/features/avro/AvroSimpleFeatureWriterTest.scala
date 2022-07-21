@@ -61,7 +61,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       val oldFeatures = features.map(serializeOld).map(convert)
       val newFeatures = features.map(serializeNew).map(convert)
 
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       newFeatures.zip(oldFeatures).foreach { case (n, o) =>
         n.getID mustEqual o.getID
         n.getAttributeCount mustEqual o.getAttributeCount

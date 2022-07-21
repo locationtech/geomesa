@@ -56,7 +56,7 @@ object JoinIndex extends ConfiguredIndex {
     AttributeIndex.supports(sft, attributes)
 
   override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] = {
-    sft.getAttributeDescriptors.asScala.flatMap { d =>
+    sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
       val index = d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]
       if (index != null && index.equalsIgnoreCase(IndexCoverage.JOIN.toString) && AttributeIndexKey.encodable(d)) {
         Seq(Seq(d.getLocalName) ++ Option(sft.getGeomField) ++ sft.getDtgField.filter(_ != d.getLocalName))

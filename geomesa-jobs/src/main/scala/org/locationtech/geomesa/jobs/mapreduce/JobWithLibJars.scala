@@ -28,7 +28,7 @@ trait JobWithLibJars {
   private def readLibJars(file: String): Seq[String] = {
     try {
       WithClose(getClass.getClassLoader.getResourceAsStream(file)) { is =>
-        IOUtils.readLines(is, StandardCharsets.UTF_8).asScala
+        IOUtils.readLines(is, StandardCharsets.UTF_8).asScala.toSeq
       }
     } catch {
       case NonFatal(e) => throw new IOException(s"Error reading ingest libjars '$file'", e)

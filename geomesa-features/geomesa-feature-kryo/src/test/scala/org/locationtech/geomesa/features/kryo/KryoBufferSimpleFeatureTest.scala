@@ -18,7 +18,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class KryoBufferSimpleFeatureTest extends Specification {
@@ -122,7 +122,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
 
       laz must not(beNull)
       laz.getType mustEqual sf.getType
-      forall(laz.getAttributes)((o: AnyRef) => o must beNull)
+      forall(laz.getAttributes.asScala)((o: AnyRef) => o must beNull)
       laz.getAttributes mustEqual sf.getAttributes
     }
 

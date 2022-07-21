@@ -18,7 +18,7 @@ package object tools {
   import org.locationtech.geomesa.utils.classpath.ClassPathUtils
   import org.slf4j.{Logger, LoggerFactory}
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   /**
    * Abstract superclass for all top-level GeoMesa JCommander commands
@@ -71,7 +71,7 @@ package object tools {
 
     @throws[ParameterException]
     def loadDataStore(): DS = {
-      Option(DataStoreFinder.getDataStore(connection).asInstanceOf[DS]).getOrElse {
+      Option(DataStoreFinder.getDataStore(connection.asJava).asInstanceOf[DS]).getOrElse {
         throw new ParameterException("Unable to create data store, please check your connection parameters")
       }
     }

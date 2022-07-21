@@ -176,7 +176,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         val eventTime = EventTime.lookupOpt(params)
         val ordered = eventTime.isDefined && EventTimeOrdering.lookup(params).booleanValue()
         if (advanced.isEmpty) {
-          simple.filter(_.isFinite()) match {
+          simple.filter(_.isFinite) match {
             case None => NeverExpireConfig
             case Some(e) if e.length == 0 => ImmediatelyExpireConfig
             case Some(e) => eventTime.map(EventTimeConfig(e, _, ordered)).getOrElse(IngestTimeConfig(e))
@@ -212,7 +212,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       val config = ConfigFactory.parseString(conf).resolve()
       val reporters =
         if (config.hasPath("reporters")) { config.getConfigList("reporters").asScala } else { Seq(config) }
-      GeoMesaMetrics(catalog, reporters)
+      GeoMesaMetrics(catalog, reporters.toSeq)
     }
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
@@ -330,13 +330,13 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
             pureconfig.loadConfigOrThrow[LayerViewConfig](c.toConfig)(LayerViewClassTag, LayerViewReader)
           }
         }
-        val configs = entries.toMap
+        val configs = entries.map(f => (f._1, f._2.toSeq))
         val typeNames = configs.toSeq.flatMap(_._2.map(_.typeName))
         if (typeNames != typeNames.distinct) {
           throw new IllegalArgumentException(
             s"Detected duplicate type name in layer view config: ${config.root().render(ConfigRenderOptions.concise)}")
         }
-        configs
+        configs.toMap
     }
   }
 
@@ -411,5 +411,5 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   }
 
   @deprecated("Use KafkaDataStoreParams")
-  object KafkaDataStoreFactoryParams extends KafkaDataStoreParams
+  object KafkaDataStoreFactoryParams extends KafkaDataStoreParamsWTF
 }

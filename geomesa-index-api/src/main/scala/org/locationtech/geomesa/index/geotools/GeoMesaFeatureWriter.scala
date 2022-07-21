@@ -28,6 +28,7 @@ import org.opengis.filter.Filter
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
+import scala.collection.parallel.CollectionConverters._ 
 
 trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWriter with Flushable with LazyLogging {
 

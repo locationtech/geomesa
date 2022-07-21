@@ -97,7 +97,7 @@ object FeatureExpiration {
   private def duration(string: String): Duration = {
     try {
       val duration = Duration(string)
-      if (!duration.isFinite()) {
+      if (!duration.isFinite) {
         throw new IllegalArgumentException("Duration is infinite")
       } else if (duration <= Duration.Zero) {
         throw new IllegalArgumentException("Duration is negative")

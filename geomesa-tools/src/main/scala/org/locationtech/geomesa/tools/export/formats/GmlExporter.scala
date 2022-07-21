@@ -206,7 +206,7 @@ object GmlExporter {
       }
     }
 
-    override protected def features(): SimpleFeatureIterator = iter
+    override def features(): SimpleFeatureIterator = iter
 
     override def getBounds: ReferencedEnvelope = org.locationtech.geomesa.utils.geotools.wholeWorldEnvelope
     override def getCount: Int = 0
