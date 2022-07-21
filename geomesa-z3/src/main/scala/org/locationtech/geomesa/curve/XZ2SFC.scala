@@ -248,7 +248,7 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
     // append the last range - there will always be one left that wasn't added
     result.append(current)
 
-    result
+    result.toSeq
   }
 
   /**

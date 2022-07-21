@@ -120,7 +120,7 @@ object LocalQueryRunner extends LazyLogging {
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   case class ArrowDictionaryHook(stats: GeoMesaStats, filter: Option[Filter])
 
@@ -133,7 +133,7 @@ object LocalQueryRunner extends LazyLogging {
   def visible(provider: Option[AuthorizationsProvider]): SimpleFeature => Boolean = {
     provider match {
       case None    => noAuthVisibilityCheck
-      case Some(p) => authVisibilityCheck(_, p.getAuthorizations.map(_.getBytes(StandardCharsets.UTF_8)))
+      case Some(p) => authVisibilityCheck(_, p.getAuthorizations.asScala.map(_.getBytes(StandardCharsets.UTF_8)).toSeq)
     }
   }
 

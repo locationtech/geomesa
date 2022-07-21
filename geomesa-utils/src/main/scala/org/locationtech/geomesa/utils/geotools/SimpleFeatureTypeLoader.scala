@@ -75,7 +75,7 @@ object SimpleFeatureTypeLoader {
       if (!config.hasPath(URLSftProvider.SftConfigURLs)) { Seq.empty[URL] } else {
         config.getAnyRef(URLSftProvider.SftConfigURLs) match {
           case s: String => s.split(',').map(s => new URL(s.trim)).toList
-          case s: java.util.List[String] => s.asScala.map(new URL(_))
+          case s: java.util.List[String] => s.asScala.map(new URL(_)).toSeq
         }
       }
     }

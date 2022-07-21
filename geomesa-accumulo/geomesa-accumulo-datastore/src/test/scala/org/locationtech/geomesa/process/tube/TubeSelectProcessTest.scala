@@ -29,7 +29,7 @@ import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class TubeSelectProcessTest extends TestWithMultipleSfts {

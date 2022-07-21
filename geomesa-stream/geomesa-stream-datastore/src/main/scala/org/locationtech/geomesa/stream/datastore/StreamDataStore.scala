@@ -42,7 +42,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 case class FeatureHolder(sf: SimpleFeature, geom: Geometry) {
   override def hashCode(): Int = sf.hashCode()
@@ -70,8 +70,8 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int, ns: Optio
     override val index: SpatialIndex[SimpleFeature] = new SynchronizedQuadtree[SimpleFeature]
 
     override def query(f: Filter): Iterator[SimpleFeature] = f match {
-      case Filter.INCLUDE    => features.asMap().valuesIterator.map(_.sf)
-      case id: FidFilterImpl => id.getIDs.flatMap(id => Option(features.getIfPresent(id.toString)).map(_.sf)).iterator
+      case Filter.INCLUDE    => features.asMap().asScala.valuesIterator.map(_.sf)
+      case id: FidFilterImpl => id.getIDs.asScala.flatMap(id => Option(features.getIfPresent(id.toString)).map(_.sf)).iterator
       case _                 => super.query(f)
     }
   }
@@ -102,7 +102,7 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int, ns: Optio
               val geom = sf.geometry
               qt.index.insert(geom, sf.getID, sf)
               features.put(sf.getID, FeatureHolder(sf, geom))
-              listeners.foreach { l =>
+              listeners.asScala.foreach { l =>
                 try {
                   l.onNext(sf)
                 } catch {
@@ -160,7 +160,7 @@ class StreamFeatureStore(entry: ContentEntry,
   override def getWriterInternal(query: Query, flags: Int) = throw new IllegalArgumentException("Not allowed")
 
   protected def reader(iter: Iterator[SimpleFeature]): SimpleFeatureReader =
-    new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter))
+    new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter.asJava))
 }
 
 object StreamDataStoreParams {

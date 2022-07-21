@@ -92,7 +92,7 @@ object AvroConverter {
         updated
 
       case Schema.Type.UNION =>
-        Schema.createUnion(schema.getTypes.asScala.map(addBytes): _*)
+        Schema.createUnion(schema.getTypes.asScala.map(s => addBytes(s)).toSeq: _*)
 
       case _ =>
         throw new NotImplementedError(

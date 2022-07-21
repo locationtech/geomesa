@@ -23,7 +23,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class BinConversionProcessTest extends Specification {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   val sft = SimpleFeatureTypes.createType("bin",
     "name:String,track:String,dtg:Date,dtg2:Date,*geom:Point:srid=4326,geom2:Point:srid=4326")

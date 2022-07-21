@@ -294,7 +294,7 @@ object RedisIndexAdapter extends LazyLogging {
       i = 0
       while (i < tables.length) {
         if (deletes(i).nonEmpty) {
-          try { WithClose(jedis.getResource)(_.zrem(tables(i), deletes(i): _*)) } catch {
+          try { WithClose(jedis.getResource)(_.zrem(tables(i), deletes(i).toSeq: _*)) } catch {
             case NonFatal(e) => errors.append(e)
           }
           deletes(i).clear()

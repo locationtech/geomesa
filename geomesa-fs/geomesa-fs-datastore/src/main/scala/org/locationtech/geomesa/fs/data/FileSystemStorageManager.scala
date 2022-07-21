@@ -53,7 +53,7 @@ class FileSystemStorageManager private (fc: FileContext, conf: Configuration, ro
     * @return
     */
   def storages(): Seq[FileSystemStorage] = {
-    loadAll().foreach(_ => Unit) // force loading of everything
+    loadAll().foreach(_ => ()) // force loading of everything
     cache.map { case (_, (_, storage)) => storage }.toSeq
   }
 

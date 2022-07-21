@@ -37,7 +37,7 @@ object ArrowFilterOptimizer extends LazyLogging {
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   private val ff: FilterFactory2 = FastFilterFactory.factory
 
@@ -58,8 +58,8 @@ object ArrowFilterOptimizer extends LazyLogging {
         case f: During            => rewriteDuring(f, sft)
         case f: PropertyIsBetween => rewriteBetween(f, sft)
         case f: PropertyIsEqualTo => rewritePropertyIsEqualTo(f, sft, dictionaries)
-        case a: And               => ff.and(a.getChildren.map(rewriteFilter(_, sft, dictionaries)))
-        case o: Or                => ff.or(o.getChildren.map(rewriteFilter(_, sft, dictionaries)))
+        case a: And               => ff.and(a.getChildren.asScala.map(rewriteFilter(_, sft, dictionaries)).asJava)
+        case o: Or                => ff.or(o.getChildren.asScala.map(rewriteFilter(_, sft, dictionaries)).asJava)
         case f: Not               => ff.not(rewriteFilter(f.getFilter, sft, dictionaries))
         case _                    => filter
       }

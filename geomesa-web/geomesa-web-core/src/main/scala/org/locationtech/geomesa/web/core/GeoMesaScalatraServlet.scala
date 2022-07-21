@@ -37,7 +37,7 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
   /**
     * Pulls data store relevant values out of the request params
     */
-  def datastoreParams: Map[String, String] = params.filterKeys(dsKeys.contains)
+  def datastoreParams: Map[String, String] = params.toMap.filterKeys(dsKeys.contains).toMap
 
   /**
     * Common error handler that accounts for debug setting

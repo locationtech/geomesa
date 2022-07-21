@@ -258,7 +258,7 @@ class XZ3SFC(val g: Short, val xBounds: (Double, Double), val yBounds: (Double, 
     // append the last range - there will always be one left that wasn't added
     result.append(current)
 
-    result
+    result.toSeq
   }
 
   /**

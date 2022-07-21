@@ -71,7 +71,7 @@ object TypeInference {
     val types = rawTypes.map { raw =>
 
       // merge the types for this column from each row
-      val typ = merge(raw, failureRate)
+      val typ = merge(raw.toSeq, failureRate)
 
       // determine the column name
       var base: String = null
@@ -99,9 +99,9 @@ object TypeInference {
     }
 
     // if there is no geometry field, see if we can derive one
-    deriveGeometry(types).foreach(types += _)
+    deriveGeometry(types.toSeq).foreach(types += _)
 
-    types
+    types.toIndexedSeq
   }
 
   /**

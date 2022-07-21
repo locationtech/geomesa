@@ -33,7 +33,7 @@ class ArrowDataStoreTest extends Specification {
 
   import ArrowDataStoreFactory.{CachingParam, UrlParam}
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 

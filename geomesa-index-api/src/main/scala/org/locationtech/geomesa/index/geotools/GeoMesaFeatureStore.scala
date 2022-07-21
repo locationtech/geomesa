@@ -23,6 +23,7 @@ import org.opengis.filter.identity.FeatureId
 
 import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.parallel.CollectionConverters._
 
 class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeatureType, runner: QueryRunner)
     extends GeoMesaFeatureSource(ds, sft, runner) with SimpleFeatureStore {

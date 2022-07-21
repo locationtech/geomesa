@@ -39,10 +39,10 @@ class AgeOffIterator extends Filter with AgeOffFilter {
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment): Unit = {
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     super.init(source, options, env)
-    super.init(options.toMap)
+    super.init(options.asScala.toMap)
   }
 
   override def accept(k: Key, v: Value): Boolean = accept(null, -1, -1, null, -1, -1, k.getTimestamp)

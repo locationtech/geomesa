@@ -327,7 +327,7 @@ class DelimitedTextConverterTest extends Specification {
             |2,world,Point(90.0 90.0)
           """.stripMargin
 
-        import scala.collection.JavaConversions._
+        import scala.collection.JavaConverters._
         val sz = format.parse(new InputStreamReader(new ByteArrayInputStream(trueData.getBytes(StandardCharsets.UTF_8)))).iterator().toList.size
 
         // prove that skipHeader and empty lines doesn't work (at least as I think) and that we are safe to

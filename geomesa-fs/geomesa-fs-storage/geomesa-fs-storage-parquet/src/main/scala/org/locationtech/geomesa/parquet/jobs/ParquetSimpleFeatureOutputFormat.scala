@@ -69,6 +69,6 @@ object ParquetSimpleFeatureOutputFormat {
       }
     }
 
-    result
+    result.toSeq
   }
 }

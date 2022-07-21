@@ -183,7 +183,7 @@ class GeoJsonServlet(val persistence: FilePersistence) extends GeoMesaDataStoreS
         } else {
           val query = params.get("q").getOrElse("")
           outputFeatures(geoJsonIndex.query(index, query))
-          Unit // return Unit to indicate we've processed the response
+          () // return () to indicate we've processed the response
         }
       })
     } catch {
@@ -206,7 +206,7 @@ class GeoJsonServlet(val persistence: FilePersistence) extends GeoMesaDataStoreS
           val features = geoJsonIndex.get(index, fids)
           if (features.isEmpty) { NotFound() } else {
             outputFeatures(features)
-            Unit // return Unit to indicate we've processed the response
+            () // return () to indicate we've processed the response
           }
         }
       })

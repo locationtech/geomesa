@@ -185,7 +185,7 @@ object SortingSimpleFeatureIterator extends LazyLogging {
       if (files.isEmpty) {
         CloseableIterator(list.iterator.asScala, tail.close())
       } else {
-        new MergeSortingIterator(files, serializer, list.iterator.asScala, tail, ordering)
+        new MergeSortingIterator(files.toIndexedSeq, serializer, list.iterator.asScala, tail, ordering)
       }
     }
   }

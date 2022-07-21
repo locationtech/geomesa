@@ -15,7 +15,7 @@ import org.geotools.util.factory.Hints
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class ScalaSimpleFeatureFactory extends AbstractFeatureFactoryImpl {
 
@@ -39,7 +39,7 @@ object ScalaSimpleFeatureFactory {
 
   def buildFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String): SimpleFeature = {
     val builder = featureBuilder(sft)
-    builder.addAll(attrs)
+    builder.addAll(attrs.asJava)
     builder.buildFeature(id)
   }
 

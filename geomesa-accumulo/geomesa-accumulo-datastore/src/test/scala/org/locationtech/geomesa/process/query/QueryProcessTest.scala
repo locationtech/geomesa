@@ -108,7 +108,7 @@ class QueryProcessTest extends Specification with TestWithFeatureType {
     }
 
     "allow for projections in the returned result set" in {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
 
       val features = fs.getFeatures()
 

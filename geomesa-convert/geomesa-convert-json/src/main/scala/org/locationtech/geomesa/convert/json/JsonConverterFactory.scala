@@ -128,9 +128,9 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
         inferredTypes += InferredType(geomField.name, geomType, IdentityTransform)
 
         // validate the existing schema, if any
-        sft.foreach(AbstractConverterFactory.validateInferredType(_, inferredTypes.map(_.typed)))
+        sft.foreach(AbstractConverterFactory.validateInferredType(_, inferredTypes.map(_.typed).toSeq))
 
-        val schema = sft.getOrElse(TypeInference.schema("inferred-json", inferredTypes))
+        val schema = sft.getOrElse(TypeInference.schema("inferred-json", inferredTypes.toSeq))
 
         val jsonConfig = JsonConfig(typeToProcess, featurePath, idField, Map.empty, Map.empty)
         val fieldConfig = fields :+ geomField

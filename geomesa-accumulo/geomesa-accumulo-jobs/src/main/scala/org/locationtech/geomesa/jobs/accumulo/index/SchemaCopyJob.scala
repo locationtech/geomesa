@@ -25,7 +25,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
  * Class to copy a schema and all data from one data store to another.
@@ -141,7 +141,7 @@ class SchemaCopyJob extends Tool {
     job.setMapOutputValueClass(classOf[ScalaSimpleFeature])
     job.setNumReduceTasks(0)
 
-    GeoMesaAccumuloInputFormat.configure(job, dsInParams, plan)
+    GeoMesaAccumuloInputFormat.configure(job, dsInParams.asJava, plan)
     GeoMesaOutputFormat.setOutput(job.getConfiguration, dsOutParams, sftOut)
     SchemaCopyJob.setCopySchema(job.getConfiguration, sftOut)
 

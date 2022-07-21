@@ -26,7 +26,7 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Function1;
-import scala.collection.JavaConversions;
+import scala.collection.JavaConverters;
 import scala.runtime.AbstractFunction1;
 
 import java.util.HashSet;
@@ -154,7 +154,7 @@ public abstract class AbstractGeoIndex<A extends Geometry, O extends SimpleFeatu
         public Iterator<O> iterator() {
             scala.collection.Iterator<O> iter =
                   getSimpleFeatureIteratorInternal((Intersects) query, queryOptions);
-            return JavaConversions.asJavaIterator(iter);
+            return JavaConverters.asJavaIterator(iter);
         }
 
         @Override

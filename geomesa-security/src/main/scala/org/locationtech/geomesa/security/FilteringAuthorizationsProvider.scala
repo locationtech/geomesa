@@ -10,7 +10,7 @@ package org.locationtech.geomesa.security
 
 import java.util
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
  * AuthorizationsProvider that wraps another provider and ensures that the auths returned do not exceed a pre-set list
@@ -23,7 +23,7 @@ class FilteringAuthorizationsProvider (val wrappedProvider: AuthorizationsProvid
   override def getAuthorizations: util.List[String] =
     filter match {
       case None    => wrappedProvider.getAuthorizations
-      case Some(f) => wrappedProvider.getAuthorizations.intersect(f)
+      case Some(f) => wrappedProvider.getAuthorizations.asScala.intersect(f).asJava
     }
 
   override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {

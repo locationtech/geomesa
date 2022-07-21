@@ -258,9 +258,9 @@ object StatSerializer {
         stats.append(read(input, sft, immutable))
       }
       if (immutable) {
-        new SeqStat(sft, stats) with ImmutableStat
+        new SeqStat(sft, stats.toSeq) with ImmutableStat
       } else {
-        new SeqStat(sft, stats)
+        new SeqStat(sft, stats.toSeq)
       }
     }
 
@@ -388,11 +388,11 @@ object StatSerializer {
         val counters = (0 until size).map(_ => (read(), input.readLong(true)))
         StreamSummary[Any](TopK.StreamCapacity, counters)
       } else {
-        import scala.collection.JavaConversions._
+        import scala.collection.JavaConverters._
         val summaryBytes = input.readBytes(input.readInt(true))
         val clearspring = new com.clearspring.analytics.stream.StreamSummary[Any](summaryBytes)
         val geomesa = StreamSummary[Any](TopK.StreamCapacity)
-        clearspring.topK(clearspring.size()).foreach(c => geomesa.offer(c.getItem, c.getCount))
+        clearspring.topK(clearspring.size()).asScala.foreach(c => geomesa.offer(c.getItem, c.getCount))
         geomesa
       }
 

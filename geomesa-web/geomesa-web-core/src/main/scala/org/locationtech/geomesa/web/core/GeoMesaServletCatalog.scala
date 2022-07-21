@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStore
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 object GeoMesaServletCatalog extends LazyLogging {
 
@@ -31,5 +31,5 @@ object GeoMesaServletCatalog extends LazyLogging {
   def removeGeoMesaLayerInfo(workspace: String, layer: String): GeoMesaLayerInfo =
     layers.remove((workspace, layer))
 
-  def getKeys: Iterator[(String, String)] = layers.keysIterator
+  def getKeys: Iterator[(String, String)] = layers.asScala.keysIterator
 }

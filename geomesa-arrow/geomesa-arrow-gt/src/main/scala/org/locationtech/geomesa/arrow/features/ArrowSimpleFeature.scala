@@ -34,7 +34,7 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
                          idReader: ArrowAttributeReader,
                          attributeReaders: Array[ArrowAttributeReader],
                          private [arrow] var index: Int) extends SimpleFeature {
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   private lazy val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
 
@@ -58,7 +58,7 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
   override def getID: String = idReader.apply(index).asInstanceOf[String]
   override def getIdentifier: FeatureId = new ImmutableFeatureId(getID)
 
-  override def getUserData: jMap[AnyRef, AnyRef] = Map.empty[AnyRef, AnyRef]
+  override def getUserData: jMap[AnyRef, AnyRef] = Map.empty[AnyRef, AnyRef].asJava
 
   override def getType: SimpleFeatureType = sft
   override def getFeatureType: SimpleFeatureType = sft
@@ -110,7 +110,7 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
   override def isNillable: Boolean = true
   override def validate(): Unit = throw new NotImplementedError
 
-  override def toString: String = s"ArrowSimpleFeature:$getID:${getAttributes.mkString("|")}"
+  override def toString: String = s"ArrowSimpleFeature:$getID:${getAttributes.asScala.mkString("|")}"
 
   override def hashCode: Int = Objects.hash(getID, getName, getAttributes)
 

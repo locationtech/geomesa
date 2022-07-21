@@ -47,8 +47,8 @@ object ProjectVersionIterator {
   def configure(): IteratorSetting = new IteratorSetting(30, classOf[ProjectVersionIterator])
 
   def scanProjectVersion(scanner: Scanner): Set[String] = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
     scanner.addScanIterator(configure())
-    scanner.iterator.map(e => new String(e.getValue.get, StandardCharsets.UTF_8)).toSet
+    scanner.iterator.asScala.map(e => new String(e.getValue.get, StandardCharsets.UTF_8)).toSet
   }
 }

@@ -49,7 +49,7 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
         compact()
       }
       if (running.get) {
-        synchronized(scheduledCompaction = executor.schedule(this, compactInterval, TimeUnit.MILLISECONDS))
+        synchronized{scheduledCompaction = executor.schedule(this, compactInterval, TimeUnit.MILLISECONDS)}
       }
     }
   }
@@ -61,7 +61,7 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
   override def close(): Unit = {
     super.close()
     running.set(false)
-    synchronized(scheduledCompaction.cancel(false))
+    synchronized{scheduledCompaction.cancel(false)}
   }
 
   /**

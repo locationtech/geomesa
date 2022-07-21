@@ -27,7 +27,7 @@ import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.temporal.Period
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
 object FilterHelper {
@@ -112,17 +112,17 @@ object FilterHelper {
   private def extractUnclippedGeometries(filter: Filter, attribute: String, intersect: Boolean): FilterValues[Geometry] = {
     filter match {
       case o: Or  =>
-        val all = o.getChildren.map(extractUnclippedGeometries(_, attribute, intersect))
+        val all = o.getChildren.asScala.map(extractUnclippedGeometries(_, attribute, intersect))
         val join = FilterValues.or[Geometry]((l, r) => l ++ r) _
         all.reduceLeftOption[FilterValues[Geometry]](join).getOrElse(FilterValues.empty)
 
       case a: And =>
-        val all = a.getChildren.map(extractUnclippedGeometries(_, attribute, intersect)).filter(_.nonEmpty)
+        val all = a.getChildren.asScala.map(extractUnclippedGeometries(_, attribute, intersect)).filter(_.nonEmpty)
         if (intersect) {
           val intersect = FilterValues.and[Geometry]((l, r) => Option(l.intersection(r)).filterNot(_.isEmpty)) _
           all.reduceLeftOption[FilterValues[Geometry]](intersect).getOrElse(FilterValues.empty)
         } else {
-          FilterValues(all.flatMap(_.values))
+          FilterValues(all.toSeq.flatMap(_.values))
         }
 
       // Note: although not technically required, all known spatial predicates are also binary spatial operators
@@ -200,7 +200,7 @@ object FilterHelper {
     filter match {
       case o: Or =>
         val union = FilterValues.or[Bounds[T]](Bounds.union[T]) _
-        o.getChildren.map(f =>
+        o.getChildren.asScala.map(f =>
           extractAttributeBounds(f, attribute, binding)
         ).reduceLeft[FilterValues[Bounds[T]]]((acc, child) => {
           if (acc.isEmpty || child.isEmpty) {
@@ -211,7 +211,7 @@ object FilterHelper {
         })
 
       case a: And =>
-        val all = a.getChildren.flatMap { f =>
+        val all = a.getChildren.asScala.flatMap { f =>
           val child = extractAttributeBounds(f, attribute, binding)
           if (child.isEmpty) { Seq.empty } else { Seq(child) }
         }
@@ -522,11 +522,11 @@ object FilterHelper {
     */
   def simplify(filter: Filter): Filter = {
     def deduplicateOrs(f: Filter): Filter = f match {
-      case and: And => ff.and(and.getChildren.map(deduplicateOrs))
+      case and: And => ff.and(and.getChildren.asScala.map(deduplicateOrs).asJava)
 
       case or: Or =>
         // OR(AND(1,2,3), AND(1,2,4)) -> Seq(Seq(1,2,3), Seq(1,2,4))
-        val decomposed = or.getChildren.map(decomposeAnd)
+        val decomposed = or.getChildren.asScala.map(decomposeAnd)
         val clauses = decomposed.head // Seq(1,2,3)
         val duplicates = clauses.filter(c => decomposed.tail.forall(_.contains(c))) // Seq(1,2)
         if (duplicates.isEmpty) { or } else {
@@ -535,7 +535,7 @@ object FilterHelper {
             // the duplicated filters are an entire clause, so we can ignore the rest of the clauses
             andFilters(duplicates)
           } else {
-            andFilters(orOption(simplified).toSeq ++ duplicates)
+            andFilters(orOption(simplified.toSeq).toSeq ++ duplicates)
           }
         }
 
@@ -555,8 +555,8 @@ object FilterHelper {
     */
   def flatten(filter: Filter): Filter = {
     filter match {
-      case and: And  => ff.and(flattenAnd(and.getChildren))
-      case or: Or    => ff.or(flattenOr(or.getChildren))
+      case and: And  => ff.and(flattenAnd(and.getChildren.asScala.toSeq).asJava)
+      case or: Or    => ff.or(flattenOr(or.getChildren.asScala.toSeq).asJava)
       case f: Filter => f
     }
   }
@@ -566,7 +566,7 @@ object FilterHelper {
     val result = ListBuffer.empty[Filter]
     do {
       remaining.remove(0) match {
-        case f: And => remaining.appendAll(f.getChildren)
+        case f: And => remaining.appendAll(f.getChildren.asScala)
         case f      => result.append(flatten(f))
       }
     } while (remaining.nonEmpty)
@@ -578,7 +578,7 @@ object FilterHelper {
     val result = ListBuffer.empty[Filter]
     do {
       remaining.remove(0) match {
-        case f: Or => remaining.appendAll(f.getChildren)
+        case f: Or => remaining.appendAll(f.getChildren.asScala)
         case f     => result.append(flatten(f))
       }
     } while (remaining.nonEmpty)

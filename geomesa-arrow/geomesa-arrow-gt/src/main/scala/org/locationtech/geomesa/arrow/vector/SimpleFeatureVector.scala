@@ -270,9 +270,9 @@ object SimpleFeatureVector {
                                 (implicit ct: ClassTag[T]): Option[FieldVector] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
-    sft.getAttributeDescriptors.flatMap {
+    sft.getAttributeDescriptors.asScala.flatMap {
       case d if d.isList && ct.runtimeClass.isAssignableFrom(d.getListType()) =>
         Option(vector.getChild(d.getLocalName).asInstanceOf[ListVector]).map(_.getDataVector)
       case d if d.isMap && ct.runtimeClass.isAssignableFrom(d.getMapTypes()._1) =>

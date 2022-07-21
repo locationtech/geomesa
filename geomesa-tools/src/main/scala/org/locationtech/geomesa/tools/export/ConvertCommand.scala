@@ -53,10 +53,10 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
     }
 
     val inputs = params.files.asScala
-    val format = IngestCommand.getDataFormat(params, inputs)
+    val format = IngestCommand.getDataFormat(params, inputs.toSeq)
 
     // use .get to re-throw the exception if we fail
-    IngestCommand.getSftAndConverter(params, inputs, format, None).get.flatMap { case (sft, config) =>
+    IngestCommand.getSftAndConverter(params, inputs.toSeq, format, None).get.flatMap { case (sft: SimpleFeatureType, config: com.typesafe.config.Config) =>
       val files = if (inputs.isEmpty) { StdInHandle.available().iterator } else {
         inputs.iterator.flatMap(PathUtils.interpretPath)
       }

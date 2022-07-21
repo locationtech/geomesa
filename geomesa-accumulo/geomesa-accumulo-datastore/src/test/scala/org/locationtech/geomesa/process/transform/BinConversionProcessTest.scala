@@ -23,7 +23,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class BinConversionProcessTest extends TestWithFeatureType {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   sequential
 

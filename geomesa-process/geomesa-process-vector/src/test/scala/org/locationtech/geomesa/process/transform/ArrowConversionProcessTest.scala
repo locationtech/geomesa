@@ -28,7 +28,7 @@ import scala.util.Random
 class ArrowConversionProcessTest extends Specification {
   sequential
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 

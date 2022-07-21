@@ -15,7 +15,7 @@ import org.locationtech.geomesa.spark.{GeoMesaSpark, Schema, SpatialRDD, Spatial
 import org.locationtech.geomesa.spark.api.java.JavaSpatialRDD
 import org.opengis.feature.simple.SimpleFeature
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 object PythonGeoMesaSpark {
   def apply(params: java.util.Map[String, _ <: java.io.Serializable]) =
@@ -31,7 +31,7 @@ class PythonSpatialRDDProvider(provider: SpatialRDDProvider) {
           jsc: JavaSparkContext,
           params: java.util.Map[String, String],
           query: Query): PythonSpatialRDD =
-    provider.rdd(conf, jsc.sc, params.toMap, query)
+    provider.rdd(conf, jsc.sc, params.asScala.toMap, query)
 }
 
 object PythonSpatialRDD {

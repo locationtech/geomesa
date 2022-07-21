@@ -22,7 +22,7 @@ import org.specs2.runner.JUnitRunner
 class SparkSQLGeometricDistanceFunctionsTest extends Specification with LazyLogging {
 
   "sql geometric distance functions" should {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     sequential
     val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")

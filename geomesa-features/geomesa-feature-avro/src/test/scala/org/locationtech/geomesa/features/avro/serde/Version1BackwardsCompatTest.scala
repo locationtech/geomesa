@@ -167,7 +167,7 @@ class Version1BackwardsCompatTest extends Specification {
         sf.getAttributeCount mustEqual 5
         sf.getAttributes.size mustEqual 5
 
-        import scala.collection.JavaConversions._
+        import scala.collection.JavaConverters._
         sf.getAttributes.foreach { a =>
           a must not beNull
         }

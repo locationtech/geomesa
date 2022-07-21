@@ -349,7 +349,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
                (filter: String,
                 transforms: Array[String],
                 results: Seq[SimpleFeature]): MatchResult[Any] = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms)
     val features = {

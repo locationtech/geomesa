@@ -20,7 +20,7 @@ import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 @DescribeProcess(
   title = "Date Offset Process",
@@ -51,6 +51,6 @@ class DateOffsetProcess extends GeoMesaProcess {
       sf
     }
 
-    new ListFeatureCollection(obsFeatures.getSchema, iter.toList)
+    new ListFeatureCollection(obsFeatures.getSchema, iter.toList.asJava)
   }
 }

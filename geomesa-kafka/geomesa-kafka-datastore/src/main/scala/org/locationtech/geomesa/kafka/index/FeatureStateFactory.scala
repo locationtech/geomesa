@@ -66,7 +66,7 @@ object FeatureStateFactory extends LazyLogging {
 
       case EventTimeConfig(ex, time, ordering) =>
         val expression = FastFilterFactory.toExpression(sft, time)
-        if (!ex.isFinite() && ordering) {
+        if (!ex.isFinite && ordering) {
           new EventTimeFactory(index, geom, expression)
         } else if (ordering) {
           new EventTimeOrderedExpiryFactory(index, geom, expression, expiration, es, ticker, ex.toMillis)

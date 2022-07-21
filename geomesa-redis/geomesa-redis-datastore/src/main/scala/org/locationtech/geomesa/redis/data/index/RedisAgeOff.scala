@@ -46,7 +46,7 @@ class RedisAgeOff(ds: RedisDataStore) extends Closeable {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   private val executor = RedisSystemProperties.AgeOffInterval.toDuration.collect {
-    case i if i.isFinite() => new AgeOffExecutor(ds, i)
+    case i if i.isFinite => new AgeOffExecutor(ds, i)
   }
 
   /**
@@ -153,7 +153,7 @@ object RedisAgeOff extends StrictLogging {
         try {
           WithClose(connection.getResource) { jedis =>
             if (deletes.nonEmpty) {
-              jedis.zrem(table, deletes: _*)
+              jedis.zrem(table, deletes.toSeq: _*)
             }
             if (!writes.isEmpty) {
               jedis.zadd(table, writes)

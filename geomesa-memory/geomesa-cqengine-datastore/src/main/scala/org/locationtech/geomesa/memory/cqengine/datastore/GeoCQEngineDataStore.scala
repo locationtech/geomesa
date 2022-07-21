@@ -19,7 +19,7 @@ import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class GeoCQEngineDataStore(useGeoIndex: Boolean) extends ContentDataStore with LazyLogging {
 
@@ -36,7 +36,7 @@ class GeoCQEngineDataStore(useGeoIndex: Boolean) extends ContentDataStore with L
     }
   }
 
-  override def createTypeNames(): util.List[Name] = { namesToEngine.keys().toList.map { new NameImpl(_) } }
+  override def createTypeNames(): util.List[Name] = { namesToEngine.keys().asScala.toList.map { new NameImpl(_).asInstanceOf[Name] }.asJava }
 
   override def createSchema(featureType: SimpleFeatureType): Unit = {
     val geo = if (!useGeoIndex) { Seq.empty } else {

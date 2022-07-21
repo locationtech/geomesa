@@ -23,7 +23,7 @@ object GeoMesaProcessFactory {
   val Name = Text.text("GeoMesa Process Factory")
 
   def processes: Array[Class[_]] = {
-    import scala.collection.JavaConversions._
-    ServiceLoader.load(classOf[GeoMesaProcess]).iterator().map(_.getClass).toArray
+    import scala.collection.JavaConverters._
+    ServiceLoader.load(classOf[GeoMesaProcess]).iterator().asScala.map(_.getClass).toArray
   }
 }

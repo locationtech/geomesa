@@ -155,7 +155,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
     subset.foreach(sf => {
       Assert.assertEquals(5, sf.getAttributeCount)
       Assert.assertEquals(5, sf.getAttributes.size())
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       sf.getAttributes.foreach(attr => {
         Assert.assertTrue(classOf[String].isAssignableFrom(attr.getClass))
         Assert.assertNotNull(attr.asInstanceOf[String])

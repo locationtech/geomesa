@@ -136,7 +136,7 @@ object MetadataJson extends MethodProfiling {
         partitionConfig.root().entrySet().asScala.foreach { e =>
           val name = e.getKey
           val files = partitionConfig.getStringList(name).asScala.map(StorageFile(_, 0L))
-          metadata.addPartition(PartitionMetadata(name, files, None, 0L))
+          metadata.addPartition(PartitionMetadata(name, files.toSeq, None, 0L))
         }
       }
 

@@ -99,7 +99,7 @@ object ArrowAttributeReader {
       val name = descriptor.getLocalName
       val dictionary = dictionaries.get(name).orElse(dictionaries.get(descriptor.getLocalName))
       apply(descriptor, vector.getChild(name), dictionary, encoding)
-    }
+    }.toSeq
   }
 
   def apply(descriptor: AttributeDescriptor,

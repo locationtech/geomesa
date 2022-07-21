@@ -63,8 +63,8 @@ class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore wi
   }
 
   override def createTypeNames(): java.util.List[Name] = {
-    import scala.collection.JavaConversions._
-    Option(getSchema).map(s => new NameImpl(namespaceURI, s.getTypeName)).toList
+    import scala.collection.JavaConverters._
+    Option(getSchema).map(s => (new NameImpl(namespaceURI, s.getTypeName)).asInstanceOf[Name]).toList.asJava
   }
 
   override def createSchema(sft: SimpleFeatureType): Unit = {

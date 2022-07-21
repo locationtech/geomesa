@@ -27,7 +27,7 @@ class Convert2ViewerFunctionTest extends Specification {
 
   "Convert2ViewerFunction" should {
     "convert inputs" in {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       val sft = SimpleFeatureTypes.createType("foo", "foo:String,dtg:Date,*geom:Point:srid=4326")
       val sf = ScalaSimpleFeature.create(sft, "", "foo", "2017-01-01T00:00:00.000Z", "POINT (45 50)")
       val fn = new Convert2ViewerFunction()

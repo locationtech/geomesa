@@ -11,13 +11,13 @@ package org.locationtech.geomesa.filter
 import org.geotools.filter.visitor.DefaultFilterVisitor
 import org.opengis.filter._
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class OrSplittingFilter extends DefaultFilterVisitor {
 
   // This function really returns a Seq[Filter].
   override def visit(filter: Or, data: scala.Any): AnyRef = {
-    filter.getChildren.flatMap { subfilter =>
+    filter.getChildren.asScala.flatMap { subfilter =>
       this.visit(subfilter, data)
     }
   }
