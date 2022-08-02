@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.spark
 
-import java.util.{Collections, Locale}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
@@ -30,6 +28,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.{Collections, Locale}
 import scala.collection.Iterator
 import scala.util.control.NonFatal
 

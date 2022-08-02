@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.kudu.data
 
-import java.util.Collections
-
 import org.apache.kudu.ColumnSchema.Encoding
 import org.apache.kudu.client.KuduPredicate.ComparisonOp
 import org.apache.kudu.client.{CreateTableOptions, KuduClient, KuduPredicate}
@@ -18,6 +16,8 @@ import org.locationtech.geomesa.index.metadata._
 import org.locationtech.geomesa.kudu.utils.ColumnConfiguration
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
+
+import java.util.Collections
 
 class KuduBackedMetadata[T](val client: KuduClient, val catalog: String, val serializer: MetadataSerializer[T])
     extends TableBasedMetadata[T] {

@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.utils.geotools
 
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.jts.geom.Coordinate
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Coordinate
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

@@ -8,16 +8,15 @@
 
 package org.locationtech.geomesa.arrow.data
 
-import java.awt.RenderingHints.Key
-import java.io.Serializable
-import java.net.URL
-
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, FileDataStore, FileDataStoreFactorySpi}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 
+import java.awt.RenderingHints.Key
+import java.io.Serializable
+import java.net.URL
 import scala.util.Try
 
 class ArrowDataStoreFactory extends FileDataStoreFactorySpi {

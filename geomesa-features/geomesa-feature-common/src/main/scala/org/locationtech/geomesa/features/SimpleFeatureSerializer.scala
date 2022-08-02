@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.features
 
-import java.io.{InputStream, OutputStream}
-
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.opengis.feature.simple.SimpleFeature
+
+import java.io.{InputStream, OutputStream}
 
 trait HasEncodingOptions {
   def options: Set[SerializationOption]

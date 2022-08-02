@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.features.avro.serde
 
-import java.io.OutputStream
-import java.nio._
-import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
-import java.util.{Date, UUID, Collection => JCollection, List => JList}
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
 import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
@@ -30,7 +25,10 @@ import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
 
-import scala.collection.JavaConverters._
+import java.io.OutputStream
+import java.nio._
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
+import java.util.{Date, UUID, Collection => JCollection, List => JList}
 import scala.util.Try
 
 class Version1ASF(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {

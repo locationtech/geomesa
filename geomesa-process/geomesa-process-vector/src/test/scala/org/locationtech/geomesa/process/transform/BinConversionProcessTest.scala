@@ -8,22 +8,20 @@
 
 package org.locationtech.geomesa.process.transform
 
-import java.util.Date
-
-import org.locationtech.jts.geom.Point
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Date
+
 @RunWith(classOf[JUnitRunner])
 class BinConversionProcessTest extends Specification {
-
-  import scala.collection.JavaConverters._
 
   val sft = SimpleFeatureTypes.createType("bin",
     "name:String,track:String,dtg:Date,dtg2:Date,*geom:Point:srid=4326,geom2:Point:srid=4326")

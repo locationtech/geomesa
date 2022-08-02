@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.spark
 
-import java.util.concurrent.ConcurrentHashMap
-
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
@@ -23,6 +21,7 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.concurrent.ConcurrentHashMap
 import scala.collection.JavaConverters._
 import scala.util.hashing.MurmurHash3
 

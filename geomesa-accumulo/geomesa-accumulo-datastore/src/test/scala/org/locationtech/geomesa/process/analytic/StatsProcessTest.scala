@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.analytic
 
-import java.util.Collections
-
 import org.geotools.data.Query
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
@@ -22,6 +20,8 @@ import org.locationtech.geomesa.utils.stats._
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class StatsProcessTest extends Specification with TestWithFeatureType {

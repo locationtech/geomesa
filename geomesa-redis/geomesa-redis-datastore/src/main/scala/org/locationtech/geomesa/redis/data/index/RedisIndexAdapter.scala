@@ -9,8 +9,6 @@
 package org.locationtech.geomesa.redis.data
 package index
 
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
@@ -28,6 +26,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import redis.clients.jedis.JedisPool
 
+import java.nio.charset.StandardCharsets
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 

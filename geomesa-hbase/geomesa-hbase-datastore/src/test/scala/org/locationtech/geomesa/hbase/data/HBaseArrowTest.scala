@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.filter.FilterList
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -27,7 +25,7 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 
 @RunWith(classOf[JUnitRunner])

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.iterators
 
-import java.util.concurrent.TimeUnit
-
 import com.github.benmanes.caffeine.cache.{Cache, Caffeine}
 import com.typesafe.scalalogging.StrictLogging
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
@@ -23,6 +21,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import java.util.concurrent.TimeUnit
 
 /**
   * Cache for expensive objects used in iterators

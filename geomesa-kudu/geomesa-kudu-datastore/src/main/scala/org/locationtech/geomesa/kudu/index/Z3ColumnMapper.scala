@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.kudu.index
 
-import java.nio.charset.StandardCharsets
-import java.util.Collections
-
 import org.apache.kudu.client.{AlterTableOptions, CreateTableOptions, KuduTable, PartialRow}
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.index.api._
@@ -19,6 +16,9 @@ import org.locationtech.geomesa.index.index.z3.Z3IndexKey
 import org.locationtech.geomesa.kudu.schema.KuduIndexColumnAdapter.{FeatureIdAdapter, PeriodColumnAdapter, ZColumnAdapter}
 import org.locationtech.geomesa.kudu.{KuduValue, Partitioning}
 import org.locationtech.geomesa.utils.index.ByteArrays
+
+import java.nio.charset.StandardCharsets
+import java.util.Collections
 
 object Z3ColumnMapper {
   private val columns = Seq(PeriodColumnAdapter, ZColumnAdapter, FeatureIdAdapter)

@@ -8,20 +8,17 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.util
-
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, Encoder, EncoderFactory}
-import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
-import org.locationtech.geomesa.features.avro.serialization.AvroUserDataSerialization
-import org.locationtech.geomesa.features.serialization.HintKeySerialization
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.util
 
 @RunWith(classOf[JUnitRunner])
 class AvroSimpleFeatureWriterTest extends Specification with Mockito with AbstractAvroSimpleFeatureTest {
@@ -60,8 +57,6 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
 
       val oldFeatures = features.map(serializeOld).map(convert)
       val newFeatures = features.map(serializeNew).map(convert)
-
-      import scala.collection.JavaConverters._
       newFeatures.zip(oldFeatures).foreach { case (n, o) =>
         n.getID mustEqual o.getID
         n.getAttributeCount mustEqual o.getAttributeCount

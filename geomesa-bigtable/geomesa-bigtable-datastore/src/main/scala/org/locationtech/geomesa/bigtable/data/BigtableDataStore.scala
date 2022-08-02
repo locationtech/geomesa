@@ -8,12 +8,6 @@
 
 package org.locationtech.geomesa.bigtable.data
 
-import org.apache.hadoop.hbase.client._
-import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
-import org.locationtech.geomesa.hbase.data._
-import org.locationtech.geomesa.index.utils.LocalLocking
-
 class BigtableDataStore(connection: ConnectionWrapper, config: HBaseDataStoreConfig)
     extends HBaseDataStore(connection, config) with LocalLocking {
   override val adapter: BigtableIndexAdapter = new BigtableIndexAdapter(this)

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import java.io.InputStream
-
 import com.typesafe.config.Config
 import org.apache.avro.Schema
 import org.apache.avro.file.DataFileStream
@@ -28,6 +26,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{ConfigReaderFailures, FailureReason}
 
+import java.io.InputStream
 import scala.util.control.NonFatal
 
 class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroConfig, BasicField, BasicOptions] {

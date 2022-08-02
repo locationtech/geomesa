@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.osm
 
-import java.util.Locale
-
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.osm.OsmNodesConverter.OsmNodesConfig
 import org.locationtech.geomesa.convert.osm.OsmNodesConverterFactory.OsmNodesConfigConvert
@@ -20,6 +18,7 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
+import java.util.Locale
 import scala.util.control.NonFatal
 
 class OsmNodesConverterFactory

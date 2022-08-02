@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import java.io.{Closeable, FileNotFoundException}
-import java.util
-import java.util.concurrent.{ConcurrentHashMap, Phaser}
-
 import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
@@ -31,6 +27,9 @@ import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Envelope
 
+import java.io.{Closeable, FileNotFoundException}
+import java.util
+import java.util.concurrent.{ConcurrentHashMap, Phaser}
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 

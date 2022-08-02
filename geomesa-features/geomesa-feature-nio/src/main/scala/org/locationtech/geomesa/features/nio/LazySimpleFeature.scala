@@ -8,22 +8,21 @@
 
 package org.locationtech.geomesa.features.nio
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import java.util
-import java.util.Date
-
-import org.locationtech.jts.geom.Geometry
-import org.locationtech.jts.io.{WKBReader, WKBWriter}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.io.{WKBReader, WKBWriter}
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
 
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+import java.util
+import java.util.Date
 import scala.collection.JavaConverters._
 
 sealed trait AttributeAccessor[T <: AnyRef] {

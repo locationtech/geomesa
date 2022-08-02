@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.transform
 
-import java.io.ByteArrayInputStream
-
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
@@ -22,10 +20,10 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
 
+import java.io.ByteArrayInputStream
+
 @RunWith(classOf[JUnitRunner])
 class ArrowConversionProcessTest extends TestWithFeatureType {
-
-  import scala.collection.JavaConverters._
 
   sequential
 

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import java.util.AbstractMap.SimpleEntry
-
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
@@ -27,7 +25,7 @@ import org.opengis.filter.sort.SortBy
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.util.AbstractMap.SimpleEntry
 
 @RunWith(classOf[JUnitRunner])
 class QueryPlannerTest extends Specification with TestWithFeatureType {

@@ -8,11 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.text.DecimalFormat
-
 import com.google.common.collect.HashBasedTable
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Envelope
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.filter.text.ecql.ECQL
@@ -24,11 +21,12 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.locationtech.geomesa.utils.geotools.GridSnap
+import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.text.DecimalFormat
 
 @RunWith(classOf[JUnitRunner])
 class LiveDensityIteratorTest extends Specification with LazyLogging {

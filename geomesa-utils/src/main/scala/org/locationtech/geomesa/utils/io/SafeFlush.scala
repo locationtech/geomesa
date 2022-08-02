@@ -8,10 +8,9 @@
 
 package org.locationtech.geomesa.utils.io
 
-import java.io.Flushable
-
 import org.locationtech.geomesa.utils.io.IsFlushableImplicits.{ArrayIsFlushable, IterableIsFlushable, OptionIsFlushable}
 
+import java.io.Flushable
 import scala.util.{Failure, Success, Try}
 
 /**

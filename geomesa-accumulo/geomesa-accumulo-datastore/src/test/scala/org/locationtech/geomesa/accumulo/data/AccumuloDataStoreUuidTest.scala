@@ -8,14 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-
 import org.apache.accumulo.core.security.Authorizations
-import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{Query, Transaction}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
@@ -30,6 +26,8 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {

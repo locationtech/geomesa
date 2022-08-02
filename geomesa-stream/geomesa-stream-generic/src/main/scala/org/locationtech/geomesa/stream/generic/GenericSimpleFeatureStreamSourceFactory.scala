@@ -8,12 +8,6 @@
 
 package org.locationtech.geomesa.stream.generic
 
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
-import java.util.Collections
-import java.util.concurrent.{ExecutorService, Executors, LinkedBlockingQueue, TimeUnit}
-import java.util.function.Function
-
 import com.typesafe.config.Config
 import org.apache.camel.builder.RouteBuilder
 import org.apache.camel.impl._
@@ -25,6 +19,11 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.slf4j.LoggerFactory
 
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
+import java.util.Collections
+import java.util.concurrent.{ExecutorService, Executors, LinkedBlockingQueue, TimeUnit}
+import java.util.function.Function
 import scala.util.Try
 
 object GenericSimpleFeatureStreamSourceFactory {

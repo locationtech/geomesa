@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.utils.uuid
 
-import java.util.UUID
-
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util.UUID
 
 /**
  * Creates feature id based on current system time.

@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.utils.io.fs
 
-import java.io._
-import java.nio.file._
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.Locale
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.archivers.zip.ZipFile
@@ -21,6 +16,10 @@ import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.{CreateMode, File
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.{LocalFileHandle, LocalTarHandle, LocalZipHandle}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
+import java.io._
+import java.nio.file._
+import java.nio.file.attribute.BasicFileAttributes
+import java.util.Locale
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 

@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.convert.json
 
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
-import java.util.{Date, UUID}
-
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
@@ -21,6 +17,10 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
+import java.util.{Date, UUID}
 
 @RunWith(classOf[JUnitRunner])
 class JsonConverterTest extends Specification {
@@ -895,7 +895,7 @@ class JsonConverterTest extends Specification {
 
       forall(List((nestedJson, nestedConf), (simpleJson, simpleConf))) { case (json, conf) =>
         WithClose(SimpleFeatureConverter(advSft, conf)) { converter =>
-          import scala.collection.JavaConverters._
+
 
           val ec = converter.createEvaluationContext()
           val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
@@ -1041,10 +1041,9 @@ class JsonConverterTest extends Specification {
         """.stripMargin)
 
       WithClose(SimpleFeatureConverter(mapSft, mapConf)) { converter =>
-        import java.util.{Map => JMap}
-
         import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 
+        import java.util.{Map => JMap}
         import scala.collection.JavaConversions._
 
         val ec = converter.createEvaluationContext()

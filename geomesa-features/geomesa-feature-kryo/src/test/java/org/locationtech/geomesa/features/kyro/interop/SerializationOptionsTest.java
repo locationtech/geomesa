@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.features.kyro.interop;
 
-import org.locationtech.jts.geom.Point;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.junit.Assert;
 import org.junit.Test;
@@ -17,6 +16,7 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer;
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer$;
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
 import org.locationtech.geomesa.utils.interop.WKTUtils;
+import org.locationtech.jts.geom.Point;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 

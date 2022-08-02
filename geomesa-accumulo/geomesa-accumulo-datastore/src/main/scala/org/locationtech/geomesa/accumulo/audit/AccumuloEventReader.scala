@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
-import java.time.ZonedDateTime
-
 import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.data.Range
 import org.apache.accumulo.core.security.Authorizations
 import org.locationtech.geomesa.utils.audit.AuditedEvent
 import org.locationtech.geomesa.utils.collection.{IsSynchronized, MaybeSynchronized, NotSynchronized}
+
+import java.time.ZonedDateTime
 
 
 /**

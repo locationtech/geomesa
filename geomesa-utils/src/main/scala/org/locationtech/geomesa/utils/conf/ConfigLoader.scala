@@ -8,10 +8,9 @@
 
 package org.locationtech.geomesa.utils.conf
 
-import java.io.InputStream
-
 import com.typesafe.scalalogging.LazyLogging
 
+import java.io.InputStream
 import scala.util.control.NonFatal
 import scala.util.{Failure, Try}
 import scala.xml.XML

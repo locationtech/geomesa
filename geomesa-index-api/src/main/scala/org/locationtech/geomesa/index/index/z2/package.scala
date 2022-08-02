@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.index.index
 
-import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.curve.{XZ2SFC, Z2SFC}
 import org.locationtech.geomesa.filter.FilterValues
+import org.locationtech.jts.geom.Geometry
 
 package object z2 {
 

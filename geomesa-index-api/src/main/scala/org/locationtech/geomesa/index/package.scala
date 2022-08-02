@@ -9,10 +9,10 @@
 package org.locationtech.geomesa
 
 
-import java.io.Flushable
-
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+
+import java.io.Flushable
 
 package object index {
 

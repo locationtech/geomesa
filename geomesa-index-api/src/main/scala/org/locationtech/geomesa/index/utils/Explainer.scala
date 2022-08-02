@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.index.utils
 
-import java.io.PrintStream
-
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
+
+import java.io.PrintStream
 
 trait Explainer {
   private var indent = ""

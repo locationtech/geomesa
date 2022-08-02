@@ -8,11 +8,8 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.io.File
-import java.util.Collections
-
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.hbase.{NamespaceDescriptor, TableName}
+import org.apache.hadoop.hbase.TableName
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
@@ -39,6 +36,8 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.File
+import java.util.Collections
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])

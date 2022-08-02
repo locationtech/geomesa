@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io._
-
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriterConfig
@@ -34,7 +32,7 @@ import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.io._
 
 @RunWith(classOf[JUnitRunner])
 class BackCompatibilityIT extends TestWithDataStore with LazyLogging {

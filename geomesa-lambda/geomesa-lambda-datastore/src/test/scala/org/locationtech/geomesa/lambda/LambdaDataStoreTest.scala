@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.lambda
 
-import java.io.ByteArrayInputStream
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
@@ -29,6 +26,9 @@ import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
+
+import java.io.ByteArrayInputStream
+import java.util.Date
 
 class LambdaDataStoreTest extends LambdaTest with LazyLogging {
 

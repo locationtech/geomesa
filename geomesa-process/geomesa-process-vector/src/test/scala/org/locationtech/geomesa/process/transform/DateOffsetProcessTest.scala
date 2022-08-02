@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.transform
 
-import java.util.Date
-
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -19,7 +17,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.util.Date
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

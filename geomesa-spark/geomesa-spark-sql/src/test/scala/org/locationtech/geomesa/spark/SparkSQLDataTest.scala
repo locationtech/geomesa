@@ -8,23 +8,21 @@
 
 package org.locationtech.geomesa.spark
 
-import java.{util => ju}
-import java.util.{Map => JMap}
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
+import org.apache.spark.sql.catalyst.expressions.Literal
+import org.apache.spark.sql.catalyst.plans.logical.Filter
+import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.{Column, DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.interop.WKTUtils
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.apache.spark.sql.catalyst.expressions.Literal
-import org.apache.spark.sql.catalyst.plans.logical.Filter
-import org.apache.spark.sql.execution.datasources.LogicalRelation
 
-import scala.collection.JavaConverters._
+import java.util.{Map => JMap}
+import java.{util => ju}
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLDataTest extends Specification with LazyLogging {

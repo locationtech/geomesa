@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.utils
 
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-
 import org.geotools.data.FeatureReader
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.feature.collection.DelegateFeatureIterator
@@ -21,6 +18,9 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Geometry, Polygon}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.referencing.crs.CoordinateReferenceSystem
+
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 package object geotools {
 

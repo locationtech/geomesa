@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.process.query
 
-import org.locationtech.jts.geom.Geometry
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -16,6 +15,7 @@ import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Geometry
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -108,7 +108,6 @@ class QueryProcessTest extends Specification with TestWithFeatureType {
     }
 
     "allow for projections in the returned result set" in {
-      import scala.collection.JavaConverters._
 
       val features = fs.getFeatures()
 

@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.utils.geotools.sft
 
-import java.util.regex.Pattern
-import java.util.{Date, UUID}
-
 import org.apache.commons.text.StringEscapeUtils
 import org.geotools.feature.AttributeTypeBuilder
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.AttributeSpec
 import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.util.regex.Pattern
+import java.util.{Date, UUID}
 
 /**
   * Intermediate format for simple feature types. Used for converting between string specs,

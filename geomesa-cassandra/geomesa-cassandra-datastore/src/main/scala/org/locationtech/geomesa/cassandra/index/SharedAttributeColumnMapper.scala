@@ -9,12 +9,12 @@
 
 package org.locationtech.geomesa.cassandra.index
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
 import org.locationtech.geomesa.cassandra.{ColumnSelect, NamedColumn, RowSelect}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
 object SharedAttributeColumnMapper extends CassandraColumnMapper {
 

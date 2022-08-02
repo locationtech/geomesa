@@ -21,8 +21,6 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
-
 @RunWith(classOf[JUnitRunner])
 class ZLineTest extends Specification with TestWithFeatureType {
 

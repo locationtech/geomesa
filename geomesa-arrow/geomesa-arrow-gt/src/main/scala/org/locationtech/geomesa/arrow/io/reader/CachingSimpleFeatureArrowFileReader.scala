@@ -9,9 +9,6 @@
 package org.locationtech.geomesa.arrow.io
 package reader
 
-import java.io.{Closeable, InputStream}
-import java.nio.channels.{Channels, ReadableByteChannel}
-
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.StructVector
 import org.apache.arrow.vector.ipc.message.{ArrowRecordBatch, MessageSerializer}
@@ -27,6 +24,8 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.io.{Closeable, InputStream}
+import java.nio.channels.{Channels, ReadableByteChannel}
 import scala.collection.mutable.ArrayBuffer
 
 class CachingSimpleFeatureArrowFileReader(is: InputStream) extends SimpleFeatureArrowFileReader  {

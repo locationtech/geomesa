@@ -8,21 +8,20 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.nio.charset.StandardCharsets
-import java.util
-import java.util.{Date, UUID}
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Geometry
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.{ImmutableFeatureId, SimpleFeatureTypes}
+import org.locationtech.jts.geom.Geometry
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.nio.charset.StandardCharsets
+import java.util
+import java.util.{Date, UUID}
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])

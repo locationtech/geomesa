@@ -13,14 +13,13 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.{File, FileInputStream}
-import java.util.Properties
-
 import com.typesafe.scalalogging.Logger
 import org.apache.accumulo.core.client.ClientConfiguration
 import org.locationtech.geomesa.utils.io.WithClose
 import org.slf4j.LoggerFactory
 
+import java.io.{File, FileInputStream}
+import java.util.Properties
 import scala.util.Try
 
 /**

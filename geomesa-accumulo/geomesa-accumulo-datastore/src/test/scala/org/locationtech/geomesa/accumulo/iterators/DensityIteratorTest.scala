@@ -9,8 +9,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.{Date, Properties}
-
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
@@ -28,6 +26,7 @@ import org.locationtech.jts.geom.Envelope
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.{Date, Properties}
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

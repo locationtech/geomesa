@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
-import java.io.File
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.permission.FsPermission
@@ -26,6 +22,10 @@ import org.locationtech.jts.geom.Envelope
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
+
+import java.io.File
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 
 @RunWith(classOf[JUnitRunner])
 class FileBasedMetadataTest extends Specification with AllExpectations {

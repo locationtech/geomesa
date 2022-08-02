@@ -8,18 +8,17 @@
 
 package org.locationtech.geomesa.index.utils.bin
 
-import java.io.ByteArrayOutputStream
-import java.util.{Arrays, Date}
-
-import org.locationtech.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.{ByteArrayCallback, ByteStreamCallback}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.ByteArrayOutputStream
+import java.util.{Arrays, Date}
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

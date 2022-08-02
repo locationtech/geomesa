@@ -21,8 +21,6 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class RouteSearchProcessTest extends Specification {
 
-  import scala.collection.JavaConverters._
-
   sequential
 
   val r = new Random(-10)

@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.utils.index
 
-import java.util.concurrent.ConcurrentHashMap
-
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.geotools.GridSnap
 import org.locationtech.jts.geom.{Envelope, Geometry, Point}
 
+import java.util.concurrent.ConcurrentHashMap
 import scala.annotation.tailrec
 
 /**

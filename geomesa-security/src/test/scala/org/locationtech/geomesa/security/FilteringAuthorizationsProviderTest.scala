@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.security
 
-import java.io.Serializable
-import java.util
-
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.Serializable
+import java.util
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])

@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.convert
 
-import java.net.URL
-import java.util.{ServiceLoader, List => JList}
-
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
+import java.net.URL
+import java.util.{ServiceLoader, List => JList}
 import scala.collection.JavaConverters._
 
 object ConverterConfigLoader extends LazyLogging {

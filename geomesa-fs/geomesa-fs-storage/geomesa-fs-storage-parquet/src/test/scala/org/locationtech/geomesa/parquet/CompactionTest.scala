@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.parquet
 
-import java.nio.file.Files
-
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
@@ -27,6 +25,8 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
+
+import java.nio.file.Files
 
 
 @RunWith(classOf[JUnitRunner])

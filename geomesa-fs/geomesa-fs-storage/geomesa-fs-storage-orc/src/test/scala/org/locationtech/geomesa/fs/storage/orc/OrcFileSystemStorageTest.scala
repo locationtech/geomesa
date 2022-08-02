@@ -8,15 +8,12 @@
 
 package org.locationtech.geomesa.fs.storage.orc
 
-import java.nio.file.Files
-import java.util.UUID
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.Query
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
@@ -33,6 +30,9 @@ import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.nio.file.Files
+import java.util.UUID
 
 @RunWith(classOf[JUnitRunner])
 class OrcFileSystemStorageTest extends Specification with LazyLogging {
@@ -349,7 +349,6 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
                (filter: String,
                 transforms: Array[String],
                 results: Seq[SimpleFeature]): MatchResult[Any] = {
-    import scala.collection.JavaConverters._
 
     val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms)
     val features = {

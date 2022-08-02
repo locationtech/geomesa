@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.orc.utils
 
-import java.nio.charset.StandardCharsets
-import java.util.UUID
-
 import org.apache.orc.storage.ql.exec.vector._
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.utils.geotools.ObjectType
@@ -18,6 +15,9 @@ import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.nio.charset.StandardCharsets
+import java.util.UUID
 
 /**
   * Writes a simple feature to a given Orc row

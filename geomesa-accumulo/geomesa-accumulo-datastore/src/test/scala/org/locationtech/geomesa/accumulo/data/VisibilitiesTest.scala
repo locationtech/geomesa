@@ -21,8 +21,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
-
 @RunWith(classOf[JUnitRunner])
 class VisibilitiesTest extends TestWithFeatureType {
   

@@ -16,7 +16,6 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 /**
   * Created by hulbert on 6/21/17.

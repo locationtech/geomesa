@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.geojson.servlet
 
-import java.io.Closeable
-import java.util.concurrent.ConcurrentHashMap
-
 import org.geotools.data.DataStore
 import org.json4s.{DefaultFormats, Formats}
 import org.locationtech.geomesa.geojson.GeoJsonGtIndex
@@ -19,6 +16,8 @@ import org.locationtech.geomesa.web.core.GeoMesaDataStoreServlet
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 
+import java.io.Closeable
+import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable.ArrayBuffer
 
 class GeoJsonServlet(val persistence: FilePersistence) extends GeoMesaDataStoreServlet with NativeJsonSupport {

@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.utils.text
 
+import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool, GenericObjectPoolConfig}
+import org.apache.commons.pool2.{BasePooledObjectFactory, PooledObject}
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
-import org.apache.commons.pool2.{BasePooledObjectFactory, PooledObject}
-import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool, GenericObjectPoolConfig}
 
 trait ObjectPoolUtils[A] {
   val pool: GenericObjectPool[A]

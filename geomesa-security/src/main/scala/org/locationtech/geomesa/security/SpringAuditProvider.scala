@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.security
 
-import java.io.Serializable
-import java.util.Collections
-
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
 
+import java.io.Serializable
+import java.util.Collections
 import scala.collection.JavaConverters._
 
 class SpringAuditProvider extends AuditProvider {

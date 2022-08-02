@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.index.z3.legacy
 
-import java.time.ZonedDateTime
-
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
 import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
@@ -20,6 +18,8 @@ import org.locationtech.geomesa.index.index.z3.legacy.Z3IndexV6.Z3IndexKeySpaceV
 import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexKeySpace, Z3IndexValues}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.time.ZonedDateTime
 
 // legacy yearly epoch z curve
 class Z3IndexV6 protected (

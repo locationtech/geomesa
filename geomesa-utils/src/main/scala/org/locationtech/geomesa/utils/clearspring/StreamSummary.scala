@@ -27,11 +27,11 @@
 
 package org.locationtech.geomesa.utils.clearspring
 
-import java.util.Collections
-
 import com.clearspring.analytics.stream.ITopK
 import com.clearspring.analytics.util.{DoublyLinkedList, ListNode2}
 import org.locationtech.geomesa.utils.clearspring.StreamSummary.{Bucket, Counter}
+
+import java.util.Collections
 
 /**
   * Based on the `Space-Saving` algorithm and the `Stream-Summary`

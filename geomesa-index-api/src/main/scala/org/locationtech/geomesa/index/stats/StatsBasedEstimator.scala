@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.stats
 
-import java.time.ZonedDateTime
-import java.util.Date
-
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC, Z3SFC}
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter._
@@ -22,6 +19,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.PropertyName
 
+import java.time.ZonedDateTime
+import java.util.Date
 import scala.collection.JavaConverters._
 
 /**

@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.io._
-import java.util.zip.Deflater
-
 import org.apache.avro.file.{CodecFactory, DataFileWriter}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io._
+import java.util.zip.Deflater
 
 /**
  * Class that writes out Avro SimpleFeature Data Files which carry the SimpleFeatureType Schema

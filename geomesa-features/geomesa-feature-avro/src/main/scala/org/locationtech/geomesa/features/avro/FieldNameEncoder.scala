@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.util.concurrent.ConcurrentHashMap
-
 import org.apache.commons.codec.binary.Hex
 import org.locationtech.geomesa.features.avro.FieldNameEncoder._
 
+import java.util.concurrent.ConcurrentHashMap
 import scala.collection.JavaConverters._
 
 class FieldNameEncoder(serializationVersion: Int, forceFullEncoding: Boolean = false) {

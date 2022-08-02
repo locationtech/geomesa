@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.utils.bin
 
-import java.io.{ByteArrayOutputStream, OutputStream}
-import java.nio.charset.StandardCharsets
-import java.nio.{ByteBuffer, ByteOrder}
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.{ByteArrayCallback, ByteStreamCallback}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.ToValues
@@ -23,6 +18,10 @@ import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.jts.geom.{Geometry, LineString, Point}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.{ByteArrayOutputStream, OutputStream}
+import java.nio.charset.StandardCharsets
+import java.nio.{ByteBuffer, ByteOrder}
+import java.util.Date
 import scala.collection.JavaConverters._
 
 class BinaryOutputEncoder private (toValues: ToValues) {

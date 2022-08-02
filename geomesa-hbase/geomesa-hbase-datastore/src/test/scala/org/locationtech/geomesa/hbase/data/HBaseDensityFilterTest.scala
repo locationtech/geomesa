@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{Query, _}
 import org.geotools.filter.text.ecql.ECQL
@@ -31,7 +28,8 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.kudu.data
 
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.kudu.client.AlterTableOptions
 import org.apache.kudu.client.SessionConfiguration.FlushMode
@@ -28,6 +26,8 @@ import org.locationtech.geomesa.kudu.utils.RichKuduClient.SessionHolder
 import org.locationtech.geomesa.kudu.{KuduSystemProperties, Partitioning}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.nio.charset.StandardCharsets
 
 class KuduIndexAdapter(ds: KuduDataStore) extends IndexAdapter[KuduDataStore] {
 

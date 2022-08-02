@@ -9,8 +9,6 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.io.IOException
-
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -18,6 +16,7 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{SystemPropertyBoole
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.IOException
 import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])

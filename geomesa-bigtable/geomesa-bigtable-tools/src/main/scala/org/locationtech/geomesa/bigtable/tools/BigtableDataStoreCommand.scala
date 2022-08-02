@@ -10,13 +10,6 @@ package org.locationtech.geomesa.bigtable.tools
 
 import java.io.File
 
-import org.apache.hadoop.hbase.client.Connection
-import org.locationtech.geomesa.bigtable.data.BigtableDataStoreFactory
-import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseDataStoreParams}
-import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
-import org.locationtech.geomesa.tools.DistributedCommand
-import org.locationtech.geomesa.utils.classpath.ClassPathUtils
-
 trait BigtableDataStoreCommand extends HBaseDataStoreCommand {
   override def connection: Map[String, String] = {
     Map(

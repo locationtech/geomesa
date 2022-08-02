@@ -10,8 +10,8 @@ package org.locationtech.geomesa.index
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data._
+import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.feature.{AttributeTypeBuilder, FeatureTypes, NameImpl}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}

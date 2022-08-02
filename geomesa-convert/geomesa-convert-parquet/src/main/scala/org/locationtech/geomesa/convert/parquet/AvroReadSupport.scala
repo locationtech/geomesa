@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.parquet
 
-import java.util.{Collections, Date}
-
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.conf.Configuration
@@ -23,6 +21,7 @@ import org.locationtech.geomesa.convert.parquet.AvroReadSupport.AvroRecordMateri
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport.{BooleanConverter, BytesConverter, DateConverter, DoubleConverter, FloatConverter, IntConverter, LongConverter, Settable, StringConverter}
 
+import java.util.{Collections, Date}
 import scala.collection.mutable.ArrayBuffer
 
 /**

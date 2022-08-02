@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.memory.cqengine
 
-import java.util
-import java.util.UUID
-
 import com.googlecode.cqengine.attribute.Attribute
 import com.googlecode.cqengine.index.hash.HashIndex
 import com.googlecode.cqengine.index.navigable.NavigableIndex
@@ -31,6 +28,7 @@ import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
+import java.util.UUID
 import scala.collection.JavaConverters._
 
 class GeoCQEngine(val sft: SimpleFeatureType,

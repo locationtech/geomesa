@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.IOException
-import java.util.Date
-
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
@@ -44,7 +41,8 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.io.IOException
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {

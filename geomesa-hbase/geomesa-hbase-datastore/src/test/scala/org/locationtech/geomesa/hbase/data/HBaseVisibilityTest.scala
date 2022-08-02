@@ -8,12 +8,7 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.io.Serializable
-import java.security.PrivilegedExceptionAction
-import java.util
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Envelope
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.security.SecurityCapability
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
@@ -22,10 +17,10 @@ import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
@@ -35,11 +30,15 @@ import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.Serializable
+import java.security.PrivilegedExceptionAction
+import java.util
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])

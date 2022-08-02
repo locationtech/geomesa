@@ -8,14 +8,10 @@
 
 package org.locationtech.geomesa.fs
 
-import java.nio.file.{Files, Path}
-import java.util.stream.Collectors
-
 import org.apache.commons.io.FileUtils
 import org.geotools.data.DataStoreFinder
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureIterator, SimpleFeatureStore}
-import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
@@ -25,7 +21,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.nio.file.{Files, Path}
+import java.util.stream.Collectors
 
 @RunWith(classOf[JUnitRunner])
 class BucketVsLeafStorageTest extends Specification {

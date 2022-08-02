@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.arrow.vector
 
-import java.io.Closeable
-import java.util.concurrent.atomic.AtomicInteger
-
 import org.apache.arrow.vector.FieldVector
 import org.apache.arrow.vector.dictionary.Dictionary
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
@@ -21,6 +18,8 @@ import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.`type`.AttributeDescriptor
 
+import java.io.Closeable
+import java.util.concurrent.atomic.AtomicInteger
 import scala.reflect.ClassTag
 
 /**

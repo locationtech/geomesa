@@ -8,12 +8,12 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.cassandra.index
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.locationtech.geomesa.cassandra.{ColumnSelect, NamedColumn, RowSelect}
 import org.locationtech.geomesa.index.api._
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
 object Z2ColumnMapper {
 

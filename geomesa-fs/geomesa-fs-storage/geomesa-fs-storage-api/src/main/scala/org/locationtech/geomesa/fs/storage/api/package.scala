@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.fs.storage
 
-import java.io.Closeable
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.io.Closeable
 
 package object api {
 

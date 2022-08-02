@@ -8,23 +8,19 @@
 
 package org.locationtech.geomesa.process.analytic
 
-import java.text.SimpleDateFormat
-import java.util.TimeZone
-
-import org.geotools.factory.CommonFactoryFinder
+import org.geotools.data.util.NullProgressListener
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQL
-import org.geotools.data.util.NullProgressListener
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.process.analytic.{AttributeVisitor, UniqueProcess}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.text.SimpleDateFormat
+import java.util.TimeZone
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])

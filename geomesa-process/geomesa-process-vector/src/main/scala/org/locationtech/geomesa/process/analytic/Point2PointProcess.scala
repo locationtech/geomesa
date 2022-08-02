@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.process.analytic
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
@@ -19,9 +16,12 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.opengis.feature.simple.SimpleFeature
+
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 
 @DescribeProcess(title = "Point2PointProcess", description = "Aggregates a collection of points into a collection of line segments")
 class Point2PointProcess extends GeoMesaProcess {

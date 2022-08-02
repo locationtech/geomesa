@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.spark
 
-import org.locationtech.jts.geom.{Coordinate, Geometry, LineString}
 import org.apache.spark.sql.SQLContext
 import org.geotools.geometry.jts.GeometryCoordinateSequenceTransformer
-import org.geotools.referencing.{CRS, GeodeticCalculator}
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.geotools.referencing.{CRS, GeodeticCalculator}
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper.nullableUDF
+import org.locationtech.jts.geom.{Coordinate, Geometry, LineString}
 
 object GeometricDistanceFunctions {
   import java.{lang => jl}

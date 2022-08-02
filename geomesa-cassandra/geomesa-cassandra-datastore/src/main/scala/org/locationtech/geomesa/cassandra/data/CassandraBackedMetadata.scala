@@ -9,14 +9,13 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import java.nio.charset.StandardCharsets
-
 import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.QueryBuilder
 import org.locationtech.geomesa.index.api.IndexAdapter
 import org.locationtech.geomesa.index.metadata._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
+import java.nio.charset.StandardCharsets
 import scala.collection.JavaConverters._
 
 class CassandraBackedMetadata[T](val session: Session, val catalog: String, val serializer: MetadataSerializer[T])

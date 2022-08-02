@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.conf
 
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.TimeUnit
-
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -24,6 +21,9 @@ import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, Transform}
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.TimeUnit
 
 class ColumnGroups {
 

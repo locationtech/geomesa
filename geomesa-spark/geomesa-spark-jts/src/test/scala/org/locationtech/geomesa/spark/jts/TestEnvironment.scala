@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.spark.jts
 
-import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql._
+import org.apache.spark.sql.types.StructType
 
 /**
  * Common JTS test setup and utilities.

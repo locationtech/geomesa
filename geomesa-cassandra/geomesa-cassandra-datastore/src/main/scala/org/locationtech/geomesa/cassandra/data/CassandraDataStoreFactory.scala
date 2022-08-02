@@ -9,9 +9,6 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import java.awt.RenderingHints
-import java.io.Serializable
-import java.util
 import com.datastax.driver.core._
 import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, TokenAwarePolicy}
 import org.geotools.data.DataAccessFactory.Param
@@ -22,6 +19,9 @@ import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthori
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
+import java.awt.RenderingHints
+import java.io.Serializable
+import java.util
 import scala.util.control.NonFatal
 
 class CassandraDataStoreFactory extends DataStoreFactorySpi {

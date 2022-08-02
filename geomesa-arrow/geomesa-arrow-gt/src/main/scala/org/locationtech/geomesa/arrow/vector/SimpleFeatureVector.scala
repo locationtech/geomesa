@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.arrow.vector
 
-import java.io.Closeable
-import java.util.{Collections, Date}
-
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.{ListVector, StructVector}
 import org.apache.arrow.vector.types.FloatingPointPrecision
@@ -26,6 +23,8 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.Closeable
+import java.util.{Collections, Date}
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal

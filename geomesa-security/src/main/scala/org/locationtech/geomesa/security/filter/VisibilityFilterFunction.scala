@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.security.filter
 
-import java.nio.charset.StandardCharsets
-import java.util.Collections
-
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl.parameter
@@ -19,6 +16,8 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.capability.FunctionName
 import org.opengis.filter.expression.Expression
 
+import java.nio.charset.StandardCharsets
+import java.util.Collections
 import scala.util.Try
 
 class VisibilityFilterFunction extends FunctionExpressionImpl(VisibilityFilterFunction.Name) {

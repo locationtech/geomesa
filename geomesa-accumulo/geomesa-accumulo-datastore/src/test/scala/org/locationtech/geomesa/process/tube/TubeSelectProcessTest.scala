@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.tube
 
-import java.util.Date
-
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
@@ -29,7 +27,7 @@ import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class TubeSelectProcessTest extends TestWithMultipleSfts {

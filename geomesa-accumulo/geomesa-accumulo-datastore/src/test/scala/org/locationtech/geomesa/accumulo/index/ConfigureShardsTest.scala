@@ -19,14 +19,10 @@ import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
-
 @RunWith(classOf[JUnitRunner])
 class ConfigureShardsTest extends Specification with TestWithFeatureType {
 
   sequential
-
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.z3.splits='8'"
 

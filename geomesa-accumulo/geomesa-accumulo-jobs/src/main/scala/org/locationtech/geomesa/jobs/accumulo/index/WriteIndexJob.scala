@@ -9,8 +9,6 @@
 package org.locationtech.geomesa.jobs.accumulo.index
 
 
-import java.io.File
-
 import com.beust.jcommander.Parameter
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
@@ -29,6 +27,7 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.SimpleFeature
 
+import java.io.File
 import scala.collection.JavaConverters._
 
 /**

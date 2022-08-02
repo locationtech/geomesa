@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.utils.conf
 
-import java.util.Properties
-
 import com.typesafe.scalalogging.LazyLogging
+
+import java.util.Properties
 
 object GeoMesaProperties extends LazyLogging {
 

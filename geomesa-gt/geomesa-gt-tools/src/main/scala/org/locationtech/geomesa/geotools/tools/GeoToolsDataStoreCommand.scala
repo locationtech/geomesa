@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.geotools.tools
 
-import java.io.{File, FileInputStream}
-import java.util.Properties
-
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand.GeoToolsDataStoreParams
 import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+
+import java.io.{File, FileInputStream}
+import java.util.Properties
 
 /**
  * Abstract class for commands that have a pre-existing catalog

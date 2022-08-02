@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.kafka.consumer
 
-import java.time.Duration
-
 import com.typesafe.scalalogging.Logger
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord, OffsetAndMetadata, OffsetCommitCallback}
 import org.apache.kafka.common.TopicPartition
@@ -17,6 +15,7 @@ import org.apache.kafka.common.errors.{InterruptException, WakeupException}
 import org.locationtech.geomesa.kafka.KafkaConsumerVersions
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.{ConsumerErrorHandler, LogOffsetCommitCallback}
 
+import java.time.Duration
 import scala.util.control.NonFatal
 
 abstract class ThreadedConsumer(

@@ -9,10 +9,6 @@
 package org.locationtech.geomesa.arrow.io
 package reader
 
-import java.io.{Closeable, InputStream}
-import java.util.Collections
-import java.util.concurrent.ConcurrentLinkedDeque
-
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.StructVector
 import org.apache.arrow.vector.ipc.ArrowStreamReader
@@ -26,6 +22,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.io.{Closeable, InputStream}
+import java.util.Collections
+import java.util.concurrent.ConcurrentLinkedDeque
 import scala.collection.mutable.ArrayBuffer
 
 /**

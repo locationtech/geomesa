@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
@@ -19,8 +19,6 @@ import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class HighCardinalityAttributeOrQueryTest extends Specification with TestWithFeatureType {

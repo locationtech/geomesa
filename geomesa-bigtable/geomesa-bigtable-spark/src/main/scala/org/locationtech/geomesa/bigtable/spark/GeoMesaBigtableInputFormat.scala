@@ -8,16 +8,6 @@
 
 package org.locationtech.geomesa.bigtable.spark
 
-import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.conf.{Configurable, Configuration}
-import org.apache.hadoop.hbase.HBaseConfiguration
-import org.apache.hadoop.hbase.client.Result
-import org.apache.hadoop.io.Text
-import org.apache.hadoop.mapreduce._
-import org.locationtech.geomesa.hbase.jobs.GeoMesaHBaseInputFormat.GeoMesaHBaseRecordReader
-import org.locationtech.geomesa.jobs.GeoMesaConfigurator
-import org.opengis.feature.simple.SimpleFeature
-
 class GeoMesaBigtableInputFormat extends InputFormat[Text, SimpleFeature] with Configurable with LazyLogging {
 
   private val delegate = new BigtableInputFormat

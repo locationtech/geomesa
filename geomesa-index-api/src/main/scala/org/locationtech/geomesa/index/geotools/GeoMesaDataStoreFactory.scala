@@ -9,15 +9,14 @@
 package org.locationtech.geomesa.index.geotools
 
 import org.locationtech.geomesa.index.PartitionParallelScan
-
-import java.io.Serializable
-import java.util.concurrent.TimeUnit
 import org.locationtech.geomesa.index.conf.{QueryProperties, StatsProperties}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam._
 
+import java.io.Serializable
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 
 object GeoMesaDataStoreFactory {

@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.spark.jts.docs
 
 
-import org.locationtech.geomesa.spark.jts.TestEnvironment
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.spark.jts.TestEnvironment
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -23,9 +23,9 @@ class JTSDocsTest extends Specification with TestEnvironment {
   "jts documentation example" should {
     sequential
 
-    import org.locationtech.jts.geom._
     import org.apache.spark.sql.types._
     import org.locationtech.geomesa.spark.jts._
+    import org.locationtech.jts.geom._
 
     "read and convert geospatial csv" >> {
       import spark.implicits._
@@ -72,7 +72,7 @@ class JTSDocsTest extends Specification with TestEnvironment {
 
     "should search chicago" >> {
       import org.locationtech.geomesa.spark.jts._
-      import spark.implicits. _
+      import spark.implicits._
       chicagoDF.where(st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), $"geom"))
 
       chicagoDF.count() shouldEqual 1

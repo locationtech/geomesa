@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.filter.visitor
 
-import java.util
-import java.util.regex.Pattern
-import java.util.{Collections, Date}
-
 import org.geotools.filter.LikeToRegexConverter
 import org.geotools.filter.function.InArrayFunction
 import org.geotools.filter.visitor.{DuplicatingFilterVisitor, ExpressionTypeVisitor, IsStaticExpressionVisitor}
@@ -25,6 +21,9 @@ import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 import org.opengis.temporal.Period
 
+import java.util
+import java.util.regex.Pattern
+import java.util.{Collections, Date}
 import scala.util.{Success, Try}
 
 /**

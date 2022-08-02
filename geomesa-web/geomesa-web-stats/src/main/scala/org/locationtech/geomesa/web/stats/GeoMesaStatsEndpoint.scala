@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.web.stats
 
 import com.typesafe.scalalogging.LazyLogging
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.geotools.filter.text.ecql.ECQL
 import org.json4s.{DefaultFormats, Formats}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
@@ -22,6 +21,7 @@ import org.scalatra.BadRequest
 import org.scalatra.json._
 import org.scalatra.swagger._
 
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import scala.reflect.ClassTag
 
 class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScalatraServlet.DefaultRootPath)

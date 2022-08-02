@@ -9,11 +9,11 @@
 
 package org.locationtech.geomesa.process
 
-import java.util.ServiceLoader
-
 import org.geotools.process.factory.AnnotatedBeanProcessFactory
 import org.geotools.text.Text
 import org.locationtech.geomesa.process.GeoMesaProcessFactory.{Name, NameSpace, processes}
+
+import java.util.ServiceLoader
 
 class GeoMesaProcessFactory extends AnnotatedBeanProcessFactory(Name, NameSpace, processes: _*)
 

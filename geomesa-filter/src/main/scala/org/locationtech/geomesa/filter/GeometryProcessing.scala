@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.filter
 
-import java.util.Locale
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.spatial.BBOXImpl
 import org.locationtech.geomesa.filter.FilterHelper.trimToWorld
@@ -21,6 +19,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.spatial._
 import org.opengis.filter.{Filter, FilterFactory2}
 
+import java.util.Locale
 import scala.util.{Failure, Success}
 
 /**

@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.{Collections, Properties}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.geotools.data.memory.MemoryDataStore
@@ -25,6 +22,9 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.{Collections, Properties}
 
 class KafkaStoreTest extends LambdaTest with LazyLogging {
 

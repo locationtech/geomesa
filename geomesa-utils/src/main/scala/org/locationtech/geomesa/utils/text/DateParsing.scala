@@ -68,7 +68,7 @@ object DateParsing {
     * @return
     */
   def parse(value: String, format: DateTimeFormatter = format): ZonedDateTime = {
-    import TemporalQueries.{LocalDateQuery, LocalQuery, ZonedQuery, YearMonthQuery, YearQuery}
+    import TemporalQueries._
     format.parseBest(value, ZonedQuery, LocalQuery, LocalDateQuery, YearMonthQuery, YearQuery) match {
       case d: ZonedDateTime => d
       case d: LocalDateTime => d.atZone(ZoneOffset.UTC)

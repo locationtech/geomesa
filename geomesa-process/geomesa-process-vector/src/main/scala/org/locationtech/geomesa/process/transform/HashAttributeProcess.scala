@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.transform
 
-import java.nio.charset.StandardCharsets
-
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
@@ -18,6 +16,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 
+import java.nio.charset.StandardCharsets
 import scala.util.hashing.MurmurHash3
 
 trait HashAttribute {

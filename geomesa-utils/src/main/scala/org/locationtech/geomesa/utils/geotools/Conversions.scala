@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.nio.charset.StandardCharsets
-import java.util.{Date, UUID}
-
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.geometry.DirectPosition2D
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
@@ -27,6 +24,8 @@ import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.nio.charset.StandardCharsets
+import java.util.{Date, UUID}
 import scala.reflect.ClassTag
 import scala.util.Try
 

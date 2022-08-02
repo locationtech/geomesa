@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.parquet
 
-import java.nio.file.Files
-import java.time.Instant
-import java.util.UUID
-
-import org.locationtech.jts.geom.{Coordinate, Point}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
@@ -24,9 +19,14 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.{Coordinate, Point}
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.nio.file.Files
+import java.time.Instant
+import java.util.UUID
 
 @RunWith(classOf[JUnitRunner])
 class ListMapTest extends Specification {
@@ -76,8 +76,6 @@ class ListMapTest extends Specification {
           .build()
 
         import org.locationtech.geomesa.utils.geotools.Conversions._
-
-        import scala.collection.JavaConverters._
         val sf = reader.read()
         sf.getAttributeCount mustEqual 3
         sf.getID must be equalTo "1"

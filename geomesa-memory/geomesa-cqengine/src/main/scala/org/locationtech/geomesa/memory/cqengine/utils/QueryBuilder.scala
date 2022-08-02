@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.memory.cqengine.utils
 
-import java.lang
-import java.util.Date
-
 import com.googlecode.cqengine.attribute.Attribute
 import com.googlecode.cqengine.query.simple.{Between, GreaterThan, LessThan, SimpleQuery}
 import org.opengis.feature.simple.SimpleFeature
+
+import java.lang
+import java.util.Date
 
 trait CompQueryBuilder {
   // The type the product queries process, and its class object

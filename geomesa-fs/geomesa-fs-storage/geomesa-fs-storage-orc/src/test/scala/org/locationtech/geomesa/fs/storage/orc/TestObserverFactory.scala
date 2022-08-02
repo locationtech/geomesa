@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.fs.storage.orc
 
-import java.util.Collections
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.orc.TestObserverFactory.TestObserver
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 
 class TestObserverFactory extends FileSystemObserverFactory {

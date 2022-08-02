@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.memory.cqengine.datastore
 
-import java.util
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
@@ -19,6 +17,7 @@ import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util
 import scala.collection.JavaConverters._
 
 class GeoCQEngineDataStore(useGeoIndex: Boolean) extends ContentDataStore with LazyLogging {

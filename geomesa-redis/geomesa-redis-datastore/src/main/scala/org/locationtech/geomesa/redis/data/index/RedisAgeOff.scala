@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.redis.data.index
 
-import java.io.{Closeable, Flushable}
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
-
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.data.Transaction
 import org.locationtech.geomesa.filter.FilterHelper
@@ -25,6 +21,9 @@ import org.opengis.filter.identity.Identifier
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.params.ZAddParams
 
+import java.io.{Closeable, Flushable}
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal

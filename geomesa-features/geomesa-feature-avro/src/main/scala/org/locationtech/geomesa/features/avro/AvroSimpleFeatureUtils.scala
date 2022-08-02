@@ -8,20 +8,17 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import java.util.{Date, Locale, UUID}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.SchemaBuilder.{ArrayDefault, FieldTypeBuilder, NullDefault}
 import org.apache.avro.{Schema, SchemaBuilder}
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.locationtech.geomesa.features.serialization.HintKeySerialization
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+import java.util.{Date, Locale, UUID}
 import scala.collection.JavaConverters._
 
 object AvroSimpleFeatureUtils extends LazyLogging {

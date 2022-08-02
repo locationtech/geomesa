@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.{Collection => jCollection, Map => jMap}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
@@ -25,6 +23,8 @@ import org.locationtech.geomesa.index.iterators.{IteratorCache, SamplingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.util.{Collection => jCollection, Map => jMap}
 
 /**
  * Iterator that operates on kryo encoded values. It will:

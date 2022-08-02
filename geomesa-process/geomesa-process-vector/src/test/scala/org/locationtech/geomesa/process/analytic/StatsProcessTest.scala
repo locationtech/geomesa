@@ -43,7 +43,6 @@ class StatsProcessTest extends Specification {
       result.map(_.getAttribute(0)) mustEqual Seq("""{"count":10}""")
     }
     "manually visit a feature collection with projections" in {
-      import scala.collection.JavaConverters._
       val props = Seq("m=strConcat('m:', track)")
       val result = SelfClosingIterator(process.execute(fc, "Enumeration(m)", encode = false, props).features).toSeq
       result.map(_.getAttribute(0)) mustEqual Seq("""{"m:t-0":5,"m:t-1":5}""")

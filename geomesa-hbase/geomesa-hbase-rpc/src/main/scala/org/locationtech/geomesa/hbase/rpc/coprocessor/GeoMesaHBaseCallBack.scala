@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.hbase.rpc.coprocessor
 
-import java.io.InterruptedIOException
-import java.util.Base64
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{CancellationException, LinkedBlockingQueue}
-
 import com.google.protobuf.{ByteString, RpcCallback}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.client.Scan
@@ -21,6 +16,10 @@ import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor.{GeoMesaHBaseRequestVersion, ScanOpt}
 import org.locationtech.geomesa.utils.index.ByteArrays
+
+import java.io.InterruptedIOException
+import java.util.Base64
+import java.util.concurrent.{CancellationException, LinkedBlockingQueue}
 
 /**
  * Callback class for invoking htable services

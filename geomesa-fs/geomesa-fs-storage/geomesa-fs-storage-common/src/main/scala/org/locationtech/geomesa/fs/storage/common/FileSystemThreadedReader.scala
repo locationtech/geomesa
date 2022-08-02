@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common
 
-import java.util.concurrent._
-
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -20,6 +18,7 @@ import org.locationtech.geomesa.utils.concurrent.PhaserUtils
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 
+import java.util.concurrent._
 import scala.util.control.NonFatal
 
 /**

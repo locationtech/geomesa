@@ -9,9 +9,6 @@
 
 package org.locationtech.geomesa.parquet
 
-import java.nio.file.Files
-import java.util.UUID
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
@@ -22,7 +19,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.{SizeableFileSystemStorage, StorageKeys}
+import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -32,6 +29,9 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
+
+import java.nio.file.Files
+import java.util.UUID
 
 @RunWith(classOf[JUnitRunner])
 class ParquetStorageTest extends Specification with AllExpectations with LazyLogging {
@@ -389,7 +389,6 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       (filter: String,
           transforms: Array[String],
           results: Seq[SimpleFeature]): MatchResult[Any] = {
-    import scala.collection.JavaConverters._
 
     val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms)
     val features = {

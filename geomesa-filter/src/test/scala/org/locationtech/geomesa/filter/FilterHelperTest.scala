@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.filter
 
-import java.time.temporal.ChronoUnit
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util
-import java.util.Date
-
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl, LiteralExpressionImpl, OrImpl}
 import org.geotools.util.Converters
@@ -27,6 +22,11 @@ import org.opengis.filter._
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.time.temporal.ChronoUnit
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class FilterHelperTest extends Specification {
@@ -380,7 +380,6 @@ class FilterHelperTest extends Specification {
     }
 
     "deduplicate massive OR filters without stack overflow" >> {
-      import scala.collection.JavaConverters._
       // actual count to get the old code to stack overflow varies depending on environment
       // with the fix, tested up to 100k without issue, but the specs checks take a long time with that many
       val count = 1000

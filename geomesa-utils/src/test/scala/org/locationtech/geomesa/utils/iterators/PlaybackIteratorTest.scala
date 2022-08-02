@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.iterators
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.memory.MemoryDataStore
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -20,6 +18,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Date
 import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])

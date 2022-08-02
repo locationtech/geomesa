@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util.Date
-import java.util.concurrent.ConcurrentHashMap
-
 import com.typesafe.config.Config
 import org.apache.commons.text.StringEscapeUtils
 import org.geotools.feature.AttributeTypeBuilder
@@ -23,6 +20,9 @@ import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.`type`.{AttributeDescriptor, FeatureTypeFactory, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.parboiled.errors.ParsingException
+
+import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 
 object SimpleFeatureTypes {
 

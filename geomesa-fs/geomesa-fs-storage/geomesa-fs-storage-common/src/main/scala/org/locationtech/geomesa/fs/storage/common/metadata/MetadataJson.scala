@@ -9,10 +9,6 @@
 package org.locationtech.geomesa.fs.storage.common // get pureconfig converters from common package
 package metadata
 
-import java.io.InputStreamReader
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.ConcurrentHashMap
-
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs.{CreateFlag, Path}
@@ -24,6 +20,9 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import pureconfig.ConfigWriter
 
+import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ConcurrentHashMap
 import scala.util.control.NonFatal
 
 /**

@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.stream.generic
 
-import java.net.{DatagramPacket, InetAddress}
-import java.nio.charset.StandardCharsets
-
 import com.google.common.io.Resources
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.IOUtils
@@ -21,7 +18,8 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.net.{DatagramPacket, InetAddress}
+import java.nio.charset.StandardCharsets
 import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])

@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.arrow
 
-import java.io.ByteArrayOutputStream
-import java.nio.channels.Channels
-import java.util.Collections
-
 import org.apache.arrow.vector.ipc.ArrowStreamWriter
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.apache.arrow.vector.types.pojo.Schema
@@ -25,6 +21,10 @@ import org.locationtech.geomesa.utils.conf.SemanticVersion
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.ByteArrayOutputStream
+import java.nio.channels.Channels
+import java.util.Collections
 
 package object io {
 

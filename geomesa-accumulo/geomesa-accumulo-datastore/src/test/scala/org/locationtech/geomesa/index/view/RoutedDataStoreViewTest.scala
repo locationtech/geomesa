@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.view
 
-import java.nio.file.{Files, Path}
-import java.util.Date
-
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.feature.NameImpl
@@ -23,6 +20,9 @@ import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.jts.geom.Point
 import org.specs2.runner.JUnitRunner
+
+import java.nio.file.{Files, Path}
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class RoutedDataStoreViewTest extends TestWithFeatureType {

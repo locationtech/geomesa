@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.kudu.data
 
-import java.awt.RenderingHints
-import java.io.Serializable
-import java.nio.charset.StandardCharsets
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kudu.client.KuduClient
 import org.geotools.data.DataAccessFactory.Param
@@ -22,6 +19,10 @@ import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+
+import java.awt.RenderingHints
+import java.io.Serializable
+import java.nio.charset.StandardCharsets
 
 class KuduDataStoreFactory extends DataStoreFactorySpi {
 

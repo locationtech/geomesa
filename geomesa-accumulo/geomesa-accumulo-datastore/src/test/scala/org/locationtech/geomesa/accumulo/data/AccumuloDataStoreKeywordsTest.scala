@@ -13,8 +13,6 @@ import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-import scala.collection.JavaConverters._
-
 class AccumuloDataStoreKeywordsTest extends TestWithMultipleSfts {
 
   "AccumuloDataStore" should {

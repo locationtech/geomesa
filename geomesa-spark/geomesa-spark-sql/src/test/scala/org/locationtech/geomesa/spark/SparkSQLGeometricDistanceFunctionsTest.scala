@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.spark
 
-import java.util.{Map => JMap}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
@@ -18,11 +16,12 @@ import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.{Map => JMap}
+
 @RunWith(classOf[JUnitRunner])
 class SparkSQLGeometricDistanceFunctionsTest extends Specification with LazyLogging {
 
   "sql geometric distance functions" should {
-    import scala.collection.JavaConverters._
 
     sequential
     val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")

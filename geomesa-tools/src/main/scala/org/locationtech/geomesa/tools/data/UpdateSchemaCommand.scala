@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.tools.data
 
-import java.io.IOException
-import java.util.Collections
-
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.geotools.data.DataStore
 import org.geotools.feature.AttributeTypeBuilder
@@ -21,6 +18,8 @@ import org.locationtech.geomesa.tools.utils.{NoopParameterSplitter, Prompt}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 
+import java.io.IOException
+import java.util.Collections
 import scala.util.control.NonFatal
 
 /**

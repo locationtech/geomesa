@@ -8,13 +8,6 @@
 
 package org.locationtech.geomesa.stream.datastore
 
-import java.awt.RenderingHints
-import java.util.Collections
-import java.util.concurrent.{CopyOnWriteArrayList, Executors, TimeUnit}
-import java.util.function.Function
-import java.util.logging.Level
-import java.{util => ju}
-
 import com.github.benmanes.caffeine.cache.{Cache, Caffeine, RemovalCause, RemovalListener}
 import com.typesafe.config.ConfigFactory
 import org.apache.camel.CamelContext
@@ -42,6 +35,12 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.slf4j.LoggerFactory
 
+import java.awt.RenderingHints
+import java.util.Collections
+import java.util.concurrent.{CopyOnWriteArrayList, Executors, TimeUnit}
+import java.util.function.Function
+import java.util.logging.Level
+import java.{util => ju}
 import scala.collection.JavaConverters._
 
 case class FeatureHolder(sf: SimpleFeature, geom: Geometry) {

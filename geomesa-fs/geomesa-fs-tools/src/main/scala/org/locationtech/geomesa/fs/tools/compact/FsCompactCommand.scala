@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools.compact
 
-import java.util.Locale
-import java.util.concurrent.{CountDownLatch, Executors}
-
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
@@ -24,13 +21,15 @@ import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.Command.CommandException
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
+import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.utils.ParameterConverters.BytesConverter
 import org.locationtech.geomesa.tools.utils.TerminalCallback.PrintProgress
-import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
 
+import java.util.Locale
+import java.util.concurrent.{CountDownLatch, Executors}
 import scala.util.control.NonFatal
 
 // need to mixin FsDistributedCommand to pick up base libjars file

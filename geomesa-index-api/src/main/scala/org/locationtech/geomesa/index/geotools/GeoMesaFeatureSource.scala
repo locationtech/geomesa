@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.awt.RenderingHints.Key
-import java.net.URI
-import java.util
-import java.util.Collections
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
@@ -35,6 +30,10 @@ import org.opengis.filter.sort.SortBy
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 import org.opengis.util.ProgressListener
 
+import java.awt.RenderingHints.Key
+import java.net.URI
+import java.util
+import java.util.Collections
 import scala.collection.JavaConverters._
 import scala.util.Try
 

@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.kudu.index
 
-import java.nio.charset.StandardCharsets
-import java.util.Collections
-
 import org.apache.kudu.Schema
 import org.apache.kudu.client.{CreateTableOptions, PartialRow}
 import org.locationtech.geomesa.index.api._
@@ -19,6 +16,9 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.kudu.KuduValue
 import org.locationtech.geomesa.kudu.schema.KuduIndexColumnAdapter._
 import org.locationtech.geomesa.utils.index.ByteArrays
+
+import java.nio.charset.StandardCharsets
+import java.util.Collections
 
 object AttributeColumnMapper {
   private val columns = Seq(ValueColumnAdapter, SecondaryColumnAdapter, FeatureIdAdapter)

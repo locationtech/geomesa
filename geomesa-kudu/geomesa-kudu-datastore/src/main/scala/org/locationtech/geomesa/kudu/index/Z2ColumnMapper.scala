@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.kudu.index
 
-import java.nio.charset.StandardCharsets
-import java.util.Collections
-
 import org.apache.kudu.client.{CreateTableOptions, PartialRow}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
 import org.locationtech.geomesa.kudu.KuduValue
 import org.locationtech.geomesa.kudu.schema.KuduIndexColumnAdapter.{FeatureIdAdapter, ZColumnAdapter}
+
+import java.nio.charset.StandardCharsets
+import java.util.Collections
 
 object Z2ColumnMapper {
   private val columns = Seq(ZColumnAdapter, FeatureIdAdapter)

@@ -8,19 +8,17 @@
 
 package org.locationtech.geomesa.process.tube
 
-import org.locationtech.jts.geom.GeometryCollection
 import org.apache.log4j.Logger
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.GeometryCollection
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConverters._
 
 
 @RunWith(classOf[JUnitRunner])

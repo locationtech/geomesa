@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.tools
 
-import java.io.File
-import java.nio.charset.StandardCharsets
-
 import com.beust.jcommander.{JCommander, ParameterException}
 import com.facebook.nailgun.NGContext
 import com.typesafe.scalalogging.LazyLogging
@@ -23,6 +20,8 @@ import org.locationtech.geomesa.tools.status.{ConfigureCommand, EnvironmentComma
 import org.locationtech.geomesa.tools.utils.{GeoMesaIStringConverterFactory, NailgunServer}
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 
+import java.io.File
+import java.nio.charset.StandardCharsets
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 

@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.kafka.tools.export
 
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-import java.time.format.DateTimeFormatter
-
 import com.beust.jcommander.{ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataUtilities, FeatureEvent, FeatureListener}
@@ -19,6 +16,9 @@ import org.locationtech.geomesa.kafka.tools.{ConsumerDataStoreParams, KafkaDataS
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+
+import java.time.format.DateTimeFormatter
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
 
 class KafkaListenCommand extends KafkaDataStoreCommand with LazyLogging {
 

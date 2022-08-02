@@ -8,16 +8,15 @@
 
 package org.locationtech.geomesa.utils.index
 
-import java.util.concurrent.{Executors, TimeUnit}
-import java.util.concurrent.atomic.AtomicBoolean
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Envelope, Point}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{Envelope, Point}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{Executors, TimeUnit}
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

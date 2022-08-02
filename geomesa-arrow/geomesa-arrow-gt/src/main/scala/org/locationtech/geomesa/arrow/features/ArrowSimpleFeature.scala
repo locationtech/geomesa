@@ -8,17 +8,17 @@
 
 package org.locationtech.geomesa.arrow.features
 
-import java.util.{Objects, Collection => jCollection, List => jList, Map => jMap}
-
-import org.locationtech.jts.geom.Geometry
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader
 import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
+
+import java.util.{Objects, Collection => jCollection, List => jList, Map => jMap}
 
 /**
   * Simple feature backed by an arrow vector. Attributes are lazily evaluated - this allows filters to only

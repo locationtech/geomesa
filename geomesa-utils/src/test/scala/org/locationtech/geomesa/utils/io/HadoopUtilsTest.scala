@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.utils.io
 
-import java.io.File
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.File
 
 @RunWith(classOf[JUnitRunner])
 class HadoopUtilsTest extends Specification with LazyLogging {

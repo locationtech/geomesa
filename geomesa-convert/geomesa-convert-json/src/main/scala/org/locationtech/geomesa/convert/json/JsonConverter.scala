@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.convert.json
 
-import java.io._
-import java.nio.charset.Charset
-
 import com.google.gson._
 import com.google.gson.stream.{JsonReader, JsonToken}
 import com.jayway.jsonpath.spi.json.GsonJsonProvider
@@ -22,6 +19,9 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io._
+import java.nio.charset.Charset
 
 class JsonConverter(sft: SimpleFeatureType, config: JsonConverter.JsonConfig, fields: Seq[JsonConverter.JsonField], options: BasicOptions)
     extends AbstractConverter[JsonElement, JsonConverter.JsonConfig, JsonConverter.JsonField, BasicOptions](sft, config, fields, options) {

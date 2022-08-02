@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
-import java.util.Date
-
 import com.clearspring.analytics.stream.cardinality.RegisterSet
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.ejml.data.DMatrixRMaj
@@ -24,6 +21,8 @@ import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
+import java.util.Date
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 

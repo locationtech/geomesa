@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util.{Collections, Date}
-
 import org.geotools.data._
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.cql2.CQL
@@ -40,7 +38,7 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.util.{Collections, Date}
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

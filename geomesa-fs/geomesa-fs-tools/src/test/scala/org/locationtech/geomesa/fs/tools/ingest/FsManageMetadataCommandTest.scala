@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import java.nio.file.Files
-import java.util.Collections
-import java.util.concurrent.atomic.AtomicInteger
-
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
@@ -25,7 +21,9 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.nio.file.Files
+import java.util.Collections
+import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
 class FsManageMetadataCommandTest extends Specification {

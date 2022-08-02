@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa
 
-import java.{io => jio, util => ju}
-
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 import org.opengis.feature.simple.SimpleFeature
+
+import java.{io => jio, util => ju}
 
 package object security {
 

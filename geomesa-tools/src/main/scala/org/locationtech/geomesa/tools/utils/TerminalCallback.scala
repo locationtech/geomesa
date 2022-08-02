@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.tools.utils
 
-import java.io.PrintStream
-
 import org.locationtech.geomesa.jobs.StatusCallback
 import org.locationtech.geomesa.utils.text.TextTools
+
+import java.io.PrintStream
 
 object TerminalCallback {
 

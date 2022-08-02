@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.filter.function
 
-import java.time.{Duration, ZoneOffset, ZonedDateTime}
-import java.util.Date
-import java.util.concurrent.ConcurrentHashMap
-
 import org.geotools.data.Parameter
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
+
+import java.time.{Duration, ZoneOffset, ZonedDateTime}
+import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 
 class CurrentDateFunction extends FunctionExpressionImpl(CurrentDateFunction.Name) {
 

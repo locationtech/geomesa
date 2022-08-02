@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.planning
 
-import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
@@ -38,6 +35,9 @@ import org.locationtech.geomesa.utils.stats.{Stat, TopK}
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 
 /**
   * Query runner that handles transforms, visibilities and analytic queries locally. Subclasses are responsible

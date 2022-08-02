@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.spark.jts.rules
 
-import org.locationtech.jts.geom.Geometry
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.LeafExpression
 import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
 import org.apache.spark.sql.jts.JTSTypes.GeometryTypeInstance
 import org.apache.spark.sql.types.DataType
+import org.locationtech.jts.geom.Geometry
 
 /**
  * Catalyst AST expression used during rule rewriting to extract geometry literal values

@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.lang.reflect.Type
-import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
-import java.time.{LocalDateTime, ZoneOffset}
-import java.util.Date
-
 import com.google.gson._
 import org.apache.commons.text.StringEscapeUtils
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
@@ -22,6 +17,10 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.lang.reflect.Type
+import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
+import java.time.{LocalDateTime, ZoneOffset}
+import java.util.Date
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 

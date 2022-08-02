@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.web
 
-import java.security.cert.X509Certificate
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-
 import org.scalatra.ScalatraBase
 import org.scalatra.auth.{ScentryConfig, ScentryStrategy, ScentrySupport}
+
+import java.security.cert.X509Certificate
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 package object scalatra {
 

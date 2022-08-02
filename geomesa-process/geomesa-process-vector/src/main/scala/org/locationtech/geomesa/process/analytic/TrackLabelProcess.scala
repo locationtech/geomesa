@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.analytic
 
-import java.util.Date
-
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.process.ProcessException
@@ -18,6 +16,8 @@ import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.util.ProgressListener
+
+import java.util.Date
 
 /**
  * Returns a single feature that is the head of a track of related simple features

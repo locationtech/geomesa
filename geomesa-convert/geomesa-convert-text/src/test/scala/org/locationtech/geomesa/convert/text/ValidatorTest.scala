@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.convert.text
 
-import java.io.{ByteArrayInputStream, IOException}
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
@@ -20,6 +16,10 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, IOException}
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 @RunWith(classOf[JUnitRunner])
 class ValidatorTest extends Specification {

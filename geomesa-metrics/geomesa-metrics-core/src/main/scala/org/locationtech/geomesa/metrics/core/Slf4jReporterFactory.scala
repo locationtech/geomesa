@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.metrics.core
 
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-
 import com.codahale.metrics.Slf4jReporter.LoggingLevel
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter, Slf4jReporter}
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import org.slf4j.LoggerFactory
 import pureconfig.ConfigReader
+
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class Slf4jReporterFactory extends ReporterFactory {
 

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.transform
 
-import java.util.Locale
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
@@ -25,6 +23,8 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util.Locale
 
 @DescribeProcess(
   title = "Binary Conversion",

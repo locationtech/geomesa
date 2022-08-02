@@ -11,10 +11,10 @@ package org.locationtech.geomesa.features.avro
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.util.factory.Hints
 import org.geotools.feature.AbstractFeatureFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.utils.text.{ObjectPoolFactory, ObjectPoolUtils}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

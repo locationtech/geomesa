@@ -8,12 +8,6 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.locks.ReentrantLock
-import java.util.concurrent.{ConcurrentLinkedQueue, Executors, TimeUnit}
-
-import javax.xml.namespace.QName
 import net.opengis.wfs.WfsFactory
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
 import org.geotools.data.store.{DataFeatureCollection, ReTypingFeatureCollection}
@@ -25,6 +19,12 @@ import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStr
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 import org.locationtech.geomesa.tools.export.formats.GmlExporter.AsyncFeatureCollection
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.{ConcurrentLinkedQueue, Executors, TimeUnit}
+import javax.xml.namespace.QName
 
 /**
   * GML exporter implementation.

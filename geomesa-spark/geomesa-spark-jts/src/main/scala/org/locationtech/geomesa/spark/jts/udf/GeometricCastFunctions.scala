@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import java.nio.charset.StandardCharsets
-
-import org.locationtech.jts.geom._
 import org.apache.spark.sql.SQLContext
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.locationtech.jts.geom._
+
+import java.nio.charset.StandardCharsets
 
 object GeometricCastFunctions {
   val ST_CastToPoint:      Geometry => Point       = g => g.asInstanceOf[Point]

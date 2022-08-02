@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.Serializable
-import java.util
-
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
@@ -24,7 +21,8 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.io.Serializable
+import java.util
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreAuthTest extends TestWithFeatureType {

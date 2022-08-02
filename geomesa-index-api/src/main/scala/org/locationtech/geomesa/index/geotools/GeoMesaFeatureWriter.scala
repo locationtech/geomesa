@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.io.Flushable
-import java.util.concurrent.atomic.AtomicLong
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{DataUtilities, Query, Transaction}
@@ -26,9 +23,10 @@ import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, Z3FeatureIdGener
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.io.Flushable
+import java.util.concurrent.atomic.AtomicLong
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
-import scala.collection.parallel.CollectionConverters._ 
 
 trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWriter with Flushable with LazyLogging {
 

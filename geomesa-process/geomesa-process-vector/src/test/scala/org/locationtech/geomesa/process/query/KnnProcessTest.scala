@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.query
 
-import java.util.Collections
-
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
@@ -27,6 +25,8 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.spatial.BBOX
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class KnnProcessTest extends Specification {

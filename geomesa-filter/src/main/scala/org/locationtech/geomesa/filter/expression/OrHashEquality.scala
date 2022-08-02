@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.filter.expression
 
-import java.util.Collections
-
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.{Filter, FilterVisitor, Or}
 
+import java.util.Collections
 import scala.collection.immutable.HashSet
 
 /**

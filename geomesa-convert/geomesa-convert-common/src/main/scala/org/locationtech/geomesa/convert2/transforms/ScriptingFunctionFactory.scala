@@ -8,18 +8,17 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-import java.io.File
-import java.net.URI
-import java.nio.file.FileSystems
-import java.util.Collections
-
 import com.typesafe.scalalogging.LazyLogging
-import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
 import org.apache.commons.io.filefilter.TrueFileFilter
 import org.apache.commons.io.{FileUtils, FilenameUtils, IOUtils}
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
+import java.io.File
+import java.net.URI
+import java.nio.file.FileSystems
+import java.util.Collections
+import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
 import scala.collection.JavaConverters._
 
 /**

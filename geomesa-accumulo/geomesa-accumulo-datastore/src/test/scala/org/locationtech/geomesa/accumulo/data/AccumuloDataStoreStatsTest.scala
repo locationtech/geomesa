@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureReader
@@ -33,6 +30,9 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts with LazyLogging {
@@ -377,7 +377,6 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
       }
 
       "not calculate stats when collection is disabled" >> {
-        import scala.collection.JavaConverters._
         val params = dsParams ++ Map(AccumuloDataStoreParams.GenerateStatsParam.key -> false)
         val dsNoStats =  DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 

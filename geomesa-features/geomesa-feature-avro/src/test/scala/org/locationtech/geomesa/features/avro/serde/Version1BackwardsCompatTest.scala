@@ -8,12 +8,6 @@
 
 package org.locationtech.geomesa.features.avro.serde
 
-import java.io._
-import java.nio.charset.StandardCharsets.UTF_8
-import java.text.SimpleDateFormat
-import java.util.UUID
-
-import org.locationtech.jts.geom.{Geometry, GeometryFactory}
 import org.apache.avro.io.DecoderFactory
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
@@ -23,10 +17,15 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.FeatureSpecificReader
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{Geometry, GeometryFactory}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io._
+import java.nio.charset.StandardCharsets.UTF_8
+import java.text.SimpleDateFormat
+import java.util.UUID
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.io.Codec.UTF8
@@ -166,8 +165,6 @@ class Version1BackwardsCompatTest extends Specification {
 
         sf.getAttributeCount mustEqual 5
         sf.getAttributes.size mustEqual 5
-
-        import scala.collection.JavaConverters._
         sf.getAttributes.foreach { a =>
           a must not beNull
         }

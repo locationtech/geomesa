@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import java.io.{ByteArrayOutputStream, InputStream}
-
 import com.typesafe.config.Config
 import org.apache.avro.Schema
 import org.apache.avro.Schema.Parser
@@ -25,6 +23,8 @@ import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CopyingInputStream
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.{ByteArrayOutputStream, InputStream}
 
 class AvroConverter(sft: SimpleFeatureType, config: AvroConfig, fields: Seq[BasicField], options: BasicOptions)
     extends AbstractConverter[GenericRecord, AvroConfig, BasicField, BasicOptions](sft, config, fields, options) {

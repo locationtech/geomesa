@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.tools.ingest
 
-import java.io.File
-
 import com.beust.jcommander.Parameters
 import com.typesafe.config.Config
 import org.apache.hadoop.fs.Path
@@ -30,6 +28,8 @@ import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.{Command, OutputPathParam, RequiredIndexParam}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.File
 
 class HBaseBulkIngestCommand extends HBaseIngestCommand with HBaseDistributedCommand {
 

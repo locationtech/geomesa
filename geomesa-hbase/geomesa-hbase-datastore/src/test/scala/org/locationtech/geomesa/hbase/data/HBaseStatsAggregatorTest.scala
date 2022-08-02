@@ -24,8 +24,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
-
 @RunWith(classOf[JUnitRunner])
 class HBaseStatsAggregatorTest extends Specification with LazyLogging {
 

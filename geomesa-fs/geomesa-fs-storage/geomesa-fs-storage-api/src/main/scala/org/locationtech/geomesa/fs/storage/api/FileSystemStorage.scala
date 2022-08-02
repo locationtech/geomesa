@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.fs.storage.api
 
-import java.io.{Closeable, Flushable}
-
 import org.geotools.data.Query
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemUpdateWriter, FileSystemWriter}
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFilePath}
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
+
+import java.io.{Closeable, Flushable}
 
 /**
   * Persists simple features to a file system and provides query access. Storage implementations are fairly

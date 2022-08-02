@@ -8,19 +8,18 @@
 
 package org.locationtech.geomesa.utils.io
 
-import java.io._
-import java.net.{MalformedURLException, URL}
-import java.nio.file._
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.regex.Pattern
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FilenameUtils
 import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.{FileSystemDelegate, HadoopDelegate, LocalDelegate}
 
+import java.io._
+import java.net.{MalformedURLException, URL}
+import java.nio.file._
+import java.nio.file.attribute.BasicFileAttributes
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.regex.Pattern
 import scala.util.Try
 
 object PathUtils extends FileSystemDelegate with LazyLogging {

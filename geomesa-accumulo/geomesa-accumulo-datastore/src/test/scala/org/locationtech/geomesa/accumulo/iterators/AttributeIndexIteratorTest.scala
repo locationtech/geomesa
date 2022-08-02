@@ -8,25 +8,21 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.text.SimpleDateFormat
-import java.util.{Collections, Date, TimeZone}
-
 import org.geotools.data.Query
-import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.index.JoinIndex
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.conf.QueryHints.QUERY_INDEX
-import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.text.SimpleDateFormat
+import java.util.{Collections, Date, TimeZone}
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexIteratorTest extends Specification with TestWithFeatureType {

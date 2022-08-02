@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.jobs.mapreduce
 
-import java.io.{InputStream, OutputStream}
-
 import org.apache.hadoop.conf.Configured
 import org.apache.hadoop.io.serializer.{Deserializer, Serialization, Serializer}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -19,6 +17,8 @@ import org.locationtech.geomesa.utils.cache.ThreadLocalCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.{InputStream, OutputStream}
 
 /**
  * Hadoop writable serialization for simple features

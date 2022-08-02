@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.transform
 
-import java.io.ByteArrayOutputStream
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.data.Query
@@ -33,6 +31,7 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.ByteArrayOutputStream
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.reflect.ClassTag
 

@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.utils.io
 
-import java.io.InputStream
-
 import org.locationtech.geomesa.utils.collection.CircularByteQueue
+
+import java.io.InputStream
 
 /**
   * Proxies an input stream, copying any bytes read. The number of copied bytes can be checked with `copied`,

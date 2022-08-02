@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.tools
 
-import java.awt.RenderingHints
-import java.util.Collections
-import java.util.concurrent.ConcurrentHashMap
-
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.geotools.util.factory.FactoryIteratorProvider
+
+import java.awt.RenderingHints
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 
 /**
   * This class allows us to pass a concrete datastore instance through SPI loading, which is useful for testing

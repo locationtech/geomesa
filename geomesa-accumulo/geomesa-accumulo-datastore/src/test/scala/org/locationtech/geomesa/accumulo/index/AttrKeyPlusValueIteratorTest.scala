@@ -82,7 +82,6 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
       }
 
       "work with 150 attrs" >> {
-        import scala.collection.JavaConverters._
         val ff = CommonFactoryFinder.getFilterFactory2
         val filterName = ff.or((0 to 150).map(i => ff.equals(ff.property("name"), ff.literal(i.toString))))
         val filter = ff.and(filterName, ECQL.toFilter("BBOX(geom, 40, 40, 60, 60) and " +

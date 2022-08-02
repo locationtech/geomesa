@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import org.locationtech.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

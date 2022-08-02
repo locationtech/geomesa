@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
-
 import com.google.common.hash.Hashing
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
@@ -24,6 +22,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 
 @RunWith(classOf[JUnitRunner])
 class AvroConverterTest extends Specification with AvroUtils with LazyLogging {

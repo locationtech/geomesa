@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
-import java.time.ZonedDateTime
-
 import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.security.Authorizations
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit._
 
+import java.time.ZonedDateTime
 import scala.reflect.ClassTag
 
 class AccumuloAuditService(connector: Connector,

@@ -10,16 +10,6 @@ package org.locationtech.geomesa.bigtable.data
 
 import java.io.Serializable
 
-import org.apache.hadoop.hbase.HBaseConfiguration
-import org.apache.hadoop.hbase.client.Connection
-import org.geotools.data.DataAccessFactory.Param
-import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-
 class BigtableDataStoreFactory extends HBaseDataStoreFactory {
 
   import BigtableDataStoreFactory.BigtableCatalogParam

@@ -8,16 +8,15 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.nio.charset.StandardCharsets
-import java.util.{Date, UUID}
-import java.{lang, util}
-
 import org.apache.avro.Schema
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.nio.charset.StandardCharsets
+import java.util.{Date, UUID}
+import java.{lang, util}
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])

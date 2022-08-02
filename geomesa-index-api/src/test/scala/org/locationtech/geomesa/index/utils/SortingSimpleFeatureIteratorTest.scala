@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.utils
 
-import java.util.NoSuchElementException
-
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryProperties
@@ -22,6 +20,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.NoSuchElementException
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

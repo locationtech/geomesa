@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.kudu.result
 
-import java.util.Date
-
 import org.apache.kudu.client.RowResult
 import org.geotools.data.{DataUtilities, Query}
 import org.geotools.filter.text.ecql.ECQL
@@ -27,6 +25,8 @@ import org.opengis.filter.Filter
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Date
 
 
 @RunWith(classOf[JUnitRunner])

@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import org.locationtech.jts.geom.{Coordinate, GeometryFactory}
 import org.apache.spark.sql.functions._
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.jts._
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

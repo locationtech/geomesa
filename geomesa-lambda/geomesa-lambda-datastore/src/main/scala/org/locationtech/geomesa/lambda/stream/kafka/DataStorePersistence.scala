@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
-import java.io.Closeable
-import java.time.Clock
-import java.util.concurrent.{Executors, TimeUnit}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Transaction}
 import org.locationtech.geomesa.lambda.stream.OffsetManager
@@ -21,6 +18,9 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.Closeable
+import java.time.Clock
+import java.util.concurrent.{Executors, TimeUnit}
 import scala.util.Random
 import scala.util.control.NonFatal
 

@@ -9,9 +9,6 @@
 package org.locationtech.geomesa.features.kryo
 package impl
 
-import java.util
-import java.util.{Date, UUID}
-
 import com.esotericsoftware.kryo.io.Input
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer.NullByte
@@ -23,6 +20,8 @@ import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util
+import java.util.{Date, UUID}
 import scala.util.control.NonFatal
 
 /**

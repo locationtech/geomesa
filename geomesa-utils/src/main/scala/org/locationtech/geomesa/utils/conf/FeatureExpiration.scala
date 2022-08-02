@@ -8,10 +8,9 @@
 
 package org.locationtech.geomesa.utils.conf
 
-import java.util.Date
-
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.Date
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 

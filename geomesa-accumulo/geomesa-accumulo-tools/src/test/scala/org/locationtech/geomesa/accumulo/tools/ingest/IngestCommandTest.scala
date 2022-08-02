@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.tools.ingest
 
-import java.io.{ByteArrayInputStream, File}
-import java.util.concurrent.atomic.AtomicInteger
-
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.apache.commons.io.IOUtils
 import org.junit.runner.RunWith
@@ -20,6 +17,9 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, File}
+import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
 class IngestCommandTest extends Specification {

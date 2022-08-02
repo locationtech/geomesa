@@ -8,13 +8,11 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import org.locationtech.jts.geom.{Geometry, Polygon}
 import org.apache.spark.sql.functions._
-
-import org.locationtech.geomesa.spark.jts.util.WKTUtils
-import org.locationtech.geomesa.spark.jts._
-
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.spark.jts._
+import org.locationtech.geomesa.spark.jts.util.WKTUtils
+import org.locationtech.jts.geom.{Geometry, Polygon}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

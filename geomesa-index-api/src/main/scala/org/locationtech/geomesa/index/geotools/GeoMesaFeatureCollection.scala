@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.util.Collections
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource, SimpleFeatureStore}
 import org.geotools.data.store.DataFeatureCollection
@@ -35,6 +33,8 @@ import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.sort.SortBy
 import org.opengis.util.ProgressListener
 
+import java.util.Collections
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import scala.annotation.tailrec
 
 /**

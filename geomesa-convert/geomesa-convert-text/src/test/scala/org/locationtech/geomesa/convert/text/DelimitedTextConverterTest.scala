@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.convert.text
 
-import java.io.{ByteArrayInputStream, InputStreamReader}
-import java.nio.charset.StandardCharsets
-import java.util.{Collections, Date}
-
 import com.google.common.hash.Hashing
 import com.google.common.io.Resources
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
@@ -26,6 +22,10 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, InputStreamReader}
+import java.nio.charset.StandardCharsets
+import java.util.{Collections, Date}
 
 @RunWith(classOf[JUnitRunner])
 class DelimitedTextConverterTest extends Specification {
@@ -326,8 +326,6 @@ class DelimitedTextConverterTest extends Specification {
             |1,hello,Point(46.0 45.0)
             |2,world,Point(90.0 90.0)
           """.stripMargin
-
-        import scala.collection.JavaConverters._
         val sz = format.parse(new InputStreamReader(new ByteArrayInputStream(trueData.getBytes(StandardCharsets.UTF_8)))).iterator().toList.size
 
         // prove that skipHeader and empty lines doesn't work (at least as I think) and that we are safe to

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.transform
 
-import java.io.ByteArrayInputStream
-
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
@@ -22,13 +20,12 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.ByteArrayInputStream
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class ArrowConversionProcessTest extends Specification {
   sequential
-
-  import scala.collection.JavaConverters._
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 

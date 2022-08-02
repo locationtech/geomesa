@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.security
 
 import java.util
-
 import scala.collection.JavaConverters._
 
 /**

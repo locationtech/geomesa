@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.orc.utils
 
-import java.util.UUID
-
 import org.apache.hadoop.io._
 import org.apache.orc.mapred.{OrcList, OrcMap, OrcStruct, OrcTimestamp}
 import org.geotools.filter.identity.FeatureIdImpl
@@ -20,6 +18,8 @@ import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.{Coordinate, LineString, LinearRing, Polygon}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util.UUID
 
 trait OrcInputFormatReader {
   def apply(input: OrcStruct, sf: SimpleFeature): Unit

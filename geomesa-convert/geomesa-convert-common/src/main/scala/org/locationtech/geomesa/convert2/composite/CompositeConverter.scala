@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.convert2.composite
 
-import java.io.{ByteArrayInputStream, InputStream}
-import java.nio.charset.StandardCharsets
-
 import com.codahale.metrics.Counter
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -21,6 +18,8 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.{ByteArrayInputStream, InputStream}
+import java.nio.charset.StandardCharsets
 import scala.annotation.tailrec
 import scala.util.Try
 

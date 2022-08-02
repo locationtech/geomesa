@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.tools.export
 
-import java.io.Closeable
-import java.util.Date
-
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.simple.SimpleFeatureCollection
@@ -30,6 +27,8 @@ import org.locationtech.geomesa.utils.iterators.PlaybackIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.io.Closeable
+import java.util.Date
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 

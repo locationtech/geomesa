@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.memory.cqengine.utils
 
-import java.util.Date
-import java.util.regex.Pattern
-
 import com.googlecode.cqengine.attribute.Attribute
 import com.googlecode.cqengine.query.Query
 import com.googlecode.cqengine.query.simple.All
@@ -27,6 +24,8 @@ import org.opengis.filter.expression.Literal
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 
+import java.util.Date
+import java.util.regex.Pattern
 import scala.collection.JavaConverters._
 import scala.language._
 

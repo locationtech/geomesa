@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.filter
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.{Date, Locale}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.filter.Bounds.Bound
@@ -27,6 +24,8 @@ import org.opengis.filter.spatial._
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 import org.opengis.temporal.Period
 
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.{Date, Locale}
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 

@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io._
-import java.nio.charset.StandardCharsets
-
 import com.google.gson.stream.JsonWriter
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FilenameUtils
@@ -24,6 +21,8 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.jts.geom.{Coordinate, Geometry}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io._
+import java.nio.charset.StandardCharsets
 import scala.collection.JavaConverters._
 import scala.io.Source
 

@@ -8,19 +8,17 @@
 
 package org.locationtech.geomesa.features
 
-import java.util
-
-import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.NameImpl
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.Property
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.util
 import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])

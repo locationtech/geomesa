@@ -8,13 +8,11 @@
 
 package org.locationtech.geomesa.web.core
 
-import java.util.concurrent.ConcurrentHashMap
-
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.scalatra.{BadRequest, NotFound, Ok}
 
-import scala.collection.JavaConverters._
+import java.util.concurrent.ConcurrentHashMap
 import scala.util.Try
 
 trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {

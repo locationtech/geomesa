@@ -8,19 +8,17 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerialization
 import org.locationtech.geomesa.features.serialization.{GeometryLengthThreshold, GeometryNestingThreshold, TwkbSerialization}
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Coordinate, Geometry}
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])

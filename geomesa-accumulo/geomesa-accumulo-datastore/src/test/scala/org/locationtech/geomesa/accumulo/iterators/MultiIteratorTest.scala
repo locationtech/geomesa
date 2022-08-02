@@ -8,10 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.time.{ZoneOffset, ZonedDateTime}
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Polygon
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
@@ -21,11 +18,13 @@ import org.locationtech.geomesa.accumulo.iterators.TestData._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Polygon
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.time.{ZoneOffset, ZonedDateTime}
 import scala.util.{Failure, Success, Try}
 
 @RunWith(classOf[JUnitRunner])

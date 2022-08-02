@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.web.core
 
 import com.typesafe.scalalogging.LazyLogging
-import javax.servlet.ServletContext
 import org.scalatra.servlet.RichServletContext
 import org.springframework.context.{ApplicationContext, ApplicationContextAware}
 import org.springframework.web.context.ServletContextAware
 
+import javax.servlet.ServletContext
 import scala.beans.BeanProperty
 import scala.collection.JavaConverters._
 

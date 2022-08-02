@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.features
 
-import java.util.UUID
-
-import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.{AvroFeatureSerializer, AvroSimpleFeatureFactory, ProjectingAvroFeatureDeserializer}
@@ -24,7 +21,7 @@ import org.specs2.matcher.{MatchResult, Matcher}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.util.UUID
 
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureSerializersTest extends Specification {

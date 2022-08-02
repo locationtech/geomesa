@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.tools.data
 
-import java.nio.charset.StandardCharsets
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-import java.util.concurrent.{Executors, TimeUnit}
-import java.util.{Date, UUID}
-
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.Key
@@ -29,6 +24,10 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.text.TextTools
 import org.locationtech.geomesa.utils.uuid.Z3UuidGenerator
 
+import java.nio.charset.StandardCharsets
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.util.concurrent.{Executors, TimeUnit}
+import java.util.{Date, UUID}
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 

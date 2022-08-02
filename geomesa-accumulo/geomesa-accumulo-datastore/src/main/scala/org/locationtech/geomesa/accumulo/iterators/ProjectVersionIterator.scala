@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.nio.charset.StandardCharsets
-import java.util
-
 import org.apache.accumulo.core.client.{IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties
+
+import java.nio.charset.StandardCharsets
+import java.util
 
 class ProjectVersionIterator extends SortedKeyValueIterator[Key, Value] {
 

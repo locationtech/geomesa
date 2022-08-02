@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import org.locationtech.spatial4j.context.jts.JtsSpatialContext
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.iterators.CartesianProductIterable
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom._
+import org.locationtech.spatial4j.context.jts.JtsSpatialContext
 
 import scala.collection.BitSet
 import scala.collection.immutable.HashSet

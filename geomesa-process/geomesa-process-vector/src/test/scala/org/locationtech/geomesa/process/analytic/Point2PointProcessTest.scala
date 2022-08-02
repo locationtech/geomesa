@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.process.analytic
 
-import java.text.SimpleDateFormat
-import java.util.TimeZone
-
-import org.locationtech.jts.geom.LineString
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -19,10 +15,12 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.LineString
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.text.SimpleDateFormat
+import java.util.TimeZone
 
 @RunWith(classOf[JUnitRunner])
 class Point2PointProcessTest extends Specification {

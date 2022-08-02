@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.text.SimpleDateFormat
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
@@ -26,6 +23,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.text.SimpleDateFormat
+import java.util.Date
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
 

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.tube
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
@@ -28,6 +26,7 @@ import org.locationtech.jts.geom._
 import org.opengis.feature.Feature
 import org.opengis.filter.Filter
 
+import java.util.Date
 import scala.collection.JavaConverters._
 
 @DescribeProcess(

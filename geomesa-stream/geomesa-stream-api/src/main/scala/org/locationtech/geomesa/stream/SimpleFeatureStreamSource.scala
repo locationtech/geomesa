@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.stream
 
-import java.util.ServiceLoader
-
 import com.typesafe.config.Config
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util.ServiceLoader
 
 trait SimpleFeatureStreamSource {
   def next: SimpleFeature

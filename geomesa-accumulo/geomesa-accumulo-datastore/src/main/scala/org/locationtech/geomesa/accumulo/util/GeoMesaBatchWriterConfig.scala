@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.accumulo.util
 
-import java.util.concurrent.TimeUnit
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriterConfig
 import org.locationtech.geomesa.accumulo.AccumuloProperties
+
+import java.util.concurrent.TimeUnit
 
 object GeoMesaBatchWriterConfig extends LazyLogging {
 

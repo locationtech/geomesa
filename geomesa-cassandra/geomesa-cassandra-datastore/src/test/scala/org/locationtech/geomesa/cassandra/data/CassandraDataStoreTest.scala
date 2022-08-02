@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import java.nio.file.{Files, Path}
-
 import com.datastax.driver.core.{Cluster, SocketOptions}
 import org.cassandraunit.CQLDataLoader
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet
@@ -17,8 +15,8 @@ import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStoreFinder, Query, _}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.Params
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -33,7 +31,7 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.nio.file.{Files, Path}
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])

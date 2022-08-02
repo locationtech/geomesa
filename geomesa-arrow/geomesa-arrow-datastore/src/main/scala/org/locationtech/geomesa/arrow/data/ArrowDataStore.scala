@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.arrow.data
 
-import java.io.{FileOutputStream, IOException, InputStream, OutputStream}
-import java.net.URL
-
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
@@ -27,6 +24,8 @@ import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.io.{FileOutputStream, IOException, InputStream, OutputStream}
+import java.net.URL
 import scala.util.Try
 import scala.util.control.NonFatal
 

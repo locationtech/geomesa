@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import java.util.Map.Entry
-
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.hadoop.io.Text
@@ -36,6 +34,7 @@ import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.util.Map.Entry
 import scala.util.Try
 
 /**

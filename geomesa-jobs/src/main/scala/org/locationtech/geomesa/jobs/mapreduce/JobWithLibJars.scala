@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.jobs.mapreduce
 
-import java.io.{File, IOException}
-import java.nio.charset.StandardCharsets
-
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.mapreduce.Job
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.utils.io.WithClose
 
+import java.io.{File, IOException}
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 trait JobWithLibJars {

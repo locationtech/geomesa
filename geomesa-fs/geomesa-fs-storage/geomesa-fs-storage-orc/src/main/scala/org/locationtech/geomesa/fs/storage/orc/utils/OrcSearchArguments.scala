@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.orc.utils
 
-import java.sql.Timestamp
-
 import org.apache.orc.TypeDescription
 import org.apache.orc.storage.ql.io.sarg.{PredicateLeaf, SearchArgument, SearchArgumentFactory}
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
@@ -17,6 +15,8 @@ import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.jts.geom.{Geometry, Point}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import java.sql.Timestamp
 
 object OrcSearchArguments {
 

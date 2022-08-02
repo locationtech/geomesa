@@ -9,16 +9,15 @@
 
 package org.locationtech.geomesa.convert.redis
 
-import java.io.Closeable
-import java.net.URI
-import java.util.concurrent.TimeUnit
-
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.{EnrichmentCache, EnrichmentCacheFactory}
 import redis.clients.jedis.util.JedisURIHelper
 import redis.clients.jedis.{Jedis, JedisPool}
 
+import java.io.Closeable
+import java.net.URI
+import java.util.concurrent.TimeUnit
 import scala.util.Try
 
 trait RedisConnectionBuilder extends Closeable {

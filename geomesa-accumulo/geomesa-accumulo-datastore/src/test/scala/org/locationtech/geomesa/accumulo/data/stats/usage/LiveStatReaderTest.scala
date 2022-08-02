@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data.stats.usage
 
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
@@ -18,6 +16,8 @@ import org.locationtech.geomesa.accumulo.audit.{AccumuloEventReader, AccumuloQue
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
 
 @RunWith(classOf[JUnitRunner])
 class LiveStatReaderTest extends Specification {

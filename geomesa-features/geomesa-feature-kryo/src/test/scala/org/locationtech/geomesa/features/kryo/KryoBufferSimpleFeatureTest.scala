@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.nio.charset.StandardCharsets
-import java.util.{Date, UUID}
-
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -18,6 +15,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.nio.charset.StandardCharsets
+import java.util.{Date, UUID}
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])

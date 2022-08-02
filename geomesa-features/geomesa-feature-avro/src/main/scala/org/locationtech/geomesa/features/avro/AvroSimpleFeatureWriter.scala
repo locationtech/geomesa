@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.nio.ByteBuffer
 import org.apache.avro.Schema
 import org.apache.avro.io.{DatumWriter, Encoder}
 import org.geotools.data.DataUtilities
@@ -16,6 +15,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.serialization.AvroUserDataSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.nio.ByteBuffer
 import scala.util.control.NonFatal
 
 class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: Set[SerializationOption] = Set.empty)

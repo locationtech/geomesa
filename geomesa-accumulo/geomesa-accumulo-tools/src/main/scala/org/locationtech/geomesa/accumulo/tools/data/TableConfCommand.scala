@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.tools.data
 
-import java.util.regex.Pattern
-
 import com.beust.jcommander.{Parameter, Parameters}
 import org.apache.accumulo.core.client.TableNotFoundException
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
@@ -17,6 +15,7 @@ import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, Accumu
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util.regex.Pattern
 import scala.collection.JavaConverters._
 
 class TableConfCommand extends CommandWithSubCommands {

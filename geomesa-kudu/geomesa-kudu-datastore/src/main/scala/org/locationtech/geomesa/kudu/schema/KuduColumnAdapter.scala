@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.kudu.schema
 
-import java.io.ByteArrayOutputStream
-import java.nio.ByteBuffer
-import java.util.{Date, UUID}
-
 import org.apache.kudu.ColumnSchema.ColumnSchemaBuilder
 import org.apache.kudu.client.KuduPredicate.ComparisonOp
 import org.apache.kudu.client.{KuduPredicate, PartialRow, RowResult}
@@ -22,13 +18,16 @@ import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerializ
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
 import org.locationtech.geomesa.kudu.schema.KuduSimpleFeatureSchema.KuduFilter
 import org.locationtech.geomesa.kudu.utils.ColumnConfiguration
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
 import org.locationtech.jts.geom.{Coordinate, Geometry, Point}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
+import java.util.{Date, UUID}
 import scala.reflect.ClassTag
 
 /**

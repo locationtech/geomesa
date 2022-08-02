@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.net.URL
-import java.util.Collections
-
 import com.typesafe.config.ConfigFactory
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.net.URL
+import java.util.Collections
 
 /**
  * Query all SimpleFeatureTypeProviders to expose all available SimpleFeatureTypes

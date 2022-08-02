@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.convert.jdbc
 
-import java.io.InputStream
-import java.nio.charset.Charset
-import java.sql.{Connection, DriverManager, PreparedStatement, ResultSet}
-
 import com.typesafe.config.Config
 import org.apache.commons.io.{IOUtils, LineIterator}
 import org.locationtech.geomesa.convert._
@@ -23,6 +19,9 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, IsCloseable}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.InputStream
+import java.nio.charset.Charset
+import java.sql.{Connection, DriverManager, PreparedStatement, ResultSet}
 import scala.annotation.tailrec
 import scala.util.Try
 

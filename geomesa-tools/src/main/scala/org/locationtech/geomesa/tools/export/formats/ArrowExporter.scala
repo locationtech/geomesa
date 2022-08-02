@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io._
-
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.util.factory.Hints
@@ -24,6 +22,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io._
 import scala.reflect.ClassTag
 
 class ArrowExporter(stream: ExportStream, hints: Hints, queryDictionaries: => Map[String, Array[AnyRef]])

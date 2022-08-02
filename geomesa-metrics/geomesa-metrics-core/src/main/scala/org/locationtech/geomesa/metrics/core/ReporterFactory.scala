@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.metrics.core
 
-import java.util.concurrent.TimeUnit
-
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 import pureconfig.{ConfigCursor, ConfigObjectCursor, ConfigReader}
 
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 

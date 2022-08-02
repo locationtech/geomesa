@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.stream.datastore
 
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.AtomicLong
-
 import com.google.common.io.Resources
 import org.apache.commons.io.IOUtils
 import org.apache.commons.net.DefaultSocketFactory
@@ -21,7 +18,8 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicLong
 import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])

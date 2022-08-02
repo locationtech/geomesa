@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.geojson.servlet
 
-import java.net.URLEncoder
-import java.nio.file.Files
-
 import org.json4s.{DefaultFormats, Formats}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
@@ -19,6 +16,9 @@ import org.locationtech.geomesa.utils.io.PathUtils
 import org.scalatra.test.specs2.MutableScalatraSpec
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.core.Fragments
+
+import java.net.URLEncoder
+import java.nio.file.Files
 
 @RunWith(classOf[JUnitRunner])
 class GeoJsonServletTest extends TestWithDataStore with MutableScalatraSpec {

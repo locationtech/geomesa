@@ -49,7 +49,6 @@ class QueryProcessTest extends Specification {
       }
     }
     "manually visit a feature collection and transform" in {
-      import scala.collection.JavaConverters._
       val filter = ECQL.toFilter("track = 't-1'")
       val transforms = Seq(Seq("track", "geom"), Seq("geom"))
       foreach(transforms) { transform =>

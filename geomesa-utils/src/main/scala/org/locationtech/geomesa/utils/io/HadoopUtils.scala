@@ -8,16 +8,15 @@
 
 package org.locationtech.geomesa.utils.io
 
-import java.io.Closeable
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.security.UserGroupInformation
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.io.fs.HadoopDelegate
 
+import java.io.Closeable
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 import scala.util.control.NonFatal
 
 /**

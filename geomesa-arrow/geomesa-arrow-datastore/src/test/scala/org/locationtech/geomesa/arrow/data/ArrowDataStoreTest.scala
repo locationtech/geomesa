@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.arrow.data
 
-import java.io.{File, FileOutputStream}
-import java.net.URL
-import java.nio.file.Files
-
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -28,12 +24,14 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.{File, FileOutputStream}
+import java.net.URL
+import java.nio.file.Files
+
 @RunWith(classOf[JUnitRunner])
 class ArrowDataStoreTest extends Specification {
 
   import ArrowDataStoreFactory.{CachingParam, UrlParam}
-
-  import scala.collection.JavaConverters._
 
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 

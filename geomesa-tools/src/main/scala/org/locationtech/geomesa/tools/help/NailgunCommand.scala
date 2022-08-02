@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.tools.help
 
-import java.util.concurrent.TimeUnit
-
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.tools.help.NailgunCommand._
 import org.locationtech.geomesa.tools.utils.NailgunServer.NailgunAware
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands}
 import org.locationtech.geomesa.utils.text.TextTools
+
+import java.util.concurrent.TimeUnit
 
 /**
  * Note: most of this class is a placeholder for the 'ng' functions implemented in the 'geomesa-*' script,

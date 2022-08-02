@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.planning
 
-import java.io.Closeable
-import java.util.concurrent.TimeUnit
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query}
@@ -20,6 +17,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.Closeable
+import java.util.concurrent.TimeUnit
 import scala.util.control.NonFatal
 
 /**
@@ -77,8 +76,6 @@ object QueryInterceptor extends LazyLogging {
       * @param ds data store
       */
     private class QueryInterceptorFactoryImpl(ds: DataStore) extends QueryInterceptorFactory {
-
-      import scala.collection.JavaConverters._
 
       private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
 

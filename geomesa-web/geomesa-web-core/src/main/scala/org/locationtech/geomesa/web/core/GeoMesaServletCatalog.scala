@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.web.core
 
-import java.util.concurrent.ConcurrentHashMap
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStore
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util.concurrent.ConcurrentHashMap
 import scala.collection.JavaConverters._
 
 object GeoMesaServletCatalog extends LazyLogging {
