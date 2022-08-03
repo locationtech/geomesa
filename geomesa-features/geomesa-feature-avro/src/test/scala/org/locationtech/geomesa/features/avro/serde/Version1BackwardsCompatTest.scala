@@ -156,6 +156,8 @@ class Version1BackwardsCompatTest extends Specification {
 
   "FeatureSpecificReader" should {
     "do subset data" in {
+      import scala.collection.JavaConverters._
+
       val subset = getSubsetData
       subset.size mustEqual 10
 
@@ -165,7 +167,7 @@ class Version1BackwardsCompatTest extends Specification {
 
         sf.getAttributeCount mustEqual 5
         sf.getAttributes.size mustEqual 5
-        sf.getAttributes.foreach { a =>
+        sf.getAttributes.asScala.foreach { a =>
           a must not beNull
         }
 

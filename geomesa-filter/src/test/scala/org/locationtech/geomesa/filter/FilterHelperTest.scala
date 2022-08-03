@@ -380,6 +380,7 @@ class FilterHelperTest extends Specification {
     }
 
     "deduplicate massive OR filters without stack overflow" >> {
+      import scala.collection.JavaConverters._
       // actual count to get the old code to stack overflow varies depending on environment
       // with the fix, tested up to 100k without issue, but the specs checks take a long time with that many
       val count = 1000
@@ -391,7 +392,7 @@ class FilterHelperTest extends Specification {
       val flattened = FilterHelper.simplify(filter)
       flattened must beAnInstanceOf[Or]
       flattened.asInstanceOf[Or].getChildren must haveLength(count)
-      flattened.asInstanceOf[Or].getChildren.map(_.toString) must
+      flattened.asInstanceOf[Or].getChildren.asScala.map(_.toString) must
           containTheSameElementsAs((0 until count).map(i => s"[ a equals $i ]"))
     }
 

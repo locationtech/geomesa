@@ -13,6 +13,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -20,6 +21,8 @@ import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class RouteSearchProcessTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -31,10 +34,10 @@ class RouteSearchProcessTest extends Specification {
   val process = new RouteSearchProcess
 
   val routes = new ListFeatureCollection(routeSft,
-    List(ScalaSimpleFeature.create(routeSft, "r0", "LINESTRING (40 40, 40.5 40.5, 40.5 41)")))
+    Array[SimpleFeature](ScalaSimpleFeature.create(routeSft, "r0", "LINESTRING (40 40, 40.5 40.5, 40.5 41)")))
 
   // features along the lower angled part of the route, headed in the opposite direction
-  val features0 = (0 until 10).map { i =>
+  val features0 = Seq.tabulate[SimpleFeature](10) { i =>
     val sf = new ScalaSimpleFeature(sft, s"0$i")
     sf.setAttribute("track", "0")
     sf.setAttribute("heading", Double.box(217.3 + (r.nextDouble * 10) - 5))
@@ -45,7 +48,7 @@ class RouteSearchProcessTest extends Specification {
   }
 
   // features along the upper vertical part of the route
-  val features1 = (0 until 10).map { i =>
+  val features1 = Seq.tabulate[SimpleFeature](10) { i =>
     val sf = new ScalaSimpleFeature(sft, s"1$i")
     sf.setAttribute("track", "1")
     sf.setAttribute("heading", Double.box((r.nextDouble * 10) - 5))
@@ -55,7 +58,7 @@ class RouteSearchProcessTest extends Specification {
   }
 
   // features along the upper vertical part of the route, but with a heading off by 5-15 degrees
-  val features2 = (0 until 10).map { i =>
+  val features2 = Seq.tabulate[SimpleFeature](10) { i =>
     val sf = new ScalaSimpleFeature(sft, s"2$i")
     sf.setAttribute("track", "2")
     sf.setAttribute("heading", Double.box(10 + (r.nextDouble * 10) - 5))
@@ -65,7 +68,7 @@ class RouteSearchProcessTest extends Specification {
   }
 
   // features headed along the upper vertical part of the route, but not close to the route
-  val features3 = (0 until 10).map { i =>
+  val features3 = Seq.tabulate[SimpleFeature](10) { i =>
     val sf = new ScalaSimpleFeature(sft, s"3$i")
     sf.setAttribute("track", "3")
     sf.setAttribute("heading", Double.box((r.nextDouble * 10) - 5))
@@ -74,7 +77,7 @@ class RouteSearchProcessTest extends Specification {
     sf
   }
 
-  val input = new ListFeatureCollection(sft, features0 ++ features1 ++ features2 ++ features3)
+  val input = new ListFeatureCollection(sft, (features0 ++ features1 ++ features2 ++ features3).asJava)
 
   "RouteSearch" should {
     "return features along a route" in {

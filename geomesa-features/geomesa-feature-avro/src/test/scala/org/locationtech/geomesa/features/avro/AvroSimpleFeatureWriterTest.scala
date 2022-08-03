@@ -23,6 +23,8 @@ import java.util
 @RunWith(classOf[JUnitRunner])
 class AvroSimpleFeatureWriterTest extends Specification with Mockito with AbstractAvroSimpleFeatureTest {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   "AvroSimpleFeatureWriter2" should {
@@ -61,16 +63,16 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
         n.getID mustEqual o.getID
         n.getAttributeCount mustEqual o.getAttributeCount
         n.getAttributeCount mustEqual 16
-        n.getAttributes.dropRight(1) mustEqual o.getAttributes.dropRight(1)
-        util.Arrays.equals(n.getAttributes.last.asInstanceOf[Array[Byte]], o.getAttributes.last.asInstanceOf[Array[Byte]]) must beTrue
+        n.getAttributes.asScala.dropRight(1) mustEqual o.getAttributes.asScala.dropRight(1)
+        util.Arrays.equals(n.getAttributes.asScala.last.asInstanceOf[Array[Byte]], o.getAttributes.asScala.last.asInstanceOf[Array[Byte]]) must beTrue
       }
 
       newFeatures.zip(features).foreach { case (n, o) =>
         n.getID mustEqual o.getID
         n.getAttributeCount mustEqual o.getAttributeCount
         n.getAttributeCount mustEqual 16
-        n.getAttributes.dropRight(1) mustEqual o.getAttributes.dropRight(1)
-        util.Arrays.equals(n.getAttributes.last.asInstanceOf[Array[Byte]], o.getAttributes.last.asInstanceOf[Array[Byte]]) must beTrue
+        n.getAttributes.asScala.dropRight(1) mustEqual o.getAttributes.asScala.dropRight(1)
+        util.Arrays.equals(n.getAttributes.asScala.last.asInstanceOf[Array[Byte]], o.getAttributes.asScala.last.asInstanceOf[Array[Byte]]) must beTrue
       }
 
       success

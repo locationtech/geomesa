@@ -27,6 +27,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   override val spec = "name:String:index=full,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.visibility.level='attribute'"
@@ -68,7 +70,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
   }
 
   def queryByAuths(auths: String, filter: String, expectedStrategy: String): Seq[SimpleFeature] = {
-    val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
+    val ds = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asJava).asInstanceOf[AccumuloDataStore]
     val query = new Query(sftName, ECQL.toFilter(filter))
     val plans = ds.getQueryPlan(query)
     forall(plans)(_.filter.index.name mustEqual expectedStrategy)
@@ -105,7 +107,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
     }
 
     "delete one record" in {
-      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+      val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
       val fs: SimpleFeatureStore = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
 
       val queryBefore = new Query(sftName, ECQL.toFilter("IN('user')"))
@@ -120,7 +122,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
     }
 
     "delete all records" in {
-      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+      val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
       val fs: SimpleFeatureStore = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
 
       val queryBefore = new Query(sftName, ECQL.toFilter("INCLUDE"))

@@ -25,6 +25,8 @@ import java.util.TimeZone
 @RunWith(classOf[JUnitRunner])
 class Point2PointProcessTest extends Specification {
 
+  import scala.collection.JavaConverters._
+
   val fName = "Point2PointProcess"
   val sft = SimpleFeatureTypes.createType(fName, "myid:String,*geom:Point:srid=4326,dtg:Date,myint:Int")
 
@@ -49,7 +51,7 @@ class Point2PointProcessTest extends Specification {
   val features = new ListFeatureCollection(sft)
 
   step {
-    features.addAll(points1 ++ points2)
+    features.addAll((points1 ++ points2).asJava)
   }
 
   "Point2PointProcess" should {

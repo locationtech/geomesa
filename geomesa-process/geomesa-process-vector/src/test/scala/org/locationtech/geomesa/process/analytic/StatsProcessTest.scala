@@ -16,6 +16,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Collections
+
 @RunWith(classOf[JUnitRunner])
 class StatsProcessTest extends Specification {
 
@@ -43,7 +45,7 @@ class StatsProcessTest extends Specification {
       result.map(_.getAttribute(0)) mustEqual Seq("""{"count":10}""")
     }
     "manually visit a feature collection with projections" in {
-      val props = Seq("m=strConcat('m:', track)")
+      val props = Collections.singletonList("m=strConcat('m:', track)")
       val result = SelfClosingIterator(process.execute(fc, "Enumeration(m)", encode = false, props).features).toSeq
       result.map(_.getAttribute(0)) mustEqual Seq("""{"m:t-0":5,"m:t-1":5}""")
     }

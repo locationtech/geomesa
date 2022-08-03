@@ -22,6 +22,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class QueryProcessTest extends Specification {
 
+  import scala.collection.JavaConverters._
+
   val process = new QueryProcess
 
   val sft = SimpleFeatureTypes.createType("sample", "track:String,dtg:Date,*geom:Point:srid=4326")
@@ -53,7 +55,7 @@ class QueryProcessTest extends Specification {
       val transforms = Seq(Seq("track", "geom"), Seq("geom"))
       foreach(transforms) { transform =>
         val retype = DataUtilities.createSubType(sft, transform.toArray)
-        val result = SelfClosingIterator(process.execute(fc, filter, transform).features).toSeq
+        val result = SelfClosingIterator(process.execute(fc, filter, transform.asJava).features).toSeq
         result mustEqual SelfClosingIterator(new ReTypingFeatureCollection(fc.subCollection(filter), retype).features()).toSeq
       }
     }

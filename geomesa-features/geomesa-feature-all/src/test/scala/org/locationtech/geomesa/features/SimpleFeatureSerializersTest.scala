@@ -331,7 +331,7 @@ class SimpleFeatureSerializersTest extends Specification {
       forall(decoded.zip(features)) { case (d, sf) =>
         d.getID mustEqual sf.getID
         d.getAttributes mustEqual sf.getAttributes
-        d.getUserData.toMap mustEqual sf.getUserData.toMap
+        d.getUserData mustEqual sf.getUserData
       }
     }
 
@@ -353,7 +353,7 @@ class SimpleFeatureSerializersTest extends Specification {
       val decoder = KryoFeatureSerializer(sft, SerializationOptions.withUserData)
 
       val decoded = decoder.deserialize(encoded)
-      decoded.getUserData must beEmpty
+      decoded.getUserData.size mustEqual 0
     }
   }
 
@@ -391,7 +391,7 @@ class SimpleFeatureSerializersTest extends Specification {
       val decoded = encoded.map(decoder.deserialize)
 
       forall(features.zip(decoded)) { case (in, out) =>
-        out.getUserData.toMap mustEqual in.getUserData.toMap
+        out.getUserData mustEqual in.getUserData
       }
     }
   }

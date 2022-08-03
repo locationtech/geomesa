@@ -24,10 +24,11 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
+import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
 
-import java.util.Date
+import java.util.{Collections, Date}
 
 @RunWith(classOf[JUnitRunner])
 class TubeSelectProcessTest extends TestWithMultipleSfts {
@@ -225,7 +226,7 @@ class TubeSelectProcessTest extends TestWithMultipleSfts {
         val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft1, List(), i.toString)
         sf.setDefaultGeometry(curPoint)
         sf.setAttribute("dtg", new Date(t))
-        sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         featureCollection.add(sf)
         if((t - startTime) % 600000 == 0 ) {         //Create a track point every 10 minutes
           sf.setAttribute("type","track")
@@ -281,9 +282,9 @@ class TubeSelectProcessTest extends TestWithMultipleSfts {
       }
 
       // tube features
-      val aLine = ScalaSimpleFeature.create(sft3, "a-line", "a", "LINESTRING(40 40, 40 50)", "2011-01-01T00:00:00Z")
+      val aLine: SimpleFeature = ScalaSimpleFeature.create(sft3, "a-line", "a", "LINESTRING(40 40, 40 50)", "2011-01-01T00:00:00Z")
       // aLine.setAttribute("end", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
-      val tubeFeatures = new ListFeatureCollection(sft3, List(aLine))
+      val tubeFeatures = new ListFeatureCollection(sft3, Collections.singletonList(aLine))
 
       val fs = ds.getFeatureSource(sft3.getTypeName)
 
@@ -315,9 +316,9 @@ class TubeSelectProcessTest extends TestWithMultipleSfts {
       val res = fs.getFeatures()
 
       // tube features
-      val aLine = ScalaSimpleFeature.create(sft3, "a-line", "a", "LINESTRING(40 40, 40 50)", "2011-01-01T00:00:00Z")
+      val aLine: SimpleFeature = ScalaSimpleFeature.create(sft3, "a-line", "a", "LINESTRING(40 40, 40 50)", "2011-01-01T00:00:00Z")
       // aLine.setAttribute("end", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
-      val tubeFeatures = new ListFeatureCollection(sft3, List(aLine))
+      val tubeFeatures = new ListFeatureCollection(sft3, Collections.singletonList(aLine))
 
       // ensure null values work and don't throw exceptions
       ts.execute(tubeFeatures, res, null, null, null, null, null, null) should not(throwAn[ClassCastException])

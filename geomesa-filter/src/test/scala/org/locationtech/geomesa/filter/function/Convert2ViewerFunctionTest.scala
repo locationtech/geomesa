@@ -30,7 +30,7 @@ class Convert2ViewerFunctionTest extends Specification {
       val sft = SimpleFeatureTypes.createType("foo", "foo:String,dtg:Date,*geom:Point:srid=4326")
       val sf = ScalaSimpleFeature.create(sft, "", "foo", "2017-01-01T00:00:00.000Z", "POINT (45 50)")
       val fn = new Convert2ViewerFunction()
-      fn.setParameters(List(ff.property("foo"), ff.property("geom"), ff.property("dtg")))
+      fn.setParameters(java.util.Arrays.asList(ff.property("foo"), ff.property("geom"), ff.property("dtg")))
       val result = Base64.decode(fn.evaluate(sf))
       result must haveLength(24)
       BinaryOutputEncoder.decode(result) mustEqual

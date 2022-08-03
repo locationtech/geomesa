@@ -34,6 +34,8 @@ import scala.util.Try
 class Version1ASF(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
   import Version1ASF._
 
+  import scala.collection.JavaConverters._
+
   val values    = Array.ofDim[AnyRef](sft.getAttributeCount)
   val userData  = collection.mutable.HashMap.empty[AnyRef, AnyRef]
   val typeMap   = typeMapCache.get(sft)
@@ -77,17 +79,17 @@ class Version1ASF(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
   def setAttribute(name: String, value: Object) = setAttribute(nameIndex(name), value)
   def setAttribute(name: Name, value: Object) = setAttribute(name.getLocalPart, value)
   def setAttribute(index: Int, value: Object) = setAttributeNoConvert(index, Converters.convert(value, getFeatureType.getDescriptor(index).getType.getBinding).asInstanceOf[AnyRef])
-  def setAttributes(vals: JList[Object]) = vals.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
+  def setAttributes(vals: JList[Object]) = vals.asScala.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
   def setAttributes(vals: Array[Object])= vals.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
 
   def setAttributeNoConvert(index: Int, value: Object) = values(index) = value
   def setAttributeNoConvert(name: String, value: Object): Unit = setAttributeNoConvert(nameIndex(name), value)
   def setAttributeNoConvert(name: Name, value: Object): Unit = setAttributeNoConvert(name.getLocalPart, value)
-  def setAttributesNoConvert(vals: JList[Object]) = vals.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
+  def setAttributesNoConvert(vals: JList[Object]) = vals.asScala.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
   def setAttributesNoConvert(vals: Array[Object])= vals.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
 
   def getAttributeCount = values.length
-  def getAttributes: JList[Object] = values.toList
+  def getAttributes: JList[Object] = values.toList.asJava
   def getDefaultGeometry: Object = Try(sft.getGeometryDescriptor.getName).map { getAttribute }.getOrElse(null)
 
   def setDefaultGeometry(geo: Object) = setAttribute(sft.getGeometryDescriptor.getName, geo)
@@ -117,25 +119,26 @@ class Version1ASF(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
   }
 
   def getProperties: JCollection[Property] =
-    getAttributes.zip(sft.getAttributeDescriptors).map {
+    getAttributes.asScala.zip(sft.getAttributeDescriptors.asScala).map {
       case(attribute, attributeDescriptor) =>
-        new AttributeImpl(attribute, attributeDescriptor, id)
-    }
+        new AttributeImpl(attribute, attributeDescriptor, id).asInstanceOf[Property]
+    }.asJava
   def getProperties(name: Name): JCollection[Property] = getProperties(name.getLocalPart)
-  def getProperties(name: String): JCollection[Property] = getProperties.filter(_.getName.toString == name)
+  def getProperties(name: String): JCollection[Property] = getProperties.asScala.filter(_.getName.toString == name).toSeq.asJava
   def getProperty(name: Name): Property = getProperty(name.getLocalPart)
   def getProperty(name: String): Property = new AttributeImpl(getAttribute(name), sft.getDescriptor(name), id)
 
   def getValue: JCollection[_ <: Property] = getProperties
 
-  def setValue(values: JCollection[Property]) = values.zipWithIndex.foreach { case (p, idx) =>
-    this.values(idx) = p.getValue}
+  def setValue(values: JCollection[Property]) = values.asScala.zipWithIndex.foreach { case (p, idx) =>
+    this.values(idx) = p.getValue
+  }
 
   def getDescriptor: AttributeDescriptor = new AttributeDescriptorImpl(sft, sft.getName, 0, Int.MaxValue, true, null)
 
   def getName: Name = sft.getName
 
-  def getUserData = userData
+  def getUserData = userData.asJava
 
   def isNillable = true
 
@@ -170,7 +173,7 @@ object Version1ASF {
       classOf[Boolean]
     )
 
-  def loadingCacheBuilder[V <: AnyRef](f: SimpleFeatureType => V) =
+  def loadingCacheBuilder[V <: AnyRef](f: SimpleFeatureType => V): LoadingCache[SimpleFeatureType, V] =
     Caffeine
       .newBuilder
       .maximumSize(100)
