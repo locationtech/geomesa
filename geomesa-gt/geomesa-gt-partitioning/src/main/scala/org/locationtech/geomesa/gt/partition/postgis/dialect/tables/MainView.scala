@@ -19,7 +19,8 @@ object MainView extends SqlStatements {
       s"""CREATE OR REPLACE VIEW ${info.tables.view.name.qualified} AS
          |  SELECT * FROM ${info.tables.writeAhead.name.qualified} UNION ALL
          |  SELECT * FROM ${info.tables.writeAheadPartitions.name.qualified} UNION ALL
-         |  SELECT * FROM ${info.tables.mainPartitions.name.qualified};""".stripMargin
+         |  SELECT * FROM ${info.tables.mainPartitions.name.qualified} UNION ALL
+         |  SELECT * FROM ${info.tables.spillPartitions.name.qualified};""".stripMargin
     )
   }
 

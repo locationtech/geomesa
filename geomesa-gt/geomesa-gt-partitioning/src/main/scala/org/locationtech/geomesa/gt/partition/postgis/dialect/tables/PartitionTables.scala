@@ -16,7 +16,8 @@ object PartitionTables extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] =
     statements(info, info.tables.writeAheadPartitions, "gist") ++
-        statements(info, info.tables.mainPartitions, "brin")
+        statements(info, info.tables.mainPartitions, "brin") ++
+        statements(info, info.tables.spillPartitions, "gist")
 
   private def statements(info: TypeInfo, table: TableConfig, indexType: String): Seq[String] = {
     // note: don't include storage opts since these are parent partition tables

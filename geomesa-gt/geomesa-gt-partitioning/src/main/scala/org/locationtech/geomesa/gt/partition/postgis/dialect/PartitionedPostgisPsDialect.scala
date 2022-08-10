@@ -56,9 +56,11 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
   }
 
   // fix bug with PostGISPSDialect dialect not delegating these methods
-
+  override def encodeCreateTable(sql: StringBuffer): Unit = delegate.encodeCreateTable(sql)
   override def getDefaultVarcharSize: Int = delegate.getDefaultVarcharSize
   override def encodeTableName(raw: String, sql: StringBuffer): Unit = delegate.encodeTableName(raw, sql)
+  override def encodePostCreateTable(tableName: String, sql: StringBuffer): Unit =
+    delegate.encodePostCreateTable(tableName, sql)
   override def postCreateFeatureType(
       featureType: SimpleFeatureType,
       metadata: DatabaseMetaData,

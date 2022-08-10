@@ -121,7 +121,6 @@
     </category>
 
     <!-- uncomment the following line to enable verbose log messages from the index query-planner -->
-
     <!--
     <category name="org.locationtech.geomesa.index.utils.Explainer">
         <priority value="trace"/>
@@ -129,7 +128,6 @@
     -->
 
     <!-- uncomment the following lines to enable verbose log messages from the Spark SQL query-planner -->
-
     <!--
     <category name="org.locationtech.geomesa.spark">
         <priority value="info"/>
@@ -138,6 +136,13 @@
         <priority value="trace"/>
     </category>
     <category name="org.apache.spark.sql">
+        <priority value="debug"/>
+    </category>
+    -->
+
+    <!-- uncomment the following lines to enable logging SQL statements from the postgres dialect -->
+    <!--
+    <category name="org.locationtech.geomesa.gt">
         <priority value="debug"/>
     </category>
     -->

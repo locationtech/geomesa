@@ -44,7 +44,13 @@ object UpdateTrigger extends SqlTriggerFunction {
        |          IF del_count > 0 THEN
        |            INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
        |          ELSE
-       |            RETURN NULL;
+       |            DELETE FROM ${info.tables.spillPartitions.name.qualified} WHERE $where;
+       |            GET DIAGNOSTICS del_count := ROW_COUNT;
+       |            IF del_count > 0 THEN
+       |              INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
+       |            ELSE
+       |              RETURN NULL;
+       |            END IF;
        |          END IF;
        |        END IF;
        |      END IF;

@@ -15,9 +15,9 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.PartitionTab
  * Re-sorts a partition table. Can be used for maintenance if time-latent data comes in and degrades performance
  * of the BRIN index
  */
-object PartitionSort extends SqlProcedure {
+object CompactPartitions extends SqlProcedure {
 
-  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeName}_partition_sort")
+  override def name(info: TypeInfo): FunctionName = FunctionName(s"${info.typeName}_compact_partitions")
 
   override protected def createStatements(info: TypeInfo): Seq[String] = Seq(proc(info))
 
@@ -30,10 +30,12 @@ object PartitionSort extends SqlProcedure {
        |    DECLARE
        |      partition_names text[];
        |      partition_name text;
+       |      spill_partition text;
        |      min_dtg timestamp without time zone;         -- min date in our partitioned tables
        |      partition_start timestamp without time zone; -- start bounds for the partition we're writing
        |      partition_end timestamp without time zone;   -- end bounds for the partition we're writing
        |      partition_tablespace text;
+       |      pexists boolean;                             -- table exists check
        |    BEGIN
        |      IF for_date IS NOT NULL THEN
        |        partition_names := ARRAY[
@@ -59,7 +61,7 @@ object PartitionSort extends SqlProcedure {
        |      END IF;
        |
        |      FOREACH partition_name IN ARRAY partition_names LOOP
-       |        RAISE INFO '% Sorting partition table %', timeofday()::timestamp, partition_name;
+       |        RAISE INFO '% Compacting partition table %', timeofday()::timestamp, partition_name;
        |        LOCK TABLE ONLY ${info.tables.mainPartitions.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |        -- lock the child table to prevent any inserts that would be lost
        |        EXECUTE 'LOCK TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
@@ -68,8 +70,18 @@ object PartitionSort extends SqlProcedure {
        |          ' LIMIT 1' INTO min_dtg;
        |        partition_start := truncate_to_partition(min_dtg, $hours);
        |        partition_end := partition_start + INTERVAL '$hours HOURS';
+       |        spill_partition := ${info.tables.spillPartitions.name.asLiteral} || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24');
        |
-       |        -- this won't have any indices until we attach it to the parent partition table
+       |        SELECT EXISTS(SELECT FROM pg_tables WHERE schemaname = ${info.schema.asLiteral} AND tablename = spill_partition)
+       |          INTO pexists;
+       |
+       |        IF pexists THEN
+       |          -- lock the child table to prevent any inserts that would be lost
+       |          EXECUTE 'LOCK TABLE ${info.schema.quoted}.' || quote_ident(spill_partition) ||
+       |            ' IN SHARE ROW EXCLUSIVE MODE';
+       |        END IF;
+       |
+       |        -- this won't have any indices until after we populate it with data
        |        EXECUTE 'CREATE TABLE ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
        |          ' (LIKE ${info.tables.mainPartitions.name.qualified} INCLUDING DEFAULTS INCLUDING CONSTRAINTS)' ||
        |          partition_tablespace;
@@ -79,9 +91,17 @@ object PartitionSort extends SqlProcedure {
        |          ' CHECK ( $dtgCol >= ' || quote_literal(partition_start) ||
        |          ' AND $dtgCol < ' || quote_literal(partition_end) || ' );';
        |
-       |        EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
-       |          ' (SELECT * FROM ${info.schema.quoted}.' || quote_ident(partition_name) ||
-       |          ' ORDER BY st_geohash(${info.cols.geom.quoted}), ${info.cols.dtg.quoted})';
+       |        IF pexists THEN
+       |          EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
+       |            ' (SELECT * FROM (SELECT * FROM ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |            ' UNION ALL SELECT * FROM ${info.schema.quoted}.' || quote_ident(spill_partition) ||
+       |            ') results ORDER BY st_geohash(${info.cols.geom.quoted}), ${info.cols.dtg.quoted})';
+       |        ELSE
+       |          EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
+       |            ' (SELECT * FROM ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |            ' ORDER BY st_geohash(${info.cols.geom.quoted}), ${info.cols.dtg.quoted})';
+       |        END IF;
+       |
        |        -- create indices before attaching to minimize time to attach, copied from PartitionTables code
        |        EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition_name || '_${info.cols.geom.raw}_tmp_sort') ||
        |          ' ON ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
@@ -96,6 +116,7 @@ object PartitionSort extends SqlProcedure {
        |
        |        RAISE INFO '% Dropping old partition table (queries will be blocked) %', timeofday()::timestamp, partition_name;
        |        EXECUTE 'DROP TABLE IF EXISTS ${info.schema.quoted}.' || quote_ident(partition_name);
+       |        EXECUTE 'DROP TABLE IF EXISTS ${info.schema.quoted}.' || quote_ident(spill_partition);
        |
        |        RAISE INFO '% Renaming newly sorted partition table %', timeofday()::timestamp, partition_name;
        |        EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
@@ -113,7 +134,7 @@ object PartitionSort extends SqlProcedure {
        |          ' ATTACH PARTITION ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |          ' FOR VALUES FROM (' || quote_literal(partition_start) || ') TO (' ||
        |          quote_literal(partition_end) || ' );';
-       |        RAISE INFO '% Done sorting partition table %', timeofday()::timestamp, partition_name;
+       |        RAISE INFO '% Done compacting partition table %', timeofday()::timestamp, partition_name;
        |
        |        -- now that we've attached the table we can drop the redundant constraint
        |        RAISE INFO '% Dropping constraint for partition table %', timeofday()::timestamp, partition_name;
@@ -124,6 +145,7 @@ object PartitionSort extends SqlProcedure {
        |        INSERT INTO ${info.tables.analyzeQueue.name.qualified}(partition_name, enqueued)
        |          VALUES (partition_name, now());
        |
+       |        -- commit to release our locks
        |        COMMIT;
        |      END LOOP;
        |
