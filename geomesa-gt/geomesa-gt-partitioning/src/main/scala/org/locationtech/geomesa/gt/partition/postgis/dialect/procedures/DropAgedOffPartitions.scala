@@ -23,6 +23,7 @@ object DropAgedOffPartitions extends SqlProcedure {
   private def proc(info: TypeInfo): String = {
     val hours = info.partitions.hoursPerPartition
     val mainPartitions = info.tables.mainPartitions
+    val spillPartitions = info.tables.spillPartitions
     s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
@@ -41,6 +42,11 @@ object DropAgedOffPartitions extends SqlProcedure {
        |            FROM pg_partition_tree(${mainPartitions.name.asRegclass})
        |            WHERE parentrelid IS NOT NULL
        |            AND (SELECT relname FROM pg_class WHERE oid = relid) <= ${literal(mainPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24')
+       |          UNION ALL
+       |            SELECT relid
+       |              FROM pg_partition_tree(${spillPartitions.name.asRegclass})
+       |              WHERE parentrelid IS NOT NULL
+       |              AND (SELECT relname FROM pg_class WHERE oid = relid) <= ${literal(spillPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24')
        |        LOOP
        |          IF EXISTS(SELECT FROM pg_tables WHERE schemaname = ${info.schema.asLiteral} AND tablename = partition_name) THEN
        |            EXECUTE 'DROP TABLE IF EXISTS ${info.schema.quoted}.' || quote_ident(partition_name);

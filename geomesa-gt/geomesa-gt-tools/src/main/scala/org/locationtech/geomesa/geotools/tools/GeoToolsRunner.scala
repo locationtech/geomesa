@@ -23,6 +23,7 @@ object GeoToolsRunner extends Runner {
       new data.GeoToolsGetTypeNamesCommand,
       new data.GeoToolsRemoveSchemaCommand,
       new data.GeoToolsUpdateSchemaCommand,
+      new data.PostgisUpgradeSchemaCommand(),
       new export.GeoToolsExportCommand,
       new export.GeoToolsPlaybackCommand,
       new ingest.GeoToolsIngestCommand

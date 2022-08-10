@@ -48,7 +48,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
   val methods =
     Methods(
       create = false,
-      recreate = false,
+      upgrade = false,
       write = false,
       update = false,
       query = false,
@@ -60,7 +60,9 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 
   "PartitionedPostgisDataStore" should {
     "work" in {
-      skipped("requires postgis instance")
+      if (!methods.any) {
+        skipped("requires postgis instance")
+      }
       val params =
         Map(
           "dbtype"   -> PartitionedPostgisDataStoreParams.DbType.sample,
@@ -85,7 +87,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 
         if (methods.create) {
           ds.createSchema(sft)
-        } else if (methods.recreate) {
+        } else if (methods.upgrade) {
           WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
             val dialect = ds.asInstanceOf[JDBCDataStore].dialect match {
               case p: PartitionedPostgisDialect => p
@@ -97,7 +99,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
                 m.setAccessible(true)
                 m.invoke(p).asInstanceOf[PartitionedPostgisDialect]
             }
-            dialect.recreateFunctions("public", sft, cx)
+            dialect.upgrade("public", sft, cx)
           }
         }
 
@@ -178,11 +180,13 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 
   case class Methods(
       create: Boolean,
-      recreate: Boolean,
+      upgrade: Boolean,
       write: Boolean,
       update: Boolean,
       query: Boolean,
       delete: Boolean,
       remove: Boolean
-    )
+    ) {
+    def any: Boolean = create || upgrade || write || update || query || delete || remove
+  }
 }

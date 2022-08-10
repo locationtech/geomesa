@@ -25,20 +25,6 @@ object WriteAheadTable extends SqlStatements {
     val table = info.tables.writeAhead
     val partition = writesPartition(info).qualified
     val seq = s"CREATE SEQUENCE IF NOT EXISTS ${escape(table.name.raw, "seq")} AS smallint MINVALUE 1 MAXVALUE 999 CYCLE;"
-    // rename the table created by the JdbcDataStore to be the write ahead table
-    val rename =
-      s"""DO $$$$
-         |BEGIN
-         |  IF NOT EXISTS (SELECT FROM pg_tables WHERE schemaname = ${info.schema.asLiteral} AND tablename = ${table.name.asLiteral}) THEN
-         |    ALTER TABLE ${info.tables.view.name.qualified} RENAME TO ${table.name.quoted};
-         |  ELSE
-         |    DROP TABLE ${info.tables.view.name.qualified};
-         |  END IF;
-         |END$$$$;""".stripMargin
-    // drop the index created by the JDBC data store on the parent table, as all the data is in the inherited table
-    val dropIndices = info.cols.geoms.map { col =>
-      s"DROP INDEX IF EXISTS ${escape("spatial", info.tables.view.name.raw, col.raw.toLowerCase(Locale.US))};"
-    }
     val move = table.tablespace.toSeq.map { ts =>
       s"ALTER TABLE ${table.name.qualified} SET TABLESPACE ${ts.quoted};"
     }
@@ -61,7 +47,7 @@ object WriteAheadTable extends SqlStatements {
       s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, col.raw, "000")}
          |  ON $partition (${col.quoted})$tableTs;""".stripMargin
     }
-    Seq(seq, rename) ++ dropIndices ++ move ++ Seq(child, dtgIndex) ++ geomIndices ++ indices
+    Seq(seq) ++ move ++ Seq(child, dtgIndex) ++ geomIndices ++ indices
   }
 
   override protected def dropStatements(info: TypeInfo): Seq[String] = {
