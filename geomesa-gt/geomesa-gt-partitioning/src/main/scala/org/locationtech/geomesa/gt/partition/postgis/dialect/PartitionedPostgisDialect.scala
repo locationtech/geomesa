@@ -289,6 +289,7 @@ object PartitionedPostgisDialect {
   )
 
   private val Commands: Seq[Sql] = Seq(
+    SequenceTable,
     WriteAheadTable,
     WriteAheadTrigger,
     PartitionTables,
