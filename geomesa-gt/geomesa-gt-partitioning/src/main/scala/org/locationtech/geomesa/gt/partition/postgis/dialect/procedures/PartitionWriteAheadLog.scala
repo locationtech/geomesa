@@ -177,8 +177,11 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |                ' FOR VALUES FROM (' || quote_literal(partition_start) ||
        |                ') TO (' || quote_literal(partition_end) || ' );';
        |              -- once the table is attached we can drop the redundant constraint
-       |              EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
-       |                ' DROP CONSTRAINT ' || quote_ident(partition_name || '_constraint');
+       |              -- however, this requires ACCESS EXCLUSIVE - since constraints are only checked on inserts
+       |              -- or updates, and partition tables are 'immutable' (only written to once), it shouldn't
+       |              -- affect anything to leave it. note that for 'spill' tables, there may be some redundant checks
+       |              -- EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |              --  ' DROP CONSTRAINT ' || quote_ident(partition_name || '_constraint');
        |              RAISE NOTICE 'A partition has been created %', partition_name;
        |            END IF;
        |
@@ -188,6 +191,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |          END LOOP;
        |
        |          RAISE INFO '% Dropping write ahead table %', timeofday()::timestamp, write_ahead.name;
+       |          -- requires ACCESS EXCLUSIVE lock
        |          EXECUTE 'DROP TABLE ' || quote_ident(write_ahead.name);
        |
        |        END IF;

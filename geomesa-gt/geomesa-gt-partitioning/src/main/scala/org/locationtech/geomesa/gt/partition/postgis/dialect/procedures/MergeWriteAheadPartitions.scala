@@ -137,13 +137,17 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |            ' FOR VALUES FROM (' || quote_literal(partition_start) ||
        |            ') TO (' || quote_literal(partition_end) || ' );';
        |          -- now that we've attached the table we can drop the redundant constraint
-       |          EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
-       |            ' DROP CONSTRAINT ' || quote_ident(partition_name || '_constraint');
+       |          -- however, this requires ACCESS EXCLUSIVE - since constraints are only checked on inserts
+       |          -- or updates, and partition tables are 'immutable' (only written to once), it shouldn't
+       |          -- affect anything to leave it. note that for 'spill' tables, there may be some redundant checks
+       |          -- EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |          --  ' DROP CONSTRAINT ' || quote_ident(partition_name || '_constraint');
        |          RAISE NOTICE 'A partition has been created %', partition_name;
        |        END IF;
        |
        |        -- drop the tables that we've copied out
        |        EXECUTE 'DROP VIEW ' || quote_ident(partition_name || '_tmp_migrate');
+       |        -- TODO this requires ACCESS EXCLUSIVE
        |        FOREACH write_ahead_partition IN ARRAY write_ahead_partitions LOOP
        |          EXECUTE 'DROP TABLE ' || write_ahead_partition;
        |          RAISE NOTICE 'A partition has been deleted %', write_ahead_partition;
