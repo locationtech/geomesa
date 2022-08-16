@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
-import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, WriteAheadTable}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, SequenceTable}
 
 /**
  * Partitions the write ahead table into the recent and/or main partition tables
@@ -33,6 +33,8 @@ object PartitionWriteAheadLog extends SqlProcedure {
     s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
+       |      seq_val smallint;
+       |      write_partition text;                        -- current partition receiving writes
        |      min_dtg timestamp without time zone;         -- min date in our partitioned tables
        |      main_cutoff timestamp without time zone;     -- max age of the records for main tables
        |      write_ahead record;
@@ -47,6 +49,10 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |      -- constants
        |      main_cutoff := truncate_to_partition(cur_time, $hours) - INTERVAL '$hours HOURS';
        |
+       |      SELECT value from ${info.schema.quoted}.${SequenceTable.Name.quoted}
+       |        WHERE type_name = ${literal(info.typeName)} INTO seq_val;
+       |      write_partition := ${literal(writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0');
+       |
        |      -- check for write ahead partitions and move the data into the time partitioned tables
        |      FOR write_ahead IN
        |        SELECT pg_class.relname AS name
@@ -54,7 +60,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |          INNER JOIN pg_catalog.pg_class ON (pg_inherits.inhrelid = pg_class.oid)
        |          INNER JOIN pg_catalog.pg_namespace ON (pg_class.relnamespace = pg_namespace.oid)
        |          WHERE inhparent = ${writeAhead.name.asRegclass}
-       |          AND relname != ${WriteAheadTable.writesPartition(info).asLiteral}
+       |          AND relname != write_partition
        |          ORDER BY name
        |      LOOP
        |
@@ -171,8 +177,11 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |                ' FOR VALUES FROM (' || quote_literal(partition_start) ||
        |                ') TO (' || quote_literal(partition_end) || ' );';
        |              -- once the table is attached we can drop the redundant constraint
-       |              EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
-       |                ' DROP CONSTRAINT ' || quote_ident(partition_name || '_constraint');
+       |              -- however, this requires ACCESS EXCLUSIVE - since constraints are only checked on inserts
+       |              -- or updates, and partition tables are 'immutable' (only written to once), it shouldn't
+       |              -- affect anything to leave it. note that for 'spill' tables, there may be some redundant checks
+       |              -- EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |              --  ' DROP CONSTRAINT ' || quote_ident(partition_name || '_constraint');
        |              RAISE NOTICE 'A partition has been created %', partition_name;
        |            END IF;
        |
@@ -182,6 +191,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |          END LOOP;
        |
        |          RAISE INFO '% Dropping write ahead table %', timeofday()::timestamp, write_ahead.name;
+       |          -- requires ACCESS EXCLUSIVE lock
        |          EXECUTE 'DROP TABLE ' || quote_ident(write_ahead.name);
        |
        |        END IF;

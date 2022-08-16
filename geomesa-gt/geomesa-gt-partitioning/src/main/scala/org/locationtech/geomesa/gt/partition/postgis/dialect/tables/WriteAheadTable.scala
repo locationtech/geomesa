@@ -9,8 +9,6 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package tables
 
-import java.util.Locale
-
 /**
  * Write ahead log, partitioned using inheritance to avoid any restraints on data overlap between partitions.
  * All writes get directed to the main partition, which is identified with the suffix `_writes`. Every 10 minutes,
@@ -18,36 +16,40 @@ import java.util.Locale
  */
 object WriteAheadTable extends SqlStatements {
 
-  def writesPartition(info: TypeInfo): TableIdentifier =
-    TableIdentifier(info.schema.raw, info.tables.writeAhead.name.raw + "_writes")
-
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     val table = info.tables.writeAhead
-    val partition = writesPartition(info).qualified
-    val seq = s"CREATE SEQUENCE IF NOT EXISTS ${escape(table.name.raw, "seq")} AS smallint MINVALUE 1 MAXVALUE 999 CYCLE;"
-    val move = table.tablespace.toSeq.map { ts =>
-      s"ALTER TABLE ${table.name.qualified} SET TABLESPACE ${ts.quoted};"
-    }
     val (tableTs, indexTs) = table.tablespace match {
       case None => ("", "")
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
     }
-    val child =
-      s"""CREATE TABLE IF NOT EXISTS $partition (
-         |  CONSTRAINT ${escape(table.name.raw, "000_pkey")} PRIMARY KEY (fid, ${info.cols.dtg.quoted})$indexTs
-         |) INHERITS (${table.name.qualified})${table.storage.opts}$tableTs;""".stripMargin
-    val dtgIndex =
-      s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, info.cols.dtg.raw, "000")}
-         |  ON $partition (${info.cols.dtg.quoted})$tableTs;""".stripMargin
-    val geomIndices = info.cols.geoms.map { col =>
-      s"""CREATE INDEX IF NOT EXISTS ${escape("spatial", table.name.raw, col.raw.toLowerCase(Locale.US), "000")}
-         |  ON $partition USING gist(${col.quoted})$tableTs;""".stripMargin
+    val move = table.tablespace.toSeq.map { ts =>
+      s"ALTER TABLE ${table.name.qualified} SET TABLESPACE ${ts.quoted};\n"
     }
-    val indices = info.cols.indexed.map { col =>
-      s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, col.raw, "000")}
-         |  ON $partition (${col.quoted})$tableTs;""".stripMargin
-    }
-    Seq(seq) ++ move ++ Seq(child, dtgIndex) ++ geomIndices ++ indices
+    val block =
+      s"""DO $$$$
+         |DECLARE
+         |  seq_val smallint;
+         |  partition text;
+         |BEGIN
+         |  SELECT value from ${info.schema.quoted}.${SequenceTable.Name.quoted}
+         |    WHERE type_name = ${literal(info.typeName)} INTO seq_val;
+         |  partition := ${literal(table.name.raw + "_")} || lpad(seq_val::text, 3, '0');
+         |
+         |  EXECUTE 'CREATE TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(partition) || '(' ||
+         |    'CONSTRAINT ' || quote_ident(partition || '_pkey') ||
+         |    ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})$indexTs ' ||
+         |    ') INHERITS (${table.name.qualified})${table.storage.opts}$tableTs';
+         |  EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition || '_' || ${info.cols.dtg.asLiteral}) ||
+         |    ' ON ${info.schema.quoted}.' || quote_ident(partition) || ' (${info.cols.dtg.quoted})$tableTs';
+         |${info.cols.geoms.map { col =>
+      s"""  EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition || '_spatial_' || ${col.asLiteral}) ||
+         |    ' ON ${info.schema.quoted}.' || quote_ident(partition) || ' USING gist(${col.quoted})$tableTs';""".stripMargin}.mkString("\n")}
+         |${info.cols.indexed.map { col =>
+      s"""  EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition || '_' || ${col.asLiteral}) ||
+         |    ' ON ${info.schema.quoted}.' || quote_ident(partition) || '(${col.quoted})$tableTs';""".stripMargin}.mkString("\n")}
+         |END $$$$;""".stripMargin
+
+    move ++ Seq(block)
   }
 
   override protected def dropStatements(info: TypeInfo): Seq[String] = {
