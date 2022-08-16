@@ -119,7 +119,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |        -- copy rows from write ahead partitions to main partition table
        |        EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |          ' SELECT * FROM ' || quote_ident(partition_name || '_tmp_migrate') ||
-       |          '   ORDER BY st_geohash($geomCol), $dtgCol' ||
+       |          '   ORDER BY $geomCol' ||
        |          '   ON CONFLICT DO NOTHING';
        |
        |        IF partition_parent = ${spillPartitions.name.asLiteral} THEN

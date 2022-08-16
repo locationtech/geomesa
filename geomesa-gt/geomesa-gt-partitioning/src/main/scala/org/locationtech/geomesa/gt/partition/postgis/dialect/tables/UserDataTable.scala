@@ -52,6 +52,7 @@ class UserDataTable extends Sql {
 
     insert(SimpleFeatureTypes.Configs.DefaultDtgField, Some(info.cols.dtg.raw))
     insert(Config.IntervalHours, Some(Integer.toString(info.partitions.hoursPerPartition)))
+    insert(Config.PagesPerRange, Some(Integer.toString(info.partitions.pagesPerRange)))
     insert(Config.MaxPartitions, info.partitions.maxPartitions.map(Integer.toString))
     insert(Config.WriteAheadTableSpace, info.tables.writeAhead.tablespace.map(_.raw))
     insert(Config.WriteAheadPartitionsTableSpace, info.tables.writeAheadPartitions.tablespace.map(_.raw))

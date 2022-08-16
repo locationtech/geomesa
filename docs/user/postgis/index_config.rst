@@ -34,6 +34,22 @@ Partition size is configured with the key ``pg.partitions.interval.hours``.
     SimpleFeatureType sft = ....;
     sft.getUserData().put("pg.partitions.interval.hours", "12");
 
+Configuring Index Resolution
+----------------------------
+
+Each feature type can be configured with a number of pages per range. The partition tables use a
+`BRIN <https://www.postgresql.org/docs/current/brin-intro.html>`__ index, which is a lossy index structure.
+The number of data pages stored in each index range controls how lossy, and how large the index becomes.
+By default, 128 pages are stored in each range. Storing fewer pages will generally make the index more
+efficient, at the cost of requiring more space.
+
+The number of pages is configured with the key ``pg.partitions.pages-per-range``.
+
+.. code-block:: java
+
+    SimpleFeatureType sft = ....;
+    sft.getUserData().put("pg.partitions.pages-per-range", "32");
+
 Configuring Data Age-Off
 ------------------------
 
