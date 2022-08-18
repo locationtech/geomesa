@@ -332,7 +332,7 @@ object PartitionedPostgisDialect {
       def getWriteAheadPartitionsTableSpace: Option[String] = Option(sft.getUserData.get(WriteAheadPartitionsTableSpace).asInstanceOf[String])
       def getMainTableSpace: Option[String] = Option(sft.getUserData.get(MainTableSpace).asInstanceOf[String])
       def getCronMinute: Option[Int] = Option(sft.getUserData.get(CronMinute).asInstanceOf[String]).map(int)
-      def getPagesPerRange: Int = Option(sft.getUserData.get(PagesPerRange).asInstanceOf[String]).map(int).getOrElse(128)
+      def getPagesPerRange: Int = Option(sft.getUserData.get(PagesPerRange).asInstanceOf[String]).map(int).getOrElse(32)
     }
   }
 }
