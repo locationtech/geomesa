@@ -340,10 +340,16 @@ package object dialect {
    * Partition config
    *
    * @param hoursPerPartition number of hours to keep in each partition, must be a divisor of 24
+   * @param pagesPerRange number of pages to add to each range in the BRIN index
    * @param maxPartitions max number of partitions to keep
    * @param cronMinute minute of each 10 minute chunk that partition maintenance will run
    */
-  case class PartitionInfo(hoursPerPartition: Int, maxPartitions: Option[Int], cronMinute: Option[Int])
+  case class PartitionInfo(
+      hoursPerPartition: Int,
+      pagesPerRange: Int,
+      maxPartitions: Option[Int],
+      cronMinute: Option[Int]
+    )
 
   object PartitionInfo {
 
@@ -355,7 +361,9 @@ package object dialect {
       require(24 % hours == 0, s"Partition interval must be a divisor of 24 hours: $hours hours")
       val cronMinute = sft.getCronMinute
       require(cronMinute.forall(m => m >= 0 && m < 9), s"Cron minute must be between 0 and 8: ${cronMinute.orNull}")
-      PartitionInfo(hours, sft.getMaxPartitions, cronMinute)
+      val pagesPerRange = sft.getPagesPerRange
+      require(pagesPerRange >= 0, s"Pages per range but be a positive number: $pagesPerRange")
+      PartitionInfo(hours, pagesPerRange, sft.getMaxPartitions, cronMinute)
     }
   }
 

@@ -95,11 +95,11 @@ object CompactPartitions extends SqlProcedure {
        |          EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
        |            ' (SELECT * FROM (SELECT * FROM ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |            ' UNION ALL SELECT * FROM ${info.schema.quoted}.' || quote_ident(spill_partition) ||
-       |            ') results ORDER BY st_geohash(${info.cols.geom.quoted}), ${info.cols.dtg.quoted})';
+       |            ') results ORDER BY ${info.cols.geom.quoted})';
        |        ELSE
        |          EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
        |            ' (SELECT * FROM ${info.schema.quoted}.' || quote_ident(partition_name) ||
-       |            ' ORDER BY st_geohash(${info.cols.geom.quoted}), ${info.cols.dtg.quoted})';
+       |            ' ORDER BY ${info.cols.geom.quoted})';
        |        END IF;
        |
        |        -- create indices before attaching to minimize time to attach, copied from PartitionTables code

@@ -39,6 +39,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
         Seq(
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
+          "pg.partitions.pages-per-range=32",
           "pg.partitions.max=2",
           "pg.partitions.tablespace.wa=partition",
           "pg.partitions.tablespace.wa-partitions=partition",
