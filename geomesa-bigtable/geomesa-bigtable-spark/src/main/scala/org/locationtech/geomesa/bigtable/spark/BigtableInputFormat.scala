@@ -8,6 +8,11 @@
 
 package org.locationtech.geomesa.bigtable.spark
 
+import org.apache.hadoop.conf.{Configurable, Configuration}
+import org.apache.hadoop.hbase.TableName
+import org.apache.hadoop.hbase.client.Scan
+import org.apache.hadoop.hbase.mapreduce.TableInputFormat
+
 class BigtableInputFormat extends BigtableInputFormatBase with Configurable {
 
   /** The configuration. */

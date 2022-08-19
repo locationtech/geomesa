@@ -8,7 +8,28 @@
 
 package org.locationtech.geomesa.bigtable.spark
 
+import com.google.cloud.bigtable.hbase.BigtableExtendedScan
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.hbase.client.Scan
+import org.apache.hadoop.hbase.mapreduce.TableInputFormat
+import org.apache.hadoop.io.Text
+import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
+import org.geotools.data.Query
+import org.locationtech.geomesa.bigtable.data.BigtableDataStoreFactory
+import org.locationtech.geomesa.hbase.data.HBaseDataStore
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.ScanPlan
+import org.locationtech.geomesa.hbase.jobs.HBaseJobUtils
+import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.jobs.GeoMesaConfigurator
+import org.locationtech.geomesa.spark.SpatialRDD
+import org.locationtech.geomesa.spark.hbase.HBaseSpatialRDDProvider
+import org.locationtech.geomesa.utils.io.WithStore
+import org.opengis.feature.simple.SimpleFeature
+
 class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
+
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     BigtableDataStoreFactory.canProcess(params)

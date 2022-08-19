@@ -8,7 +8,16 @@
 
 package org.locationtech.geomesa.bigtable.data
 
+import com.google.cloud.bigtable.hbase.BigtableExtendedScan
+import org.apache.hadoop.hbase.TableName
+import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
+import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
+import org.locationtech.geomesa.hbase.data.HBaseIndexAdapter
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.TableScan
+
 class BigtableIndexAdapter(ds: BigtableDataStore) extends HBaseIndexAdapter(ds) {
+
+  import scala.collection.JavaConverters._
 
   // https://cloud.google.com/bigtable/quotas#limits-table-id
   override val tableNameLimit: Option[Int] = Some(50)
