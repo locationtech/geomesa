@@ -9,36 +9,25 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package tables
 
-/**
- * Stores tablespaces used by each feature type
- */
-object PartitionTablespacesTable extends PartitionTablespacesTable with AdvisoryLock {
-  override protected val lockId: Long = 2005234735580322669L
-}
+object SequenceTable extends Sql {
 
-class PartitionTablespacesTable extends Sql {
-
-  val Name: TableName = TableName("partition_tablespaces")
+  val Name: TableName = TableName("geomesa_wa_seq")
 
   override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
-    val table = s"${info.schema.quoted}.${Name.quoted}"
+    val table = TableIdentifier(info.schema.raw, Name.raw)
     val create =
-      s"""CREATE TABLE IF NOT EXISTS $table (
-         |  type_name text not null,
-         |  table_type text not null,
-         |  table_space text
+      s"""CREATE TABLE IF NOT EXISTS ${table.qualified} (
+         |  type_name text PRIMARY KEY,
+         |  value smallint NOT NULL CHECK (value >= 0 AND value <= 999)
          |);""".stripMargin
+
     ex.execute(create)
 
     val insertSql =
-      s"INSERT INTO $table (type_name, table_type, table_space) VALUES (?, ?, ?) ON CONFLICT DO NOTHING;"
+      s"INSERT INTO ${table.qualified} (type_name, value) VALUES (?, ?) " +
+          s"ON CONFLICT (type_name) DO NOTHING;"
 
-    def insert(suffix: String, table: TableConfig): Unit =
-      ex.executeUpdate(insertSql, Seq(info.typeName, suffix, table.tablespace.map(_.raw).orNull))
-
-    insert(WriteAheadTableSuffix.raw, info.tables.writeAhead)
-    insert(PartitionedWriteAheadTableSuffix.raw, info.tables.writeAheadPartitions)
-    insert(PartitionedTableSuffix.raw, info.tables.mainPartitions)
+    ex.executeUpdate(insertSql, Seq(info.typeName, 0))
   }
 
   override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {

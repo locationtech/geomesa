@@ -38,8 +38,12 @@ object AnalyzePartitions extends SqlProcedure with CronSchedule {
        |          WHERE enqueued < cur_time
        |          ORDER BY enqueued ASC;
        |        EXIT WHEN to_analyze IS NULL;
-       |        RAISE INFO '% Running analyze on partition table %', timeofday()::timestamp, to_analyze.partition_name;
-       |        EXECUTE 'ANALYZE ${info.schema.quoted}.' || quote_ident(to_analyze.partition_name);
+       |        IF EXISTS(SELECT FROM pg_tables WHERE schemaname = ${info.schema.asLiteral} AND tablename = to_analyze.partition_name) THEN
+       |          RAISE INFO '% Running analyze on partition table %', timeofday()::timestamp, to_analyze.partition_name;
+       |          EXECUTE 'ANALYZE ${info.schema.quoted}.' || quote_ident(to_analyze.partition_name);
+       |        ELSE
+       |          RAISE INFO '% Skipping analyze on dropped partition table %', timeofday()::timestamp, to_analyze.partition_name;
+       |        END IF;
        |        DELETE FROM ${info.tables.analyzeQueue.name.qualified}
        |          WHERE partition_name = to_analyze.partition_name AND enqueued < cur_time;
        |        COMMIT;

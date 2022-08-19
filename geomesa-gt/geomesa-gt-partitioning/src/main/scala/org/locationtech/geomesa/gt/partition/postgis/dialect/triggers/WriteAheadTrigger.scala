@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package triggers
 
-import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.WriteAheadTable
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.SequenceTable
 
 /**
  * Trigger to delegate writes from the write ahead table to the _writes partition
@@ -28,8 +28,16 @@ object WriteAheadTrigger extends SqlTriggerFunction {
   private def function(info: TypeInfo): String =
     s"""CREATE OR REPLACE FUNCTION ${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
+       |    DECLARE
+       |      seq_val smallint;
+       |      partition text;
        |    BEGIN
-       |      INSERT INTO ${WriteAheadTable.writesPartition(info).qualified} VALUES (NEW.*) ON CONFLICT DO NOTHING;
+       |      SELECT value from ${info.schema.quoted}.${SequenceTable.Name.quoted}
+       |        WHERE type_name = ${literal(info.typeName)} INTO seq_val;
+       |      partition := ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0');
+       |      EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition) ||
+       |        ' VALUES ($$1.*) ON CONFLICT DO NOTHING'
+       |        USING NEW;
        |      RETURN NULL;
        |    END;
        |  $$BODY$$
