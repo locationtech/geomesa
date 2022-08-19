@@ -81,7 +81,7 @@ running this command in the root source directory:
     $ mvn scala:console -pl geomesa-accumulo/geomesa-accumulo-datastore
 
 The Scala console will start, and all of the project packages in ``geomesa-accumulo-datastore`` will be loaded along
-with ``JavaConversions`` and ``JavaConverters``.
+with ``JavaConverters``.
 
 GeoMesa Project Structure
 -------------------------
