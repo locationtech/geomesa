@@ -22,6 +22,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ConfigureShardsTest extends Specification with TestWithFeatureType {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.z3.splits='8'"
@@ -52,7 +54,7 @@ class ConfigureShardsTest extends Specification with TestWithFeatureType {
       val index = ds.manager.indices(sft).find(_.name == Z3Index.name)
       index must beSome
       index.get.getTableNames().foreach { table =>
-        ds.connector.createScanner(table, new Authorizations()).foreach { r =>
+        ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val bytes = r.getKey.getRow.getBytes
           val shard = bytes(0).toInt
           shardSet = shardSet + shard

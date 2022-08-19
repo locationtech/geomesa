@@ -26,6 +26,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   override val spec = "some_id:String,dtg:Date,*geo_location:Point:srid=4326,number:Integer,text:String;geomesa.visibility.level='attribute'"
@@ -62,7 +64,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
   }
 
   def queryByAuths(auths: String, filter: String): Seq[SimpleFeature] = {
-    val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
+    val ds = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asJava).asInstanceOf[AccumuloDataStore]
     val query = new Query(sftName, ECQL.toFilter(filter))
     SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
   }

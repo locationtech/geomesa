@@ -26,6 +26,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.util.AbstractMap.SimpleEntry
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class QueryPlannerTest extends Specification with TestWithFeatureType {
@@ -86,7 +87,7 @@ class QueryPlannerTest extends Specification with TestWithFeatureType {
       val ff = CommonFactoryFinder.getFilterFactory2
       val query = new Query(sft.getTypeName)
       query.setSortBy(Array(SortBy.NATURAL_ORDER))
-      query.setProperties(List(ff.property("s")))
+      query.setProperties(Collections.singletonList(ff.property("s")))
 
       val result = planner.runQuery(sft, query).toList
 

@@ -101,11 +101,11 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
         val builder = new SimpleFeatureTypeBuilder
         builder.setName(expected.head.getFeatureType.getTypeName)
         val descriptors = expected.head.getFeatureType.getAttributeDescriptors
-        transform.foreach(t => builder.add(descriptors.find(_.getLocalName == t).orNull))
+        transform.foreach(t => builder.add(descriptors.asScala.find(_.getLocalName == t).orNull))
         builder.buildFeatureType()
       }
       expected.map { e =>
-        new ScalaSimpleFeature(tsft, e.getID, tsft.getAttributeDescriptors.map(d => e.getAttribute(d.getLocalName)).toArray)
+        new ScalaSimpleFeature(tsft, e.getID, tsft.getAttributeDescriptors.asScala.map(d => e.getAttribute(d.getLocalName)).toArray)
       }
     }
     if (ordered) {

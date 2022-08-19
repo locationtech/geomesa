@@ -37,6 +37,8 @@ import java.util.Date
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts with LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   // note: attributes that are not indexed but still collect stats only store bounds and topK
@@ -378,7 +380,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
       "not calculate stats when collection is disabled" >> {
         val params = dsParams ++ Map(AccumuloDataStoreParams.GenerateStatsParam.key -> false)
-        val dsNoStats =  DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+        val dsNoStats =  DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
 
         val fs = dsNoStats.getFeatureSource(sftName)
 

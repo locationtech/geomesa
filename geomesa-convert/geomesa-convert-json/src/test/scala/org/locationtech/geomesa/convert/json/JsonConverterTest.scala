@@ -1044,7 +1044,6 @@ class JsonConverterTest extends Specification {
         import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 
         import java.util.{Map => JMap}
-        import scala.collection.JavaConversions._
 
         val ec = converter.createEvaluationContext()
         val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)

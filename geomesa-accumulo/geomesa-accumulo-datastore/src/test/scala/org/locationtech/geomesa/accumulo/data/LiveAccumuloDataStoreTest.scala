@@ -18,6 +18,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class LiveAccumuloDataStoreTest extends Specification {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   val sftName = "mysft"
@@ -35,7 +37,7 @@ class LiveAccumuloDataStoreTest extends Specification {
 
       skipped("Meant for integration testing")
 
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
 
       val query = new Query(sftName, CQL.toFilter("INCLUDE"))
 

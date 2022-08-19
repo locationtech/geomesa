@@ -94,7 +94,6 @@ class RedisEnrichmentCacheTest extends Specification {
         """.stripMargin
       )
 
-      import scala.collection.JavaConversions._
       val cache = ServiceLoader.load(classOf[EnrichmentCacheFactory]).iterator().find(_.canProcess(conf)).map(_.build(conf))
 
       cache must not be None

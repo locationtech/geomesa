@@ -30,6 +30,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AccumuloPartitioningTest extends Specification with TestWithFeatureType {
 
+  import scala.collection.JavaConverters._
+
   // note: using `Seq.foreach; ok` instead of `foreach(Seq)` shaves several seconds off the time to run this test
 
   sequential
@@ -96,7 +98,7 @@ class AccumuloPartitioningTest extends Specification with TestWithFeatureType {
     if (features.length != results.length) {
       ds.getQueryPlan(query, explainer = new ExplainPrintln)
     }
-    val attributes = Option(transforms).getOrElse(ds.getSchema(sftName).getAttributeDescriptors.map(_.getLocalName).toArray)
+    val attributes = Option(transforms).getOrElse(ds.getSchema(sftName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
     forall(features) { feature =>
       feature.getAttributes must haveLength(attributes.length)

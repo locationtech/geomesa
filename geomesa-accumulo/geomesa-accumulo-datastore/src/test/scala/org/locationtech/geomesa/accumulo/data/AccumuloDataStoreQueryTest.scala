@@ -46,6 +46,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
   import org.locationtech.geomesa.filter.ff
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   val defaultSft = createNewSchema("name:String:index=join,geom:Point:srid=4326,dtg:Date")
@@ -272,7 +274,6 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     "handle requests with namespaces" in {
       import AccumuloDataStoreParams.NamespaceParam
 
-      import scala.collection.JavaConversions._
 
       val ns = "mytestns"
       val typeName = "namespacetest"
@@ -285,7 +286,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       ds.getSchema(typeName) mustEqual SimpleFeatureTypes.immutable(sft)
       ds.getSchema(new NameImpl(ns, typeName)) mustEqual SimpleFeatureTypes.immutable(sft)
 
-      val dsWithNs = DataStoreFinder.getDataStore(dsParams ++ Map(NamespaceParam.key -> "ns0"))
+      val dsWithNs = DataStoreFinder.getDataStore((dsParams ++ Map(NamespaceParam.key -> "ns0")).asJava)
       val name = dsWithNs.getSchema(typeName).getName
       name.getNamespaceURI mustEqual "ns0"
       name.getLocalPart mustEqual typeName
@@ -440,13 +441,13 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         val bins = bytes.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
         bins must haveSize(7)
         val sorted = bins.sortBy(_.dtg)
-        sorted(0) mustEqual EncodedValues("name1".hashCode, 41, 40, dtgs1(0).getTime, -1L)
-        sorted(1) mustEqual EncodedValues("name1".hashCode, 43, 42, dtgs1(1).getTime, -1L)
-        sorted(2) mustEqual EncodedValues("name1".hashCode, 45, 44, dtgs1(2).getTime, -1L)
-        sorted(3) mustEqual EncodedValues("name1".hashCode, 47, 46, dtgs1(3).getTime, -1L)
-        sorted(4) mustEqual EncodedValues("name2".hashCode, 50, 50, dtgs2(0).getTime, -1L)
-        sorted(5) mustEqual EncodedValues("name2".hashCode, 51, 51, dtgs2(1).getTime, -1L)
-        sorted(6) mustEqual EncodedValues("name2".hashCode, 52, 52, dtgs2(2).getTime, -1L)
+        sorted(0) mustEqual EncodedValues("name1".hashCode, 41, 40, dtgs1.get(0).getTime, -1L)
+        sorted(1) mustEqual EncodedValues("name1".hashCode, 43, 42, dtgs1.get(1).getTime, -1L)
+        sorted(2) mustEqual EncodedValues("name1".hashCode, 45, 44, dtgs1.get(2).getTime, -1L)
+        sorted(3) mustEqual EncodedValues("name1".hashCode, 47, 46, dtgs1.get(3).getTime, -1L)
+        sorted(4) mustEqual EncodedValues("name2".hashCode, 50, 50, dtgs2.get(0).getTime, -1L)
+        sorted(5) mustEqual EncodedValues("name2".hashCode, 51, 51, dtgs2.get(1).getTime, -1L)
+        sorted(6) mustEqual EncodedValues("name2".hashCode, 52, 52, dtgs2.get(2).getTime, -1L)
       }
     }
 
@@ -480,7 +481,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       skipped("relies on thread.sleep timing")
       val params = dsParams ++ Map(AccumuloDataStoreParams.QueryTimeoutParam.getName -> "1s")
 
-      val dsWithTimeout = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      val dsWithTimeout = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
       val reader = dsWithTimeout.getFeatureReader(new Query(defaultSft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT)
       reader.hasNext() must beTrue
       Thread.sleep(5000) // TODO this is error prone...
@@ -577,7 +578,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       val params = dsParams ++ Map(AccumuloDataStoreParams.LooseBBoxParam.getName -> "false")
 
-      val strictDs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      val strictDs = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
 
       "with loose bbox as default" >> {
         "for z2 index" >> {

@@ -23,7 +23,9 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class VisibilitiesTest extends TestWithFeatureType {
-  
+
+  import scala.collection.JavaConverters._
+
   sequential
 
   override val spec = "name:String:index=full,dtg:Date,*geom:Point:srid=4326;geomesa.vis.required='true'"
@@ -40,8 +42,8 @@ class VisibilitiesTest extends TestWithFeatureType {
     sf.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true))
     sf
   }
-  val privDS = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> admin.name))
-  val unprivDS = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> user.name))
+  val privDS = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> admin.name)).asJava)
+  val unprivDS = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> user.name)).asJava)
   
   step {
     addFeatures(privFeatures ++ unprivFeatures)

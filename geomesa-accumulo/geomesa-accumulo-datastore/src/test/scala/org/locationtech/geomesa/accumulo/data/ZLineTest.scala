@@ -24,6 +24,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ZLineTest extends Specification with TestWithFeatureType {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   override val spec = "name:String,dtg:Date,*geom:LineString:srid=4326"
@@ -50,7 +52,7 @@ class ZLineTest extends Specification with TestWithFeatureType {
       new Z3Index(ds, sft, "geom", "dtg", IndexMode.ReadWrite).getTableNames().foreach { table =>
         println(table)
         val scanner = ds.connector.createScanner(table, new Authorizations())
-        println(scanner.toSeq.length)
+        println(scanner.asScala.toSeq.length)
         scanner.close()
       }
       success

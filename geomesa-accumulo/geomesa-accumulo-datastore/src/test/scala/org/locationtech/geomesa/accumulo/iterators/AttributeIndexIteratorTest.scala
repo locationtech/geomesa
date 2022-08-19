@@ -42,13 +42,13 @@ class AttributeIndexIteratorTest extends Specification with TestWithFeatureType 
     addFeatures({
       List("a", "b", "c", "d", null).flatMap { name =>
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
-          val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
+          val sf = SimpleFeatureBuilder.build(sft, Collections.emptyList[AnyRef](), name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
           sf.setAttribute("dtg", dateToIndex)
           sf.setAttribute("age", i)
           sf.setAttribute("name", name)
           sf.setAttribute("scars", Collections.singletonList("face"))
-          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+          sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
           sf
         }
       }

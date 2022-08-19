@@ -24,6 +24,8 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Collections
+
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexFilteringIteratorTest extends Specification with TestWithFeatureType {
 
@@ -35,7 +37,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithFea
 
   val features = List("a", "b", "c", "d").flatMap { name =>
     List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
-      val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
+      val sf = SimpleFeatureBuilder.build(sft, Collections.emptyList[AnyRef](), name + i.toString)
       sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
       sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
       sf.setAttribute("age", i)

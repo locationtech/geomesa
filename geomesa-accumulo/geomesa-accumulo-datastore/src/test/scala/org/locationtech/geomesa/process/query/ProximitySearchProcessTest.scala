@@ -52,7 +52,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
           sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
           sf.setAttribute("type", name)
-          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+          sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
           featureCollection.add(sf)
         }
       }
@@ -76,7 +76,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
         sf.setDefaultGeometry(p)
         sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
         sf.setAttribute("type", "fake")
-        sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         inputFeatures.add(sf)
       }
 
@@ -147,7 +147,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
         sf.setDefaultGeometry(p)
         sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
         sf.setAttribute("type", "fake")
-        sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         inputFeatures.add(sf)
       }
 
@@ -159,7 +159,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
           sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
           sf.setAttribute("type", name)
-          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+          sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
           nonAccumulo.add(sf)
         }
       }

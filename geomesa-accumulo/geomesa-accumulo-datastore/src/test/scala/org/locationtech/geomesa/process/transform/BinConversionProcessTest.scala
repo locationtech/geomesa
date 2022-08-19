@@ -23,6 +23,8 @@ import java.util.Date
 @RunWith(classOf[JUnitRunner])
 class BinConversionProcessTest extends TestWithFeatureType {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   override val spec = "name:String,track:String,dtg:Date,dtg2:Date,*geom:Point:srid=4326,geom2:Point:srid=4326"
@@ -60,26 +62,26 @@ class BinConversionProcessTest extends TestWithFeatureType {
 
   "BinConversionProcess" should {
     "encode an empty feature collection" in {
-      val bytes = process.execute(new ListFeatureCollection(sft), null, null, null, null, "lonlat")
+      val bytes = process.execute(new ListFeatureCollection(sft), null, null, null, null, "lonlat").asScala
       bytes must beEmpty
     }
 
     "encode an accumulo feature collection in distributed fashion" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), "name", null, null, null, "lonlat").toList
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), "name", null, null, null, "lonlat").asScala.toList
       bytes.length must beLessThan(10)
       val decoded = bytes.reduceLeft(_ ++ _).grouped(16).toSeq.map(BinaryOutputEncoder.decode).map(toTuples)
       decoded must containTheSameElementsAs(names.zip(dates).zip(lonlat))
     }
 
     "encode an accumulo feature collection in distributed fashion with alternate values" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), "name", "geom2", "dtg2", null, "lonlat").toList
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), "name", "geom2", "dtg2", null, "lonlat").asScala.toList
       bytes.length must beLessThan(10)
       val decoded = bytes.reduceLeft(_ ++ _).grouped(16).toSeq.map(BinaryOutputEncoder.decode).map(toTuples)
       decoded must containTheSameElementsAs(names.zip(dates2).zip(lonlat2))
     }
 
     "encode an accumulo feature collection in distributed fashion with labels" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), "name", null, null, "track", "lonlat").toList
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), "name", null, null, "track", "lonlat").asScala.toList
       bytes.length must beLessThan(10)
       val decoded = bytes.reduceLeft(_ ++ _).grouped(24).toSeq.map(BinaryOutputEncoder.decode).map(toTuples)
       decoded must containTheSameElementsAs(names.zip(dates).zip(lonlat).zip(tracks))
@@ -87,7 +89,7 @@ class BinConversionProcessTest extends TestWithFeatureType {
 
     "encode an accumulo feature collection using feature id" in {
       failure("not implemented")
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, "track", "lonlat").toList
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, "track", "lonlat").asScala.toList
       bytes.length must beLessThan(10)
       val decoded = bytes.reduceLeft(_ ++ _).grouped(24).toSeq.map(BinaryOutputEncoder.decode).map(toTuples)
       decoded must containTheSameElementsAs(ids.zip(dates).zip(lonlat).zip(tracks))

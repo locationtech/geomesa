@@ -66,10 +66,10 @@ class QueryFilterSplitterTest extends Specification {
 
   val includeStrategy     = Z3Index.name
 
-  def and(clauses: Filter*) = ff.and(clauses)
-  def or(clauses: Filter*)  = ff.or(clauses)
-  def and(clauses: String*)(implicit d: DummyImplicit) = ff.and(clauses.map(ECQL.toFilter))
-  def or(clauses: String*)(implicit d: DummyImplicit)  = ff.or(clauses.map(ECQL.toFilter))
+  def and(clauses: Filter*) = ff.and(java.util.Arrays.asList(clauses: _*))
+  def or(clauses: Filter*)  = ff.or(java.util.Arrays.asList(clauses: _*))
+  def and(clauses: String*)(implicit d: DummyImplicit) = ff.and(clauses.map(ECQL.toFilter).asJava)
+  def or(clauses: String*)(implicit d: DummyImplicit)  = ff.or(clauses.map(ECQL.toFilter).asJava)
   def not(clauses: String*) = filter.andFilters(clauses.map(ECQL.toFilter).map(ff.not))(ff)
   def f(filter: String)     = ECQL.toFilter(filter)
 
@@ -186,7 +186,7 @@ class QueryFilterSplitterTest extends Specification {
         z3.strategies.head.primary must beSome
         z3.strategies.head.primary.get must beAnInstanceOf[And]
         z3.strategies.head.primary.get.asInstanceOf[And].getChildren must haveLength(2)
-        z3.strategies.head.primary.get.asInstanceOf[And].getChildren.map(Option.apply) must
+        z3.strategies.head.primary.get.asInstanceOf[And].getChildren.asScala.map(Option.apply) must
             contain(compareOr(_: Option[Filter], geom, geom2), compareOr(_: Option[Filter], dtg, dtg2))
         z3.strategies.head.secondary must beSome // secondary filter is too complex to compare here...
       }
@@ -513,7 +513,7 @@ class QueryFilterSplitterTest extends Specification {
         val z2QueryFilters = options.find(_.strategies.head.index.name == Z2Index.name).get.strategies.head
         z2QueryFilters.primary must beSome(f(bbox))
         z2QueryFilters.secondary must beSome(beAnInstanceOf[And])
-        val z2secondary = z2QueryFilters.secondary.get.asInstanceOf[And].getChildren.toSeq
+        val z2secondary = z2QueryFilters.secondary.get.asInstanceOf[And].getChildren.asScala
         z2secondary must haveLength(2)
         z2secondary must contain(beAnInstanceOf[Or], beAnInstanceOf[During])
         compareOr(z2secondary.find(_.isInstanceOf[Or]), decomposeOr(f(attrPart)): _*)

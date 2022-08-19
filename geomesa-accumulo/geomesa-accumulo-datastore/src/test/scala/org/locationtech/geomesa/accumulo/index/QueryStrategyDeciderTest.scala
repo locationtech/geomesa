@@ -188,10 +188,10 @@ class QueryStrategyDeciderTest extends Specification with TestWithFeatureType {
         val weightFilter = ff.equals(ff.literal(21.12D), ff.property("weightNoIndex"))
 
         val primary = Some(FastFilterFactory.optimize(sft, nameFilter))
-        val secondary = FastFilterFactory.optimize(sft, ff.and(Seq(heightFilter, weightFilter, ageFilter)))
+        val secondary = FastFilterFactory.optimize(sft, ff.and(java.util.Arrays.asList(heightFilter, weightFilter, ageFilter)))
 
         "when best is first" >> {
-          val strats = getStrategies(ff.and(Seq(nameFilter, heightFilter, weightFilter, ageFilter)))
+          val strats = getStrategies(ff.and(java.util.Arrays.asList(nameFilter, heightFilter, weightFilter, ageFilter)))
           strats must haveLength(1)
           strats.head.index.name mustEqual JoinIndex.name
           strats.head.primary mustEqual primary
@@ -199,7 +199,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithFeatureType {
         }
 
         "when best is in the middle" >> {
-          val strats = getStrategies(ff.and(Seq(ageFilter, nameFilter, heightFilter, weightFilter)))
+          val strats = getStrategies(ff.and(java.util.Arrays.asList(ageFilter, nameFilter, heightFilter, weightFilter)))
           strats must haveLength(1)
           strats.head.index.name mustEqual JoinIndex.name
           strats.head.primary mustEqual primary
@@ -207,7 +207,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithFeatureType {
         }
 
         "when best is last" >> {
-          val strats = getStrategies(ff.and(Seq(ageFilter, heightFilter, weightFilter, nameFilter)))
+          val strats = getStrategies(ff.and(java.util.Arrays.asList(ageFilter, heightFilter, weightFilter, nameFilter)))
           strats must haveLength(1)
           strats.head.index.name mustEqual JoinIndex.name
           strats.head.primary mustEqual primary
@@ -216,11 +216,11 @@ class QueryStrategyDeciderTest extends Specification with TestWithFeatureType {
 
         "use best indexed attribute if like and retain all children for > 2 filters" >> {
           val like = ff.like(ff.property("nameHighCardinality"), "baddy")
-          val strats = getStrategies(ff.and(Seq(like, heightFilter, weightFilter, ageFilter)))
+          val strats = getStrategies(ff.and(java.util.Arrays.asList(like, heightFilter, weightFilter, ageFilter)))
           strats must haveLength(1)
           strats.head.index.name mustEqual AttributeIndex.name
           strats.head.primary must beSome(FastFilterFactory.optimize(sft, heightFilter))
-          strats.head.secondary must beSome(FastFilterFactory.optimize(sft, ff.and(Seq(like, weightFilter, ageFilter))))
+          strats.head.secondary must beSome(FastFilterFactory.optimize(sft, ff.and(java.util.Arrays.asList(like, weightFilter, ageFilter))))
         }
       }
     }

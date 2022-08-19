@@ -149,6 +149,8 @@ class Version1ASF(id: FeatureId, sft: SimpleFeatureType) extends SimpleFeature {
 
 object Version1ASF {
 
+  import scala.collection.JavaConverters._
+
   def apply(sf: SimpleFeature) = {
     val asf = new Version1ASF(sf.getIdentifier, sf.getFeatureType)
     for (i <- 0 until sf.getAttributeCount) asf.setAttribute(i, sf.getAttribute(i))
@@ -156,7 +158,6 @@ object Version1ASF {
     asf
   }
 
-  import scala.collection.JavaConversions._
 
   val primitiveTypes =
     List(
@@ -187,7 +188,7 @@ object Version1ASF {
   case class Binding(clazz: Class[_], conv: AnyRef => Any)
   val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Binding]] =
     loadingCacheBuilder { sft =>
-      sft.getAttributeDescriptors.map { ad =>
+      sft.getAttributeDescriptors.asScala.map { ad =>
         val conv =
           ad.getType.getBinding match {
             case t if primitiveTypes.contains(t) => (v: AnyRef) => v
@@ -243,9 +244,9 @@ object Version1ASF {
 
   def decode(s: String): String = new String(Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
 
-  def encodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, encode(s))
+  def encodeAttributeName(s: String): String = attributeNameLookUp.asScala.getOrElseUpdate(s, encode(s))
 
-  def decodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, decode(s))
+  def decodeAttributeName(s: String): String = attributeNameLookUp.asScala.getOrElseUpdate(s, decode(s))
 
   def generateSchema(sft: SimpleFeatureType): Schema = {
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
@@ -256,7 +257,7 @@ object Version1ASF {
         .name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
 
     val result =
-      sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
+      sft.getAttributeDescriptors.asScala.foldLeft(initialAssembler) { case (assembler, ad) =>
         addField(assembler, encodeAttributeName(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
       }
 

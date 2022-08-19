@@ -31,6 +31,8 @@ import java.text.DecimalFormat
 @RunWith(classOf[JUnitRunner])
 class LiveDensityIteratorTest extends Specification with LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   /**
@@ -60,7 +62,7 @@ class LiveDensityIteratorTest extends Specification with LazyLogging {
   val map = HashBasedTable.create[Double, Double, Long]()
 
   def getDataStore: AccumuloDataStore = {
-    DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+    DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
   }
 
   def printFeatures(featureIterator: SimpleFeatureIterator): Unit = {
@@ -94,15 +96,15 @@ class LiveDensityIteratorTest extends Specification with LazyLogging {
         map.put(point.getY, point.getX, map.get(point.getY, point.getX) + f.getProperty("weight").getValue.toString.toDouble.toLong)
     }
 
-    logger.debug(s"max joined weight: ${map.values().max}")
+    logger.debug(s"max joined weight: ${map.values().asScala.max}")
 
     val output = new StringBuilder()
 
     val df = new DecimalFormat("0")
 
-    map.rowMap().foreach {
+    map.rowMap().asScala.foreach {
       case (rowIdx, cols) =>
-        cols.foreach {
+        cols.asScala.foreach {
           case (colIdx, v) =>
             if (v == 0) {
               output.append(" ")

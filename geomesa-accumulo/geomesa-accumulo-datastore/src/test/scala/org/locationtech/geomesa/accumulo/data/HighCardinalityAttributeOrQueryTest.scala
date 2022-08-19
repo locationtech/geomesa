@@ -38,7 +38,7 @@ class HighCardinalityAttributeOrQueryTest extends Specification with TestWithFea
     builder.set("high", "h" + i.toString)
     builder.set("low", "l" + i.toString)
     val sf = builder.buildFeature(i.toString)
-    sf.getUserData.update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     sf
   }
 

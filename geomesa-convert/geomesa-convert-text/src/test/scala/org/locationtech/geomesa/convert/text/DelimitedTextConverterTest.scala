@@ -592,7 +592,6 @@ class DelimitedTextConverterTest extends Specification {
     }
 
     "handle out-of-order attributes" >> {
-      import scala.collection.JavaConversions._
 
       val conf = ConfigFactory.parseString(
         """

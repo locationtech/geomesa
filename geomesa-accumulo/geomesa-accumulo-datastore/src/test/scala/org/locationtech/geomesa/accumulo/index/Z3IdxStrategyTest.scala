@@ -32,6 +32,8 @@ import java.util.Date
 @RunWith(classOf[JUnitRunner])
 class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
 
+  import scala.collection.JavaConverters._
+
   sequential // note: test doesn't need to be sequential but it actually runs faster this way
 
   val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326;geomesa.indexes.enabled='z3'"
@@ -77,7 +79,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
 
       ds.manager.indices(sft).filter(_.name == Z3Index.name).flatMap(_.getTableNames()).foreach { table =>
         println(table)
-        ds.connector.createScanner(table, new Authorizations()).foreach { r =>
+        ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val prefix = 2 // table sharing + split
           val bytes = r.getKey.getRow.getBytes
           val keyZ = Longs.fromByteArray(bytes.drop(prefix))

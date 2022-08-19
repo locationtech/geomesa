@@ -108,11 +108,10 @@ class QueryProcessTest extends Specification with TestWithFeatureType {
     }
 
     "allow for projections in the returned result set" in {
-
       val features = fs.getFeatures()
 
       val geomesaQuery = new QueryProcess
-      val results = geomesaQuery.execute(features, null, List("type", "geom"))
+      val results = geomesaQuery.execute(features, null, java.util.Arrays.asList("type", "geom"))
 
       val f = SelfClosingIterator(results).toList
       f.head.getType.getAttributeCount mustEqual 2
@@ -122,12 +121,10 @@ class QueryProcessTest extends Specification with TestWithFeatureType {
     }
 
     "support transforms in the returned result set" in {
-      import scala.collection.JavaConversions._
-
       val features = fs.getFeatures()
 
       val geomesaQuery = new QueryProcess
-      val results = geomesaQuery.execute(features, null, List("type", "geom", "derived=strConcat(type, 'b')"))
+      val results = geomesaQuery.execute(features, null, java.util.Arrays.asList("type", "geom", "derived=strConcat(type, 'b')"))
 
       val f = SelfClosingIterator(results).toList
       f.head.getType.getAttributeCount mustEqual 3
@@ -139,14 +136,13 @@ class QueryProcessTest extends Specification with TestWithFeatureType {
 
     // NB: We 'filter' and then 'transform'.  Any filter on a 'derived' field must be expressed as a function.
     "support transforms with filters in the returned result set" in {
-      import scala.collection.JavaConversions._
-
       val features = fs.getFeatures()
 
       val geomesaQuery = new QueryProcess
-      val results = geomesaQuery.execute(features,
-                                         ECQL.toFilter("strConcat(type, 'b') = 'ab'"),
-                                         List("type", "geom", "derived=strConcat(type, 'b')"))
+      val results = geomesaQuery.execute(
+        features,
+        ECQL.toFilter("strConcat(type, 'b') = 'ab'"),
+        java.util.Arrays.asList("type", "geom", "derived=strConcat(type, 'b')"))
 
       val f = SelfClosingIterator(results).toList
       f.head.getType.getAttributeCount mustEqual 3
