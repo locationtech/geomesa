@@ -27,6 +27,9 @@ import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class HBaseBinAggregatorTest extends Specification with LazyLogging {
+
+  import scala.collection.JavaConverters._
+
   sequential
 
   lazy val process = new BinConversionProcess
@@ -42,11 +45,11 @@ class HBaseBinAggregatorTest extends Specification with LazyLogging {
     HBaseDataStoreParams.BinCoprocessorParam.key   -> true
   )
 
-  lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
-  lazy val dsSemiLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.BinCoprocessorParam.key -> false)).asInstanceOf[HBaseDataStore]
-  lazy val dsFullLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asInstanceOf[HBaseDataStore]
-  lazy val dsThreads1 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "1")).asInstanceOf[HBaseDataStore]
-  lazy val dsYieldPartials = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.YieldPartialResultsParam.key -> true)).asInstanceOf[HBaseDataStore]
+  lazy val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
+  lazy val dsSemiLocal = DataStoreFinder.getDataStore((params ++ Map(HBaseDataStoreParams.BinCoprocessorParam.key -> false)).asJava).asInstanceOf[HBaseDataStore]
+  lazy val dsFullLocal = DataStoreFinder.getDataStore((params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asJava).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads1 = DataStoreFinder.getDataStore((params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "1")).asJava).asInstanceOf[HBaseDataStore]
+  lazy val dsYieldPartials = DataStoreFinder.getDataStore((params ++ Map(HBaseDataStoreParams.YieldPartialResultsParam.key -> true)).asJava).asInstanceOf[HBaseDataStore]
   lazy val dataStores = Seq(ds, dsSemiLocal, dsFullLocal, dsThreads1, dsYieldPartials)
 
   lazy val features = (0 until 10).map { i =>
@@ -99,7 +102,7 @@ class HBaseBinAggregatorTest extends Specification with LazyLogging {
     "encode a feature collection in distributed fashion" in {
       foreach(dataStores) { ds =>
         val fc = ds.getFeatureSource(sftName).getFeatures(Filter.INCLUDE)
-        val bytes = process.execute(fc, "name", null, null, null, "lonlat").toList
+        val bytes = process.execute(fc, "name", null, null, null, "lonlat").asScala.toList
         bytes.length must beLessThan(10)
         val decoded = bytes.reduceLeft(_ ++ _).grouped(16).toSeq.map(BinaryOutputEncoder.decode).map(toTuples)
         decoded must containTheSameElementsAs(names.zip(dates).zip(lonlat))
@@ -109,7 +112,7 @@ class HBaseBinAggregatorTest extends Specification with LazyLogging {
     "encode a feature collection in distributed fashion with alternate values" in {
       foreach(dataStores) { ds =>
         val fc = ds.getFeatureSource(sftName).getFeatures(Filter.INCLUDE)
-        val bytes = process.execute(fc, "name", "geom2", "dtg2", null, "lonlat").toList
+        val bytes = process.execute(fc, "name", "geom2", "dtg2", null, "lonlat").asScala.toList
         bytes.length must beLessThan(10)
         val decoded = bytes.reduceLeft(_ ++ _).grouped(16).toSeq.map(BinaryOutputEncoder.decode).map(toTuples)
         decoded must containTheSameElementsAs(names.zip(dates2).zip(lonlat2))
@@ -119,7 +122,7 @@ class HBaseBinAggregatorTest extends Specification with LazyLogging {
     "encode a feature collection in distributed fashion with labels" in {
       foreach(dataStores) { ds =>
         val fc = ds.getFeatureSource(sftName).getFeatures(Filter.INCLUDE)
-        val bytes = process.execute(fc, "name", null, null, "track", "lonlat").toList
+        val bytes = process.execute(fc, "name", null, null, "track", "lonlat").asScala.toList
         bytes.length must beLessThan(10)
         val decoded = bytes.reduceLeft(_ ++ _).grouped(24).toSeq.map(BinaryOutputEncoder.decode).map(toTuples)
         decoded must containTheSameElementsAs(names.zip(dates).zip(lonlat).zip(tracks))

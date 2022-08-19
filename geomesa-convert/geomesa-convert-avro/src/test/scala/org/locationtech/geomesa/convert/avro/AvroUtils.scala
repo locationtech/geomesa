@@ -22,7 +22,7 @@ trait AvroUtils {
   val schema = parser.parse(spec)
 
   val contentSchema = schema.getField("content").schema()
-  val types = contentSchema.getTypes.toList
+  val types = contentSchema.getTypes.asScala.toList
   val tObjSchema = types(0)
   val otherObjSchema = types(1)
 

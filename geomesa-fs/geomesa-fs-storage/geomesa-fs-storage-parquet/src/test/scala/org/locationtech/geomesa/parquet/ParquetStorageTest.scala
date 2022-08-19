@@ -36,6 +36,8 @@ import java.util.UUID
 @RunWith(classOf[JUnitRunner])
 class ParquetStorageTest extends Specification with AllExpectations with LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   val config = new Configuration()
@@ -396,7 +398,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       // note: need to copy features in iterator as same object is re-used
       iter.map(ScalaSimpleFeature.copy).toList
     }
-    val attributes = Option(transforms).getOrElse(sft.getAttributeDescriptors.map(_.getLocalName).toArray)
+    val attributes = Option(transforms).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
     forall(features) { feature =>
       feature.getAttributes must haveLength(attributes.length)

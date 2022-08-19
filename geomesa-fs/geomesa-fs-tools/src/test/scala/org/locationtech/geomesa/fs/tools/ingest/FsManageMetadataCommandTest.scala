@@ -30,6 +30,8 @@ class FsManageMetadataCommandTest extends Specification {
 
   import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
 
+  import scala.collection.JavaConverters._
+
   val dir = Files.createTempDirectory("gm-FsManageMetadataCommandTest").toFile
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
@@ -62,7 +64,7 @@ class FsManageMetadataCommandTest extends Specification {
     "find file inconsistencies" in {
       val dir = nextPath()
       val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> gzipXml)
-      WithClose(DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]) { ds =>
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.createSchema(SimpleFeatureTypes.copy(sft))
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
@@ -99,7 +101,7 @@ class FsManageMetadataCommandTest extends Specification {
     "rebuild metadata from scratch" in {
       val dir = nextPath()
       val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> gzipXml)
-      WithClose(DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]) { ds =>
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.createSchema(SimpleFeatureTypes.copy(sft))
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))

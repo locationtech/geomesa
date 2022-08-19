@@ -25,6 +25,7 @@ import scala.concurrent.Future
 @RunWith(classOf[JUnitRunner])
 class GenericSimpleFeatureStreamSourceTest extends Specification  {
 
+  import scala.collection.JavaConverters._
   import scala.concurrent.ExecutionContext.Implicits.global
 
   "GenericSimpleFeatureStreamSource" should {
@@ -86,8 +87,8 @@ class GenericSimpleFeatureStreamSourceTest extends Specification  {
           ret
         }
       }
-      val result = iter.take(lines.length).toList
-      result.length must be equalTo lines.length
+      val result = iter.take(lines.size).toList
+      result.length must be equalTo lines.size
     }
 
     "work with udp" >> {
@@ -106,7 +107,7 @@ class GenericSimpleFeatureStreamSourceTest extends Specification  {
         val socket = socketFactory.createDatagramSocket()
         socket.connect(address, port)
 
-        lines.foreach { line =>
+        lines.asScala.foreach { line =>
           val bytes = (line + "\n").getBytes("UTF-8")
           if (bytes.length > socket.getSendBufferSize) {
             println("Error in buffer size with line \n" + line)
@@ -128,8 +129,8 @@ class GenericSimpleFeatureStreamSourceTest extends Specification  {
           ret
         }
       }
-      val result = iter.take(lines.length).toList
-      result.length must be equalTo lines.length
+      val result = iter.take(lines.size).toList
+      result.length must be equalTo lines.size
     }
   }
 }

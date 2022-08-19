@@ -23,6 +23,8 @@ import scala.collection.mutable
 @RunWith(classOf[JUnitRunner])
 class ConverterDataStoreTest extends Specification {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   def fsConfig(converter: String, path: String): String = {
@@ -60,7 +62,7 @@ class ConverterDataStoreTest extends Specification {
         "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding"   -> "converter",
         "fs.config.xml" -> fsConfig(sftByName("fs-test"), "datastore1")
-      ))
+      ).asJava)
       ds must not(beNull)
 
       val types = ds.getTypeNames
@@ -81,7 +83,7 @@ class ConverterDataStoreTest extends Specification {
         "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding"   -> "converter",
         "fs.config.xml" -> fsConfig(sftByName("fs-test"), "datastore2")
-      ))
+      ).asJava)
       ds must not(beNull)
 
       val types = ds.getTypeNames
@@ -135,7 +137,7 @@ class ConverterDataStoreTest extends Specification {
         "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding"   -> "converter",
         "fs.config.xml" -> fsConfig(sftByConf(conf), "datastore1")
-      ))
+      ).asJava)
 
       ds must not(beNull)
 

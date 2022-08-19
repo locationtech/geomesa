@@ -29,6 +29,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
 
   import org.locationtech.geomesa.index.iterators.StatsScan.decodeStat
 
+  import scala.collection.JavaConverters._
   sequential
 
   val TEST_FAMILY = "idt:java.lang.Integer:index=full,attr:java.lang.Long:index=true,dtg:Date,*geom:Point:srid=4326"
@@ -47,11 +48,11 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     HBaseDataStoreParams.StatsCoprocessorParam.key -> true
   )
 
-  lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
-  lazy val dsSemiLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.StatsCoprocessorParam.key -> false)).asInstanceOf[HBaseDataStore]
-  lazy val dsFullLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asInstanceOf[HBaseDataStore]
-  lazy val dsThreads1 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "1")).asInstanceOf[HBaseDataStore]
-  lazy val dsYieldPartials = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.YieldPartialResultsParam.key -> true)).asInstanceOf[HBaseDataStore]
+  lazy val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
+  lazy val dsSemiLocal = DataStoreFinder.getDataStore((params ++ Map(HBaseDataStoreParams.StatsCoprocessorParam.key -> false)).asJava).asInstanceOf[HBaseDataStore]
+  lazy val dsFullLocal = DataStoreFinder.getDataStore((params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asJava).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads1 = DataStoreFinder.getDataStore((params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "1")).asJava).asInstanceOf[HBaseDataStore]
+  lazy val dsYieldPartials = DataStoreFinder.getDataStore((params ++ Map(HBaseDataStoreParams.YieldPartialResultsParam.key -> true)).asJava).asInstanceOf[HBaseDataStore]
   lazy val dataStores = Seq(ds, dsSemiLocal, dsFullLocal, dsThreads1, dsYieldPartials)
 
   var sft: SimpleFeatureType = _

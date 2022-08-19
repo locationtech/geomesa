@@ -30,8 +30,9 @@ import java.util.{Collections, Date}
 @RunWith(classOf[JUnitRunner])
 class DelimitedTextConverterTest extends Specification {
 
-  sequential
+  import scala.collection.JavaConverters._
 
+  sequential
 
   val data = Seq(
     """1,hello,45.0,45.0""",
@@ -326,7 +327,7 @@ class DelimitedTextConverterTest extends Specification {
             |1,hello,Point(46.0 45.0)
             |2,world,Point(90.0 90.0)
           """.stripMargin
-        val sz = format.parse(new InputStreamReader(new ByteArrayInputStream(trueData.getBytes(StandardCharsets.UTF_8)))).iterator().toList.size
+        val sz = format.parse(new InputStreamReader(new ByteArrayInputStream(trueData.getBytes(StandardCharsets.UTF_8)))).iterator().asScala.toList.size
 
         // prove that skipHeader and empty lines doesn't work (at least as I think) and that we are safe to
         // consume the header record and empty lines as part of our config
@@ -624,8 +625,8 @@ class DelimitedTextConverterTest extends Specification {
         val converted = WithClose(converter.process(new ByteArrayInputStream("myfid,foo,45.0,55.0".getBytes(StandardCharsets.UTF_8))))(_.toList)
         converted must haveLength(1)
         converted.head.getID mustEqual "myfid"
-        converted.head.getAttributes.toSeq mustEqual Seq("hello myfid", WKTUtils.read("POINT(45 55)"))
-        converted.head.getUserData.toMap mustEqual
+        converted.head.getAttributes.asScala mustEqual Seq("hello myfid", WKTUtils.read("POINT(45 55)"))
+        converted.head.getUserData.asScala mustEqual
             Map("my.first.key"              -> "myfid"
               , "my.second.key"             -> "foo"
               , Hints.USE_PROVIDED_FID      -> true

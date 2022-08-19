@@ -23,6 +23,8 @@ import java.util.{Map => JMap}
 @RunWith(classOf[JUnitRunner])
 class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   "SQL spatial relationships" should {
@@ -35,7 +37,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
     val dsParams: JMap[String, String] = Map(
       "cqengine" -> "true",
       "geotools" -> "true",
-      "useGeoIndex" -> "false")
+      "useGeoIndex" -> "false").asJava
     var ds: DataStore = null
     var spark: SparkSession = null
     var sc: SQLContext = null

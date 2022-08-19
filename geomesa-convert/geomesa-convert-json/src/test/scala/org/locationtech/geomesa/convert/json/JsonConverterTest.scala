@@ -906,16 +906,16 @@ class JsonConverterTest extends Specification {
           val f = features.head
 
           f.getAttribute("sList") must beAnInstanceOf[java.util.List[String]]
-          f.getAttribute("sList").asInstanceOf[java.util.List[String]].toSeq must containTheSameElementsAs(Seq("s1", "s2"))
+          f.getAttribute("sList").asInstanceOf[java.util.List[String]].asScala must containTheSameElementsAs(Seq("s1", "s2"))
 
           f.getAttribute("iList") must beAnInstanceOf[java.util.List[Integer]]
-          f.getAttribute("iList").asInstanceOf[java.util.List[Integer]].toSeq must containTheSameElementsAs(Seq(2))
+          f.getAttribute("iList").asInstanceOf[java.util.List[Integer]].asScala must containTheSameElementsAs(Seq(2))
 
           f.getAttribute("dList") must beAnInstanceOf[java.util.List[Double]]
-          f.getAttribute("dList").asInstanceOf[java.util.List[Double]].toSeq must containTheSameElementsAs(Seq(1.1, 2.2))
+          f.getAttribute("dList").asInstanceOf[java.util.List[Double]].asScala must containTheSameElementsAs(Seq(1.1, 2.2))
 
           f.getAttribute("uList") must beAnInstanceOf[java.util.List[UUID]]
-          f.getAttribute("uList").asInstanceOf[java.util.List[UUID]].toSeq must containTheSameElementsAs(
+          f.getAttribute("uList").asInstanceOf[java.util.List[UUID]].asScala must containTheSameElementsAs(
             Seq(UUID.fromString("12345678-1234-1234-1234-123456781234"),
               UUID.fromString("00000000-0000-0000-0000-000000000000")))
 
@@ -923,7 +923,7 @@ class JsonConverterTest extends Specification {
             f.getAttribute("nList") must beNull
           } else {
             f.getAttribute("nList") must beAnInstanceOf[java.util.List[String]]
-            f.getAttribute("nList").asInstanceOf[java.util.List[String]].toSeq must beEmpty
+            f.getAttribute("nList").asInstanceOf[java.util.List[String]].asScala must beEmpty
           }
         }
       }
@@ -1057,22 +1057,22 @@ class JsonConverterTest extends Specification {
         val m = f.get[JMap[String,String]]("map1")
         m must beAnInstanceOf[JMap[String,String]]
         m.size() mustEqual 2
-        m("a") mustEqual "val1"
-        m("b") mustEqual "val2"
+        m.get("a") mustEqual "val1"
+        m.get("b") mustEqual "val2"
 
         val m2 = f.get[JMap[String,String]]("map2")
         m2 must beAnInstanceOf[JMap[String,String]]
         m2.size mustEqual 3
-        m2("a") mustEqual "1.0"
-        m2("b") mustEqual "foobar"
-        m2("c") mustEqual "false"
+        m2.get("a") mustEqual "1.0"
+        m2.get("b") mustEqual "foobar"
+        m2.get("c") mustEqual "false"
 
         val m3 = f.get[JMap[Int,Boolean]]("map3")
         m3 must beAnInstanceOf[JMap[Int,Boolean]]
         m3.size mustEqual 3
-        m3(1) mustEqual true
-        m3(2) mustEqual false
-        m3(3) mustEqual true
+        m3.get(1) mustEqual true
+        m3.get(2) mustEqual false
+        m3.get(3) mustEqual true
       }
     }
 

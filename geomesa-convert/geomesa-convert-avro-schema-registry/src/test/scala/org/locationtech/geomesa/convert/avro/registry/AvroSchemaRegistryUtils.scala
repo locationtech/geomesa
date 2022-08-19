@@ -13,9 +13,11 @@ import org.apache.avro.generic.{GenericDatumWriter, GenericRecord, GenericRecord
 import org.apache.avro.io.EncoderFactory
 
 import java.io.ByteArrayOutputStream
-import scala.collection.JavaConverters._
 
 trait AvroSchemaRegistryUtils {
+
+  import scala.collection.JavaConverters._
+
   val spec = getClass.getResourceAsStream("/schema.avsc")
   val spec2 = getClass.getResourceAsStream("/schema2.avsc")
 
@@ -24,12 +26,12 @@ trait AvroSchemaRegistryUtils {
   val schema2 = parser.parse(spec2)
 
   val contentSchema = schema.getField("content").schema()
-  val types = contentSchema.getTypes.toList
+  val types = contentSchema.getTypes.asScala
   val tObjSchema = types(0)
   val otherObjSchema = types(1)
 
   val contentSchema2 = schema2.getField("content").schema()
-  val types2 = contentSchema2.getTypes.toList
+  val types2 = contentSchema2.getTypes.asScala
   val tObjSchema2 = types2(0)
   val otherObjSchema2 = types2(1)
 

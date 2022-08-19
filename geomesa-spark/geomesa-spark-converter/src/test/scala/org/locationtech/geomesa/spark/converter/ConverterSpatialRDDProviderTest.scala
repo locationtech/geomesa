@@ -14,13 +14,15 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
+import org.locationtech.geomesa.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class ConverterSpatialRDDProviderTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -46,7 +48,7 @@ class ConverterSpatialRDDProviderTest extends Specification {
 
   "The ConverterSpatialRDDProvider" should {
     "read from local files" in {
-      val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, new Query("example-csv"))
+      val rdd = GeoMesaSpark(params.asJava).rdd(new Configuration(), sc, params, new Query("example-csv"))
       rdd.count() mustEqual 3l
       rdd.collect.map(_.getAttribute("name").asInstanceOf[String]).toList must
           containTheSameElementsAs(Seq("Harry", "Hermione", "Severus"))
@@ -54,7 +56,7 @@ class ConverterSpatialRDDProviderTest extends Specification {
 
     "read from local files with filtering" in {
       val query = new Query("example-csv", ECQL.toFilter("name like 'H%'"))
-      val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
+      val rdd = GeoMesaSpark(params.asJava).rdd(new Configuration(), sc, params, query)
       rdd.count() mustEqual 2l
       rdd.collect.map(_.getAttribute("name").asInstanceOf[String]).toList must
           containTheSameElementsAs(Seq("Harry", "Hermione"))
@@ -66,7 +68,7 @@ class ConverterSpatialRDDProviderTest extends Specification {
         IngestTypeKey -> "example-csv"
       )
 
-      val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, new Query("example-csv"))
+      val rdd = GeoMesaSpark(params.asJava).rdd(new Configuration(), sc, params, new Query("example-csv"))
       rdd.count() mustEqual 3l
     }
 
@@ -77,8 +79,8 @@ class ConverterSpatialRDDProviderTest extends Specification {
       )
       val requestedProps : Array[String] = Array("name")
       val q = new Query("example-csv", Filter.INCLUDE, requestedProps)
-      val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, q)
-      val returnedProps = rdd.first.getProperties.map{_.getName.toString}.toArray
+      val rdd = GeoMesaSpark(params.asJava).rdd(new Configuration(), sc, params, q)
+      val returnedProps = rdd.first.getProperties.asScala.map{_.getName.toString}.toArray
       returnedProps mustEqual requestedProps
     }
 
@@ -89,8 +91,8 @@ class ConverterSpatialRDDProviderTest extends Specification {
       )
       val requestedProps : Array[String] = Array( "fid", "name", "age", "lastseen", "friends","talents", "geom")
       val q = new Query("example-csv", Filter.INCLUDE, requestedProps)
-      val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, q)
-      val returnedProps = rdd.first.getProperties.map{_.getName.toString}.toArray
+      val rdd = GeoMesaSpark(params.asJava).rdd(new Configuration(), sc, params, q)
+      val returnedProps = rdd.first.getProperties.asScala.map{_.getName.toString}.toArray
       returnedProps mustEqual requestedProps
     }
   }

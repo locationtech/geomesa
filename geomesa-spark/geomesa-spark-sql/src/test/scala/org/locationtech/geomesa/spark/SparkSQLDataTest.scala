@@ -26,9 +26,12 @@ import java.{util => ju}
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLDataTest extends Specification with LazyLogging {
+
+  import scala.collection.JavaConverters._
+
   sequential
 
-  val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")
+  val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true").asJava
   var ds: DataStore = _
   var spark: SparkSession = _
   var sc: SQLContext = _

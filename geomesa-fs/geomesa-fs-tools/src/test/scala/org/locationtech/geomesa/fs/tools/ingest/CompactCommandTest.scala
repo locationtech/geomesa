@@ -32,6 +32,8 @@ class CompactCommandTest extends Specification {
 
   import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   val tempDir: Path = Files.createTempDirectory("compactCommand")
@@ -65,7 +67,7 @@ class CompactCommandTest extends Specification {
     val dsParams = Map(
       "fs.path" -> directory,
       "fs.config.xml" -> "<configuration><property><name>parquet.compression</name><value>GZIP</value></property></configuration>")
-    DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
+    DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]
   }
 
   def features(sft: SimpleFeatureType): Seq[ScalaSimpleFeature] = {

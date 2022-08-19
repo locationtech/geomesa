@@ -17,10 +17,14 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
+import org.opengis.feature.simple.SimpleFeature
 
 import scala.util.Random
 
 object SparkSQLTestUtils {
+
+  import scala.collection.JavaConverters._
+
   def createSparkSession(): SparkSession = {
     SparkSession.builder()
       .appName("testSpark")
@@ -48,7 +52,7 @@ object SparkSQLTestUtils {
 
     val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
 
-    val f = List(
+    val f = List[SimpleFeature](
       ScalaSimpleFeature.create(sft, "1", "true", "1", "2016-01-01T00:00:00.000Z", createPoint(new Coordinate(-76.5, 38.5))),
       ScalaSimpleFeature.create(sft, "2", "true", "2", "2016-01-02T00:00:00.000Z", createPoint(new Coordinate(-77.0, 38.0))),
       ScalaSimpleFeature.create(sft, "3", "true", "3", "2016-01-03T00:00:00.000Z", createPoint(new Coordinate(-78.0, 39.0)))
@@ -56,7 +60,7 @@ object SparkSQLTestUtils {
 
     f.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
 
-    fs.addFeatures(DataUtilities.collection(f))
+    fs.addFeatures(DataUtilities.collection(f.asJava))
   }
 
   def ingestPoints(ds: DataStore,
@@ -67,8 +71,8 @@ object SparkSQLTestUtils {
     ds.createSchema(sft)
 
     val features = DataUtilities.collection(points.map(x => {
-      new ScalaSimpleFeature(sft, x._1, Array(x._1, WKTUtils.read(x._2).asInstanceOf[Point]))
-    }).toList)
+      new ScalaSimpleFeature(sft, x._1, Array(x._1, WKTUtils.read(x._2).asInstanceOf[Point])): SimpleFeature
+    }).toList.asJava)
 
     val fs = ds.getFeatureSource(name).asInstanceOf[SimpleFeatureStore]
     fs.addFeatures(features)
@@ -82,8 +86,8 @@ object SparkSQLTestUtils {
     ds.createSchema(sft)
 
     val features = DataUtilities.collection(geoms.map(x => {
-      new ScalaSimpleFeature(sft, x._1, Array(x._1, WKTUtils.read(x._2)))
-    }).toList)
+      new ScalaSimpleFeature(sft, x._1, Array(x._1, WKTUtils.read(x._2))): SimpleFeature
+    }).toList.asJava)
 
     val fs = ds.getFeatureSource(name).asInstanceOf[SimpleFeatureStore]
     fs.addFeatures(features)

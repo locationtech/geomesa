@@ -16,16 +16,16 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import redis.clients.jedis.Jedis
 
-import java.util.ServiceLoader
+import java.util.{Collections, ServiceLoader}
 
 class MockRedis extends Jedis {
   var count = 0
   override def hgetAll(key: String): java.util.Map[String, String] = {
     if(count == 0) {
       count += 1
-      Map("foo" -> "bar")
+      Collections.singletonMap("foo", "bar")
     } else {
-      Map("foo" -> "baz")
+      Collections.singletonMap("foo", "baz")
     }
   }
 
@@ -34,6 +34,8 @@ class MockRedis extends Jedis {
 
 @RunWith(classOf[JUnitRunner])
 class RedisEnrichmentCacheTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -94,7 +96,7 @@ class RedisEnrichmentCacheTest extends Specification {
         """.stripMargin
       )
 
-      val cache = ServiceLoader.load(classOf[EnrichmentCacheFactory]).iterator().find(_.canProcess(conf)).map(_.build(conf))
+      val cache = ServiceLoader.load(classOf[EnrichmentCacheFactory]).iterator().asScala.find(_.canProcess(conf)).map(_.build(conf))
 
       cache must not be None
     }

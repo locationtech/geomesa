@@ -48,8 +48,8 @@ class AvroPathTest extends Specification with AvroUtils {
       val result = avroPath.eval(gr1).asInstanceOf[Option[AnyRef]]
       result must beSome(beAnInstanceOf[java.util.List[AnyRef]])
       val arr = result.get.asInstanceOf[java.util.List[AnyRef]]
-      arr.length mustEqual 5
-      arr.head must beAnInstanceOf[GenericRecord]
+      arr.size mustEqual 5
+      arr.get(0) must beAnInstanceOf[GenericRecord]
     }
 
     "filter arrays of records by a field predicate" in {

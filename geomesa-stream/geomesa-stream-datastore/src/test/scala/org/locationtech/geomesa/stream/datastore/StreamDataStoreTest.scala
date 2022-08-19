@@ -27,6 +27,7 @@ class StreamDataStoreTest extends Specification {
 
   import org.locationtech.geomesa.filter.ff
 
+  import scala.collection.JavaConverters._
   import scala.concurrent.ExecutionContext.Implicits.global
 
   sequential
@@ -64,7 +65,7 @@ class StreamDataStoreTest extends Specification {
   val sds = DataStoreFinder.getDataStore(Map(
       StreamDataStoreParams.StreamDatastoreConfig.key -> sourceConf,
       StreamDataStoreParams.CacheTimeout.key -> Integer.valueOf(2)
-    )).asInstanceOf[StreamDataStore]
+    ).asJava).asInstanceOf[StreamDataStore]
 
   "StreamDataStore" should {
     "be built from a conf string" >> {

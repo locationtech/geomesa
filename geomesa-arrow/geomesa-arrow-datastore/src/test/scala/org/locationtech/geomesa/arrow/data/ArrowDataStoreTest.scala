@@ -31,6 +31,8 @@ import java.nio.file.Files
 @RunWith(classOf[JUnitRunner])
 class ArrowDataStoreTest extends Specification {
 
+  import scala.collection.JavaConverters._
+
   import ArrowDataStoreFactory.{CachingParam, UrlParam}
 
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
@@ -58,13 +60,13 @@ class ArrowDataStoreTest extends Specification {
   "ArrowDataStore" should {
     "write and read values" >> {
       withTempFile { file =>
-        val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file))
+        val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> file).asJava)
         ds must not(beNull)
 
         ds.createSchema(sft)
         ds.getSchema(sft.getTypeName) mustEqual sft
 
-        var caching = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> true))
+        var caching = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> true).asJava)
         caching.getSchema(sft.getTypeName) mustEqual sft
         caching.dispose() must not(throwAn[Exception])
 
@@ -72,7 +74,7 @@ class ArrowDataStoreTest extends Specification {
           features0.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
 
-        caching = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> true))
+        caching = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> true).asJava)
 
         foreach(Seq(ds, caching, caching)) { store =>
           val results = CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))
@@ -89,7 +91,7 @@ class ArrowDataStoreTest extends Specification {
           features1.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
 
-        caching = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> true))
+        caching = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> true).asJava)
 
         foreach(Seq(ds, caching, caching)) { store =>
           val results = CloseableIterator(store.getFeatureReader(new Query(sft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT))
@@ -119,7 +121,7 @@ class ArrowDataStoreTest extends Specification {
         withTempFile { url =>
           WithClose(writer(url)) { _ => }
           foreach(Seq(true, false)) { caching =>
-            val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching))
+            val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching).asJava)
             ds.getSchema("test") mustEqual sft
             WithClose(ds.getFeatureSource(sftName).getFeatures().features())(_.hasNext must beFalse)
             ds.dispose() must not(throwAn[Exception])
@@ -136,7 +138,7 @@ class ArrowDataStoreTest extends Specification {
             features1.foreach(writer.add)
           }
           foreach(Seq(true, false)) { caching =>
-            val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching))
+            val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching).asJava)
             ds.getSchema(sftName) mustEqual sft
             foreach(queries) { query =>
               WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
@@ -158,7 +160,7 @@ class ArrowDataStoreTest extends Specification {
             features1.foreach(writer.add)
           }
           foreach(Seq(true, false)) { caching =>
-            val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching))
+            val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching).asJava)
             ds.getSchema(sftName) mustEqual sft
             foreach(queries) { query =>
               WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
@@ -181,7 +183,7 @@ class ArrowDataStoreTest extends Specification {
             features.foreach(writer.add)
           }
           foreach(Seq(true, false)) { caching =>
-            var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching))
+            val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching).asJava)
             ds.getSchema(sftName) mustEqual sft
             foreach(queries) { query =>
               WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>
@@ -209,7 +211,7 @@ class ArrowDataStoreTest extends Specification {
               updated
           }
           foreach(Seq(true, false)) { caching =>
-            var ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching))
+            val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching).asJava)
             ds.getSchema(sftName) mustEqual sft
             foreach(queries) { query =>
               WithClose(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())) { results =>

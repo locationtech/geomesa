@@ -13,7 +13,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
+import org.locationtech.geomesa.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
@@ -22,6 +22,8 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class GeoToolsSpatialRDDProviderTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   var sc: SparkContext = _
 
@@ -49,23 +51,23 @@ class GeoToolsSpatialRDDProviderTest extends Specification {
 
   "The GeoToolsSpatialRDDProvider" should {
     "read from the in-memory database" in {
-      val ds = DataStoreFinder.getDataStore(dsParams)
+      val ds = DataStoreFinder.getDataStore(dsParams.asJava)
       ds.createSchema(chicagoSft)
       WithClose(ds.getFeatureWriterAppend("chicago", Transaction.AUTO_COMMIT)) { writer =>
         chicagoFeatures.take(3).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
 
-      val rdd = GeoMesaSpark(dsParams).rdd(new Configuration(), sc, dsParams, new Query("chicago"))
+      val rdd = GeoMesaSpark(dsParams.asJava).rdd(new Configuration(), sc, dsParams, new Query("chicago"))
       rdd.count() mustEqual 3l
     }
 
     "write to the in-memory database" in {
-      val ds = DataStoreFinder.getDataStore(dsParams)
+      val ds = DataStoreFinder.getDataStore(dsParams.asJava)
       ds.createSchema(chicagoSft)
       val writeRdd = sc.parallelize(chicagoFeatures)
-      GeoMesaSpark(dsParams).save(writeRdd, dsParams, "chicago")
+      GeoMesaSpark(dsParams.asJava).save(writeRdd, dsParams, "chicago")
       // verify write
-      val readRdd = GeoMesaSpark(dsParams).rdd(new Configuration(), sc, dsParams, new Query("chicago"))
+      val readRdd = GeoMesaSpark(dsParams.asJava).rdd(new Configuration(), sc, dsParams, new Query("chicago"))
       readRdd.count() mustEqual 6l
     }
   }

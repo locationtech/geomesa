@@ -27,6 +27,8 @@ import java.util.Date
 @RunWith(classOf[JUnitRunner])
 class CQIndexingOptionsTest extends Specification {
 
+  import scala.collection.JavaConverters._
+
   val spec = "Who:String:cq-index=default," +
              "What:Integer:cq-index=unique," +
              "When:Date:cq-index=navigable," +
@@ -63,7 +65,7 @@ class CQIndexingOptionsTest extends Specification {
       val nameToIndex = scala.collection.mutable.Map.empty[String, AttributeIndex[_, SimpleFeature]]
 
       new GeoCQEngine(sft, CQIndexType.getDefinedAttributes(sft)) {
-        cqcache.getIndexes.foreach {
+        cqcache.getIndexes.asScala.foreach {
           case a: AttributeIndex[_, SimpleFeature] => nameToIndex.put(a.getAttribute.getAttributeName, a)
           case _ => // no-op
         }

@@ -20,6 +20,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class GeoCQEngineDataStoreTest extends Specification {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   private val feats = Seq.tabulate[SimpleFeature](1000) { i =>
@@ -31,7 +33,7 @@ class GeoCQEngineDataStoreTest extends Specification {
   "GeoCQEngineData" should {
 
     val params = Map("cqengine" -> "true")
-    val ds = DataStoreFinder.getDataStore(params)
+    val ds = DataStoreFinder.getDataStore(params.asJava)
 
     "get a datastore" in {
       ds mustNotEqual null
@@ -46,7 +48,7 @@ class GeoCQEngineDataStoreTest extends Specification {
     "insert features" in {
       val fs = ds.getFeatureSource("test").asInstanceOf[GeoCQEngineFeatureStore]
       fs must not(beNull)
-      fs.addFeatures(DataUtilities.collection(feats))
+      fs.addFeatures(DataUtilities.collection(feats.asJava))
       fs.getCount(Query.ALL) mustEqual 1000
       SelfClosingIterator(fs.getFeatures().features()).map(_.getID).toList.sorted mustEqual feats.map(_.getID).sorted
     }
