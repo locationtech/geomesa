@@ -38,8 +38,6 @@ import org.specs2.runner.JUnitRunner
 
 import java.io.Serializable
 import java.security.PrivilegedExceptionAction
-import java.util
-import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class HBaseVisibilityTest extends Specification with LazyLogging {
@@ -207,8 +205,8 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
     "work with an auth provider argument and dynamic visibilities" >> {
       var auths = List.empty[String]
       val authsProvider = new AuthorizationsProvider {
-        override def getAuthorizations: util.List[String] = auths.asJava
-        override def configure(params: util.Map[String, _ <: Serializable]): Unit = {}
+        override def getAuthorizations: java.util.List[String] = auths.asJava
+        override def configure(params: java.util.Map[String, _ <: Serializable]): Unit = {}
       }
 
       val typeName = "vistest1"
@@ -345,7 +343,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       }
 
       foreach(Seq(true, false)) { loose =>
-        val ds = DataStoreFinder.getDataStore((params ++ Map(LooseBBoxParam.getName -> loose)).asJava).asInstanceOf[HBaseDataStore]
+        val ds = DataStoreFinder.getDataStore((adminParams ++ Map(LooseBBoxParam.getName -> loose)).asJava).asInstanceOf[HBaseDataStore]
         foreach(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
           testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
           testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))

@@ -28,7 +28,7 @@ case class CartesianProductIterable(seqs: Seq[Seq[_]]) extends Iterable[Seq[_]] 
   def iterator: Iterator[Seq[_]] = new Iterator[Seq[_]] {
     val n: Int = seqs.size
     val maxes: Vector[Int] = seqs.map(seq => seq.size).toVector
-    val indexes = new scala.collection.mutable.ArrayBuffer[Int](seqs.size)
+    val indexes = new scala.collection.mutable.ArraySeq[Int](seqs.size)
     var nextItem: Seq[_] = if (isValid) realize else null
 
     def isValid: Boolean = (0 until n).forall(i => indexes(i) < maxes(i))
