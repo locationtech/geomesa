@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import java.awt.geom.Point2D
-
-import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point, PrecisionModel}
 import org.geotools.referencing.GeodeticCalculator
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point, PrecisionModel}
+
+import java.awt.geom.Point2D
 
 /**
  * Encapsulates the notion of a geographic distance, and is primarily intended

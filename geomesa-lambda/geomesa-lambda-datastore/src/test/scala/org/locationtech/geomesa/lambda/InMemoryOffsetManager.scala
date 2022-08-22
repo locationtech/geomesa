@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.lambda
 
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.{Lock, ReentrantLock}
-
 import org.locationtech.geomesa.index.utils.Releasable
 import org.locationtech.geomesa.lambda.stream.OffsetManager
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
+
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.{Lock, ReentrantLock}
 
 class InMemoryOffsetManager extends OffsetManager {
 

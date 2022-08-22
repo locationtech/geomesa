@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.index.attribute.legacy
 
-import java.nio.charset.StandardCharsets
-
 import org.locationtech.geomesa.index.api.ShardStrategy.AttributeShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -21,6 +19,7 @@ import org.locationtech.geomesa.utils.index.ByteArrays.{OneByteArray, ZeroByteAr
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.nio.charset.StandardCharsets
 import scala.util.Try
 
 /**

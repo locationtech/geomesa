@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-import java.util.{Collections, UUID}
-
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.CollectionFunctionFactory.{CollectionParsing, TransformList}
 import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+
+import java.util.{Collections, UUID}
 
 class CollectionFunctionFactory extends TransformerFunctionFactory with CollectionParsing {
 

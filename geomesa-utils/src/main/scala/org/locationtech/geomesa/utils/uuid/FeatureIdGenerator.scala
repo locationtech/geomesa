@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.uuid
 
-import org.opengis.feature.simple.{SimpleFeatureType, SimpleFeature}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
  * Trait for generating feature ids based on attributes of a simple feature

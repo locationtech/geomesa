@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.fs.data
 
-import java.awt.RenderingHints
-import java.io.{ByteArrayInputStream, StringReader, StringWriter}
-import java.nio.charset.StandardCharsets
-import java.util.{Collections, Properties}
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
@@ -26,6 +21,10 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, ReadWriteFlag, SystemPropertyDurationParam}
 import org.locationtech.geomesa.utils.io.HadoopUtils
 
+import java.awt.RenderingHints
+import java.io.{ByteArrayInputStream, StringReader, StringWriter}
+import java.nio.charset.StandardCharsets
+import java.util.{Collections, Properties}
 import scala.concurrent.duration.Duration
 
 class FileSystemDataStoreFactory extends DataStoreFactorySpi {

@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.tools.data
 
-import java.io.IOException
-import java.util.Collections
-
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.geotools.data.DataStore
 import org.geotools.feature.AttributeTypeBuilder
@@ -21,6 +18,8 @@ import org.locationtech.geomesa.tools.utils.{NoopParameterSplitter, Prompt}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 
+import java.io.IOException
+import java.util.Collections
 import scala.util.control.NonFatal
 
 /**
@@ -67,15 +66,15 @@ trait UpdateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     }
 
     params.renameAttributes.asScala.grouped(2).foreach { case Seq(from, to) =>
-      val i = sft.indexOf(from)
+      val i = sft.indexOf(from.asInstanceOf[String])
       if (i == -1) {
         throw new ParameterException(s"Attribute '$from' does not exist in the schema")
       }
       val attribute = new AttributeTypeBuilder()
       attribute.init(sft.getDescriptor(i))
-      builder.set(i, attribute.buildDescriptor(to))
+      builder.set(i, attribute.buildDescriptor(to.asInstanceOf[String]))
       if (sft.getGeomField == from) {
-        builder.setDefaultGeometry(to)
+        builder.setDefaultGeometry(to.asInstanceOf[String])
       }
       prompts.append(s"\n  $number: Renaming attribute '$from' to '$to'")
       canRenameTables = canRenameTables || sft.getIndices.exists(_.attributes.contains(from))

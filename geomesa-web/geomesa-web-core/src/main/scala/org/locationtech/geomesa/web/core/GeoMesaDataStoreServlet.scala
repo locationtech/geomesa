@@ -8,13 +8,11 @@
 
 package org.locationtech.geomesa.web.core
 
-import java.util.concurrent.ConcurrentHashMap
-
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.scalatra.{BadRequest, NotFound, Ok}
 
-import scala.collection.JavaConversions._
+import java.util.concurrent.ConcurrentHashMap
 import scala.util.Try
 
 trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
@@ -33,15 +31,15 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
     }.toSet
 
   sys.addShutdownHook {
-    import scala.collection.JavaConversions._
-    dataStoreCache.values.foreach(_.dispose())
+    import scala.collection.JavaConverters._
+    dataStoreCache.values.asScala.foreach(_.dispose())
   }
 
   protected def withDataStore[D <: DataStore, T](method: (D) => T): Any = {
     val dsParams = datastoreParams
     val key = dsParams.toSeq.sorted.mkString(",")
     val ds = Option(dataStoreCache.get(key).asInstanceOf[D]).getOrElse {
-      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[D]
+      val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[D]
       if (ds != null) {
         dataStoreCache.put(key, ds)
       }
@@ -69,7 +67,7 @@ trait GeoMesaDataStoreServlet extends PersistentDataStoreServlet {
    */
   post("/ds/:alias") {
     val dsParams = datastoreParams
-    val ds = Try(DataStoreFinder.getDataStore(dsParams)).getOrElse(null)
+    val ds = Try(DataStoreFinder.getDataStore(dsParams.asJava)).getOrElse(null)
     if (ds == null) {
       BadRequest(body = "Could not load data store using the provided parameters.")
     } else {

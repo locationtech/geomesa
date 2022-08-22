@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.nio.charset.Charset
-
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, LineMode, ParseMode}
@@ -20,6 +18,8 @@ import org.locationtech.geomesa.convert2.AbstractConverterFactory.{ConverterConf
 import org.locationtech.geomesa.convert2.transforms.Expression
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
+
+import java.nio.charset.Charset
 
 class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConfig, XmlField, XmlOptions] {
 

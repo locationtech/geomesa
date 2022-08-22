@@ -9,17 +9,17 @@
 
 package org.locationtech.geomesa.filter.function
 
-import java.time.temporal.{ChronoField, Temporal}
-import java.util.Date
-
-import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.data.Base64
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl._
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteArrayCallback
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.opengis.temporal.Instant
+
+import java.time.temporal.{ChronoField, Temporal}
+import java.util.Date
 
 class Convert2ViewerFunction extends FunctionExpressionImpl(Convert2ViewerFunction.Name) {
 

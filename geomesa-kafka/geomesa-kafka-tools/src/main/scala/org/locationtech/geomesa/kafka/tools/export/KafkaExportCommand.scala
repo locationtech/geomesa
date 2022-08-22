@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.kafka.tools.export
 
-import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue, TimeUnit}
-
 import com.beust.jcommander.{ParameterException, Parameters}
 import org.geotools.data.{FeatureEvent, FeatureListener, Query}
 import org.locationtech.geomesa.features.TransformSimpleFeature
@@ -26,6 +24,7 @@ import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue, TimeUnit}
 import scala.util.control.NonFatal
 
 class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDistributedCommand {

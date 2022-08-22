@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
-import java.io.Closeable
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{BatchWriter, Connector}
 import org.apache.accumulo.core.data.Mutation
@@ -19,6 +15,10 @@ import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, TableUt
 import org.locationtech.geomesa.utils.audit.AuditedEvent
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+
+import java.io.Closeable
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
 /**
  * Manages writing of usage stats in a background thread.

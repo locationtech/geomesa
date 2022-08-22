@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.cassandra.utils
 
-import java.nio.ByteBuffer
-
 import com.datastax.driver.core._
 import org.locationtech.geomesa.cassandra.data.CassandraQueryPlan
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.filter.Filter
+
+import java.nio.ByteBuffer
 
 private class CassandraBatchScan(session: Session, ranges: Seq[Statement], threads: Int, buffer: Int)
     extends AbstractBatchScan[Statement, Row](ranges, threads, buffer, CassandraBatchScan.Sentinel) {

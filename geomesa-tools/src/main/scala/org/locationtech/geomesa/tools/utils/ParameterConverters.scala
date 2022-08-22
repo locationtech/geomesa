@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.tools.utils
 
-import java.util.Date
-
 import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{IValueValidator, ParameterException}
 import org.geotools.filter.text.ecql.ECQL
@@ -20,6 +18,7 @@ import org.locationtech.geomesa.utils.text.DurationParsing
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
 import org.opengis.filter.Filter
 
+import java.util.Date
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}

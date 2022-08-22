@@ -23,10 +23,10 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
 class BigTableIntegrationTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   // note: make sure you update src/test/resources/hbase-site.xml to point to your bigtable instance
 
@@ -36,7 +36,7 @@ class BigTableIntegrationTest extends Specification {
     "work with points" >> {
       val typeName = "testpoints"
       val params = Map(BigtableDataStoreFactory.BigtableCatalogParam.getName -> "integration_test")
-      lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      lazy val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
 
       def createFeatures(sft: SimpleFeatureType) = (0 until 10).map { i =>
         val sf = new ScalaSimpleFeature(sft, i.toString)
@@ -44,7 +44,7 @@ class BigTableIntegrationTest extends Specification {
         sf.setAttribute(0, s"name $i")
         sf.setAttribute(1, s"2014-01-01T0$i:00:01.000Z")
         sf.setAttribute(2, s"POINT(4$i 5$i)")
-        sf
+        sf: SimpleFeature
       }
 
       "create schema" >> {
@@ -67,8 +67,8 @@ class BigTableIntegrationTest extends Specification {
         val features = createFeatures(sft)
 
         val fs = ds.getFeatureSource(typeName)
-        val ids = fs.addFeatures(new ListFeatureCollection(sft, features))
-        ids.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
+        val ids = fs.addFeatures(new ListFeatureCollection(sft, features.asJava))
+        ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
       }
 
       "query" >> {
@@ -90,7 +90,7 @@ class BigTableIntegrationTest extends Specification {
     "work with points" >> {
       val typeName = "testpolys"
       val params = Map(HBaseCatalogParam.getName -> "integration_test")
-      lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      lazy val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
 
       def createFeatures(sft: SimpleFeatureType) = (0 until 10).map { i =>
         val sf = new ScalaSimpleFeature(sft, i.toString)
@@ -98,7 +98,7 @@ class BigTableIntegrationTest extends Specification {
         sf.setAttribute(0, s"name $i")
         sf.setAttribute(1, s"2014-01-01T0$i:00:01.000Z")
         sf.setAttribute(2, s"POLYGON((-120 4$i, -120 50, -125 50, -125 4$i, -120 4$i))")
-        sf
+        sf: SimpleFeature
       }
 
       "create schema" >> {
@@ -121,8 +121,8 @@ class BigTableIntegrationTest extends Specification {
         val features = createFeatures(sft)
 
         val fs = ds.getFeatureSource(typeName)
-        val ids = fs.addFeatures(new ListFeatureCollection(sft, features))
-        ids.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
+        val ids = fs.addFeatures(new ListFeatureCollection(sft, features.asJava))
+        ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
       }
 
       "query" >> {

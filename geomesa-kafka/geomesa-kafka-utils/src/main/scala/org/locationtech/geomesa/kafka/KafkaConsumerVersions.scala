@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.kafka
 
-import java.time.Duration
-import java.util.Collections
-
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, ConsumerRecords, OffsetAndTimestamp}
 import org.apache.kafka.common.TopicPartition
+
+import java.time.Duration
+import java.util.Collections
 
 /**
   * Reflection wrapper for KafkaConsumer methods between kafka versions 0.9, 0.10, 1.0, 1.1, 2.0, and 2.1

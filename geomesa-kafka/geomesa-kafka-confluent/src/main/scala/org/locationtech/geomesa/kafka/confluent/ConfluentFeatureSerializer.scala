@@ -179,7 +179,7 @@ object ConfluentFeatureSerializer {
       val mappedPositions = fieldMappings.map(_.schemaIndex) ++ visibilityField.toSeq
       schema.getFields.asScala.collect {
         case f if requiredField(f) && !mappedPositions.contains(f.pos()) => f.name()
-      }
+      }.toSeq
     }
 
     /**
@@ -235,7 +235,7 @@ object ConfluentFeatureSerializer {
         }
       }
 
-      val feature = ScalaSimpleFeature.create(sft, id, attributes: _*)
+      val feature = ScalaSimpleFeature.create(sft, id, attributes.toSeq: _*)
 
       // set the feature visibility if it exists
       visibilityField.foreach { field =>

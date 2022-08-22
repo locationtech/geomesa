@@ -9,15 +9,14 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import java.nio.charset.StandardCharsets
-
 import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.QueryBuilder
 import org.locationtech.geomesa.index.api.IndexAdapter
 import org.locationtech.geomesa.index.metadata._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
-import scala.collection.JavaConversions._
+import java.nio.charset.StandardCharsets
+import scala.collection.JavaConverters._
 
 class CassandraBackedMetadata[T](val session: Session, val catalog: String, val serializer: MetadataSerializer[T])
     extends TableBasedMetadata[T] {
@@ -58,7 +57,7 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
   override protected def scanValue(typeName: String, key: String): Option[Array[Byte]] = {
     val query = QueryBuilder.select("value").from(catalog)
     query.where(QueryBuilder.eq("sft", typeName)).and(QueryBuilder.eq("key", key))
-    val rows = session.execute(query).all()
+    val rows = session.execute(query).all().asScala
     if (rows.length < 1) { None } else {
       Some(rows.head.getString("value").getBytes(StandardCharsets.UTF_8))
     }
@@ -66,7 +65,7 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
 
   override protected def scanValues(typeName: String, prefix: String): CloseableIterator[(String, Array[Byte])] = {
     val select = QueryBuilder.select("key", "value").from(catalog).where(QueryBuilder.eq("sft", typeName))
-    val iter = session.execute(select).all().iterator.map { row =>
+    val iter = session.execute(select).all().iterator.asScala.map { row =>
       (row.getString("key"), row.getString("value").getBytes(StandardCharsets.UTF_8))
     }
     if (prefix == null || prefix.isEmpty) {
@@ -78,7 +77,7 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
 
   override protected def scanKeys(): CloseableIterator[(String, String)] = {
     val select = QueryBuilder.select("sft", "key").from(catalog)
-    val values = session.execute(select).all().iterator.map(row => (row.getString("sft"), row.getString("key")))
+    val values = session.execute(select).all().iterator.asScala.map(row => (row.getString("sft"), row.getString("key")))
     CloseableIterator(values)
   }
 

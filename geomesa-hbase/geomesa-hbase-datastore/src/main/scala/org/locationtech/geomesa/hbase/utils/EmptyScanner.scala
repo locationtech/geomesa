@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.hbase.utils
 
-import java.util.Collections
-
 import org.apache.hadoop.hbase.client.metrics.ScanMetrics
 import org.apache.hadoop.hbase.client.{Result, ResultScanner}
+
+import java.util.Collections
 
 object EmptyScanner extends ResultScanner {
   override def next(): Result = Iterator.empty.next()

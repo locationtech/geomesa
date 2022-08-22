@@ -8,23 +8,22 @@
 
 package org.locationtech.geomesa.features.nio
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import java.util
-import java.util.Date
-
-import org.locationtech.jts.geom.Geometry
-import org.locationtech.jts.io.{WKBReader, WKBWriter}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.io.{WKBReader, WKBWriter}
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
 
-import scala.collection.JavaConversions._
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+import java.util
+import java.util.Date
+import scala.collection.JavaConverters._
 
 sealed trait AttributeAccessor[T <: AnyRef] {
   def getAttribute(buf: ByteBuffer): T
@@ -55,7 +54,7 @@ object AttributeAccessor {
   private val wkbReader = new WKBReader()
   private val wkbWriter = new WKBWriter()
   def buildSimpleFeatureTypeAttributeAccessors(sft: SimpleFeatureType): IndexedSeq[AttributeAccessor[_ <: AnyRef]] = {
-    val descriptors = sft.getAttributeDescriptors
+    val descriptors = sft.getAttributeDescriptors.asScala
     val voffset = descriptors.map(d => descriptorLength(d)).sum
 
     val (_, accessors) =
@@ -111,7 +110,7 @@ object AttributeAccessor {
   }
 
   class ByteBufferSimpleFeatureSerializer(sft: SimpleFeatureType) {
-    val descriptors = sft.getAttributeDescriptors
+    val descriptors = sft.getAttributeDescriptors.asScala
     val vstart = descriptors.map(d => descriptorLength(d)).sum
 
     val attributeWriters =
@@ -176,7 +175,7 @@ object AttributeAccessor {
     def write(reuse: ByteBuffer, f: SimpleFeature): Int = {
       var curvoffset = 0
       var curoffset = 0
-      val zipped = f.getAttributes.zip(attributeWriters)
+      val zipped = f.getAttributes.asScala.zip(attributeWriters)
       zipped.foreach { case (a, w) =>
         val (uoffset, uvoffset) = w.write(a.asInstanceOf[AnyRef], curoffset, curvoffset, reuse)
         curoffset += uoffset
@@ -200,7 +199,7 @@ class LazySimpleFeature(id: String,
 
   override def getID: String = id
 
-  override def getAttributes: util.List[AnyRef] = List()
+  override def getAttributes: util.List[AnyRef] = List().asJava
 
   override def getAttributeCount: Int = sft.getAttributeCount
 
@@ -265,5 +264,5 @@ class LazySimpleFeature(id: String,
 
   override def getName: Name = sft.getName
 
-  override def getUserData: util.Map[AnyRef, AnyRef] = Map.empty[AnyRef, AnyRef]
+  override def getUserData: util.Map[AnyRef, AnyRef] = Map.empty[AnyRef, AnyRef].asJava
 }

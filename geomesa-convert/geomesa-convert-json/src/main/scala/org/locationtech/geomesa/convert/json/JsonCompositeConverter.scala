@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.convert.json
 
-import java.io.InputStream
-import java.nio.charset.Charset
-
 import com.google.gson.JsonElement
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.Modes.ErrorMode
@@ -18,6 +15,9 @@ import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.convert2.{AbstractCompositeConverter, ParsingConverter}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.InputStream
+import java.nio.charset.Charset
 
 class JsonCompositeConverter(
     sft: SimpleFeatureType,

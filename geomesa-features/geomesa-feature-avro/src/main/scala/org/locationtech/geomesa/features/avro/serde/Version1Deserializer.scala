@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.features.avro.serde
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
 import org.apache.avro.io.Decoder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.text.WKTUtils
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
 /**
  * Version 1 AvroSimpleFeature encodes fields as WKT (Well Known Text) in an Avro String

@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.util.Locale
-
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.util.Locale
 
 /**
   * Export format enumeration

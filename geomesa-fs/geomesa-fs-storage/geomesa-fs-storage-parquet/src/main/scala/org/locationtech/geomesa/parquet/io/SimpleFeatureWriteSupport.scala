@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.parquet.io
 
-import java.nio.ByteBuffer
-import java.util.{Date, UUID}
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.parquet.hadoop.api.WriteSupport
 import org.apache.parquet.hadoop.api.WriteSupport.WriteContext
@@ -21,6 +18,9 @@ import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.nio.ByteBuffer
+import java.util.{Date, UUID}
 
 class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
 

@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.utils.io
 
-import java.io.InputStream
-import java.util.zip.GZIPInputStream
-
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream
+
+import java.io.InputStream
+import java.util.zip.GZIPInputStream
 
 /**
   * Common trait for Apache compression utilities. Each compression type (gzip, xz, bzip) has the same

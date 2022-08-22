@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.view
 
-import java.awt.RenderingHints
-
 import com.typesafe.config._
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi, DataStoreFinder}
@@ -18,6 +16,7 @@ import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 
+import java.awt.RenderingHints
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 

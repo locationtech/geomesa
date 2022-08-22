@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
-import java.io.Serializable
-import java.util.Collections
-
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.utils.audit.AuditProvider
+
+import java.io.Serializable
+import java.util.Collections
 
 class ParamsAuditProvider extends AuditProvider {
 

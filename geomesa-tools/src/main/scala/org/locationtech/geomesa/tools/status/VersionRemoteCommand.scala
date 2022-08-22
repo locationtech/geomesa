@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.tools.status
 
+import org.locationtech.geomesa.index.conf.SchemaProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties._
 
 import scala.util.control.NonFatal
-import org.locationtech.geomesa.index.conf.SchemaProperties
 
 trait VersionRemoteCommand[DS <: GeoMesaDataStore[_]] extends DataStoreCommand[DS] {
 

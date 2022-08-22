@@ -10,7 +10,6 @@ package org.locationtech.geomesa.jobs.interop.mapreduce;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.OutputCommitter;
 import org.apache.hadoop.mapreduce.OutputFormat;
@@ -24,7 +23,6 @@ import scala.Tuple2;
 import scala.collection.JavaConverters;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 /**

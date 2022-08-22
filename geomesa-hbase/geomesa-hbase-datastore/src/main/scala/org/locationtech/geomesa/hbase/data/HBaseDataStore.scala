@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.util.Collections
-
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.FilterList
@@ -37,6 +35,7 @@ import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util.Collections
 import scala.util.control.NonFatal
 
 class HBaseDataStore(con: ConnectionWrapper, override val config: HBaseDataStoreConfig)

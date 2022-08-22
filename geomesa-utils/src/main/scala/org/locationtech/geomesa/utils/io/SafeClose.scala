@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.utils.io
 
-import java.util.concurrent.ExecutorService
-
 import org.geotools.data.DataStore
-import org.locationtech.geomesa.utils.io.IsCloseableImplicits.{ArrayIsCloseable, DataStoreIsCloseable, ExecutorServiceIsCloseable, IterableIsCloseable, OptionIsCloseable}
+import org.locationtech.geomesa.utils.io.IsCloseableImplicits._
 
+import java.util.concurrent.ExecutorService
 import scala.util.{Failure, Success, Try}
 
 /**

@@ -8,14 +8,6 @@
 
 package org.locationtech.geomesa.features.avro.serde
 
-import java.nio.ByteBuffer
-
-import org.locationtech.jts.io.InStream
-import org.apache.avro.io.Decoder
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroSimpleFeature
-import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
-
 /**
  * AvroSimpleFeature version 2 changes serialization of Geometry types from
  * WKT (Well Known Text) to WKB (Well Known Binary)

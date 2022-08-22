@@ -11,8 +11,8 @@ package org.locationtech.geomesa.kudu.data
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStoreFinder, Query, _}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryProperties
@@ -24,8 +24,6 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class KuduDataStoreIntegrationTest extends Specification {
@@ -62,11 +60,11 @@ class KuduDataStoreIntegrationTest extends Specification {
           sf.setAttribute(1, Int.box(i))
           sf.setAttribute(2, f"2014-01-${i + 1}%02dT00:00:01.000Z")
           sf.setAttribute(3, s"POINT(4$i 5$i)")
-          sf
+          sf: SimpleFeature
         }
 
         val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
-        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
         ids.asScala.map(_.getID) must containTheSameElementsAs(toAdd.map(_.getID))
         ds.removeSchema(typeName)
 
@@ -102,11 +100,11 @@ class KuduDataStoreIntegrationTest extends Specification {
             case 2 => "admin"
           }
           SecurityUtils.setFeatureVisibility(sf, vis)
-          sf
+          sf: SimpleFeature
         }
 
         val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
-        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
         ids.asScala.map(_.getID) must containTheSameElementsAs(toAdd.map(_.getID))
 
         forall(Seq(null, Array.empty[String], Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
@@ -174,11 +172,11 @@ class KuduDataStoreIntegrationTest extends Specification {
           sf.setAttribute(0, s"name$i")
           sf.setAttribute(1, s"2014-01-01T0$i:00:01.000Z")
           sf.setAttribute(2, s"POLYGON((-120 4$i, -120 50, -125 50, -125 4$i, -120 4$i))")
-          sf
+          sf: SimpleFeature
         }
 
         val fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
-        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
         ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
         testQuery(ds, typeName, "INCLUDE", null, toAdd)
@@ -208,7 +206,7 @@ class KuduDataStoreIntegrationTest extends Specification {
       explain.foreach(e => ds.getQueryPlan(query, explainer = e))
       val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
       val features = SelfClosingIterator(fr).map(ScalaSimpleFeature.copy).toList // copy features as the same one is mutated
-      val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
+      val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
       features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
       forall(features) { feature =>
         feature.getAttributes must haveLength(attributes.length)

@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.lambda.stream
 
-import java.io.Closeable
-
 import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
+
+import java.io.Closeable
 
 /**
   * Manages storing and watching distributed offsets

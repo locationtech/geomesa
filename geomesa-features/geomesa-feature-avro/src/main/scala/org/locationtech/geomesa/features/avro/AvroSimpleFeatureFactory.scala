@@ -9,17 +9,17 @@
 package org.locationtech.geomesa.features.avro
 
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.util.factory.Hints
 import org.geotools.feature.AbstractFeatureFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.utils.text.{ObjectPoolFactory, ObjectPoolUtils}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class AvroSimpleFeatureFactory extends AbstractFeatureFactoryImpl {
 
@@ -43,7 +43,7 @@ object AvroSimpleFeatureFactory {
     Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
   }
 
-  private val builderCache =
+  private val builderCache: LoadingCache[SimpleFeatureType, ObjectPoolUtils[SimpleFeatureBuilder]] =
     Caffeine
       .newBuilder()
       .build(
@@ -56,9 +56,9 @@ object AvroSimpleFeatureFactory {
   private val hints = new Hints(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])
   private val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
 
-  def buildAvroFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String) =
+  def buildAvroFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String): SimpleFeature =
     builderCache.get(sft).withResource { builder =>
-      builder.addAll(attrs)
+      builder.addAll(attrs.asJava)
       builder.buildFeature(id)
     }
 

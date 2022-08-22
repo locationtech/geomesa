@@ -8,16 +8,15 @@
 
 package org.locationtech.geomesa.utils.geotools.converters
 
-import java.time._
-import java.time.format.DateTimeFormatter
-import java.util.{Date, UUID}
-
 import org.geotools.util.factory.GeoTools
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.converters.ScalaCollectionsConverterFactory.{ListToListConverter, MapToMapConverter}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.time._
+import java.time.format.DateTimeFormatter
+import java.util.{Date, UUID}
 import scala.collection.immutable.HashMap
 
 @RunWith(classOf[JUnitRunner])

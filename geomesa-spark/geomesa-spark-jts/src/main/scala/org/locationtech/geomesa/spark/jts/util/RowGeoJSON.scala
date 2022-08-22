@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.spark.jts.util
 
-import java.{lang => jl}
-
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.io.geojson.GeoJsonWriter
+
+import java.{lang => jl}
 
 class RowGeoJSON(structType: StructType, geomOrdinal: Int) {
 

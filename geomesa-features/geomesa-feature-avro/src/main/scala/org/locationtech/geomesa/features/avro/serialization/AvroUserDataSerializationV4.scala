@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.features.avro.serialization
 
-import java.util.{Date, UUID}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.io.{Decoder, Encoder}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.serialization.HintKeySerialization
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
+
+import java.util.{Date, UUID}
 
 @deprecated("does not match declared schema")
 object AvroUserDataSerializationV4 extends LazyLogging {

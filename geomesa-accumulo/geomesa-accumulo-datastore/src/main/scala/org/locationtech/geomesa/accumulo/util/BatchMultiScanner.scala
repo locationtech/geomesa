@@ -104,7 +104,7 @@ class BatchMultiScanner(
             inQ.drainTo(entries.asJava)
             val task = executor.submit(new Runnable {
               override def run(): Unit = {
-                val iterator = join.copy(ranges = entries.map(joinFunction)).scan(connector, auths, partitionParallelScans, timeout)
+                val iterator = join.copy(ranges = entries.map(joinFunction).toSeq).scan(connector, auths, partitionParallelScans, timeout)
                 try {
                   iterator.foreach(outQ.put)
                 } finally {

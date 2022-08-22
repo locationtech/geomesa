@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.index.index
 
-import java.time.ZonedDateTime
-
 import org.locationtech.geomesa.curve.{XZ3SFC, Z3SFC}
 import org.locationtech.geomesa.filter.{Bounds, FilterValues}
 import org.locationtech.jts.geom.Geometry
+
+import java.time.ZonedDateTime
 
 package object z3 {
 

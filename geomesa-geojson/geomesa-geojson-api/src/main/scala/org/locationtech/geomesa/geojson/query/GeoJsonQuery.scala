@@ -426,8 +426,8 @@ object GeoJsonQuery {
     */
   case class And(children: GeoJsonQuery*) extends GeoJsonQuery {
     override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
-      import scala.collection.JavaConversions._
-      ff.and(children.map(_.toFilter(propertyTransformer)))
+      import scala.collection.JavaConverters._
+      ff.and(children.map(_.toFilter(propertyTransformer)).asJava)
     }
 
     override def toString = children.map(_.toString).map(s => s.substring(1, s.length - 1)).mkString("{", ",", "}")
@@ -440,8 +440,8 @@ object GeoJsonQuery {
     */
   case class Or(children: GeoJsonQuery*) extends GeoJsonQuery {
     override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
-      import scala.collection.JavaConversions._
-      ff.or(children.map(_.toFilter(propertyTransformer)))
+      import scala.collection.JavaConverters._
+      ff.or(children.map(_.toFilter(propertyTransformer)).asJava)
     }
 
     override def toString = children.mkString("""{"$or":[""", ",", "]}")

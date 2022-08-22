@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.fs.storage.api
 
 
-import java.util.ServiceLoader
-
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.util.ServiceLoader
 
 /**
   * Factory for loading partition schemes

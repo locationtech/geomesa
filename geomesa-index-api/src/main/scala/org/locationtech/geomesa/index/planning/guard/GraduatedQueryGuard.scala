@@ -121,6 +121,6 @@ object GraduatedQueryGuard extends LazyLogging {
       val duration = Duration(durationConfig.getString("duration"))
       SizeAndDuration(size, duration)
     }
-    evaluateLimits(confs)
+    evaluateLimits(confs.toSeq)
   }
 }

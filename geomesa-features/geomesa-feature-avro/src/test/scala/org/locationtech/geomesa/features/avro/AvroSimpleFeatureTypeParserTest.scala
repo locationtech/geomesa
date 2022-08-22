@@ -14,8 +14,8 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
-import org.locationtech.jts.geom.impl.CoordinateArraySequenceFactory
 import org.locationtech.jts.geom._
+import org.locationtech.jts.geom.impl.CoordinateArraySequenceFactory
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

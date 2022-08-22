@@ -47,7 +47,7 @@ class XmlCompositeConverterFactory extends SimpleFeatureConverterFactory with La
           val predicate = Predicate(conf.getString("predicate"))
           (predicate, converter)
         }
-        Some(new XmlCompositeConverter(sft, xsd, options.encoding, options.lineMode, options.errorMode, delegates))
+        Some(new XmlCompositeConverter(sft, xsd, options.encoding, options.lineMode, options.errorMode, delegates.toSeq))
       } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid configuration: ${e.getMessage}")
       }

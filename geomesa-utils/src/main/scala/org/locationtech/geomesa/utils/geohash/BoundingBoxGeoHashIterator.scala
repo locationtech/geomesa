@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.utils.geohash
 
 import java.util.Iterator
-
 import scala.collection.mutable.TreeSet
 
 /**

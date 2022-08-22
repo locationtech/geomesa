@@ -8,15 +8,12 @@
 
 package org.locationtech.geomesa.accumulo.filter
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Coordinate
 import org.geotools.data.Query
-import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
@@ -25,10 +22,13 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Coordinate
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Date
 
 
 @RunWith(classOf[JUnitRunner])

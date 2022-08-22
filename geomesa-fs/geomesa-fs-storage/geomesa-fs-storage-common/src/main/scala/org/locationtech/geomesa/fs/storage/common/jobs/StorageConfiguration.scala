@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.jobs
 
-import java.io.{DataInput, DataOutput}
-
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, KryoSerializable}
 import org.apache.hadoop.conf.Configuration
@@ -25,6 +23,8 @@ import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.Fi
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import java.io.{DataInput, DataOutput}
 
 object StorageConfiguration {
 

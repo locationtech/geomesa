@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.curve
 
-import java.time.temporal.ChronoUnit
-
 import org.joda.time._
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.time.temporal.ChronoUnit
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

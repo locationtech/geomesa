@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.convert2
 
-import java.lang.reflect.InvocationTargetException
-import java.nio.charset.Charset
-import java.util.Collections
-
 import com.typesafe.config._
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
@@ -26,6 +22,9 @@ import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
+import java.lang.reflect.InvocationTargetException
+import java.nio.charset.Charset
+import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal

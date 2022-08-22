@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.util.Date
-
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -25,6 +21,10 @@ import org.opengis.filter.{Filter, PropertyIsLessThan}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
+
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class PartitionSchemeTest extends Specification with AllExpectations {

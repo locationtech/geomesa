@@ -23,11 +23,11 @@ import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.FsIngestParams
 import org.locationtech.geomesa.jobs.Awaitable
 import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
-import org.locationtech.geomesa.tools.{Command, TempPathParam}
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
 import org.locationtech.geomesa.tools.ingest._
+import org.locationtech.geomesa.tools.{Command, TempPathParam}
 import org.opengis.feature.simple.SimpleFeatureType
 
 class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistributedCommand {

@@ -8,19 +8,19 @@
 
 package org.locationtech.geomesa.convert.shp
 
-import java.io.ByteArrayInputStream
-import java.nio.file.Paths
-
 import com.typesafe.config.ConfigFactory
-import org.locationtech.jts.geom.MultiPolygon
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.jts.geom.MultiPolygon
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayInputStream
+import java.nio.file.Paths
 
 @RunWith(classOf[JUnitRunner])
 class ShapefileConverterTest extends Specification {

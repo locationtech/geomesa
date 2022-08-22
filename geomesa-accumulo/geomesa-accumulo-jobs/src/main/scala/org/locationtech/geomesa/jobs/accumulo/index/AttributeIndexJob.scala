@@ -213,7 +213,7 @@ class AttributeIndexJob extends Tool {
       val plan = AccumuloJobUtils.getSingleQueryPlan(ds, new Query(sft.getTypeName, Filter.INCLUDE))
       GeoMesaAccumuloInputFormat.configure(job, dsInParams.asJava, plan)
       GeoMesaConfigurator.setDataStoreOutParams(job.getConfiguration, dsInParams)
-      AttributeIndexJob.setAttributes(job.getConfiguration, attributes)
+      AttributeIndexJob.setAttributes(job.getConfiguration, attributes.toSeq)
       AttributeIndexJob.setTypeName(job.getConfiguration, sft.getTypeName)
 
       AccumuloOutputFormat.setConnectorInfo(job, parsedArgs.inUser, new PasswordToken(parsedArgs.inPassword.getBytes))

@@ -9,8 +9,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util.Locale
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator
@@ -45,6 +43,7 @@ import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util.Locale
 import scala.util.control.NonFatal
 
 /**
@@ -84,7 +83,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     *
     * @return
     */
-  def auths: Authorizations = new Authorizations(config.authProvider.getAuthorizations.asScala: _*)
+  def auths: Authorizations = new Authorizations(config.authProvider.getAuthorizations.asScala.toSeq: _*)
 
   override def delete(): Unit = {
     // note: don't delete the query audit table

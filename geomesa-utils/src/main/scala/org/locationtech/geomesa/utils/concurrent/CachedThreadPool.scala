@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.utils.concurrent
 
+import com.typesafe.scalalogging.LazyLogging
+
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
-
-import com.typesafe.scalalogging.LazyLogging
 
 /**
  * Executor service that will grow up to the number of threads specified.

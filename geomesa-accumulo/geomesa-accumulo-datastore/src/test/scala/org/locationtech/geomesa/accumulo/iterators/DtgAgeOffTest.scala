@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.{Collections, Date}
-
 import org.apache.accumulo.core.client.Connector
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
@@ -18,13 +15,16 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithFeatureType}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.{Collections, Date}
 
 @RunWith(classOf[JUnitRunner])
 class DtgAgeOffTest extends Specification with TestWithFeatureType {

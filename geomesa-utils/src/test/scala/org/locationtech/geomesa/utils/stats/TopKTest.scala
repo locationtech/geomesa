@@ -8,16 +8,16 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.lang.{Double => jDouble, Long => jLong}
-import java.util.Date
-
-import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Geometry
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.lang.{Double => jDouble, Long => jLong}
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class TopKTest extends Specification {

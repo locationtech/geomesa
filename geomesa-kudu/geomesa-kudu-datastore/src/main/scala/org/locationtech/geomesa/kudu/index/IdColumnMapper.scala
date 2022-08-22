@@ -9,9 +9,6 @@
 package org.locationtech.geomesa.kudu.index
 
 
-import java.nio.charset.StandardCharsets
-import java.util.Collections
-
 import org.apache.kudu.ColumnSchema.Encoding
 import org.apache.kudu.client.{CreateTableOptions, PartialRow}
 import org.locationtech.geomesa.index.api._
@@ -20,6 +17,9 @@ import org.locationtech.geomesa.kudu._
 import org.locationtech.geomesa.kudu.schema.KuduIndexColumnAdapter.FeatureIdAdapter
 import org.locationtech.geomesa.kudu.utils.ColumnConfiguration
 import org.locationtech.geomesa.utils.index.ByteArrays
+
+import java.nio.charset.StandardCharsets
+import java.util.Collections
 
 object IdColumnMapper {
   // use prefix encoding - since this is the first pk column it will be sorted

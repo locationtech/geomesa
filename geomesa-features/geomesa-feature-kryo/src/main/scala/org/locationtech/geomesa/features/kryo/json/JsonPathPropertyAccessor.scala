@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.features.kryo.json
 
-import java.lang.ref.SoftReference
-
 import com.jayway.jsonpath.Option.{ALWAYS_RETURN_LIST, DEFAULT_PATH_LEAF_TO_NULL, SUPPRESS_EXCEPTIONS}
 import com.jayway.jsonpath.{Configuration, JsonPath}
 import org.geotools.feature.AttributeTypeBuilder
@@ -22,6 +20,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.lang.ref.SoftReference
 import scala.util.control.NonFatal
 
 /**

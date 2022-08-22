@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util.Collections
-
 import org.geotools.feature.{AttributeTypeBuilder, NameImpl}
 import org.geotools.filter.MathExpressionImpl
 import org.geotools.filter.text.ecql.ECQL
@@ -19,6 +17,7 @@ import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.{Expression, Function, PropertyName}
 
+import java.util.Collections
 import scala.util.control.NonFatal
 
 /**

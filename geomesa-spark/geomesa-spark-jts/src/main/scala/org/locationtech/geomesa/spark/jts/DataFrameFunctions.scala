@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.spark.jts
 
-import java.{lang => jl}
-
-import org.locationtech.jts.geom._
 import org.apache.spark.sql.catalyst.expressions.Literal
 import org.apache.spark.sql.functions.{array, lit}
 import org.apache.spark.sql.jts._
 import org.apache.spark.sql.{Column, Encoder, Encoders, TypedColumn}
 import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.locationtech.jts.geom._
+
+import java.{lang => jl}
 
 
 /**

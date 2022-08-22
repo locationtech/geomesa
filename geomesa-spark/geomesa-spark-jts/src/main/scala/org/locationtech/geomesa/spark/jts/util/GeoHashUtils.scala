@@ -9,9 +9,10 @@
 package org.locationtech.geomesa.spark.jts.util
 
 import org.locationtech.jts.geom.{Envelope, Geometry, GeometryFactory, PrecisionModel}
+
+import java.{lang => jl}
 import scala.collection.BitSet
 import scala.collection.immutable.{BitSet => IBitSet}
-import java.{lang => jl}
 
 /**
   * Exposes the two methods needed by ST_GeoHash and ST_GeomFromGeoHash

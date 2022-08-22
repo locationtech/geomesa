@@ -8,15 +8,15 @@
 
 package org.apache.spark.geomesa.api.python
 
-import java.io.OutputStream
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Geometry
 import net.razorvine.pickle.{IObjectPickler, Pickler}
 import org.apache.spark.api.java.JavaRDD
 import org.apache.spark.api.python.SerDeUtil
 import org.apache.spark.rdd.RDD
 import org.locationtech.geomesa.utils.text.WKBUtils
+import org.locationtech.jts.geom.Geometry
+
+import java.io.OutputStream
 
 object GeoMesaSeDerUtil extends LazyLogging {
 

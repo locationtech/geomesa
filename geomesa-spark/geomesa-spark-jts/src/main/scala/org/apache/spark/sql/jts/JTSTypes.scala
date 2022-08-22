@@ -8,9 +8,8 @@
 
 package org.apache.spark.sql.jts
 
-import org.locationtech.jts.geom._
-import org.apache.spark.sql._
 import org.apache.spark.sql.types._
+import org.locationtech.jts.geom._
 
 object JTSTypes {
   val GeometryTypeInstance           = new GeometryUDT

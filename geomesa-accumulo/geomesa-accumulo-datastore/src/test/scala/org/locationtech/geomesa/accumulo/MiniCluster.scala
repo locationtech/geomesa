@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.accumulo
 
-import java.io.{File, FileWriter}
-import java.nio.file.Files
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.{Authorizations, NamespacePermission, SystemPermission}
 import org.apache.accumulo.minicluster.{MiniAccumuloCluster, MiniAccumuloConfig}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
+
+import java.io.{File, FileWriter}
+import java.nio.file.Files
 
 case object MiniCluster extends LazyLogging {
 

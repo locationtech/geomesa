@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.util.Date
-
-import org.locationtech.jts.geom.Geometry
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Geometry
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class MinMaxTest extends Specification with StatTestHelper {

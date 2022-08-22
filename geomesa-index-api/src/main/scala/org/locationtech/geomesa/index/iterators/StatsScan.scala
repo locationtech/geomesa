@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.iterators
 
-import java.util.Objects
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
 import org.geotools.util.factory.Hints
@@ -24,6 +22,8 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.util.Objects
 
 trait StatsScan extends AggregatingScan[StatResult] with LazyLogging {
 

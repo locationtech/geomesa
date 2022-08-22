@@ -13,8 +13,6 @@ import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
 class AvroPathTest extends Specification with AvroUtils {
 
@@ -50,8 +48,8 @@ class AvroPathTest extends Specification with AvroUtils {
       val result = avroPath.eval(gr1).asInstanceOf[Option[AnyRef]]
       result must beSome(beAnInstanceOf[java.util.List[AnyRef]])
       val arr = result.get.asInstanceOf[java.util.List[AnyRef]]
-      arr.length mustEqual 5
-      arr.head must beAnInstanceOf[GenericRecord]
+      arr.size mustEqual 5
+      arr.get(0) must beAnInstanceOf[GenericRecord]
     }
 
     "filter arrays of records by a field predicate" in {

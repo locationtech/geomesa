@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.kafka.tools
 
-import java.io.File
 import org.apache.kafka.clients.producer.Producer
 import org.locationtech.geomesa.kafka.data.{KafkaDataStore, KafkaDataStoreParams}
-import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+
+import java.io.File
 
 /**
   * Abstract class for commands that require a KafkaDataStore

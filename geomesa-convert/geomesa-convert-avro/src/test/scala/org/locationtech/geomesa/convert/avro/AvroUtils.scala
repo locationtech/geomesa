@@ -8,13 +8,11 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import java.io.ByteArrayOutputStream
-
 import org.apache.avro.Schema.Parser
 import org.apache.avro.generic.{GenericDatumReader, GenericDatumWriter, GenericRecord, GenericRecordBuilder}
 import org.apache.avro.io.{DecoderFactory, EncoderFactory}
 
-import scala.collection.JavaConversions._
+import java.io.ByteArrayOutputStream
 import scala.collection.JavaConverters._
 
 trait AvroUtils {
@@ -24,7 +22,7 @@ trait AvroUtils {
   val schema = parser.parse(spec)
 
   val contentSchema = schema.getField("content").schema()
-  val types = contentSchema.getTypes.toList
+  val types = contentSchema.getTypes.asScala.toList
   val tObjSchema = types(0)
   val otherObjSchema = types(1)
 

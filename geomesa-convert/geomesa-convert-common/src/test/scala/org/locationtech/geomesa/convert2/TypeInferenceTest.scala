@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.convert2
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.TypeInference.{DerivedTransform, LatLon}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class TypeInferenceTest extends Specification with LazyLogging {

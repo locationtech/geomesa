@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 class EncodingFunctionFactory extends TransformerFunctionFactory {

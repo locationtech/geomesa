@@ -8,12 +8,6 @@
 
 package org.locationtech.geomesa.tools.export
 
-import java.io._
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.{Collections, Locale}
-
 import org.geotools.data.memory.MemoryDataStore
 import org.geotools.data.{DataStore, DataUtilities, Query, Transaction}
 import org.junit.runner.RunWith
@@ -29,6 +23,12 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io._
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.{Collections, Locale}
 
 @RunWith(classOf[JUnitRunner])
 class DelimitedExportImportTest extends Specification {

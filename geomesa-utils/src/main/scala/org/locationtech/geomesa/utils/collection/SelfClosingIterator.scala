@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.collection
 
-import java.io.Closeable
-
 import org.geotools.data.FeatureReader
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
 import org.locationtech.geomesa.utils.collection.CloseableIterator.CloseableIteratorImpl
@@ -17,6 +15,7 @@ import org.opengis.feature.Feature
 import org.opengis.feature.`type`.FeatureType
 import org.opengis.feature.simple.SimpleFeature
 
+import java.io.Closeable
 import scala.collection.Iterator
 
 // By 'self-closing', we mean that the iterator will automatically call close once it is completely exhausted.

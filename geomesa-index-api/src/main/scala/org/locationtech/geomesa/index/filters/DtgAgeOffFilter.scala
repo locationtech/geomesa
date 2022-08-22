@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.filters
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
@@ -20,6 +18,7 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util.Date
 import scala.util.control.NonFatal
 
 /**

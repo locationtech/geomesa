@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.fs.storage.converter
 
-import java.util.regex.Pattern
-
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.converter.ConverterStorageFactory._
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
+
+import java.util.regex.Pattern
 
 class ConverterMetadataFactory extends StorageMetadataFactory with LazyLogging {
 

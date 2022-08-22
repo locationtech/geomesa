@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.convert.shp
 
-import java.io.InputStream
-import java.util.Collections
-import java.nio.charset.Charset
-import java.nio.file.{Files, Paths}
-
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
@@ -25,6 +20,11 @@ import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.InputStream
+import java.nio.charset.Charset
+import java.nio.file.{Files, Paths}
+import java.util.Collections
 
 class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Seq[BasicField], options: BasicOptions)
     extends AbstractConverter[SimpleFeature, BasicConfig, BasicField, BasicOptions](sft, config, fields, options)  {

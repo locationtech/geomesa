@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.utils.uuid
 
-import java.security.SecureRandom
-
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.index.ByteArrays
+
+import java.security.SecureRandom
 
 /**
  *

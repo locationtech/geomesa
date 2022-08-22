@@ -9,9 +9,6 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
 import com.datastax.driver.core.Row
 import com.datastax.driver.core.exceptions.AlreadyExistsException
 import com.datastax.driver.core.querybuilder.{QueryBuilder, Select}
@@ -29,6 +26,9 @@ import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
 class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[CassandraDataStore] with StrictLogging {
 

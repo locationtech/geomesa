@@ -9,13 +9,13 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.IOException
-
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.MiniCluster
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.IOException
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreFactoryTest extends Specification {

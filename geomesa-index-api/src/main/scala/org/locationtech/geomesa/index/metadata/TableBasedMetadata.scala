@@ -8,19 +8,19 @@
 
 package org.locationtech.geomesa.index.metadata
 
+import com.github.benmanes.caffeine.cache.{Cache, CacheLoader, Caffeine}
+import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.text.DateParsing
+
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 import java.time.{Instant, ZoneOffset}
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-
-import com.github.benmanes.caffeine.cache.{Cache, CacheLoader, Caffeine}
-import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, IsSynchronized, MaybeSynchronized, NotSynchronized}
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.text.DateParsing
 
 /**
   * Metadata persisted in a database table. The underlying table will be lazily created when required.

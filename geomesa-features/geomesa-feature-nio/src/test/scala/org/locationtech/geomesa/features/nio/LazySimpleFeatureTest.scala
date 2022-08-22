@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.features.nio
 
-import java.nio.ByteBuffer
-import java.util
-
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -19,6 +16,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.nio.ByteBuffer
+import java.util
 import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])

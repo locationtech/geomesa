@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
@@ -37,11 +35,14 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class HBasePartitioningTest extends Specification with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -54,7 +55,7 @@ class HBasePartitioningTest extends Specification with LazyLogging {
         ConnectionParam.getName -> MiniCluster.connection,
         HBaseCatalogParam.getName -> getClass.getSimpleName
       )
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
 
       try {
@@ -78,10 +79,10 @@ class HBasePartitioningTest extends Specification with LazyLogging {
           sf.setAttribute(1, s"name$i")
           sf.setAttribute(2, f"2018-01-${i + 1}%02dT00:00:01.000Z")
           sf.setAttribute(3, s"POINT(4$i 5$i)")
-          sf
+          sf: SimpleFeature
         }
 
-        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.take(8)))
+        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.take(8).asJava))
         ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 8).map(_.toString))
 
         val indices = ds.manager.indices(sft)
@@ -155,7 +156,7 @@ class HBasePartitioningTest extends Specification with LazyLogging {
     if (features.length != results.length) {
       ds.getQueryPlan(query, explainer = new ExplainPrintln)
     }
-    val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
+    val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
     forall(features) { feature =>
       feature.getAttributes must haveLength(attributes.length)

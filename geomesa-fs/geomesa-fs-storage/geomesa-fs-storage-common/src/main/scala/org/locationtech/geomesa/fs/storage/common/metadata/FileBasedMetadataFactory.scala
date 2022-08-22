@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
-import java.util.concurrent.ConcurrentHashMap
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs.{CreateFlag, FileContext, Path}
@@ -18,6 +16,8 @@ import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadata.Con
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
+
+import java.util.concurrent.ConcurrentHashMap
 
 class FileBasedMetadataFactory extends StorageMetadataFactory {
 

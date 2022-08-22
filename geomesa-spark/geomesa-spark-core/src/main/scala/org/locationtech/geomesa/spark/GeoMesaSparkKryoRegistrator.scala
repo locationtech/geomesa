@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.spark
 
-import java.util.concurrent.ConcurrentHashMap
-
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
@@ -23,7 +21,8 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+import java.util.concurrent.ConcurrentHashMap
+import scala.collection.JavaConverters._
 import scala.util.hashing.MurmurHash3
 
 class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
@@ -86,7 +85,7 @@ object GeoMesaSparkKryoRegistrator {
         }
       }.orNull
 
-  def getTypes: Seq[SimpleFeatureType] = Seq(typeCache.values.toSeq: _*)
+  def getTypes: Seq[SimpleFeatureType] = Seq(typeCache.values.asScala.toSeq: _*)
 
   def register(ds: DataStore): Unit = register(ds.getTypeNames.map(ds.getSchema))
 
@@ -96,7 +95,7 @@ object GeoMesaSparkKryoRegistrator {
 
   @deprecated
   def broadcast(partitions: RDD[_]): Unit = {
-    val encodedTypes = typeCache
+    val encodedTypes = typeCache.asScala
       .map { case (_, sft) => (sft.getTypeName, SimpleFeatureTypes.encodeType(sft)) }
       .toArray
     partitions.foreachPartition { _ =>

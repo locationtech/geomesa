@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.utils.audit
 
-import java.io.Closeable
-import java.time.ZonedDateTime
-
 import com.google.gson.{Gson, GsonBuilder}
 import com.typesafe.scalalogging.LazyLogging
 
+import java.io.Closeable
+import java.time.ZonedDateTime
 import scala.reflect.ClassTag
 
 /**

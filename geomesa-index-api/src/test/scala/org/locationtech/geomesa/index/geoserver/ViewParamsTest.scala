@@ -8,17 +8,17 @@
 
 package org.locationtech.geomesa.index.geoserver
 
-import java.util.Collections
-
 import org.geotools.data.Query
-import org.geotools.util.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class ViewParamsTest extends Specification {

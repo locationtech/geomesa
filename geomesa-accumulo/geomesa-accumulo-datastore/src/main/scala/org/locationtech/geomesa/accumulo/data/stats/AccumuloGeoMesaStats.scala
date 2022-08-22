@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data.stats
 
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
-import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
-
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
@@ -20,6 +17,9 @@ import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
+import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 
 /**
   * Accumulo stats implementation handling table compactions
@@ -49,7 +49,7 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
         compact()
       }
       if (running.get) {
-        synchronized(scheduledCompaction = executor.schedule(this, compactInterval, TimeUnit.MILLISECONDS))
+        synchronized{scheduledCompaction = executor.schedule(this, compactInterval, TimeUnit.MILLISECONDS)}
       }
     }
   }
@@ -61,7 +61,7 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
   override def close(): Unit = {
     super.close()
     running.set(false)
-    synchronized(scheduledCompaction.cancel(false))
+    synchronized{scheduledCompaction.cancel(false)}
   }
 
   /**

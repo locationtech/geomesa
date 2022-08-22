@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.conf.splitter
 
-import java.nio.charset.StandardCharsets
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
@@ -26,6 +23,8 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.text.{DateParsing, KVPairParser}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.nio.charset.StandardCharsets
+import java.util.Date
 import scala.util.Try
 
 /**

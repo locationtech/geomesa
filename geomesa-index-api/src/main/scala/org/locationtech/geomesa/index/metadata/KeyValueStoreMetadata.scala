@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.index.metadata
 
-import java.nio.charset.StandardCharsets
-
 import org.locationtech.geomesa.index.metadata.KeyValueStoreMetadata.decodeRow
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 /**

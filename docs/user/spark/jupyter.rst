@@ -145,7 +145,7 @@ The following sample notebook shows how you can use Leaflet for data visualizati
 
    implicit val displayer: String => Unit = display.html(_)
 
-   import scala.collection.JavaConversions._
+   import scala.collection.JavaConverters._
    import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
    import org.locationtech.geomesa.utils.geotools.Conversions._
 
@@ -156,14 +156,14 @@ The following sample notebook shows how you can use Leaflet for data visualizati
            PasswordParam.key   -> "USER_PASS",
            CatalogParam.key    -> "CATALOG")
 
-   val ds = org.geotools.data.DataStoreFinder.getDataStore(params)
+   val ds = org.geotools.data.DataStoreFinder.getDataStore(params.asJava)
    val ff = org.geotools.factory.CommonFactoryFinder.getFilterFactory2
    val fs = ds.getFeatureSource("twitter")
 
    val filt = ff.and(
        ff.between(ff.property("dtg"), ff.literal("2016-01-01"), ff.literal("2016-05-01")),
        ff.bbox("geom", -80, 37, -75, 40, "EPSG:4326"))
-   val features = fs.getFeatures(filt).features.take(10).toList
+   val features = fs.getFeatures(filt).features.asScala.take(10).toList
 
    displayer(L.render(Seq(WMSLayer(name="ne_10m_roads",namespace="NAMESPACE"),
                           Circle(-78.0,38.0,1000,  StyleOptions(color="yellow",fillColor="#63A",fillOpacity=0.5)),

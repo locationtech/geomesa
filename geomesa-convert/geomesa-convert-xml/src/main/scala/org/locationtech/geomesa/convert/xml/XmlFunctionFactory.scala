@@ -8,19 +8,18 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.io.StringWriter
-import java.util.concurrent.TimeUnit
-
 import com.typesafe.config.ConfigFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamResult
-import javax.xml.transform.{OutputKeys, Transformer, TransformerFactory}
-import javax.xml.xpath.XPathExpression
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
 import org.locationtech.geomesa.utils.cache.{SoftThreadLocal, ThreadLocalCache}
 import org.w3c.dom.Element
 
+import java.io.StringWriter
+import java.util.concurrent.TimeUnit
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
+import javax.xml.transform.{OutputKeys, Transformer, TransformerFactory}
+import javax.xml.xpath.XPathExpression
 import scala.concurrent.duration.Duration
 
 class XmlFunctionFactory extends TransformerFunctionFactory {

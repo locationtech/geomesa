@@ -12,7 +12,7 @@ import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 
 class InMemoryMetadata[T] extends GeoMesaMetadata[T] {
 
-  import scala.collection.mutable.{ Map => mMap }
+  import scala.collection.mutable.{Map => mMap}
 
   private val schemas = mMap.empty[String, mMap[String, T]]
 

@@ -8,11 +8,9 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.time.{Instant, ZoneOffset}
-import java.util.{Locale, List => jList}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
-import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureWriter}
+import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.FlushableFeatureWriter
@@ -26,13 +24,15 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.TableSharingPrefix
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, GeoToolsDateFormat, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, ReservedWordCheck}
+import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, ReservedWordCheck}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import java.io.IOException
+import java.time.{Instant, ZoneOffset}
+import java.util.{Locale, List => jList}
 import scala.util.control.NonFatal
 
 /**

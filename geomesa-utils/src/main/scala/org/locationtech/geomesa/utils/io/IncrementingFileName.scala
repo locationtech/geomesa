@@ -9,9 +9,7 @@
 package org.locationtech.geomesa.utils.io
 
 import java.util.concurrent.atomic.AtomicInteger
-
 import javax.annotation.concurrent.ThreadSafe
-import org.apache.commons.io.FilenameUtils
 
 /**
   * Creates unique file names generated from a base name, by appending a sequence number

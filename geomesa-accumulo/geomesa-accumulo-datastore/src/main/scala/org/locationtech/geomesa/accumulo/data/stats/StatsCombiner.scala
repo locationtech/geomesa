@@ -21,7 +21,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 /**
@@ -39,7 +39,7 @@ class StatsCombiner extends Combiner with LazyLogging {
                     options: java.util.Map[String, String],
                     env: IteratorEnvironment): Unit = {
     super.init(source, options, env)
-    serializers = options.toMap.collect {
+    serializers = options.asScala.toMap.collect {
       case (k, v) if k.startsWith(SftOption) =>
         val typeName = k.substring(SftOption.length)
         (typeName, StatSerializer(SimpleFeatureTypes.createType(typeName, v)))
@@ -68,7 +68,7 @@ class StatsCombiner extends Combiner with LazyLogging {
         }
       }
 
-      iter.foreach { s =>
+      iter.asScala.foreach { s =>
         try { stat += serializer.deserialize(s.get) } catch {
           case NonFatal(e) => logger.error("Error combining stats:", e)
         }
@@ -99,7 +99,7 @@ object StatsCombiner {
     getExisting(connector, table) match {
       case None => attach(connector, table, options(separator) + (sftKey -> sftOpt))
       case Some(existing) =>
-        val existingSfts = existing.getOptions.filter(_._1.startsWith(StatsCombiner.SftOption))
+        val existingSfts = existing.getOptions.asScala.filter(_._1.startsWith(StatsCombiner.SftOption))
         if (!existingSfts.get(sftKey).contains(sftOpt)) {
           connector.tableOperations().removeIterator(table, CombinerName, java.util.EnumSet.allOf(classOf[IteratorScope]))
           attach(connector, table, existingSfts.toMap ++ options(separator) + (sftKey -> sftOpt))
@@ -110,8 +110,8 @@ object StatsCombiner {
   def remove(sft: SimpleFeatureType, connector: Connector, table: String, separator: String): Unit = {
     getExisting(connector, table).foreach { existing =>
       val sftKey = getSftKey(sft)
-      val existingSfts = existing.getOptions.filter(_._1.startsWith(StatsCombiner.SftOption))
-      if (existingSfts.containsKey(sftKey)) {
+      val existingSfts = existing.getOptions.asScala.filter(_._1.startsWith(StatsCombiner.SftOption))
+      if (existingSfts.asJava.containsKey(sftKey)) {
         connector.tableOperations().removeIterator(table, CombinerName, java.util.EnumSet.allOf(classOf[IteratorScope]))
         if (existingSfts.size > 1) {
           attach(connector, table, (existingSfts.toMap - sftKey) ++ options(separator))
@@ -124,7 +124,7 @@ object StatsCombiner {
     getExisting(connector, table) match {
       case None => Map.empty
       case Some(existing) =>
-        existing.getOptions.collect {
+        existing.getOptions.asScala.collect {
           case (k, v) if k.startsWith(SftOption) => (k.substring(SftOption.length), v)
         }
     }

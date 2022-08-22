@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import java.util.Date
-
 import com.google.common.primitives.{Longs, Shorts}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{Query, Transaction}
@@ -29,10 +27,12 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
+
+  import scala.collection.JavaConverters._
 
   sequential // note: test doesn't need to be sequential but it actually runs faster this way
 
@@ -79,7 +79,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
 
       ds.manager.indices(sft).filter(_.name == Z3Index.name).flatMap(_.getTableNames()).foreach { table =>
         println(table)
-        ds.connector.createScanner(table, new Authorizations()).foreach { r =>
+        ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val prefix = 2 // table sharing + split
           val bytes = r.getKey.getRow.getBytes
           val keyZ = Longs.fromByteArray(bytes.drop(prefix))

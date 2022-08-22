@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.nio.charset.StandardCharsets
-import java.sql.{Connection, ResultSet, SQLException}
-import java.util.concurrent.ConcurrentHashMap
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp2.{PoolableConnection, PoolingDataSource}
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile, StorageFileAction}
@@ -21,6 +16,11 @@ import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata.Metadata
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.nio.charset.StandardCharsets
+import java.sql.{Connection, ResultSet, SQLException}
+import java.util.concurrent.ConcurrentHashMap
 
 /**
   * Storage metadata implementation backed by a SQL database. Currently tested with H2 and Postgres - other

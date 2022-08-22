@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.filter.visitor
 
-import org.locationtech.jts.geom.Envelope
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.utils.geotools.wholeWorldEnvelope
+import org.locationtech.jts.geom.Envelope
 import org.opengis.filter._
 
 /**

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools.compact
 
-import java.io.File
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -32,6 +30,8 @@ import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.utils.{JobRunner, StorageJobUtils}
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.SimpleFeature
+
+import java.io.File
 
 trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 

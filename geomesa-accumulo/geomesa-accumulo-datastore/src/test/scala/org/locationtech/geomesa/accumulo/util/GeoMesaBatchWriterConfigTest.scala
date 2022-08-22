@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.accumulo.util
 
-import java.util.concurrent.TimeUnit
-
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.AccumuloProperties
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.text.Suffixes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.concurrent.TimeUnit
 
 @RunWith(classOf[JUnitRunner])
 class GeoMesaBatchWriterConfigTest extends Specification {

@@ -9,8 +9,6 @@
 
 package org.locationtech.geomesa.convert.redis
 
-import java.util.ServiceLoader
-
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EnrichmentCacheFactory
@@ -18,15 +16,16 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import redis.clients.jedis.Jedis
 
+import java.util.{Collections, ServiceLoader}
+
 class MockRedis extends Jedis {
   var count = 0
   override def hgetAll(key: String): java.util.Map[String, String] = {
-    import scala.collection.JavaConversions._
     if(count == 0) {
       count += 1
-      Map("foo" -> "bar")
+      Collections.singletonMap("foo", "bar")
     } else {
-      Map("foo" -> "baz")
+      Collections.singletonMap("foo", "baz")
     }
   }
 
@@ -35,6 +34,8 @@ class MockRedis extends Jedis {
 
 @RunWith(classOf[JUnitRunner])
 class RedisEnrichmentCacheTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -95,8 +96,7 @@ class RedisEnrichmentCacheTest extends Specification {
         """.stripMargin
       )
 
-      import scala.collection.JavaConversions._
-      val cache = ServiceLoader.load(classOf[EnrichmentCacheFactory]).iterator().find(_.canProcess(conf)).map(_.build(conf))
+      val cache = ServiceLoader.load(classOf[EnrichmentCacheFactory]).iterator().asScala.find(_.canProcess(conf)).map(_.build(conf))
 
       cache must not be None
     }

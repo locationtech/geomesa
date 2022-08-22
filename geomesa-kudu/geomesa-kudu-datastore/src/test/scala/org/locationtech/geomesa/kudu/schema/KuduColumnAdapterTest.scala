@@ -8,18 +8,18 @@
 
 package org.locationtech.geomesa.kudu.schema
 
-import java.util.{Date, UUID}
-
-import org.locationtech.jts.geom.{Geometry, Point}
 import org.apache.kudu.Schema
 import org.apache.kudu.client.RowResult
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.{Date, UUID}
 
 
 @RunWith(classOf[JUnitRunner])

@@ -8,12 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
-import java.io.{FileNotFoundException, InputStreamReader}
-import java.nio.charset.StandardCharsets
-import java.util.UUID
-import java.util.concurrent._
-import java.util.function.BiFunction
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
@@ -28,6 +22,11 @@ import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.{FileNotFoundException, InputStreamReader}
+import java.nio.charset.StandardCharsets
+import java.util.UUID
+import java.util.concurrent._
+import java.util.function.BiFunction
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.parallel.ExecutionContextTaskSupport
 import scala.concurrent.ExecutionContext

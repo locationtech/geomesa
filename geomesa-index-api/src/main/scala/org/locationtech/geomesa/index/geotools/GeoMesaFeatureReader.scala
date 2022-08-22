@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
-
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureReader
 import org.locationtech.geomesa.filter.filterToString
@@ -22,6 +20,8 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timings, TimingsImpl}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
 class GeoMesaFeatureReader private (sft: SimpleFeatureType, qp: QueryRunner, query: Query, timeout: Option[Long])
     extends SimpleFeatureReader {

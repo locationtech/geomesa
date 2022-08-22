@@ -19,7 +19,7 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.{SingleRowKeyValue, WritableFeature}
 import org.locationtech.geomesa.index.conf.ColumnGroups
 import org.locationtech.geomesa.index.index.z2.Z2Index
-import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

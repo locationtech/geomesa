@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.planning.guard
 
-import java.io.StringReader
-
 import com.typesafe.config.ConfigFactory
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -19,6 +17,8 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.StringReader
 
 @RunWith(classOf[JUnitRunner])
 class GraduatedQueryGuardTest extends Specification {

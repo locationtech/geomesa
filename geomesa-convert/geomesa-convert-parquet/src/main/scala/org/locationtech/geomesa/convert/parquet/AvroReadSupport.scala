@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.parquet
 
-import java.util.{Collections, Date}
-
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.conf.Configuration
@@ -23,6 +21,7 @@ import org.locationtech.geomesa.convert.parquet.AvroReadSupport.AvroRecordMateri
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport.{BooleanConverter, BytesConverter, DateConverter, DoubleConverter, FloatConverter, IntConverter, LongConverter, Settable, StringConverter}
 
+import java.util.{Collections, Date}
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -81,7 +80,7 @@ object AvroReadSupport {
   }
 
   class AvroRecordMaterializer(schema: MessageType) extends RecordMaterializer[GenericRecord] {
-    private val root = new GenericGroupConverter(schema.getFields.asScala)
+    private val root = new GenericGroupConverter(schema.getFields.asScala.toSeq)
     override def getCurrentRecord: GenericRecord = root.record
     override def getRootConverter: GroupConverter = root
   }
@@ -158,9 +157,9 @@ object AvroReadSupport {
 
         case _ =>
           if (group.getFields.asScala.forall(t => t.isPrimitive && t.isRepetition(Repetition.REPEATED))) {
-            new GroupedRepeatedConverter(group.getFields.asScala.map(_.asPrimitiveType), i, callback)
+            new GroupedRepeatedConverter(group.getFields.asScala.map(_.asPrimitiveType).toSeq, i, callback)
           } else {
-            new GenericGroupConverter(group.getFields.asScala) {
+            new GenericGroupConverter(group.getFields.asScala.toSeq) {
               override def end(): Unit = callback.set(i, record)
             }
           }

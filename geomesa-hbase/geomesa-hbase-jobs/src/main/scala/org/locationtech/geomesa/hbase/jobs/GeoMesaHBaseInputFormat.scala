@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.jobs
 
-import java.util.Base64
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.{Configurable, Configuration}
 import org.apache.hadoop.hbase.HBaseConfiguration
@@ -28,6 +26,8 @@ import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.SimpleFeature
+
+import java.util.Base64
 
 /**
   * Input format that allows processing of simple features from GeoMesa based on a CQL query

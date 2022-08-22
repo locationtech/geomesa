@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.convert.avro.registry
 
-import java.io.InputStream
-import java.nio.ByteBuffer
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -25,6 +22,9 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.InputStream
+import java.nio.ByteBuffer
 
 class AvroSchemaRegistryConverter(
     sft: SimpleFeatureType,

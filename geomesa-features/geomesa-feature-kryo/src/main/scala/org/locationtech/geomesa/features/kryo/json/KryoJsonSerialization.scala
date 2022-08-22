@@ -284,11 +284,11 @@ object KryoJsonSerialization extends LazyLogging {
     if (value.values.isValidInt) {
       out.writeByte(IntByte)
       out.writeName(name)
-      out.writeInt(value.values.intValue())
+      out.writeInt(value.values.intValue)
     } else if (value.values.isValidLong) {
       out.writeByte(LongByte)
       out.writeName(name)
-      out.writeLong(value.values.longValue())
+      out.writeLong(value.values.longValue)
     } else {
       logger.warn(s"Skipping int value that does not fit in a long: $value")
     }
@@ -416,7 +416,7 @@ object KryoJsonSerialization extends LazyLogging {
         }
       }
     }
-    elements
+    elements.toSeq
   }
 
   /**
@@ -436,11 +436,12 @@ object KryoJsonSerialization extends LazyLogging {
       elements.append((typ, position))
       in.setPosition(position)
       typ match {
-        case DocByte | ArrayByte => toSearch.enqueue(matchObjectPath(in, Seq(position), predicate): _*)
+        case DocByte | ArrayByte =>
+          matchObjectPath(in, Seq(position), predicate).foreach{ case(val1: Byte, val2:Int) => toSearch.enqueue((val1, val2))}
         case StringByte | DoubleByte | IntByte | LongByte | NullByte | BooleanByte => // no-op
       }
     }
-    elements
+    elements.toSeq
   }
 
   /**

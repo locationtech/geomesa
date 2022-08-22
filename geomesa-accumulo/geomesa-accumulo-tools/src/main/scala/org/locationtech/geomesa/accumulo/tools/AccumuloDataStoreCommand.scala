@@ -9,12 +9,12 @@
 
 package org.locationtech.geomesa.accumulo.tools
 
-import java.io.File
-
 import org.apache.accumulo.core.client.Connector
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+
+import java.io.File
 
 /**
  * Abstract class for commands that have a pre-existing catalog

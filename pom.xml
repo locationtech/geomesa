@@ -2831,6 +2831,7 @@
                                     <excludes combine.children="append">
                                         <exclude>*:*_2.10</exclude>
                                         <exclude>*:*_2.11</exclude>
+                                        <exclude>*:*_2.13</exclude>
                                     </excludes>
                                 </bannedDependencies>
                                 <requireProperty>

@@ -47,9 +47,9 @@ object SimpleFeatureSpecParser {
     lazy val fallback = s"Invalid spec string: ${ErrorUtils.printParseErrors(result)}"
     if (!report) { fallback } else {
       result.parseErrors.collectFirst { case e: InvalidInputError =>
-        import scala.collection.JavaConversions._
+        import scala.collection.JavaConverters._
         // determine what paths the parser partially matched
-        val matchers = e.getFailedMatchers.map(getFailedMatcher).distinct
+        val matchers = e.getFailedMatchers.asScala.map(getFailedMatcher).distinct
         if (matchers.isEmpty) {
           s"Invalid spec string at index ${e.getStartIndex}."
         } else {

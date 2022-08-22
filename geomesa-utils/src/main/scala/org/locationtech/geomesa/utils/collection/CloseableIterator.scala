@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.collection
 
-import java.io.Closeable
-
 import org.geotools.data.FeatureReader
 import org.geotools.feature.FeatureIterator
 import org.locationtech.geomesa.utils.collection.CloseableIterator.{CloseableIteratorImpl, ConcatCloseableIterator, FlatMapCloseableIterator}
@@ -18,6 +16,7 @@ import org.opengis.feature.Feature
 import org.opengis.feature.`type`.FeatureType
 import org.opengis.feature.simple.SimpleFeature
 
+import java.io.Closeable
 import scala.annotation.tailrec
 import scala.collection.{GenTraversableOnce, Iterator}
 

@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.metrics.cloudwatch
 
-import java.util.concurrent.TimeUnit
-
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsyncClientBuilder
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter}
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import io.github.azagniotov.metrics.reporter.cloudwatch.CloudWatchReporter
 import org.locationtech.geomesa.metrics.core.ReporterFactory
 import pureconfig.ConfigReader
+
+import java.util.concurrent.TimeUnit
 
 class CloudWatchReporterFactory extends ReporterFactory {
 

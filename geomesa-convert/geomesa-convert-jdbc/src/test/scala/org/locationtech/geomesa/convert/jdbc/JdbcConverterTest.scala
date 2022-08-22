@@ -8,20 +8,20 @@
 
 package org.locationtech.geomesa.convert.jdbc
 
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.sql.{Connection, DriverManager}
-
 import com.typesafe.config.ConfigFactory
-import org.locationtech.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
+import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.sql.{Connection, DriverManager}
 
 @RunWith(classOf[JUnitRunner])
 class JdbcConverterTest extends Specification {

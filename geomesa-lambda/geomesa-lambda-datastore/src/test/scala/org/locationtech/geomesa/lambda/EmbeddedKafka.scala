@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.lambda
 
-import java.io.Closeable
-
 import kafka.server.KafkaConfig
 import kafka.utils.TestUtils
 import kafka.zk.EmbeddedZookeeper
 import org.apache.kafka.common.network.ListenerName
 import org.locationtech.geomesa.utils.io.PathUtils
+
+import java.io.Closeable
 
 class EmbeddedKafka extends Closeable {
 

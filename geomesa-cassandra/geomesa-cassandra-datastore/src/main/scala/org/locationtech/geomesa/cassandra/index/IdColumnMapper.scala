@@ -9,14 +9,14 @@
 
 package org.locationtech.geomesa.cassandra.index
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.locationtech.geomesa.cassandra.{ColumnSelect, NamedColumn, RowSelect}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
 object IdColumnMapper {
 

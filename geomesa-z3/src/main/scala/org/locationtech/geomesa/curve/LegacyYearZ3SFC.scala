@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.curve
 
-import java.time.temporal.ChronoUnit
-
 import org.locationtech.geomesa.curve.NormalizedDimension.NormalizedTime
+
+import java.time.temporal.ChronoUnit
 
 /**
  * Z3SFC with a legacy, incorrect max time value of 52 weeks. The max value is kept the same to ensure that

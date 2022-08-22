@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import java.io.Writer
-import java.util.{Base64, Date, UUID}
-
 import com.google.gson.stream.JsonWriter
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.Writer
+import java.util.{Base64, Date, UUID}
 
 /**
  * Serializer to write out geojson from simple features. There are two valid usage patterns.

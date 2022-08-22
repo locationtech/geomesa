@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.utils.geohash
 
 import org.junit.runner.RunWith
-import org.locationtech.jts.geom.Coordinate
 import org.locationtech.geomesa.utils.geohash.GeoHashIterator._
+import org.locationtech.jts.geom.Coordinate
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

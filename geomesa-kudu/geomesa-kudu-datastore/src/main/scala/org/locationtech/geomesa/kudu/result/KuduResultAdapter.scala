@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.kudu.result
 
-import java.nio.ByteBuffer
-
 import org.apache.kudu.client.RowResult
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.ArrowProperties
@@ -18,6 +16,8 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.ByteBuffers.ExpandingByteBuffer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.nio.ByteBuffer
 
 /**
   * Adapter to convert raw kudu scan results into simple features

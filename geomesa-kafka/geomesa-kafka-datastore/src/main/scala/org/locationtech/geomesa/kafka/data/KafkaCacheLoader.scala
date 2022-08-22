@@ -168,8 +168,8 @@ object KafkaCacheLoader extends LazyLogging {
       val partitions = consumers.head.partitionsFor(topic).asScala.map(_.partition)
       try {
         // note: these methods are not available in kafka 0.9, which will cause it to fall back to normal loading
-        val beginningOffsets = KafkaConsumerVersions.beginningOffsets(consumers.head, topic, partitions)
-        val endOffsets = KafkaConsumerVersions.endOffsets(consumers.head, topic, partitions)
+        val beginningOffsets = KafkaConsumerVersions.beginningOffsets(consumers.head, topic, partitions.toSeq)
+        val endOffsets = KafkaConsumerVersions.endOffsets(consumers.head, topic, partitions.toSeq)
         partitions.foreach { p =>
           // end offsets are the *next* offset that will be returned, so subtract one to track the last offset
           // we will actually consume

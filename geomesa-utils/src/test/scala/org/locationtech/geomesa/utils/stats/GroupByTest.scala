@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.lang.{Integer => jInt}
-
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.lang.{Integer => jInt}
 
 @RunWith(classOf[JUnitRunner])
 class GroupByTest extends Specification with StatTestHelper {

@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.tools.utils
 
-import java.util.Collections
-
 import com.beust.jcommander.converters.IParameterSplitter
+
+import java.util.Collections
 
 class NoopParameterSplitter extends IParameterSplitter {
   override def split(s : String): java.util.List[String] = new java.util.ArrayList(Collections.singletonList(s))

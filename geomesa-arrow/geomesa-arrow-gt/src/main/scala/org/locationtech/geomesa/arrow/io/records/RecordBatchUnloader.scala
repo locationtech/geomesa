@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.arrow.io.records
 
-import java.io.ByteArrayOutputStream
-import java.nio.channels.Channels
-import java.util.Collections
-
 import org.apache.arrow.vector.ipc.WriteChannel
 import org.apache.arrow.vector.ipc.message.{IpcOption, MessageSerializer}
 import org.apache.arrow.vector.{FieldVector, VectorSchemaRoot, VectorUnloader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
 import org.locationtech.geomesa.utils.io.WithClose
+
+import java.io.ByteArrayOutputStream
+import java.nio.channels.Channels
+import java.util.Collections
 
 class RecordBatchUnloader(vector: SimpleFeatureVector, ipcOpts: IpcOption) {
 

@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import java.nio.ByteBuffer
-
 import org.apache.avro.generic.{GenericArray, GenericEnumSymbol, GenericFixed, GenericRecord}
 import org.apache.avro.util.Utf8
 import org.locationtech.geomesa.utils.text.BasicParser
 import org.parboiled.errors.ParsingException
 import org.parboiled.scala.parserunners.{BasicParseRunner, ReportingParseRunner}
+
+import java.nio.ByteBuffer
 
 sealed trait AvroPath {
   def eval(record: Any): Option[Any]

@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.jobs.accumulo
 
-import java.io.{BufferedOutputStream, DataInput, DataOutput, PrintStream}
-import java.nio.charset.StandardCharsets
-import java.util.{Base64, Scanner}
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.apache.accumulo.core.data.Key
 import org.apache.hadoop.conf.{Configurable, Configuration}
@@ -21,6 +17,9 @@ import org.apache.hadoop.io.{BinaryComparable, Text, Writable, WritableComparabl
 import org.apache.hadoop.mapreduce.{Job, Partitioner}
 import org.locationtech.geomesa.utils.io.WithClose
 
+import java.io.{BufferedOutputStream, DataInput, DataOutput, PrintStream}
+import java.nio.charset.StandardCharsets
+import java.util.{Base64, Scanner}
 import scala.collection.mutable.ArrayBuffer
 
 package object mapreduce {

@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.stream.datastore
 
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.AtomicLong
-
 import com.google.common.io.Resources
 import org.apache.commons.io.IOUtils
 import org.apache.commons.net.DefaultSocketFactory
@@ -21,7 +18,8 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicLong
 import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
@@ -29,6 +27,7 @@ class StreamDataStoreTest extends Specification {
 
   import org.locationtech.geomesa.filter.ff
 
+  import scala.collection.JavaConverters._
   import scala.concurrent.ExecutionContext.Implicits.global
 
   sequential
@@ -66,7 +65,7 @@ class StreamDataStoreTest extends Specification {
   val sds = DataStoreFinder.getDataStore(Map(
       StreamDataStoreParams.StreamDatastoreConfig.key -> sourceConf,
       StreamDataStoreParams.CacheTimeout.key -> Integer.valueOf(2)
-    )).asInstanceOf[StreamDataStore]
+    ).asJava).asInstanceOf[StreamDataStore]
 
   "StreamDataStore" should {
     "be built from a conf string" >> {

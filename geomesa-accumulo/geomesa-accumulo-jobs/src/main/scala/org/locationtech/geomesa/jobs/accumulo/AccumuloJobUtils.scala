@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.jobs.accumulo
 
-import java.io.File
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.conf.Configuration
@@ -24,6 +22,7 @@ import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.filter.Filter
 
+import java.io.File
 import scala.io.Source
 import scala.util.Try
 

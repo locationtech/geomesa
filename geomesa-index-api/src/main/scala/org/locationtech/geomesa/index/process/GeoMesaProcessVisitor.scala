@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.index.process
 
-import java.util.Collections
-
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.feature.visitor.{FeatureAttributeVisitor, FeatureCalc}
 import org.opengis.filter.expression.Expression
+
+import java.util.Collections
 
 /**
   * Common trait for visitors, allows for feature collections to execute processing in a standardized way

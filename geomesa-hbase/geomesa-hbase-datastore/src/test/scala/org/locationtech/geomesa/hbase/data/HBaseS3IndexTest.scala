@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -26,6 +24,8 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class HBaseS3IndexTest extends Specification with LazyLogging {

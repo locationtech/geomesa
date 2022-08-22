@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.redis.data.index
 
-import java.io.{Closeable, Flushable}
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
-
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.data.Transaction
 import org.locationtech.geomesa.filter.FilterHelper
@@ -25,6 +21,9 @@ import org.opengis.filter.identity.Identifier
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.params.ZAddParams
 
+import java.io.{Closeable, Flushable}
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
@@ -46,7 +45,7 @@ class RedisAgeOff(ds: RedisDataStore) extends Closeable {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   private val executor = RedisSystemProperties.AgeOffInterval.toDuration.collect {
-    case i if i.isFinite() => new AgeOffExecutor(ds, i)
+    case i if i.isFinite => new AgeOffExecutor(ds, i)
   }
 
   /**
@@ -153,7 +152,7 @@ object RedisAgeOff extends StrictLogging {
         try {
           WithClose(connection.getResource) { jedis =>
             if (deletes.nonEmpty) {
-              jedis.zrem(table, deletes: _*)
+              jedis.zrem(table, deletes.toSeq: _*)
             }
             if (!writes.isEmpty) {
               jedis.zadd(table, writes)

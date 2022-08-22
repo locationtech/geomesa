@@ -10,8 +10,8 @@ package org.locationtech.geomesa.index.stats
 
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore

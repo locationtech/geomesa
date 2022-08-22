@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.utils.text
 
-import java.time.format.DateTimeFormatter
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.time.format.DateTimeFormatter
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class StringSerializationTest extends Specification {

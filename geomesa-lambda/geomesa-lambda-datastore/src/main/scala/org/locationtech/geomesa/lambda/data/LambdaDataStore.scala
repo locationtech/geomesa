@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.lambda.data
 
-import java.time.Clock
-import java.util.{Collections, Properties}
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
@@ -32,6 +29,8 @@ import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.time.Clock
+import java.util.{Collections, Properties}
 import scala.concurrent.duration.Duration
 
 class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit clock: Clock = Clock.systemUTC())

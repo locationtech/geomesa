@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.hbase.filters
 
 import org.apache.hadoop.hbase.exceptions.DeserializationException
-import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.hbase.rpc.filter.CqlTransformFilter
-import org.locationtech.geomesa.hbase.rpc.filter.CqlTransformFilter.{DelegateFilter, FilterDelegate, FilterTransformDelegate, NullFeatureIndex, TransformDelegate, deserialize}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.hadoop.hbase.util.Bytes
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.hbase.rpc.filter.CqlTransformFilter
+import org.locationtech.geomesa.hbase.rpc.filter.CqlTransformFilter._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 @deprecated("used for filter compatibility mode 2.3")
 class JSimpleFeatureFilter(delegate: DelegateFilter) extends CqlTransformFilter(delegate) {

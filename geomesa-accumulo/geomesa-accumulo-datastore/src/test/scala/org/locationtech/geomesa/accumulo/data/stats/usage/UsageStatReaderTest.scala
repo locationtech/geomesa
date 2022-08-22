@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data.stats.usage
 
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-
 import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
@@ -17,6 +15,8 @@ import org.locationtech.geomesa.accumulo.audit._
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.specs2.runner.JUnitRunner
+
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
 
 @RunWith(classOf[JUnitRunner])
 class UsageStatReaderTest extends TestWithDataStore {

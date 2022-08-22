@@ -122,12 +122,12 @@ object L {
     def style: StyleOption
 
     def simpleFeatureToGeoJSON(sf: SimpleFeature) = {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       s"""
          |{
          |    "type": "Feature",
          |    "properties": {
-         |        ${sf.getType.getAttributeDescriptors.zip(sf.getAttributes)
+         |        ${sf.getType.getAttributeDescriptors.asScala.zip(sf.getAttributes.asScala)
                       .filter{case(a,b) => b != null && !b.isInstanceOf[Geometry]}
                       .map { case (d, a) => propToJson(d, a) }.mkString(sep =",\n")
                    }

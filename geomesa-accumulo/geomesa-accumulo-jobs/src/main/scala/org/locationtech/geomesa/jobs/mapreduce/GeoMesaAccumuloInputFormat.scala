@@ -86,7 +86,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
           splits.grouped(splitSize).map { group =>
             val split = new GroupedSplit()
             split.location = location
-            split.splits.append(group.asInstanceOf[scala.collection.Seq[RangeInputSplit]]: _*)
+            split.splits.append(group.map(f => f.asInstanceOf[RangeInputSplit]).toSeq: _*)
             split.asInstanceOf[InputSplit]
           }
         }.toList.asJava

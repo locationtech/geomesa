@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.jobs
 
-import java.io.File
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+
+import java.io.File
 
 object JobUtils extends LazyLogging {
 

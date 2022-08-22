@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.features.avro.serde
 
-import java.io.{File, FileInputStream}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroDataFileReader
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{File, FileInputStream}
 
 @RunWith(classOf[JUnitRunner])
 class Version4CompatTest extends Specification with LazyLogging {

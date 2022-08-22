@@ -75,9 +75,9 @@ object GenerateFeatureWrappers {
     sb.append(
       s"""
         |$tab  def debug(): String = {
-        |$tab    import scala.collection.JavaConversions._
+        |$tab    import scala.collection.JavaConverters._
         |$tab    val sb = new StringBuilder(s"$${sf.getType.getTypeName}:$${sf.getID}")
-        |$tab    sf.getProperties.foreach(p => sb.append(s"|$${p.getName.getLocalPart}=$${p.getValue}"))
+        |$tab    sf.getProperties.asScala.foreach(p => sb.append(s"|$${p.getName.getLocalPart}=$${p.getValue}"))
         |$tab    sb.toString()
         |$tab  }
         |""".stripMargin)

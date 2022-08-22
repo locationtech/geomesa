@@ -9,9 +9,6 @@
 
 package org.locationtech.geomesa.parquet.io
 
-import java.nio.ByteBuffer
-import java.util.{Date, UUID}
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.parquet.hadoop.api.ReadSupport.ReadContext
 import org.apache.parquet.hadoop.api.{InitContext, ReadSupport}
@@ -26,6 +23,8 @@ import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Coordinate
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.nio.ByteBuffer
+import java.util.{Date, UUID}
 import scala.collection.mutable.ArrayBuffer
 
 class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {

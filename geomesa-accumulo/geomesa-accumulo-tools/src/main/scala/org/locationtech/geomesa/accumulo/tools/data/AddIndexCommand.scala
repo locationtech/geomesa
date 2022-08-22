@@ -71,7 +71,7 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends A
 
   def addIndex(ds: AccumuloDataStore): Unit  = {
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     val sft = Option(ds.getSchema(params.featureName)).map(SimpleFeatureTypes.mutable).orNull
     require(sft != null, s"Schema '${params.featureName}' does not exist in the specified data store")
@@ -82,7 +82,7 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends A
       val copy = builder.buildFeatureType()
       copy.getUserData.putAll(sft.getUserData)
       copy.getUserData.remove(InternalConfigs.IndexVersions)
-      copy.getUserData.put(Configs.EnabledIndices, params.indexNames.mkString(","))
+      copy.getUserData.put(Configs.EnabledIndices, params.indexNames.asScala.mkString(","))
       GeoMesaFeatureIndexFactory.indices(copy)
     }
 
@@ -140,7 +140,7 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends A
       args.inTableName  = params.catalog
       args.inFeature    = params.featureName
       args.inCql        = Option(params.cqlFilter).map(ECQL.toCQL).orNull
-      args.indexNames.addAll(indices.map(GeoMesaFeatureIndex.identifier))
+      args.indexNames.addAll(indices.map(GeoMesaFeatureIndex.identifier).asJava)
 
       val libjars = Some(AccumuloJobUtils.defaultLibJars, AccumuloJobUtils.defaultSearchPath)
       val result = try { ToolRunner.run(new WriteIndexJob(libjars), args.unparse()) } catch {

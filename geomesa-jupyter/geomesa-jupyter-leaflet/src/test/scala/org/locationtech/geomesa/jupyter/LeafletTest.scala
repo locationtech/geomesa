@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.jupyter
 
-import org.locationtech.jts.geom.Coordinate
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
+import org.locationtech.jts.geom.Coordinate
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

@@ -9,11 +9,11 @@
 
 package org.locationtech.geomesa.process
 
-import java.util.ServiceLoader
-
 import org.geotools.process.factory.AnnotatedBeanProcessFactory
 import org.geotools.text.Text
 import org.locationtech.geomesa.process.GeoMesaProcessFactory.{Name, NameSpace, processes}
+
+import java.util.ServiceLoader
 
 class GeoMesaProcessFactory extends AnnotatedBeanProcessFactory(Name, NameSpace, processes: _*)
 
@@ -23,7 +23,7 @@ object GeoMesaProcessFactory {
   val Name = Text.text("GeoMesa Process Factory")
 
   def processes: Array[Class[_]] = {
-    import scala.collection.JavaConversions._
-    ServiceLoader.load(classOf[GeoMesaProcess]).iterator().map(_.getClass).toArray
+    import scala.collection.JavaConverters._
+    ServiceLoader.load(classOf[GeoMesaProcess]).iterator().asScala.map(_.getClass).toArray
   }
 }

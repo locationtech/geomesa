@@ -16,7 +16,7 @@ import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataS
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val serializer: MetadataSerializer[T])
     extends { private val table = connection.getTable(catalog) } with KeyValueStoreMetadata[T] {
@@ -38,11 +38,11 @@ class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val ser
     new HBaseBackedMetadata(connection, TableName.valueOf(s"${catalog}_${timestamp}_bak"), serializer)
 
   override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit =
-    table.put(rows.map { case (r, v) => new Put(r).addColumn(ColumnFamily, ColumnQualifier, v) }.toList)
+    table.put(rows.map { case (r, v) => new Put(r).addColumn(ColumnFamily, ColumnQualifier, v) }.toList.asJava)
 
   override protected def delete(rows: Seq[Array[Byte]]): Unit =
     // note: list passed in must be mutable
-    table.delete(rows.map(r => new Delete(r)).toBuffer)
+    table.delete(rows.map(r => new Delete(r)).toBuffer.asJava)
 
   override protected def scanValue(row: Array[Byte]): Option[Array[Byte]] = {
     val result = table.get(new Get(row).addColumn(ColumnFamily, ColumnQualifier))
@@ -53,7 +53,7 @@ class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val ser
     val scan = new Scan().addColumn(ColumnFamily, ColumnQualifier)
     prefix.foreach(scan.setRowPrefixFilter)
     val scanner = table.getScanner(scan)
-    val results = scanner.iterator.map(s => (s.getRow, s.getValue(ColumnFamily, ColumnQualifier)))
+    val results = scanner.iterator.asScala.map(s => (s.getRow, s.getValue(ColumnFamily, ColumnQualifier)))
     CloseableIterator(results, scanner.close())
   }
 

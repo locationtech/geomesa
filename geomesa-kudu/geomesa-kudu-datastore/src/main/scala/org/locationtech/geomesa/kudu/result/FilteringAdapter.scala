@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.kudu.result
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
 import org.apache.kudu.client.RowResult
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -24,6 +21,9 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.ByteBuffers.ExpandingByteBuffer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
 /**
   * Converts rows to simple features, first filtering by a predicate

@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.memory.cqengine.datastore
 
+import org.geotools.data.DataAccessFactory.Param
+import org.geotools.data.{DataStore, DataStoreFactorySpi}
+
 import java.awt.RenderingHints.Key
 import java.io.Serializable
 import java.util
-
-import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.{DataStore, DataStoreFactorySpi}
 
 class GeoCQEngineDataStoreFactory extends DataStoreFactorySpi {
   override def createDataStore(params: util.Map[String, Serializable]): DataStore =

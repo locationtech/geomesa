@@ -8,21 +8,18 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import java.util.{Date, Locale, UUID}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.SchemaBuilder.{ArrayDefault, FieldTypeBuilder, NullDefault}
 import org.apache.avro.{Schema, SchemaBuilder}
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.locationtech.geomesa.features.serialization.HintKeySerialization
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.JavaConversions._
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+import java.util.{Date, Locale, UUID}
+import scala.collection.JavaConverters._
 
 object AvroSimpleFeatureUtils extends LazyLogging {
 
@@ -66,7 +63,7 @@ object AvroSimpleFeatureUtils extends LazyLogging {
     }
 
     val withFields =
-      sft.getAttributeDescriptors.foldLeft(withFid) { case (assembler, ad) =>
+      sft.getAttributeDescriptors.asScala.foldLeft(withFid) { case (assembler, ad) =>
         addField(assembler, nameEncoder.encode(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
       }
 
@@ -126,7 +123,7 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   def createTypeMap(sft: SimpleFeatureType, nameEncoder: FieldNameEncoder): Map[String, Binding] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-    sft.getAttributeDescriptors.map { ad =>
+    sft.getAttributeDescriptors.asScala.map { ad =>
       val binding = ad.getType.getBinding
       val converter = if (primitiveTypes.contains(binding)) {
         (value: AnyRef) => value
@@ -260,7 +257,7 @@ object AvroSimpleFeatureUtils extends LazyLogging {
     // get the appropriate write method for the list type
     val (bytesPerItem, putMethod): (Int, (ByteBuffer, Any) => Unit) = getWriteMethod(label)
     // calculate the total size needed to encode the list
-    val totalBytes = getTotalBytes(bytesPerItem, size, list.iterator(), binding.getSimpleName)
+    val totalBytes = getTotalBytes(bytesPerItem, size, list.iterator().asScala, binding.getSimpleName)
 
     val labelBytes = label.getBytes(StandardCharsets.UTF_8)
     // 4 bytes for list size + 4 bytes for label bytes size + label bytes + item bytes
@@ -270,7 +267,7 @@ object AvroSimpleFeatureUtils extends LazyLogging {
     // put the type of the list
     AvroSimpleFeatureUtils.putString(bb, label)
     // put each item
-    list.foreach(v => putMethod(bb, v))
+    list.asScala.foreach(v => putMethod(bb, v))
     // flip (reset) the buffer so that it's ready for reading
     bb.flip
     bb
@@ -296,8 +293,8 @@ object AvroSimpleFeatureUtils extends LazyLogging {
     val (bytesPerValueItem, valuePutMethod) = getWriteMethod(valueLabel)
 
     // get the exact size in bytes for keys and values
-    val totalKeyBytes   = getTotalBytes(bytesPerKeyItem, size, map.keysIterator, keyLabel)
-    val totalValueBytes = getTotalBytes(bytesPerValueItem, size, map.valuesIterator, valueLabel)
+    val totalKeyBytes   = getTotalBytes(bytesPerKeyItem, size, map.asScala.keysIterator, keyLabel)
+    val totalValueBytes = getTotalBytes(bytesPerValueItem, size, map.asScala.valuesIterator, valueLabel)
 
     val keyLabelBytes = keyLabel.getBytes(StandardCharsets.UTF_8)
     val valueLabelBytes = valueLabel.getBytes(StandardCharsets.UTF_8)
@@ -310,7 +307,7 @@ object AvroSimpleFeatureUtils extends LazyLogging {
     AvroSimpleFeatureUtils.putString(bb, keyLabel)
     AvroSimpleFeatureUtils.putString(bb, valueLabel)
     // put each key value pair
-    map.foreach { case (k, v) =>
+    map.asScala.foreach { case (k, v) =>
       keyPutMethod(bb, k)
       valuePutMethod(bb, v)
     }

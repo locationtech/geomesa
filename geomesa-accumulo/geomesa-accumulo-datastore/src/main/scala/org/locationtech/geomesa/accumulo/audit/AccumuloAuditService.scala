@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
-import java.time.ZonedDateTime
-
 import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.security.Authorizations
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit._
 
+import java.time.ZonedDateTime
 import scala.reflect.ClassTag
 
 class AccumuloAuditService(connector: Connector,
@@ -37,7 +36,7 @@ class AccumuloAuditService(connector: Connector,
                                             dates: (ZonedDateTime, ZonedDateTime))
                                            (implicit ct: ClassTag[T]): Iterator[T] = {
     import scala.collection.JavaConverters._
-    val auths = new Authorizations(authProvider.getAuthorizations.asScala: _*)
+    val auths = new Authorizations(authProvider.getAuthorizations.asScala.toSeq: _*)
     val iter = reader.query(typeName, dates, auths)(transform(ct.runtimeClass.asInstanceOf[Class[T]]))
     iter.asInstanceOf[Iterator[T]]
   }

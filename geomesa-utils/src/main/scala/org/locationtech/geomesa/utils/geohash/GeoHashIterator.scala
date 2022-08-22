@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point, PrecisionModel}
 import org.locationtech.geomesa.utils.geohash.GeoHashIterator._
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point, PrecisionModel}
 
 import scala.collection.mutable
 

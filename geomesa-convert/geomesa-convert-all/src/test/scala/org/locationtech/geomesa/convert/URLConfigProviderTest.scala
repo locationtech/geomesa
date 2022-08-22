@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.convert
 
 import com.typesafe.config.ConfigFactory
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader.URLSftProvider
@@ -17,6 +16,8 @@ import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.{Request, Server}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 @RunWith(classOf[JUnitRunner])
 class URLConfigProviderTest extends Specification {

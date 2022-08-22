@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.redis.data
 
-import java.nio.charset.StandardCharsets
-import java.util.Collections
-
 import org.geotools.data.{DataStoreFinder, Query}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.index.z3.Z3Index
@@ -22,6 +19,9 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import redis.clients.jedis.{Jedis, JedisPool}
+
+import java.nio.charset.StandardCharsets
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class RedisDataStoreTest extends Specification with Mockito {

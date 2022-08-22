@@ -319,7 +319,7 @@ package object dialect {
 
       val indices = sft.getAttributeDescriptors.asScala.collect { case d if indexed(d) => ColumnName(d) }
       val all = sft.getAttributeDescriptors.asScala.map(ColumnName.apply)
-      Columns(dtg, geom, geoms, indices, all)
+      Columns(dtg, geom, geoms.toSeq, indices.toSeq, all.toSeq)
     }
   }
 

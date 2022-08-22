@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.index.view
 
-import java.awt.RenderingHints.Key
-import java.util.Collections
-import java.util.concurrent.atomic.AtomicBoolean
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
@@ -25,6 +21,10 @@ import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortBy
+
+import java.awt.RenderingHints.Key
+import java.util.Collections
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
   * Feature source for merged data store view

@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.metrics.ganglia
 
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-
 import com.codahale.metrics.ganglia.GangliaReporter
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter}
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
@@ -18,6 +15,9 @@ import info.ganglia.gmetric4j.gmetric.GMetric
 import info.ganglia.gmetric4j.gmetric.GMetric.UDPAddressingMode
 import org.locationtech.geomesa.metrics.core.ReporterFactory
 import pureconfig.ConfigReader
+
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class GangliaReporterFactory extends ReporterFactory {
 

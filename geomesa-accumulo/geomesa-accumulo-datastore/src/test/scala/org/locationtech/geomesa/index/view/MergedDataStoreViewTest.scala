@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.index.view
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.nio.file.{Files, Path}
-import java.util.Date
-
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.feature.NameImpl
@@ -36,6 +32,10 @@ import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
 import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.nio.file.{Files, Path}
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class MergedDataStoreViewTest extends TestWithFeatureType {

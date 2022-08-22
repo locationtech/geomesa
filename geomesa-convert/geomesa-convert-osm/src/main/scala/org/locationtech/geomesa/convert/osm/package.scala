@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.convert
 
-import java.io.InputStream
-import java.util.{Date, Locale}
-
 import de.topobyte.osm4j.core.model.iface.{EntityContainer, OsmEntity}
 import de.topobyte.osm4j.core.model.util.OsmModelUtil
 import de.topobyte.osm4j.pbf.seq.PbfIterator
@@ -24,6 +21,8 @@ import org.locationtech.jts.geom.Geometry
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
+import java.io.InputStream
+import java.util.{Date, Locale}
 import scala.util.control.NonFatal
 
 package object osm {

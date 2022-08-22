@@ -9,10 +9,10 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import org.locationtech.jts.geom._
-import org.locationtech.jts.util.GeometricShapeFactory
 import org.apache.spark.sql.SQLContext
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.locationtech.jts.geom._
+import org.locationtech.jts.util.GeometricShapeFactory
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext
 import org.locationtech.spatial4j.distance.DistanceUtils
 import org.locationtech.spatial4j.shape.Circle

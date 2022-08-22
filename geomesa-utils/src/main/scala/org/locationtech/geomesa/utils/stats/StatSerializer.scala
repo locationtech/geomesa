@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
-import java.util.Date
-
 import com.clearspring.analytics.stream.cardinality.RegisterSet
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.ejml.data.DMatrixRMaj
@@ -24,6 +21,8 @@ import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
+import java.util.Date
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
@@ -258,9 +257,9 @@ object StatSerializer {
         stats.append(read(input, sft, immutable))
       }
       if (immutable) {
-        new SeqStat(sft, stats) with ImmutableStat
+        new SeqStat(sft, stats.toSeq) with ImmutableStat
       } else {
-        new SeqStat(sft, stats)
+        new SeqStat(sft, stats.toSeq)
       }
     }
 
@@ -388,11 +387,11 @@ object StatSerializer {
         val counters = (0 until size).map(_ => (read(), input.readLong(true)))
         StreamSummary[Any](TopK.StreamCapacity, counters)
       } else {
-        import scala.collection.JavaConversions._
+        import scala.collection.JavaConverters._
         val summaryBytes = input.readBytes(input.readInt(true))
         val clearspring = new com.clearspring.analytics.stream.StreamSummary[Any](summaryBytes)
         val geomesa = StreamSummary[Any](TopK.StreamCapacity)
-        clearspring.topK(clearspring.size()).foreach(c => geomesa.offer(c.getItem, c.getCount))
+        clearspring.topK(clearspring.size()).asScala.foreach(c => geomesa.offer(c.getItem, c.getCount))
         geomesa
       }
 

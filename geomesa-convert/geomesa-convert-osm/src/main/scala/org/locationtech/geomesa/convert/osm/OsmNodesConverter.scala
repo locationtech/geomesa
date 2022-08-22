@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.osm
 
-import java.io.InputStream
-
 import com.typesafe.config.Config
 import de.topobyte.osm4j.core.model.iface._
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -22,6 +20,8 @@ import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.jts.geom.Coordinate
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.InputStream
 
 class OsmNodesConverter(sft: SimpleFeatureType, config: OsmNodesConfig, fields: Seq[OsmField], options: BasicOptions)
     extends AbstractConverter[OsmNode, OsmNodesConfig, OsmField, BasicOptions](sft, config, fields, options) {

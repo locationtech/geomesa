@@ -8,13 +8,11 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import java.{lang => jl}
-
-import org.locationtech.jts.geom._
 import org.apache.spark.sql.SQLContext
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.locationtech.jts.geom._
 
-import scala.util.Try
+import java.{lang => jl}
 
 object GeometricAccessorFunctions {
   val ST_Boundary: Geometry => Geometry = nullableUDF(geom => geom.getBoundary)

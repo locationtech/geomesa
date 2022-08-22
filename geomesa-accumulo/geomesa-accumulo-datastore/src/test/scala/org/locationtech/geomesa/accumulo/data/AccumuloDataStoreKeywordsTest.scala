@@ -13,9 +13,9 @@ import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
-import scala.collection.JavaConversions._
-
 class AccumuloDataStoreKeywordsTest extends TestWithMultipleSfts {
+
+  import scala.collection.JavaConverters._
 
   "AccumuloDataStore" should {
 
@@ -27,7 +27,7 @@ class AccumuloDataStoreKeywordsTest extends TestWithMultipleSfts {
       val spec = s"name:String;$Keywords=${keywords.mkString(KeywordsDelimiter)}"
       val sftWithKeywords = createNewSchema(spec)
 
-      ds.getFeatureSource(sftWithKeywords.getTypeName).getInfo.getKeywords.toSeq must containAllOf(keywords)
+      ds.getFeatureSource(sftWithKeywords.getTypeName).getInfo.getKeywords.asScala must containAllOf(keywords)
     }
 
     "create a schema w/ keyword array" in {
@@ -50,7 +50,7 @@ class AccumuloDataStoreKeywordsTest extends TestWithMultipleSfts {
       val sftWithKeywords = SimpleFeatureTypes.createType(regular)
       ds.createSchema(sftWithKeywords)
       val fs = ds.getFeatureSource(sftWithKeywords.getTypeName)
-      fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
+      fs.getInfo.getKeywords.asScala must containAllOf(keywords)
     }
 
     "create a schema w/ keyword string" in {
@@ -73,7 +73,7 @@ class AccumuloDataStoreKeywordsTest extends TestWithMultipleSfts {
       val sftWithKeywords = SimpleFeatureTypes.createType(regular)
       ds.createSchema(sftWithKeywords)
       val fs = ds.getFeatureSource(sftWithKeywords.getTypeName)
-      fs.getInfo.getKeywords.toSeq must containAllOf(keywords)
+      fs.getInfo.getKeywords.asScala must containAllOf(keywords)
     }
 
     "remove keywords from schema" in {
@@ -88,7 +88,7 @@ class AccumuloDataStoreKeywordsTest extends TestWithMultipleSfts {
       sft.removeKeywords(keywordsToRemove)
       ds.updateSchema(sft.getTypeName, sft)
 
-      val keywords = ds.getFeatureSource(sft.getTypeName).getInfo.getKeywords.toSeq
+      val keywords = ds.getFeatureSource(sft.getTypeName).getInfo.getKeywords.asScala
       keywords must contain(initialKeywords -- keywordsToRemove)
       keywords must not(contain(keywordsToRemove))
     }
@@ -106,7 +106,7 @@ class AccumuloDataStoreKeywordsTest extends TestWithMultipleSfts {
       ds.updateSchema(sft.getTypeName, sft)
 
       val fs = ds.getFeatureSource(sft.getTypeName)
-      fs.getInfo.getKeywords.toSeq must containAllOf((keywordsToAdd + originalKeyword).toSeq)
+      fs.getInfo.getKeywords.asScala must containAllOf((keywordsToAdd + originalKeyword).toSeq)
     }
 
     "not allow updating non-keyword user data" in {

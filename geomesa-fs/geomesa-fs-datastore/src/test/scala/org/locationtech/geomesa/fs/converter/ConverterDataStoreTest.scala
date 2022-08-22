@@ -16,13 +16,14 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
 import scala.collection.mutable
 /**
   * Created by hulbert on 6/21/17.
   */
 @RunWith(classOf[JUnitRunner])
 class ConverterDataStoreTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -61,7 +62,7 @@ class ConverterDataStoreTest extends Specification {
         "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding"   -> "converter",
         "fs.config.xml" -> fsConfig(sftByName("fs-test"), "datastore1")
-      ))
+      ).asJava)
       ds must not(beNull)
 
       val types = ds.getTypeNames
@@ -82,7 +83,7 @@ class ConverterDataStoreTest extends Specification {
         "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding"   -> "converter",
         "fs.config.xml" -> fsConfig(sftByName("fs-test"), "datastore2")
-      ))
+      ).asJava)
       ds must not(beNull)
 
       val types = ds.getTypeNames
@@ -136,7 +137,7 @@ class ConverterDataStoreTest extends Specification {
         "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding"   -> "converter",
         "fs.config.xml" -> fsConfig(sftByConf(conf), "datastore1")
-      ))
+      ).asJava)
 
       ds must not(beNull)
 

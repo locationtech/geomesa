@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.features.avro.serde
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import java.util.Date
-
 import org.apache.avro.io.Decoder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.text.WKBUtils
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+import java.util.Date
 
 /**
  * Trait that encapsulates the methods needed to deserialize

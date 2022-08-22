@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert2
 
-import java.io.{Closeable, InputStream}
-
 import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
@@ -20,6 +18,8 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.{Closeable, InputStream}
 
 /**
  * Converts input streams into simple features. SimpleFeatureConverters should be thread-safe. However,

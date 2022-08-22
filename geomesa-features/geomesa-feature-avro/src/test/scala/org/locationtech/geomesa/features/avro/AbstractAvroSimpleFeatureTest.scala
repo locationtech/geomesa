@@ -8,23 +8,21 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.io.{File, FileInputStream}
-import java.nio.charset.StandardCharsets
-import java.text.SimpleDateFormat
-import java.util.UUID
-
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
-import org.locationtech.jts.geom.{Point, Polygon}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{Point, Polygon}
 import org.opengis.feature.simple.SimpleFeature
 
+import java.io.{File, FileInputStream}
+import java.nio.charset.StandardCharsets
+import java.text.SimpleDateFormat
+import java.util.UUID
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.Random
 

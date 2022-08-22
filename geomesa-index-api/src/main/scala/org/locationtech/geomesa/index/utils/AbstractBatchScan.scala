@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.index.utils
 
-import java.util.concurrent._
-
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
+import java.util.concurrent._
 import scala.util.control.NonFatal
 
 /**

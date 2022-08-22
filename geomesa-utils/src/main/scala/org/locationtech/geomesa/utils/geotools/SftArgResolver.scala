@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.io.{File, InputStreamReader, Reader, StringReader}
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
@@ -18,6 +15,8 @@ import org.locationtech.geomesa.utils.conf.ArgResolver
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.{File, InputStreamReader, Reader, StringReader}
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 /**

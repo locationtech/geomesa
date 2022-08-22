@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.view
 
-import java.awt.RenderingHints.Key
-import java.util.Collections
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
@@ -21,6 +18,9 @@ import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCa
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import java.awt.RenderingHints.Key
+import java.util.Collections
 
 /**
   * Feature source that routes queries to the appropriate store
