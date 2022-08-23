@@ -156,7 +156,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              ' SELECT * FROM ' || quote_ident(write_ahead.name) ||
        |              '   WHERE $dtgCol >= ' || quote_literal(partition_start) ||
        |              '     AND $dtgCol < ' || quote_literal(partition_end) ||
-       |              '   ORDER BY $geomCol' ||
+       |              '   ORDER BY _st_sortablehash($geomCol)' ||
        |              '   ON CONFLICT DO NOTHING';
        |            RAISE INFO '% Done copying rows to partition %', timeofday()::timestamp, partition_name;
        |

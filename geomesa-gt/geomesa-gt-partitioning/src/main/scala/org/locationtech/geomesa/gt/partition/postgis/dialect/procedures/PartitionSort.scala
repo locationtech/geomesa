@@ -81,7 +81,7 @@ object PartitionSort extends SqlProcedure {
        |
        |        EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
        |          ' (SELECT * FROM ${info.schema.quoted}.' || quote_ident(partition_name) ||
-       |          ' ORDER BY ${info.cols.geom.quoted})';
+       |          ' ORDER BY _st_sortablehash(${info.cols.geom.quoted}))';
        |        -- create indices before attaching to minimize time to attach, copied from PartitionTables code
        |        EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(partition_name || '_${info.cols.geom.raw}_tmp_sort') ||
        |          ' ON ${info.schema.quoted}.' || quote_ident(partition_name || '_tmp_sort') ||
