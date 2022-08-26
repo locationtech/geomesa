@@ -43,6 +43,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |      partition_name text;                         -- partition table name
        |      partition_parent text;                       -- partition parent table name
        |      partition_tablespace text;                   -- partition tablespace
+       |      index_tablespace text;                       -- index tablespace
        |      pexists boolean;                             -- table exists check
        |      unsorted_count bigint;
        |    BEGIN
@@ -98,8 +99,10 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              SELECT table_space INTO partition_tablespace FROM $tablespaceTable
        |                WHERE type_name = ${literal(info.typeName)} AND table_type = ${PartitionedTableSuffix.quoted};
        |              IF partition_tablespace IS NULL THEN
+       |                index_tablespace := '';
        |                partition_tablespace := '${mainPartitions.storage.opts}';
        |              ELSE
+       |                index_tablespace := ' USING INDEX TABLESPACE '|| quote_ident(partition_tablespace);
        |                partition_tablespace := '${mainPartitions.storage.opts} TABLESPACE ' ||
        |                  quote_ident(partition_tablespace);
        |              END IF;
@@ -119,8 +122,10 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              SELECT table_space INTO partition_tablespace FROM $tablespaceTable
        |                WHERE type_name = ${literal(info.typeName)} AND table_type = ${PartitionedWriteAheadTableSuffix.quoted};
        |              IF partition_tablespace IS NULL THEN
+       |                index_tablespace := '';
        |                partition_tablespace := '${writeAheadPartitions.storage.opts}';
        |              ELSE
+       |                index_tablespace := ' USING INDEX TABLESPACE '|| quote_ident(partition_tablespace);
        |                partition_tablespace := '${writeAheadPartitions.storage.opts} TABLESPACE ' ||
        |                  quote_ident(partition_tablespace);
        |              END IF;
@@ -137,32 +142,40 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |            -- then we attach it after inserting the rows
        |            -- since this is all within a transaction it should all happen "at once"
        |            -- see https://www.postgresql.org/docs/13/ddl-partitioning.html#DDL-PARTITIONING-DECLARATIVE-MAINTENANCE
-       |            IF NOT pexists THEN
-       |              RAISE INFO '% Creating partition % (unattached)', timeofday()::timestamp, partition_name;
+       |
+       |            IF pexists THEN
+       |              -- copy rows from write ahead table to partition table
+       |              RAISE INFO '% Copying rows to partition %', timeofday()::timestamp, partition_name;
+       |              EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |                ' SELECT * FROM ' || quote_ident(write_ahead.name) ||
+       |                '   WHERE $dtgCol >= ' || quote_literal(partition_start) ||
+       |                '     AND $dtgCol < ' || quote_literal(partition_end) ||
+       |                '   ORDER BY _st_sortablehash($geomCol)' ||
+       |                '   ON CONFLICT DO NOTHING';
+       |              GET DIAGNOSTICS unsorted_count := ROW_COUNT;
+       |            ELSE
+       |              RAISE INFO '% Creating partition with insert % (unattached)', timeofday()::timestamp, partition_name;
        |              -- upper bounds are exclusive
+       |              -- use "create table as" (vs create then insert) for performance benefits related to WAL skipping
        |              EXECUTE 'CREATE TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
-       |                ' (LIKE ${info.schema.quoted}.' || quote_ident(partition_parent) ||
-       |                ' INCLUDING DEFAULTS INCLUDING CONSTRAINTS)' || partition_tablespace;
+       |                partition_tablespace || ' AS SELECT * FROM ' || quote_ident(write_ahead.name) ||
+       |                '   WHERE $dtgCol >= ' || quote_literal(partition_start) ||
+       |                '     AND $dtgCol < ' || quote_literal(partition_end) ||
+       |                '   ORDER BY _st_sortablehash($geomCol)';
+       |              GET DIAGNOSTICS unsorted_count := ROW_COUNT;
+       |              EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |                ' ADD CONSTRAINT ' || quote_ident(partition_name || '_pkey') ||
+       |                ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})' || index_tablespace;
        |              -- creating a constraint allows it to be attached to the parent without any additional checks
        |              EXECUTE 'ALTER TABLE  ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |                ' ADD CONSTRAINT ' || quote_ident(partition_name || '_constraint') ||
        |                ' CHECK ( $dtgCol >= ' || quote_literal(partition_start) ||
        |                ' AND $dtgCol < ' || quote_literal(partition_end) || ' );';
        |            END IF;
-       |
-       |            -- copy rows from write ahead table to partition table
-       |            RAISE INFO '% Copying rows to partition %', timeofday()::timestamp, partition_name;
-       |            EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name) ||
-       |              ' SELECT * FROM ' || quote_ident(write_ahead.name) ||
-       |              '   WHERE $dtgCol >= ' || quote_literal(partition_start) ||
-       |              '     AND $dtgCol < ' || quote_literal(partition_end) ||
-       |              '   ORDER BY _st_sortablehash($geomCol)' ||
-       |              '   ON CONFLICT DO NOTHING';
-       |            RAISE INFO '% Done copying rows to partition %', timeofday()::timestamp, partition_name;
+       |            RAISE INFO '% Done writing % rows to partition %', timeofday()::timestamp, unsorted_count, partition_name;
        |
        |            IF partition_parent = ${spillPartitions.name.asLiteral} THEN
        |              -- store record of unsorted row counts which could negatively impact BRIN index scans
-       |              GET DIAGNOSTICS unsorted_count := ROW_COUNT;
        |              INSERT INTO ${info.tables.sortQueue.name.qualified}(partition_name, unsorted_count, enqueued)
        |                VALUES (partition_name, unsorted_count, now());
        |              RAISE NOTICE 'Inserting % rows into spill partition %, queries may be impacted',

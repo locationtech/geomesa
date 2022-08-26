@@ -39,6 +39,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |      partition_name text;                         -- partition table name
        |      partition_parent text;                       -- partition table to attach to
        |      partition_tablespace text;                   -- partition tablespace
+       |      index_tablespace text;                       -- index tablespace
        |      write_ahead_partitions text[];               -- names of the partitions we're migrating
        |      write_ahead_partition text;                  -- name of current partition
        |      pexists boolean;                             -- table exists check
@@ -70,27 +71,6 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |            INTO pexists;
        |        END IF;
        |
-       |        -- create the partition table if it doesn't exist
-       |        IF NOT pexists THEN
-       |          SELECT table_space INTO partition_tablespace FROM $tablespacesTable
-       |            WHERE type_name = ${literal(info.typeName)} AND table_type = ${PartitionedTableSuffix.quoted};
-       |          IF partition_tablespace IS NULL THEN
-       |            partition_tablespace := '';
-       |          ELSE
-       |            partition_tablespace := ' TABLESPACE ' || quote_ident(partition_tablespace);
-       |          END IF;
-       |          -- upper bounds are exclusive
-       |          -- this won't have any indices until we attach it to the parent partition table
-       |          EXECUTE 'CREATE TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
-       |            ' (LIKE ${info.schema.quoted}.' || quote_ident(partition_parent) ||
-       |            ' INCLUDING DEFAULTS INCLUDING CONSTRAINTS)' || partition_tablespace;
-       |          -- creating a constraint allows it to be attached to the parent without any additional checks
-       |          EXECUTE 'ALTER TABLE  ${info.schema.quoted}.' || quote_ident(partition_name) ||
-       |            ' ADD CONSTRAINT ' || quote_ident(partition_name || '_constraint') ||
-       |            ' CHECK ( $dtgCol >= ' || quote_literal(partition_start) ||
-       |            ' AND $dtgCol < ' || quote_literal(partition_end) || ' );';
-       |        END IF;
-       |
        |        -- find the write ahead partitions we're copying from
        |        -- order the results to ensure we get locks in a consistent order to avoid deadlocks
        |        write_ahead_partitions := Array(
@@ -117,14 +97,48 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |          ' AS SELECT * FROM ' || array_to_string(write_ahead_partitions, ' UNION ALL SELECT * FROM ');
        |
        |        -- copy rows from write ahead partitions to main partition table
-       |        EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name) ||
-       |          ' SELECT * FROM ' || quote_ident(partition_name || '_tmp_migrate') ||
-       |          '   ORDER BY _st_sortablehash($geomCol)' ||
-       |          '   ON CONFLICT DO NOTHING';
+       |        IF pexists THEN
+       |          RAISE INFO '% Copying rows to partition %', timeofday()::timestamp, partition_name;
+       |          EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |            ' SELECT * FROM ' || quote_ident(partition_name || '_tmp_migrate') ||
+       |            '   ORDER BY _st_sortablehash($geomCol)' ||
+       |            '   ON CONFLICT DO NOTHING';
+       |          GET DIAGNOSTICS unsorted_count := ROW_COUNT;
+       |        ELSE
+       |          RAISE INFO '% Creating partition with insert % (unattached)', timeofday()::timestamp, partition_name;
+       |          -- create the partition table with a 'create as' for improved performance
+       |          SELECT table_space INTO partition_tablespace FROM $tablespacesTable
+       |            WHERE type_name = ${literal(info.typeName)} AND table_type = ${PartitionedTableSuffix.quoted};
+       |          IF partition_tablespace IS NULL THEN
+       |            index_tablespace := '';
+       |            partition_tablespace := '';
+       |          ELSE
+       |            index_tablespace := ' USING INDEX TABLESPACE '|| quote_ident(partition_tablespace);
+       |            partition_tablespace := ' TABLESPACE ' || quote_ident(partition_tablespace);
+       |          END IF;
+       |          -- upper bounds are exclusive
+       |          -- this won't have any indices until we attach it to the parent partition table
+       |          -- use "create table as" (vs create then insert) for performance benefits related to WAL skipping
+       |          -- we need a "select distinct" to avoid primary key conflicts - this should be fairly cheap since
+       |          --   we're already sorting and there should be few or no conflicts
+       |          EXECUTE 'CREATE TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |            partition_tablespace || ' AS SELECT DISTINCT ON' ||
+       |            ' (_st_sortablehash($geomCol), fid, ${info.cols.dtg.quoted}) * FROM ' ||
+       |            quote_ident(partition_name || '_tmp_migrate') || ' ORDER BY _st_sortablehash($geomCol)';
+       |          GET DIAGNOSTICS unsorted_count := ROW_COUNT;
+       |          EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |            ' ADD CONSTRAINT ' || quote_ident(partition_name || '_pkey') ||
+       |            ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})' || index_tablespace;
+       |          -- creating a constraint allows it to be attached to the parent without any additional checks
+       |          EXECUTE 'ALTER TABLE  ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |            ' ADD CONSTRAINT ' || quote_ident(partition_name || '_constraint') ||
+       |            ' CHECK ( $dtgCol >= ' || quote_literal(partition_start) ||
+       |            ' AND $dtgCol < ' || quote_literal(partition_end) || ' );';
+       |        END IF;
+       |        RAISE INFO '% Done writing % rows to partition %', timeofday()::timestamp, unsorted_count, partition_name;
        |
        |        IF partition_parent = ${spillPartitions.name.asLiteral} THEN
        |          -- store record of unsorted row counts which could negatively impact BRIN index scans
-       |          GET DIAGNOSTICS unsorted_count := ROW_COUNT;
        |          INSERT INTO ${info.tables.sortQueue.name.qualified}(partition_name, unsorted_count, enqueued)
        |            VALUES (partition_name, unsorted_count, now());
        |          RAISE NOTICE 'Inserting % rows into spill partition %, queries may be impacted',
