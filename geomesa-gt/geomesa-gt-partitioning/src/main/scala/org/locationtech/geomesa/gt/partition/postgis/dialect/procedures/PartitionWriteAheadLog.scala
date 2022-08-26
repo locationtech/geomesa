@@ -170,7 +170,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              EXECUTE 'ALTER TABLE  ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |                ' ADD CONSTRAINT ' || quote_ident(partition_name || '_constraint') ||
        |                ' CHECK ( $dtgCol >= ' || quote_literal(partition_start) ||
-       |                ' AND $dtgCol < ' || quote_literal(partition_end) || ' );';
+       |                ' AND $dtgCol < ' || quote_literal(partition_end) || ' )';
        |            END IF;
        |            RAISE INFO '% Done writing % rows to partition %', timeofday()::timestamp, unsorted_count, partition_name;
        |
