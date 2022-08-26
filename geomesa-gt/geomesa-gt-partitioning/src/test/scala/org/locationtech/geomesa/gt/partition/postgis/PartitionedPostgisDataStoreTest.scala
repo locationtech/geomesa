@@ -87,8 +87,13 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
         logger.info(s"Existing type names: ${ds.getTypeNames.mkString(", ")}")
 
         if (methods.create) {
-          ds.createSchema(sft)
-        } else if (methods.upgrade) {
+          if (ds.getTypeNames.contains(sft.getTypeName)) {
+            logger.warn("Schema already exists, skipping create")
+          } else {
+            ds.createSchema(sft)
+          }
+        }
+        if (methods.upgrade) {
           WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
             val dialect = ds.asInstanceOf[JDBCDataStore].dialect match {
               case p: PartitionedPostgisDialect => p
