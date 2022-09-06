@@ -46,7 +46,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfig
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, Transform}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -56,11 +55,11 @@ import java.util.{Collections, Properties, UUID}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
-class KafkaDataStore(
+abstract class KafkaDataStore(
     val config: KafkaDataStoreConfig,
     val metadata: GeoMesaMetadata[String],
     private[kafka] val serialization: GeoMessageSerializerFactory
-  ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
+  ) extends MetadataBackedDataStore(config) with HasGeoMesaStats {
 
   import KafkaDataStore.TopicKey
   import org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG
@@ -106,12 +105,6 @@ class KafkaDataStore(
   })
 
   private val runner = new KafkaQueryRunner(this, cache)
-
-  // migrate old schemas, if any
-  if (!metadata.read("migration", "check").exists(_.toBoolean)) {
-    new MetadataMigration(this, config.catalog, config.zookeepers).run()
-    metadata.insert("migration", "check", "true")
-  }
 
   /**
     * Start consuming from all topics. Consumers are normally only started for a simple feature type
@@ -323,9 +316,6 @@ class KafkaDataStore(
     caches.invalidateAll()
     super.dispose()
   }
-
-  // zookeeper locking methods
-  override protected def zookeepers: String = config.zookeepers
 
   private def getTransactionalProducer(sft: SimpleFeatureType, transaction: Transaction): KafkaFeatureProducer = {
     val useDefaultPartitioning = KafkaDataStore.usesDefaultPartitioning(sft)
@@ -549,7 +539,7 @@ object KafkaDataStore extends LazyLogging {
   case class KafkaDataStoreConfig(
       catalog: String,
       brokers: String,
-      zookeepers: String,
+      zookeepers: Option[String],
       consumers: ConsumerConfig,
       producers: ProducerConfig,
       clearOnStart: Boolean,

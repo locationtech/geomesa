@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.kafka.tools
 
 import com.beust.jcommander.Parameter
-import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
 
 import scala.concurrent.duration.Duration
@@ -23,11 +22,14 @@ trait KafkaDataStoreParams {
   @Parameter(names = Array("-b", "--brokers"), description = "Brokers (host:port, comma separated)", required = true)
   var brokers: String = _
 
-  @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)", required = true)
+  @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)")
   var zookeepers: String = _
 
   @Parameter(names = Array("-p", "--zkpath"), description = "Zookeeper path where feature schemas are saved")
-  var zkPath: String = KafkaDataStoreFactory.DefaultZkPath
+  var zkPath: String = _
+
+  @Parameter(names = Array("-c", "--catalog"), description = "Kafka topic used for storing feature schemas")
+  var catalog: String = _
 
   @Parameter(names = Array("--schema-registry"), description = "URL to a Confluent Schema Registry")
   var schemaRegistryUrl: String = _

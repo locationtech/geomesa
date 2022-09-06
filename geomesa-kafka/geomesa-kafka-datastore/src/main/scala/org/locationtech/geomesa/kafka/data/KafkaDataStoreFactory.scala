@@ -10,11 +10,13 @@ package org.locationtech.geomesa.kafka.data
 
 import com.typesafe.config.{ConfigFactory, ConfigList, ConfigObject, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.lang3.StringUtils
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.index.metadata.MetadataStringSerializer
+import org.locationtech.geomesa.index.utils.LocalLocking
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
@@ -24,7 +26,7 @@ import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
-import org.locationtech.geomesa.utils.zk.ZookeeperMetadata
+import org.locationtech.geomesa.utils.zk.{ZookeeperLocking, ZookeeperMetadata}
 import org.opengis.filter.Filter
 import pureconfig.error.{CannotConvert, ConfigReaderFailures, FailureReason}
 import pureconfig.{ConfigCursor, ConfigReader, Derivation}
@@ -45,8 +47,22 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
 
   override def createDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore = {
     val config = KafkaDataStoreFactory.buildConfig(params)
-    val meta = new ZookeeperMetadata(s"${config.catalog}/$MetadataPath", config.zookeepers, MetadataStringSerializer)
-    val ds = new KafkaDataStore(config, meta, new GeoMessageSerializerFactory())
+    val ds = config.zookeepers match {
+      case None =>
+        val meta = new KafkaMetadata(config, MetadataStringSerializer)
+        new KafkaDataStore(config, meta, new GeoMessageSerializerFactory()) with LocalLocking
+      case Some(zk) =>
+        val meta = new ZookeeperMetadata(s"${config.catalog}/$MetadataPath", zk, MetadataStringSerializer)
+        val ds = new KafkaDataStore(config, meta, new GeoMessageSerializerFactory()) with ZookeeperLocking {
+          override protected def zookeepers: String = zk
+        }
+        // migrate old schemas, if any
+        if (!meta.read("migration", "check").exists(_.toBoolean)) {
+          new MetadataMigration(ds, config.catalog, zk).run()
+          meta.insert("migration", "check", "true")
+        }
+        ds
+    }
     if (!LazyLoad.lookup(params)) {
       ds.startAllConsumers()
     }
@@ -76,6 +92,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   private val LayerViewReader = Derivation.Successful(ConfigReader.fromCursor(readLayerViewConfig))
   private val LayerViewClassTag = ClassTag[LayerViewConfig](classOf[LayerViewConfig])
 
+  val DefaultCatalog: String = "geomesa-catalog"
   val DefaultZkPath: String = "geomesa/ds/kafka"
 
   override val DisplayName = "Kafka (GeoMesa)"
@@ -85,6 +102,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       KafkaDataStoreParams.Brokers,
+      KafkaDataStoreParams.Catalog,
       KafkaDataStoreParams.Zookeepers,
       KafkaDataStoreParams.ZkPath,
       KafkaDataStoreParams.ConsumerCount,
@@ -111,16 +129,15 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
     KafkaDataStoreParams.Brokers.exists(params) &&
-        KafkaDataStoreParams.Zookeepers.exists(params) &&
         !params.containsKey("kafka.schema.registry.url") // defer to confluent data store
   }
 
   def buildConfig(params: java.util.Map[String, Serializable]): KafkaDataStoreConfig = {
     import KafkaDataStoreParams._
 
-    val catalog = createZkNamespace(params)
     val brokers = checkBrokerPorts(Brokers.lookup(params))
-    val zookeepers = Zookeepers.lookup(params)
+    val zookeepers = Zookeepers.lookupOpt(params)
+    val catalog = if (zookeepers.isEmpty) { createCatalogTopic(params) } else { createZkNamespace(params) }
 
     val topics = TopicConfig(TopicPartitions.lookup(params).intValue(), TopicReplication.lookup(params).intValue())
 
@@ -387,12 +404,25 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   }
 
   /**
+   * Gets the catalog parameter - trims, removes leading/trailing "/" if needed
+   *
+   * @param params data store params
+   * @return
+   */
+  private[data] def createCatalogTopic(params: java.util.Map[String, Serializable]): String = {
+    KafkaDataStoreParams.Catalog.lookupOpt(params)
+        .map(p => StringUtils.strip(p, " /").replace("/", "-"))
+        .filterNot(_.isEmpty)
+        .getOrElse(DefaultCatalog)
+  }
+
+  /**
     * Gets up a zk path parameter - trims, removes leading/trailing "/" if needed
     *
     * @param params data store params
     * @return
     */
-  private [data] def createZkNamespace(params: java.util.Map[String, Serializable]): String = {
+  private[data] def createZkNamespace(params: java.util.Map[String, Serializable]): String = {
     KafkaDataStoreParams.ZkPath.lookupOpt(params)
         .map(_.trim)
         .filterNot(_.isEmpty)

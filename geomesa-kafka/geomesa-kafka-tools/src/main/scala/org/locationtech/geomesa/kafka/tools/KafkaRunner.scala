@@ -23,6 +23,7 @@ object KafkaRunner extends Runner {
       new export.KafkaExportCommand,
       new ingest.KafkaIngestCommand,
       new status.KafkaDescribeSchemaCommand,
+      new status.KafkaGetSftConfigCommand,
       new status.KafkaGetTypeNamesCommand
     )
   }
