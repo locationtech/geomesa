@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import java.nio.ByteBuffer
-
 import org.apache.avro.generic.GenericRecord
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{Expression, TransformerFunction, TransformerFunctionFactory}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils
+
+import java.nio.ByteBuffer
 
 class AvroFunctionFactory extends TransformerFunctionFactory {
 

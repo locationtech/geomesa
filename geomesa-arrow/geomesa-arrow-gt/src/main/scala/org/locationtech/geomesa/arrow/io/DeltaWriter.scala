@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.arrow.io
 
-import java.io.{ByteArrayOutputStream, Closeable, OutputStream}
-import java.nio.channels.Channels
-import java.util.concurrent.ThreadLocalRandom
-import java.util.{Collections, PriorityQueue}
-
 import com.google.common.collect.HashBiMap
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.arrow.memory.BufferAllocator
@@ -35,6 +30,10 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.{ByteArrayOutputStream, Closeable, OutputStream}
+import java.nio.channels.Channels
+import java.util.concurrent.ThreadLocalRandom
+import java.util.{Collections, PriorityQueue}
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 import scala.math.Ordering
@@ -321,7 +320,7 @@ object DeltaWriter extends StrictLogging {
               }
             }
           (name, transfer)
-        }
+        }.toSeq
       }
 
       private val threadIterator = threadedBatches.iterator
@@ -511,7 +510,7 @@ object DeltaWriter extends StrictLogging {
               val transfer = fromVector.makeTransferPair(toVector)
               (fromIndex: Int, toIndex: Int) => transfer.copyValueSafe(fromIndex, toIndex)
             }
-          }
+          }.toSeq
           val mapVector = toLoad.underlying
           val dict = dictionaries.get(sortBy)
           val descriptor = sft.getDescriptor(sortBy)

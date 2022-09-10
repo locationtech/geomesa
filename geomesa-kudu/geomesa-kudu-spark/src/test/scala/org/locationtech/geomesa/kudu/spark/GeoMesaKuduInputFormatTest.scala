@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.kudu.spark
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.Query
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.kudu.spark.GeoMesaKuduInputFormat.GeoMesaKuduInputSplit
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
 @RunWith(classOf[JUnitRunner])
 class GeoMesaKuduInputFormatTest extends Specification {

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index
 
-import java.nio.charset.StandardCharsets
-
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.{andOption, filterToString}
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
@@ -17,6 +15,7 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.filter.Filter
 
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 package object api {

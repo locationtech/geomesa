@@ -8,16 +8,16 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import java.{lang => jl}
-
-import org.locationtech.jts.geom.Point
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, TypedColumn, _}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.jts._
 import org.locationtech.geomesa.spark.jts.util.{SQLFunctionHelper, WKTUtils}
+import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.{lang => jl}
 
 @RunWith(classOf[JUnitRunner])
 class SpatialRelationFunctionsTest extends Specification with TestEnvironment {

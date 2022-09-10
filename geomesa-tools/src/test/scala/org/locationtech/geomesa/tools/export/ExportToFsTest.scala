@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.tools.export
 
-import java.io._
-import java.nio.file.Files
-import java.util.concurrent.atomic.AtomicInteger
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.collection.ListFeatureCollection
@@ -32,6 +28,10 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io._
+import java.nio.file.Files
+import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
 class ExportToFsTest extends Specification {

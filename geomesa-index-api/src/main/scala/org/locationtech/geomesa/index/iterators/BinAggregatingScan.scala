@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.iterators
 
-import java.nio.{ByteBuffer, ByteOrder}
-import java.util.Date
-
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -22,6 +19,9 @@ import org.locationtech.geomesa.utils.bin.{BinaryOutputCallback, BinaryOutputEnc
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.nio.{ByteBuffer, ByteOrder}
+import java.util.Date
 
 trait BinAggregatingScan extends AggregatingScan[ResultCallback] {
 

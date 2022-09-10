@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.redis.data.util
 
-import java.util.UUID
-
 import org.locationtech.geomesa.index.DistributedLockTimeout
 import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
 import org.locationtech.geomesa.utils.io.WithClose
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.params.SetParams
+
+import java.util.UUID
 
 /**
   * Implements the basic single-node locking scheme from https://redis.io/topics/distlock

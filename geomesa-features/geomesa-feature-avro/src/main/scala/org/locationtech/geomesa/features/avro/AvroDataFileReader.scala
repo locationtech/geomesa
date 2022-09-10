@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.io.{Closeable, InputStream}
-
 import org.apache.avro.file.DataFileStream
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.{Closeable, InputStream}
 
 class AvroDataFileReader(is: InputStream) extends Iterator[SimpleFeature] with Closeable {
 

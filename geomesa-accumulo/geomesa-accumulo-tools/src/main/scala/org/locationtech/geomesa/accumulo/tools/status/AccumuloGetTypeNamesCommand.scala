@@ -10,8 +10,8 @@ package org.locationtech.geomesa.accumulo.tools.status
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.tools.status.AccumuloGetTypeNamesCommand.GetTypeNamesParams
+import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.status.GetTypeNamesCommand
 
 class AccumuloGetTypeNamesCommand extends GetTypeNamesCommand[AccumuloDataStore] with AccumuloDataStoreCommand {

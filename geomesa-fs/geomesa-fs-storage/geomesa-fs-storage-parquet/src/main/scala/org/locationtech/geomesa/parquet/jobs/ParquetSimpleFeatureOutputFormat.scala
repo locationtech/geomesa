@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.parquet.jobs
 
-import java.io.IOException
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -21,6 +19,7 @@ import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.parquet.jobs.ParquetSimpleFeatureOutputFormat.ParquetMultiFileOutputCommitter
 import org.opengis.feature.simple.SimpleFeature
 
+import java.io.IOException
 import scala.collection.mutable
 
 class ParquetSimpleFeatureOutputFormat extends ParquetOutputFormat[SimpleFeature] {
@@ -69,6 +68,6 @@ object ParquetSimpleFeatureOutputFormat {
       }
     }
 
-    result
+    result.toSeq
   }
 }

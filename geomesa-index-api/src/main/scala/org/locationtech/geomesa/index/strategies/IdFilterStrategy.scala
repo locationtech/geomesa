@@ -35,11 +35,11 @@ trait IdFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 object IdFilterStrategy {
 
   def intersectIdFilters(filter: Filter): Set[String] = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
     filter match {
-      case f: And => f.getChildren.map(intersectIdFilters).reduceLeftOption(_ intersect _).getOrElse(Set.empty)
-      case f: Or  => f.getChildren.flatMap(intersectIdFilters).toSet
-      case f: Id  => f.getIDs.map(_.toString).toSet
+      case f: And => f.getChildren.asScala.map(intersectIdFilters).reduceLeftOption(_ intersect _).getOrElse(Set.empty)
+      case f: Or  => f.getChildren.asScala.flatMap(intersectIdFilters).toSet
+      case f: Id  => f.getIDs.asScala.map(_.toString).toSet
       case _ => throw new IllegalArgumentException(s"Expected ID filter, got ${filterToString(filter)}")
     }
   }

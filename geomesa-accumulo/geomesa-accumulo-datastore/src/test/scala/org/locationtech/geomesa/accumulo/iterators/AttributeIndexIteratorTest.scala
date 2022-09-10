@@ -8,25 +8,21 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.text.SimpleDateFormat
-import java.util.{Collections, Date, TimeZone}
-
 import org.geotools.data.Query
-import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.index.JoinIndex
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.conf.QueryHints.QUERY_INDEX
-import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.text.SimpleDateFormat
+import java.util.{Collections, Date, TimeZone}
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexIteratorTest extends Specification with TestWithFeatureType {
@@ -46,13 +42,13 @@ class AttributeIndexIteratorTest extends Specification with TestWithFeatureType 
     addFeatures({
       List("a", "b", "c", "d", null).flatMap { name =>
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
-          val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
+          val sf = SimpleFeatureBuilder.build(sft, Collections.emptyList[AnyRef](), name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
           sf.setAttribute("dtg", dateToIndex)
           sf.setAttribute("age", i)
           sf.setAttribute("name", name)
           sf.setAttribute("scars", Collections.singletonList("face"))
-          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+          sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
           sf
         }
       }

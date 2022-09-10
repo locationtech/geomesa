@@ -10,13 +10,11 @@ package org.locationtech.geomesa.kafka.confluent
 
 import org.apache.avro.Schema
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import java.net.URL
-import java.nio.charset.StandardCharsets
 
 class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: ConfluentFeatureSerializer)
     extends GeoMessageSerializer(sft, serializer, null, null, 0) {

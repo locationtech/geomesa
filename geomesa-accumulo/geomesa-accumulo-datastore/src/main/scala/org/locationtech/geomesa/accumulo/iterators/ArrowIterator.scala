@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.Map.Entry
-
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.geotools.util.factory.Hints
@@ -20,6 +18,8 @@ import org.locationtech.geomesa.index.iterators.ArrowScan.{ArrowAggregate, Arrow
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import java.util.Map.Entry
 
 class ArrowIterator extends BaseAggregatingIterator[ArrowAggregate] with ArrowScan
 

@@ -9,8 +9,6 @@
 package org.locationtech.geomesa.jobs.accumulo.index
 
 
-import java.io.File
-
 import com.beust.jcommander.Parameter
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
@@ -29,7 +27,8 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.SimpleFeature
 
-import scala.collection.JavaConversions._
+import java.io.File
+import scala.collection.JavaConverters._
 
 /**
  * Class to write data to a single index
@@ -53,7 +52,7 @@ object WriteIndexJob {
       val names = if (indexNames == null || indexNames.isEmpty) {
         Array.empty[String]
       } else {
-        indexNames.flatMap(n => Seq("--geomesa.index", n)).toArray
+        indexNames.asScala.flatMap(n => Seq("--geomesa.index", n)).toArray
       }
       Array.concat(super[InputFeatureArgs].unparse(),
         super[InputDataStoreArgs].unparse(),
@@ -99,7 +98,7 @@ class WriteIndexJob(libjars: Option[(Seq[String], Iterator[() => Seq[File]])] = 
       val sft = dsIn.getSchema(featureIn)
       require(sft != null, s"The feature '$featureIn' does not exist in the input data store")
       val allIndices = dsIn.manager.indices(sft, IndexMode.Write)
-      val indices = parsedArgs.indexNames.map { name =>
+      val indices = parsedArgs.indexNames.asScala.map { name =>
         allIndices.find(_.identifier == name).orElse(allIndices.find(_.name == name)).getOrElse {
           throw new IllegalArgumentException(s"Invalid index $name. Valid values are " +
               allIndices.map(_.identifier).sorted.mkString(", "))
@@ -123,11 +122,11 @@ class WriteIndexJob(libjars: Option[(Seq[String], Iterator[() => Seq[File]])] = 
     job.setMapOutputValueClass(classOf[ScalaSimpleFeature])
     job.setNumReduceTasks(0)
 
-    GeoMesaAccumuloInputFormat.configure(job, dsInParams, plan)
+    GeoMesaAccumuloInputFormat.configure(job, dsInParams.asJava, plan)
 
     // disable writing stats as we're just copying data not creating any
     val dsOutParams = dsInParams ++ Map(AccumuloDataStoreParams.GenerateStatsParam.getName -> "false")
-    GeoMesaOutputFormat.setOutput(job.getConfiguration, dsOutParams, sft, Some(indices))
+    GeoMesaOutputFormat.setOutput(job.getConfiguration, dsOutParams, sft, Some(indices.toSeq))
 
     logger.info("Submitting job - please wait...")
     job.submit()

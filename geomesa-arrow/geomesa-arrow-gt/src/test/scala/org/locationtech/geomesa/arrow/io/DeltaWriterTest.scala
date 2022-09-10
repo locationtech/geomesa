@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.arrow.io
 
-import java.io.ByteArrayInputStream
-
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -21,6 +19,7 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.ByteArrayInputStream
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])

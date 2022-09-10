@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.utils.geohash
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
 import org.junit.Ignore
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

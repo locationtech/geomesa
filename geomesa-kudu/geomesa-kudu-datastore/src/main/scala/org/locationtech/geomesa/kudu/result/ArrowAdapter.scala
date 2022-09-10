@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.kudu.result
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
 import org.apache.kudu.client.RowResult
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.arrow.io.FormatVersion
@@ -32,6 +29,9 @@ import org.locationtech.geomesa.utils.io.ByteBuffers.ExpandingByteBuffer
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
 /**
   * Converts rows into arrow vectors
@@ -168,7 +168,7 @@ object ArrowAdapter extends KuduResultAdapterSerialization[ArrowAdapter] {
     if (adapter.config.providedDictionaries.isEmpty) {
       bb.putString(null)
     } else {
-      bb.putString(StringSerialization.encodeSeqMap(adapter.config.providedDictionaries.mapValues(_.toSeq)))
+      bb.putString(StringSerialization.encodeSeqMap(adapter.config.providedDictionaries.mapValues(_.toSeq).toMap))
     }
     bb.putString(adapter.config.sort.map(_._1).orNull)
     bb.putBool(adapter.config.sort.exists(_._2))

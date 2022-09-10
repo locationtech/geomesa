@@ -10,8 +10,8 @@ package org.locationtech.geomesa.features.kryo.serialization
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
-import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.jts.geom.Geometry
 
 /**
  * Kryo serializer for geometries.  Not thread safe.

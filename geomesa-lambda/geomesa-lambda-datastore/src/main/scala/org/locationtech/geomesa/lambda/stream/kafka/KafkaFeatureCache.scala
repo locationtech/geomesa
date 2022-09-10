@@ -90,7 +90,7 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
       }
       i += 1
     }
-    result
+    result.toSeq
   }
 
   override def expired(partition: Int, expiry: Long): ExpiredFeatures = {
@@ -124,7 +124,7 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
     // only remove from feature cache (and persist) if there haven't been additional updates
     val latest = expired.flatMap(ref => remove(ref))
 
-    ExpiredFeatures(maxExpiredOffset, latest)
+    ExpiredFeatures(maxExpiredOffset, latest.toSeq)
   }
 
   override def offsetChanged(partition: Int, offset: Long): Unit = {

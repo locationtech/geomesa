@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.filter.expression
 
-import java.util.Collections
-
 import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.{Filter, FilterVisitor, Or}
+
+import java.util.Collections
 
 /**
   * OR filter implementation for several OR'd equality filters that evaluates a property against a list of values

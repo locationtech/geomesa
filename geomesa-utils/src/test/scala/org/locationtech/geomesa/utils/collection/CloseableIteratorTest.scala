@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.utils.collection
 
-import java.io.Closeable
-
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.Closeable
 
 @RunWith(classOf[JUnitRunner])
 class CloseableIteratorTest extends Specification {

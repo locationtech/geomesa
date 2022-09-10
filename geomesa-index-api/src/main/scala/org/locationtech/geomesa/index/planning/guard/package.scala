@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.index.planning
 
-import java.time.ZonedDateTime
-import java.util.concurrent.TimeUnit
-
 import org.locationtech.geomesa.filter.{Bounds, FilterValues, filterToString}
 import org.locationtech.geomesa.index.api.QueryStrategy
 
+import java.time.ZonedDateTime
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 package object guard {

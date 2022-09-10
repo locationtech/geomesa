@@ -16,7 +16,8 @@ object PartitionTables extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] =
     statements(info, info.tables.writeAheadPartitions, "gist") ++
-        statements(info, info.tables.mainPartitions, "brin")
+        statements(info, info.tables.mainPartitions, "brin") ++
+        statements(info, info.tables.spillPartitions, "gist")
 
   private def statements(info: TypeInfo, table: TableConfig, indexType: String): Seq[String] = {
     // note: don't include storage opts since these are parent partition tables
@@ -29,11 +30,13 @@ object PartitionTables extends SqlStatements {
          |  LIKE ${info.tables.writeAhead.name.qualified} INCLUDING DEFAULTS INCLUDING CONSTRAINTS,
          |  CONSTRAINT ${escape(table.name.raw, "pkey")} PRIMARY KEY (fid, ${info.cols.dtg.quoted})$indexTs
          |) PARTITION BY RANGE(${info.cols.dtg.quoted})$tableTs;""".stripMargin
+    val pagesPerRange =
+      if (indexType == "brin") { s" with (pages_per_range = ${info.partitions.pagesPerRange})" } else { "" }
     // note: brin doesn't support 'include' cols
     val geomIndex =
       s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, info.cols.geom.raw)}
          |  ON ${table.name.qualified}
-         |  USING $indexType(${info.cols.geom.quoted})$tableTs;""".stripMargin
+         |  USING $indexType(${info.cols.geom.quoted})$pagesPerRange$tableTs;""".stripMargin
     val dtgIndex =
       s"""CREATE INDEX IF NOT EXISTS ${escape(table.name.raw, info.cols.dtg.raw)}
          |  ON ${table.name.qualified} (${info.cols.dtg.quoted})$tableTs;""".stripMargin

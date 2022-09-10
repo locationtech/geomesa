@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.convert.all
 
-import java.io.InputStream
-import java.util.Locale
-
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.avro.AvroConverterFactory
 import org.locationtech.geomesa.convert.json.JsonConverterFactory
@@ -19,6 +16,9 @@ import org.locationtech.geomesa.convert.shp.ShapefileConverterFactory
 import org.locationtech.geomesa.convert.text.DelimitedTextConverterFactory
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.InputStream
+import java.util.Locale
 
 object TypeAwareInference {
 

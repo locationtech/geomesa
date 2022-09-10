@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import java.nio.file.{Files, Path}
-
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -27,12 +25,14 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.nio.file.{Files, Path}
 
 @RunWith(classOf[JUnitRunner])
 class CompactCommandTest extends Specification {
 
   import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -67,7 +67,7 @@ class CompactCommandTest extends Specification {
     val dsParams = Map(
       "fs.path" -> directory,
       "fs.config.xml" -> "<configuration><property><name>parquet.compression</name><value>GZIP</value></property></configuration>")
-    DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
+    DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]
   }
 
   def features(sft: SimpleFeatureType): Seq[ScalaSimpleFeature] = {

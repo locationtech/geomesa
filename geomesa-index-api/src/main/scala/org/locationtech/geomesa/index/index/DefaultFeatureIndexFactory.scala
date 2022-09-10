@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.index.index
 
-import org.locationtech.geomesa.index.index.s2.S2Index
-import org.locationtech.geomesa.index.index.s3.S3Index
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaFeatureIndexFactory}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.attribute.legacy._
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.id.legacy.{IdIndexV1, IdIndexV2, IdIndexV3}
+import org.locationtech.geomesa.index.index.s2.S2Index
+import org.locationtech.geomesa.index.index.s3.S3Index
 import org.locationtech.geomesa.index.index.z2.legacy._
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.legacy._

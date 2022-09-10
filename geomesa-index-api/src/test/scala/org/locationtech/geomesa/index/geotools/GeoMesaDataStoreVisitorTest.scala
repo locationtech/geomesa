@@ -8,13 +8,11 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.util.Collections
-
-import org.geotools.data.{DataStore, Query}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.{ReTypingFeatureCollection, ReprojectingFeatureCollection}
 import org.geotools.data.util.NullProgressListener
+import org.geotools.data.{DataStore, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.{DecoratingFeatureCollection, DecoratingSimpleFeatureCollection}
 import org.geotools.feature.visitor._
@@ -33,6 +31,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class GeoMesaDataStoreVisitorTest extends Specification {

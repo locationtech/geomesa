@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.convert
 
-import java.io.{ByteArrayInputStream, InputStream}
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.IOUtils
 import org.junit.runner.RunWith
@@ -29,6 +26,9 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.ConfigReaderFailures
+
+import java.io.{ByteArrayInputStream, InputStream}
+import java.nio.charset.StandardCharsets
 
 @RunWith(classOf[JUnitRunner])
 class ApiTest extends Specification {

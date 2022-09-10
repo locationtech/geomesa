@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.uuid
 
-import java.util.Date
-
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod}
@@ -20,6 +18,8 @@ import org.locationtech.jts.geom.{Geometry, Point, Polygon}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class Z3FeatureIdGeneratorTest extends Specification {

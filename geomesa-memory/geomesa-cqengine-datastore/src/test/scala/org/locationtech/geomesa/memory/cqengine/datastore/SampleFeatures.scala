@@ -8,19 +8,18 @@
 
 package org.locationtech.geomesa.memory.cqengine.datastore
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
-
-import org.locationtech.jts.geom.Point
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.memory.cqengine.utils.SFTAttributes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Point
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 import scala.language._
 import scala.util.Random
 

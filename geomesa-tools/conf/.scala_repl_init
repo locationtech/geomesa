@@ -4,7 +4,7 @@ import org.opengis.feature.simple._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 System.out.println(
   s"""

@@ -9,8 +9,6 @@
 
 package org.locationtech.geomesa.filter.function
 
-import java.util.Collections
-
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.SimplifyingFilterVisitor
 import org.junit.runner.RunWith
@@ -19,6 +17,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class ProxyIdFunctionTest extends Specification {

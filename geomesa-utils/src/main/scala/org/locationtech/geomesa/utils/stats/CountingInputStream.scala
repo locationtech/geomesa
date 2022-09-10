@@ -24,7 +24,7 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.io.{InputStream, FilterInputStream, IOException}
+import java.io.{FilterInputStream, IOException, InputStream}
 
 /**
  * Counting input stream from guava, extended to provide reset of count

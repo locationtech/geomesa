@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.shp
 
-import java.io.InputStream
-
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.shapefile.ShapefileDataStore
@@ -20,6 +18,7 @@ import org.locationtech.geomesa.convert2.AbstractConverterFactory._
 import org.locationtech.geomesa.convert2.transforms.Expression.Column
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.InputStream
 import scala.util.control.NonFatal
 
 class ShapefileConverterFactory

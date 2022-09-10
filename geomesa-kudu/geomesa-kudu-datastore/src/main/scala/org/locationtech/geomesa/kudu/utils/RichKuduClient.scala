@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.kudu.utils
 
-import java.io.{Closeable, Flushable, IOException}
-import java.util.Collections
-
 import org.apache.kudu.client.{KuduScanner, KuduSession, OperationResponse, RowResult}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
+import java.io.{Closeable, Flushable, IOException}
+import java.util.Collections
 import scala.annotation.tailrec
 
 object RichKuduClient {

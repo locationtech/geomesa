@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.spark
 
-import java.io.{BufferedWriter, StringWriter}
-
 import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{Partition, TaskContext}
 import org.locationtech.geomesa.features.serialization.GeoJsonSerializer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.StringWriter
 
 /**
   * RDD with a known schema
@@ -48,7 +48,7 @@ object SpatialRDD {
   def apply(rdd: RDD[SimpleFeature], schema: SimpleFeatureType) = new SpatialRDD(rdd, schema)
 
   implicit def toValueSeq(in: RDD[SimpleFeature] with Schema): RDD[Seq[AnyRef]] =
-    in.map(_.getAttributes.asScala)
+    in.map(_.getAttributes.asScala.toSeq)
 
   implicit def toKeyValueSeq(in: RDD[SimpleFeature] with Schema): RDD[Seq[(String, AnyRef)]] =
     in.map(_.getProperties.asScala.map(p => (p.getName.getLocalPart, p.getValue)).toSeq)

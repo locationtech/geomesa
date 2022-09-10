@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io._
-
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.util.factory.Hints
@@ -24,6 +22,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io._
 import scala.reflect.ClassTag
 
 class ArrowExporter(stream: ExportStream, hints: Hints, queryDictionaries: => Map[String, Array[AnyRef]])
@@ -75,7 +74,7 @@ object ArrowExporter {
   def queryDictionaries(ds: DataStore, query: Query): Map[String, Array[AnyRef]] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     val hints = query.getHints
     val dictionaryFields = {
@@ -86,7 +85,7 @@ object ArrowExporter {
     if (dictionaryFields.isEmpty) { Map.empty } else {
       // if we're hitting this, we can't do a stats query as we're not dealing with a geomesa store
       val dictionaryQuery = new Query(query.getTypeName, query.getFilter)
-      dictionaryQuery.setPropertyNames(dictionaryFields)
+      dictionaryQuery.setPropertyNames(dictionaryFields.asJava)
       val map = dictionaryFields.map(f => f -> scala.collection.mutable.HashSet.empty[AnyRef]).toMap
       SelfClosingIterator(ds.getFeatureReader(dictionaryQuery, Transaction.AUTO_COMMIT)).foreach { sf =>
         map.foreach { case (k, values) => Option(sf.getAttribute(k)).foreach(values.add) }

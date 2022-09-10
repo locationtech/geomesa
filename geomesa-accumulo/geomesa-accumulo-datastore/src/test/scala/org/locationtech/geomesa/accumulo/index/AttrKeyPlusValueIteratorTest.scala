@@ -21,11 +21,14 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSfts {
+
+  import scala.collection.JavaConverters._
 
   val spec =
     "name:String:index=join:cardinality=high," +
@@ -82,9 +85,8 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
       }
 
       "work with 150 attrs" >> {
-        import scala.collection.JavaConversions._
         val ff = CommonFactoryFinder.getFilterFactory2
-        val filterName = ff.or((0 to 150).map(i => ff.equals(ff.property("name"), ff.literal(i.toString))))
+        val filterName = ff.or(Seq.tabulate[Filter](150)(i => ff.equals(ff.property("name"), ff.literal(i.toString))).asJava)
         val filter = ff.and(filterName, ECQL.toFilter("BBOX(geom, 40, 40, 60, 60) and " +
             "dtg during 2014-01-01T00:00:00.000Z/2014-01-05T00:00:00.000Z "))
 

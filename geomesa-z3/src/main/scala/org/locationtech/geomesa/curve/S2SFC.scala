@@ -16,9 +16,9 @@ import org.locationtech.sfcurve.IndexRange
   */
 class S2SFC(minLevel: Int, maxLevel: Int, levelMod: Int, maxCells: Int) extends SpaceFillingCurve {
 
-  import scala.collection.JavaConverters._
-
   import S2SFC.{LatMax, LatMin, LonMax, LonMin}
+
+  import scala.collection.JavaConverters._
 
   override def index(x: Double, y: Double, lenient: Boolean): Long = {
     if (lenient) {

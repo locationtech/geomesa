@@ -20,9 +20,9 @@ import java.util.Properties
 import java.util.concurrent.ScheduledExecutorService
 import scala.concurrent.duration.Duration
 
-object KafkaDataStoreParams extends KafkaDataStoreParams
+object KafkaDataStoreParams extends KafkaDataStoreParamsWTF
 
-trait KafkaDataStoreParams extends NamespaceParams {
+trait KafkaDataStoreParamsWTF extends NamespaceParams {
   // deprecated lookups
   private val DeprecatedProducer = ConvertedParam[java.lang.Integer, java.lang.Boolean]("isProducer", v => if (v) { 0 } else { 1 })
   private val DeprecatedOffset = ConvertedParam[Duration, String]("autoOffsetReset", v => if ("earliest".equalsIgnoreCase(v)) { Duration.Inf } else { null })

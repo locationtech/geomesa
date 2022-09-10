@@ -36,9 +36,9 @@ class GenerateFeatureWrappersTest extends Specification {
           |  def setGeom(x: org.locationtech.jts.geom.Point): Unit = sf.setAttribute(2, x)
           |
           |  def debug(): String = {
-          |    import scala.collection.JavaConversions._
+          |    import scala.collection.JavaConverters._
           |    val sb = new StringBuilder(s"${sf.getType.getTypeName}:${sf.getID}")
-          |    sf.getProperties.foreach(p => sb.append(s"|${p.getName.getLocalPart}=${p.getValue}"))
+          |    sf.getProperties.asScala.foreach(p => sb.append(s"|${p.getName.getLocalPart}=${p.getValue}"))
           |    sb.toString()
           |  }
           |}""".stripMargin
@@ -64,9 +64,9 @@ class GenerateFeatureWrappersTest extends Specification {
           |  def setGeom(x: org.locationtech.jts.geom.Point): Unit = sf.setAttribute(2, x)
           |
           |  def debug(): String = {
-          |    import scala.collection.JavaConversions._
+          |    import scala.collection.JavaConverters._
           |    val sb = new StringBuilder(s"${sf.getType.getTypeName}:${sf.getID}")
-          |    sf.getProperties.foreach(p => sb.append(s"|${p.getName.getLocalPart}=${p.getValue}"))
+          |    sf.getProperties.asScala.foreach(p => sb.append(s"|${p.getName.getLocalPart}=${p.getValue}"))
           |    sb.toString()
           |  }
           |}""".stripMargin
@@ -92,9 +92,9 @@ class GenerateFeatureWrappersTest extends Specification {
           |  def setGeom(x: org.locationtech.jts.geom.Point): Unit = sf.setAttribute(2, x)
           |
           |  def debug(): String = {
-          |    import scala.collection.JavaConversions._
+          |    import scala.collection.JavaConverters._
           |    val sb = new StringBuilder(s"${sf.getType.getTypeName}:${sf.getID}")
-          |    sf.getProperties.foreach(p => sb.append(s"|${p.getName.getLocalPart}=${p.getValue}"))
+          |    sf.getProperties.asScala.foreach(p => sb.append(s"|${p.getName.getLocalPart}=${p.getValue}"))
           |    sb.toString()
           |  }
           |}""".stripMargin
@@ -124,9 +124,9 @@ class GenerateFeatureWrappersTest extends Specification {
           |    def setGeom(x: org.locationtech.jts.geom.Point): Unit = sf.setAttribute(2, x)
           |
           |    def debug(): String = {
-          |      import scala.collection.JavaConversions._
+          |      import scala.collection.JavaConverters._
           |      val sb = new StringBuilder(s"${sf.getType.getTypeName}:${sf.getID}")
-          |      sf.getProperties.foreach(p => sb.append(s"|${p.getName.getLocalPart}=${p.getValue}"))
+          |      sf.getProperties.asScala.foreach(p => sb.append(s"|${p.getName.getLocalPart}=${p.getValue}"))
           |      sb.toString()
           |    }
           |  }

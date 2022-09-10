@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.tools.export
 
-import java.io._
-import java.util.Collections
-
-import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FilenameUtils
@@ -43,6 +39,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
 
+import java.io._
+import java.util.Collections
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 

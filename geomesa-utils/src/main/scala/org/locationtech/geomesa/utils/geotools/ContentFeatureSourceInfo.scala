@@ -13,12 +13,12 @@ import org.geotools.data.store.ContentFeatureSource
 
 trait ContentFeatureSourceInfo extends ContentFeatureSource {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   abstract override def getInfo : ResourceInfo = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val ri = super.getInfo
-    ri.getKeywords.addAll(getSchema.getKeywords)
+    ri.getKeywords.addAll(getSchema.getKeywords.asJava)
     ri
   }
 }

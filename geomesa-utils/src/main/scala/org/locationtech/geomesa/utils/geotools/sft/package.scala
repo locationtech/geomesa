@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util.Collections
-
 import org.geotools.feature.`type`._
 import org.geotools.feature.simple.SimpleFeatureTypeImpl
 import org.opengis.feature.`type`._
 import org.opengis.filter.Filter
 import org.opengis.util.InternationalString
+
+import java.util.Collections
 
 package object sft {
 

@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.io.{FileInputStream, FileOutputStream}
-import java.nio.charset.StandardCharsets
-import java.util
-import java.util.zip.Deflater
-
 import org.apache.avro.file.DataFileStream
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
@@ -23,6 +18,11 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{FileInputStream, FileOutputStream}
+import java.nio.charset.StandardCharsets
+import java.util
+import java.util.zip.Deflater
 
 @RunWith(classOf[JUnitRunner])
 class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest {
@@ -75,11 +75,11 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
 
       read2.getUserData.containsKey("zzz") must beTrue
 
-      import scala.collection.JavaConversions._
-      read1.getUserData.keys must containTheSameElementsAs[AnyRef](sf.getUserData.keys.toSeq)
-      read1.getUserData.values.toSeq must containTheSameElementsAs[AnyRef](sf.getUserData.values.toSeq)
-      read2.getUserData.keys must containTheSameElementsAs[AnyRef](sf2.getUserData.keys.toSeq)
-      read2.getUserData.values.toSeq must containTheSameElementsAs[AnyRef](sf2.getUserData.values.toSeq)
+      import scala.collection.JavaConverters._
+      read1.getUserData.asScala.keys must containTheSameElementsAs[AnyRef](sf.getUserData.asScala.keys.toSeq)
+      read1.getUserData.asScala.values.toSeq must containTheSameElementsAs[AnyRef](sf.getUserData.asScala.values.toSeq)
+      read2.getUserData.asScala.keys must containTheSameElementsAs[AnyRef](sf2.getUserData.asScala.keys.toSeq)
+      read2.getUserData.asScala.values.toSeq must containTheSameElementsAs[AnyRef](sf2.getUserData.asScala.values.toSeq)
     }
 
     "preserve lots of user data" >> {

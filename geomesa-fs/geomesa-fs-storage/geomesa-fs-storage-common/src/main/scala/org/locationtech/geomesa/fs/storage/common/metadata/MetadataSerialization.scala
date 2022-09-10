@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
-import java.io.{InputStream, InputStreamReader, OutputStream}
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.config.{Config, ConfigFactory}
 import org.locationtech.geomesa.fs.storage.api.{Metadata, NamedOptions}
 import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.{PartitionSchemeConfig, StoragePersistence, StoragePersistenceV1, StoragePersistenceV2}
@@ -19,6 +16,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import pureconfig.{ConfigConvert, ConfigWriter}
 
+import java.io.{InputStream, InputStreamReader, OutputStream}
+import java.nio.charset.StandardCharsets
 import scala.util.Try
 import scala.util.control.NonFatal
 

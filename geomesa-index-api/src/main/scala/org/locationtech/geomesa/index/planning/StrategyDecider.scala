@@ -169,7 +169,7 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
             val count = stats.flatMap(_.getCount(sft, filter, exact = false)).getOrElse(100L)
             cost = cost + BigInt((count * strategy.costMultiplier).toLong)
           }
-          FilterPlanCost(option, if (cost.isValidLong) { cost.longValue() } else { Long.MaxValue }, 0L)
+          FilterPlanCost(option, if (cost.isValidLong) { cost.longValue } else { Long.MaxValue }, 0L)
         }
       }
 

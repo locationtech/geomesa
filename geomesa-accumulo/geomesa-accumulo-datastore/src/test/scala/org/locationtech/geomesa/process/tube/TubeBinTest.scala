@@ -8,23 +8,24 @@
 
 package org.locationtech.geomesa.process.tube
 
-import org.locationtech.jts.geom.GeometryCollection
 import org.apache.log4j.Logger
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.GeometryCollection
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConversions._
 
 
 @RunWith(classOf[JUnitRunner])
 class TubeBinTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   import TubeBuilder.DefaultDtgField
 
@@ -46,13 +47,13 @@ class TubeBinTest extends Specification {
         sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
         sf.setAttribute(DefaultDtgField, f"2011-01-$day%02dT00:00:00Z")
         sf.setAttribute("type","test")
-        sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-        sf
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf: SimpleFeature
       }
 
       log.debug("features: "+features.size)
       val ngf = new NoGapFill(new DefaultFeatureCollection(sftName, sft), 1.0, 6)
-      val binnedFeatures = ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DefaultDtgField).toSeq, 6)
+      val binnedFeatures = ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features.asJava), DefaultDtgField).toSeq, 6)
 
       binnedFeatures.foreach { sf =>
         sf.getDefaultGeometry match {
@@ -61,9 +62,9 @@ class TubeBinTest extends Specification {
         }
       }
 
-      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DefaultDtgField).toSeq, 1).size mustEqual 1
+      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features.asJava), DefaultDtgField).toSeq, 1).size mustEqual 1
 
-      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features), DefaultDtgField).toSeq, 0).size mustEqual 19
+      ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features.asJava), DefaultDtgField).toSeq, 0).size mustEqual 19
     }
 
   }

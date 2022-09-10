@@ -8,20 +8,19 @@
 
 package org.locationtech.geomesa.utils.iterators
 
-import java.util.Date
-import java.util.concurrent.{Executors, LinkedBlockingQueue}
-
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
 
+import java.util.Date
+import java.util.concurrent.{Executors, LinkedBlockingQueue}
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 

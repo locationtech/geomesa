@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.spark
 
-import java.nio.file.{Files, Path}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
@@ -24,6 +22,8 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.nio.file.{Files, Path}
 
 
 @RunWith(classOf[JUnitRunner])

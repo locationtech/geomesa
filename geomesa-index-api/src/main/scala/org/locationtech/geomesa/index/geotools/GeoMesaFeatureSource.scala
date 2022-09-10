@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.awt.RenderingHints.Key
-import java.net.URI
-import java.util
-import java.util.Collections
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
@@ -35,7 +30,11 @@ import org.opengis.filter.sort.SortBy
 import org.opengis.referencing.crs.CoordinateReferenceSystem
 import org.opengis.util.ProgressListener
 
-import scala.collection.JavaConversions._
+import java.awt.RenderingHints.Key
+import java.net.URI
+import java.util
+import java.util.Collections
+import scala.collection.JavaConverters._
 import scala.util.Try
 
 class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
@@ -65,7 +64,7 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
     val useExactCount = query.getHints.isExactCount.getOrElse(QueryExactCount.get.toBoolean)
     val hints = new Hints()
     GeoMesaFeatureSource.CountHints.foreach { key =>
-      if (query.getHints.contains(key)) { hints.put(key, query.getHints.get(key)) }
+      if (query.getHints.asScala.contains(key)) { hints.put(key, query.getHints.get(key)) }
     }
 
     val count = if (useExactCount &&
@@ -197,7 +196,7 @@ object GeoMesaFeatureSource {
 
     override def contains(o: scala.Any): Boolean = featureList.contains(o)
 
-    override def containsAll(o: util.Collection[_]): Boolean = featureList.containsAll(o)
+    override def containsAll(o: util.Collection[_]): Boolean = featureList.asJava.containsAll(o)
 
     override def isEmpty: Boolean = featureList.isEmpty
 
@@ -218,9 +217,9 @@ object GeoMesaFeatureSource {
 
   class DelegatingResourceInfo(source: SimpleFeatureSource) extends ResourceInfo {
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
-    private val keywords = Collections.unmodifiableSet(Set("features", getName) ++ source.getSchema.getKeywords)
+    private val keywords = Collections.unmodifiableSet((Set("features", getName) ++ source.getSchema.getKeywords).asJava)
 
     override def getName: String = source.getSchema.getName.getURI
 

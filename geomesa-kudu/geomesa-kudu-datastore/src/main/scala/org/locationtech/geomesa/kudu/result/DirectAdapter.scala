@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.kudu.result
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
 import org.apache.kudu.client.RowResult
 import org.locationtech.geomesa.kudu.result.KuduResultAdapter.KuduResultAdapterSerialization
 import org.locationtech.geomesa.kudu.schema.KuduIndexColumnAdapter.{FeatureIdAdapter, VisibilityAdapter}
@@ -20,6 +17,9 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.ByteBuffers.ExpandingByteBuffer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
 /**
   * Converts rows to simple features without any filtering or transforming

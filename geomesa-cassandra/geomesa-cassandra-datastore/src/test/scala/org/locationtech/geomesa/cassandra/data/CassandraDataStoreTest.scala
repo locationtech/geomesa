@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.cassandra.data
 
-import java.nio.file.{Files, Path}
-
 import com.datastax.driver.core.{Cluster, SocketOptions}
 import org.cassandraunit.CQLDataLoader
 import org.cassandraunit.dataset.cql.ClassPathCQLDataSet
@@ -17,8 +15,8 @@ import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStoreFinder, Query, _}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.Params
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -33,11 +31,12 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
+import java.nio.file.{Files, Path}
 
 @RunWith(classOf[JUnitRunner])
 class CassandraDataStoreTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -70,7 +69,7 @@ class CassandraDataStoreTest extends Specification {
       Params.KeySpaceParam.getName -> "geomesa_cassandra",
       Params.CatalogParam.getName -> "test_sft"
     )
-    ds = DataStoreFinder.getDataStore(params).asInstanceOf[CassandraDataStore]
+    ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[CassandraDataStore]
   }
 
   "CassandraDataStore" should {
@@ -80,12 +79,12 @@ class CassandraDataStoreTest extends Specification {
         Params.ContactPointParam.getName -> "localhost",
         Params.KeySpaceParam.getName -> "geomesa_cassandra",
         Params.CatalogParam.getName -> "test_sft"
-      )) must throwAn[IllegalArgumentException](s"Invalid parameter '${Params.ContactPointParam.key}'")
+      ).asJava) must throwAn[IllegalArgumentException](s"Invalid parameter '${Params.ContactPointParam.key}'")
       DataStoreFinder.getDataStore(Map(
         Params.ContactPointParam.getName -> "localhost:foo",
         Params.KeySpaceParam.getName -> "geomesa_cassandra",
         Params.CatalogParam.getName -> "test_sft"
-      )) must throwAn[IllegalArgumentException](s"Invalid parameter '${Params.ContactPointParam.key}'")
+      ).asJava) must throwAn[IllegalArgumentException](s"Invalid parameter '${Params.ContactPointParam.key}'")
     }
 
     "work with points" in {
@@ -99,8 +98,8 @@ class CassandraDataStoreTest extends Specification {
 
       sft must not(beNull)
 
-      val ns = DataStoreFinder.getDataStore(params ++
-          Map(CassandraDataStoreFactory.Params.NamespaceParam.key -> "ns0")).getSchema(typeName).getName
+      val ns = DataStoreFinder.getDataStore((params ++
+          Map(CassandraDataStoreFactory.Params.NamespaceParam.key -> "ns0")).asJava).getSchema(typeName).getName
       ns.getNamespaceURI mustEqual "ns0"
       ns.getLocalPart mustEqual typeName
 
@@ -112,14 +111,14 @@ class CassandraDataStoreTest extends Specification {
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, f"2014-01-${i + 1}%02dT00:00:01.000Z")
         sf.setAttribute(2, s"POINT(4$i 5$i)")
-        sf
+        sf: SimpleFeature
       }
 
-      val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+      val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
       forall(Seq(true, false)) { loose =>
-        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[CassandraDataStore]
+        val ds = DataStoreFinder.getDataStore((params ++ Map(LooseBBoxParam.getName -> loose)).asJava).asInstanceOf[CassandraDataStore]
         forall(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
           testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
           testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))
@@ -165,12 +164,12 @@ class CassandraDataStoreTest extends Specification {
       testLooseBbox(ds, loose = false)
 
       forall(Seq(true, "true", java.lang.Boolean.TRUE)) { loose =>
-        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[CassandraDataStore]
+        val ds = DataStoreFinder.getDataStore((params ++ Map(LooseBBoxParam.getName -> loose)).asJava).asInstanceOf[CassandraDataStore]
         testLooseBbox(ds, loose = true)
       }
 
       forall(Seq(false, "false", java.lang.Boolean.FALSE)) { loose =>
-        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[CassandraDataStore]
+        val ds = DataStoreFinder.getDataStore((params ++ Map(LooseBBoxParam.getName -> loose)).asJava).asInstanceOf[CassandraDataStore]
         testLooseBbox(ds, loose = false)
       }
 
@@ -231,10 +230,10 @@ class CassandraDataStoreTest extends Specification {
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, s"2014-01-01T0$i:00:01.000Z")
         sf.setAttribute(2, s"POLYGON((-120 4$i, -120 50, -125 50, -125 4$i, -120 4$i))")
-        sf
+        sf: SimpleFeature
       }
 
-      val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+      val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
       testQuery(ds, typeName, "INCLUDE", null, toAdd)
@@ -272,10 +271,10 @@ class CassandraDataStoreTest extends Specification {
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, f"2014-01-${i + 1}%02dT00:00:01.000Z")
         sf.setAttribute(2, s"POINT(4$i 5$i)")
-        sf
+        sf: SimpleFeature
       }
 
-      val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+      val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 2).map(_.toString))
 
       val filters = Seq("INCLUDE", "IN('0', '1')", "name = 'name0' OR name = 'name1'", "bbox(geom, 39, 49, 42, 52)",
@@ -321,7 +320,7 @@ class CassandraDataStoreTest extends Specification {
     explain.foreach(e => ds.getQueryPlan(query, explainer = e))
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
     val features = SelfClosingIterator(fr).toList
-    val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
+    val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
     forall(features) { feature =>
       feature.getAttributes must haveLength(attributes.length)

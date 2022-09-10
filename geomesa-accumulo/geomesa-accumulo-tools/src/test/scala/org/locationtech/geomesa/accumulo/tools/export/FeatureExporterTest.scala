@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.tools.export
 
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
-import java.util.Date
-import java.util.zip.Deflater
-
 import org.geotools.data.Query
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
@@ -25,6 +20,11 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
+import java.util.Date
+import java.util.zip.Deflater
 
 @RunWith(classOf[JUnitRunner])
 class FeatureExporterTest extends TestWithFeatureType {

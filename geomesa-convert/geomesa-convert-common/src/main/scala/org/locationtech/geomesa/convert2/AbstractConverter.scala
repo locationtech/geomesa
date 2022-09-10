@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.convert2
 
-import java.io.{IOException, InputStream}
-import java.nio.charset.{Charset, StandardCharsets}
-import java.util.Date
-
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -28,6 +24,9 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.{IOException, InputStream}
+import java.nio.charset.{Charset, StandardCharsets}
+import java.util.Date
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 /**
@@ -106,7 +105,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec.failure, hist), ec)
     options.parseMode match {
       case ParseMode.Incremental => converted
-      case ParseMode.Batch => CloseableIterator(converted.to[ListBuffer].iterator, converted.close())
+      case ParseMode.Batch => CloseableIterator(((new ListBuffer()) ++= converted).iterator, converted.close())
     }
   }
 
@@ -371,7 +370,7 @@ object AbstractConverter {
     */
   private def topologicalOrder(dag: Dag): Array[Field] = {
     val res = ArrayBuffer.empty[Field]
-    val remaining = dag.keys.to[scala.collection.mutable.Queue]
+    val remaining = (new scala.collection.mutable.Queue[Field]) ++ dag.keys
     while (remaining.nonEmpty) {
       val next = remaining.dequeue()
       if (dag(next).forall(res.contains)) {

@@ -12,8 +12,8 @@ import org.ejml.data.DMatrixRMaj
 import org.ejml.dense.row.CommonOps_DDRM
 import org.ejml.simple.SimpleMatrix
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
 import org.locationtech.geomesa.utils.stats.SimpleMatrixUtils._
+import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

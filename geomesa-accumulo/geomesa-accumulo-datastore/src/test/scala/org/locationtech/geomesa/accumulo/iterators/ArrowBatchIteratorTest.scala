@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, Closeable}
-
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator
 import org.apache.arrow.memory.BufferAllocator
@@ -35,6 +33,7 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, Closeable}
 import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
@@ -98,16 +97,15 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
               transform: Seq[String] = Seq.empty,
               ordered: Boolean = false): MatchResult[Any] = {
     val transformed = if (transform.isEmpty) { expected } else {
-      import scala.collection.JavaConversions._
       val tsft = {
         val builder = new SimpleFeatureTypeBuilder
         builder.setName(expected.head.getFeatureType.getTypeName)
         val descriptors = expected.head.getFeatureType.getAttributeDescriptors
-        transform.foreach(t => builder.add(descriptors.find(_.getLocalName == t).orNull))
+        transform.foreach(t => builder.add(descriptors.asScala.find(_.getLocalName == t).orNull))
         builder.buildFeatureType()
       }
       expected.map { e =>
-        new ScalaSimpleFeature(tsft, e.getID, tsft.getAttributeDescriptors.map(d => e.getAttribute(d.getLocalName)).toArray)
+        new ScalaSimpleFeature(tsft, e.getID, tsft.getAttributeDescriptors.asScala.map(d => e.getAttribute(d.getLocalName)).toArray)
       }
     }
     if (ordered) {

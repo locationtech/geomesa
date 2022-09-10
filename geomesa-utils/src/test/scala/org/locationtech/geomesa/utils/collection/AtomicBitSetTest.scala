@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.utils.collection
 
-import java.util.concurrent.CountDownLatch
-
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.concurrent.CountDownLatch
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

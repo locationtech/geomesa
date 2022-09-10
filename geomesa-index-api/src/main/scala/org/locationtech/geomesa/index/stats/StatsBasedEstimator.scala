@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.stats
 
-import java.time.ZonedDateTime
-import java.util.Date
-
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC, Z3SFC}
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter._
@@ -22,7 +19,9 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.PropertyName
 
-import scala.collection.JavaConversions._
+import java.time.ZonedDateTime
+import java.util.Date
+import scala.collection.JavaConverters._
 
 /**
   * Estimate query counts based on cached stats.
@@ -76,7 +75,7 @@ trait StatsBasedEstimator {
   private def estimateAndCount(sft: SimpleFeatureType, filter: And): Option[Long] = {
     val stCount = estimateSpatioTemporalCount(sft, filter)
     // note: we might over count if we get bbox1 AND bbox2, as we don't intersect them
-    val individualCounts = filter.getChildren.flatMap(estimateCount(sft, _))
+    val individualCounts = filter.getChildren.asScala.flatMap(estimateCount(sft, _))
     (stCount ++ individualCounts).minOption
   }
 
@@ -90,7 +89,7 @@ trait StatsBasedEstimator {
   private def estimateOrCount(sft: SimpleFeatureType, filter: Or): Option[Long] = {
     // estimate for each child separately and sum
     // note that we might double count some values if the filter is complex
-    filter.getChildren.flatMap(estimateCount(sft, _)).sumOption
+    filter.getChildren.asScala.flatMap(estimateCount(sft, _)).sumOption
   }
 
   /**

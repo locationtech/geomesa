@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util.Collections
-
 import org.apache.accumulo.core.client.BatchWriterConfig
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
@@ -27,6 +25,8 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeEach
+
+import java.util.Collections
 
 
 @RunWith(classOf[JUnitRunner])

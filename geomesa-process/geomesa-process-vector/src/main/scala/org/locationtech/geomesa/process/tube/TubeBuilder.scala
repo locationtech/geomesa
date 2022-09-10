@@ -8,24 +8,23 @@
 
 package org.locationtech.geomesa.process.tube
 
-import java.util.Date
-import java.util.concurrent.atomic.AtomicInteger
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
-import org.locationtech.jts.geom.impl.CoordinateArraySequence
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.referencing.GeodeticCalculator
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom._
+import org.locationtech.jts.geom.impl.CoordinateArraySequence
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.Date
+import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.immutable.NumericRange
 
 object TubeBuilder {
@@ -147,9 +146,9 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
 
   // Union features to create a single geometry and single combined time range
   def unionFeatures(orderedFeatures: Seq[SimpleFeature], id: String): SimpleFeature = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
     val geoms = orderedFeatures.map { sf => getGeom(sf) }
-    val unionGeom = geoFac.buildGeometry(geoms).union
+    val unionGeom = geoFac.buildGeometry(geoms.asJava).union
     val min = getStartTime(orderedFeatures.head)
     val max = getStartTime(orderedFeatures.last)
 

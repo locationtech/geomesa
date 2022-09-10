@@ -20,7 +20,7 @@ import org.opengis.filter.expression.{Expression, Function, Literal, PropertyNam
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.Try
 
 package object filter {
@@ -58,16 +58,16 @@ package object filter {
       if (ll.head.size == 1) {
         ll.head.head
       } else {
-        ff.and(ll.head)
+        ff.and(ll.head.asJava)
       }
     } else {
       val children = ll.map { l =>
         l.size match {
           case 1 => l.head
-          case _ => ff.and(l)
+          case _ => ff.and(l.asJava)
         }
       }
-      ff.or(children)
+      ff.or(children.asJava)
     }
   }
 
@@ -78,9 +78,9 @@ package object filter {
    *           Ands and the outer list combined by Ors.
    */
   private[filter] def logicDistributionDNF(x: Filter): List[List[Filter]] = x match {
-    case or: Or  => or.getChildren.toList.flatMap(logicDistributionDNF)
+    case or: Or  => or.getChildren.asScala.toList.flatMap(logicDistributionDNF)
 
-    case and: And => and.getChildren.foldRight (List(List.empty[Filter])) {
+    case and: And => and.getChildren.asScala.foldRight (List(List.empty[Filter])) {
       (f, dnf) => for {
         a <- logicDistributionDNF (f)
         b <- dnf
@@ -174,15 +174,15 @@ package object filter {
   def rewriteFilterInCNF(filter: Filter)(implicit ff: FilterFactory): Filter = {
     val ll = logicDistributionCNF(FilterHelper.simplify(filter))
     if (ll.size == 1) {
-      if (ll.head.size == 1) ll.head.head else ff.or(ll.head)
+      if (ll.head.size == 1) ll.head.head else ff.or(ll.head.asJava)
     } else {
       val children = ll.map { l =>
         l.size match {
           case 1 => l.head
-          case _ => ff.or(l)
+          case _ => ff.or(l.asJava)
         }
       }
-      ff.and(children)
+      ff.and(children.asJava)
     }
   }
 
@@ -193,9 +193,9 @@ package object filter {
    *           Ors and the outer list combined by Ands.
    */
   def logicDistributionCNF(x: Filter): List[List[Filter]] = x match {
-    case and: And => and.getChildren.toList.flatMap(logicDistributionCNF)
+    case and: And => and.getChildren.asScala.toList.flatMap(logicDistributionCNF)
 
-    case or: Or => or.getChildren.foldRight (List(List.empty[Filter])) {
+    case or: Or => or.getChildren.asScala.foldRight (List(List.empty[Filter])) {
       (f, cnf) => for {
         a <- logicDistributionCNF(f)
         b <- cnf
@@ -218,8 +218,8 @@ package object filter {
    *   as well as cancel adjacent Nots.
    */
   private[filter] def deMorgan(f: Filter)(implicit ff: FilterFactory): Filter = f match {
-    case and: And => ff.or(and.getChildren.map(a => ff.not(a)))
-    case or:  Or  => ff.and(or.getChildren.map(a => ff.not(a)))
+    case and: And => ff.or(and.getChildren.asScala.map(a => ff.not(a).asInstanceOf[Filter]).asJava)
+    case or:  Or  => ff.and(or.getChildren.asScala.map(a => ff.not(a).asInstanceOf[Filter]).asJava)
     case not: Not => not.getFilter
   }
 
@@ -353,33 +353,33 @@ package object filter {
 
   def decomposeBinary(f: Filter): Seq[Filter] =
     f match {
-      case b: BinaryLogicOperator => b.getChildren.toSeq.flatMap(decomposeBinary)
+      case b: BinaryLogicOperator => b.getChildren.asScala.toSeq.flatMap(decomposeBinary)
       case f: Filter => Seq(f)
     }
 
   def decomposeAnd(f: Filter): Seq[Filter] =
     f match {
-      case b: And => b.getChildren.toSeq.flatMap(decomposeAnd)
+      case b: And => b.getChildren.asScala.toSeq.flatMap(decomposeAnd)
       case f: Filter => Seq(f)
     }
 
   def decomposeOr(f: Filter): Seq[Filter] =
     f match {
-      case b: Or => b.getChildren.toSeq.flatMap(decomposeOr)
+      case b: Or => b.getChildren.asScala.toSeq.flatMap(decomposeOr)
       case f: Filter => Seq(f)
     }
 
   def orFilters(filters: Seq[Filter])(implicit ff: FilterFactory = ff): Filter =
-    if (filters.lengthCompare(1) == 0) { filters.head } else { ff.or(filters) }
+    if (filters.lengthCompare(1) == 0) { filters.head } else { ff.or(filters.asJava) }
 
   def andFilters(filters: Seq[Filter])(implicit ff: FilterFactory = ff): Filter =
-    if (filters.lengthCompare(1) == 0) { filters.head } else { ff.and(filters) }
+    if (filters.lengthCompare(1) == 0) { filters.head } else { ff.and(filters.asJava) }
 
   def orOption(filters: Seq[Filter])(implicit ff: FilterFactory = ff): Option[Filter] =
-    if (filters.lengthCompare(2) < 0) { filters.headOption } else { Some(ff.or(filters)) }
+    if (filters.lengthCompare(2) < 0) { filters.headOption } else { Some(ff.or(filters.asJava)) }
 
   def andOption(filters: Seq[Filter])(implicit ff: FilterFactory = ff): Option[Filter] =
-    if (filters.lengthCompare(2) < 0) { filters.headOption } else { Some(ff.and(filters)) }
+    if (filters.lengthCompare(2) < 0) { filters.headOption } else { Some(ff.and(filters.asJava)) }
 
   def mergeFilters(f1: Filter, f2: Filter): Filter = {
     if (f1 == Filter.INCLUDE) {
@@ -439,5 +439,5 @@ package object filter {
   }
 
   private def attribute(f: Function): Option[String] =
-    f.getParameters.map(DataUtilities.attributeNames(_).headOption).collectFirst { case Some(p) => p }
+    f.getParameters.asScala.map(DataUtilities.attributeNames(_).headOption).collectFirst { case Some(p) => p }
 }

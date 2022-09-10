@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.kafka.index
 
-import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
-
 import com.github.benmanes.caffeine.cache.Ticker
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -23,6 +21,8 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 
 @RunWith(classOf[JUnitRunner])
 class KafkaFeatureCacheTest extends Specification with Mockito {

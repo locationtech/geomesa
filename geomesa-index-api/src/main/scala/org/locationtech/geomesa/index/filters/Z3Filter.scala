@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.index.filters
 
-import java.nio.ByteBuffer
-
 import org.locationtech.geomesa.index.filters.RowFilter.RowFilterFactory
 import org.locationtech.geomesa.index.index.z3.Z3IndexValues
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.sfcurve.zorder.Z3
+
+import java.nio.ByteBuffer
 
 class Z3Filter(
     val xy: Array[Array[Int]],

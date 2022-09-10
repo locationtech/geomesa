@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.conf.splitter
 
-import java.nio.charset.StandardCharsets
-
 import com.google.common.primitives.Shorts
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -19,6 +17,8 @@ import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.nio.charset.StandardCharsets
 
 @RunWith(classOf[JUnitRunner])
 class DefaultSplitterTest extends Specification {

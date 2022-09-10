@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import java.util.Date
-
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -22,6 +20,8 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDE
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
+
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class S3IndexTest extends TestWithFeatureType {

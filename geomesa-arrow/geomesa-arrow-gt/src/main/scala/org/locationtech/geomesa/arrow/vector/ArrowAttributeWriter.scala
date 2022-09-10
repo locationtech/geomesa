@@ -98,7 +98,7 @@ object ArrowAttributeWriter {
       encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min): Seq[ArrowAttributeWriter] = {
     sft.getAttributeDescriptors.asScala.map { descriptor =>
       apply(sft, descriptor, dictionaries.get(descriptor.getLocalName), encoding, vector)
-    }
+    }.toSeq
   }
 
   /**

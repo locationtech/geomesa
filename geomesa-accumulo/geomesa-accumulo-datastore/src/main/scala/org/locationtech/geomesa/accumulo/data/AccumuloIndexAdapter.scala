@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.nio.charset.StandardCharsets
-import java.util.Collections
-import java.util.Map.Entry
-
 import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
@@ -43,6 +39,10 @@ import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.nio.charset.StandardCharsets
+import java.util.Collections
+import java.util.Map.Entry
 
 /**
   * Index adapter for accumulo back-end

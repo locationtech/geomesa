@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.tools.utils
 
-import java.net.InetAddress
-import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
-import java.util.concurrent.{Future, Phaser, TimeUnit}
-
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{JCommander, Parameter}
 import com.codahale.metrics.{MetricRegistry, Timer}
@@ -22,6 +18,9 @@ import org.locationtech.geomesa.tools.utils.NailgunServer.{CommandStat, NailgunA
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
+import java.net.InetAddress
+import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
+import java.util.concurrent.{Future, Phaser, TimeUnit}
 import scala.concurrent.duration.Duration
 
 class NailgunServer(addr: InetAddress, port: Int, sessionPoolSize: Int, timeoutMillis: Int, idleTimeoutMillis: Long)

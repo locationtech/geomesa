@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.parquet
 
-import java.io.InputStream
-
 import com.typesafe.config.Config
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -28,6 +26,7 @@ import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.InputStream
 import scala.util.control.NonFatal
 
 class ParquetConverterFactory
@@ -105,7 +104,7 @@ class ParquetConverterFactory
         val converterConfig = BasicConfig(typeToProcess, id, Map.empty, Map.empty)
 
         val config = configConvert.to(converterConfig)
-            .withFallback(fieldConvert.to(fields))
+            .withFallback(fieldConvert.to(fields.toSeq))
             .withFallback(optsConvert.to(BasicOptions.default))
             .toConfig
 
@@ -206,8 +205,8 @@ object ParquetConverterFactory {
     schema.getFields.asScala.foreach(mapField(_))
 
     // check if we can derive a geometry field
-    TypeInference.deriveGeometry(types).foreach(g => types += g)
+    TypeInference.deriveGeometry(types.toSeq).foreach(g => types += g)
 
-    types
+    types.toSeq
   }
 }

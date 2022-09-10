@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert2
 
-import java.io.InputStream
-
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.EvaluationContext.{EvaluationError, FieldAccessor}
@@ -22,6 +20,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.InputStream
 import scala.util.control.NonFatal
 
 abstract class AbstractCompositeConverter[T <: AnyRef](

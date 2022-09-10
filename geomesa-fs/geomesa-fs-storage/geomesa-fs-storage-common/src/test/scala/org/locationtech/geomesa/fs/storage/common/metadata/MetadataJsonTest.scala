@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
-import java.io.File
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
@@ -21,6 +17,10 @@ import org.locationtech.geomesa.fs.storage.common.metadata.MetadataJson.Metadata
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.File
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 
 @RunWith(classOf[JUnitRunner])
 class MetadataJsonTest extends Specification {

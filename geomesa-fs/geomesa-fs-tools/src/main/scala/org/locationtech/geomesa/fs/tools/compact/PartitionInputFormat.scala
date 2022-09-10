@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools.compact
 
-import java.io.{DataInput, DataOutput}
-
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
@@ -23,6 +21,8 @@ import org.locationtech.geomesa.fs.tools.compact.PartitionInputFormat.{Partition
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.io.{DataInput, DataOutput}
 
 /**
   * An Input format that creates splits based on FSDS Partitions. This is used for compaction, when we want a single

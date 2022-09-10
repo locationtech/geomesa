@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.index.index.attribute.legacy
 
-import java.nio.charset.StandardCharsets
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
 import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy
@@ -24,6 +20,10 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import java.nio.charset.StandardCharsets
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 
 // tiered date index, id not serialized in the feature
 class AttributeIndexV3 protected (ds: GeoMesaDataStore[_],

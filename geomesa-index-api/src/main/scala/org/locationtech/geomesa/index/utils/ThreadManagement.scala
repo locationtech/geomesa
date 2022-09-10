@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.utils
 
-import java.io.Closeable
-import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
-
 import com.typesafe.scalalogging.Logger
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -19,6 +16,8 @@ import org.locationtech.geomesa.utils.iterators.ExceptionalIterator
 import org.opengis.filter.Filter
 import org.slf4j.LoggerFactory
 
+import java.io.Closeable
+import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 

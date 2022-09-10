@@ -8,18 +8,18 @@
 
 package org.locationtech.geomesa.spark
 
-import java.{lang => jl}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Column, TypedColumn, _}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.spark.DataFrameFunctions._
 import org.locationtech.geomesa.spark.jts._
 import org.locationtech.geomesa.spark.jts.util.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.locationtech.geomesa.spark.DataFrameFunctions._
+
+import java.{lang => jl}
 
 @RunWith(classOf[JUnitRunner])
 class DataFrameFunctionsTest extends Specification with LazyLogging with SpatialRelations {

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.geoserver
 
-import java.util.{Locale, Map => jMap}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -21,6 +19,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.{StringSerialization, WKTUtils}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util.{Locale, Map => jMap}
 import scala.util.Try
 import scala.util.control.NonFatal
 

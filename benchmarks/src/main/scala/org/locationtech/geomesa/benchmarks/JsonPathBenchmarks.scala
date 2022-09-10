@@ -9,14 +9,6 @@
 package org.locationtech.geomesa.benchmarks
 import java.util.concurrent.TimeUnit
 
-import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.benchmarks.JsonPathBenchmarks.{AttributeState, FunctionState}
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
-import org.openjdk.jmh.annotations._
-
 @Fork(1)
 @Threads(1)
 @Warmup(iterations = 3)

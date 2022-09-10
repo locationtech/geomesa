@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -21,6 +19,8 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 @RunWith(classOf[JUnitRunner])
 class ArrowFileIteratorTest extends TestWithFeatureType {

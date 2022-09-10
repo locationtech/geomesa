@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.tools.export
 
-import java.io.{File, FileInputStream, FileWriter}
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.util.{Collections, Date}
-
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
@@ -41,6 +36,11 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.runner.JUnitRunner
+
+import java.io.{File, FileInputStream, FileWriter}
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.util.{Collections, Date}
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloExportCommandTest extends TestWithFeatureType {

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util.Date
-
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
@@ -29,6 +27,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipleSfts {

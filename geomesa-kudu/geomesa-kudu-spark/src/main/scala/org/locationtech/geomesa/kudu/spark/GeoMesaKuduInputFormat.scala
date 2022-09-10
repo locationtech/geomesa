@@ -12,13 +12,7 @@
 
 package org.locationtech.geomesa.kudu.spark
 
-import java.io.{DataInput, DataOutput, IOException}
-import java.net.InetSocketAddress
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.ConcurrentHashMap
-
 import com.typesafe.scalalogging.LazyLogging
-import javax.naming.NamingException
 import org.apache.hadoop.conf.{Configurable, Configuration}
 import org.apache.hadoop.io.{NullWritable, Text, Writable}
 import org.apache.hadoop.mapred.JobConf
@@ -39,6 +33,12 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
+
+import java.io.{DataInput, DataOutput, IOException}
+import java.net.InetSocketAddress
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ConcurrentHashMap
+import javax.naming.NamingException
 
 /**
   * Input format for reading GeoMesa data from Kudu

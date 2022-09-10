@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.web.core
 
 import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper}
-
 import scala.annotation.tailrec
 
 /**

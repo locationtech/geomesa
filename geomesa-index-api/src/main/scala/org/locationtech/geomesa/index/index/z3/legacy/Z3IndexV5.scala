@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.index.z3.legacy
 
-import java.util.Date
-
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
 import org.locationtech.geomesa.index.api._
@@ -22,6 +20,7 @@ import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.jts.geom.Point
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util.Date
 import scala.util.control.NonFatal
 
 // fixed z-curve, still has table sharing

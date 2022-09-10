@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import java.io.{Closeable, FileNotFoundException}
-import java.util
-import java.util.concurrent.{ConcurrentHashMap, Phaser}
-
 import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
@@ -31,6 +27,9 @@ import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Envelope
 
+import java.io.{Closeable, FileNotFoundException}
+import java.util
+import java.util.concurrent.{ConcurrentHashMap, Phaser}
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
@@ -74,7 +73,7 @@ object FsManageMetadataCommand {
         bounds.expandToInclude(xmin, ymin)
         bounds.expandToInclude(xmax, ymax)
       }
-      metadata.addPartition(PartitionMetadata(params.partition, files, PartitionBounds(bounds), count))
+      metadata.addPartition(PartitionMetadata(params.partition, files.toSeq, PartitionBounds(bounds), count))
       val partition = metadata.getPartition(params.partition).getOrElse(PartitionMetadata("", Seq.empty, None, 0L))
       Command.user.info(s"Registered ${params.files.size} new files. Updated partition: ${partition.files.size} " +
           s"files containing ${partition.count} known features")
@@ -90,7 +89,7 @@ object FsManageMetadataCommand {
       val metadata = ds.storage(params.featureName).metadata
       val files = params.files.asScala.map(StorageFile(_, 0L))
       val count = Option(params.count).map(_.longValue()).getOrElse(0L)
-      metadata.removePartition(PartitionMetadata(params.partition, files, None, count))
+      metadata.removePartition(PartitionMetadata(params.partition, files.toSeq, None, count))
       val partition = metadata.getPartition(params.partition).getOrElse(PartitionMetadata("", Seq.empty, None, 0L))
       Command.user.info(s"Unregistered ${params.files.size} files. Updated partition: ${partition.files.size} " +
           s"files containing ${partition.count} known features")
@@ -124,7 +123,7 @@ object FsManageMetadataCommand {
       withDataStore { ds =>
         Command.user.info("Checking consistency, please wait...")
         val storage = ds.storage(params.featureName)
-        val partitions = Option(params.partitions).collect { case p if !p.isEmpty => p.asScala }
+        val partitions = Option(params.partitions).collect { case p if !p.isEmpty => p.asScala.toSeq }
         WithClose(new ConsistencyChecker(storage, partitions, params.rebuild, params.repair, params.threads))(_.run())
       }
     }
@@ -192,7 +191,7 @@ object FsManageMetadataCommand {
             if (inconsistencies.nonEmpty) {
               Command.user.info(s"Removing $inconsistentCount inconsistent metadata references...")
               inconsistencies.foreach { case (partition, files) =>
-                storage.metadata.removePartition(PartitionMetadata(partition, files.map(_.file), None, 0L))
+                storage.metadata.removePartition(PartitionMetadata(partition, files.map(_.file).toSeq, None, 0L))
               }
               Command.user.info("Done")
             }

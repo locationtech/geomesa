@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.tools.export
 
-import java.io.File
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path}
-import java.util.concurrent.atomic.AtomicInteger
-
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
@@ -23,6 +18,11 @@ import org.locationtech.geomesa.utils.io.PathUtils
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.File
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Path}
+import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
 class ConvertCommandTest extends Specification with LazyLogging {

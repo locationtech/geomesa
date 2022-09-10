@@ -8,20 +8,20 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import java.nio.ByteBuffer
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.{Date, UUID}
-
-import org.locationtech.jts.geom.Geometry
 import org.apache.accumulo.core.data.Value
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.{Date, UUID}
 
 @RunWith(classOf[JUnitRunner])
 class IndexValueEncoderTest extends Specification {

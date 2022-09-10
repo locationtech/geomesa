@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert
 
-import java.util.ServiceLoader
-
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.avro.{AvroConverter, AvroConverterFactory}
 import org.locationtech.geomesa.convert.fixedwidth.{FixedWidthConverter, FixedWidthConverterFactory}
@@ -21,6 +19,8 @@ import org.locationtech.geomesa.convert2.SimpleFeatureConverterFactory
 import org.locationtech.geomesa.convert2.composite.{CompositeConverter, CompositeConverterFactory}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.ServiceLoader
 
 @RunWith(classOf[JUnitRunner])
 class FindConvertersTest extends Specification {

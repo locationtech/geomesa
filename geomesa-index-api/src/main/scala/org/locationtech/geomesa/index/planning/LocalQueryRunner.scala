@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.planning
 
-import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
@@ -38,6 +35,9 @@ import org.locationtech.geomesa.utils.stats.{Stat, TopK}
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 
 /**
   * Query runner that handles transforms, visibilities and analytic queries locally. Subclasses are responsible
@@ -120,7 +120,7 @@ object LocalQueryRunner extends LazyLogging {
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   case class ArrowDictionaryHook(stats: GeoMesaStats, filter: Option[Filter])
 
@@ -133,7 +133,7 @@ object LocalQueryRunner extends LazyLogging {
   def visible(provider: Option[AuthorizationsProvider]): SimpleFeature => Boolean = {
     provider match {
       case None    => noAuthVisibilityCheck
-      case Some(p) => authVisibilityCheck(_, p.getAuthorizations.map(_.getBytes(StandardCharsets.UTF_8)))
+      case Some(p) => authVisibilityCheck(_, p.getAuthorizations.asScala.map(_.getBytes(StandardCharsets.UTF_8)).toSeq)
     }
   }
 

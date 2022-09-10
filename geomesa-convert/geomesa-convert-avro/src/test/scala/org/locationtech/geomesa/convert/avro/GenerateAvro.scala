@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import java.io.{FileOutputStream, File}
-
 import org.apache.avro.file.DataFileWriter
+
+import java.io.{File, FileOutputStream}
 
 // helper for integration tests and such
 object GenerateAvro extends AvroUtils {

@@ -14,8 +14,6 @@ import org.locationtech.geomesa.kafka.tools.status.KafkaDescribeSchemaCommand.De
 import org.locationtech.geomesa.kafka.tools.{KafkaDataStoreCommand, StatusDataStoreParams}
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.status.DescribeSchemaCommand
-import org.opengis.feature.simple.SimpleFeatureType
-import org.slf4j.Logger
 
 class KafkaDescribeSchemaCommand extends DescribeSchemaCommand[KafkaDataStore] with KafkaDataStoreCommand {
   override val params = new DescribeParameters

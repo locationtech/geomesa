@@ -8,18 +8,8 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.io._
-import java.nio.charset.Charset
-
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
-import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
-import javax.xml.namespace.NamespaceContext
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamSource
-import javax.xml.validation.SchemaFactory
-import javax.xml.xpath.{XPath, XPathConstants, XPathExpression, XPathFactory}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BOMInputStream
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, LineMode, ParseMode}
@@ -34,6 +24,15 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.w3c.dom.{Element, NodeList}
 import org.xml.sax.InputSource
 
+import java.io._
+import java.nio.charset.Charset
+import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
+import javax.xml.namespace.NamespaceContext
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamSource
+import javax.xml.validation.SchemaFactory
+import javax.xml.xpath.{XPath, XPathConstants, XPathExpression, XPathFactory}
 import scala.util.control.NonFatal
 
 class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlField], options: XmlOptions)

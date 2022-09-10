@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.security
 
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.ConcurrentHashMap
-
 import org.apache.commons.text.StringEscapeUtils
 import org.locationtech.geomesa.utils.text.BasicParser
 import org.parboiled.errors.{ErrorUtils, ParsingException}
 import org.parboiled.scala.parserunners.{BasicParseRunner, ReportingParseRunner}
+
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ConcurrentHashMap
 
 /**
   * Evaluates visibilities against authorizations. Abstracted from Accumulo visibility code

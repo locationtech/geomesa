@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.nio.charset.StandardCharsets
-import java.util.{Date, UUID}
-
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.geometry.DirectPosition2D
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
@@ -27,6 +24,8 @@ import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.nio.charset.StandardCharsets
+import java.util.{Date, UUID}
 import scala.reflect.ClassTag
 import scala.util.Try
 
@@ -301,7 +300,7 @@ object RichSimpleFeatureType extends Conversions {
 
     def setUserDataPrefixes(prefixes: Seq[String]): Unit = sft.getUserData.put(UserDataPrefix, prefixes.mkString(","))
     def getUserDataPrefixes: Seq[String] =
-      Seq(GeomesaPrefix) ++ userData[String](UserDataPrefix).map(_.split(",")).getOrElse(Array.empty)
+      (Seq(GeomesaPrefix) ++ userData[String](UserDataPrefix).map(_.split(",")).getOrElse(Array.empty)).toSeq
 
     def setZShards(splits: Int): Unit = sft.getUserData.put(IndexZShards, splits.toString)
     @deprecated("use z2/z3 specific methods")

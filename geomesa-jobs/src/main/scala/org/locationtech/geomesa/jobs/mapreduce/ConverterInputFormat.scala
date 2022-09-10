@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.jobs.mapreduce
 
-import java.io.{Closeable, InputStream}
-import java.util.Locale
-
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
@@ -35,6 +32,9 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.fs.{ArchiveFileIterator, ZipFileIterator}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.{Closeable, InputStream}
+import java.util.Locale
 
 /**
  * Input format for Converters gives us access to the entire file as a byte stream

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.index.z3
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
@@ -28,6 +26,7 @@ import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.util.Date
 import scala.util.control.NonFatal
 
 class XZ3IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, geomField: String, dtgField: String)

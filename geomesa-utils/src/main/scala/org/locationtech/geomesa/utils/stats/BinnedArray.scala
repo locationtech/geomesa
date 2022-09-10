@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
-import java.util.{Date, Locale}
-
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats.BinnedArray.Binning
 import org.locationtech.jts.geom.{Coordinate, Geometry, Point}
 
+import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
+import java.util.{Date, Locale}
 import scala.reflect.ClassTag
 
 /**

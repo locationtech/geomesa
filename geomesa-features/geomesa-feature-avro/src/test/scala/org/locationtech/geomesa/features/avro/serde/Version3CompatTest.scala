@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.features.avro.serde
 
-import java.io.{File, FileInputStream, FileOutputStream}
-import java.text.SimpleDateFormat
-import java.util.UUID
-
 import org.apache.avro.io.DecoderFactory
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
@@ -22,6 +18,9 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.{File, FileInputStream, FileOutputStream}
+import java.text.SimpleDateFormat
+import java.util.UUID
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 

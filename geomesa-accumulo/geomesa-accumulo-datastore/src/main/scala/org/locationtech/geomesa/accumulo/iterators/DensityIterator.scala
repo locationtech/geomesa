@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.Map.Entry
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
@@ -19,6 +17,8 @@ import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.{DensityResultsToFeatures, DensityScanResult}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import java.util.Map.Entry
 
 /**
  * Density iterator - only works on kryo-encoded features

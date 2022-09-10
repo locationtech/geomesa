@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.tools.ingest
 
-import java.io.{File, FileWriter, InputStream, PrintWriter}
-import java.nio.charset.StandardCharsets
-import java.util.{Collections, Locale}
-
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
@@ -41,6 +37,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.{File, FileWriter, InputStream, PrintWriter}
+import java.nio.charset.StandardCharsets
+import java.util.{Collections, Locale}
 import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 import scala.util.{Success, Try}
@@ -61,7 +60,7 @@ trait IngestCommand[DS <: DataStore]
     }
 
     val inputs: Inputs = {
-      val files = Inputs(params.files.asScala)
+      val files = Inputs(params.files.asScala.toSeq)
       if (params.srcList) { files.asSourceList } else { files }
     }
 

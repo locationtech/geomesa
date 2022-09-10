@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.io.{IOException, StringReader, StringWriter}
-import java.util.{Collections, Properties}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.Parameter
@@ -18,6 +15,8 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{DeprecatedParam, ReadWriteFlag, SystemPropertyParam}
 import org.locationtech.geomesa.utils.text.DurationParsing
 
+import java.io.{IOException, StringReader, StringWriter}
+import java.util.{Collections, Properties}
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal

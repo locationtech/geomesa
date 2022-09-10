@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.filter.expression
 
-import java.util.Date
-
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.opengis.filter.FilterVisitor
 import org.opengis.filter.MultiValuedFilter.MatchAction
 import org.opengis.filter.expression.{Expression, Literal}
 import org.opengis.filter.temporal.{After, Before, BinaryTemporalOperator, During}
 import org.opengis.temporal.Period
+
+import java.util.Date
 
 /**
   * Fast temporal filters that avoid repeatedly evaluating literals

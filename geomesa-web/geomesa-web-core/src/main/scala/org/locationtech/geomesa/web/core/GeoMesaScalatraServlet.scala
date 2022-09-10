@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.web.core
 
-import java.io.{PrintWriter, StringWriter}
-
 import com.typesafe.scalalogging.LazyLogging
-import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
 import org.geotools.data.DataStoreFinder
 import org.scalatra.{ActionResult, InternalServerError, ScalatraServlet}
 
+import java.io.{PrintWriter, StringWriter}
+import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
 import scala.beans.BeanProperty
 
 trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
@@ -37,7 +36,7 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
   /**
     * Pulls data store relevant values out of the request params
     */
-  def datastoreParams: Map[String, String] = params.filterKeys(dsKeys.contains)
+  def datastoreParams: Map[String, String] = params.toMap.filterKeys(dsKeys.contains).toMap
 
   /**
     * Common error handler that accounts for debug setting

@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.util.concurrent.ConcurrentHashMap
-
 import org.apache.commons.codec.binary.Hex
 import org.locationtech.geomesa.features.avro.FieldNameEncoder._
 
-import scala.collection.JavaConversions._
+import java.util.concurrent.ConcurrentHashMap
+import scala.collection.JavaConverters._
 
 class FieldNameEncoder(serializationVersion: Int, forceFullEncoding: Boolean = false) {
   private val m = if (serializationVersion < 4 || forceFullEncoding) cachePreV4 else cacheV4
@@ -21,8 +20,8 @@ class FieldNameEncoder(serializationVersion: Int, forceFullEncoding: Boolean = f
   private val encodeFn: String => String = if (serializationVersion < 4 || forceFullEncoding) encodePreV4 else hexEscape
   private val decodeFn: String => String = if (serializationVersion < 4 || forceFullEncoding) decodePreV4 else deHexEscape
 
-  def encode(s: String): String = m.getOrElseUpdate(s, encodeFn(s))
-  def decode(s: String): String = m.getOrElseUpdate(s, decodeFn(s))
+  def encode(s: String): String = m.asScala.getOrElseUpdate(s, encodeFn(s))
+  def decode(s: String): String = m.asScala.getOrElseUpdate(s, decodeFn(s))
 }
 
 object FieldNameEncoder {

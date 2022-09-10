@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.jobs.mapreduce
 
-import java.io.{File, IOException}
-import java.nio.charset.StandardCharsets
-
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.mapreduce.Job
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.utils.io.WithClose
 
+import java.io.{File, IOException}
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 trait JobWithLibJars {
@@ -28,7 +27,7 @@ trait JobWithLibJars {
   private def readLibJars(file: String): Seq[String] = {
     try {
       WithClose(getClass.getClassLoader.getResourceAsStream(file)) { is =>
-        IOUtils.readLines(is, StandardCharsets.UTF_8).asScala
+        IOUtils.readLines(is, StandardCharsets.UTF_8).asScala.toSeq
       }
     } catch {
       case NonFatal(e) => throw new IOException(s"Error reading ingest libjars '$file'", e)

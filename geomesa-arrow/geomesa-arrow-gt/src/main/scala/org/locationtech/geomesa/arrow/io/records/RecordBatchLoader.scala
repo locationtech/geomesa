@@ -9,15 +9,13 @@
 package org.locationtech.geomesa.arrow.io
 package records
 
-import java.io.ByteArrayInputStream
-import java.nio.channels.Channels
-
-import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.ipc.ReadChannel
 import org.apache.arrow.vector.ipc.message.{ArrowRecordBatch, MessageSerializer}
-import org.apache.arrow.vector.types.pojo.Field
 import org.apache.arrow.vector.{FieldVector, VectorLoader}
 import org.locationtech.geomesa.utils.io.WithClose
+
+import java.io.ByteArrayInputStream
+import java.nio.channels.Channels
 
 /**
  * Record batch unloader

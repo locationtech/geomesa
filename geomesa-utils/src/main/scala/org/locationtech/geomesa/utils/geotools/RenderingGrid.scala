@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.awt.image.BufferedImage
-
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.jts.geom._
 
+import java.awt.image.BufferedImage
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 

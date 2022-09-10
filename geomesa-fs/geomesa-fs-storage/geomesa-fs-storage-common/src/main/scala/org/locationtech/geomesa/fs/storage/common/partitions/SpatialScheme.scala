@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
-import java.util.regex.Pattern
-
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
@@ -17,6 +15,8 @@ import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import java.util.regex.Pattern
 
 abstract class SpatialScheme(bits: Int, geom: String) extends PartitionScheme {
 

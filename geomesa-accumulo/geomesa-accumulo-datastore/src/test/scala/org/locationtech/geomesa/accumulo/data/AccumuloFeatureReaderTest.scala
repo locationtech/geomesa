@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.time.ZonedDateTime
-
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -23,6 +21,7 @@ import org.locationtech.geomesa.utils.audit.{AuditReader, AuditWriter, AuditedEv
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.time.ZonedDateTime
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 

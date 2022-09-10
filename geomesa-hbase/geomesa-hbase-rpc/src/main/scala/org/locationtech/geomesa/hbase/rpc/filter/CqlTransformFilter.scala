@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.hbase.rpc.filter
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.Filter.ReturnCode
@@ -26,12 +23,13 @@ import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, 
 import org.locationtech.geomesa.index.conf.FilterCompatibility
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.iterators.{IteratorCache, SamplingIterator}
-import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 /**

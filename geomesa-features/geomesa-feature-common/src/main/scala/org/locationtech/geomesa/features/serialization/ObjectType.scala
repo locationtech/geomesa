@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import java.util.{UUID, Collections => jCollections, List => jList, Map => jMap}
-
-import org.locationtech.jts.geom._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs.{UserDataListType, UserDataMapKeyType, UserDataMapValueType}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
+import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
+
+import java.util.{UUID, Collections => jCollections, List => jList, Map => jMap}
 
 @deprecated("Replaced with org.locationtech.geomesa.utils.geotools.ObjectType")
 object ObjectType extends Enumeration {

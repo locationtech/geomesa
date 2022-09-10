@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.index.stats
 
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-import java.util.Date
-import java.util.concurrent.ConcurrentHashMap
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStore
 import org.geotools.filter.text.ecql.ECQL
@@ -27,6 +23,9 @@ import org.locationtech.geomesa.utils.stats.{EnumerationStat, _}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 

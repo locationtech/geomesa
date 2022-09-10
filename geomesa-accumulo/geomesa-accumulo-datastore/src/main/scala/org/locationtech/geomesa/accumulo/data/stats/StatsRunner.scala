@@ -8,18 +8,18 @@
 
 package org.locationtech.geomesa.accumulo.data.stats
 
-import java.io.Closeable
-import java.time.temporal.ChronoUnit
-import java.time.{Clock, Instant}
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{Callable, Executors, Future, TimeUnit}
-
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.Closeable
+import java.time.temporal.ChronoUnit
+import java.time.{Clock, Instant}
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{Callable, Executors, Future, TimeUnit}
 
 /**
   * Update stats for a data store in a background thread. Uses distributed locking to ensure

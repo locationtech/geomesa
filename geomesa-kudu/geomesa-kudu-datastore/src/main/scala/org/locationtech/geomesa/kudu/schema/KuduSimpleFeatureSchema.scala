@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.kudu.schema
 
-import java.util.concurrent.ConcurrentHashMap
-
 import org.apache.kudu.ColumnSchema
 import org.apache.kudu.client.KuduPredicate
 import org.locationtech.geomesa.kudu.KuduValue
@@ -17,6 +15,8 @@ import org.locationtech.geomesa.kudu.schema.KuduSimpleFeatureSchema.KuduFilter
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.util.concurrent.ConcurrentHashMap
 
 /**
   * Handles conversions between Kudu table columns and simple feature attributes.

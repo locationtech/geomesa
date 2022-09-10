@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.security.filter
 
-import java.nio.charset.StandardCharsets
-import java.util.Collections
-
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl.parameter
@@ -19,6 +16,8 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.capability.FunctionName
 import org.opengis.filter.expression.Expression
 
+import java.nio.charset.StandardCharsets
+import java.util.Collections
 import scala.util.Try
 
 class VisibilityFilterFunction extends FunctionExpressionImpl(VisibilityFilterFunction.Name) {
@@ -48,7 +47,7 @@ class VisibilityFilterFunction extends FunctionExpressionImpl(VisibilityFilterFu
       }
       if (vis == null || vis.isEmpty) { java.lang.Boolean.FALSE } else {
         cache.getOrElseUpdate(vis,
-          Try(Boolean.box(VisibilityEvaluator.parse(vis).evaluate(auths))).getOrElse(java.lang.Boolean.FALSE))
+          Try(Boolean.box(VisibilityEvaluator.parse(vis).evaluate(auths.toSeq))).getOrElse(java.lang.Boolean.FALSE))
       }
 
     case _ => java.lang.Boolean.FALSE

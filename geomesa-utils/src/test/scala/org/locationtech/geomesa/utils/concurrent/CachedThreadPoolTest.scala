@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.utils.concurrent
 
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{CountDownLatch, Executors, TimeUnit}
-
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{CountDownLatch, Executors, TimeUnit}
 
 @RunWith(classOf[JUnitRunner])
 class CachedThreadPoolTest extends Specification {

@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.convert.json
 
-import java.io.{InputStream, InputStreamReader}
-import java.nio.charset.StandardCharsets
-import java.util.Locale
-
 import com.google.gson.stream.{JsonReader, JsonToken}
 import com.google.gson.{JsonElement, JsonParser}
 import com.typesafe.config.Config
@@ -23,12 +19,15 @@ import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsC
 import org.locationtech.geomesa.convert2.TypeInference.{IdentityTransform, InferredType}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
-import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType}
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType}
 import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
+import java.io.{InputStream, InputStreamReader}
+import java.nio.charset.StandardCharsets
+import java.util.Locale
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.control.NonFatal
 
@@ -128,9 +127,9 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
         inferredTypes += InferredType(geomField.name, geomType, IdentityTransform)
 
         // validate the existing schema, if any
-        sft.foreach(AbstractConverterFactory.validateInferredType(_, inferredTypes.map(_.typed)))
+        sft.foreach(AbstractConverterFactory.validateInferredType(_, inferredTypes.map(_.typed).toSeq))
 
-        val schema = sft.getOrElse(TypeInference.schema("inferred-json", inferredTypes))
+        val schema = sft.getOrElse(TypeInference.schema("inferred-json", inferredTypes.toSeq))
 
         val jsonConfig = JsonConfig(typeToProcess, featurePath, idField, Map.empty, Map.empty)
         val fieldConfig = fields :+ geomField

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.cache
 
-import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit}
-
 import com.github.benmanes.caffeine.cache.Ticker
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.io.WithClose
@@ -17,6 +15,8 @@ import org.mockito.ArgumentMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
 @RunWith(classOf[JUnitRunner])
 class ThreadLocalCacheTest extends Specification with Mockito {

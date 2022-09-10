@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-import java.util.ServiceLoader
-
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.EvaluationContext.ContextDependent
 import org.locationtech.geomesa.convert2.AbstractConverter.TransformerFunctionApiError
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.DelegateFunction
+
+import java.util.ServiceLoader
 
 trait TransformerFunction extends ContextDependent[TransformerFunction] {
 

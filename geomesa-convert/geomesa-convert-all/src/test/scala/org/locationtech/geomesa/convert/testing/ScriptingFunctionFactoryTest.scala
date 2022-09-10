@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.convert.testing
 
-import java.io.{ByteArrayInputStream, File}
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -19,6 +16,9 @@ import org.locationtech.geomesa.convert2.transforms.ScriptingFunctionFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, File}
+import java.nio.charset.StandardCharsets
 
 @RunWith(classOf[JUnitRunner])
 class ScriptingFunctionFactoryTest extends Specification {

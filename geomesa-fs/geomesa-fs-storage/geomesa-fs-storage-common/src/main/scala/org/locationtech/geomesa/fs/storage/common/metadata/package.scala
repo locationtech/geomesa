@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common
 
-import java.util.Collections
-
 import com.typesafe.config.{Config, ConfigRenderOptions, ConfigValue, ConfigValueFactory}
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.common.metadata.PartitionAction.PartitionAction
@@ -20,7 +18,7 @@ import pureconfig.ConfigReader.Result
 import pureconfig._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import java.util.Collections
 import scala.reflect.ClassTag
 
 package object metadata {

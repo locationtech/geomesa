@@ -8,16 +8,15 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.util.{Date, Locale}
-
 import com.clearspring.analytics.stream.frequency.IFrequency
-import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC}
 import org.locationtech.geomesa.utils.clearspring.CountMinSketch
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.{Date, Locale}
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 

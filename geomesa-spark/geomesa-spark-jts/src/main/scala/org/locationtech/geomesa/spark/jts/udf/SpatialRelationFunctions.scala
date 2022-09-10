@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
+import org.apache.spark.sql.SQLContext
+import org.locationtech.geomesa.spark.jts.udaf.ConvexHull
+import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.jts.geom._
 import org.locationtech.jts.geom.util.AffineTransformation
 import org.locationtech.jts.operation.distance.DistanceOp
-import org.apache.spark.sql.SQLContext
-import org.locationtech.spatial4j.distance.{DistanceCalculator, DistanceUtils}
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext
-import org.locationtech.geomesa.spark.jts.udaf.ConvexHull
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.locationtech.spatial4j.distance.{DistanceCalculator, DistanceUtils}
 
 object SpatialRelationFunctions {
   import java.{lang => jl}

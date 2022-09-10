@@ -27,7 +27,7 @@ import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleF
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 /**
@@ -64,7 +64,7 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     FileInputFormat.setInputPaths(job, params(InputFilesKey))
     conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
     val queryProperties = query.getPropertyNames
-    val sftProperties = sft.getAttributeDescriptors.map{_.getLocalName}
+    val sftProperties = sft.getAttributeDescriptors.asScala.map{_.getLocalName}
     if (queryProperties != null && queryProperties.nonEmpty && sftProperties != queryProperties.toSeq) {
       logger.debug("Query transform retyping results")
       val modifiedSft = SimpleFeatureTypeBuilder.retype(sft, query.getPropertyNames)

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa
 
-import java.nio.charset.Charset
-
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -19,6 +17,7 @@ import org.locationtech.geomesa.convert2.AbstractConverter.FieldApiError
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
+import java.nio.charset.Charset
 import scala.util.control.NonFatal
 
 package object convert2 {

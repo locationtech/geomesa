@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.kafka
 
-import java.util.concurrent.{Delayed, ScheduledFuture, TimeUnit}
-
 import com.github.benmanes.caffeine.cache.Ticker
+
+import java.util.concurrent.{Delayed, ScheduledFuture, TimeUnit}
 
 object ExpirationMocking {
 

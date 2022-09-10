@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.convert.parquet
 
-import java.io.File
-import java.util.{Date, UUID}
-
 import com.typesafe.config.{Config, ConfigFactory}
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
@@ -25,6 +22,9 @@ import org.locationtech.jts.geom._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.File
+import java.util.{Date, UUID}
 
 @RunWith(classOf[JUnitRunner])
 class ParquetConverterTest extends Specification {

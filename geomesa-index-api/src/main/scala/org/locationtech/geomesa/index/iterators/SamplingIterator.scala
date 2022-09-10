@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.index.iterators
 
-import java.util.{Map => jMap}
-
 import org.locationtech.geomesa.index.utils.FeatureSampler
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util.{Map => jMap}
 
 /**
   * Mixin trait to provide support for sampling features.

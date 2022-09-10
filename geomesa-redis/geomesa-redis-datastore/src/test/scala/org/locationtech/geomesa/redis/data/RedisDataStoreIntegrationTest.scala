@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.redis.data
 
-import java.util.{Collections, Date}
-
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -21,6 +19,8 @@ import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, Sim
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.{Collections, Date}
 
 @RunWith(classOf[JUnitRunner])
 class RedisDataStoreIntegrationTest extends Specification {

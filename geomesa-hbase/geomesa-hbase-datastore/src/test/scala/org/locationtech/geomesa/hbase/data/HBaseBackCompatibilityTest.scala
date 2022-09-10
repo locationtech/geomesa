@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.io._
-import java.nio.charset.StandardCharsets
-
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.TableName
@@ -21,7 +18,6 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.hbase.HBaseSystemProperties.TableAvailabilityTimeout
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -32,6 +28,9 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io._
+import java.nio.charset.StandardCharsets
 
 @RunWith(classOf[JUnitRunner])
 class HBaseBackCompatibilityTest extends Specification with LazyLogging  {

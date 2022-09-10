@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.nio.charset.StandardCharsets
-import java.util.{Date, UUID}
-
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -18,7 +15,9 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.nio.charset.StandardCharsets
+import java.util.{Date, UUID}
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class KryoBufferSimpleFeatureTest extends Specification {
@@ -122,7 +121,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
 
       laz must not(beNull)
       laz.getType mustEqual sf.getType
-      forall(laz.getAttributes)((o: AnyRef) => o must beNull)
+      forall(laz.getAttributes.asScala)((o: AnyRef) => o must beNull)
       laz.getAttributes mustEqual sf.getAttributes
     }
 

@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.io.{ByteArrayInputStream, Closeable}
-import java.nio.charset.StandardCharsets
-import java.security.PrivilegedExceptionAction
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
@@ -26,6 +22,9 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsPara
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils}
 
+import java.io.{ByteArrayInputStream, Closeable}
+import java.nio.charset.StandardCharsets
+import java.security.PrivilegedExceptionAction
 import scala.util.{Failure, Success, Try}
 
 object HBaseConnectionPool extends LazyLogging {

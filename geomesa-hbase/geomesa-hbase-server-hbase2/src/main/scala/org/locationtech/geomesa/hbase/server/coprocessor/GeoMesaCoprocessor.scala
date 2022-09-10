@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.server.coprocessor
 
-import java.util.Collections
-
 import com.google.protobuf.{RpcCallback, RpcController, Service}
 import org.apache.hadoop.hbase.client.Scan
 import org.apache.hadoop.hbase.coprocessor.{CoprocessorException, RegionCoprocessor, RegionCoprocessorEnvironment}
@@ -18,6 +16,8 @@ import org.apache.hadoop.hbase.{Coprocessor, CoprocessorEnvironment}
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.GeoMesaCoprocessorService
 import org.locationtech.geomesa.hbase.server.common.CoprocessorScan
+
+import java.util.Collections
 
 /**
  * Server-side coprocessor implementation for HBase 2.2

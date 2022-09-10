@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.utils.io
 
-import java.io.Closeable
-
 import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool, GenericObjectPoolConfig}
 import org.apache.commons.pool2.{BasePooledObjectFactory, PooledObject}
+
+import java.io.Closeable
 
 /**
   * Pool for sharing a finite set of closeable resources

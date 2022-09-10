@@ -8,9 +8,6 @@
 
 package org.apache.spark.sql
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset}
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.catalyst.plans.logical._
@@ -28,6 +25,9 @@ import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.opengis.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
 import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
+
+import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.util.Date
 
 object SQLRules extends LazyLogging {
   @transient

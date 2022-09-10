@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.curve
 
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+
 import java.time._
 import java.time.temporal.ChronoUnit
-
-import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 
 /**
   * Represents a time by an offset into a binned bucket. The bin represents days, weeks,

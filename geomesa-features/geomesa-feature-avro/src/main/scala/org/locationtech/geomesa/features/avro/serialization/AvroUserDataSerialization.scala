@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.features.avro.serialization
 
-import java.nio.ByteBuffer
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.io.{Decoder, Encoder}
 import org.geotools.util.factory.Hints
+
+import java.nio.ByteBuffer
 
 object AvroUserDataSerialization extends LazyLogging {
 

@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.util.Date
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.TableName
@@ -39,6 +36,9 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class HBaseColumnGroupsTest extends Specification with LazyLogging  {

@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.utils.cache
 
-import java.io.Closeable
-import java.lang.ref.WeakReference
-import java.util.concurrent._
-
 import com.github.benmanes.caffeine.cache.{Cache, Caffeine, Ticker}
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 
+import java.io.Closeable
+import java.lang.ref.WeakReference
+import java.util.concurrent._
 import scala.concurrent.duration.Duration
 
 /**

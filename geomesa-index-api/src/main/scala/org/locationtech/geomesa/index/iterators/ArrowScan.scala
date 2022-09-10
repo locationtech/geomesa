@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.iterators
 
-import java.io.ByteArrayOutputStream
-import java.util.Objects
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.util.factory.Hints
@@ -33,6 +30,8 @@ import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.io.ByteArrayOutputStream
+import java.util.Objects
 import scala.reflect.ClassTag
 
 trait ArrowScan extends AggregatingScan[ArrowScan.ArrowAggregate] {

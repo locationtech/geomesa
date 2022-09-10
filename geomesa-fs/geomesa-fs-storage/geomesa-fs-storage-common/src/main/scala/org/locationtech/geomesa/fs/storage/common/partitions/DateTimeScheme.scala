@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
-import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
-import java.time.temporal.{ChronoField, ChronoUnit, TemporalAdjusters, WeekFields}
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
@@ -21,6 +16,10 @@ import org.locationtech.geomesa.utils.text.DateParsing
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
+import java.time.temporal.{ChronoField, ChronoUnit, TemporalAdjusters, WeekFields}
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
@@ -28,10 +27,10 @@ import scala.util.control.NonFatal
 case class DateTimeScheme(formatter: DateTimeFormatter, stepUnit: ChronoUnit, step: Int, dtg: String, dtgIndex: Int)
     extends PartitionScheme {
 
-  import ChronoUnit._
-
   import FilterHelper.ff
   import org.locationtech.geomesa.filter.{andOption, isTemporalFilter, partitionSubFilters}
+
+  import ChronoUnit._
 
   // note: `truncatedTo` is only valid up to DAYS, other units require additional steps
   private val truncate: ZonedDateTime => ZonedDateTime = stepUnit match {
@@ -153,7 +152,7 @@ case class DateTimeScheme(formatter: DateTimeFormatter, stepUnit: ChronoUnit, st
         }
       }
 
-      Some((covered, intersecting))
+      Some((covered.toSeq, intersecting.toSeq))
     }
   }
 }

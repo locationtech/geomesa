@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.convert.text
 
-import java.io.{InputStream, StringReader}
-import java.nio.charset.{Charset, StandardCharsets}
-
 import com.typesafe.config.Config
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
@@ -30,6 +27,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigReader}
 
+import java.io.{InputStream, StringReader}
+import java.nio.charset.{Charset, StandardCharsets}
 import scala.util.Try
 
 class DelimitedTextConverterFactory

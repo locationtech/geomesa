@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.utils.bin
 
-import java.io.ByteArrayOutputStream
-import java.text.SimpleDateFormat
-
-import org.locationtech.jts.geom.{LineString, Point}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.junit.runner.RunWith
@@ -19,8 +15,12 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{LineString, Point}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayOutputStream
+import java.text.SimpleDateFormat
 
 @RunWith(classOf[JUnitRunner])
 class BinaryOutputEncoderTest extends Specification {

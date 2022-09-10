@@ -41,7 +41,7 @@ class JsonCompositeConverterFactory extends SimpleFeatureConverterFactory with L
           val predicate = Predicate(conf.getString("predicate"))
           (predicate, converter)
         }
-        Some(new JsonCompositeConverter(sft, options.encoding, options.errorMode, delegates))
+        Some(new JsonCompositeConverter(sft, options.encoding, options.errorMode, delegates.toSeq))
       } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid configuration: ${e.getMessage}")
       }

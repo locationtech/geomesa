@@ -15,7 +15,7 @@ import java.util.Properties
   */
 trait PropertiesPersistence {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   // make lazy so that load() in subclasses isn't invoked before class is fully constructed
   private lazy val properties = {
@@ -43,7 +43,7 @@ trait PropertiesPersistence {
     *
     * @return
     */
-  def keys(): Set[String] = properties.keySet().toSet.asInstanceOf[Set[String]]
+  def keys(): Set[String] = properties.keySet().asScala.toSet.asInstanceOf[Set[String]]
 
   /**
     * Keys that match a prefix
@@ -59,7 +59,7 @@ trait PropertiesPersistence {
     * @return
     */
   def entries(): Set[(String, String)] =
-    properties.entrySet().map(e => (e.getKey, e.getValue)).toSet.asInstanceOf[Set[(String, String)]]
+    properties.entrySet().asScala.map(e => (e.getKey, e.getValue)).toSet.asInstanceOf[Set[(String, String)]]
 
   /**
     * All properties whose keys match a prefix

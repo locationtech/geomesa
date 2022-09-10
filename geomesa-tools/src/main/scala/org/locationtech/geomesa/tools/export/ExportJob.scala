@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.tools.export
 
-import java.io.File
-import java.text.NumberFormat
-import java.util.UUID
-
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -35,6 +31,10 @@ import org.locationtech.geomesa.tools.export.formats.{ExportFormat, FeatureExpor
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.File
+import java.text.NumberFormat
+import java.util.UUID
 
 /**
  * Class that handles configuration and tracking of the remote job

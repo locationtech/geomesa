@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.iterators
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.util.Converters
@@ -24,6 +22,8 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 @RunWith(classOf[JUnitRunner])
 class ArrowScanTest extends Specification with LazyLogging {

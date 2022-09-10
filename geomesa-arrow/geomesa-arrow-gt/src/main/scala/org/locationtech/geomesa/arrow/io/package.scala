@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.arrow
 
-import java.io.ByteArrayOutputStream
-import java.nio.channels.Channels
-import java.util.Collections
-
 import org.apache.arrow.vector.ipc.ArrowStreamWriter
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.apache.arrow.vector.types.pojo.Schema
@@ -25,6 +21,10 @@ import org.locationtech.geomesa.utils.conf.SemanticVersion
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.ByteArrayOutputStream
+import java.nio.channels.Channels
+import java.util.Collections
 
 package object io {
 
@@ -75,9 +75,9 @@ package object io {
    * @return metadata map
    */
   def getSortAsMetadata(field: String, reverse: Boolean): java.util.Map[String, String] = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
     // note: reverse == descending
-    Map(Metadata.SortField -> field, Metadata.SortOrder -> (if (reverse) { "descending" } else { "ascending" }))
+    Map(Metadata.SortField -> field, Metadata.SortOrder -> (if (reverse) { "descending" } else { "ascending" })).asJava
   }
 
   /**

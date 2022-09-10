@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.util.zip.Deflater
-
 import org.locationtech.geomesa.features.avro.AvroDataFileWriter
 import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util.zip.Deflater
 
 class AvroExporter(stream: ExportStream, compression: Option[Int]) extends ByteCounterExporter(stream) {
 

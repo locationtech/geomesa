@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.geojson
 
-import java.io.Closeable
-
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, FeatureWriter, Query, Transaction}
@@ -28,6 +26,7 @@ import org.locationtech.jts.io.geojson.GeoJsonReader
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.parboiled.errors.ParsingException
 
+import java.io.Closeable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -98,7 +97,7 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
 
     writer.close()
 
-    ids
+    ids.toSeq
   }
 
   override def update(name: String, json: String): Unit = {
@@ -190,7 +189,7 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
     val features = SelfClosingIterator(ds.getFeatureReader(new Query(name, filter), Transaction.AUTO_COMMIT))
     val results = features.map(_.getAttribute(0).asInstanceOf[String])
 
-    jsonTransform(results, paths)
+    jsonTransform(results, paths.toMap)
   }
 
   override def query(name: String, query: String, transform: Map[String, String]): Iterator[String] with Closeable = {
@@ -209,7 +208,7 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
     val features = SelfClosingIterator(ds.getFeatureReader(new Query(name, filter), Transaction.AUTO_COMMIT))
     val results = features.map(_.getAttribute(0).asInstanceOf[String])
 
-    jsonTransform(results, paths)
+    jsonTransform(results, paths.toMap)
   }
 
   private def jsonTransform(features: CloseableIterator[String],

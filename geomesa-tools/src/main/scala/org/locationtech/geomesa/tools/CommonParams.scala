@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.tools
 
-import java.util
-import java.util.regex.Pattern
-
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.locationtech.geomesa.convert.Modes.ErrorMode
@@ -21,6 +18,9 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{ErrorModeConverter, FilterConverter, HintConverter}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.filter.Filter
+
+import java.util
+import java.util.regex.Pattern
 
 /**
   * Shared parameters as individual traits
@@ -220,7 +220,7 @@ trait IndicesParam {
 
   @throws[ParameterException]
   def loadIndices[DS <: GeoMesaDataStore[DS]](ds: DS, typeName: String, mode: IndexMode): Seq[GeoMesaFeatureIndex[_, _]] =
-    indexNames.asScala.map(IndexParam.loadIndex(ds, typeName, _, mode))
+    indexNames.asScala.map(IndexParam.loadIndex(ds, typeName, _, mode)).toSeq
 }
 
 trait DistributedRunParam {

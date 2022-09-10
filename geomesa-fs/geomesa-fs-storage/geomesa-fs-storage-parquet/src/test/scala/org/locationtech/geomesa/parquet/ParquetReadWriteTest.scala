@@ -10,8 +10,6 @@
 package org.locationtech.geomesa.parquet
 
 
-import java.nio.file.Files
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
@@ -31,6 +29,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
 
+import java.nio.file.Files
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])

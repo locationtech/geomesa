@@ -11,13 +11,13 @@
 
 package org.locationtech.geomesa.spark
 
-import java.lang
-
 import org.apache.spark.sql.{Column, Encoder, Encoders, TypedColumn}
+import org.locationtech.geomesa.spark.GeometricDistanceFunctions.{ST_Transform, distanceNames}
 import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.jts.geom.Geometry
-import org.locationtech.geomesa.spark.GeometricDistanceFunctions.{ST_Transform, distanceNames}
+
+import java.lang
 
 
 /**

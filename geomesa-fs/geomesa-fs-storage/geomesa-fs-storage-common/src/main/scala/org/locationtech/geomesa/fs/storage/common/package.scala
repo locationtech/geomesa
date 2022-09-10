@@ -16,8 +16,8 @@ import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.ConfigConvert
 import pureconfig.generic.semiauto.deriveConvert
 
-import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 package object common {
 

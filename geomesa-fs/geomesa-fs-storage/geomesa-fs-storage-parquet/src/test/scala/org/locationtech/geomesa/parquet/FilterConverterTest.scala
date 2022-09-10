@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.parquet
 
-import java.util.Date
-
 import org.apache.parquet.filter2.predicate.{FilterPredicate, Operators}
 import org.apache.parquet.io.api.Binary
 import org.geotools.filter.text.ecql.ECQL
@@ -20,6 +18,8 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
+
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class FilterConverterTest extends Specification with AllExpectations {

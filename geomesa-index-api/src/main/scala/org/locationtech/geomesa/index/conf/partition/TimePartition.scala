@@ -8,19 +8,19 @@
 
 package org.locationtech.geomesa.index.conf.partition
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.conf.partition.TimePartition.CustomPartitionCache
-import org.locationtech.geomesa.index.metadata.{TableBasedMetadata, GeoMesaMetadata, HasGeoMesaMetadata}
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, TableBasedMetadata}
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 
 
 /**

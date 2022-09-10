@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.fs.storage.common
 package observer
 
-import java.io.Closeable
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.Closeable
 
 /**
  * Factory for observing file writes

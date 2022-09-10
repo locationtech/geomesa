@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.lambda.data
 
-import java.awt.RenderingHints.Key
-import java.io.Serializable
-import java.time.Clock
-
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStoreParams}
@@ -19,6 +15,9 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaD
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
+import java.awt.RenderingHints.Key
+import java.io.Serializable
+import java.time.Clock
 import scala.reflect.ClassTag
 
 class LambdaDataStoreFactory extends DataStoreFactorySpi {

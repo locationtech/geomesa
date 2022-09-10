@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
-import java.nio.charset.StandardCharsets
-import java.util.Map.Entry
-
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.index.audit.QueryEvent
+
+import java.nio.charset.StandardCharsets
+import java.util.Map.Entry
 
 /**
  * Maps query stats to accumulo

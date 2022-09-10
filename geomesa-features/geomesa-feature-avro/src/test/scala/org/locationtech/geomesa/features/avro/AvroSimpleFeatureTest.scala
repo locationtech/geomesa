@@ -8,19 +8,18 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.util
-
-import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.NameImpl
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.Property
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.util
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class AvroSimpleFeatureTest extends Specification {
@@ -54,20 +53,20 @@ class AvroSimpleFeatureTest extends Specification {
       //Test getProperties(name: String)
       for((name, value) <- nameStringList.view.zip(valueList)) {
         val tempProperty = f.getProperties(name)
-        tempProperty.head.getName.toString mustEqual name
-        tempProperty.head.getValue.toString mustEqual value
+        tempProperty.asScala.head.getName.toString mustEqual name
+        tempProperty.asScala.head.getValue.toString mustEqual value
       }
 
       //Test getProperties(name: Name)
       for((name, value) <- nameList.view.zip(valueList)) {
         val tempProperty = f.getProperties(name)
-        tempProperty.head.getName mustEqual name
-        tempProperty.head.getValue.toString mustEqual value
+        tempProperty.asScala.head.getName mustEqual name
+        tempProperty.asScala.head.getValue.toString mustEqual value
       }
 
       f.getProperties must beAnInstanceOf[util.Collection[Property]]
       f.getProperties("a") must beAnInstanceOf[util.Collection[Property]]
-      f.getProperties("a").head.getValue must not(throwA [org.opengis.feature.IllegalAttributeException])
+      f.getProperties("a").asScala.head.getValue must not(throwA [org.opengis.feature.IllegalAttributeException])
 
       val prop = f.getProperty("a")
       prop must not beNull;
@@ -135,7 +134,7 @@ class AvroSimpleFeatureTest extends Specification {
       f.setAttribute("l","")
       f.setAttribute("m","")
 
-      f.getAttributes.foreach { v => v must beNull}
+      f.getAttributes.asScala.foreach { v => v must beNull}
 
       f.validate must not(throwA [org.opengis.feature.IllegalAttributeException])
     }
@@ -148,7 +147,7 @@ class AvroSimpleFeatureTest extends Specification {
       sf.getAttribute("c") must not(throwA[NullPointerException])
       sf.getAttribute("c") should beNull
 
-      val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
+      val oldSf = new SimpleFeatureImpl(java.util.Arrays.asList(null, null), sft, new FeatureIdImpl("fakeid"))
       oldSf.getAttribute("c") should beNull
     }
 
@@ -159,7 +158,7 @@ class AvroSimpleFeatureTest extends Specification {
       sf.getProperty("c") must not(throwA[NullPointerException])
       sf.getProperty("c") should beNull
 
-      val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
+      val oldSf = new SimpleFeatureImpl(java.util.Arrays.asList(null, null), sft, new FeatureIdImpl("fakeid"))
       oldSf.getProperty("c") should beNull
     }
     "give back a property when a property exists but the value is null" in {
@@ -169,7 +168,7 @@ class AvroSimpleFeatureTest extends Specification {
       sf.getProperty("b") must not(throwA[NullPointerException])
       sf.getProperty("b") should not beNull
 
-      val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
+      val oldSf = new SimpleFeatureImpl(java.util.Arrays.asList(null, null), sft, new FeatureIdImpl("fakeid"))
       oldSf.getProperty("b") should not beNull
     }
     "give back a null when the property value is null" in {
@@ -179,7 +178,7 @@ class AvroSimpleFeatureTest extends Specification {
       sf.getProperty("b").getValue must not(throwA[NullPointerException])
       sf.getProperty("b").getValue should beNull
 
-      val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
+      val oldSf = new SimpleFeatureImpl(java.util.Arrays.asList(null, null), sft, new FeatureIdImpl("fakeid"))
       oldSf.getProperty("b").getValue should beNull
     }
     "implement equals" in {

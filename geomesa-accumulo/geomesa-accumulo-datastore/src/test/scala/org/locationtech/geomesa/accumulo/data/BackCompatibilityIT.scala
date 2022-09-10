@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io._
-
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriterConfig
@@ -34,7 +32,7 @@ import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.io._
 
 @RunWith(classOf[JUnitRunner])
 class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
@@ -218,7 +216,7 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
       }
       ds.connector.tableOperations.create(table)
       WithClose(ds.connector.createBatchWriter(table, new BatchWriterConfig)) { bw =>
-        bw.addMutations(mutations)
+        bw.addMutations(mutations.asJava)
       }
     }
 
@@ -284,6 +282,8 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
 @RunWith(classOf[JUnitRunner])
 class BackCompatibilityWriter extends TestWithFeatureType {
 
+  import scala.collection.JavaConverters._
+
   override val spec = "name:String:index=join,dtg:Date,*geom:Point:srid=4326,multi:MultiPolygon:srid=4326"
 
   val version = "REPLACEME"
@@ -311,12 +311,12 @@ class BackCompatibilityWriter extends TestWithFeatureType {
         output.write(text.getBytes, 0, text.getLength)
       }
 
-      val tables = ds.connector.tableOperations().list().filter(_.startsWith(sftName))
+      val tables = ds.connector.tableOperations().list().asScala.filter(_.startsWith(sftName))
       output.writeInt(tables.size)
       tables.foreach { table =>
         output.writeAscii(table)
-        output.writeInt(ds.connector.createScanner(table, new Authorizations()).size)
-        ds.connector.createScanner(table, new Authorizations()).foreach { entry =>
+        output.writeInt(ds.connector.createScanner(table, new Authorizations()).asScala.size)
+        ds.connector.createScanner(table, new Authorizations()).asScala.foreach { entry =>
           val key = entry.getKey
           Seq(key.getRow, key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibility).foreach(writeText)
           output.writeLong(key.getTimestamp)

@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.kudu.tools
 
-import java.io.File
-
 import com.beust.jcommander.Parameter
 import org.apache.kudu.client.KuduClient
 import org.locationtech.geomesa.kudu.data.{KuduDataStore, KuduDataStoreFactory}
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand.KuduParams
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, DistributedCommand, PasswordParams}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+
+import java.io.File
 
 /**
  * Abstract class for Kudu commands

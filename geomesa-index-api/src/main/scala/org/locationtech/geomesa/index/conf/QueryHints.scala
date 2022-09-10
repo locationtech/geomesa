@@ -8,16 +8,16 @@
 
 package org.locationtech.geomesa.index.conf
 
-import org.locationtech.jts.geom.Envelope
-import org.geotools.util.factory.Hints
-import org.geotools.util.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.CRS
+import org.geotools.util.factory.Hints
+import org.geotools.util.factory.Hints.{ClassKey, IntegerKey}
 import org.locationtech.geomesa.index.conf.FilterCompatibility.FilterCompatibility
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.utils.text.StringSerialization
+import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.sort.{SortBy, SortOrder}
 

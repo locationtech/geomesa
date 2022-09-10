@@ -8,23 +8,22 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util.regex.Pattern
-
 import com.typesafe.config.ConfigFactory
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOptions, Configs}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOptions, Configs}
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecConfig
-import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
+import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.text.KVPairParser
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.util.regex.Pattern
+import scala.collection.JavaConverters._
 import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
@@ -81,13 +80,13 @@ class SimpleFeatureTypesTest extends Specification {
     "create an empty type" >> {
       val sft = SimpleFeatureTypes.createType("test", "")
       sft.getTypeName mustEqual "test"
-      sft.getAttributeDescriptors must beEmpty
+      sft.getAttributeDescriptors.asScala must beEmpty
     }
 
     "create an empty type with user data" >> {
       val sft = SimpleFeatureTypes.createType("test", ";geomesa.table.sharing='true'")
       sft.getTypeName mustEqual "test"
-      sft.getAttributeDescriptors must beEmpty
+      sft.getAttributeDescriptors.asScala must beEmpty
       sft.getUserData.get("geomesa.table.sharing") mustEqual "true"
     }
 
@@ -141,7 +140,7 @@ class SimpleFeatureTypesTest extends Specification {
 
     "return the indexed attributes (not including the default geometry)" >> {
       val sft = SimpleFeatureTypes.createType("testing", "id:Integer:index=false,dtg:Date:index=true,*geom:Point:srid=4326:index=true")
-      val indexed = sft.getAttributeDescriptors.collect {
+      val indexed = sft.getAttributeDescriptors.asScala.collect {
         case d if java.lang.Boolean.valueOf(d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]) => d.getLocalName
       }
       indexed mustEqual List("dtg")
@@ -280,13 +279,13 @@ class SimpleFeatureTypesTest extends Specification {
     "allow arbitrary feature options in user data" >> {
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326;a='',c=d,x=',,,',z=23562356"
       val sft = SimpleFeatureTypes.createType("foobar", spec)
-      sft.getUserData.toList must containAllOf(Seq("a" -> "", "c" -> "d", "x" -> ",,,", "z" -> "23562356"))
+      sft.getUserData.asScala.toList must containAllOf(Seq("a" -> "", "c" -> "d", "x" -> ",,,", "z" -> "23562356"))
     }
 
     "allow user data with a unicode character" >> {
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.table.sharing.prefix='\\u0001',geomesa.mixed.geometries='true',table.indexes.enabled='',geomesa.table.sharing='true',geomesa.all.user.data='true'"
       val sft = SimpleFeatureTypes.createType("foobar", spec)
-      sft.getUserData.toList must containAllOf(Seq("geomesa.table.sharing.prefix" -> "\u0001", "geomesa.mixed.geometries" -> "true", "geomesa.table.sharing" -> "true"))
+      sft.getUserData.asScala.toList must containAllOf(Seq("geomesa.table.sharing.prefix" -> "\u0001", "geomesa.mixed.geometries" -> "true", "geomesa.table.sharing" -> "true"))
     }
 
     "allow specification of ST index entry values" >> {
@@ -631,7 +630,7 @@ class SimpleFeatureTypesTest extends Specification {
       typeConf.getString("type-name") mustEqual "testconf"
 
       def getFieldOpts(s: String) =
-        typeConf.getConfigList("attributes").filter(_.getString("name") == s).get(0).entrySet().map { case e =>
+        typeConf.getConfigList("attributes").asScala.filter(_.getString("name") == s).head.entrySet().asScala.map { case e =>
           e.getKey -> e.getValue.unwrapped()
         }.toMap
 

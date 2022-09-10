@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.metrics.core
 
-import java.io.Closeable
-
 import com.codahale.metrics.MetricRegistry.MetricSupplier
 import com.codahale.metrics._
 import com.typesafe.config.Config
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+
+import java.io.Closeable
 
 /**
   * Provides namespaced access to reporting metrics

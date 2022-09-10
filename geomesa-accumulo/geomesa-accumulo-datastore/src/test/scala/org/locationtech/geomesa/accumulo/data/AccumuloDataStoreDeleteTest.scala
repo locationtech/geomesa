@@ -26,10 +26,10 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSfts {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -40,7 +40,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
 
     // create a feature
     val builder = new SimpleFeatureBuilder(sft)
-    builder.addAll(List("1", WKTUtils.read("POINT(45.0 45.0)"), "2012-01-02T05:06:07.000Z"))
+    builder.addAll(java.util.Arrays.asList[AnyRef]("1", WKTUtils.read("POINT(45.0 45.0)"), "2012-01-02T05:06:07.000Z"))
     val liveFeature = builder.buildFeature("fid-1")
 
     addFeature(liveFeature)
@@ -177,7 +177,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
     "delete all associated tables" >> {
       val catalog = "AccumuloDataStoreTotalDeleteTest"
       val params = dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=join,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
       val tables = ds.manager.indices(sft).flatMap(_.getTableNames()) ++ Seq(catalog, s"${catalog}_stats")

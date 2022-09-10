@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
-import java.time.format.DateTimeFormatter
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Map.Entry
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.Scanner
 import org.apache.accumulo.core.data.{Key, Mutation, Value}
@@ -20,6 +16,9 @@ import org.locationtech.geomesa.utils.audit.AuditedEvent
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.text.DateParsing
 
+import java.time.format.DateTimeFormatter
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Map.Entry
 import scala.util.Random
 
 /**

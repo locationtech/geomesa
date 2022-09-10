@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.spark
 
-import java.io.Serializable
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.mapreduce.Job
@@ -32,6 +30,7 @@ import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
+import java.io.Serializable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
@@ -103,7 +102,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
           }
         }
         if (defaults.nonEmpty) {
-          partitioned += ((defaultPartitions.mkString("', '"), fp.filter, defaults, false))
+          partitioned += ((defaultPartitions.mkString("', '"), fp.filter, defaults.toSeq, false))
         }
       }
 

@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.kudu.data
 
-import java.util.Date
-
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.index.api.{KeyValue, WritableFeature}
 import org.locationtech.geomesa.kudu.KuduValue
 import org.locationtech.geomesa.kudu.schema.KuduSimpleFeatureSchema
 import org.locationtech.geomesa.security.SecurityUtils
 import org.opengis.feature.simple.SimpleFeature
+
+import java.util.Date
 
 class KuduWritableFeature(delegate: WritableFeature,
                           schema: KuduSimpleFeatureSchema,
