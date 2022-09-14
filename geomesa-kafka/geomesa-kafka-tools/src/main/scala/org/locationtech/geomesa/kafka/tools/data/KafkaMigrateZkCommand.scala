@@ -48,7 +48,7 @@ class KafkaMigrateZkCommand extends KafkaDataStoreCommand {
             noZk.createSchema(withZk.getSchema(typeName))
           }
           if (delete) {
-            Command.user.info("Migrating schema from Zookeeper")
+            Command.user.info("Deleting schema from Zookeeper")
             withZk.metadata.delete(typeName)
           }
         }
