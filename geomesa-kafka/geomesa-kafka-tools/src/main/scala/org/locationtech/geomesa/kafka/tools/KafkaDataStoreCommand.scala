@@ -30,6 +30,7 @@ trait KafkaDataStoreCommand extends DataStoreCommand[KafkaDataStore] {
       KafkaDataStoreParams.Brokers.getName          -> params.brokers,
       KafkaDataStoreParams.Zookeepers.getName       -> params.zookeepers,
       KafkaDataStoreParams.ZkPath.getName           -> params.zkPath,
+      KafkaDataStoreParams.Catalog.getName          -> params.catalog,
       KafkaDataStoreParams.ConsumerCount.getName    -> params.numConsumers.toString,
       KafkaDataStoreParams.TopicPartitions.getName  -> params.partitions.toString,
       KafkaDataStoreParams.TopicReplication.getName -> params.replication.toString,

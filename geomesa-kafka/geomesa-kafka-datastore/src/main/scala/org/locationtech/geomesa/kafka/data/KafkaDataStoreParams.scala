@@ -11,7 +11,6 @@ package org.locationtech.geomesa.kafka.data
 import com.github.benmanes.caffeine.cache.Ticker
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
-import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.DefaultZkPath
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam, ReadWriteFlag}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
@@ -53,16 +52,24 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
     new GeoMesaParam[String](
       "kafka.zookeepers",
       "Kafka zookeepers",
-      optional = false,
+      optional = true,
       deprecatedKeys = Seq("zookeepers"),
+      supportsNiFiExpressions = true
+    )
+
+  val Catalog =
+    new GeoMesaParam[String](
+      "kafka.catalog.topic",
+      "Topic used for cataloging feature types, if not using Zookeeper",
+      default = KafkaDataStoreFactory.DefaultCatalog,
       supportsNiFiExpressions = true
     )
 
   val ZkPath =
     new GeoMesaParam[String](
       "kafka.zk.path",
-      "Zookeeper discoverable path (namespace)",
-      default = DefaultZkPath,
+      "Zookeeper discoverable path (namespace), if using Zookeeper",
+      default = KafkaDataStoreFactory.DefaultZkPath,
       deprecatedKeys = Seq("zkPath"),
       supportsNiFiExpressions = true
     )

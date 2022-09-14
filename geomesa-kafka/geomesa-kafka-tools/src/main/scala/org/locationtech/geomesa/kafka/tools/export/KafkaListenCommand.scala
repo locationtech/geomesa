@@ -28,7 +28,7 @@ class KafkaListenCommand extends KafkaDataStoreCommand with LazyLogging {
   override def execute(): Unit = withDataStore { ds =>
     val sft = ds.getSchema(params.featureName)
     if (sft == null) {
-      throw new ParameterException(s"Type ${params.featureName} does not exist at path ${params.zkPath}")
+      throw new ParameterException(s"Type ${params.featureName} does not exist in ${ds.config.catalog}")
     }
     Command.user.info(s"Listening to '${sft.getTypeName}' ${SimpleFeatureTypes.encodeType(sft)} ...")
 

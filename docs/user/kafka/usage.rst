@@ -17,8 +17,8 @@ a default path will be used. Configuration parameters are described fully below.
     import org.geotools.data.DataStoreFinder;
 
     Map<String, Serializable> parameters = new HashMap<>();
-    parameters.put("kafka.zookeepers", "localhost:2181");
     parameters.put("kafka.brokers", "localhost:9092");
+    parameters.put("kafka.zookeepers", "localhost:2181");
     DataStore dataStore = DataStoreFinder.getDataStore(parameters);
 
 .. _kafka_parameters:
@@ -39,8 +39,10 @@ The Kafka data store accepts the following parameters (required parameters are m
 Parameter                            Type    Description
 ==================================== ======= ====================================================================================================
 ``kafka.brokers *``                  String  Kafka brokers, e.g. "localhost:9092"
-``kafka.zookeepers *``               String  Kafka zookeepers, e.g "localhost:2181"
-``kafka.zk.path``                    String  Zookeeper discoverable path, can be used to effectively namespace feature types
+``kafka.zookeepers``                 String  Kafka zookeepers, e.g "localhost:2181", used to persist GeoMesa metadata in Zookeeper instead
+                                             of in Kafka topics. See :ref:`no_zookeeper` for details.
+``kafka.catalog.topic``              String  The Kafka topic used to store schema metadata (when not using Zookeeper)
+``kafka.zk.path``                    String  Zookeeper discoverable path, can be used to namespace feature types (when using Zookeeper)
 ``kafka.producer.config``            String  Configuration options for kafka producer, in Java properties
                                              format. See `Producer Configs <http://kafka.apache.org/documentation.html#producerconfigs>`_
 ``kafka.producer.clear``             Boolean Send a 'clear' message on startup. This will cause clients to ignore any data that was in the

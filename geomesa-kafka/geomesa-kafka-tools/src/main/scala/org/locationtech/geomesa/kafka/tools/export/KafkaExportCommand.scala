@@ -42,7 +42,7 @@ class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDistrib
       writeEmptyFiles: Boolean): Option[Long] = {
     val sft = ds.getSchema(params.featureName)
     if (sft == null) {
-      throw new ParameterException(s"Type ${params.featureName} does not exist at path ${params.zkPath}")
+      throw new ParameterException(s"Type ${params.featureName} does not exist in ${ds.config.catalog}")
     }
 
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
