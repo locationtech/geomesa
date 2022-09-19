@@ -117,3 +117,14 @@ consumer per topic partition.
 
 The ``--from-beginning`` argument can be used to start reading the Kafka topic from the start. Otherwise,
 only new messages that are sent after this command is invoked will be read.
+
+``migrate-zookeeper-metadata``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This command will migrate schema metadata out of Zookeeper. For additional information, see :ref:`no_zookeeper`.
+
+======================== ================================================================================
+Argument                 Description
+======================== ================================================================================
+``--delete``             Delete the metadata out of Zookeeper after migrating it
+======================== ================================================================================

@@ -43,7 +43,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |      pexists boolean;           -- table exists check
        |    BEGIN
        |
-       |      SELECT value from ${info.schema.quoted}.${SequenceTable.Name.quoted}
+       |      SELECT value FROM ${info.schema.quoted}.${SequenceTable.Name.quoted}
        |        WHERE type_name = ${literal(info.typeName)} INTO seq_val;
        |      cur_partition := ${literal(table.name.raw + "_")} || lpad(seq_val::text, 3, '0');
        |

@@ -11,6 +11,7 @@ package org.locationtech.geomesa.kafka
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, ConsumerRecords, OffsetAndTimestamp}
 import org.apache.kafka.common.TopicPartition
 
+import java.lang.reflect.InvocationTargetException
 import java.time.Duration
 import java.util.Collections
 
@@ -50,11 +51,11 @@ object KafkaConsumerVersions {
 
     def fromDuration: Option[(Consumer[_, _], Duration) => AnyRef] = polls.collectFirst {
       case m if m.getParameterTypes.apply(0) == classOf[Duration] =>
-        (c: Consumer[_, _], d: Duration) => m.invoke(c, d)
+        (c: Consumer[_, _], d: Duration) => tryInvocation(m.invoke(c, d))
     }
     def fromLong: Option[(Consumer[_, _], Duration) => AnyRef] = polls.collectFirst {
       case m if m.getParameterTypes.apply(0) == java.lang.Long.TYPE =>
-        (c: Consumer[_, _], d: Duration) => m.invoke(c, Long.box(d.toMillis))
+        (c: Consumer[_, _], d: Duration) => tryInvocation(m.invoke(c, Long.box(d.toMillis)))
     }
 
     fromDuration.orElse(fromLong).getOrElse {
@@ -73,7 +74,7 @@ object KafkaConsumerVersions {
         m.getParameterTypes.apply(0).isAssignableFrom(classOf[java.util.List[_]])).getOrElse {
       throw new NoSuchMethodException(s"Couldn't find Consumer.subscribe method")
     }
-    (consumer, topic) => method.invoke(consumer, Collections.singletonList(topic))
+    (consumer, topic) => tryInvocation(method.invoke(consumer, Collections.singletonList(topic)))
   }
 
   private val _subscribeWithListener: (Consumer[_, _], String, ConsumerRebalanceListener) => Unit = {
@@ -82,7 +83,7 @@ object KafkaConsumerVersions {
         m.getParameterTypes.apply(1).isAssignableFrom(classOf[ConsumerRebalanceListener])).getOrElse {
       throw new NoSuchMethodException(s"Couldn't find Consumer.subscribe method")
     }
-    (consumer, topic, listener) => method.invoke(consumer, Collections.singletonList(topic), listener)
+    (consumer, topic, listener) => tryInvocation(method.invoke(consumer, Collections.singletonList(topic), listener))
   }
 
   private val _beginningOffsets: (Consumer[_, _], String, Seq[Int]) => Map[Int, Long] = {
@@ -95,7 +96,7 @@ object KafkaConsumerVersions {
       }
       val topicAndPartitions = new java.util.ArrayList[TopicPartition](partitions.length)
       partitions.foreach(p => topicAndPartitions.add(new TopicPartition(topic, p)))
-      val offsets = method.invoke(consumer, topicAndPartitions).asInstanceOf[java.util.Map[TopicPartition, Long]]
+      val offsets = tryInvocation(method.invoke(consumer, topicAndPartitions).asInstanceOf[java.util.Map[TopicPartition, Long]])
       val result = Map.newBuilder[Int, Long]
       result.sizeHint(offsets.size())
       offsets.asScala.foreach { case (tp, o) => result += (tp.partition -> o) }
@@ -113,7 +114,7 @@ object KafkaConsumerVersions {
       }
       val topicAndPartitions = new java.util.ArrayList[TopicPartition](partitions.length)
       partitions.foreach(p => topicAndPartitions.add(new TopicPartition(topic, p)))
-      val offsets = method.invoke(consumer, topicAndPartitions).asInstanceOf[java.util.Map[TopicPartition, Long]]
+      val offsets = tryInvocation(method.invoke(consumer, topicAndPartitions).asInstanceOf[java.util.Map[TopicPartition, Long]])
       val result = Map.newBuilder[Int, Long]
       result.sizeHint(offsets.size())
       offsets.asScala.foreach { case (tp, o) => result += (tp.partition -> o) }
@@ -131,7 +132,7 @@ object KafkaConsumerVersions {
       }
       val timestamps = new java.util.HashMap[TopicPartition, java.lang.Long](partitions.length)
       partitions.foreach(p => timestamps.put(new TopicPartition(topic, p), Long.box(time)))
-      val offsets = method.invoke(consumer, timestamps).asInstanceOf[java.util.Map[TopicPartition, OffsetAndTimestamp]]
+      val offsets = tryInvocation(method.invoke(consumer, timestamps).asInstanceOf[java.util.Map[TopicPartition, OffsetAndTimestamp]])
       val result = Map.newBuilder[Int, Long]
       result.sizeHint(offsets.size())
       offsets.asScala.foreach { case (tp, o) => if (o != null) { result += (tp.partition -> o.offset()) } }
@@ -146,9 +147,9 @@ object KafkaConsumerVersions {
     val binding = method.getParameterTypes.apply(0)
 
     if (binding == classOf[Array[TopicPartition]]) {
-      (consumer, tp) => method.invoke(consumer, Array(tp))
+      (consumer, tp) => tryInvocation(method.invoke(consumer, Array(tp)))
     } else if (binding == classOf[java.util.Collection[TopicPartition]]) {
-      (consumer, tp) => method.invoke(consumer, Collections.singletonList(tp))
+      (consumer, tp) => tryInvocation(method.invoke(consumer, Collections.singletonList(tp)))
     } else {
       throw new NoSuchMethodException(s"Couldn't find Consumer.$name method with correct parameters: $method")
     }

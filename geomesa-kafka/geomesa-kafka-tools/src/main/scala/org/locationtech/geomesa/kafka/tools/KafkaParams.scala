@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.kafka.tools
 
 import com.beust.jcommander.Parameter
-import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
 
 import scala.concurrent.duration.Duration
@@ -23,15 +22,16 @@ trait KafkaDataStoreParams {
   @Parameter(names = Array("-b", "--brokers"), description = "Brokers (host:port, comma separated)", required = true)
   var brokers: String = _
 
-  @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)", required = true)
-  var zookeepers: String = _
-
   @Parameter(names = Array("-p", "--zkpath"), description = "Zookeeper path where feature schemas are saved")
-  var zkPath: String = KafkaDataStoreFactory.DefaultZkPath
+  var zkPath: String = _
+
+  @Parameter(names = Array("-c", "--catalog"), description = "Kafka topic used for storing feature schemas")
+  var catalog: String = _
 
   @Parameter(names = Array("--schema-registry"), description = "URL to a Confluent Schema Registry")
   var schemaRegistryUrl: String = _
 
+  def zookeepers: String
   def numConsumers: Int
   def replication: Int
   def partitions: Int
@@ -40,6 +40,9 @@ trait KafkaDataStoreParams {
 }
 
 trait ProducerDataStoreParams extends KafkaDataStoreParams {
+
+  @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)")
+  var zookeepers: String = _
 
   @Parameter(names = Array("--replication"), description = "Replication factor for Kafka topic")
   var replication: Int = 1 // note: can't use override modifier since it's a var
@@ -53,6 +56,9 @@ trait ProducerDataStoreParams extends KafkaDataStoreParams {
 }
 
 trait ConsumerDataStoreParams extends KafkaDataStoreParams {
+
+  @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)")
+  var zookeepers: String = _
 
   @Parameter(names = Array("--num-consumers"), description = "Number of consumer threads used for reading from Kafka")
   var numConsumers: Int = 1 // note: can't use override modifier since it's a var
@@ -68,6 +74,10 @@ trait ConsumerDataStoreParams extends KafkaDataStoreParams {
 }
 
 trait StatusDataStoreParams extends KafkaDataStoreParams {
+
+  @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)")
+  var zookeepers: String = _
+
   override val numConsumers: Int = 0
   override val replication: Int = 1
   override val partitions: Int = 1

@@ -15,7 +15,7 @@
 
     <properties>
         <tools.module>kafka</tools.module>
-        <tools.dist.name>GEOMESA_KAKFA</tools.dist.name>
+        <tools.dist.name>GEOMESA_KAFKA</tools.dist.name>
         <tools.runner>org.locationtech.geomesa.kafka.tools.KafkaRunner</tools.runner>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
