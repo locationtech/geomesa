@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.index
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureWriter
@@ -27,14 +26,6 @@ package object view extends LazyLogging {
 
   import org.locationtech.geomesa.filter.andFilters
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-  private val dateBounds: LoadingCache[(String, Filter), Option[FilterValues[Bounds[ZonedDateTime]]]] =
-    Caffeine.newBuilder().build(new CacheLoader[(String, Filter), Option[FilterValues[Bounds[ZonedDateTime]]]]() {
-      override def load(key: (String, Filter)): Option[FilterValues[Bounds[ZonedDateTime]]] = {
-        val (dtg, filter) = key
-        Some(FilterHelper.extractIntervals(filter, dtg)).filter(_.nonEmpty)
-      }
-    })
 
   /**
     * Helper method to merge a filtered data store query
@@ -67,7 +58,8 @@ package object view extends LazyLogging {
       case Some(f) =>
         // check for disjoint dates between the store filter and the query filter
         val intersected = sft.getDtgField.flatMap { dtg =>
-          dateBounds.get((dtg, f)).flatMap { left =>
+          // note: don't cache this call, as it can contain things like `currentDate()` that will change per invocation
+          Some(FilterHelper.extractIntervals(f, dtg)).filter(_.nonEmpty).flatMap { left =>
             val right = FilterHelper.extractIntervals(filter, dtg)
             val merged = FilterValues.and[Bounds[ZonedDateTime]](Bounds.intersection)(left, right)
             if (merged.disjoint) {
