@@ -69,6 +69,17 @@
             <artifactId>gt-epsg-wkt</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-reload4j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.reload4j</groupId>
+            <artifactId>reload4j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- provided dependencies -->
         <dependency>
             <groupId>org.scala-lang</groupId>

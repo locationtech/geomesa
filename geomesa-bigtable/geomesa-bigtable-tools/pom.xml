@@ -33,6 +33,17 @@
             <artifactId>gt-epsg-wkt</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-reload4j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.reload4j</groupId>
+            <artifactId>reload4j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- test deps -->
         <dependency>
             <groupId>org.specs2</groupId>
@@ -43,6 +54,7 @@
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -74,4 +86,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

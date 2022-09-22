@@ -29,14 +29,14 @@ function dependencies() {
   local hadoop_version="$hadoop_install_version"
   local zk_version="$zookeeper_install_version"
   local kafka_version="$kafka_install_version"
-  local zk_client_version="$zkclient_install_version"
+  local zkclient_version="$zkclient_install_version"
 
   if [[ -n "$classpath" ]]; then
     accumulo_version="$(get_classpath_version accumulo-core $classpath $accumulo_version)"
     hadoop_version="$(get_classpath_version hadoop-common $classpath $hadoop_version)"
     zk_version="$(get_classpath_version zookeeper $classpath $zk_version)"
     kafka_version="$(get_classpath_version kafka-clients $classpath $kafka_version)"
-    zk_client_version="$(get_classpath_version zkclient $classpath $zk_client_version)"
+    zkclient_version="$(get_classpath_version zkclient $classpath $zkclient_version)"
   fi
 
   declare -a gavs=(
@@ -64,8 +64,6 @@ function dependencies() {
     "com.yammer.metrics:metrics-core:2.2.0:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
     "net.sf.jopt-simple:jopt-simple:%%kafka.jopt.version%%:jar"
-    "org.slf4j:slf4j-log4j12:1.7.25:jar"
-    "log4j:log4j:1.2.17:jar"
   )
 
   # add accumulo 1.x jars if needed

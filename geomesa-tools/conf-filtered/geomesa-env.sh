@@ -95,7 +95,7 @@ function get_options() {
   # set java opts
   local GEOMESA_OPTS="-Duser.timezone=UTC -DEPSG-HSQL.directory=/tmp/$(whoami)"
   GEOMESA_OPTS="${GEOMESA_OPTS} -Djava.awt.headless=true"
-  GEOMESA_OPTS="${GEOMESA_OPTS} -Dlog4j.configuration=file://${GEOMESA_CONF_DIR}/log4j.properties"
+  GEOMESA_OPTS="${GEOMESA_OPTS} -Dlog4j.configuration=file://${GEOMESA_CONF_DIR}/reload4j.properties"
   GEOMESA_OPTS="${GEOMESA_OPTS} -Dgeomesa.home=${%%tools.dist.name%%_HOME}"
   GEOMESA_OPTS="${GEOMESA_OPTS} -Dgeomesa.log.dir=${GEOMESA_LOG_DIR}"
 
@@ -139,7 +139,7 @@ function get_nailgun_options() {
 # get base classpath (geomesa lib and conf dirs)
 function get_base_classpath() {
   # start constructing GEOMESA_CP (classpath)
-  # include geomesa first so that the correct log4j.properties is picked up
+  # include geomesa first so that the correct reload4j.properties is picked up
   local GEOMESA_CP="${GEOMESA_CONF_DIR}:$(find_jars $GEOMESA_LIB)"
   # prepend user defined directories to the classpath using java classpath syntax
   # we prepend so that they take precedence when explicitly defined by the user
@@ -352,6 +352,11 @@ function fix_classpath_format() {
 # remove slf4j jars from a classpath string
 function remove_slf4j_from_classpath() {
   echo "$1" | sed 's/[^:]*slf4j[^:]*jar//g'
+}
+
+# remove log4j1 jars from a classpath string
+function remove_log4j1_from_classpath() {
+  echo "$1" | sed 's/[^:]*log4j-1[^:]*jar//g'
 }
 
 function geomesa_scala_console() {

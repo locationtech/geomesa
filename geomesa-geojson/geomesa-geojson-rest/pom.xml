@@ -71,6 +71,6 @@
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-minicluster</artifactId>
         </dependency>
-
     </dependencies>
+
 </project>

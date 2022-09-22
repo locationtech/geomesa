@@ -38,10 +38,6 @@
 
         <!-- test dependencies -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-geometry</artifactId>
             <scope>test</scope>

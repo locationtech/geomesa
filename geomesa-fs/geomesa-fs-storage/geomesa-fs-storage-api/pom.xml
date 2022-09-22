@@ -20,4 +20,5 @@
             <artifactId>hadoop-common</artifactId>
         </dependency>
     </dependencies>
+
 </project>

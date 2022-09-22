@@ -101,14 +101,6 @@
 
         <!-- test dependencies -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-core_${scala.binary.version}</artifactId>
         </dependency>
@@ -129,7 +121,6 @@
             <version>${hbase.version}</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>

@@ -12,7 +12,6 @@
     <name>GeoMesa In-Memory Database</name>
     <packaging>pom</packaging>
 
-
     <modules>
         <module>geomesa-cqengine</module>
         <module>geomesa-cqengine-datastore</module>
