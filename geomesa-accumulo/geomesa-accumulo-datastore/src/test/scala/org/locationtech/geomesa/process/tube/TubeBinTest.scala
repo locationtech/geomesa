@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.process.tube
 
-import org.apache.log4j.Logger
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.util.factory.Hints
@@ -23,15 +23,13 @@ import org.specs2.runner.JUnitRunner
 
 
 @RunWith(classOf[JUnitRunner])
-class TubeBinTest extends Specification {
+class TubeBinTest extends Specification with LazyLogging {
 
   import scala.collection.JavaConverters._
 
   import TubeBuilder.DefaultDtgField
 
   sequential
-
-  private val log = Logger.getLogger(classOf[TubeBinTest])
 
   val geotimeAttributes = s"geom:Point:srid=4326,$DefaultDtgField:Date,dtg_end_time:Date"
 
@@ -51,14 +49,14 @@ class TubeBinTest extends Specification {
         sf: SimpleFeature
       }
 
-      log.debug("features: "+features.size)
+      logger.debug("features: "+features.size)
       val ngf = new NoGapFill(new DefaultFeatureCollection(sftName, sft), 1.0, 6)
       val binnedFeatures = ngf.timeBinAndUnion(ngf.transform(new ListFeatureCollection(sft, features.asJava), DefaultDtgField).toSeq, 6)
 
       binnedFeatures.foreach { sf =>
         sf.getDefaultGeometry match {
-          case collection: GeometryCollection => log.debug("size: " + collection.getNumGeometries + " " + sf.getDefaultGeometry)
-          case _ => log.debug("size: 1")
+          case collection: GeometryCollection => logger.debug("size: " + collection.getNumGeometries + " " + sf.getDefaultGeometry)
+          case _ => logger.debug("size: 1")
         }
       }
 

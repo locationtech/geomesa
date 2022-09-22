@@ -33,6 +33,7 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
         </dependency>
+
         <!-- test deps -->
         <dependency>
             <groupId>org.specs2</groupId>
@@ -52,15 +53,6 @@
             <artifactId>gt-epsg-wkt</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
+
 </project>

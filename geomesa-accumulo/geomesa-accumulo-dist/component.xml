@@ -41,7 +41,7 @@
             <filtered>true</filtered>
             <includes>
                 <include>hadoop-env.sh</include>
-                <include>log4j.properties</include>
+                <include>reload4j.properties</include>
             </includes>
         </fileSet>
     </fileSets>

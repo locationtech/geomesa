@@ -11,7 +11,6 @@
     <name>GeoMesa Bigtable DataStore</name>
 
     <dependencies>
-
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>

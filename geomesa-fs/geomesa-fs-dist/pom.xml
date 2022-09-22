@@ -20,7 +20,6 @@
     </properties>
 
     <dependencies>
-
         <!-- Tools (bin,lib,etc)-->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

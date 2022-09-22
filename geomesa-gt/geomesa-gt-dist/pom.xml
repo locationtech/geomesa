@@ -20,7 +20,6 @@
     </properties>
 
     <dependencies>
-
         <!-- Spark (dist)-->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

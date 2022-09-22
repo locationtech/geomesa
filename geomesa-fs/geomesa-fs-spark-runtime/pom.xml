@@ -95,7 +95,6 @@
             <artifactId>hadoop-minicluster</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>

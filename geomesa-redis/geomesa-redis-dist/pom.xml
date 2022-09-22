@@ -21,7 +21,6 @@
     </properties>
 
     <dependencies>
-
         <!-- Redis Tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -54,7 +53,6 @@
             <artifactId>guava</artifactId>
             <scope>compile</scope>
         </dependency>
-
     </dependencies>
 
     <build>

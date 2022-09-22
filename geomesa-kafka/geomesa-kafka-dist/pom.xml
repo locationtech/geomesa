@@ -21,7 +21,6 @@
     </properties>
 
     <dependencies>
-
         <!-- Kafka Tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -57,7 +56,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
     </dependencies>
 
     <build>

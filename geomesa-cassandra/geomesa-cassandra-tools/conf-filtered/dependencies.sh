@@ -7,8 +7,8 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-# This file lists the dependencies required for running the geomesa-accumulo command-line tools.
-# Usually these dependencies will be provided by the environment (e.g. ACCUMULO_HOME).
+# This file lists the dependencies required for running the geomesa-cassandra command-line tools.
+# Usually these dependencies will be provided by the environment (e.g. CASSANDRA_HOME).
 # Update the versions as required to match the target environment.
 
 cassandra_install_version="%%cassandra.server.version.recommended%%"

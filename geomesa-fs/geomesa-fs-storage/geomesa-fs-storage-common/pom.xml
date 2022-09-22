@@ -73,7 +73,6 @@
         </dependency>
 
         <!-- test dependencies -->
-
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-core_${scala.binary.version}</artifactId>

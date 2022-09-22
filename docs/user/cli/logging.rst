@@ -7,7 +7,7 @@ Logging Configuration
 
 Each GeoMesa binary distribution comes bundled with an SLF4J logging implementation in the ``lib`` directory. If
 you already have an SLF4J implementation on your Java classpath you may see errors at runtime and will have to
-exclude one of the JARs. This can be accomplished by simply deleting the bundled ``lib/slf4j-log4j12-1.7.5.jar``.
+exclude one of the JARs. This can be accomplished by simply deleting the bundled ``lib/slf4j-reload4j-1.7.36.jar``.
 
 Note that if no SLF4J implementation is installed logging will not work, and you will see this error:
 
@@ -18,4 +18,4 @@ Note that if no SLF4J implementation is installed logging will not work, and you
     SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
 
 In this case you may download SLF4J `here <http://www.slf4j.org/download.html>`__. Extract
-``slf4j-log4j12-1.7.5.jar`` and place it in the ``lib`` directory of the binary distribution.
+``slf4j-reload4j-1.7.36.jar`` and place it in the ``lib`` directory of the binary distribution.

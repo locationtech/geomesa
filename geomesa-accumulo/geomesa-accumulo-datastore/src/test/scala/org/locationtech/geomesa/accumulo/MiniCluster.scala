@@ -12,10 +12,12 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.{Authorizations, NamespacePermission, SystemPermission}
 import org.apache.accumulo.minicluster.{MiniAccumuloCluster, MiniAccumuloConfig}
+import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
 import java.io.{File, FileWriter}
 import java.nio.file.Files
+import scala.collection.JavaConverters._
 
 case object MiniCluster extends LazyLogging {
 
@@ -39,8 +41,18 @@ case object MiniCluster extends LazyLogging {
 
   lazy val cluster: MiniAccumuloCluster = {
     logger.info(s"Starting Accumulo minicluster at $miniClusterTempDir")
+
     val config = new MiniAccumuloConfig(miniClusterTempDir.toFile, Users.root.password)
     sys.props.get("geomesa.accumulo.test.tablet.servers").map(_.toInt).foreach(config.setNumTservers)
+
+    // Use reflection to access a package-private method to set system properties before starting
+    // the minicluster. It is possible that this could break with future versions of Accumulo.
+    val configGetImpl = config.getClass.getDeclaredMethod("getImpl")
+    val systemProps = Map.empty[String, String] ++
+      Option("zookeeper.jmx.log4j.disable").flatMap(key => sys.props.get(key).map(key -> _))
+    configGetImpl.setAccessible(true)
+    configGetImpl.invoke(config).asInstanceOf[MiniAccumuloConfigImpl].setSystemProperties(systemProps.asJava)
+
     val cluster = new MiniAccumuloCluster(config)
     // required for zookeeper 3.5
     WithClose(new FileWriter(new File(miniClusterTempDir.toFile, "conf/zoo.cfg"), true)) { writer =>
@@ -63,7 +75,7 @@ case object MiniCluster extends LazyLogging {
 
     AccumuloVersion.close(connector)
 
-    logger.info("Started Accmulo minicluster")
+    logger.info("Started Accumulo minicluster")
 
     cluster
   }

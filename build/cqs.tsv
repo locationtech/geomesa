@@ -1,4 +1,5 @@
 asm:asm	3.1	compile
+ch.qos.reload4j:reload4j	1.2.22	compile
 com.amazonaws:aws-java-sdk-cloudwatch	1.11.179	compile
 com.amazonaws:aws-java-sdk-core	1.11.179	compile
 com.amazonaws:jmespath-java	1.11.179	compile
@@ -115,7 +116,6 @@ it.geosolutions.jaiext.zonal:jt-zonal	1.1.17	compile
 javax.measure:unit-api	1.0	compile
 javax.xml.bind:jaxb-api	2.2.7	compile
 joda-time:joda-time	2.3	compile
-log4j:log4j	1.2.17	compile
 net.java.dev.jna:jna	4.5.2	compile
 net.java.dev.jna:jna-platform	4.5.2	compile
 net.jodah:typetools	0.5.0	compile
@@ -260,8 +260,8 @@ org.scalatra:scalatra-auth_2.12	2.6.3	compile
 org.scalatra:scalatra-common_2.12	2.6.3	compile
 org.scalatra:scalatra-json_2.12	2.6.3	compile
 org.scalatra:scalatra-swagger_2.12	2.6.3	compile
-org.slf4j:slf4j-api	1.7.25	compile
-org.slf4j:slf4j-log4j12	1.7.25	compile
+org.slf4j:slf4j-api	1.7.36	compile
+org.slf4j:slf4j-reload4j	1.7.36	compile
 org.tukaani:xz	1.5	compile
 picocontainer:picocontainer	1.2	compile
 redis.clients:jedis	3.0.1	compile
@@ -326,7 +326,7 @@ org.geotools.jdbc:gt-jdbc-h2	23.3	test
 org.jruby:jruby	9.0.4.0	test
 org.mortbay.jetty:jetty	6.1.26	test
 org.scalatra:scalatra-specs2_2.12	2.6.3	test
-org.slf4j:jul-to-slf4j	1.7.25	test
+org.slf4j:jul-to-slf4j	1.7.36	test
 org.specs2:specs2-core_2.12	4.9.2	test
 org.specs2:specs2-junit_2.12	4.9.2	test
 org.specs2:specs2-mock_2.12	4.9.2	test
