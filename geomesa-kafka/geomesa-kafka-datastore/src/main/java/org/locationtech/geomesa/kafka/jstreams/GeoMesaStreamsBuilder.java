@@ -19,6 +19,7 @@ import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.processor.TimestampExtractor;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.locationtech.geomesa.kafka.streams.GeoMesaMessage;
+import org.locationtech.geomesa.kafka.streams.GeoMesaSerde;
 
 import java.util.Map;
 
@@ -216,5 +217,23 @@ public class GeoMesaStreamsBuilder {
      */
     public StreamsBuilder wrapped() {
         return this.wrapped;
+    }
+
+    /**
+     * Get the `GeoMesaMessage` serde used by this builder
+     *
+     * @return the serde
+     */
+    public GeoMesaSerde serde() {
+        return sBuilder.serde();
+    }
+
+    /**
+     * Get the timestamp extractor used by this builder
+     *
+     * @return timestamp extractor
+     */
+    public TimestampExtractor timestampExtractor() {
+        return sBuilder.timestampExtractor();
     }
 }
