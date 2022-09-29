@@ -11,7 +11,6 @@ package org.locationtech.geomesa.kafka.streams
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams
 import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.GeoMesaSerializer
-import org.locationtech.geomesa.kafka.streams.serde.SerializerCache
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 /**

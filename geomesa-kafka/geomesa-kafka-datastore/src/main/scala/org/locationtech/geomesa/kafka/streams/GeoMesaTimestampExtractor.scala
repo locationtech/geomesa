@@ -13,7 +13,6 @@ import org.apache.kafka.streams.processor.TimestampExtractor
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory
-import org.locationtech.geomesa.kafka.streams.serde.SerializerCache
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.expression.Expression
 
