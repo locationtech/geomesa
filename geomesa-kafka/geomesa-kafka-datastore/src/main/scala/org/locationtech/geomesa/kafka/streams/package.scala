@@ -29,51 +29,6 @@ import scala.collection.mutable.ArrayBuffer
 package object streams {
 
   /**
-   * Data model for a GeoMesa data store message, used as the value in a Kafka record
-   *
-   * @param action message action
-   * @param attributes attributes of the simple feature represented by this message
-   * @param userData user data of the simple feature represented by this message
-   */
-  case class GeoMesaMessage(action: MessageAction, attributes: Seq[AnyRef], userData: Map[String, String] = Map.empty)
-
-  object GeoMesaMessage {
-
-    /**
-     * Create an upsert message
-     *
-     * @param attributes feature attribute values
-     * @return
-     */
-    def upsert(attributes: Seq[AnyRef]): GeoMesaMessage = GeoMesaMessage(MessageAction.Upsert, attributes)
-
-    /**
-     * Create an upsert message
-     *
-     * @param attributes feature attribute values
-     * @param userData feature user data
-     * @return
-     */
-    def upsert(attributes: Seq[AnyRef], userData: Map[String, String]): GeoMesaMessage =
-      GeoMesaMessage(MessageAction.Upsert, attributes, userData)
-
-    /**
-     * Create a delete message
-     *
-     * @return
-     */
-    def delete(): GeoMesaMessage = GeoMesaMessage(MessageAction.Delete, Seq.empty)
-  }
-
-  /**
-   * Types of messages
-   */
-  object MessageAction extends Enumeration {
-    type MessageAction = Value
-    val Upsert, Delete = Value
-  }
-
-  /**
    * Trait for provided metadata about a feature type topic
    */
   trait HasTopicMetadata {
