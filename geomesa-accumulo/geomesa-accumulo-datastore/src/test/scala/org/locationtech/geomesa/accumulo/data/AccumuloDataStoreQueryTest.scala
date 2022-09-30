@@ -25,7 +25,7 @@ import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties}
-import org.locationtech.geomesa.index.index.NamedIndex
+import org.locationtech.geomesa.index.index.{EmptyIndex, NamedIndex}
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
@@ -74,7 +74,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       val query = new Query(defaultSft.getTypeName, Filter.EXCLUDE)
 
-      ds.getQueryPlan(query) must beEmpty
+      forall(ds.getQueryPlan(query).map(_.filter.index))(_.getClass mustEqual classOf[EmptyIndex])
 
       val features = fs.getFeatures(query).features
       try {
