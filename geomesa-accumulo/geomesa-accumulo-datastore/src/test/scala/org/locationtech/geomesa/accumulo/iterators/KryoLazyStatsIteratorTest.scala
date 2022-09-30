@@ -48,6 +48,15 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
    */
   "StatsIterator" should {
 
+    "return correctly for exclude filter" in {
+      val q = getQuery("MinMax(attr)", Some("EXCLUDE"))
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val sf = results.head
+
+      val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
+      minMaxStat.bounds mustEqual (Long.MinValue, Long.MaxValue)
+    }
+
     "work with the MinMax stat" in {
       val q = getQuery("MinMax(attr)")
       val results = SelfClosingIterator(fs.getFeatures(q).features).toList
@@ -170,6 +179,5 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
       val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
       minMaxStat.bounds mustEqual (22, 298)
     }
-
   }
 }
