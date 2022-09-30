@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.kafka.jstreams;
 
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
@@ -19,7 +20,6 @@ import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.processor.TimestampExtractor;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.locationtech.geomesa.kafka.streams.GeoMesaMessage;
-import org.locationtech.geomesa.kafka.streams.GeoMesaSerde;
 
 import java.util.Map;
 
@@ -220,20 +220,12 @@ public class GeoMesaStreamsBuilder {
     }
 
     /**
-     * Get the `GeoMesaMessage` serde used by this builder
+     * Get the `GeoMesaMessage` serde for the given feature type
      *
+     * @param typeName feature type name
      * @return the serde
      */
-    public GeoMesaSerde serde() {
-        return sBuilder.serde();
-    }
-
-    /**
-     * Get the timestamp extractor used by this builder
-     *
-     * @return timestamp extractor
-     */
-    public TimestampExtractor timestampExtractor() {
-        return sBuilder.timestampExtractor();
+    public Serde<GeoMesaMessage> serde(String typeName) {
+        return sBuilder.serde(typeName);
     }
 }

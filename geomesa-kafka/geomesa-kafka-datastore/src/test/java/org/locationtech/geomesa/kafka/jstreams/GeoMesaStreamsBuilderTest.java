@@ -168,7 +168,7 @@ public class GeoMesaStreamsBuilderTest {
         wordCounts.toStream().to("word-count", Produced.with(Serdes.String(), Serdes.Long()));
 
         Properties streamsProps = new Properties();
-        streamsProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app");
+        streamsProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "java-word-count-test");
         streamsProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
         streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
@@ -228,7 +228,6 @@ public class GeoMesaStreamsBuilderTest {
 
         GeoMesaStreamsBuilder builder = GeoMesaStreamsBuilder.create(params);
 
-
         KStream<String, String> input =
             builder.wrapped().stream("input-topic",
                  Consumed.with(Serdes.String(), Serdes.String()).withTimestampExtractor(new WallclockTimestampExtractor()));
@@ -238,7 +237,7 @@ public class GeoMesaStreamsBuilderTest {
         builder.to(sft.getTypeName(), output);
 
         Properties streamsProps = new Properties();
-        streamsProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app");
+        streamsProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "java-write-test");
         streamsProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
         streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
