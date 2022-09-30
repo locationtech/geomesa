@@ -69,13 +69,13 @@ object GeoMesaSerde {
   class TypeSpecificSerde(serializer: GeoMesaMessageSerializer)
       extends Serde[GeoMesaMessage]
           with Serializer[GeoMesaMessage]
-          with Deserializer[GeoMesaMessage]{
+          with Deserializer[GeoMesaMessage] {
 
     override def configure(configs: java.util.Map[String, _], isKey: Boolean): Unit = {}
-    override def close(): Unit = {}
     override def serializer(): Serializer[GeoMesaMessage] = this
     override def deserializer(): Deserializer[GeoMesaMessage] = this
     override def serialize(topic: String, data: GeoMesaMessage): Array[Byte] = serializer.serialize(data)
     override def deserialize(topic: String, data: Array[Byte]): GeoMesaMessage = serializer.deserialize(data)
+    override def close(): Unit = {}
   }
 }

@@ -23,6 +23,9 @@ import org.locationtech.geomesa.kafka.streams.GeoMesaMessage;
 
 import java.util.Map;
 
+/**
+ * Wrapper for a kafka streams builder that will configure serialization based on a GeoMesa Kafka feature store
+ */
 public class GeoMesaStreamsBuilder {
 
     private final org.locationtech.geomesa.kafka.streams.GeoMesaStreamsBuilder sBuilder;
