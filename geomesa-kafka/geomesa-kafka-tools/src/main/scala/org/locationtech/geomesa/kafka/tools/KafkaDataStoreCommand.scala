@@ -8,12 +8,14 @@
 
 package org.locationtech.geomesa.kafka.tools
 
+import org.apache.commons.io.FileUtils
 import org.apache.kafka.clients.producer.Producer
 import org.locationtech.geomesa.kafka.data.{KafkaDataStore, KafkaDataStoreParams}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
 import java.io.File
+import java.nio.charset.StandardCharsets
 
 /**
   * Abstract class for commands that require a KafkaDataStore
@@ -26,6 +28,11 @@ trait KafkaDataStoreCommand extends DataStoreCommand[KafkaDataStore] {
     val readBack = Option(params.readBack).map(_.toString).getOrElse {
       if (params.fromBeginning) { "Inf" } else { null }
     }
+    val consumerProps =
+      Option(params.consumerProperties).map(FileUtils.readFileToString(_, StandardCharsets.UTF_8)).orNull
+    val producerProps =
+      Option(params.producerProperties).map(FileUtils.readFileToString(_, StandardCharsets.UTF_8)).orNull
+
     Map[String, String](
       KafkaDataStoreParams.Brokers.getName          -> params.brokers,
       KafkaDataStoreParams.Zookeepers.getName       -> params.zookeepers,
@@ -35,6 +42,8 @@ trait KafkaDataStoreCommand extends DataStoreCommand[KafkaDataStore] {
       KafkaDataStoreParams.TopicPartitions.getName  -> params.partitions.toString,
       KafkaDataStoreParams.TopicReplication.getName -> params.replication.toString,
       KafkaDataStoreParams.ConsumerReadBack.getName -> readBack,
+      KafkaDataStoreParams.ConsumerConfig.getName   -> consumerProps,
+      KafkaDataStoreParams.ProducerConfig.getName   -> producerProps,
       KafkaDataStoreParams.CacheExpiry.getName      -> "0s",
       "kafka.schema.registry.url"                   -> params.schemaRegistryUrl
     ).filter(_._2 != null)

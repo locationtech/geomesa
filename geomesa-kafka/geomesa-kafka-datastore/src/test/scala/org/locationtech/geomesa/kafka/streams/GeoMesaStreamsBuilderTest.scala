@@ -129,7 +129,7 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
       wordCounts.toStream.to("word-count")
 
       val props = new Properties()
-      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
+      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "word-count-test")
       props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234")
 
       val output = scala.collection.mutable.Map.empty[String, java.lang.Long]
@@ -181,7 +181,7 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
       builder.to(sft.getTypeName, output)
 
       val props = new Properties()
-      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
+      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "write-test")
       props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234")
 
       val kryoMessages = ArrayBuffer.empty[ProducerRecord[Array[Byte], Array[Byte]]]
