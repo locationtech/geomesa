@@ -9,7 +9,9 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.clients.producer.{Producer, ProducerRecord}
+import org.apache.kafka.common.TopicPartition
 import org.geotools.data.Transaction
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.util.factory.Hints
@@ -154,6 +156,19 @@ object KafkaFeatureWriter {
         producer.beginTransaction()
       }
       producer.send(record)
+    }
+
+    /**
+     * Sends offsets to the consumer coordinator, as part of a consume/transform/produce operation.
+     * See `org.apache.kafka.clients.producer.KafkaProducer#sendOffsetsToTransaction(Map,String)`
+     *
+     * @param offsets offsets to send
+     * @param consumerGroupId consumer group id
+     */
+    def sendOffsets(offsets: java.util.Map[TopicPartition, OffsetAndMetadata], consumerGroupId: String): Unit = {
+      if (inTransaction) {
+        producer.sendOffsetsToTransaction(offsets, consumerGroupId)
+      }
     }
 
     override def flush(): Unit = producer.flush()
