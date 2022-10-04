@@ -10,7 +10,7 @@
       <fileMode>0644</fileMode>
       <filtered>true</filtered>
       <includes>
-        <include>reload4j.properties</include>
+        <include>log4j.properties</include>
       </includes>
     </fileSet>
   </fileSets>
