@@ -28,8 +28,7 @@
             <artifactId>geomesa-feature-nio_${scala.binary.version}</artifactId>
         </dependency>
 
-       <!-- test dependencies -->
-
+        <!-- test dependencies -->
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-core_${scala.binary.version}</artifactId>
@@ -47,14 +46,6 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-geometry</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
         </dependency>
     </dependencies>
 

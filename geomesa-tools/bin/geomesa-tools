@@ -59,6 +59,7 @@ function get_classpath() {
       local env_cp="$(. "$file")"
       classpath="$classpath:$(remove_slf4j_from_classpath $env_cp)"
     done
+    classpath="$(remove_log4j1_from_classpath $classpath)"
     classpath="$(fix_classpath_format $classpath)"
     echo "$classpath"
   fi

@@ -20,7 +20,6 @@
     </properties>
 
     <dependencies>
-
         <!-- datastore -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

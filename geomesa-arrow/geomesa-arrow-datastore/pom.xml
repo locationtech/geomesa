@@ -11,7 +11,6 @@
     <artifactId>geomesa-arrow-datastore_2.12</artifactId>
 
     <dependencies>
-
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-index-api_${scala.binary.version}</artifactId>
@@ -34,10 +33,6 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.arrow</groupId>

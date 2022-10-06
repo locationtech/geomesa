@@ -19,4 +19,5 @@
         <module>geomesa-arrow-jts</module>
         <module>geomesa-arrow-tools</module>
     </modules>
+
 </project>

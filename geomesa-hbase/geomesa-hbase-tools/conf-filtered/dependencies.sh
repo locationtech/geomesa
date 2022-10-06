@@ -65,7 +65,7 @@ function dependencies() {
   local hbase_maj_ver="$(expr match "$hbase_version" '\([0-9][0-9]*\)\.')"
 
   # additional dependencies that depend on the major version
-  if [[ "hbase_maj_ver" -ge 2 ]]; then
+  if [[ "$hbase_maj_ver" -ge 2 ]]; then
     gavs+=(
       "org.apache.hbase:hbase-mapreduce:${hbase_version}:jar"
       "org.apache.hbase:hbase-protocol-shaded:${hbase_version}:jar"
@@ -76,6 +76,7 @@ function dependencies() {
     )
   else
     gavs+=(
+      "io.dropwizard.metrics:metrics-core:3.1.2:jar"
       "com.yammer.metrics:metrics-core:2.2.0:jar"
     )
   fi

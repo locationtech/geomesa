@@ -85,21 +85,22 @@
             <artifactId>nailgun-server</artifactId>
             <version>1.0.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <scope>compile</scope>
-        </dependency>
         <!--<dependency>
             &lt;!&ndash; 'works with' due to license issues &ndash;&gt;
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
         </dependency>-->
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-reload4j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.reload4j</groupId>
+            <artifactId>reload4j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- provided dependencies -->
         <dependency>
