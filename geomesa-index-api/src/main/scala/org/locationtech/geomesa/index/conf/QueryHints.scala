@@ -59,6 +59,7 @@ object QueryHints {
   val ARROW_SORT_REVERSE       = new ClassKey(classOf[java.lang.Boolean])
   val ARROW_FORMAT_VERSION     = new ClassKey(classOf[String])
   val ARROW_DICTIONARY_FIELDS  = new ClassKey(classOf[java.lang.String])
+  val ARROW_PROCESS_DELTAS     = new ClassKey(classOf[java.lang.Boolean])
 
   @deprecated("removed without replacement")
   val ARROW_DICTIONARY_VALUES  = new ClassKey(classOf[java.lang.String])
@@ -160,6 +161,8 @@ object QueryHints {
         (field, Option(hints.get(ARROW_SORT_REVERSE)).exists(_.asInstanceOf[Boolean]))
       }
     def getArrowFormatVersion: Option[String] = Option(hints.get(ARROW_FORMAT_VERSION).asInstanceOf[String])
+    def isArrowProcessDeltas: Boolean =
+      Option(hints.get(ARROW_PROCESS_DELTAS).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
 
     def isStatsQuery: Boolean = hints.containsKey(STATS_STRING)
     def getStatsQuery: String = hints.get(STATS_STRING).asInstanceOf[String]

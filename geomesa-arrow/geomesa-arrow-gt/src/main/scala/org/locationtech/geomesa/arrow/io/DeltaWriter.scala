@@ -26,7 +26,7 @@ import org.locationtech.geomesa.arrow.vector._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{AttributeOrdering, ObjectType, SimpleFeatureOrdering, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -233,7 +233,37 @@ object DeltaWriter extends StrictLogging {
       sorted: Boolean,
       batchSize: Int,
       deltas: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
-    new ReducingIterator(sft, dictionaryFields, encoding, ipcOpts, sort, sorted, batchSize, deltas)
+    reduce(sft, dictionaryFields, encoding, ipcOpts, sort, sorted, batchSize, process = true, deltas)
+  }
+
+  /**
+   * Reduce function for delta records created by DeltaWriter
+   *
+   * @param sft simple feature type
+   * @param dictionaryFields dictionary fields
+   * @param encoding simple feature encoding
+   * @param sort sort metadata, if defined each delta is assumed to be sorted
+   * @param sorted whether features are already globally sorted or not
+   * @param batchSize batch size
+   * @param deltas output from `DeltaWriter.encode`
+   * @param process process the output into a valid arrow file (which usually requires reading the entire input stream)
+   * @return single arrow streaming file, with potentially multiple record batches, or raw delta batches
+   */
+  def reduce(
+      sft: SimpleFeatureType,
+      dictionaryFields: Seq[String],
+      encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
+      sort: Option[(String, Boolean)],
+      sorted: Boolean,
+      batchSize: Int,
+      process: Boolean,
+      deltas: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
+    if (process) {
+      new ReducingIterator(sft, dictionaryFields, encoding, ipcOpts, sort, sorted, batchSize, deltas)
+    } else {
+      new RawIterator(sft, dictionaryFields, encoding, ipcOpts, sort, deltas)
+    }
   }
 
   /**
@@ -1161,5 +1191,63 @@ object DeltaWriter extends StrictLogging {
     override def next(): Array[Byte] = reduced.next()
 
     override def close(): Unit = CloseWithLogging(deltas, reduced)
+  }
+
+  private class RawIterator(
+      sft: SimpleFeatureType,
+      dictionaryFields: Seq[String],
+      encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
+      sort: Option[(String, Boolean)],
+      deltas: CloseableIterator[Array[Byte]]
+    ) extends CloseableIterator[Array[Byte]] {
+
+    private lazy val reduced = {
+      try {
+        // write out an empty batch so that we get the header and dictionaries
+        val header = WithClose(ArrowAllocator(s"raw-deltas:${sft.getTypeName}")) { allocator =>
+          var i = 0
+          val dictionaries = dictionaryFields.map { name =>
+            val descriptor = sft.getDescriptor(name)
+            val bindings = {
+              val base = ObjectType.selectType(descriptor)
+              // for list types, get the list item binding (which is the tail of the bindings)
+              if (descriptor.isList) { base.tail } else { base }
+            }
+            val desc = if (descriptor.isList) { s"$name:${descriptor.getListType().getSimpleName}" } else {
+              SimpleFeatureTypes.encodeDescriptor(sft, descriptor)
+            }
+            val metadata = Map(SimpleFeatureVector.DescriptorKey -> desc)
+            val factory = VectorFactory(allocator)
+            // use the writer to create the appropriate child vector
+            val vector = ArrowAttributeWriter(name, bindings, None, metadata, encoding, factory).vector
+            val enc = new DictionaryEncoding(i, true, new ArrowType.Int(32, true))
+            i += 1
+            name -> ArrowDictionary.create(enc, vector, bindings, encoding)
+          }.toMap
+          val bytes = WithClose(SimpleFeatureVector.create(sft, dictionaries, encoding, 0)) { vector =>
+            writeHeaderAndFirstBatch(vector, dictionaries, ipcOpts, sort, 0)
+          }
+          CloseWithLogging(dictionaries.values)
+          bytes
+        }
+        val length = Array.ofDim[Byte](4)
+        ByteArrays.writeInt(header.length, length)
+        Iterator(length, header) ++ deltas
+      } catch {
+        case NonFatal(e) =>
+          // if we get an error, re-throw it on next()
+          new Iterator[Array[Byte]] {
+            override def hasNext: Boolean = true
+            override def next(): Array[Byte] = throw e
+          }
+      }
+    }
+
+    override def hasNext: Boolean = reduced.hasNext
+
+    override def next(): Array[Byte] = reduced.next()
+
+    override def close(): Unit = CloseWithLogging(deltas)
   }
 }
