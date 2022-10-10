@@ -21,6 +21,7 @@ import org.apache.arrow.vector.{FieldVector, IntVector}
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader.{ArrowDateReader, ArrowDictionaryReader, ArrowListDictionaryReader}
+import org.locationtech.geomesa.arrow.vector.ArrowDictionary.ArrowDictionaryArray
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -1205,32 +1206,18 @@ object DeltaWriter extends StrictLogging {
     private lazy val reduced = {
       try {
         // write out an empty batch so that we get the header and dictionaries
-        val header = WithClose(ArrowAllocator(s"raw-deltas:${sft.getTypeName}")) { allocator =>
-          var i = 0
-          val dictionaries = dictionaryFields.map { name =>
-            val descriptor = sft.getDescriptor(name)
-            val bindings = {
-              val base = ObjectType.selectType(descriptor)
-              // for list types, get the list item binding (which is the tail of the bindings)
-              if (descriptor.isList) { base.tail } else { base }
-            }
-            val desc = if (descriptor.isList) { s"$name:${descriptor.getListType().getSimpleName}" } else {
-              SimpleFeatureTypes.encodeDescriptor(sft, descriptor)
-            }
-            val metadata = Map(SimpleFeatureVector.DescriptorKey -> desc)
-            val factory = VectorFactory(allocator)
-            // use the writer to create the appropriate child vector
-            val vector = ArrowAttributeWriter(name, bindings, None, metadata, encoding, factory).vector
-            val enc = new DictionaryEncoding(i, true, new ArrowType.Int(32, true))
-            i += 1
-            name -> ArrowDictionary.create(enc, vector, bindings, encoding)
-          }.toMap
-          val bytes = WithClose(SimpleFeatureVector.create(sft, dictionaries, encoding, 0)) { vector =>
-            writeHeaderAndFirstBatch(vector, dictionaries, ipcOpts, sort, 0)
-          }
-          CloseWithLogging(dictionaries.values)
-          bytes
+        var i = -1L
+        val dictionaries = dictionaryFields.map { name =>
+          val descriptor = sft.getDescriptor(name)
+          val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
+          // delta dicts are encoded as int32s since we don't know the size up front
+          val enc = new DictionaryEncoding({i += 1; i}, true, new ArrowType.Int(32, true))
+          name -> new ArrowDictionaryArray(sft.getTypeName, enc, Array.empty, 0, binding.asInstanceOf[Class[AnyRef]])
+        }.toMap
+        val header = WithClose(SimpleFeatureVector.create(sft, dictionaries, encoding, 0)) { vector =>
+          writeHeaderAndFirstBatch(vector, dictionaries, ipcOpts, sort, 0)
         }
+        CloseWithLogging(dictionaries.values)
         val length = Array.ofDim[Byte](4)
         ByteArrays.writeInt(header.length, length)
         Iterator(length, header) ++ deltas

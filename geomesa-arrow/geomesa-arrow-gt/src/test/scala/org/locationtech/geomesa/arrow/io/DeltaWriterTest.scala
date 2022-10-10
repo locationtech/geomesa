@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.arrow.io
 
+import org.apache.arrow.vector.{IntVector, VarCharVector}
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -136,9 +137,13 @@ class DeltaWriterTest extends Specification {
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(header))) { reader =>
         reader.dictionaries must haveSize(2)
         reader.dictionaries.get("name") must beSome
-        reader.dictionaries("name").iterator.toSeq must beEmpty
+        reader.dictionaries("name").length mustEqual 0
+        reader.dictionaries("name").id mustEqual 0L
+        WithClose(reader.dictionaries("name").toDictionary(encoding))(_.getVector must beAnInstanceOf[VarCharVector])
         reader.dictionaries.get("age") must beSome
-        reader.dictionaries("age").iterator.toSeq must beEmpty
+        reader.dictionaries("age").length mustEqual 0
+        reader.dictionaries("age").id mustEqual 1L
+        WithClose(reader.dictionaries("age").toDictionary(encoding))(_.getVector must beAnInstanceOf[IntVector])
 
         WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toVector must beEmpty)
       }
