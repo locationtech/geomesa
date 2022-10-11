@@ -108,7 +108,7 @@ case class ArrowAdapter(sft: SimpleFeatureType,
       (aggregate, reduce)
     } else {
       val aggregate = new DeltaAggregate(arrowSft, dictionaries, encoding, ipcOpts, config.sort, config.batchSize)
-      val reduce = new ArrowScan.DeltaReducer(arrowSft, dictionaries, encoding, ipcOpts, config.batchSize, config.sort, sorted = false)
+      val reduce = new ArrowScan.DeltaReducer(arrowSft, dictionaries, encoding, ipcOpts, config.batchSize, config.sort, sorted = false, process = true)
       (aggregate, reduce)
     }
 

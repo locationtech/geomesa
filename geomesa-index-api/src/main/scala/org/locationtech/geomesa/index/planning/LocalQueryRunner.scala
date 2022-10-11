@@ -380,7 +380,8 @@ object LocalQueryRunner extends LazyLogging {
         override def close(): Unit = CloseWithLogging(Seq(features, writer))
       }
       if (hints.isSkipReduce) { arrows } else {
-        new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort.map(_.head), sorted = true)(arrows)
+        val process = hints.isArrowProcessDeltas
+        new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort.map(_.head), sorted = true, process)(arrows)
       }
     }
   }

@@ -175,7 +175,8 @@ class MergedQueryRunner(
       logger.warn("Running deprecated Arrow multi file scan - switch to delta scans instead")
       new ArrowScan.FileReducer(arrowSft, dictionaryFields, encoding, ipcOpts, sort)
     } else {
-      new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort, sorted = false)
+      val process = hints.isArrowProcessDeltas
+      new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort, sorted = false, process)
     }
 
     // now that we have standardized dictionaries, we can query the delegate stores

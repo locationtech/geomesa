@@ -183,7 +183,8 @@ object ArrowScan extends LazyLogging {
         TypeKey       -> Configuration.Types.DeltaType,
         DictionaryKey -> dictionaryFields.mkString(",")
       )
-      val reducer = new DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort, sorted = false)
+      val process = hints.isArrowProcessDeltas
+      val reducer = new DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort, sorted = false, process)
       ArrowScanConfig(config, reducer)
     }
   }
@@ -728,10 +729,11 @@ object ArrowScan extends LazyLogging {
       private var ipcOpts: IpcOption,
       private var batchSize: Int,
       private var sort: Option[(String, Boolean)],
-      private var sorted: Boolean
+      private var sorted: Boolean,
+      private var process: Boolean
     ) extends FeatureReducer {
 
-    def this() = this(null, null, null, null, -1, null, false) // no-arg constructor required for serialization
+    def this() = this(null, null, null, null, -1, null, false, true) // no-arg constructor required for serialization
 
     override def init(state: Map[String, String]): Unit = {
       sft = ReducerConfig.sft(state)
@@ -741,6 +743,7 @@ object ArrowScan extends LazyLogging {
       batchSize = ReducerConfig.batch(state)
       sort = ReducerConfig.sort(state)
       sorted = ReducerConfig.sorted(state)
+      process = ReducerConfig.process(state)
     }
 
     override def state: Map[String, String] = Map(
@@ -751,12 +754,13 @@ object ArrowScan extends LazyLogging {
       ReducerConfig.ipcOption(ipcOpts),
       ReducerConfig.batch(batchSize),
       ReducerConfig.sort(sort),
-      ReducerConfig.sorted(sorted)
+      ReducerConfig.sorted(sorted),
+      ReducerConfig.process(process)
     )
 
     override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val files = features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
-      val result = DeltaWriter.reduce(sft, dictionaryFields, encoding, ipcOpts, sort, sorted, batchSize, files)
+      val result = DeltaWriter.reduce(sft, dictionaryFields, encoding, ipcOpts, sort, sorted, batchSize, process, files)
       val sf = resultFeature()
       result.map { bytes => sf.setAttribute(0, bytes); sf }
     }
@@ -766,12 +770,12 @@ object ArrowScan extends LazyLogging {
     override def equals(other: Any): Boolean = other match {
       case that: DeltaReducer if that.canEqual(this) =>
         sft == that.sft && dictionaryFields == that.dictionaryFields && encoding == that.encoding &&
-            batchSize == that.batchSize && sort == that.sort && sorted == that.sorted
+            batchSize == that.batchSize && sort == that.sort && sorted == that.sorted && that.process == process
       case _ => false
     }
 
     override def hashCode(): Int = {
-      val state = Seq(sft, dictionaryFields, encoding, batchSize, sort)
+      val state = Seq(sft, dictionaryFields, encoding, batchSize, sort, process)
       state.map(Objects.hashCode).foldLeft(0)((a, b) => 31 * a + b)
     }
   }
@@ -786,6 +790,7 @@ object ArrowScan extends LazyLogging {
     val BatchKey        = "batch"
     val SortKey         = "sort"
     val SortedKey       = "sorted"
+    val ProcessKey      = "process"
 
     def sftName(sft: SimpleFeatureType): (String, String) = SftKey -> sft.getTypeName
     def sftSpec(sft: SimpleFeatureType): (String, String) =
@@ -821,6 +826,9 @@ object ArrowScan extends LazyLogging {
 
     def sorted(s: Boolean): (String, String) = SortedKey -> s.toString
     def sorted(options: Map[String, String]): Boolean = options.get(SortedKey).exists(_.toBoolean)
+
+    def process(s: Boolean): (String, String) = ProcessKey -> s.toString
+    def process(options: Map[String, String]): Boolean = options.get(ProcessKey).forall(_.toBoolean)
   }
 
   /**
