@@ -1,3 +1,5 @@
+.. _kafka_quickstart:
+
 GeoMesa Kafka Quick Start
 =========================
 
@@ -174,7 +176,7 @@ Connection parameters:
 
 -  these are the same parameter values that you supplied on the
    command line when you ran the tutorial; they describe how to connect
-   to the Kafka instance where your data reside
+   to the Kafka instance where your data resides
 
 Click "Save", and GeoServer will search Zookeeper for any GeoMesa-managed feature types.
 
@@ -225,7 +227,7 @@ the generic ``org.geomesa.example.quickstart.GeoMesaQuickStart`` in the ``geomes
 and the Kafka-specific ``org.geomesa.example.kafka.KafkaQuickStart`` in the ``geomesa-quickstart-kafka`` module.
 Some relevant methods are:
 
--  ``createDataStore`` get a datastore instance from the input configuration
+-  ``createDataStore`` overridden in the ``KafkaQuickStart``  to use the input configuration to get a pair of datastore instances, one for writing and one for reading data.
 -  ``createSchema`` create the schema in the datastore, as a pre-requisite to writing data
 -  ``writeFeatures`` overridden in the ``KafkaQuickStart`` to simultaneously write and read features from Kafka
 -  ``queryFeatures`` not used in this tutorial
