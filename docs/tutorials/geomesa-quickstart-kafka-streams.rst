@@ -1,5 +1,5 @@
 GeoMesa Kafka Streams Quick Start
-=========================
+=================================
 
 This tutorial demonstrates using Kafka Streams with GeoMesa. It will walk-through reading from and writing to a
 GeoMesa-Kafka topic and using Kafka Streams to process data.
