@@ -90,6 +90,24 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 3.5.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Removal of Log4j
+----------------
+
+GeoMesa has been updated to ban all usages of ``log4j``, to mitigate various CVEs present in that framework. In
+most cases, GeoMesa uses ``slf4j``, and delegates to the logging framework of the runtime environment.
+However, this change impacts the JARs bundled with the command-line tools, which now ship with
+`reload4j <https://reload4j.qos.ch/>`__ instead. Other environments using GeoMesa (i.e. GeoServer) must be
+hardened independently.
+
+Dependency Updates
+------------------
+
+* org.slf4j:slf4j-api: ``1.7.25`` -> ``1.7.36``
+* com.google.code.gson:gson: ``2.8.1`` -> ``2.8.9``
+
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -116,7 +134,7 @@ in a future version.
 Dependency Updates
 ------------------
 
-* com.fasterxml.jackson: 2.9.10 -> 2.12.1
+* com.fasterxml.jackson: ``2.9.10`` -> ``2.12.1``
 
 FileSystem Data Store Metadata Format Change
 --------------------------------------------
@@ -178,8 +196,8 @@ implementations will continue to work, but may need to be re-compiled against th
 Dependency Updates
 ------------------
 
-* GeoTools: 23.0 -> 23.3
-* Avro: 1.7.5 -> 1.8.2
+* GeoTools: ``23.0`` -> ``23.3``
+* Avro: ``1.7.5`` -> ``1.8.2``
 
 Version 3.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
@@ -233,7 +251,7 @@ respectively. The processor classes and configurations have also changed. See :r
 Dependency Updates
 ------------------
 
-* Apache Arrow: 0.10 -> 0.16
+* Apache Arrow: ``0.10`` -> ``0.16``
 
 Apache Arrow Updates
 --------------------
