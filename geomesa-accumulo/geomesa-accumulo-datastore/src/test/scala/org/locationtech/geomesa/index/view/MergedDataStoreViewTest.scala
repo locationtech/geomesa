@@ -11,8 +11,8 @@ package org.locationtech.geomesa.index.view
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.nio.file.{Files, Path}
 import java.util.Date
-
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
+import org.geotools.coverage.grid.GridCoverage2D
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.ecql.ECQL
@@ -349,10 +349,17 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
         envelope,
         width,
         height,
+        true,
         null
       )
 
-      // TODO way to test coverage?
+      /*
+        TODO way to test coverage?
+        The density process returns a GridCoverage2D, which is difficult to examine.
+        You can set up some break points and run the debugger to examine the program
+        state just prior to returning to make sure the density values are correct based
+        on whether you have set normalize = true/false.
+       */
       coverage must not(beNull)
 
       coverage.dispose(false)

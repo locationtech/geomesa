@@ -113,6 +113,7 @@ weightAttr    Name of the attribute to use for data point weights
 outputBBOX    Bounding box and CRS of the output raster
 outputWidth   Width of the output raster in pixels
 outputHeight  Height of the output raster in pixels
+normalize     Return a normalized heatmap or not. True by default
 ============  ===========
 
 .. _date_offset_process:
