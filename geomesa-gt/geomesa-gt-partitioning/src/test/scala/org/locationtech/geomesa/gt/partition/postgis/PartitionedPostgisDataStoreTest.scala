@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.gt.partition.postgis
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.data._
 import org.geotools.data.postgis.PostGISPSDialect
-import org.geotools.data.{DataStoreFinder, DefaultTransaction, Query, Transaction}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
@@ -140,6 +140,8 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
             WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter(s"IN('fid$i')"), Transaction.AUTO_COMMIT)) { writer =>
               if (writer.hasNext) {
                 val next = writer.next()
+                next.setAttribute("name", java.util.Arrays.asList(s"name$i", s"name$i-update"))
+                next.setAttribute("props", s"""["name$i-update"]""")
                 next.setAttribute("dtg", new java.util.Date(now - (i * 5 * 60 * 1000)))
                 writer.write()
               } else {
@@ -152,7 +154,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
         if (methods.query) {
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
             while (reader.hasNext) {
-              logger.info(reader.next.toString)
+              logger.info(DataUtilities.encodeFeature(reader.next))
             }
           }
         }
