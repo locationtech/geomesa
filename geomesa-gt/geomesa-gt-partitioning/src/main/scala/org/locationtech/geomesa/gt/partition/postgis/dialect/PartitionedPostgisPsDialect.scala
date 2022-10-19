@@ -44,7 +44,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
     if (binding == classOf[String] && jsonColumns.get(new PreparedStatementKey(ps, column))) {
       ps.setObject(column, value, Types.OTHER)
     } else if (binding == classOf[java.util.List[_]]) {
-      // handle bug in jdbc store not setting array types in update statements correctly
+      // handle bug in jdbc store not calling setArrayValue in update statements
       value match {
         case null =>
           ps.setNull(column, Types.ARRAY)
@@ -72,6 +72,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
     }
   }
 
+  // based on setArrayValue, but we don't have the attribute descriptor to use
   private def setArray(array: Array[_], ps: PreparedStatement, column: Int, cx: Connection): Unit = {
     val componentType = array(0).getClass
     val sqlType = dataStore.getSqlTypeNameToClassMappings.asScala.collectFirst { case (k, v) if v == componentType => k }
