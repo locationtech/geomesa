@@ -27,6 +27,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.Namespace
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, RunnableStats}
+import org.locationtech.geomesa.index.utils.LocalLocking
 import org.locationtech.geomesa.kafka.KafkaConsumerVersions
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
@@ -46,6 +47,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfig
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, Transform}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
+import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -55,11 +57,11 @@ import java.util.{Collections, Properties, UUID}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
-abstract class KafkaDataStore(
+class KafkaDataStore(
     val config: KafkaDataStoreConfig,
     val metadata: GeoMesaMetadata[String],
     private[kafka] val serialization: GeoMessageSerializerFactory
-  ) extends MetadataBackedDataStore(config) with HasGeoMesaStats {
+  ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with LocalLocking {
 
   import KafkaDataStore.TopicKey
   import org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG
@@ -535,6 +537,13 @@ object KafkaDataStore extends LazyLogging {
       }
     }
   }
+
+  class KafkaDataStoreWithZk(
+      config: KafkaDataStoreConfig,
+      metadata: GeoMesaMetadata[String],
+      serialization: GeoMessageSerializerFactory,
+      override protected val zookeepers: String
+    ) extends KafkaDataStore(config, metadata, serialization) with ZookeeperLocking
 
   case class KafkaDataStoreConfig(
       catalog: String,
