@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.index.attribute.legacy
 
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
+import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -17,6 +17,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.index.index.attribute.legacy.AttributeIndexV3.LegacyDateIndexKeySpace
 import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -45,8 +46,17 @@ object AttributeIndexV3 {
   private val MinDateTime = ZonedDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
   private val MaxDateTime = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 999000000, ZoneOffset.UTC)
 
+  // note: add 1 to exclude null values
+  private val MinLowerBound = Long.MinValue + 1
+  private val MaxUpperBound = Long.MaxValue
+
+  private val Unbounded =
+    UnboundedByteRange(
+      ByteArrays.toOrderedBytes(MinLowerBound),
+      ByteArrays.rowFollowingPrefix(ByteArrays.toOrderedBytes(MaxUpperBound)))
+
   class LegacyDateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
-      extends IndexKeySpace[Seq[Bounds[ZonedDateTime]], Long] {
+      extends IndexKeySpace[FilterValues[Bounds[ZonedDateTime]], Long] {
 
     require(classOf[Date].isAssignableFrom(sft.getDescriptor(dtgField).getType.getBinding),
       s"Expected field $dtgField to have a date binding, but instead it has: " +
@@ -72,25 +82,32 @@ object AttributeIndexV3 {
       SingleRowKeyValue(timeToBytes(time), sharing, sharing, time, tier, sharing, Seq.empty)
     }
 
-    override def getIndexValues(filter: Filter, explain: Explainer): Seq[Bounds[ZonedDateTime]] =
-      FilterHelper.extractIntervals(filter, dtgField).values
+    override def getIndexValues(filter: Filter, explain: Explainer): FilterValues[Bounds[ZonedDateTime]] =
+      FilterHelper.extractIntervals(filter, dtgField)
 
-    override def getRanges(values: Seq[Bounds[ZonedDateTime]], multiplier: Int): Iterator[ScanRange[Long]] = {
-      values.iterator.map { bounds =>
-        val lower = bounds.lower.value.getOrElse(MinDateTime).toInstant.toEpochMilli
-        val upper = bounds.upper.value.getOrElse(MaxDateTime).toInstant.toEpochMilli
-        BoundedRange(lower, upper)
+    override def getRanges(values: FilterValues[Bounds[ZonedDateTime]], multiplier: Int): Iterator[ScanRange[Long]] = {
+      if (values.isEmpty) {
+        Iterator.single(UnboundedRange(-1))
+      } else if (values.disjoint) {
+        Iterator.empty
+      } else {
+        values.values.iterator.map { bounds =>
+          val lower = bounds.lower.value.getOrElse(MinDateTime).toInstant.toEpochMilli
+          val upper = bounds.upper.value.getOrElse(MaxDateTime).toInstant.toEpochMilli
+          BoundedRange(lower, upper)
+        }
       }
     }
 
     override def getRangeBytes(ranges: Iterator[ScanRange[Long]], tier: Boolean): Iterator[ByteRange] = {
       ranges.map {
         case BoundedRange(lo, hi) => BoundedByteRange(timeToBytes(lo), roundUpTime(timeToBytes(hi)))
+        case UnboundedRange(_)    => Unbounded
         case r => throw new IllegalArgumentException(s"Unexpected range type $r")
       }
     }
 
-    override def useFullFilter(values: Option[Seq[Bounds[ZonedDateTime]]],
+    override def useFullFilter(values: Option[FilterValues[Bounds[ZonedDateTime]]],
                                config: Option[GeoMesaDataStoreConfig],
                                hints: Hints): Boolean = false // TODO for functions?
 

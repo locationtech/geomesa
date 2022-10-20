@@ -302,7 +302,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 
         if (tier == null) {
           QueryStrategy(filter, bytes, keyRanges, Seq.empty, ecql, hints, indexValues)
-        } else if (secondary == null) {
+        } else if (secondary == null || tiers.exists(_.isInstanceOf[UnboundedByteRange])) {
           val byteRanges = keySpace.getRangeBytes(keyRanges.iterator, tier = true).map {
             case BoundedByteRange(lo, hi)      => BoundedByteRange(lo, ByteArrays.concat(hi, ByteRange.UnboundedUpperRange))
             case SingleRowByteRange(row)       => BoundedByteRange(row, ByteArrays.concat(row, ByteRange.UnboundedUpperRange))
@@ -322,13 +322,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
           val byteRanges = bytes.flatMap {
             case SingleRowByteRange(row) =>
               // single row - we can use all the tiered ranges appended to the end
-              if (tiers.isEmpty) {
-                Iterator.single(BoundedByteRange(row, ByteArrays.concat(row, ByteRange.UnboundedUpperRange)))
-              } else {
-                tiers.map {
-                  case BoundedByteRange(lo, hi) => BoundedByteRange(ByteArrays.concat(row, lo), ByteArrays.concat(row, hi))
-                  case SingleRowByteRange(trow) => SingleRowByteRange(ByteArrays.concat(row, trow))
-                }
+              tiers.map {
+                case BoundedByteRange(lo, hi) => BoundedByteRange(ByteArrays.concat(row, lo), ByteArrays.concat(row, hi))
+                case SingleRowByteRange(trow) => SingleRowByteRange(ByteArrays.concat(row, trow))
               }
 
             case BoundedByteRange(lo, hi) =>
