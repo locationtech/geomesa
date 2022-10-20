@@ -16,7 +16,6 @@ import org.geotools.data.DataStoreFactorySpi
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.index.metadata.MetadataStringSerializer
-import org.locationtech.geomesa.index.utils.LocalLocking
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
@@ -26,7 +25,7 @@ import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
-import org.locationtech.geomesa.utils.zk.{ZookeeperLocking, ZookeeperMetadata}
+import org.locationtech.geomesa.utils.zk.ZookeeperMetadata
 import org.opengis.filter.Filter
 import pureconfig.error.{CannotConvert, ConfigReaderFailures, FailureReason}
 import pureconfig.{ConfigCursor, ConfigReader, Derivation}
@@ -47,15 +46,15 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
 
   override def createDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore = {
     val config = KafkaDataStoreFactory.buildConfig(params)
+    val serializer = new GeoMessageSerializerFactory()
     val ds = config.zookeepers match {
       case None =>
         val meta = new KafkaMetadata(config, MetadataStringSerializer)
-        new KafkaDataStore(config, meta, new GeoMessageSerializerFactory()) with LocalLocking
+        new KafkaDataStore(config, meta, serializer)
+
       case Some(zk) =>
         val meta = new ZookeeperMetadata(s"${config.catalog}/$MetadataPath", zk, MetadataStringSerializer)
-        val ds = new KafkaDataStore(config, meta, new GeoMessageSerializerFactory()) with ZookeeperLocking {
-          override protected def zookeepers: String = zk
-        }
+        val ds = new KafkaDataStoreWithZk(config, meta, serializer, zk)
         // migrate old schemas, if any
         if (!meta.read("migration", "check").exists(_.toBoolean)) {
           new MetadataMigration(ds, config.catalog, zk).run()
