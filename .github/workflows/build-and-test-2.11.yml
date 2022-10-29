@@ -44,7 +44,7 @@ jobs:
         if: steps.hbase-test.outcome=='failure'
         run: mvn -o surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
       - name: Integration Tests
-        run: mvn failsafe:integration-test -Pbigtable -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+        run: mvn failsafe:integration-test failsafe:verify -Pbigtable -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
       - name: Remove geomesa artifacts
         run: |
           find . -name '*.tar.gz' -exec rm {} \;

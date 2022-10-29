@@ -2737,6 +2737,11 @@
                     </executions>
                     <configuration>
                         <testSourceDirectory>src/test/scala</testSourceDirectory>
+                        <systemProperties>
+                            <!-- ZooKeeper uses a JMX feature of log4j that reload4j doesn't support.
+                                 We need to disable it for the mini clusters to work in unit tests -->
+                            <zookeeper.jmx.log4j.disable>true</zookeeper.jmx.log4j.disable>
+                        </systemProperties>
                     </configuration>
                 </plugin>
 

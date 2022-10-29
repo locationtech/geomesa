@@ -19,13 +19,17 @@ Example: ``try("abcd"::int, 0) = 0``
 withDefault
 ^^^^^^^^^^^
 
-Description: Replace a value with a default, if the value is null
+Description: Replace a value with the first non-null alternative, if the value is null
 
-Usage: ``withDefault($1, $2)``
+Usage: ``withDefault($1, $2...)``
 
 Example: ``withDefault('foo', 'bar') = foo``
 
-Example: ``withDefault(null, 'bar') = bar``
+Example: ``withDefault('foo', 'bar', 'baz') = foo``
+
+Example: ``withDefault(null, 'bar', 'baz') = bar``
+
+Example: ``withDefault(null, null, 'baz') = baz``
 
 require
 ^^^^^^^

@@ -44,6 +44,7 @@ case object MiniCluster extends LazyLogging {
 
     val config = new MiniAccumuloConfig(miniClusterTempDir.toFile, Users.root.password)
     sys.props.get("geomesa.accumulo.test.tablet.servers").map(_.toInt).foreach(config.setNumTservers)
+    config.setDefaultMemory(256, org.apache.accumulo.minicluster.MemoryUnit.MEGABYTE) // default is 128MB
 
     // Use reflection to access a package-private method to set system properties before starting
     // the minicluster. It is possible that this could break with future versions of Accumulo.
