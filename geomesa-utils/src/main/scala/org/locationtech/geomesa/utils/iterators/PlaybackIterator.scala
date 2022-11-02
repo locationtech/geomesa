@@ -25,28 +25,32 @@ import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
 /**
-  * Query over a time frame and return the features in sorted order, delayed based on the date of each feature
-  * to simulate the original ingestion stream
-  *
-  * @param ds data store
-  * @param typeName simple feature type name
-  * @param interval interval to query
-  * @param dtg date attribute to sort by
-  * @param filter additional filter predicate, if any
-  * @param transforms query transforms, if any
-  * @param window length of a single query window, used to chunk up the total features
-  * @param rate multiplier for the rate of returning features, applied to the original delay between features
-  * @param readAhead size of the read-ahead queue used for holding features before returning them
-  */
-class PlaybackIterator(ds: DataStore,
-                       typeName: String,
-                       interval: (Date, Date),
-                       dtg: Option[String] = None,
-                       filter: Option[Filter] = None,
-                       transforms: Array[String] = null,
-                       window: Option[Duration] = None,
-                       rate: Float = 10f,
-                       readAhead: Int = 10000) extends CloseableIterator[SimpleFeature] with StrictLogging {
+ * Query over a time frame and return the features in sorted order, delayed based on the date of each feature
+ * to simulate the original ingestion stream
+ *
+ * @param ds data store
+ * @param typeName simple feature type name
+ * @param interval interval to query
+ * @param dtg date attribute to sort by
+ * @param filter additional filter predicate, if any
+ * @param transforms query transforms, if any
+ * @param window length of a single query window, used to chunk up the total features
+ * @param rate multiplier for the rate of returning features, applied to the original delay between features
+ * @param live project dates to current time
+ * @param readAhead size of the read-ahead queue used for holding features before returning them
+ */
+class PlaybackIterator(
+    ds: DataStore,
+    typeName: String,
+    interval: (Date, Date),
+    dtg: Option[String] = None,
+    filter: Option[Filter] = None,
+    transforms: Array[String] = null,
+    window: Option[Duration] = None,
+    rate: Float = 10f,
+    live: Boolean = false,
+    readAhead: Int = 10000
+  ) extends CloseableIterator[SimpleFeature] with StrictLogging {
 
   import PlaybackIterator.ff
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -57,14 +61,23 @@ class PlaybackIterator(ds: DataStore,
   private val dtgName = dtg.orElse(sft.getDtgField).getOrElse {
     throw new IllegalArgumentException("Schema does not have a default date field")
   }
-  private val dtgIndex = sft.indexOf(dtgName)
+  private val tdefs = transforms match {
+    case null => null
+    case t if t.indexOf(dtgName) == -1 => t :+ dtgName
+    case t => t
+  }
+  private val dtgIndex = tdefs match {
+    case null => sft.indexOf(dtgName)
+    case t => t.indexOf(dtgName)
+  }
+  require(dtgIndex != -1, "Invalid date field")
   private val dtgProp = ff.property(dtgName)
   private val sort = Array(ff.sort(dtgName, SortOrder.ASCENDING))
 
   private val windowMillis = window.map(_.toMillis).getOrElse(interval._2.getTime - interval._1.getTime + 1)
-  private val eventStart = interval._1.getTime
 
   private var start: Long = -1
+  private var eventStart: Long = -1
 
   private val features = new LinkedBlockingQueue[SimpleFeature](readAhead)
   private var staged: SimpleFeature = _
@@ -90,16 +103,20 @@ class PlaybackIterator(ds: DataStore,
   override def next(): SimpleFeature = {
     val feature = staged
     staged = null
-    val featureRelativeTime = ((feature.getAttribute(dtgIndex).asInstanceOf[Date].getTime - eventStart) / rate).toLong
+    val featureTime = feature.getAttribute(dtgIndex).asInstanceOf[Date].getTime
     if (start == -1L) {
       // emit the first feature as soon as it's available, and set the clock to start timing from here
       logger.debug("Starting replay clock")
-      start = System.currentTimeMillis() - featureRelativeTime
-    } else {
-      val sleep = start + featureRelativeTime - System.currentTimeMillis()
-      if (sleep > 0) {
-        Thread.sleep(sleep)
-      }
+      start = System.currentTimeMillis()
+      eventStart = featureTime
+    }
+    val featureRelativeTime = start + ((featureTime - eventStart) / rate).toLong
+    val sleep = featureRelativeTime - System.currentTimeMillis()
+    if (sleep > 0) {
+      Thread.sleep(sleep)
+    }
+    if (live) {
+      feature.setAttribute(dtgIndex, new Date(featureRelativeTime))
     }
     feature
   }
@@ -129,7 +146,7 @@ class PlaybackIterator(ds: DataStore,
             )
             ff.during(dtgProp, ff.literal(period))
           }
-          val query = new Query(typeName, filter.map(ff.and(_, during)).getOrElse(during), transforms)
+          val query = new Query(typeName, filter.map(ff.and(_, during)).getOrElse(during), tdefs)
           query.setSortBy(sort)
           // prevent ContentDataStore from sorting on disk
           query.getHints.put(Hints.MAX_MEMORY_SORT, java.lang.Integer.MAX_VALUE)

@@ -53,6 +53,7 @@ trait PlaybackCommand[DS <: DataStore] extends ExportCommand[DS] {
       private val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
       private val window = Option(params.window)
       private val rate = Option(params.rate).map(_.floatValue()).getOrElse(1f)
+      private val live = Option(params.live).exists(_.booleanValue())
 
       private lazy val queryWithInterval = {
         val dtg = Option(params.dtg).orElse(ds.getSchema(query.getTypeName).getDtgField).getOrElse {
@@ -77,7 +78,7 @@ trait PlaybackCommand[DS <: DataStore] extends ExportCommand[DS] {
       override def getCount: Int = fs.getCount(queryWithInterval)
 
       override protected def openIterator(): java.util.Iterator[SimpleFeature] = {
-        val iter = new PlaybackIterator(ds, query.getTypeName, params.interval, dtg, filter, transform, window, rate)
+        val iter = new PlaybackIterator(ds, query.getTypeName, params.interval, dtg, filter, transform, window, rate, live)
 
         // note: result needs to implement Closeable in order to be closed by the DataFeatureCollection
         if (params.maxFeatures != null) {
@@ -101,7 +102,15 @@ trait PlaybackCommand[DS <: DataStore] extends ExportCommand[DS] {
       WithClose(CloseableIterator(features.features())) { iter =>
         if (writeEmptyFiles || iter.hasNext) {
           exporter.start(features.getSchema)
-          exporter.export(iter)
+          var count: Option[Long] = None
+          while (iter.hasNext) {
+            val res = exporter.export(Iterator.single(iter.next))
+            count = count match {
+              case None => res
+              case Some(c) => res.map(_ + c).orElse(count)
+            }
+          }
+          count
         } else {
           Some(0L)
         }
@@ -130,5 +139,8 @@ object PlaybackCommand {
 
     @Parameter(names = Array("--rate"), description = "Rate multiplier to speed-up (or slow down) features being returned")
     var rate: java.lang.Float = _
+
+    @Parameter(names = Array("--live"), description = "Simulate live data by projecting the dates to current time")
+    var live: java.lang.Boolean = _
   }
 }
