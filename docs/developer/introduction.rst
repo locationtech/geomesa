@@ -91,7 +91,6 @@ GeoMesa Project Structure
 * **geomesa-hbase**: ``DataStore`` implementation for Apache HBase
 * **geomesa-index-api**: Core indexing and ``DataStore`` code
 * **geomesa-jobs**: Map/reduce integration
-* **geomesa-jupyter**: Jupyter notebook integration
 * **geomesa-kafka**: ``DataStore`` implementation for Apache Kafka, for near-real-time streaming data
 * **geomesa-lambda**: ``DataStore`` implementation that seamlessly uses Kafka for frequent updates and Accumulo for long-term persistence
 * **geomesa-memory**: In-memory indexing code
