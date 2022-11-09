@@ -102,6 +102,13 @@ However, this change impacts the JARs bundled with the command-line tools, which
 `reload4j <https://reload4j.qos.ch/>`__ instead. Other environments using GeoMesa (i.e. GeoServer) must be
 hardened independently.
 
+Deprecated Modules
+------------------
+
+The following modules have been deprecated, and will be removed in a future version:
+
+* GeoMesa Bigtable
+
 Dependency Updates
 ------------------
 
