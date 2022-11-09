@@ -20,7 +20,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, 
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloQueryPlan}
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
-import org.locationtech.geomesa.jobs.mapreduce._
+import org.locationtech.geomesa.jobs.accumulo.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}

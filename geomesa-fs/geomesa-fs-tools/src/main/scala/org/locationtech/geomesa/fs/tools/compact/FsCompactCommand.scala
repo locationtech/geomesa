@@ -13,12 +13,12 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.{OrcCompactionJob, ParquetCompactionJob}
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand.CompactCommand
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
-import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.Command.CommandException
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools._

@@ -61,78 +61,23 @@ class SimpleFeatureSerializersTest extends Specification {
       val opts = SerializationOptions.withUserData
 
       // AVRO without options
-      val avro1 = SimpleFeatureSerializers(sft, SerializationType.AVRO)
+      val avro1 = new AvroFeatureSerializer(sft)
       avro1 must beAnInstanceOf[AvroFeatureSerializer]
       avro1.options mustEqual SerializationOptions.none
 
       // AVRO with options
-      val avro2 = SimpleFeatureSerializers(sft, SerializationType.AVRO, opts)
+      val avro2 = new AvroFeatureSerializer(sft, opts)
       avro2 must beAnInstanceOf[AvroFeatureSerializer]
       avro2.options mustEqual opts
 
       // KRYO without options
-      val kryo1 = SimpleFeatureSerializers(sft, SerializationType.KRYO)
+      val kryo1 = KryoFeatureSerializer(sft)
       kryo1 must beAnInstanceOf[KryoFeatureSerializer]
       kryo1.options mustEqual SerializationOptions.none
 
       // KRYO with options
-      val kryo2 = SimpleFeatureSerializers(sft, SerializationType.KRYO, opts)
+      val kryo2 = KryoFeatureSerializer(sft, opts)
       kryo2 must beAnInstanceOf[KryoFeatureSerializer]
-      kryo2.options mustEqual opts
-    }
-  }
-
-  "SimpleFeatureDecoder" should {
-
-    "have a properly working apply() method" >> {
-      val opts = SerializationOptions.withUserData
-
-      // AVRO without options
-      val avro1 = SimpleFeatureDeserializers(sft, SerializationType.AVRO)
-      avro1 must beAnInstanceOf[AvroFeatureSerializer]
-      avro1.options mustEqual SerializationOptions.none
-
-      // AVRO with options
-      val avro2 = SimpleFeatureDeserializers(sft, SerializationType.AVRO, opts)
-      avro2 must beAnInstanceOf[AvroFeatureSerializer]
-      avro2.options mustEqual opts
-
-      // KRYO without options
-      val kryo1 = SimpleFeatureDeserializers(sft, SerializationType.KRYO)
-      kryo1 must beAnInstanceOf[KryoFeatureSerializer]
-      kryo1.options mustEqual SerializationOptions.none
-
-      // KRYO with options
-      val kryo2 = SimpleFeatureDeserializers(sft, SerializationType.KRYO, opts)
-      kryo2 must beAnInstanceOf[KryoFeatureSerializer]
-      kryo2.options mustEqual opts
-    }
-  }
-
-  "ProjectingSimpleFeatureDecoder" should {
-
-    "have a properly working apply() method" >> {
-      val projectedSft = SimpleFeatureTypes.createType(sftName, "*geom:Point")
-      val opts = SerializationOptions.withUserData
-
-      // AVRO without options
-      val avro1 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.AVRO)
-      avro1 must beAnInstanceOf[ProjectingAvroFeatureDeserializer]
-      avro1.options mustEqual SerializationOptions.none
-
-      // AVRO with options
-      val avro2 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.AVRO, opts)
-      avro2 must beAnInstanceOf[ProjectingAvroFeatureDeserializer]
-      avro2.options mustEqual opts
-
-      // KRYO without options
-      val kryo1 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.KRYO)
-      kryo1 must beAnInstanceOf[ProjectingKryoFeatureDeserializer]
-      kryo1.options mustEqual SerializationOptions.none
-
-      // KRYO with options
-      val kryo2 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.KRYO, opts)
-      kryo2 must beAnInstanceOf[ProjectingKryoFeatureDeserializer]
       kryo2.options mustEqual opts
     }
   }
@@ -411,7 +356,10 @@ class SimpleFeatureSerializersTest extends Specification {
       }
 
       def doTest(typ: SerializationType.SerializationType): MatchResult[Any] = {
-        val serializer = SimpleFeatureSerializers(sft, typ, SerializationOptions.withUserData)
+        val serializer = typ match {
+          case SerializationType.KRYO => KryoFeatureSerializer(sft, SerializationOptions.withUserData)
+          case SerializationType.AVRO => new AvroFeatureSerializer(sft, SerializationOptions.withUserData)
+        }
         foreach(features) { feature =>
           val reserialized = serializer.deserialize(serializer.serialize(feature))
           // note: can't compare whole map at once as byte arrays aren't considered equal in that comparison

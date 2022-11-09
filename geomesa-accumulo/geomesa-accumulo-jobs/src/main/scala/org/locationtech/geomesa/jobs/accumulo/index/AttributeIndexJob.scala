@@ -26,8 +26,8 @@ import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.jobs._
 import org.locationtech.geomesa.jobs.accumulo.index.AttributeIndexJob.{AttributeIndexArgs, AttributeMapper}
+import org.locationtech.geomesa.jobs.accumulo.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.jobs.accumulo.{AccumuloJobUtils, GeoMesaArgs, InputDataStoreArgs, InputFeatureArgs}
-import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.index.IndexMode
