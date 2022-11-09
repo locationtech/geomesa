@@ -5,7 +5,7 @@ Project Description
 -------------------
 
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
-computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase, Google Bigtable and
+computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
 stream processing of spatio-temporal data by layering spatial semantics on top of Apache Kafka. Through GeoServer,
 GeoMesa facilitates integration with a wide range of existing mapping clients over standard OGC (Open Geospatial

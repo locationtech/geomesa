@@ -118,8 +118,6 @@ rst_epilog = """
 
 .. |redis_version| replace:: 5.0.x
 
-.. |kudu_version| replace:: 1.7.x
-
 .. |spark_required_version| replace:: 2.4.x, 3.0.x or 3.1.x
 
 .. |spark_supported_versions| replace:: versions 2.4.x, 3.0.x and 3.1.x
