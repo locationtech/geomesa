@@ -15,6 +15,7 @@ import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
 import org.apache.arrow.vector.{BigIntVector, FieldVector}
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
+import org.locationtech.geomesa.arrow.jts.GeometryFields
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding.Encoding

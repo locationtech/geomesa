@@ -14,8 +14,12 @@ import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
 import org.apache.spark.rdd.RDD
 import org.apache.spark.serializer.KryoRegistrator
 import org.geotools.data.DataStore
-import org.locationtech.geomesa.features.SimpleFeatureSerializers
+import org.geotools.feature.simple.SimpleFeatureImpl
+import org.locationtech.geomesa.features.ScalaSimpleFeature.{ImmutableSimpleFeature, LazyImmutableSimpleFeature, LazyMutableSimpleFeature}
+import org.locationtech.geomesa.features.avro.AvroSimpleFeature
+import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -53,13 +57,26 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
       }
     }
     kryo.setReferences(false)
-    SimpleFeatureSerializers.simpleFeatureImpls.foreach(kryo.register(_, serializer, kryo.getNextRegistrationId))
+    GeoMesaSparkKryoRegistrator.SimpleFeatureImpls.foreach(kryo.register(_, serializer, kryo.getNextRegistrationId))
   }
 }
 
 object GeoMesaSparkKryoRegistrator {
 
   private val typeCache = new ConcurrentHashMap[Int, SimpleFeatureType]()
+
+  private val SimpleFeatureImpls: Seq[Class[_ <: SimpleFeature]] =
+    Seq(
+      classOf[ScalaSimpleFeature],
+      classOf[ImmutableSimpleFeature],
+      classOf[LazyImmutableSimpleFeature],
+      classOf[LazyMutableSimpleFeature],
+      classOf[KryoBufferSimpleFeature],
+      classOf[AvroSimpleFeature],
+      classOf[TransformSimpleFeature],
+      classOf[SimpleFeatureImpl],
+      classOf[SimpleFeature]
+    )
 
   GeoMesaSparkKryoRegistratorEndpoint.init()
 

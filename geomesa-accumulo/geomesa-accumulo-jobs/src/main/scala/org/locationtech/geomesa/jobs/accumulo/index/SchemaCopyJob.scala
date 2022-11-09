@@ -20,7 +20,8 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.accumulo._
 import org.locationtech.geomesa.jobs.accumulo.index.SchemaCopyJob.SchemaCopyArgs
 import org.locationtech.geomesa.jobs.accumulo.index.WriteIndexJob.PassThroughMapper
-import org.locationtech.geomesa.jobs.mapreduce.{GeoMesaAccumuloInputFormat, GeoMesaOutputFormat}
+import org.locationtech.geomesa.jobs.accumulo.mapreduce.GeoMesaAccumuloInputFormat
+import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
