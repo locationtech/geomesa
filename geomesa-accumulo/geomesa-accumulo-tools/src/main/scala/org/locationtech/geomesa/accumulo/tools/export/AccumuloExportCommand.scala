@@ -16,7 +16,7 @@ import org.locationtech.geomesa.accumulo.tools.AccumuloDataStoreCommand.Accumulo
 import org.locationtech.geomesa.accumulo.tools.AccumuloDataStoreParams
 import org.locationtech.geomesa.accumulo.tools.export.AccumuloExportCommand.AccumuloExportParams
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
-import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat
+import org.locationtech.geomesa.jobs.accumulo.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.tools.export.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.{OptionalIndexParam, RequiredTypeNameParam}

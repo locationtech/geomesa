@@ -22,8 +22,8 @@ import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration.SimpleFeatureAction
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.fs.storage.orc.jobs.{OrcSimpleFeatureActionInputFormat, OrcSimpleFeatureInputFormat}
-import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
-import org.locationtech.geomesa.parquet.jobs.{ParquetSimpleFeatureActionInputFormat, ParquetSimpleFeatureInputFormat}
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
+import org.locationtech.geomesa.fs.storage.parquet.jobs.{ParquetSimpleFeatureActionInputFormat, ParquetSimpleFeatureInputFormat}
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}

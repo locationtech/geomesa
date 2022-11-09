@@ -15,7 +15,9 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializers}
+import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{BinResultsToFeatures, ResultCallback}
@@ -87,14 +89,20 @@ object BinAggregatingIterator extends LazyLogging {
 
     // noinspection ScalaDeprecation
     if (index.serializedWithId) {
-      val deserializer = SimpleFeatureDeserializers(returnSft, serializationType)
+      val deserializer = serializationType match {
+        case SerializationType.KRYO => KryoFeatureSerializer(returnSft)
+        case SerializationType.AVRO => new AvroFeatureSerializer(returnSft)
+      }
       e: Entry[Key, Value] => {
         val deserialized = deserializer.deserialize(e.getValue.get())
         val values = Array[AnyRef](encoder.encode(deserialized), GeometryUtils.zeroPoint)
         new ScalaSimpleFeature(BinEncodedSft, deserialized.getID, values)
       }
     } else {
-      val deserializer = SimpleFeatureDeserializers(returnSft, serializationType, SerializationOptions.withoutId)
+      val deserializer = serializationType match {
+        case SerializationType.KRYO => KryoFeatureSerializer(returnSft, SerializationOptions.withoutId)
+        case SerializationType.AVRO => new AvroFeatureSerializer(returnSft, SerializationOptions.withoutId)
+      }
       e: Entry[Key, Value] => {
         val deserialized = deserializer.deserialize(e.getValue.get())
         val row = e.getKey.getRow
