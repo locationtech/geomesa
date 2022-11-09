@@ -11,8 +11,9 @@ package org.locationtech.geomesa.arrow.filter
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
+import org.locationtech.geomesa.arrow.jts.GeometryVector
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader._
-import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, GeometryVector}
+import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.filter.checkOrderUnsafe
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
