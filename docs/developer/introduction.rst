@@ -51,12 +51,6 @@ The `skipTests` property may be used to reduce build time, as it omits the test 
 
     $ mvn clean install -DskipTests
 
-To compile for Google Bigtable, use the ``bigtable`` profile:
-
-.. code-block:: bash
-
-    $ mvn clean install -Pbigtable
-
 The ``build/mvn`` script is a wrapper around Maven that builds the project using the
 `Zinc <https://github.com/typesafehub/zinc>`__ incremental compiler:
 
@@ -89,13 +83,11 @@ GeoMesa Project Structure
 * **geomesa-accumulo**: ``DataStore`` implementation for Apache Accumulo
 * **geomesa-archetypes**: Template modules for Maven builds
 * **geomesa-arrow**: Apache Arrow integration and ``DataStore`` implementation
-* **geomesa-bigtable**: ``DataStore`` implementation for Google Bigtable
 * **geomesa-cassandra**: ``DataStore`` implementation for Apache Cassandra
 * **geomesa-convert**: Configurable and extensible library for converting arbitrary data into ``SimpleFeature``\ s
 * **geomesa-features**: Custom implementations and serialization of ``SimpleFeature``\ s
 * **geomesa-filter**: Library for manipulating and working with GeoTools ``Filter``\ s
 * **geomesa-fs**: ``DataStore`` implementation for flat files
-* **geomesa-geojson**: API and REST-ful web service for working directly with GeoJSON
 * **geomesa-hbase**: ``DataStore`` implementation for Apache HBase
 * **geomesa-index-api**: Core indexing and ``DataStore`` code
 * **geomesa-jobs**: Map/reduce integration
@@ -106,9 +98,7 @@ GeoMesa Project Structure
 * **geomesa-process**: Analytic processes optimized for GeoMesa stores
 * **geomesa-security**: API for managing security and authorization levels in GeoMesa
 * **geomesa-spark**: Apache Spark integration
-* **geomesa-stream**: ``DataStore`` implementation that reads features from arbitrary URLs
 * **geomesa-tools**: Command-line tools for ingesting, querying and managing data in GeoMesa
 * **geomesa-utils**: Common utility code
-* **geomesa-web**: REST-ful web services for integrating with GeoMesa
 * **geomesa-z3**: Z3 space-filling-curve implementation
 * **geomesa-zk-utils**: Zookeeper utility code
