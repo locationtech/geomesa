@@ -30,7 +30,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
-import org.locationtech.geomesa.parquet.ParquetPathReader
+import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
 import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.export.formats.ExportFormat

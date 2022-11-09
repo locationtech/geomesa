@@ -20,6 +20,7 @@ import org.apache.arrow.vector.util.TransferPair
 import org.apache.arrow.vector.{FieldVector, IntVector}
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
+import org.locationtech.geomesa.arrow.jts.{GeometryFields, GeometryVector}
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader.{ArrowDateReader, ArrowDictionaryReader, ArrowListDictionaryReader}
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary.ArrowDictionaryArray
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding

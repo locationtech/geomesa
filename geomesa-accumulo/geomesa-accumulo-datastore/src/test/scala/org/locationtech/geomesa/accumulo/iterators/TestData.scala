@@ -16,7 +16,8 @@ import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.accumulo.index.IndexValueEncoder
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureSerializers}
+import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -79,7 +80,7 @@ object TestData extends LazyLogging {
   // This is a quick trick to make sure that the userData is set.
   lazy val featureType: SimpleFeatureType = getFeatureType()
 
-  lazy val featureEncoder = SimpleFeatureSerializers(getFeatureType(), SerializationType.AVRO)
+  lazy val featureEncoder = new AvroFeatureSerializer(getFeatureType())
   lazy val indexValueEncoder = IndexValueEncoder(featureType)
 
   val defaultDateTime = ZonedDateTime.of(2011, 6, 1, 0, 0, 0, 0, ZoneOffset.UTC)
