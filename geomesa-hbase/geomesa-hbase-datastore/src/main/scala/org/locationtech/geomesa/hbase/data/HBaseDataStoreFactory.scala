@@ -17,7 +17,6 @@ import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.apache.hadoop.security.UserGroupInformation
-import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 import org.locationtech.geomesa.hbase.data.HBaseDataStore.NoAuthsProvider
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -72,7 +71,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       url = CoprocessorUrlParam.lookupOpt(params)
     )
     val config = HBaseDataStoreConfig(
-      catalog = getCatalog(params),
+      catalog = HBaseCatalogParam.lookup(params),
       remoteFilter = remoteFilters,
       generateStats = GenerateStatsParam.lookup(params),
       queries = queries,
@@ -91,19 +90,11 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       logger.warn(s"Ignoring configs '${enabled.mkString("', '")}' due to remote filtering being disabled")
     }
 
-    val ds = buildDataStore(connection, config)
+    val ds = new HBaseDataStore(connection, config)
     GeoMesaDataStore.initRemoteVersion(ds)
     ds
   }
 
-  // overridden by BigtableFactory
-  protected def getCatalog(params: java.util.Map[String, Serializable]): String = HBaseCatalogParam.lookup(params)
-
-  // overridden by BigtableFactory
-  protected def buildDataStore(connection: ConnectionWrapper, config: HBaseDataStoreConfig): HBaseDataStore =
-    new HBaseDataStore(connection, config)
-
-  // overridden by BigtableFactory
   protected def validateConnection: Boolean = true
 
   override def isAvailable = true
