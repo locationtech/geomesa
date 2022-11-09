@@ -1,6 +1,10 @@
 Bigtable Data Store
 ===================
 
+.. warning::
+
+   The GeoMesa Bigtable Data Store is deprecated and will be removed in a future version.
+
 The GeoMesa Bigtable Data Store is an implementation of the GeoTools
 ``DataStore`` interface that is backed by `Google Cloud Bigtable <https://cloud.google.com/bigtable/>`__.
 
