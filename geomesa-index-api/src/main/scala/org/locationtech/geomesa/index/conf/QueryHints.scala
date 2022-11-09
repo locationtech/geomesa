@@ -138,23 +138,10 @@ object QueryHints {
     def getDensityWeight: Option[String] = Option(hints.get(DENSITY_WEIGHT).asInstanceOf[String])
 
     def isArrowQuery: Boolean = Option(hints.get(ARROW_ENCODE).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
-    @deprecated("removed without replacement")
-    def isArrowMultiFile: Boolean = Option(hints.get(ARROW_MULTI_FILE).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
-    @deprecated("removed without replacement")
-    def isArrowDoublePass: Boolean = Option(hints.get(ARROW_DOUBLE_PASS).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
     def isArrowIncludeFid: Boolean = Option(hints.get(ARROW_INCLUDE_FID).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
     def isArrowProxyFid: Boolean = Option(hints.get(ARROW_PROXY_FID).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
     def getArrowDictionaryFields: Seq[String] =
       Option(hints.get(ARROW_DICTIONARY_FIELDS).asInstanceOf[String]).toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
-    @deprecated("removed without replacement")
-    def isArrowCachedDictionaries: Boolean =
-      Option(hints.get(ARROW_DICTIONARY_CACHED).asInstanceOf[java.lang.Boolean]).forall(Boolean.unbox)
-    @deprecated("removed without replacement")
-    def getArrowDictionaryEncodedValues(sft: SimpleFeatureType): Map[String, Array[AnyRef]] =
-      Option(hints.get(ARROW_DICTIONARY_VALUES).asInstanceOf[String]).map(StringSerialization.decodeSeqMap(sft, _)).getOrElse(Map.empty)
-    @deprecated("removed without replacement")
-    def setArrowDictionaryEncodedValues(values: Map[String, Seq[AnyRef]]): Unit =
-      hints.put(ARROW_DICTIONARY_VALUES, StringSerialization.encodeSeqMap(values))
     def getArrowBatchSize: Option[Int] = Option(hints.get(ARROW_BATCH_SIZE).asInstanceOf[Integer]).map(_.intValue)
     def getArrowSort: Option[(String, Boolean)] =
       Option(hints.get(ARROW_SORT_FIELD).asInstanceOf[String]).map { field =>

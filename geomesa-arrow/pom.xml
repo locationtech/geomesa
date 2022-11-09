@@ -14,7 +14,6 @@
     <modules>
         <module>geomesa-arrow-datastore</module>
         <module>geomesa-arrow-dist</module>
-        <module>geomesa-arrow-gs-plugin</module>
         <module>geomesa-arrow-gt</module>
         <module>geomesa-arrow-jts</module>
         <module>geomesa-arrow-tools</module>

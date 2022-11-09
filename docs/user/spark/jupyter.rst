@@ -94,8 +94,8 @@ GeoMesa version ``VERSION``:
 
 You may also consider adding ``geomesa-tools-2.11-$VERSION-data.jar`` to include prepackaged converters for
 publicly available data sources (as described in :ref:`prepackaged_converters`),
-``geomesa-jupyter-leaflet-2.11-$VERSION.jar`` to include an interface for the `Leaflet`_ spatial visualization
-library (see :ref:`jupyter_leaflet`, below), and/or ``geomesa-jupyter-vegas-2.11-$VERSION.jar`` to use the `Vegas`_ data
+``geomesa-spark-jupyter-leaflet-2.11-$VERSION.jar`` to include an interface for the `Leaflet`_ spatial visualization
+library (see :ref:`jupyter_leaflet`, below), and/or ``geomesa-spark-jupyter-vegas-2.11-$VERSION.jar`` to use the `Vegas`_ data
 plotting library (see :ref:`jupyter_vegas`, below).
 
 Running Jupyter
@@ -139,7 +139,7 @@ The following sample notebook shows how you can use Leaflet for data visualizati
    classpath.add("org.locationtech.jts" % "jts" % "1.13")
    classpath.add("org.locationtech.geomesa" % "geomesa-accumulo-datastore" % "1.3.0")
    classpath.add("org.apache.accumulo" % "accumulo-core" % "1.6.4")
-   classpath.add("org.locationtech.geomesa" % "geomesa-jupyter" % "1.3.0")
+   classpath.add("org.locationtech.geomesa" % "geomesa-spark-jupyter" % "1.3.0")
 
    import org.locationtech.geomesa.jupyter.Jupyter._
 
@@ -237,20 +237,20 @@ Vegas for Plotting
 ------------------
 
 The `Vegas`_ library may be used with GeoMesa, Spark, and Toree in Jupyter to plot quantitative data. The
-``geomesa-jupyter-vegas`` module builds a shaded JAR containing all of the dependencies needed to run Vegas in
+``geomesa-spark-jupyter-vegas`` module builds a shaded JAR containing all of the dependencies needed to run Vegas in
 Jupyter+Toree. This module must be built from source, using the ``vegas`` profile:
 
 .. code-block:: bash
 
-    $ mvn clean install -Pvegas -pl geomesa-jupyter/geomesa-jupyter-vegas
+    $ mvn clean install -Pvegas -pl geomesa-spark/geomesa-spark-jupyter-vegas
 
-This will build ``geomesa-jupyter-vegas_2.11-$VERSION.jar`` in the ``target`` directory of the module, and
+This will build ``geomesa-spark-jupyter-vegas_2.11-$VERSION.jar`` in the ``target`` directory of the module, and
 should be added to the list of JARs in the ``jupyter toree install`` command described in
 :ref:`jupyter_configure_toree`:
 
 .. code-block:: bash
 
-    jars="$jars,file:///path/to/geomesa-jupyter-vegas_2.11-$VERSION.jar"
+    jars="$jars,file:///path/to/geomesa-spark-jupyter-vegas_2.11-$VERSION.jar"
     # then continue with "jupyter toree install" as before
 
 To use Vegas within Jupyter, load the appropriate libraries and a displayer:
