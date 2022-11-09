@@ -16,7 +16,6 @@ Quick Starts
     geomesa-quickstart-kafka-streams
     geomesa-quickstart-redis
     geomesa-quickstart-fsds
-    geomesa-quickstart-kudu
     geomesa-quickstart-lambda
     geomesa-quickstart-nifi
 

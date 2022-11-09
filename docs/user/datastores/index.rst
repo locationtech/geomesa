@@ -36,12 +36,10 @@ Specific back-end implementations are described in the following chapters:
 
  * :doc:`/user/hbase/index`
  * :doc:`/user/accumulo/index`
- * :doc:`/user/bigtable/index`
  * :doc:`/user/cassandra/index`
  * :doc:`/user/kafka/index`
  * :doc:`/user/redis/index`
  * :doc:`/user/filesystem/index`
- * :doc:`/user/kudu/index`
  * :doc:`/user/postgis/index`
  * :doc:`/user/lambda/index`
 
