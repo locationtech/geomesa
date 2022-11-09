@@ -420,11 +420,6 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-feature-nio_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-filter_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -2575,8 +2570,9 @@
                 <plugin>
                     <groupId>net.alchim31.maven</groupId>
                     <artifactId>scala-maven-plugin</artifactId>
-                    <!-- 3.4.4 was released 2018-11-01.  It requires Maven version >= 3.3.9. -->
-                    <version>3.4.4</version>
+                    <!-- we use an older version that still supports using zinc compile server-->
+                    <version>3.4.4</version><!-- published 2018-11-01 -->
+                    <!--<version>4.7.2</version>&lt;!&ndash; published 2022-09-28 &ndash;&gt;-->
                     <configuration>
                         <dependencies>
                             <dependency>
@@ -2676,14 +2672,13 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <!-- 3.0.1 was released 2016-06-18. -->
-                    <version>3.0.1</version>
+                    <!-- 3.2.1 was latest as of 2022-02-18 -->
+                    <version>3.2.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <!-- 3.0.1 was released 2018-05-28. -->
-                    <version>3.0.1</version>
+                    <version>3.4.1</version><!-- published 2022-08-10 -->
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -2866,6 +2861,7 @@
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
+                        <inherited>false</inherited>
                         <configuration>
                             <outputDirectory>${project.basedir}</outputDirectory>
                             <overwrite>true</overwrite>
@@ -2886,6 +2882,7 @@
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
+                        <inherited>false</inherited>
                         <configuration>
                             <outputDirectory>${project.basedir}/.github</outputDirectory>
                             <overwrite>true</overwrite>
@@ -2913,6 +2910,10 @@
                             <goal>jar-no-fork</goal>
                             <goal>test-jar-no-fork</goal>
                         </goals>
+                        <configuration>
+                            <!-- we need source jars for publishing to maven central, even if there are no sources -->
+                            <forceCreation>true</forceCreation>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

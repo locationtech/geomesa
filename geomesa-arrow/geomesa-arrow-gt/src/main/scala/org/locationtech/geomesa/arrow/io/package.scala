@@ -13,8 +13,9 @@ import org.apache.arrow.vector.ipc.message.IpcOption
 import org.apache.arrow.vector.types.pojo.Schema
 import org.apache.arrow.vector.{FieldVector, VectorSchemaRoot}
 import org.locationtech.geomesa.arrow.io.records.RecordBatchLoader
+import org.locationtech.geomesa.arrow.jts.{GeometryFields, GeometryVector}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, GeometryFields, GeometryVector, SimpleFeatureVector}
+import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.conf.SemanticVersion
