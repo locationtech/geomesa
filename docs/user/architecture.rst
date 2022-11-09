@@ -1,7 +1,9 @@
 Architecture Overview
 =====================
 
-GeoMesa supports several scalable, cloud-based data storage technologies, including Apache Accumulo, Apache HBase, and Google Cloud Bigtable, as well as the Apache Kafka message broker for streaming data. Apache Storm lets you define information sources and manipulations to allow batch distributed processing of streaming data with GeoMesa, and a GeoMesa environment can also take advantage of Apache Spark to do large-scale analytics of stored and streaming data.
+GeoMesa supports several scalable, cloud-based data storage technologies, including Apache Accumulo, Apache HBase,
+and Apache Kafka for streaming data. A GeoMesa environment can also take advantage of Apache Spark to do large-scale
+analytics of stored and streaming data.
 
 .. image:: _static/img/GMHadoopInfrastructure.png
    :align: center
@@ -47,11 +49,16 @@ The following shows one possible query architecture, in which the GeoTools and G
 Key-value stores and Z-curves
 -----------------------------
 
-The data stores that GeoMesa uses for long-term storage are key-value databases, a type of NoSQL database in which every record is stored and retrieved using a unique identifier for that record known as a key. Accumulo, HBase, and Google Cloud Bigtable sort these keys and can store them across any number of nodes (servers). 
+The data stores that GeoMesa uses for long-term storage are key-value databases, a type of NoSQL database in which every record
+is stored and retrieved using a unique identifier for that record known as a key. Accumulo and HBase sort these keys
+and can store them across any number of nodes (servers).
 
 When using a key-value database, good design of the keys themselves can lead to more efficient applications. Unlike relational databases, where the keys are frequently sequential integers, key value stores usually use the key to represent a feature by which the data are frequently queried. For example, imagine a database of customer orders being indexed by the order number. Then, when a client queries by order number, the database goes directly to that key and returns that order's record.
 
-This is a simplification of how Accumulo, HBase, and Bigtable key structures actually work, but the foundational principle of GeoMesa can be explained in terms of keys and values. To store spatio-temporal data, we need to create a key that represents the time/space location of the record. GeoMesa uses this system to store locations as points along a special line that visits all the sectors of a map, like the red line shown here:
+This is a simplification of how Accumulo and HBase key structures actually work, but the foundational principle of
+GeoMesa can be explained in terms of keys and values. To store spatio-temporal data, we need to create a key that
+represents the time/space location of the record. GeoMesa uses this system to store locations as points along a
+special line that visits all the sectors of a map, like the red line shown here:
 
 .. image:: _static/img/Zcurve-LoRes.png
    :scale: 50%

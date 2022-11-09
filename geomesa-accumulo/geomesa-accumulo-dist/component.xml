@@ -16,24 +16,6 @@
     </dependencySets>
     <fileSets>
         <fileSet>
-            <directory>../../geomesa-stream/geomesa-stream-gs-plugin/target</directory>
-            <outputDirectory>dist/gs-plugins</outputDirectory>
-            <directoryMode>755</directoryMode>
-            <fileMode>0755</fileMode>
-            <includes>
-                <include>*-install.tar.gz</include>
-            </includes>
-        </fileSet>
-        <fileSet>
-            <directory>../../geomesa-geojson/geomesa-geojson-gs-plugin/target</directory>
-            <outputDirectory>dist/gs-plugins</outputDirectory>
-            <directoryMode>755</directoryMode>
-            <fileMode>0755</fileMode>
-            <includes>
-                <include>*-install.tar.gz</include>
-            </includes>
-        </fileSet>
-        <fileSet>
             <directory>../../geomesa-tools/common-env</directory>
             <outputDirectory>conf</outputDirectory>
             <directoryMode>755</directoryMode>
