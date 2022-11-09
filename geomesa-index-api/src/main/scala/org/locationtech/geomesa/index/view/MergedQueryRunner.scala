@@ -13,9 +13,7 @@ import org.geotools.data.{DataStore, FeatureReader, Query, Transaction}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.FormatVersion
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.conf.QueryHints.ARROW_DICTIONARY_CACHED
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
@@ -27,7 +25,6 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortedMergeIterator}
-import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -150,34 +147,10 @@ class MergedQueryRunner(
     val ipcOpts = FormatVersion.options(hints.getArrowFormatVersion.getOrElse(FormatVersion.ArrowFormatVersion.get))
 
     val dictionaryFields = hints.getArrowDictionaryFields
-    val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
-    val cachedDictionaries: Map[String, TopK[AnyRef]] = if (!hints.isArrowCachedDictionaries) { Map.empty } else {
-      // get merged dictionary values from all stores and suppress any delegate lookup attempts
-      hints.put(ARROW_DICTIONARY_CACHED, false)
-      val toLookup = dictionaryFields.filterNot(providedDictionaries.contains)
-      toLookup.flatMap(ds.stats.getTopK[AnyRef](sft, _)).map(k => k.property -> k).toMap
-    }
-
     // do the reduce here, as we can't merge finalized arrow results
-    val reduce = if (hints.isArrowDoublePass ||
-        dictionaryFields.forall(f => providedDictionaries.contains(f) || cachedDictionaries.contains(f))) {
-      if (dictionaryFields.nonEmpty) {
-        logger.warn("Running deprecated Arrow double pass scan - switch to delta scans instead")
-      }
-      // we have all the dictionary values, or we will run a query to determine them up front
-      val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE).map(FastFilterFactory.optimize(sft, _))
-      val dictionaries = ArrowScan.createDictionaries(ds.stats, sft, filter, dictionaryFields,
-        providedDictionaries, cachedDictionaries)
-      // set the merged dictionaries in the query where they'll be picked up by our delegates
-      hints.setArrowDictionaryEncodedValues(dictionaries.map { case (k, v) => (k, v.iterator.toSeq) })
-      new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, ipcOpts, batchSize, sort, sorted = false)
-    } else if (hints.isArrowMultiFile) {
-      logger.warn("Running deprecated Arrow multi file scan - switch to delta scans instead")
-      new ArrowScan.FileReducer(arrowSft, dictionaryFields, encoding, ipcOpts, sort)
-    } else {
-      val process = hints.isArrowProcessDeltas
-      new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort, sorted = false, process)
-    }
+
+    val process = hints.isArrowProcessDeltas
+    val reduce = new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort, sorted = false, process)
 
     // now that we have standardized dictionaries, we can query the delegate stores
     val readers = stores.map { case (store, filter) =>
