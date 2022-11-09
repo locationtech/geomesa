@@ -29,12 +29,10 @@
         <module>geomesa-features</module>
         <module>geomesa-filter</module>
         <module>geomesa-fs</module>
-        <module>geomesa-geojson</module>
         <module>geomesa-gt</module>
         <module>geomesa-hbase</module>
         <module>geomesa-index-api</module>
         <module>geomesa-jobs</module>
-        <module>geomesa-jupyter</module>
         <module>geomesa-kafka</module>
         <module>geomesa-lambda</module>
         <module>geomesa-memory</module>
@@ -316,12 +314,6 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-arrow-gs-plugin_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-                <type>pom</type>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-arrow-tools_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -570,7 +562,7 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-jupyter-leaflet_${scala.binary.version}</artifactId>
+                <artifactId>geomesa-spark-jupyter-leaflet_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

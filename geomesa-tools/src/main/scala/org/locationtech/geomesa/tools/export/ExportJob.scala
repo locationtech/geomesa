@@ -306,7 +306,7 @@ object ExportJob extends JobWithLibJars {
 
     override def write(key: Text, value: SimpleFeature): Unit = {
       if (exporter == null) {
-        exporter = new Exporter(opts, hints, Map.empty)
+        exporter = new Exporter(opts, hints)
         exporter.start(value.getFeatureType)
       }
       exporter.export(Iterator.single(value))
@@ -341,7 +341,7 @@ object ExportJob extends JobWithLibJars {
 
     override def write(key: Text, value: SimpleFeature): Unit = {
       if (exporter == null) {
-        exporter = new Exporter(opts.copy(file = Some(files.next)), hints, Map.empty)
+        exporter = new Exporter(opts.copy(file = Some(files.next)), hints)
         exporter.start(value.getFeatureType)
         if (estimator == null) {
           val bytesPerFeature = opts.format.bytesPerFeature(value.getFeatureType)
@@ -389,7 +389,7 @@ object ExportJob extends JobWithLibJars {
 
     override def write(key: Text, value: SimpleFeature): Unit = {
       if (exporter == null) {
-        exporter = new Exporter(opts.copy(file = Some(files.next)), hints, Map.empty)
+        exporter = new Exporter(opts.copy(file = Some(files.next)), hints)
         exporter.start(value.getFeatureType)
         if (estimator == null) {
           val bytesPerFeature = opts.format.bytesPerFeature(value.getFeatureType)
