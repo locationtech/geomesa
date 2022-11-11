@@ -38,14 +38,6 @@ GeoMesa provides an :doc:`ingestion framework </user/convert/index>` that can be
 means that your data can be ingested without writing any code. This makes it quick and easy to get started with
 your custom data formats, and updates can be handled on-the-fly, without code changes.
 
-GeoJSON
--------
-
-GeoMesa provides built-in integration with GeoJSON. GeoMesa provides a :doc:`GeoJSON API </user/geojson>`
-that allows for the indexing and querying of GeoJSON data without using the GeoTools
-API -- all data and operations are pure JSON. The API also includes a REST endpoint for
-web integration.
-
 Spark
 -----
 

@@ -97,7 +97,7 @@ object VisibilityFilterFunctionTest {
   private val auths = new ThreadLocal[java.util.List[String]]
 
   class TestAuthorizationsProvider extends AuthorizationsProvider {
-    override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
+    override def configure(params: java.util.Map[String, _]): Unit = {}
     override def getAuthorizations: java.util.List[String] = auths.get
   }
 }

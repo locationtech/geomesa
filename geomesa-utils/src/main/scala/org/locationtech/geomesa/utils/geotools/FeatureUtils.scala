@@ -71,7 +71,7 @@ object FeatureUtils {
    * @return the new [[SimpleFeatureType]]
    */
   def retype(orig: SimpleFeatureType, propertyNames: Array[String]): SimpleFeatureType = {
-    val mod = SimpleFeatureTypeBuilder.retype(orig, propertyNames)
+    val mod = SimpleFeatureTypeBuilder.retype(orig, propertyNames: _*)
     mod.getUserData.putAll(orig.getUserData)
     mod
   }

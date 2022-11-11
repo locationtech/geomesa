@@ -118,7 +118,7 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
         val filter = ECQL.toFilter(query)
         doQuery(fs, new Query(sftName, filter)) mustEqual Seq(10)
         forall(transforms) { transform =>
-          doQuery(fs, new Query(sftName, filter, transform)) mustEqual Seq(10)
+          doQuery(fs, new Query(sftName, filter, transform: _*)) mustEqual Seq(10)
         }
       }
 
@@ -135,7 +135,7 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
         val filter = ECQL.toFilter(query)
         doQuery(fs, new Query(sftName, filter)) must beEmpty
         forall(transforms) { transform =>
-          doQuery(fs, new Query(sftName, filter, transform)) must beEmpty
+          doQuery(fs, new Query(sftName, filter, transform: _*)) must beEmpty
         }
       }
 
@@ -146,8 +146,8 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
         doQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
         doArrowQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
         forall(transforms) { transform =>
-          doQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
-          doArrowQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
+          doQuery(fs, new Query(sftName, filter, transform: _*)) must containTheSameElementsAs(results)
+          doArrowQuery(fs, new Query(sftName, filter, transform: _*)) must containTheSameElementsAs(results)
         }
       }
 

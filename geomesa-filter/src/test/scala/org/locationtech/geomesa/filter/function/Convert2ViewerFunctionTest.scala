@@ -9,7 +9,7 @@
 
 package org.locationtech.geomesa.filter.function
 
-import org.geotools.data.Base64
+import org.geotools.util.Base64
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder

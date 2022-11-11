@@ -118,7 +118,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         def testTransforms(ds: HBaseDataStore): MatchResult[_] = {
           forall(Seq(("INCLUDE", toAdd), ("bbox(geom,42,48,52,62)", toAdd.drop(2)))) { case (filter, results) =>
             val transforms = Array("derived=strConcat('hello',name)", "geom")
-            val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
+            val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms: _*), Transaction.AUTO_COMMIT)
             val features = SelfClosingIterator(fr).toList
             features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
               beSome("derived:String,*geom:Point:srid=4326")
@@ -133,7 +133,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         testTransforms(ds)
 
         def testProcesses(ds: HBaseDataStore): MatchResult[_] = {
-          val query = new ListFeatureCollection(sft, Array[SimpleFeature](toAdd(4)))
+          val query = new ListFeatureCollection(sft, toAdd(4))
           val source = ds.getFeatureSource(typeName).getFeatures()
 
           val proximity = new ProximitySearchProcess().execute(query, source, 10.0)
@@ -405,7 +405,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
                 filter: String,
                 transforms: Array[String],
                 results: Seq[SimpleFeature]): MatchResult[Any] = {
-    testQuery(ds, new Query(typeName, ECQL.toFilter(filter), transforms), results)
+    testQuery(ds, new Query(typeName, ECQL.toFilter(filter), transforms: _*), results)
   }
 
   def testQuery(ds: HBaseDataStore, query: Query, results: Seq[SimpleFeature], count: Boolean = true): MatchResult[Any] = {

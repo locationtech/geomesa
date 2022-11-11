@@ -116,7 +116,7 @@ class KafkaStore(
                     explain: Explainer = new ExplainLogging): CloseableIterator[SimpleFeature] = {
     val query = new Query()
     filter.foreach(query.setFilter)
-    transforms.foreach(query.setPropertyNames)
+    transforms.foreach(query.setPropertyNames(_: _*))
     hints.foreach(query.setHints) // note: we want to share the hints object
     queryRunner.runQuery(sft, query, explain)
   }

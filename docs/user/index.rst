@@ -7,9 +7,9 @@ User Manual
    :numbered:
 
    introduction
+   getting_started
    download
    install
-   getting_started
    geotools
    architecture
    datastores/index

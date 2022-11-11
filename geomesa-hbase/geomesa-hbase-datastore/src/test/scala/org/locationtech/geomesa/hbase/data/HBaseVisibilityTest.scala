@@ -206,7 +206,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       var auths = List.empty[String]
       val authsProvider = new AuthorizationsProvider {
         override def getAuthorizations: java.util.List[String] = auths.asJava
-        override def configure(params: java.util.Map[String, _ <: Serializable]): Unit = {}
+        override def configure(params: java.util.Map[String, _]): Unit = {}
       }
 
       val typeName = "vistest1"
@@ -311,7 +311,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       }
 
       def testQuery(ds: HBaseDataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]) = {
-        val query = new Query(typeName, ECQL.toFilter(filter), transforms)
+        val query = new Query(typeName, ECQL.toFilter(filter), transforms: _*)
         val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
         val features = SelfClosingIterator(fr).toList
         val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)

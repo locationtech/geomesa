@@ -45,7 +45,7 @@ class S3IndexTest extends TestWithFeatureType {
     SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
   def execute(ecql: String, transforms: Option[Array[String]] = None): Seq[SimpleFeature] =
-    execute(new Query(sft.getTypeName, ECQL.toFilter(ecql), transforms.orNull))
+    execute(new Query(sft.getTypeName, ECQL.toFilter(ecql), transforms.orNull: _*))
 
   "S3Index" should {
     "return all features for inclusive filter" >> {
@@ -252,7 +252,7 @@ class S3IndexTest extends TestWithFeatureType {
     "optimize for bin format with transforms" >> {
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
-      val query = new Query(sft.getTypeName, ECQL.toFilter(filter), Array("name", "geom"))
+      val query = new Query(sft.getTypeName, ECQL.toFilter(filter), "name", "geom")
       query.getHints.put(BIN_TRACK, "name")
       query.getHints.put(BIN_BATCH_SIZE, 100)
 
@@ -295,7 +295,7 @@ class S3IndexTest extends TestWithFeatureType {
     "support sampling with transformations" >> {
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
-      val query = new Query(sft.getTypeName, ECQL.toFilter(filter), Array("name", "geom"))
+      val query = new Query(sft.getTypeName, ECQL.toFilter(filter), "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
       // reduce our scan ranges so that we get fewer iterator instances and some sampling
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
@@ -341,7 +341,7 @@ class S3IndexTest extends TestWithFeatureType {
         QueryProperties.ScanRangesTarget.threadLocalValue.remove()
       }
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
+      val bins = results.flatMap(_.grouped(16).map(BinaryOutputEncoder.decode))
       bins.length must beLessThan(10)
     }
   }

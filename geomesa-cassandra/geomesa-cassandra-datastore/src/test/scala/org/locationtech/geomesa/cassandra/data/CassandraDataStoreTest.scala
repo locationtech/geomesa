@@ -133,7 +133,7 @@ class CassandraDataStoreTest extends Specification {
       def testTransforms(ds: CassandraDataStore) = {
         val transforms = Array("derived=strConcat('hello',name)", "geom")
         forall(Seq(("INCLUDE", toAdd), ("bbox(geom,42,48,52,62)", toAdd.drop(2)))) { case (filter, results) =>
-          val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
+          val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms: _*), Transaction.AUTO_COMMIT)
           val features = SelfClosingIterator(fr).toList
           features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
               beSome("derived:String,*geom:Point:srid=4326")
@@ -200,7 +200,7 @@ class CassandraDataStoreTest extends Specification {
       feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
 
       val ids = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
-          .addFeatures(new ListFeatureCollection(sft, Array[SimpleFeature](feature)))
+          .addFeatures(new ListFeatureCollection(sft, feature))
       ids.asScala.map(_.getID) mustEqual Seq("0")
 
       val filter = ECQL.toFilter("dtg = '2019-03-18T00:00:00.000Z' AND " +
@@ -316,7 +316,7 @@ class CassandraDataStoreTest extends Specification {
                 transforms: Array[String],
                 results: Seq[SimpleFeature],
                 explain: Option[Explainer] = None): MatchResult[Traversable[SimpleFeature]] = {
-    val query = new Query(typeName, ECQL.toFilter(filter), transforms)
+    val query = new Query(typeName, ECQL.toFilter(filter), transforms: _*)
     explain.foreach(e => ds.getQueryPlan(query, explainer = e))
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
     val features = SelfClosingIterator(fr).toList

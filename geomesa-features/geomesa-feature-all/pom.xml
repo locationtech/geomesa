@@ -38,11 +38,6 @@
             <artifactId>geomesa-security_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-geometry</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>

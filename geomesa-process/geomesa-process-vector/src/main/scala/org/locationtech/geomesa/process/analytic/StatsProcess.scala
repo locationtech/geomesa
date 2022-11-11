@@ -121,7 +121,7 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
         logger.warn(s"Overriding inner query's properties (${query.getProperties}) " +
             s"with properties/transforms ${properties.mkString(",")}.")
       }
-      query.setPropertyNames(properties)
+      query.setPropertyNames(properties: _*)
     }
     query.getHints.put(QueryHints.STATS_STRING, statString)
     query.getHints.put(QueryHints.ENCODE_STATS, new java.lang.Boolean(encode))
