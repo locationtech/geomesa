@@ -12,7 +12,6 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -43,7 +42,7 @@ public interface AuditProvider {
      *
      * @param params
      */
-    public void configure(Map<String, ? extends Serializable> params);
+    public void configure(Map<String, ?> params);
 
     /**
      * Loader
@@ -54,7 +53,7 @@ public interface AuditProvider {
 
         private Loader() {}
 
-        public static AuditProvider load(Map<String, ? extends Serializable> params) {
+        public static AuditProvider load(Map<String, ?> params) {
 
             Iterator<AuditProvider> providers = ServiceLoader.load(AuditProvider.class).iterator();
 

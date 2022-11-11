@@ -58,7 +58,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithFeatureType 
   lazy val queryPlanner = ds.queryPlanner
 
   def query(filter: String, attributes: Array[String] = Array.empty, explain: Explainer = ExplainNull) = {
-    val query = new Query(sftName, ECQL.toFilter(filter), if (attributes.length == 0) null else attributes)
+    val query = new Query(sftName, ECQL.toFilter(filter), attributes: _*)
     query.getHints.put(QUERY_INDEX, JoinIndex.name)
     queryPlanner.runQuery(sft, query, explain).toList
   }

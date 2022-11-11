@@ -92,7 +92,7 @@ class FilterTest extends Specification with TestWithFeatureType with LazyLogging
   def compareFilter(filter: Filter, projection: Array[String]) = {
     val filterCount = mediumDataFeatures.count(filter.evaluate)
     val query = new Query(sftName, filter)
-    Option(projection).foreach(query.setPropertyNames)
+    Option(projection).foreach(query.setPropertyNames(_: _*))
     val queryCount = SelfClosingIterator(fs.getFeatures(query)).length
     logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
         s"filter hits: $filterCount query hits: $queryCount")
@@ -113,13 +113,13 @@ class IdQueryTest extends Specification with TestWithFeatureType {
   val geomBuilder = JTSFactoryFinder.getGeometryFactory
   val builder = new SimpleFeatureBuilder(sft, new ScalaSimpleFeatureFactory)
   val data = List(
-    ("1", Array(10, "johndoe", new Date), geomBuilder.createPoint(new Coordinate(10, 10))),
-    ("2", Array(20, "janedoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20))),
-    ("3", Array(30, "johnrdoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20)))
+    ("1", Array("10", "johndoe", new Date), geomBuilder.createPoint(new Coordinate(10, 10))),
+    ("2", Array("20", "janedoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20))),
+    ("3", Array("30", "johnrdoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20)))
   )
   val features = data.map { case (id, attrs, geom) =>
     builder.reset()
-    builder.addAll(attrs.asInstanceOf[Array[AnyRef]])
+    builder.addAll(attrs: _*)
     val f = builder.buildFeature(id)
     f.setDefaultGeometry(geom)
     f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)

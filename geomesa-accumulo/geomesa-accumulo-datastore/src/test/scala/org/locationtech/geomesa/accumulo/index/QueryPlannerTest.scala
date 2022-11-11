@@ -46,7 +46,7 @@ class QueryPlannerTest extends Specification with TestWithFeatureType {
   "adaptStandardIterator" should {
     "return a LazySortedIterator when the query has an order by clause" >> {
       val query = new Query(sft.getTypeName)
-      query.setSortBy(Array(SortBy.NATURAL_ORDER))
+      query.setSortBy(SortBy.NATURAL_ORDER)
       val result = planner.runQuery(sft, query)
       result must beAnInstanceOf[ExceptionalIterator[_]]
       result.asInstanceOf[ExceptionalIterator[_]].delegate must beAnInstanceOf[SortingSimpleFeatureIterator]
@@ -54,7 +54,7 @@ class QueryPlannerTest extends Specification with TestWithFeatureType {
 
     "not return a LazySortedIterator when the query does not have an order by clause" >> {
       val query = new Query(sft.getTypeName)
-      query.setSortBy(null)
+      query.setSortBy()
 
       val result = planner.runQuery(sft, query)
 
@@ -87,7 +87,7 @@ class QueryPlannerTest extends Specification with TestWithFeatureType {
     "sort with a projected SFT" >> {
       val ff = CommonFactoryFinder.getFilterFactory2
       val query = new Query(sft.getTypeName)
-      query.setSortBy(Array(SortBy.NATURAL_ORDER))
+      query.setSortBy(SortBy.NATURAL_ORDER)
       query.setProperties(Collections.singletonList(ff.property("s")))
 
       val result = planner.runQuery(sft, query).toList

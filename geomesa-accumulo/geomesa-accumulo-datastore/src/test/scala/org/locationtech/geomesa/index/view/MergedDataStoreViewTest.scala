@@ -173,7 +173,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       foreach(filters) { filter =>
         val ecql = ECQL.toFilter(filter)
         foreach(transforms) { transform =>
-          val query = new Query(sftName, ecql, transform)
+          val query = new Query(sftName, ecql, transform: _*)
           val results = SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must haveLength(4)
           val attributes = Option(transform).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
@@ -223,8 +223,8 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
 
     "query multiple data stores with sorting" in {
       foreach(Seq[Array[String]](null, Array("geom", "dtg"))) { transform =>
-        val query = new Query(sftName, Filter.INCLUDE, transform)
-        query.setSortBy(Array(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.DESCENDING)))
+        val query = new Query(sftName, Filter.INCLUDE, transform: _*)
+        query.setSortBy(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.DESCENDING))
         val results = SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
         results must haveLength(10)
@@ -236,7 +236,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
     }
 
     "query multiple data stores and return bins" in {
-      val query = new Query(sftName, defaultFilter, Array("name", "dtg", "geom"))
+      val query = new Query(sftName, defaultFilter, "name", "dtg", "geom")
       query.getHints.put(QueryHints.BIN_TRACK, "name")
 
       val bytes = SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).map { f =>
@@ -257,7 +257,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
     }
 
     "query multiple data stores and return arrow" in {
-      val query = new Query(sftName, defaultFilter, Array("name", "dtg", "geom"))
+      val query = new Query(sftName, defaultFilter, "name", "dtg", "geom")
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
@@ -283,7 +283,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
 
     "query multiple data stores for stats" in {
       foreach(Seq[Array[String]](null, Array("dtg"))) { transform =>
-        val query = new Query(sftName, defaultFilter, transform)
+        val query = new Query(sftName, defaultFilter, transform: _*)
         query.getHints.put(QueryHints.STATS_STRING, "MinMax(dtg)")
         query.getHints.put(QueryHints.ENCODE_STATS, true)
 
@@ -302,7 +302,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       val width = 480
       val height = 360
 
-      val query = new Query(sftName, defaultFilter, Array("geom"))
+      val query = new Query(sftName, defaultFilter, "geom")
       query.getHints.put(QueryHints.DENSITY_BBOX, envelope)
       query.getHints.put(QueryHints.DENSITY_WIDTH, width)
       query.getHints.put(QueryHints.DENSITY_HEIGHT, height)

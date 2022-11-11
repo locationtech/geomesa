@@ -32,7 +32,7 @@ class MetadataBackedStatsTest extends Specification {
 
       ds.createSchema(sft)
       Seq(pt0, pt1).foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
-      ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, Array[SimpleFeature](pt0, pt1)))
+      ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, pt0, pt1))
 
       ds.stats.writer.updater(sft) must not(throwAn[Exception])
     }

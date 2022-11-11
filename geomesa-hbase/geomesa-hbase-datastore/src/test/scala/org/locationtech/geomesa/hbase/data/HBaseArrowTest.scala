@@ -122,7 +122,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
     }
     "return arrow encoded projections" in {
       foreach(dataStores) { ds =>
-        val query = new Query(sft.getTypeName, Filter.INCLUDE, Array("dtg", "geom"))
+        val query = new Query(sft.getTypeName, Filter.INCLUDE, "dtg", "geom")
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 5)
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
@@ -147,7 +147,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
       foreach(dataStores) { ds =>
         foreach(filters) { case (ecql, expected) =>
           foreach(transforms) { transform =>
-            val query = new Query(sft.getTypeName, ECQL.toFilter(ecql), transform)
+            val query = new Query(sft.getTypeName, ECQL.toFilter(ecql), transform: _*)
             query.getHints.put(QueryHints.ARROW_ENCODE, true)
             query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
             query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
@@ -232,7 +232,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
       }
       HBaseDataStoreFactory.RemoteArrowProperty.threadLocalValue.set("false")
       try {
-        val query = new Query(sft.getTypeName, Filter.INCLUDE, Array("name", "dtg", "geom"))
+        val query = new Query(sft.getTypeName, Filter.INCLUDE, "name", "dtg", "geom")
         query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
         query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
         query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")

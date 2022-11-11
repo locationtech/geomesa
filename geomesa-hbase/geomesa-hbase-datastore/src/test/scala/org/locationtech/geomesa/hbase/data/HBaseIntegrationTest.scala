@@ -141,7 +141,7 @@ class HBaseIntegrationTest extends Specification {
   }
 
   def testQuery(ds: DataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]) = {
-    val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
+    val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms: _*), Transaction.AUTO_COMMIT)
     val features = SelfClosingIterator(fr).toList
     features must containTheSameElementsAs(results)
   }
