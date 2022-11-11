@@ -165,8 +165,8 @@ object MergedFeatureSourceView {
     */
   class MergedQueryCapabilities(capabilities: Seq[QueryCapabilities]) extends QueryCapabilities {
     override def isOffsetSupported: Boolean = capabilities.forall(_.isOffsetSupported)
-    override def supportsSorting(sortAttributes: Array[SortBy]): Boolean =
-      capabilities.forall(_.supportsSorting(sortAttributes))
+    override def supportsSorting(sortAttributes: SortBy*): Boolean =
+      capabilities.forall(_.supportsSorting(sortAttributes: _*))
     override def isReliableFIDSupported: Boolean = capabilities.forall(_.isReliableFIDSupported)
     override def isUseProvidedFIDSupported: Boolean = capabilities.forall(_.isUseProvidedFIDSupported)
     override def isJoiningSupported: Boolean = capabilities.forall(_.isJoiningSupported)

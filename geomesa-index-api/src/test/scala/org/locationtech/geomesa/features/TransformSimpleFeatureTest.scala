@@ -26,7 +26,7 @@ class TransformSimpleFeatureTest extends Specification {
   val sft = SimpleFeatureTypes.createType("transform", spec)
 
   def transformFeature(transforms: Array[String]): TransformSimpleFeature = {
-    val query = new Query("transform", Filter.INCLUDE, transforms)
+    val query = new Query("transform", Filter.INCLUDE, transforms: _*)
     QueryPlanner.setQueryTransforms(sft, query)
     TransformSimpleFeature(sft, query.getHints.getTransformSchema.get, query.getHints.getTransformDefinition.get)
   }

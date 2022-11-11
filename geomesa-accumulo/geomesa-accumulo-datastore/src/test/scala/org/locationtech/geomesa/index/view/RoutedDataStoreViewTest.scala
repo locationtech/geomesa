@@ -117,7 +117,7 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
       foreach(filters) { filter =>
         val ecql = ECQL.toFilter(filter)
         foreach(transforms) { transform =>
-          val query = new Query(sftName, ecql, transform)
+          val query = new Query(sftName, ecql, transform: _*)
           val results = SelfClosingIterator(routedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must haveLength(4)
           val attributes = Option(transform).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)

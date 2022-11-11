@@ -58,7 +58,7 @@ class ExportToFsTest extends Specification {
       }
       ds.createSchema(sft)
       ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
-          .addFeatures(new ListFeatureCollection(sft, features.toArray[SimpleFeature]))
+          .addFeatures(new ListFeatureCollection(sft, features: _*))
 
       val storage = {
         val context = FileSystemContext(FileContext.getFileContext, new Configuration(), new Path(out.toUri))

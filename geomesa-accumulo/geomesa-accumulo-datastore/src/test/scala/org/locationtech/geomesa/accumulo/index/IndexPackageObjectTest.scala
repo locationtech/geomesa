@@ -28,7 +28,7 @@ class IndexPackageObjectTest extends Specification {
       val origSFT = SimpleFeatureTypes.createType(sftName, defaultSchema)
       origSFT.setDtgField("dtg")
 
-      val query = new Query(sftName, Filter.INCLUDE, Array("name", "helloName=strConcat('hello', name)", "geom"))
+      val query = new Query(sftName, Filter.INCLUDE, "name", "helloName=strConcat('hello', name)", "geom")
       QueryPlanner.setQueryTransforms(origSFT, query)
 
       val transform = query.getHints.getTransformSchema

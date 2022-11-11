@@ -72,7 +72,7 @@ class PlaybackIterator(
   }
   require(dtgIndex != -1, "Invalid date field")
   private val dtgProp = ff.property(dtgName)
-  private val sort = Array(ff.sort(dtgName, SortOrder.ASCENDING))
+  private val sort = ff.sort(dtgName, SortOrder.ASCENDING)
 
   private val windowMillis = window.map(_.toMillis).getOrElse(interval._2.getTime - interval._1.getTime + 1)
 
@@ -146,7 +146,7 @@ class PlaybackIterator(
             )
             ff.during(dtgProp, ff.literal(period))
           }
-          val query = new Query(typeName, filter.map(ff.and(_, during)).getOrElse(during), tdefs)
+          val query = new Query(typeName, filter.map(ff.and(_, during)).getOrElse(during), tdefs: _*)
           query.setSortBy(sort)
           // prevent ContentDataStore from sorting on disk
           query.getHints.put(Hints.MAX_MEMORY_SORT, java.lang.Integer.MAX_VALUE)

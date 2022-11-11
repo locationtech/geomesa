@@ -29,7 +29,7 @@ class AccumuloJobUtilsTest extends Specification with TestWithFeatureType {
     "name:String:index=join:cardinality=high,age:Int:index=full:cardinality=high,dtg:Date,*geom:Point:srid=4326"
 
   def getQuery(ecql: String, attributes: Array[String] = null): Query = {
-    val q = new Query(sftName, ECQL.toFilter(ecql), attributes)
+    val q = new Query(sftName, ECQL.toFilter(ecql), attributes: _*)
     // use heuristic cost evaluation to ensure consistent expectations
     q.getHints.put(QueryHints.COST_EVALUATION, CostEvaluation.Index)
     q

@@ -79,7 +79,7 @@ class AttributeIndexValuesTest extends TestWithFeatureType {
       foreach(filters) { case (filter, expectation) =>
         foreach(transforms) { transform =>
           val dicts = transform.filter(t => t != "dtg" && t != "geom")
-          val query = new Query(sftName, filter, transform)
+          val query = new Query(sftName, filter, transform: _*)
           query.getHints.put(QueryHints.ARROW_ENCODE, true)
           query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, dicts.mkString(","))
           query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
