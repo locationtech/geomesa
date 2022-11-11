@@ -52,7 +52,7 @@ class S2IndexTest extends Specification with LazyLogging {
   def execute(ecql: String, transforms: Option[Array[String]] = None): Seq[SimpleFeature] = {
     val query = transforms match {
       case None    => new Query(sft.getTypeName, ECQL.toFilter(ecql))
-      case Some(t) => new Query(sft.getTypeName, ECQL.toFilter(ecql), t)
+      case Some(t) => new Query(sft.getTypeName, ECQL.toFilter(ecql), t: _*)
     }
     execute(query)
   }

@@ -141,7 +141,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
 
     "support bin queries with join queries and transforms" in {
       import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
-      val query = new Query(sftName, ECQL.toFilter("count>=2"), Array("dtg", "geom", "name")) // note: swap order
+      val query = new Query(sftName, ECQL.toFilter("count>=2"), "dtg", "geom", "name") // note: swap order
       query.getHints.put(BIN_TRACK, "name")
       query.getHints.put(BIN_DTG, "dtg")
       query.getHints.put(BIN_GEOM, "geom")
@@ -328,7 +328,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
     }
 
     "support sampling with transformations" in {
-      val query = new Query(sftName, ECQL.toFilter("name > 'a'"), Array("name", "geom"))
+      val query = new Query(sftName, ECQL.toFilter("name > 'a'"), "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       val results = runQuery(query).toList
       results must haveLength(2)
@@ -336,7 +336,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
     }
 
     "support sampling with cql and transformations" in {
-      val query = new Query(sftName, ECQL.toFilter("name > 'a' AND track > 'track'"), Array("name", "geom"))
+      val query = new Query(sftName, ECQL.toFilter("name > 'a' AND track > 'track'"), "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
       val results = runQuery(query).toList
       results must haveLength(1)
@@ -973,7 +973,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
           "override.index.dtg.join=true"
       val sft = SimpleFeatureTypes.createType(sftName, spec)
       ds.createSchema(sft)
-      val qps = ds.getQueryPlan(new Query(sftName, ECQL.toFilter("name='bob'"), Array("geom", "dtg", "name", "age")))
+      val qps = ds.getQueryPlan(new Query(sftName, ECQL.toFilter("name='bob'"), "geom", "dtg", "name", "age"))
       forall(qps)(qp => qp.filter.index.name mustEqual JoinIndex.name)
     }
   }

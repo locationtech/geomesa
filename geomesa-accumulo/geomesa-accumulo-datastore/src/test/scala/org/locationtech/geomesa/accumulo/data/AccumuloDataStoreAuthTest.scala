@@ -22,7 +22,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
 
-import java.io.Serializable
 import java.util
 import java.util.Collections
 
@@ -57,7 +56,7 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
 
   val authProvider = new AuthorizationsProvider {
     override def getAuthorizations: java.util.List[String] = threadedAuths.get.getAuthorizations.asScala.map(new String(_)).asJava
-    override def configure(params: util.Map[String, _ <: Serializable]): Unit = {}
+    override def configure(params: util.Map[String, _]): Unit = {}
   }
 
   "AccumuloDataStore" should {

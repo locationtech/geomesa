@@ -89,7 +89,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
       }
 
       builder.reset()
-      builder.buildFeature(sf.getID, Array(sf.getDefaultGeometry, date, null))
+      builder.buildFeature(sf.getID, sf.getDefaultGeometry, date, null)
     }
   }
 
@@ -153,7 +153,7 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
     val max = getStartTime(orderedFeatures.last)
 
     builder.reset()
-    builder.buildFeature(id, Array(unionGeom, min, max))
+    builder.buildFeature(id, unionGeom, min, max)
   }
 
   override def createTube: Iterator[SimpleFeature] = {
@@ -194,12 +194,12 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
     val lineFeatures = if (pointsAndTimes.lengthCompare(1) == 0) {
       val (p1, t1) = pointsAndTimes.head
       logger.debug("Only a single result - can't create a line")
-      Iterator(builder.buildFeature(nextId, Array(p1, t1, t1)))
+      Iterator(builder.buildFeature(nextId, p1, t1, t1))
     } else {
       pointsAndTimes.sliding(2).map { case Seq((p1, t1), (p2, t2)) =>
         val geo = if (p1.equals(p2)) p1 else makeIDLSafeLineString(p1.getCoordinate,p2.getCoordinate)
         logger.debug(s"Created Line-filled Geometry: ${WKTUtils.write(geo)} From ${WKTUtils.write(p1)} and ${WKTUtils.write(p2)}")
-        builder.buildFeature(nextId, Array(geo, t1, t2))
+        builder.buildFeature(nextId, geo, t1, t2)
       }
     }
     buffer(lineFeatures, bufferDistance)
@@ -231,7 +231,7 @@ class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
     val lineFeatures = if (pointsAndTimes.lengthCompare(1) == 0) {
       val (p1, t1) = pointsAndTimes.head
       logger.debug("Only a single result - can't create a line")
-      Iterator(builder.buildFeature(nextId, Array(p1, t1, t1)))
+      Iterator(builder.buildFeature(nextId, p1, t1, t1))
     } else {
       pointsAndTimes.sliding(2).flatMap { case Seq((p1, t1), (p2, t2)) =>
         calc.setStartingGeographicPoint(p1.getX, p1.getY)
@@ -254,13 +254,13 @@ class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
             val destPoint = calc.getDestinationGeographicPoint
             segStep = new Coordinate(destPoint.getX, destPoint.getY, 0)
             val geo = makeIDLSafeLineString(segP1, segStep)
-            builder.buildFeature(nextId, Array(geo, new Date(time0), new Date(time1)))
+            builder.buildFeature(nextId, geo, new Date(time0), new Date(time1))
           }
         } else {
           val geo = if (p1.equals(p2)) { p1 } else { makeIDLSafeLineString(p1.getCoordinate, p2.getCoordinate) }
           logger.debug(s"Created line-filled geometry: ${WKTUtils.write(geo)} " +
               s"from ${WKTUtils.write(p1)} and ${WKTUtils.write(p2)}")
-          Seq(builder.buildFeature(nextId, Array(geo, t1, t2)))
+          Seq(builder.buildFeature(nextId, geo, t1, t2))
         }
       }
     }

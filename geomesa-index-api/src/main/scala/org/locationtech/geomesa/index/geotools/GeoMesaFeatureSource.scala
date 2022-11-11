@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator, SimpleFeatureSource}
@@ -130,12 +130,12 @@ object GeoMesaFeatureSource {
     override def isOffsetSupported = false
     override def isReliableFIDSupported = true
     override def isUseProvidedFIDSupported = true
-    override def supportsSorting(sortAttributes: Array[SortBy]) = true
+    override def supportsSorting(sortAttributes: SortBy*) = true
   }
 
   trait CachingFeatureSource extends GeoMesaFeatureSource {
 
-    private val featureCache =
+    private val featureCache: LoadingCache[Query, SimpleFeatureCollection] =
       Caffeine.newBuilder().build(
         new CacheLoader[Query, SimpleFeatureCollection] {
           override def load(query: Query): SimpleFeatureCollection =
@@ -152,7 +152,7 @@ object GeoMesaFeatureSource {
         featureCache.get(query)
       } else {
         // Uses mergesort
-        new SortedSimpleFeatureCollection(featureCache.get(query), query.getSortBy)
+        new SortedSimpleFeatureCollection(featureCache.get(query), query.getSortBy: _*)
       }
     }
 

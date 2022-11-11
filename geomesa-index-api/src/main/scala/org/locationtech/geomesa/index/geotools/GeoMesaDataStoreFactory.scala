@@ -15,7 +15,6 @@ import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam._
 
-import java.io.Serializable
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 
@@ -154,6 +153,6 @@ object GeoMesaDataStoreFactory {
     def DisplayName: String
     def Description: String
     def ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]]
-    def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean
+    def canProcess(params: java.util.Map[String, _]): Boolean
   }
 }

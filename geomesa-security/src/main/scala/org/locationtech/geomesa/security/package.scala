@@ -75,6 +75,6 @@ package object security {
     def visibility: Option[String] = Option(SecurityUtils.getVisibility(sf))
   }
 
-  def getAuthorizationsProvider(params: ju.Map[String, jio.Serializable], auths: Seq[String]): AuthorizationsProvider =
+  def getAuthorizationsProvider(params: java.util.Map[String, _], auths: Seq[String]): AuthorizationsProvider =
     AuthorizationsProvider.apply(params, auths.asJava)
 }

@@ -38,14 +38,12 @@ class ComplexFeatureTest extends Specification with TestWithFeatureType {
   addFeatures({
     // create and add a feature
     val builder = new SimpleFeatureBuilder(sft, CommonFactoryFinder.getFeatureFactory(null))
-    builder.addAll(List(
-      List("joe", "joseph"),
-      List("pointer", "thumb", "ring").asJava,
-      Map("java" -> 1, "scala" -> 100),
-      Map(1.0 -> "value1", 2.0 -> "value2").asJava,
-      "2010-01-01T00:00:00.000Z",
-      "POINT(45.0 49.0)"
-    ).asJava)
+    builder.add(List("joe", "joseph"))
+    builder.add(List("pointer", "thumb", "ring").asJava)
+    builder.add(Map("java" -> 1, "scala" -> 100))
+    builder.add(Map(1.0 -> "value1", 2.0 -> "value2").asJava)
+    builder.add("2010-01-01T00:00:00.000Z")
+    builder.add("POINT(45.0 49.0)")
     val liveFeature = builder.buildFeature("fid-1")
     liveFeature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     Seq(liveFeature)
