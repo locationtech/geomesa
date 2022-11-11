@@ -76,10 +76,10 @@ class RedisDataStoreIntegrationTest extends Specification {
         foreach(filters) { filter =>
           val filtered = features.filter(filter.evaluate)
           foreach(transforms) { transform =>
-            val query = new Query(sft.getTypeName, filter, transform)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
             val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             val expected = if (transform == null) { filtered } else {
-              val tsft = DataUtilities.createSubType(sft, transform)
+              val tsft = DataUtilities.createSubType(sft, transform: _*)
               filtered.map(DataUtilities.reType(tsft, _)).map(ScalaSimpleFeature.copy)
             }
             result must containTheSameElementsAs(expected)

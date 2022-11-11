@@ -64,7 +64,7 @@ function dependencies() {
     )
   else
     gavs+=(
-      "org.apache.commons:commons-collections4:4.3:jar"
+      "org.apache.commons:commons-collections4:4.4:jar"
       "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
     )
   fi

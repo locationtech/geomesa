@@ -112,14 +112,14 @@ case class GeoMesaRelation(
       case None =>
         logger.debug(s"Building scan, $debug")
         val conf = new Configuration(sqlContext.sparkContext.hadoopConfiguration)
-        val query = new Query(typeName, filt, requiredAttributes)
+        val query = new Query(typeName, filt, requiredAttributes: _*)
         GeoMesaSpark(params.asJava).rdd(conf, sqlContext.sparkContext, params, query)
 
       case Some(IndexedRDD(rdd)) =>
         logger.debug(s"Building in-memory scan, $debug")
         val cql = ECQL.toCQL(filt)
         rdd.flatMap { engine =>
-          val query = new Query(typeName, ECQL.toFilter(cql), requiredAttributes)
+          val query = new Query(typeName, ECQL.toFilter(cql), requiredAttributes: _*)
           SelfClosingIterator(engine.getFeatureReader(query, Transaction.AUTO_COMMIT))
         }
 
@@ -127,7 +127,7 @@ case class GeoMesaRelation(
         logger.debug(s"Building partitioned in-memory scan, $debug")
         val cql = ECQL.toCQL(filt)
         rdd.flatMap { case (_, engine) =>
-          val query = new Query(typeName, ECQL.toFilter(cql), requiredAttributes)
+          val query = new Query(typeName, ECQL.toFilter(cql), requiredAttributes: _*)
           SelfClosingIterator(engine.getFeatureReader(query, Transaction.AUTO_COMMIT))
         }
     }

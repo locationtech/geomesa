@@ -10,10 +10,11 @@ package org.locationtech.geomesa.process.analytic
 
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
@@ -68,13 +69,12 @@ class Point2PointProcess extends GeoMesaProcess {
     sftBuilder.add(s"${sortAttrName}_end", sortType)
 
     val sft = sftBuilder.buildFeatureType()
-    val builder = new SimpleFeatureBuilder(sft)
 
-    val lineFeatures =
+    val lineFeatures: Iterable[SimpleFeature] =
       SelfClosingIterator(data.features()).toList
         .groupBy(f => String.valueOf(f.getAttribute(groupingFieldIndex)))
         .filter { case (_, coll) => coll.lengthCompare(minPoints) > 0 }
-        .map { case (_, coll) =>
+        .flatMap { case (_, coll) =>
 
           val globalSorted = coll.sortBy(_.get[java.util.Date](sortFieldIndex))
 
@@ -95,7 +95,7 @@ class Point2PointProcess extends GeoMesaProcess {
               val startDtg = ptLst.head.getAttribute(sortAttrName)
               val endDtg   = ptLst.last.getAttribute(sortAttrName)
               val attrs    = Array[AnyRef](gf.createLineString(pts.toArray), group, startDtg, endDtg)
-              val sf = builder.buildFeature(s"$group-$idx", attrs)
+              val sf = new ScalaSimpleFeature(sft, s"$group-$idx", attrs)
               (length, sf)
             }
           }
@@ -105,7 +105,7 @@ class Point2PointProcess extends GeoMesaProcess {
           } else {
             results.map { case (_, sf) => sf }
           }
-        }.flatten
+        }
 
     import scala.collection.JavaConverters._
 

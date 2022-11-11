@@ -158,7 +158,7 @@ class AccumuloDataStoreAlterSchemaTest extends TestWithFeatureType {
     }
     "handle transformations for old attributes with new and old features" in {
       foreach(filters("n")) { filter =>
-        val query = new Query(sftName, filter, Array("geom", "dtg"))
+        val query = new Query(sftName, filter, "geom", "dtg")
         val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features.map(_.getID) mustEqual Seq("0", "1")
         features.map(_.getAttribute("geom")) mustEqual Seq(feature, feature2).map(_.getAttribute("geom"))
@@ -166,7 +166,7 @@ class AccumuloDataStoreAlterSchemaTest extends TestWithFeatureType {
     }
     "handle transformations for new attributes with new and old features" >> {
       foreach(filters("n")) { filter =>
-        val query = new Query(sftName, filter, Array("geom", "age"))
+        val query = new Query(sftName, filter, "geom", "age")
         val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features.map(_.getID) mustEqual Seq("0", "1")
         features.map(_.getAttribute("geom")) mustEqual Seq(feature, feature2).map(_.getAttribute("geom"))

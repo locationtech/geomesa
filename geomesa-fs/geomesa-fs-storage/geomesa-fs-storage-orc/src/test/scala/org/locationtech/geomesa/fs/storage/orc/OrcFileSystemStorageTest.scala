@@ -352,7 +352,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
                 transforms: Array[String],
                 results: Seq[SimpleFeature]): MatchResult[Any] = {
 
-    val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms)
+    val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms: _*)
     val features = {
       val iter = SelfClosingIterator(storage.getReader(query))
       // note: need to copy features in iterator as same object is re-used

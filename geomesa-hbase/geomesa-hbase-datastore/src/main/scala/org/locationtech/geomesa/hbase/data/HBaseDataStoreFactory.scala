@@ -27,16 +27,15 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import java.awt.RenderingHints
-import java.io.Serializable
 
 class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   import HBaseDataStoreParams._
 
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = createDataStore(params)
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): DataStore = {
     // TODO HBase Connections don't seem to be Serializable...deal with it
     val connection = HBaseConnectionPool.getConnection(params, validateConnection)
 
@@ -102,9 +101,9 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   override def getDescription: String = HBaseDataStoreFactory.Description
 
-  override def getParametersInfo: Array[Param] = HBaseDataStoreFactory.ParameterInfo :+ NamespaceParam
+  override def getParametersInfo: Array[Param] = Array(HBaseDataStoreFactory.ParameterInfo :+ NamespaceParam: _*)
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     HBaseDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
@@ -162,7 +161,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   private [geomesa] val BigTableParamCheck = "google.bigtable.instance.id"
 
   // check that the hbase-site.xml does not have bigtable keys
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
+  override def canProcess(params: java.util.Map[String, _]): Boolean = {
     HBaseCatalogParam.exists(params) &&
         Option(HBaseConfiguration.create().get(BigTableParamCheck)).forall(_.trim.isEmpty)
   }
@@ -197,7 +196,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
   case class EnabledCoprocessors(arrow: Boolean, bin: Boolean, density: Boolean, stats: Boolean)
 
-  def buildAuthsProvider(connection: Connection, params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
+  def buildAuthsProvider(connection: Connection, params: java.util.Map[String, _]): AuthorizationsProvider = {
     val forceEmptyOpt: Option[java.lang.Boolean] = ForceEmptyAuthsParam.lookupOpt(params)
     val forceEmptyAuths = forceEmptyOpt.getOrElse(java.lang.Boolean.FALSE).asInstanceOf[Boolean]
 
@@ -210,7 +209,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val masterAuths = VisibilityClient.getAuths(connection, userName).getAuthList.asScala.map(_.toStringUtf8)
 
     // get the auth params passed in as a comma-delimited string
-    val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filter(s => !s.isEmpty)
+    val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filterNot(_.isEmpty)
 
     // verify that the configured auths are valid for the connector we are using (fail-fast)
     val invalidAuths = configuredAuths.filterNot(masterAuths.contains)

@@ -110,7 +110,7 @@ class RecordIdxStrategyTest extends Specification with TestWithFeatureType {
     }
 
     "support sampling with transformations" in {
-      val query = new Query(sftName, Filter.INCLUDE, Array("name", "geom"))
+      val query = new Query(sftName, Filter.INCLUDE, "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       val results = runQuery(query).toList
       results.length must beLessThan(20)
@@ -118,7 +118,7 @@ class RecordIdxStrategyTest extends Specification with TestWithFeatureType {
     }
 
     "support sampling with cql and transformations" in {
-      val query = new Query(sftName, ECQL.toFilter("track = 'track2'"), Array("name", "geom"))
+      val query = new Query(sftName, ECQL.toFilter("track = 'track2'"), "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
       val results = runQuery(query).toList
       results.length must beLessThan(10)

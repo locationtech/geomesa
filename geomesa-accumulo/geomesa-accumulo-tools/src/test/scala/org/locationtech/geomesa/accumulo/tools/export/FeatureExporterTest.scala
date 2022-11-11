@@ -58,7 +58,7 @@ class FeatureExporterTest extends TestWithFeatureType {
     }
 
     "should handle projections" >> {
-      val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg"))
+      val query = new Query(sftName, Filter.INCLUDE, "geom", "dtg")
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteExportStream()
@@ -75,7 +75,7 @@ class FeatureExporterTest extends TestWithFeatureType {
     }
 
     "should handle transforms" >> {
-      val query = new Query(sftName, Filter.INCLUDE, Array("derived=strConcat(name, '-test')", "geom", "dtg"))
+      val query = new Query(sftName, Filter.INCLUDE, "derived=strConcat(name, '-test')", "geom", "dtg")
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteExportStream()
@@ -92,7 +92,7 @@ class FeatureExporterTest extends TestWithFeatureType {
     }
 
     "should handle escapes" >> {
-      val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg", "derived=strConcat(name, ',test')"))
+      val query = new Query(sftName, Filter.INCLUDE, "geom", "dtg", "derived=strConcat(name, ',test')")
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteExportStream()
@@ -112,7 +112,7 @@ class FeatureExporterTest extends TestWithFeatureType {
   "Avro Export" >> {
 
     "should handle transforms" >> {
-      val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg", "derived=strConcat(name, '-test')"))
+      val query = new Query(sftName, Filter.INCLUDE, "geom", "dtg", "derived=strConcat(name, '-test')")
       val featureCollection = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteExportStream()
