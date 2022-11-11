@@ -20,7 +20,6 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.opengis.feature.simple.SimpleFeatureType
 
 import java.awt.RenderingHints
-import java.io.Serializable
 import java.net.URL
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
@@ -28,10 +27,10 @@ import scala.util.control.NonFatal
 class ConfluentKafkaDataStoreFactory extends DataStoreFactorySpi {
 
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore =
+  override def createNewDataStore(params: java.util.Map[String, _]): KafkaDataStore =
     createDataStore(params)
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): KafkaDataStore = {
     val config = KafkaDataStoreFactory.buildConfig(params)
     val url = ConfluentKafkaDataStoreFactory.SchemaRegistryUrl.lookup(params)
     val schemaOverridesConfig = ConfluentKafkaDataStoreFactory.SchemaOverrides.lookupOpt(params)
@@ -47,9 +46,9 @@ class ConfluentKafkaDataStoreFactory extends DataStoreFactorySpi {
 
   // note: we don't return producer configs, as they would not be used in geoserver
   override def getParametersInfo: Array[Param] =
-    ConfluentKafkaDataStoreFactory.ParameterInfo :+ KafkaDataStoreParams.NamespaceParam
+    Array(ConfluentKafkaDataStoreFactory.ParameterInfo :+ KafkaDataStoreParams.NamespaceParam: _*)
 
-  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     ConfluentKafkaDataStoreFactory.canProcess(params)
 
   override def isAvailable: Boolean = true
@@ -80,7 +79,7 @@ object ConfluentKafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogg
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     SchemaRegistryUrl +: KafkaDataStoreFactory.ParameterInfo :+ SchemaOverrides
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
+  override def canProcess(params: java.util.Map[String, _]): Boolean = {
     KafkaDataStoreParams.Brokers.exists(params) &&
       KafkaDataStoreParams.Zookeepers.exists(params) &&
       SchemaRegistryUrl.exists(params)

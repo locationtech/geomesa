@@ -71,20 +71,20 @@ class AccumuloDataStoreJsonTest extends Specification with TestWithFeatureType {
       features.head.getAttributes mustEqual sf4.getAttributes // note: whitespace will be stripped from json string
     }
     "support projecting schemas" in {
-      val query = new Query(sftName, Filter.INCLUDE, Array("geom", """"$.json.properties.characteristics.height""""))
+      val query = new Query(sftName, Filter.INCLUDE, "geom", """"$.json.properties.characteristics.height"""")
       val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(5)
       features.map(_.getAttribute(1)) must containTheSameElementsAs(Seq("20", "30", null, null, null))
     }
     "support projecting json arrays" in {
-      val query = new Query(sftName, Filter.INCLUDE, Array("geom", """"$.json[1]""""))
+      val query = new Query(sftName, Filter.INCLUDE, "geom", """"$.json[1]"""")
       val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(5)
       features.map(_.getAttribute(1)) must containTheSameElementsAs(Seq(null, null, null, null, "a2"))
     }
     "support querying against projected schemas" in {
       val filter = ECQL.toFilter(""""$.json.properties.characteristics.height" = 30""")
-      val query = new Query(sftName, filter, Array("geom", """"$.json.properties.characteristics.height""""))
+      val query = new Query(sftName, filter, "geom", """"$.json.properties.characteristics.height"""")
       val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(1)
       features.head.getID mustEqual "3"

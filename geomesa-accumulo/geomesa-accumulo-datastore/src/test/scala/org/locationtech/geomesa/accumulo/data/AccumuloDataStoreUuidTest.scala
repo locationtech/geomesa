@@ -88,7 +88,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       val ids = features.map(_.getID)
       foreach(filters) { filter =>
         foreach(transforms) { transform =>
-          val query = new Query(sftName, filter, transform)
+          val query = new Query(sftName, filter, transform: _*)
           val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           result must not(beEmpty)
           foreach(result)(f => ids.contains(f.getID) must beTrue)

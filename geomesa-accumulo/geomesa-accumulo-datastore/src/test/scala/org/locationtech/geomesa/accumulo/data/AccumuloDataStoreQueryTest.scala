@@ -297,8 +297,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val queries = Seq(
         new Query(typeName),
         new Query(typeName, ECQL.toFilter("bbox(geom,40,45,50,55)")),
-        new Query(typeName, Filter.INCLUDE, Array("geom")),
-        new Query(typeName, ECQL.toFilter("bbox(geom,40,45,50,55)"), Array("geom"))
+        new Query(typeName, Filter.INCLUDE, "geom"),
+        new Query(typeName, ECQL.toFilter("bbox(geom,40,45,50,55)"), "geom")
       )
       foreach(queries) { query =>
         val reader = dsWithNs.getFeatureReader(query, Transaction.AUTO_COMMIT)

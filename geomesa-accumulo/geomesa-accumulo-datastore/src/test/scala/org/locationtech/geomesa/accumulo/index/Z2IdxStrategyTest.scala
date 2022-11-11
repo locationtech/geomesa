@@ -241,7 +241,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
     }
 
     "support sampling with transformations" in {
-      val query = new Query(sftName, Filter.INCLUDE, Array("name", "geom"))
+      val query = new Query(sftName, Filter.INCLUDE, "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val results = queryPlanner.runQuery(sft, query, ExplainNull).toList
@@ -250,7 +250,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
     }
 
     "support sampling with cql and transformations" in {
-      val query = new Query(sftName, ECQL.toFilter("track = 'track2'"), Array("name", "geom"))
+      val query = new Query(sftName, ECQL.toFilter("track = 'track2'"), "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val results = queryPlanner.runQuery(sft, query, ExplainNull).toList
@@ -291,7 +291,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
   def execute(ecql: String, transforms: Option[Array[String]] = None, explain: Explainer = ExplainNull) = {
     val query = transforms match {
       case None    => new Query(sftName, ECQL.toFilter(ecql))
-      case Some(t) => new Query(sftName, ECQL.toFilter(ecql), t)
+      case Some(t) => new Query(sftName, ECQL.toFilter(ecql), t: _*)
     }
     query.getHints.put(QUERY_INDEX, Z2Index.name)
     queryPlanner.runQuery(sft, query, explain).toSeq

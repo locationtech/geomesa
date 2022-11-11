@@ -78,7 +78,7 @@ class ConverterSpatialRDDProviderTest extends Specification {
         IngestTypeKey -> "example-csv"
       )
       val requestedProps : Array[String] = Array("name")
-      val q = new Query("example-csv", Filter.INCLUDE, requestedProps)
+      val q = new Query("example-csv", Filter.INCLUDE, requestedProps: _*)
       val rdd = GeoMesaSpark(params.asJava).rdd(new Configuration(), sc, params, q)
       val returnedProps = rdd.first.getProperties.asScala.map{_.getName.toString}.toArray
       returnedProps mustEqual requestedProps
@@ -90,7 +90,7 @@ class ConverterSpatialRDDProviderTest extends Specification {
         IngestTypeKey -> "example-csv"
       )
       val requestedProps : Array[String] = Array( "fid", "name", "age", "lastseen", "friends","talents", "geom")
-      val q = new Query("example-csv", Filter.INCLUDE, requestedProps)
+      val q = new Query("example-csv", Filter.INCLUDE, requestedProps: _*)
       val rdd = GeoMesaSpark(params.asJava).rdd(new Configuration(), sc, params, q)
       val returnedProps = rdd.first.getProperties.asScala.map{_.getName.toString}.toArray
       returnedProps mustEqual requestedProps

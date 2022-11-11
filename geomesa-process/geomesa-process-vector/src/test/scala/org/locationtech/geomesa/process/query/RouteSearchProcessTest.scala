@@ -34,7 +34,7 @@ class RouteSearchProcessTest extends Specification {
   val process = new RouteSearchProcess
 
   val routes = new ListFeatureCollection(routeSft,
-    Array[SimpleFeature](ScalaSimpleFeature.create(routeSft, "r0", "LINESTRING (40 40, 40.5 40.5, 40.5 41)")))
+    ScalaSimpleFeature.create(routeSft, "r0", "LINESTRING (40 40, 40.5 40.5, 40.5 41)"))
 
   // features along the lower angled part of the route, headed in the opposite direction
   val features0 = Seq.tabulate[SimpleFeature](10) { i =>

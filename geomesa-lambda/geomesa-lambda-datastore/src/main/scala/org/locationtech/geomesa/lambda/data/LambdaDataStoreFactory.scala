@@ -16,7 +16,6 @@ import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import java.awt.RenderingHints.Key
-import java.io.Serializable
 import java.time.Clock
 import scala.reflect.ClassTag
 
@@ -24,7 +23,7 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
 
   import LambdaDataStoreParams.{ClockParam, NamespaceParam}
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): DataStore = {
     // TODO GEOMESA-1891 attribute level vis
     val persistence = new AccumuloDataStoreFactory().createDataStore(LambdaDataStoreFactory.filter(params))
     val config = LambdaDataStoreParams.parse(params, persistence.config.catalog)
@@ -32,7 +31,7 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
     new LambdaDataStore(persistence, config)(clock)
   }
 
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = createDataStore(params)
 
   override def isAvailable: Boolean = true
 
@@ -40,9 +39,9 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
 
   override def getDescription: String = LambdaDataStoreFactory.Description
 
-  override def getParametersInfo: Array[Param] = LambdaDataStoreFactory.ParameterInfo :+ NamespaceParam
+  override def getParametersInfo: Array[Param] = Array(LambdaDataStoreFactory.ParameterInfo :+ NamespaceParam: _*)
 
-  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     LambdaDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[Key, _] = java.util.Collections.emptyMap()
@@ -83,7 +82,7 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
       AuditQueriesParam
     )
 
-  override def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     AccumuloDataStoreFactory.canProcess(LambdaDataStoreFactory.filter(params)) &&
         Seq(ExpiryParam, BrokersParam, ZookeepersParam).forall(_.exists(params))
 
@@ -108,11 +107,11 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
       deprecatedParams = p.deprecatedParams, systemProperty = p.systemProperty)
   }
 
-  private def filter(params: java.util.Map[String, _ <: Serializable]): java.util.Map[String, Serializable] = {
+  private def filter(params: java.util.Map[String, _]): java.util.Map[String, _] = {
     // note: includes a bit of redirection to allow us to pass non-serializable values in to tests
     import scala.collection.JavaConverters._
     Map[String, Any](params.asScala.toSeq: _ *)
         .map { case (k, v) => (if (k.startsWith("lambda.")) { k.substring(7) } else { k }, v) }
-        .asJava.asInstanceOf[java.util.Map[String, Serializable]]
+        .asJava
   }
 }

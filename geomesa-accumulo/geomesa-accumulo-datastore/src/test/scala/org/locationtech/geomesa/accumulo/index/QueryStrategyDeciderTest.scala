@@ -68,7 +68,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithFeatureType {
   "Cost-based strategy decisions" should {
 
     def getStrategies(filter: Filter, transforms: Option[Array[String]], explain: Explainer): Seq[FilterStrategy] = {
-      val query = transforms.map(new Query(sftName, filter, _)).getOrElse(new Query(sftName, filter))
+      val query = transforms.map(new Query(sftName, filter, _: _*)).getOrElse(new Query(sftName, filter))
       query.getHints.put(QueryHints.COST_EVALUATION, CostEvaluation.Stats)
       ds.getQueryPlan(query, explainer = explain).map(_.filter)
     }
@@ -123,7 +123,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithFeatureType {
 
     def getStrategies(filter: Filter, transforms: Array[String] = null, explain: Explainer = ExplainNull): Seq[FilterStrategy] = {
       // default behavior for this test is to use the index-based query costs
-      val query = new Query(sftName, filter, transforms)
+      val query = new Query(sftName, filter, transforms: _*)
       query.getHints.put(QueryHints.COST_EVALUATION, CostEvaluation.Index)
       ds.getQueryPlan(query, explainer = explain).map(_.filter)
     }

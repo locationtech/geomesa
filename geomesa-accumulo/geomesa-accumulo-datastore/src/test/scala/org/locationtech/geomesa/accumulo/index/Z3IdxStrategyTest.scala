@@ -67,7 +67,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
   addFeatures(features)
 
   def runQuery(filter: String, transforms: Array[String] = null): Iterator[SimpleFeature] =
-    runQuery(new Query(sftName, ECQL.toFilter(filter), transforms))
+    runQuery(new Query(sftName, ECQL.toFilter(filter), transforms: _*))
 
   def runQuery(query: Query): Iterator[SimpleFeature] =
     SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
@@ -307,7 +307,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
     "optimize for bin format with transforms" >> {
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
-      val query = new Query(sftName, ECQL.toFilter(filter), Array("name", "geom"))
+      val query = new Query(sftName, ECQL.toFilter(filter), "name", "geom")
       query.getHints.put(BIN_TRACK, "name")
       query.getHints.put(BIN_BATCH_SIZE, 100)
 
@@ -351,7 +351,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
     "support sampling with transformations" >> {
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
-      val query = new Query(sftName, ECQL.toFilter(filter), Array("name", "geom"))
+      val query = new Query(sftName, ECQL.toFilter(filter), "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
       // reduce our scan ranges so that we get fewer iterator instances and some sampling
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")

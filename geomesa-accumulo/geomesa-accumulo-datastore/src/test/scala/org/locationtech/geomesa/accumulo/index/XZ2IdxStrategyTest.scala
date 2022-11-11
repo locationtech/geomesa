@@ -251,7 +251,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithFeatureType {
   def getQuery(ecql: String, transforms: Option[Array[String]], hints: Map[_, _]): Query = {
     val query = transforms match {
       case None    => new Query(sftName, ECQL.toFilter(ecql))
-      case Some(t) => new Query(sftName, ECQL.toFilter(ecql), t)
+      case Some(t) => new Query(sftName, ECQL.toFilter(ecql), t: _*)
     }
     hints.foreach { case (k, v) => query.getHints.put(k, v) }
     query

@@ -92,7 +92,7 @@ class ExportCommandTest extends Specification {
     }
     ds.createSchema(sft)
     ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
-        .addFeatures(new ListFeatureCollection(sft, features.map(ScalaSimpleFeature.copy).toArray[SimpleFeature]))
+        .addFeatures(new ListFeatureCollection(sft, features.map(ScalaSimpleFeature.copy): _*))
     ds.getEntry(sft.getName).asInstanceOf[MemoryEntry].getMemory.asScala.foreach { case (_, feature) =>
       feature.getUserData.clear() // clear out the 'original feature' which causes serialization issues...
     }

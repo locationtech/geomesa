@@ -55,7 +55,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithFeatureType 
     }
 
     "support transforms in fully covered indices" in {
-      val query = new Query(sftName, ECQL.toFilter("name = '3name3'"), Array("name", "age", "dtg", "geom"))
+      val query = new Query(sftName, ECQL.toFilter("name = '3name3'"), "name", "age", "dtg", "geom")
       explain(query).indexOf(joinIndicator) mustEqual(-1)
 
       val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
@@ -84,7 +84,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithFeatureType 
 
     "support ecql filters and covering transforms in fully covered indices" in {
       val query = new Query(sftName, ECQL.toFilter("name >= '3name3' AND height = '9.0'"),
-        Array("name", "height", "dtg", "geom"))
+        "name", "height", "dtg", "geom")
       explain(query).indexOf(joinIndicator) mustEqual(-1)
 
       val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList
@@ -99,7 +99,7 @@ class CoveringAttributeIndexTest extends Specification with TestWithFeatureType 
 
     "support ecql filters and non-covering transforms in fully covered indices" in {
       val query = new Query(sftName, ECQL.toFilter("name >= '3name3' AND height = '9.0'"),
-        Array("name", "age", "dtg", "geom"))
+        "name", "age", "dtg", "geom")
       explain(query).indexOf(joinIndicator) mustEqual(-1)
 
       val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).toList

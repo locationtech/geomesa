@@ -62,7 +62,7 @@ class FeatureToFeatureConverterTest extends Specification {
       val pt = gf.createPoint(new Coordinate(10, 10))
       val builder = new SimpleFeatureBuilder(insft)
       builder.reset()
-      builder.addAll(Array(1, "blue", 10.0, pt).asInstanceOf[Array[AnyRef]])
+      builder.addAll(Int.box(1), "blue", Double.box(10.0), pt)
       val sf = builder.buildFeature("1")
 
       val ec = converter.createEvaluationContext()
@@ -108,7 +108,7 @@ class FeatureToFeatureConverterTest extends Specification {
       val pt = gf.createPoint(new Coordinate(10, 10))
       val builder = new SimpleFeatureBuilder(insft)
       builder.reset()
-      builder.addAll(Array(1, "blue", 10.0, pt).asInstanceOf[Array[AnyRef]])
+      builder.addAll(Int.box(1), "blue", Double.box(10.0), pt)
       val sf = builder.buildFeature("1")
 
       val ec = converter.createEvaluationContext()

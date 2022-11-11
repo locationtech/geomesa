@@ -124,7 +124,7 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
       foreach(addQueries) { query =>
         val filter = ECQL.toFilter(query)
         foreach(transforms) { transform =>
-          doQuery(fs, new Query(name, filter, transform), Seq(featureToAdd))
+          doQuery(fs, new Query(name, filter, transform: _*), Seq(featureToAdd))
         }
       }
 
@@ -140,7 +140,7 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
       foreach(addQueries) { query =>
         val filter = ECQL.toFilter(query)
         foreach(transforms) { transform =>
-          doQuery(fs, new Query(name, filter, transform), Seq.empty)
+          doQuery(fs, new Query(name, filter, transform: _*), Seq.empty)
         }
       }
 
@@ -149,7 +149,7 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
         val filter = ECQL.toFilter(q)
         logger.debug(s"Running query $q")
         foreach(transforms) { transform =>
-          doQuery(fs, new Query(name, filter, transform), results.map(features.apply))
+          doQuery(fs, new Query(name, filter, transform: _*), results.map(features.apply))
         }
         doArrowQuery(fs, new Query(name, filter)) must containTheSameElementsAs(results)
       }
@@ -186,7 +186,7 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
     }
 
     val transformed = {
-      val subtype = DataUtilities.createSubType(sft, query.getPropertyNames)
+      val subtype = DataUtilities.createSubType(sft, query.getPropertyNames: _*)
       // note: we have to copy the SimpleFeatureImpl as its `equals` method checks for the implementing class
       expected.map(e => ScalaSimpleFeature.copy(DataUtilities.reType(subtype, e)))
     }

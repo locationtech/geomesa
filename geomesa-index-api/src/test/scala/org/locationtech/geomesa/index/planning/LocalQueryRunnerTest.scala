@@ -89,27 +89,27 @@ class LocalQueryRunnerTest extends Specification {
 
     "sort by an attribute" in {
       val q = new Query("LocalQueryRunnerTest")
-      q.setSortBy(Array(new SortByImpl(ff.property("name"), SortOrder.ASCENDING)))
+      q.setSortBy(new SortByImpl(ff.property("name"), SortOrder.ASCENDING))
       runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).toSeq mustEqual features
-      q.setSortBy(Array(new SortByImpl(ff.property("name"), SortOrder.DESCENDING)))
+      q.setSortBy(new SortByImpl(ff.property("name"), SortOrder.DESCENDING))
       runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).toSeq mustEqual features.reverse
     }
 
     "sort by multiple attributes" in {
       val q = new Query("LocalQueryRunnerTest")
-      q.setSortBy(Array(new SortByImpl(ff.property("age"), SortOrder.ASCENDING),
-        new SortByImpl(ff.property("name"), SortOrder.DESCENDING)))
+      q.setSortBy(new SortByImpl(ff.property("age"), SortOrder.ASCENDING),
+        new SortByImpl(ff.property("name"), SortOrder.DESCENDING))
       runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).toSeq mustEqual Seq(features(3), features(1), features(0), features(2))
     }
 
     "sort by projections" in {
-      val q = new Query("LocalQueryRunnerTest", Filter.INCLUDE, Array("derived=strConcat('aa', name)", "geom"))
-      q.setSortBy(Array(new SortByImpl(ff.property("derived"), SortOrder.DESCENDING)))
+      val q = new Query("LocalQueryRunnerTest", Filter.INCLUDE, "derived=strConcat('aa', name)", "geom")
+      q.setSortBy(new SortByImpl(ff.property("derived"), SortOrder.DESCENDING))
       runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).map(_.getID).toSeq mustEqual features.reverse.map(_.getID)
     }
 
     "query for Arrow in various configurations" in {
-      val q = new Query("LocalQueryRunnerTest", Filter.INCLUDE, Array("name", "dtg", "geom"))
+      val q = new Query("LocalQueryRunnerTest", Filter.INCLUDE, "name", "dtg", "geom")
       q.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
       q.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
       q.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
@@ -129,7 +129,7 @@ class LocalQueryRunnerTest extends Specification {
     }
 
     "query for arrow and not leak memory with skip reduce" in {
-      val q = new Query("LocalQueryRunnerTest", Filter.INCLUDE, Array("name", "dtg", "geom"))
+      val q = new Query("LocalQueryRunnerTest", Filter.INCLUDE, "name", "dtg", "geom")
       q.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
       q.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
       q.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")

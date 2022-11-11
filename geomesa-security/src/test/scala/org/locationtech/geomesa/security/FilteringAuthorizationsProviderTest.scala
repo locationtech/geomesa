@@ -22,7 +22,7 @@ class FilteringAuthorizationsProviderTest extends Specification {
   sequential
 
   val wrapped = new AuthorizationsProvider {
-    override def configure(params: util.Map[String, _ <: Serializable]): Unit = { }
+    override def configure(params: util.Map[String, _]): Unit = { }
     override def getAuthorizations: java.util.List[String] = util.Arrays.asList("user", "admin", "test")
   }
 
