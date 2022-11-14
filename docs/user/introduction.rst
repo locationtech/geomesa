@@ -55,6 +55,14 @@ The main GeoMesa website is http://www.geomesa.org/. For additional information,
 GeoMesa is a member of the `LocationTech <http://www.locationtech.org/projects/technology.geomesa>`_ working group
 of the Eclipse Foundation.
 
+Community Modules
+^^^^^^^^^^^^^^^^^
+
+There are a number of community modules that are not part of the GeoMesa project.
+These modules are not supported by the GeoMesa team, but are available for use. They are listed below:
+
+* `GeoMesa SQL <https://github.com/bxkftechteam/geomesa-sql>`_: Run SQL queries on GeoMesa DataStores.
+
 License
 -------
 
