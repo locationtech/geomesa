@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.arrow.io
 
-import com.google.common.collect.HashBiMap
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.{ListVector, StructVector}
@@ -709,7 +708,7 @@ object DeltaWriter extends StrictLogging {
       }
 
       val transfers = Array.ofDim[TransferPair](dictionaries.length)
-      val mappings = Array.fill(dictionaries.length)(HashBiMap.create[Integer, Integer]())
+      val mappings = Array.fill(dictionaries.length)(new java.util.HashMap[Integer, Integer]())
 
       var i = 0 // dictionary field index
       while (i < dictionaries.length) {
@@ -724,7 +723,7 @@ object DeltaWriter extends StrictLogging {
         while (!queue.isEmpty) {
           val merger = queue.remove()
           merger.transfer(count)
-          mappings(i).put(merger.offset, count)
+          mappings(i).put(count, merger.offset)
           if (merger.advance()) {
             queue.add(merger)
           }
@@ -1033,12 +1032,12 @@ object DeltaWriter extends StrictLogging {
    * @param mappings mappings from the local threaded batch dictionary to the global dictionary
    * @param batch the batch number
    */
-  class DictionaryMerger(
+  private class DictionaryMerger(
       readers: Array[ArrowAttributeReader],
       transfers: Array[TransferPair],
       offsets: Array[Int],
       orderings: Array[Ordering[AnyRef]],
-      val mappings: Array[HashBiMap[Integer, Integer]],
+      val mappings: Array[java.util.HashMap[Integer, Integer]],
       val batch: Int
     ) extends Ordered[DictionaryMerger] {
 
@@ -1091,7 +1090,7 @@ object DeltaWriter extends StrictLogging {
      *
      * @return
      */
-    def remap: Integer = mappings(current).inverse().get(_index)
+    def remap: Integer = mappings(current).get(_index)
 
     /**
      * Read the next value from the current dictionary. Closes the current dictionary if there are no more values.

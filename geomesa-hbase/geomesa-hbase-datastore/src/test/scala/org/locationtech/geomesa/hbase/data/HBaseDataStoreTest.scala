@@ -362,7 +362,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
     "support remote version" in {
       // note: we have to use a unique catalog to avoid getting a cached version
-      // we can't use the thread local value b/c it's loaded in an asynchronous guava cache
+      // we can't use the thread local value b/c it's loaded in an asynchronous cache
       SchemaProperties.CheckDistributedVersion.set("true")
       try {
         val params = Map(

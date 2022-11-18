@@ -16,7 +16,7 @@ hadoop_install_version="%%hadoop.version.recommended%%"
 zookeeper_install_version="%%zookeeper.version.recommended%%"
 thrift_install_version="%%thrift.version%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
-guava_install_version="%%guava.version%%"
+guava_install_version="%%accumulo.guava.version%%"
 
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
