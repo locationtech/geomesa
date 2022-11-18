@@ -14,12 +14,14 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
+
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, KerberosToken, PasswordToken}
-import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
+import org.apache.accumulo.core.client.{Accumulo, AccumuloClient}
+import org.apache.accumulo.core.conf.ClientProperty
 import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
+import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterProperties
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
@@ -79,7 +81,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
-      InstanceIdParam,
+      InstanceNameParam,
       ZookeepersParam,
       CatalogParam,
       UserParam,
@@ -103,12 +105,6 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       ForceEmptyAuthsParam
     )
 
-  private val MockParam =
-    new GeoMesaParam[java.lang.Boolean](
-      "accumulo.mock",
-      default = false,
-      deprecatedKeys = Seq("useMock", "accumulo.useMock"))
-
   // used to handle geoserver password encryption in persisted ds params
   private val DeprecatedGeoServerPasswordParam =
     new Param(
@@ -122,36 +118,33 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
   override def canProcess(params: java.util.Map[String, _]): Boolean =
     CatalogParam.exists(params)
 
-  def buildAccumuloConnector(params: java.util.Map[String, _]): Connector = {
-    if (MockParam.lookup(params)) {
-      throw new IllegalArgumentException("Mock Accumulo connections are not supported")
-    }
+  def buildAccumuloConnector(params: java.util.Map[String, _]): AccumuloClient = {
+    val config = AccumuloClientConfig.load()
 
-    def lookup[T <: AnyRef](param: GeoMesaParam[T], fallback: => Option[T]): T =
-      param.lookupOpt(params).orElse(fallback).getOrElse {
-        throw new IOException(s"Parameter ${param.key} is required: ${param.description}")
-      }
-
-    lazy val config = AccumuloClientConfig.load()
-    val conf = config.getConfig()
-
-    def doIfOverridden(param: GeoMesaParam[String], action: String => Any, inConf: Boolean) = {
+    def setRequired(param: GeoMesaParam[String], key: ClientProperty): Unit = {
       param.lookupOpt(params) match {
-        case Some(paramVal) => action(paramVal)
+        case Some(v) => config.put(key.getKey, v)
         case None =>
-          if (!inConf) {
+          if (config.get(key.getKey) == null) {
             throw new IOException(s"Parameter ${param.key} is required: ${param.description}")
           }
       }
     }
 
-    doIfOverridden(InstanceIdParam, { paramVal: String => conf.withInstance(paramVal) }, config.getHasInstance())
-    doIfOverridden(ZookeepersParam, { paramVal: String => conf.withZkHosts(paramVal) }, config.zookeepers != None)
-    ZookeeperTimeoutParam.lookupOpt(params).foreach { timeout =>
-      conf.`with`(ClientProperty.INSTANCE_ZK_TIMEOUT, timeout)
+    def setOptional(param: GeoMesaParam[String], key: ClientProperty): Unit =
+      param.lookupOpt(params).foreach(config.put(key.getKey, _))
+
+    def getRequired(param: GeoMesaParam[String], key: ClientProperty): String = {
+      param.lookupOpt(params).orElse(Option(config.getProperty(key.getKey))).getOrElse {
+        throw new IOException(s"Parameter ${param.key} is required: ${param.description}")
+      }
     }
 
-    val user = lookup(UserParam, config.principal)
+    setRequired(InstanceNameParam, ClientProperty.INSTANCE_NAME)
+    setRequired(ZookeepersParam, ClientProperty.INSTANCE_ZOOKEEPERS)
+    setOptional(ZookeeperTimeoutParam, ClientProperty.INSTANCE_ZOOKEEPERS_TIMEOUT)
+
+    val user = getRequired(UserParam, ClientProperty.AUTH_PRINCIPAL)
 
     if (PasswordParam.exists(params) && KeytabPathParam.exists(params)) {
       throw new IllegalArgumentException(
@@ -164,16 +157,14 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       } else if (KeytabPathParam.exists(params)) {
         AccumuloClientConfig.KerberosAuthType
       } else {
-        config.authType.map(_.trim.toLowerCase(Locale.US)).getOrElse {
-          throw new IOException(s"Parameter ${PasswordParam.key} is required: ${PasswordParam.description} or parameter ${KeytabPathParam.key} is required: ${KeytabPathParam.description}")
-        }
+        ClientProperty.AUTH_TYPE.getValue(config).toLowerCase(Locale.US)
       }
 
     // build authentication token according to how we are authenticating
     val auth: AuthenticationToken = if (authType == AccumuloClientConfig.PasswordAuthType) {
-      new PasswordToken(lookup(PasswordParam, config.token).getBytes(StandardCharsets.UTF_8))
+      new PasswordToken(getRequired(PasswordParam, ClientProperty.AUTH_TOKEN).getBytes(StandardCharsets.UTF_8))
     } else if (authType == AccumuloClientConfig.KerberosAuthType) {
-      val file = new java.io.File(lookup(KeytabPathParam, config.token))
+      val file = new java.io.File(getRequired(KeytabPathParam, ClientProperty.AUTH_TOKEN))
       // mimic behavior from accumulo 1.9 and earlier:
       // `public KerberosToken(String principal, File keytab, boolean replaceCurrentUser)`
       UserGroupInformation.loginUserFromKeytab(user, file.getAbsolutePath)
@@ -182,10 +173,33 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       throw new IllegalArgumentException(s"Unsupported auth type: $authType")
     }
 
-    new ZooKeeperInstance(conf).getConnector(user, auth)
+    if (WriteThreadsParam.exists(params)) {
+      config.put(ClientProperty.BATCH_WRITER_THREADS_MAX.getKey, WriteThreadsParam.lookup(params).toString)
+    } else if (!config.containsKey(ClientProperty.BATCH_WRITER_THREADS_MAX.getKey)) {
+      BatchWriterProperties.WRITER_THREADS.option.foreach { threads =>
+        config.put(ClientProperty.BATCH_WRITER_THREADS_MAX.getKey, String.valueOf(threads))
+      }
+    }
+    if (!config.containsKey(ClientProperty.BATCH_WRITER_MEMORY_MAX.getKey)) {
+      BatchWriterProperties.WRITER_MEMORY_BYTES.toBytes.foreach { memory =>
+        config.put(ClientProperty.BATCH_WRITER_MEMORY_MAX.getKey, String.valueOf(memory))
+      }
+    }
+    if (!config.containsKey(ClientProperty.BATCH_WRITER_LATENCY_MAX.getKey)) {
+      BatchWriterProperties.WRITER_LATENCY.toDuration.foreach { duration =>
+        config.put(ClientProperty.BATCH_WRITER_LATENCY_MAX.getKey, s"${duration.toMillis}ms")
+      }
+    }
+    if (!config.containsKey(ClientProperty.BATCH_WRITER_TIMEOUT_MAX.getKey)) {
+      BatchWriterProperties.WRITE_TIMEOUT.toDuration.foreach { duration =>
+        config.put(ClientProperty.BATCH_WRITER_TIMEOUT_MAX.getKey, s"${duration.toMillis}ms")
+      }
+    }
+
+    Accumulo.newClient().from(config).as(user, auth).build()
   }
 
-  def buildConfig(connector: Connector, params: java.util.Map[String, _]): AccumuloDataStoreConfig = {
+  def buildConfig(connector: AccumuloClient, params: java.util.Map[String, _]): AccumuloDataStoreConfig = {
     val catalog = CatalogParam.lookup(params)
 
     val authProvider = buildAuthsProvider(connector, params)
@@ -230,7 +244,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     }
   }
 
-  def buildAuthsProvider(connector: Connector, params: java.util.Map[String, _]): AuthorizationsProvider = {
+  def buildAuthsProvider(connector: AccumuloClient, params: java.util.Map[String, _]): AuthorizationsProvider = {
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
     val securityOps = connector.securityOperations
     val masterAuths = securityOps.getUserAuthorizations(connector.whoami).asScala.toArray.map(b => new String(b))

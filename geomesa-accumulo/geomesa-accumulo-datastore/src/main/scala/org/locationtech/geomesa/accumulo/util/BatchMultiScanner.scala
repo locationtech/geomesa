@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.util
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.{Connector, ScannerBase}
+import org.apache.accumulo.core.client.{AccumuloClient, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinFunction}
@@ -34,7 +34,7 @@ import java.util.concurrent.{Executors, Future, LinkedBlockingQueue, TimeUnit}
  * @param batchSize batch size
  */
 class BatchMultiScanner(
-    connector: Connector,
+    connector: AccumuloClient,
     in: ScannerBase,
     join: BatchScanPlan,
     joinFunction: JoinFunction,

@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.index.conf.splitter
 
-import com.google.common.primitives.Shorts
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey}
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -60,7 +60,7 @@ class DefaultSplitterTest extends Specification {
       val opts = s"z3.min:2017-01-01,z3.max:2017-01-10,z3.bits:4"
       val splits = splitter.getSplits(sft, z3, opts)
       splits must haveLength(32)
-      splits.toSeq.map(s => (Shorts.fromByteArray(s.take(2)).toInt, s(2).toInt, s.drop(3).sum.toInt)) must
+      splits.toSeq.map(s => (ByteArrays.readShort(s).toInt, s(2).toInt, s.drop(3).sum.toInt)) must
           containTheSameElementsAs(Seq(2452, 2453).flatMap(w => Range(0, 128, 8).map((w, _, 0))))
     }
 

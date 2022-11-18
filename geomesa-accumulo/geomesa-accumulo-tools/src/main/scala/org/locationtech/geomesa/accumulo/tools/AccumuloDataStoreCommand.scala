@@ -9,7 +9,7 @@
 
 package org.locationtech.geomesa.accumulo.tools
 
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.AccumuloClient
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
@@ -27,7 +27,7 @@ trait AccumuloDataStoreCommand extends DataStoreCommand[AccumuloDataStore] {
 
   override def connection: Map[String, String] = {
     Map[String, String](
-      InstanceIdParam.key   -> params.instance,
+      InstanceNameParam.key -> params.instance,
       ZookeepersParam.key   -> params.zookeepers,
       UserParam.key         -> params.user,
       PasswordParam.key     -> params.password,
@@ -50,7 +50,7 @@ object AccumuloDataStoreCommand {
       () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HOME", "lib"), // old geomesa accumulo home path
       () => ClassPathUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
       () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[Connector])
+      () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloClient])
     ) ++ super.libjarsPaths
   }
 }

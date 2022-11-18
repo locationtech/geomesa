@@ -144,7 +144,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>25.1-jre</version>
+                <version>${geoserver.guava.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>

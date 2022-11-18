@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.jobs.accumulo.index
 
 import com.beust.jcommander.Parameter
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.conf.ClientProperty
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.security.ColumnVisibility
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.{Counter, Job, Mapper}
@@ -36,6 +36,7 @@ import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
+import java.util.Properties
 import scala.util.control.NonFatal
 
 object AttributeIndexJob {
@@ -216,10 +217,13 @@ class AttributeIndexJob extends Tool {
       AttributeIndexJob.setAttributes(job.getConfiguration, attributes.toSeq)
       AttributeIndexJob.setTypeName(job.getConfiguration, sft.getTypeName)
 
-      AccumuloOutputFormat.setConnectorInfo(job, parsedArgs.inUser, new PasswordToken(parsedArgs.inPassword.getBytes))
-      // use deprecated method to work with both 1.5/1.6
-      AccumuloOutputFormat.setZooKeeperInstance(job, parsedArgs.inInstanceId, parsedArgs.inZookeepers)
-      AccumuloOutputFormat.setCreateTables(job, true)
+      val config = new Properties()
+      config.put(ClientProperty.INSTANCE_NAME.getKey, parsedArgs.inInstanceId)
+      config.put(ClientProperty.INSTANCE_ZOOKEEPERS.getKey, parsedArgs.inZookeepers)
+      config.put(ClientProperty.AUTH_PRINCIPAL.getKey, parsedArgs.inUser)
+      config.put(ClientProperty.AUTH_TOKEN.getKey, parsedArgs.inPassword)
+
+      AccumuloOutputFormat.configure().clientProperties(config).createTables(true).store(job)
 
       val result = job.waitForCompletion(true)
 

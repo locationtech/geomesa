@@ -8,15 +8,17 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
+import org.apache.commons.codec.digest.MurmurHash3
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.curve.TimePeriod
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.uuid.Z3UuidGenerator
 import org.locationtech.jts.geom.{Geometry, Point}
 
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import java.util.{Date, UUID}
 import scala.util.control.NonFatal
 
@@ -24,8 +26,6 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 
   override def functions: Seq[TransformerFunction] =
     Seq(string2Bytes, md5, uuid, uuidZ3, uuidZ3Centroid, base64, murmur3_32, murmur3_64, murmur3_128)
-
-  private val murmur3_128Hashing = Hashing.murmur3_128()
 
   private val string2Bytes = TransformerFunction("string2bytes", "stringToBytes") {
     args => args(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8)
@@ -61,15 +61,26 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
   }
 
   private val md5: TransformerFunction = new NamedTransformerFunction(Seq("md5"), pure = true) {
-    private val hasher = Hashing.md5()
-    override def apply(args: Array[AnyRef]): AnyRef =
-      hasher.hashBytes(args(0).asInstanceOf[Array[Byte]]).toString
+    private val hasher = MessageDigest.getInstance("MD5")
+    override def apply(args: Array[AnyRef]): AnyRef = {
+      val bytes = args(0) match {
+        case s: String => s.getBytes(StandardCharsets.UTF_8)
+        case b: Array[Byte] => b
+        case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
+      }
+      ByteArrays.toHex(hasher.digest(bytes))
+    }
   }
 
   private val murmur3_32: TransformerFunction = new NamedTransformerFunction(Seq("murmur3_32"), pure = true) {
-    private val hasher = Hashing.murmur3_32()
-    override def apply(args: Array[AnyRef]): AnyRef =
-      hasher.hashString(args(0).toString, StandardCharsets.UTF_8)
+    override def apply(args: Array[AnyRef]): AnyRef = {
+      val bytes = args(0) match {
+        case s: String => s.getBytes(StandardCharsets.UTF_8)
+        case b: Array[Byte] => b
+        case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
+      }
+      Int.box(MurmurHash3.hash32x86(bytes, 0, bytes.length, 0))
+    }
   }
 
   // we've had some confusion around the names of these functions - the original function was murmur3_64,
@@ -77,20 +88,30 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
   // bits of a 128 bit hash. the full 128-bit hash is now called murmurHash3 to avoid name conflicts
   private val murmur3_64 =
     TransformerFunction.pure("murmur3_128", "murmur3_64") { args =>
-      val hash = args(0) match {
-        case s: String => murmur3_128Hashing.hashBytes(s.getBytes(StandardCharsets.UTF_8))
-        case b: Array[Byte] => murmur3_128Hashing.hashBytes(b)
+      val bytes = args(0) match {
+        case s: String => s.getBytes(StandardCharsets.UTF_8)
+        case b: Array[Byte] => b
         case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
       }
-      Long.box(hash.asLong()) // asLong gets only the first 64 bits even though the hash has 128
+      Long.box(MurmurHash3.hash128x64(bytes, 0, bytes.length, 0).head)
     }
 
   private val murmur3_128 =
     TransformerFunction.pure("murmurHash3") { args =>
-      args(0) match {
-        case s: String => murmur3_128Hashing.hashBytes(s.getBytes(StandardCharsets.UTF_8)).toString // toString results in hex
-        case b: Array[Byte] => murmur3_128Hashing.hashBytes(b).toString // toString results in hex
+      val bytes = args(0) match {
+        case s: String => s.getBytes(StandardCharsets.UTF_8)
+        case b: Array[Byte] => b
         case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
       }
+      // mimic guava little-endian output
+      val sb = new StringBuilder(32)
+      MurmurHash3.hash128x64(bytes, 0, bytes.length, 0).foreach { hash =>
+        var i = 0
+        while (i < 64) {
+          sb.append(ByteArrays.toHex(((hash >> i) & 0xff).asInstanceOf[Byte]))
+          i += 8
+        }
+      }
+      sb.toString
     }
 }
