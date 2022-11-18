@@ -63,7 +63,7 @@ case object MiniCluster extends LazyLogging {
     cluster.start()
 
     // set up users and authorizations
-    val connector = cluster.getConnector(Users.root.name, Users.root.password)
+    val connector = cluster.createAccumuloClient(Users.root.name, new PasswordToken(Users.root.password))
     connector.namespaceOperations().create(namespace)
     Seq(Users.root, Users.admin, Users.user).foreach { case UserWithAuths(name, password, auths) =>
       if (name != Users.root.name) {
@@ -74,7 +74,7 @@ case object MiniCluster extends LazyLogging {
       connector.securityOperations().changeUserAuthorizations(name, auths)
     }
 
-    AccumuloVersion.close(connector)
+    connector.close()
 
     logger.info("Started Accumulo minicluster")
 

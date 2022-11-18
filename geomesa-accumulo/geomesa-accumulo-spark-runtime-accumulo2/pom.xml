@@ -46,11 +46,17 @@
             <artifactId>accumulo-core</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-hadoop-mapreduce</artifactId>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- bring in guava and relocate it -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <version>${accumulo.guava.version}</version>
             <scope>compile</scope>
         </dependency>
 

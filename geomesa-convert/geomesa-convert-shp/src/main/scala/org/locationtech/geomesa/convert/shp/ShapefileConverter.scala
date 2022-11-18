@@ -137,17 +137,19 @@ object ShapefileConverter extends LazyLogging {
     val (baseName, _) = PathUtils.getBaseNameAndExtension(path)
     val cpgPath = shpDirPath.resolve(baseName + ".cpg")
     if (!Files.isRegularFile(cpgPath)) None else {
-      val source = io.Source.fromFile(cpgPath.toFile)
+      val source = scala.io.Source.fromFile(cpgPath.toFile)
       try {
         source.getLines.take(1).toList match {
           case Nil => None
           case charsetName :: _ => Some(Charset.forName(charsetName.trim))
         }
       } catch {
-        case e: Exception =>
+        case _: Exception =>
           logger.warn("Can't figure out charset from cpg file, will use default charset")
           None
-      } finally source.close()
+      } finally {
+        source.close()
+      }
     }
   }
 }

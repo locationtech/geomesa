@@ -32,13 +32,6 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-arrow-datastore_${scala.binary.version}</artifactId>
         </dependency>
-        <!-- Here we include Guava since it is the only dependency needed for the GM converter library and
-             we know that it will not conflict. -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 
     <build>

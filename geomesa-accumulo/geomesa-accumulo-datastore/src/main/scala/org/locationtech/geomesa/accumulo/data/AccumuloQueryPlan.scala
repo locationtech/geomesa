@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.{Connector, IteratorSetting, ScannerBase}
+import org.apache.accumulo.core.client.{AccumuloClient, IteratorSetting, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
@@ -125,7 +125,7 @@ object AccumuloQueryPlan extends LazyLogging {
      * @return
      */
     def scan(
-        connector: Connector,
+        connector: AccumuloClient,
         auths: Authorizations,
         partitionParallelScans: Boolean,
         timeout: Option[Timeout]): CloseableIterator[Entry[Key, Value]] = {
@@ -147,7 +147,7 @@ object AccumuloQueryPlan extends LazyLogging {
      * @return
      */
     private def scanner(
-        connector: Connector,
+        connector: AccumuloClient,
         table: String,
         auths: Authorizations,
         timeout: Option[Timeout]): CloseableIterator[Entry[Key, Value]] = {
@@ -198,7 +198,7 @@ object AccumuloQueryPlan extends LazyLogging {
     }
 
     private def scanner(
-        connector: Connector,
+        connector: AccumuloClient,
         table: String,
         joinTable: String,
         auths: Authorizations,

@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import com.google.common.hash.Hashing
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.file.DataFileWriter
@@ -127,7 +126,7 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
         val res = WithClose(converter.process(new ByteArrayInputStream(bytes ++ bytes), ec))(_.toList)
         res must haveLength(2)
         foreach(res) { sf =>
-          sf.getID mustEqual Hashing.md5().hashBytes(bytes).toString
+          sf.getID mustEqual "3fd4a849601fa2d97dca58043deb9ead" // Hashing.md5().hashBytes(bytes).toString
           sf.getAttributeCount must be equalTo 2
           sf.getAttribute("dtg") must not(beNull)
         }
@@ -170,7 +169,7 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
         val res = WithClose(converter.process(new ByteArrayInputStream(out.toByteArray), ec))(_.toList)
         res must haveLength(2)
         foreach(res) { sf =>
-          sf.getID mustEqual Hashing.md5().hashBytes(bytes).toString
+          sf.getID mustEqual "3fd4a849601fa2d97dca58043deb9ead" // Hashing.md5().hashBytes(bytes).toString
           sf.getAttributeCount must be equalTo 2
           sf.getAttribute("dtg") must not(beNull)
         }
