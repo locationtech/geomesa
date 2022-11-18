@@ -84,25 +84,28 @@
 
         <!-- *** provided artifacts, not bundled to support multiple environments *** -->
 
-        <accumulo.version>2.0.0</accumulo.version>
-        <accumulo-1.version>1.9.3</accumulo-1.version>
-        <zookeeper.version>3.4.14</zookeeper.version>
+        <accumulo.version>2.0.1</accumulo.version>
+        <zookeeper.version>3.5.10</zookeeper.version>
         <thrift.version>0.12.0</thrift.version>
-        <hadoop.version>2.8.5</hadoop.version>
-        <guava.version>30.1-jre</guava.version>
+        <hadoop.version>2.10.2</hadoop.version>
         <spark.version>2.4.7</spark.version>
-        <hbase.version>2.2.3</hbase.version>
-        <hbase-1.version>1.4.12</hbase-1.version>
-        <hbase.guava.version>11.0.2</hbase.guava.version>
+        <hbase.version>2.4.4</hbase.version>
+        <hbase-1.version>1.4.13</hbase-1.version>
         <protobuf.version>2.5.0</protobuf.version>
         <cassandra.version>3.0.0</cassandra.version>
-        <cassandra.guava.version>18.0</cassandra.guava.version>
         <kafka.version>2.1.1</kafka.version> <!-- also supports: 2.0.0, 1.1.1, 1.0.2, 0.10.2.1, 0.9.0.1 -->
         <zkclient.version>0.10</zkclient.version> <!-- corresponding versions: 0.10, 0.10, 0.10, 0.7 -->
         <kafka.jopt.version>5.0.4</kafka.jopt.version> <!-- corresponding versions: 5.0.4, 5.0.4, 4.9, 3.2 -->
         <confluent.version>5.1.0</confluent.version>
         <confluent.recommended.version>5.5.8</confluent.recommended.version>
         <confluent.avro.version>1.8.2</confluent.avro.version>
+
+        <!-- guava - versions vary across environments -->
+        <geoserver.guava.version>30.1-jre</geoserver.guava.version>
+        <accumulo.guava.version>28.0-jre</accumulo.guava.version>
+        <hbase.guava.version>11.0.2</hbase.guava.version>
+        <cassandra.guava.version>18.0</cassandra.guava.version>
+        <hadoop.guava.version>11.0.2</hadoop.guava.version>
 
         <slf4j.version>1.7.36</slf4j.version> <!-- 1.7.x is for hadoop 2 and accumulo 1.5.x -->
         <scalalogging.version>3.8.0</scalalogging.version>
@@ -125,13 +128,13 @@
         <copyright.year>2022</copyright.year>
 
         <!-- recommended installation versions -->
-        <accumulo.version.recommended>2.0.0</accumulo.version.recommended>
-        <hbase.version.recommended>2.2.6</hbase.version.recommended>
+        <accumulo.version.recommended>2.0.1</accumulo.version.recommended>
+        <hbase.version.recommended>2.4.4</hbase.version.recommended>
         <hbase.thirdparty.version.recommended>2.2.1</hbase.thirdparty.version.recommended>
         <cassandra.server.version.recommended>3.11.8</cassandra.server.version.recommended>
         <cassandra.driver.version.recommended>3.10.2</cassandra.driver.version.recommended>
-        <hadoop.version.recommended>2.8.5</hadoop.version.recommended>
-        <zookeeper.version.recommended>3.4.14</zookeeper.version.recommended>
+        <hadoop.version.recommended>3.2.4</hadoop.version.recommended>
+        <zookeeper.version.recommended>3.5.10</zookeeper.version.recommended>
     </properties>
 
     <profiles>
@@ -1040,6 +1043,10 @@
                         <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -1448,7 +1455,7 @@
             <dependency>
                 <groupId>org.calrissian.mango</groupId>
                 <artifactId>mango-core</artifactId>
-                <version>1.2.0</version>
+                <version>3.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.ben-manes.caffeine</groupId>
@@ -2111,34 +2118,6 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>listenablefuture</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.checkerframework</groupId>
-                        <artifactId>checker-qual</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.j2objc</groupId>
-                        <artifactId>j2objc-annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.errorprone</groupId>
-                        <artifactId>error_prone_annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>animal-sniffer-annotations</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
                 <version>${zookeeper.version}</version>
@@ -2543,9 +2522,9 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.scalatra</groupId>
-                <artifactId>scalatra-specs2_${scala.binary.version}</artifactId>
-                <version>${scalatra.version}</version>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-all</artifactId>
+                <version>1.8.5</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

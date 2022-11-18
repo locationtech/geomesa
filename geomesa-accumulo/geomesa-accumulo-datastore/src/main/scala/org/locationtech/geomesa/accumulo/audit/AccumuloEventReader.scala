@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.accumulo.core.data.Range
 import org.apache.accumulo.core.security.Authorizations
 import org.locationtech.geomesa.utils.audit.AuditedEvent
@@ -20,7 +20,7 @@ import java.time.ZonedDateTime
 /**
   * Manages reading of usage stats
   */
-class AccumuloEventReader(connector: Connector, table: String) {
+class AccumuloEventReader(connector: AccumuloClient, table: String) {
 
   private val tableExists: MaybeSynchronized[Boolean] =
     if (connector.tableOperations().exists(table)) { new NotSynchronized(true) } else { new IsSynchronized(false) }

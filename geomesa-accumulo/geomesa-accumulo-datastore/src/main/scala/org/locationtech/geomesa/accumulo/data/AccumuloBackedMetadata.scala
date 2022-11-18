@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, KeyValueStoreMe
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
 
-class AccumuloBackedMetadata[T](val connector: Connector, val table: String, val serializer: MetadataSerializer[T])
+class AccumuloBackedMetadata[T](val connector: AccumuloClient, val table: String, val serializer: MetadataSerializer[T])
     extends KeyValueStoreMetadata[T] {
 
   import scala.collection.JavaConverters._

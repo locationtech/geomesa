@@ -21,7 +21,7 @@ import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.Accumu
 import org.locationtech.geomesa.accumulo.iterators.DensityIterator.AccumuloDensityResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators.StatsIterator.AccumuloStatsResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, TableUtils}
+import org.locationtech.geomesa.accumulo.util.TableUtils
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
@@ -134,8 +134,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
     val auths = ds.auths // get the auths once up front
     tables.par.foreach { table =>
       if (tableOps.exists(table)) {
-        val config = GeoMesaBatchWriterConfig().setMaxWriteThreads(ds.config.writeThreads)
-        WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queries.threads, config)) { deleter =>
+        WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queries.threads)) { deleter =>
           val range = prefix.map(p => Range.prefix(new Text(p))).getOrElse(new Range())
           deleter.setRanges(Collections.singletonList(range))
           deleter.delete()
@@ -365,7 +364,7 @@ object AccumuloIndexAdapter {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    private val multiWriter = ds.connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
+    private val multiWriter = ds.connector.createMultiTableBatchWriter()
     private val writers = indices.toArray.map { index =>
       val table = index.getTableNames(partition) match {
         case Seq(t) => t // should always be writing to a single table here

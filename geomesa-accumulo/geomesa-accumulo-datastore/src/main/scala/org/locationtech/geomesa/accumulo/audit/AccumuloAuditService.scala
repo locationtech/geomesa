@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.accumulo.core.security.Authorizations
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -17,10 +17,12 @@ import org.locationtech.geomesa.utils.audit._
 import java.time.ZonedDateTime
 import scala.reflect.ClassTag
 
-class AccumuloAuditService(connector: Connector,
-                           authProvider: AuthorizationsProvider,
-                           val table: String,
-                           write: Boolean) extends AuditWriter with AuditReader with AuditLogger {
+class AccumuloAuditService(
+    connector: AccumuloClient,
+    authProvider: AuthorizationsProvider,
+    val table: String,
+    write: Boolean
+  ) extends AuditWriter with AuditReader with AuditLogger {
 
   private val writer = if (write) { new AccumuloEventWriter(connector, table) } else { null }
   private val reader = new AccumuloEventReader(connector, table)
@@ -37,8 +39,7 @@ class AccumuloAuditService(connector: Connector,
                                            (implicit ct: ClassTag[T]): Iterator[T] = {
     import scala.collection.JavaConverters._
     val auths = new Authorizations(authProvider.getAuthorizations.asScala.toSeq: _*)
-    val iter = reader.query(typeName, dates, auths)(transform(ct.runtimeClass.asInstanceOf[Class[T]]))
-    iter.asInstanceOf[Iterator[T]]
+    reader.query(typeName, dates, auths)(transform(ct.runtimeClass.asInstanceOf[Class[T]]))
   }
 
   override def close(): Unit = if (writer != null) { writer.close() }
