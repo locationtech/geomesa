@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.data.stats
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.{Connector, IteratorSetting}
+import org.apache.accumulo.core.client.{AccumuloClient, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.{Combiner, IteratorEnvironment, SortedKeyValueIterator}
@@ -90,7 +90,7 @@ object StatsCombiner {
   val SftOption = "sft-"
   val SeparatorOption = "sep"
 
-  def configure(sft: SimpleFeatureType, connector: Connector, table: String, separator: String): Unit = {
+  def configure(sft: SimpleFeatureType, connector: AccumuloClient, table: String, separator: String): Unit = {
     TableUtils.createTableIfNeeded(connector, table)
 
     val sftKey = getSftKey(sft)
@@ -107,7 +107,7 @@ object StatsCombiner {
     }
   }
 
-  def remove(sft: SimpleFeatureType, connector: Connector, table: String, separator: String): Unit = {
+  def remove(sft: SimpleFeatureType, connector: AccumuloClient, table: String, separator: String): Unit = {
     getExisting(connector, table).foreach { existing =>
       val sftKey = getSftKey(sft)
       val existingSfts = existing.getOptions.asScala.filter(_._1.startsWith(StatsCombiner.SftOption))
@@ -120,7 +120,7 @@ object StatsCombiner {
     }
   }
 
-  def list(connector: Connector, table: String): scala.collection.Map[String, String] = {
+  def list(connector: AccumuloClient, table: String): scala.collection.Map[String, String] = {
     getExisting(connector, table) match {
       case None => Map.empty
       case Some(existing) =>
@@ -130,7 +130,7 @@ object StatsCombiner {
     }
   }
 
-  private def getExisting(connector: Connector, table: String): Option[IteratorSetting] = {
+  private def getExisting(connector: AccumuloClient, table: String): Option[IteratorSetting] = {
     if (!connector.tableOperations().exists(table)) { None } else {
       Option(connector.tableOperations().getIteratorSetting(table, CombinerName, IteratorScope.scan))
     }
@@ -141,7 +141,7 @@ object StatsCombiner {
 
   private def getSftKey(sft: SimpleFeatureType): String = s"$SftOption${sft.getTypeName}"
 
-  private def attach(connector: Connector, table: String, options: Map[String, String]): Unit = {
+  private def attach(connector: AccumuloClient, table: String, options: Map[String, String]): Unit = {
     // priority needs to be less than the versioning iterator at 20
     val is = new IteratorSetting(10, CombinerName, classOf[StatsCombiner])
     options.foreach { case (k, v) => is.addOption(k, v) }

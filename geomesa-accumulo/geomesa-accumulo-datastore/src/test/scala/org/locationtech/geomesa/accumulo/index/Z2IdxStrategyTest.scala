@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import com.google.common.primitives.Longs
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
@@ -23,6 +22,7 @@ import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -64,7 +64,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
         println(table)
         ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val bytes = r.getKey.getRow.getBytes
-          val keyZ = Longs.fromByteArray(bytes.drop(2))
+          val keyZ = ByteArrays.readLong(bytes.drop(2))
           val (x, y) = Z2SFC.invert(keyZ)
           println(s"row: $x $y")
         }

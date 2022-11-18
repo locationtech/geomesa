@@ -92,13 +92,13 @@ rst_epilog = """
 
 .. |maven_version| replace:: 3.5.2 or later
 
-.. |geoserver_version| replace:: 2.17.3
+.. |geoserver_version| replace:: 2.21.2
 
-.. |geotools_version| replace:: 23.x
+.. |geotools_version| replace:: 27.2
 
-.. |accumulo_required_version| replace:: 1.7.x, 1.8.x, 1.9.x or 2.0.x
+.. |accumulo_required_version| replace:: 2.0.x
 
-.. |accumulo_supported_versions| replace:: versions 1.7.x, 1.8.x, 1.9.x and 2.0.x
+.. |accumulo_supported_versions| replace:: version 2.0.x
 
 .. |hbase_required_version| replace::  1.4.x or 2.2.x
 
@@ -110,7 +110,7 @@ rst_epilog = """
 
 .. |zookeeper_version| replace:: 3.4.5 or later
 
-.. |kafka_version| replace:: 0.10.x or later
+.. |kafka_version| replace:: 2.0.x or later
 
 .. |kafka_tested_version| replace:: 2.7.0
 

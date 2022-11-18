@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data.stats
 
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
@@ -72,7 +72,7 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
     * @param connector accumulo connector
     * @param sft simple feature type
     */
-  def configureStatCombiner(connector: Connector, sft: SimpleFeatureType): Unit = {
+  def configureStatCombiner(connector: AccumuloClient, sft: SimpleFeatureType): Unit = {
     import MetadataBackedStats._
 
     StatsCombiner.configure(sft, connector, metadata.table, metadata.typeNameSeparator.toString)
@@ -90,7 +90,7 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
     * @param connector accumulo connector
     * @param sft simple feature type
     */
-  def removeStatCombiner(connector: Connector, sft: SimpleFeatureType): Unit =
+  def removeStatCombiner(connector: AccumuloClient, sft: SimpleFeatureType): Unit =
     StatsCombiner.remove(sft, connector, metadata.table, metadata.typeNameSeparator.toString)
 
   override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {

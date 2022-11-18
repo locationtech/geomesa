@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.jobs.accumulo
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.hadoop.conf.Configuration
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.EmptyPlan
@@ -43,7 +43,7 @@ object AccumuloJobUtils extends LazyLogging {
     Iterator(() => ClassPathUtils.getJarsFromEnvironment("GEOMESA_ACCUMULO_HOME", "lib"),
              () => ClassPathUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
              () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
-             () => ClassPathUtils.getJarsFromClasspath(classOf[Connector]))
+             () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloClient]))
 
   /**
    * Sets the libjars into a Hadoop configuration. Will search the environment first, then the

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data.stats
 
+import org.apache.accumulo.core.conf.ClientProperty
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.utils.geotools._
@@ -105,7 +106,8 @@ class StatsRunner(ds: AccumuloDataStore) extends Runnable with Closeable {
 class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Option[Long] = None)
     extends Callable[Instant] with ZookeeperLocking {
 
-  override protected def zookeepers: String = ds.connector.getInstance.getZooKeepers
+  override protected def zookeepers: String =
+    ds.connector.properties().getProperty(ClientProperty.INSTANCE_ZOOKEEPERS.getKey)
 
   /**
     * Runs stats for the simple feature type

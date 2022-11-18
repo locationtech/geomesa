@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import com.google.common.primitives.{Longs, Shorts}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -23,6 +22,7 @@ import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -82,9 +82,9 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
         ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val prefix = 2 // table sharing + split
           val bytes = r.getKey.getRow.getBytes
-          val keyZ = Longs.fromByteArray(bytes.drop(prefix))
+          val keyZ = ByteArrays.readLong(bytes, prefix + 2)
           val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(keyZ)
-          val weeks = Shorts.fromBytes(bytes(prefix), bytes(prefix + 1))
+          val weeks = ByteArrays.readShort(bytes, prefix)
           println(s"row: $weeks $x $y $t")
         }
       }

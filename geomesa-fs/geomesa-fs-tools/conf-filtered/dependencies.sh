@@ -13,7 +13,7 @@
 
 hadoop_install_version="%%hadoop.version.recommended%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
-guava_install_version="%%guava.version%%"
+guava_install_version="%%hadoop.guava.version%%"
 aws_sdk_install_version="1.10.6"
 # this should match the parquet desired version
 snappy_install_version="1.1.1.6"
