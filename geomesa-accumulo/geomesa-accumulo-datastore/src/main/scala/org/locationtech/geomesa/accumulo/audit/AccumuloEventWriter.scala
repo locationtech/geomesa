@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.audit
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.{BatchWriter, Connector}
+import org.apache.accumulo.core.client.{AccumuloClient, BatchWriter}
 import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, TableUtils}
 import org.locationtech.geomesa.utils.audit.AuditedEvent
@@ -23,7 +23,7 @@ import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 /**
  * Manages writing of usage stats in a background thread.
  */
-class AccumuloEventWriter(connector: Connector, table: String) extends Runnable with Closeable with LazyLogging {
+class AccumuloEventWriter(connector: AccumuloClient, table: String) extends Runnable with Closeable with LazyLogging {
 
   private val delay = AccumuloEventWriter.WriteInterval.toDuration.get.toMillis
 

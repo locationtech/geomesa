@@ -11,11 +11,11 @@ package org.locationtech.geomesa.accumulo.data
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client._
+import org.apache.accumulo.core.conf.ClientProperty
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.Query
-import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
 import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAccumuloMetadata
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.AccumuloDataStoreConfig
@@ -38,7 +38,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.OverrideDtgJoin
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, VisibilityLevel}
-import org.locationtech.geomesa.utils.io.{CloseQuietly, HadoopUtils, WithClose}
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClose}
 import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
@@ -53,7 +53,7 @@ import scala.util.control.NonFatal
  * @param connector Accumulo connector
  * @param config configuration values
  */
-class AccumuloDataStore(val connector: Connector, override val config: AccumuloDataStoreConfig)
+class AccumuloDataStore(val connector: AccumuloClient, override val config: AccumuloDataStoreConfig)
     extends GeoMesaDataStore[AccumuloDataStore](config) with ZookeeperLocking {
 
   import scala.collection.JavaConverters._
@@ -66,7 +66,8 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override val stats: AccumuloGeoMesaStats = AccumuloGeoMesaStats(this)
 
-  override protected def zookeepers: String = connector.getInstance.getZooKeepers
+  override protected def zookeepers: String =
+    connector.properties().getProperty(ClientProperty.INSTANCE_ZOOKEEPERS.getKey)
 
   // If on a secured cluster, create a thread to periodically renew Kerberos tgt
   private val kerberosTgtRenewer = {
@@ -311,6 +312,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
             val prefix = metadata.read(typeName, "id").getOrElse(s"${sft.getTypeName}~")
             sft.getUserData.put(SimpleFeatureTypes.InternalConfigs.TableSharingPrefix, prefix)
           }
+          // noinspection deprecation
           SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.foreach { i =>
             metadata.read(typeName, i).foreach(e => sft.getUserData.put(SimpleFeatureTypes.Configs.EnabledIndices, e))
           }
@@ -352,10 +354,10 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   }
 
   override def dispose(): Unit = {
-    super.dispose()
-    CloseQuietly(kerberosTgtRenewer)
-    try { AccumuloVersion.close(connector) } catch {
-      case NonFatal(e) => logger.warn("Error closing Accumulo client:", e)
+    try {
+      super.dispose()
+    } finally {
+      CloseWithLogging(kerberosTgtRenewer.toSeq ++ Seq(connector))
     }
   }
 }
@@ -422,12 +424,12 @@ object AccumuloDataStore extends LazyLogging {
           s"GeoMesa 1.2.6 to update you data to a newer format. For more information, see $docs")
     }
 
-    // noinspection ScalaDeprecation
+    // noinspection deprecation
     SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.map(sft.getUserData.get).find(_ != null) match {
       case None => indices
       case Some(enabled) =>
         // check for old index names
-        val e = enabled.toString.toLowerCase(Locale.US).split(",").map(_.trim).filter(_.length > 0).map {
+        val e = enabled.toString.toLowerCase(Locale.US).split(",").map(_.trim).filterNot(_.isEmpty).map {
           case "attr_idx" => AttributeIndex.name
           case "records" => IdIndex.name
           case i => i

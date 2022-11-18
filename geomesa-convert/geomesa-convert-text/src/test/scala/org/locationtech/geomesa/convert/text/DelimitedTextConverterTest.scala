@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.text
 
-import com.google.common.hash.Hashing
-import com.google.common.io.Resources
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import org.apache.commons.csv.CSVFormat
 import org.geotools.util.factory.Hints
@@ -77,9 +75,8 @@ class DelimitedTextConverterTest extends Specification {
       // handle more derived fields than input fields
       res(0).getAttribute("oneup").asInstanceOf[String] must be equalTo "1"
       // correctly identify feature IDs based on lines
-      val hashing = Hashing.md5()
-      res(0).getID mustEqual hashing.hashBytes("1,hello,45.0,45.0".getBytes(StandardCharsets.UTF_8)).toString
-      res(1).getID mustEqual hashing.hashBytes("2,world,90.0,90.0".getBytes(StandardCharsets.UTF_8)).toString
+      res(0).getID mustEqual "924ab432cc82d3442f94f3c4969a2b0e" // hashing.hashBytes("1,hello,45.0,45.0".getBytes(StandardCharsets.UTF_8)).toString
+      res(1).getID mustEqual "cd8bf6a68220d43c9158ff101a30a99d" // hashing.hashBytes("2,world,90.0,90.0".getBytes(StandardCharsets.UTF_8)).toString
     }
 
     "handle tab delimited files" >> {
@@ -204,7 +201,7 @@ class DelimitedTextConverterTest extends Specification {
       val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
       WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
         converter must not(beNull)
-        val res = WithClose(converter.process(Resources.getResource("messydata.csv").openStream()))(_.toList)
+        val res = WithClose(converter.process(getClass.getClassLoader.getResourceAsStream("messydata.csv")))(_.toList)
         res.size must be equalTo 2
         res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello, \"foo\""
         res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"

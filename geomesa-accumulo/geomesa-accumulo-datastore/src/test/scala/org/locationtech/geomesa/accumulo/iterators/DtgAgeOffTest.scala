@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
@@ -102,12 +102,13 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 
   // Scans all GeoMesa Accumulo tables directly and verifies the number of records that the `root` user can see.
   private def scanDirect(expected: Int) = {
-    val conn: Connector = MiniCluster.cluster.getConnector(MiniCluster.Users.root.name, MiniCluster.Users.root.password)
+    val conn = MiniCluster.cluster.createAccumuloClient(MiniCluster.Users.root.name, new PasswordToken(MiniCluster.Users.root.password))
     conn.tableOperations().list().asScala.filter(t => t.contains("DtgAgeOffTest_DtgAgeOffTest")).forall { tableName =>
       val scanner = conn.createScanner(tableName, MiniCluster.Users.root.auths)
       val count = scanner.asScala.size
       scanner.close()
       count mustEqual expected
     }
+    conn.close()
   }
 }

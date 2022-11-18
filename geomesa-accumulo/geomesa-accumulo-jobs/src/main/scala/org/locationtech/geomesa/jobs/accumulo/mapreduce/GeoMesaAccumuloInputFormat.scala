@@ -10,20 +10,18 @@
 package org.locationtech.geomesa.jobs.accumulo.mapreduce
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.ClientConfiguration
-import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase, RangeInputSplit}
-import org.apache.accumulo.core.client.security.tokens.{KerberosToken, PasswordToken}
+import org.apache.accumulo.core.client.IteratorSetting.Column
+import org.apache.accumulo.core.conf.ClientProperty
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
-import org.apache.accumulo.core.util.{Pair => AccPair}
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat
+import org.apache.accumulo.hadoopImpl.mapreduce.RangeInputSplit
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.{Text, Writable}
 import org.apache.hadoop.mapreduce._
-import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.Query
-import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloMapperProperties
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams, AccumuloQueryPlan}
+import org.locationtech.geomesa.accumulo.data.{AccumuloClientConfig, AccumuloDataStore, AccumuloDataStoreParams, AccumuloQueryPlan}
 import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
@@ -31,14 +29,12 @@ import org.locationtech.geomesa.jobs.accumulo.mapreduce.GeoMesaAccumuloInputForm
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
 
 import java.io._
 import java.net.{URL, URLClassLoader}
-import java.nio.charset.StandardCharsets
 import java.util.AbstractMap.SimpleImmutableEntry
-import java.util.Collections
 import java.util.Map.Entry
+import java.util.{Collections, Properties}
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -154,44 +150,50 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     val job = new Job(conf)
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 
+    val props = new Properties()
     // set zookeeper instance
-    val instance = AccumuloDataStoreParams.InstanceIdParam.lookup(params)
-    val zookeepers = AccumuloDataStoreParams.ZookeepersParam.lookup(params)
-    val keytabPath = AccumuloDataStoreParams.KeytabPathParam.lookup(params)
-
-    AbstractInputFormat.setZooKeeperInstance(job,
-      ClientConfiguration.create().withInstance(instance).withZkHosts(zookeepers).withSasl(keytabPath != null))
-
+    props.put(ClientProperty.INSTANCE_NAME.getKey, AccumuloDataStoreParams.InstanceNameParam.lookup(params))
+    props.put(ClientProperty.INSTANCE_ZOOKEEPERS.getKey, AccumuloDataStoreParams.ZookeepersParam.lookup(params))
     // set connector info
-    val user = AccumuloDataStoreParams.UserParam.lookup(params)
-    val token = AccumuloDataStoreParams.PasswordParam.lookupOpt(params) match {
-      case Some(p) => new PasswordToken(p.getBytes(StandardCharsets.UTF_8))
-      case None =>
-        // must be using Kerberos
-        val file = new java.io.File(keytabPath)
-        // mimic behavior from accumulo 1.9 and earlier:
-        // `public KerberosToken(String principal, File keytab, boolean replaceCurrentUser)`
-        UserGroupInformation.loginUserFromKeytab(user, file.getAbsolutePath)
-        new KerberosToken(user, file)
+    val password = AccumuloDataStoreParams.PasswordParam.lookupOpt(params)
+    password.orElse(AccumuloDataStoreParams.KeytabPathParam.lookupOpt(params)).foreach { token =>
+      props.put(ClientProperty.AUTH_PRINCIPAL.getKey, AccumuloDataStoreParams.UserParam.lookup(params))
+      props.put(ClientProperty.AUTH_TOKEN.getKey, token)
+      if (password.isDefined) {
+        props.put(ClientProperty.AUTH_TYPE.getKey, AccumuloClientConfig.PasswordAuthType)
+      } else {
+        props.put(ClientProperty.AUTH_TYPE.getKey, AccumuloClientConfig.KerberosAuthType)
+        props.put(ClientProperty.SASL_ENABLED.getKey, "true")
+      }
     }
 
-    // note: for Kerberos, this will create a DelegationToken for us and add it to the Job credentials
-    AbstractInputFormat.setConnectorInfo(job, user, token)
-
-    auths.foreach(AbstractInputFormat.setScanAuthorizations(job, _))
+        // TODO verify kerberos still works
+//    val token = AccumuloDataStoreParams.PasswordParam.lookupOpt(params) match {
+//      case Some(p) => new PasswordToken(p.getBytes(StandardCharsets.UTF_8))
+//      case None =>
+//        // must be using Kerberos
+//        val file = new java.io.File(keytabPath)
+//        // mimic behavior from accumulo 1.9 and earlier:
+//        // `public KerberosToken(String principal, File keytab, boolean replaceCurrentUser)`
+//        UserGroupInformation.loginUserFromKeytab(user, file.getAbsolutePath)
+//        new KerberosToken(user, file)
+//    }
+//    // note: for Kerberos, this will create a DelegationToken for us and add it to the Job credentials
+//    AbstractInputFormat.setConnectorInfo(job, user, token)
 
     // use the query plan to set the accumulo input format options
     require(plan.tables.lengthCompare(1) == 0, s"Can only query from a single table: ${plan.tables.mkString(", ")}")
-    InputFormatBase.setInputTableName(job, plan.tables.head)
+
+    val builder = AccumuloInputFormat.configure().clientProperties(props).table(plan.tables.head).batchScan(true)
+    auths.foreach(builder.auths)
     if (plan.ranges.nonEmpty) {
-      InputFormatBase.setRanges(job, plan.ranges.asJava)
+      builder.ranges(plan.ranges.asJava)
     }
     plan.columnFamily.foreach { colFamily =>
-      InputFormatBase.fetchColumns(job, Collections.singletonList(new AccPair[Text, Text](colFamily, null)))
+      builder.fetchColumns(Collections.singletonList(new Column(colFamily)))
     }
-    plan.iterators.foreach(InputFormatBase.addIterator(job, _))
-
-    InputFormatBase.setBatchScan(job, true)
+    plan.iterators.foreach(builder.addIterator)
+    builder.store(job)
 
     // add the configurations back into the original conf
     conf.addResource(job.getConfiguration)
