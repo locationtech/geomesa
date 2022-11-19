@@ -61,15 +61,6 @@ object QueryHints {
   val ARROW_DICTIONARY_FIELDS  = new ClassKey(classOf[java.lang.String])
   val ARROW_PROCESS_DELTAS     = new ClassKey(classOf[java.lang.Boolean])
 
-  @deprecated("removed without replacement")
-  val ARROW_DICTIONARY_VALUES  = new ClassKey(classOf[java.lang.String])
-  @deprecated("removed without replacement")
-  val ARROW_DICTIONARY_CACHED  = new ClassKey(classOf[java.lang.Boolean])
-  @deprecated("removed without replacement")
-  val ARROW_MULTI_FILE         = new ClassKey(classOf[java.lang.Boolean])
-  @deprecated("removed without replacement")
-  val ARROW_DOUBLE_PASS        = new ClassKey(classOf[java.lang.Boolean])
-
   val LAMBDA_QUERY_PERSISTENT  = new ClassKey(classOf[java.lang.Boolean])
   val LAMBDA_QUERY_TRANSIENT   = new ClassKey(classOf[java.lang.Boolean])
 

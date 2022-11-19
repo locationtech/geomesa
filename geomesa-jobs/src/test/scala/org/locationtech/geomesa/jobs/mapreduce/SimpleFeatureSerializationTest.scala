@@ -11,7 +11,6 @@ package org.locationtech.geomesa.jobs.mapreduce
 import org.apache.hadoop.conf.Configuration
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.AvroSimpleFeature
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -31,7 +30,6 @@ class SimpleFeatureSerializationTest extends Specification {
       serialization.setConf(new Configuration())
       serialization.accept(classOf[ScalaSimpleFeature]) must beTrue
       serialization.accept(classOf[SimpleFeature]) must beTrue
-      serialization.accept(classOf[AvroSimpleFeature]) must beTrue
       serialization.accept(classOf[SimpleFeatureImpl]) must beTrue
 
       serialization.getSerializer(classOf[SimpleFeature]) must not(beNull)

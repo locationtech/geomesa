@@ -115,23 +115,16 @@ class LocalQueryRunnerTest extends Specification {
       q.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
 
       forall(Seq(java.lang.Boolean.TRUE, java.lang.Boolean.FALSE)) { skipReduce =>
-        forall(Seq(java.lang.Boolean.TRUE, java.lang.Boolean.FALSE)) { doublePass =>
-          forall(Seq(java.lang.Boolean.TRUE, java.lang.Boolean.FALSE)) { multiFile =>
-            q.getHints.put(QueryHints.Internal.SKIP_REDUCE, skipReduce)
-            q.getHints.put(QueryHints.ARROW_DOUBLE_PASS, doublePass)
-            q.getHints.put(QueryHints.ARROW_MULTI_FILE, multiFile)
-
-            // note: need to copy the features as the same object is re-used in the iterator
-            try {
-              WithClose(failingRunner.runQuery(sft, q)) { iter =>
-                iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
-              }
-            } catch {
-              case _: Exception => // Swallowing exception from intentionally failing iterator.
-            }
-            ArrowAllocator.getAllocatedMemory("LocalQueryRunnerTest") mustEqual 0
+        q.getHints.put(QueryHints.Internal.SKIP_REDUCE, skipReduce)
+        // note: need to copy the features as the same object is re-used in the iterator
+        try {
+          WithClose(failingRunner.runQuery(sft, q)) { iter =>
+            iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
           }
+        } catch {
+          case _: Exception => // Swallowing exception from intentionally failing iterator.
         }
+        ArrowAllocator.getAllocatedMemory("LocalQueryRunnerTest") mustEqual 0
       }
     }
 
@@ -140,7 +133,6 @@ class LocalQueryRunnerTest extends Specification {
       q.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
       q.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
       q.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-      q.getHints.put(QueryHints.ARROW_MULTI_FILE, java.lang.Boolean.TRUE)
       // note: need to copy the features as the same object is re-used in the iterator
       try {
         WithClose(failingRunner.runQuery(sft, q)) { iter =>

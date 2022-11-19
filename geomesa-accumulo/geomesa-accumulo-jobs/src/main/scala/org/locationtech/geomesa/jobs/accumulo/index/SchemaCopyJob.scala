@@ -142,7 +142,7 @@ class SchemaCopyJob extends Tool {
     job.setMapOutputValueClass(classOf[ScalaSimpleFeature])
     job.setNumReduceTasks(0)
 
-    GeoMesaAccumuloInputFormat.configure(job, dsInParams.asJava, plan)
+    GeoMesaAccumuloInputFormat.configure(job.getConfiguration, dsInParams.asJava, plan)
     GeoMesaOutputFormat.setOutput(job.getConfiguration, dsOutParams, sftOut)
     SchemaCopyJob.setCopySchema(job.getConfiguration, sftOut)
 

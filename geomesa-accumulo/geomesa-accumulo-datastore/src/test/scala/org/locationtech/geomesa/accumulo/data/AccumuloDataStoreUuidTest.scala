@@ -110,7 +110,6 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       query.getHints.put(QueryHints.ARROW_PROXY_FID, true)
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, false)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
 
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
@@ -135,7 +134,6 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       query.getHints.put(QueryHints.ARROW_PROXY_FID, true)
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, false)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
 
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))

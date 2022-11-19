@@ -277,46 +277,5 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
         }
       }
     }
-
-    "correctly project features" in {
-      val sft = SimpleFeatureTypes.createType("fullType", "name:String,*geom:Point,dtg:Date")
-      val projectedSft = SimpleFeatureTypes.createType("projectedType", "*geom:Point")
-
-      val sf = new ScalaSimpleFeature(sft, "testFeature")
-      sf.setAttribute("name", "foo")
-      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
-      sf.setAttribute("geom", "POINT(45.0 49.0)")
-
-      val serializer = new AvroFeatureSerializer(sft)
-      val deserializer = new ProjectingAvroFeatureDeserializer(sft, projectedSft)
-
-      val serialized = serializer.serialize(sf)
-      val deserialized = deserializer.deserialize(serialized)
-
-      deserialized.getID mustEqual sf.getID
-      deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
-      deserialized.getAttributeCount mustEqual 1
-    }
-
-    "correctly project features to larger sfts" in {
-      val sft = SimpleFeatureTypes.createType("fullType", "name:String,*geom:Point,dtg:Date")
-      val projectedSft = SimpleFeatureTypes.createType("projectedType",
-        "name1:String,name2:String,*geom:Point,otherDate:Date")
-
-      val sf = new ScalaSimpleFeature(sft, "testFeature")
-      sf.setAttribute("name", "foo")
-      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
-      sf.setAttribute("geom", "POINT(45.0 49.0)")
-
-      val serializer = new AvroFeatureSerializer(sft)
-      val deserializer = new ProjectingAvroFeatureDeserializer(sft, projectedSft)
-
-      val serialized = serializer.serialize(sf)
-      val deserialized = deserializer.deserialize(serialized)
-
-      deserialized.getID mustEqual sf.getID
-      deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
-      deserialized.getAttributeCount mustEqual 4
-    }
   }
 }
