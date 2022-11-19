@@ -149,9 +149,6 @@ abstract class AbstractFileSystemStorage(
     new FileSystemUpdateWriterImpl(getReader(query, partition, threads), partition)
   }
 
-  // noinspection ScalaDeprecation
-  override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
-
   override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit = {
     val target = targetSize(fileSize)
     partition.map(Seq(_)).getOrElse(metadata.getPartitions().map(_.name)).foreach { partition =>

@@ -49,9 +49,6 @@ class ConverterStorage(context: FileSystemContext, metadata: StorageMetadata, co
   override def getWriter(partition: String): FileSystemWriter =
     throw new UnsupportedOperationException("Converter storage does not support feature writing")
 
-  // noinspection ScalaDeprecation
-  override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
-
   override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit =
     throw new UnsupportedOperationException("Converter storage does not support compactions")
 }

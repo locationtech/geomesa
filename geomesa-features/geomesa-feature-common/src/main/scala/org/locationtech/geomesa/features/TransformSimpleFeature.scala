@@ -133,8 +133,4 @@ object TransformSimpleFeature {
 
   def apply(transformSchema: SimpleFeatureType, transforms: Seq[Transform]): TransformSimpleFeature =
     new TransformSimpleFeature(transformSchema, transforms.toArray)
-
-  @deprecated("replaced with org.locationtech.geomesa.utils.geotools.Transform")
-  def attributes(sft: SimpleFeatureType, transforms: String): Array[SimpleFeature => AnyRef] =
-    Transforms(sft, transforms).map(t => t.evaluate _).toArray
 }
