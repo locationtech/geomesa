@@ -257,14 +257,6 @@ package object api {
     override lazy val toString: String =
       s"$index[${primary.map(filterToString).getOrElse("INCLUDE")}]" +
           s"[${secondary.map(filterToString).getOrElse("None")}]($costMultiplier)"
-
-    @deprecated("replaced with costMultiplier")
-    lazy val cost: Long = (costMultiplier * 100).toLong
-
-    // note: keeping this around seems to prevent calling the regular case class copy method :(
-    @deprecated("replaced with case class standard copy")
-    def copy(secondary: Option[Filter]): FilterStrategy =
-      FilterStrategy(index, primary, secondary, temporal, costMultiplier)
   }
 
   object FilterStrategy {

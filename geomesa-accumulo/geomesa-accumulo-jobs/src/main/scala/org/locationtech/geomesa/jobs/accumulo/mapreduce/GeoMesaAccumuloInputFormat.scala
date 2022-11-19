@@ -202,30 +202,6 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     plan.projection.foreach(GeoMesaConfigurator.setProjection(conf, _))
   }
 
-  @deprecated("Use configure(conf, ...)")
-  def configure(
-      job: Job,
-      dsParams: Map[String, String],
-      featureTypeName: String,
-      filter: Option[String] = None,
-      transform: Option[Array[String]] = None): Unit = {
-    val ecql = filter.map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
-    val query = new Query(featureTypeName, ecql, transform.getOrElse(Query.ALL_NAMES))
-    configure(job.getConfiguration, dsParams.asJava, query)
-  }
-
-  @deprecated("Use configure(conf, ...)")
-  def configure(job: Job, params: Map[String, String], query: Query): Unit =
-    configure(job.getConfiguration, params.asJava, query)
-
-  @deprecated("Use configure(conf, ...)")
-  def configure(job: Job, params: java.util.Map[String, _], query: Query): Unit =
-    configure(job.getConfiguration, params, query)
-
-  @deprecated("Use configure(conf, ...)")
-  def configure(job: Job, params: java.util.Map[String, _], plan: AccumuloQueryPlan): Unit =
-    configure(job.getConfiguration, params, plan)
-
   /**
    * This takes any jars that have been loaded by spark in the context classloader and makes them
    * available to the general classloader. This is required as not all classes (even spark ones) check

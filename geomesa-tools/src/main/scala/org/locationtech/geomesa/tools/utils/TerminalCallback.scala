@@ -15,9 +15,6 @@ import java.io.PrintStream
 
 object TerminalCallback {
 
-  @deprecated("JLine breaks tty settings when invoked")
-  lazy val terminalWidth: () => Float = () => 1.0f
-
   def apply(mock: Boolean = false): StatusCallback = {
     if (mock) {
       new PrintProgress(System.err, TextTools.buildString('\u26AC', 60), ' ', '\u15e7', '\u2b58')

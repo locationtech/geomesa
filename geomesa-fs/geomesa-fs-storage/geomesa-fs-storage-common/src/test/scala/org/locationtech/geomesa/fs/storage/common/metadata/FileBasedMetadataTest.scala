@@ -153,7 +153,7 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
         val initial = list(created.directory)
         initial must haveLength(6) // 5 updates + storage.json
 
-        created.compact(None, 2)
+        created.compact(None, threads = 2)
 
         val compacted = list(created.directory)
         compacted must haveLength(2)
@@ -182,7 +182,7 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
         update must not(beEmpty)
         update must not(contain(' '))
 
-        metadata.compact(None, 1)
+        metadata.compact(None)
         val compactions = list(metadata.directory).filter(_.startsWith("compact"))
         compactions must haveLength(1)
         val compaction = WithClose(fc.open(new Path(metadata.directory, compactions.head))) { in =>

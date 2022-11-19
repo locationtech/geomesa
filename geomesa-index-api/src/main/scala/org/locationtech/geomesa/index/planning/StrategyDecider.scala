@@ -28,9 +28,6 @@ import org.opengis.filter.Filter
   */
 trait StrategyDecider {
 
-  @deprecated("replaced with selectFilterPlan(SimpleFeatureType,Seq[FilterPlan],Option[GeoMesaStats],Explainer)")
-  def selectFilterPlan(sft: SimpleFeatureType, options: Seq[FilterPlan], explain: Explainer): FilterPlan
-
   /**
    * Select from available filter plans
    *
@@ -44,11 +41,7 @@ trait StrategyDecider {
       sft: SimpleFeatureType,
       options: Seq[FilterPlan],
       stats: Option[GeoMesaStats],
-      explain: Explainer): FilterPlan = {
-    // TODO remove default impl in next major release
-    // noinspection ScalaDeprecation
-    selectFilterPlan(sft, options, explain)
-  }
+      explain: Explainer): FilterPlan
 }
 
 object StrategyDecider extends MethodProfiling with LazyLogging {
@@ -150,12 +143,6 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
   class CostBasedStrategyDecider extends StrategyDecider with MethodProfiling {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-    // noinspection ScalaDeprecation
-    override def selectFilterPlan(
-        sft: SimpleFeatureType,
-        options: Seq[FilterPlan],
-        explain: Explainer): FilterPlan = selectFilterPlan(sft, options, None, explain)
 
     override def selectFilterPlan(
         sft: SimpleFeatureType,

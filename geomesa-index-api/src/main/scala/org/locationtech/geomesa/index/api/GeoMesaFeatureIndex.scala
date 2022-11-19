@@ -22,7 +22,6 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
-import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -233,17 +232,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     * @param transform attribute transforms
     * @return a filter strategy which can satisfy the query, if available
     */
-  def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy] = {
-    // TODO remove default impl in next major release
-    // noinspection ScalaDeprecation
-    getFilterStrategy(filter, transform, None)
-  }
-
-  @deprecated("replaced with getFilterStrategy(Filter,Option[SimpleFeatureType])")
-  def getFilterStrategy(
-      filter: Filter,
-      transform: Option[SimpleFeatureType],
-      stats: Option[GeoMesaStats]): Option[FilterStrategy] = throw new NotImplementedError()
+  def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy]
 
   /**
     * Plans the query

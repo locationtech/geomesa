@@ -100,27 +100,6 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
       val WriteThreadsParam  = copy(AccumuloDataStoreParams.WriteThreadsParam)
       val CatalogParam       = copy(AccumuloDataStoreParams.CatalogParam)
     }
-
-    @deprecated("replaced with LambdaDataStoreParams")
-    object Kafka {
-      val BrokersParam      = LambdaDataStoreParams.BrokersParam
-      val ZookeepersParam   = LambdaDataStoreParams.ZookeepersParam
-      val PartitionsParam   = LambdaDataStoreParams.PartitionsParam
-      val ConsumersParam    = LambdaDataStoreParams.ConsumersParam
-      val ProducerOptsParam = LambdaDataStoreParams.ProducerOptsParam
-      val ConsumerOptsParam = LambdaDataStoreParams.ConsumerOptsParam
-    }
-
-    @deprecated("replaced with LambdaDataStoreParams")
-    val ExpiryParam        = LambdaDataStoreParams.ExpiryParam
-    @deprecated("replaced with LambdaDataStoreParams")
-    val PersistParam       = LambdaDataStoreParams.PersistParam
-
-    // test params
-    @deprecated("replaced with LambdaDataStoreParams")
-    val ClockParam         = LambdaDataStoreParams.ClockParam
-    @deprecated("replaced with LambdaDataStoreParams")
-    val OffsetManagerParam = LambdaDataStoreParams.OffsetManagerParam
   }
 
   private def copy[T <: AnyRef](p: GeoMesaParam[T])(implicit ct: ClassTag[T]): GeoMesaParam[T] = {
