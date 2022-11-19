@@ -11,6 +11,7 @@ package org.locationtech.geomesa.features.avro
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -68,15 +69,8 @@ trait AbstractAvroSimpleFeatureTest {
 
   val simpleSft = SimpleFeatureTypes.createType("AvroSimpleFeatureWriterTest", "name:String,*geom:Point,dtg:Date")
 
-  def createSimpleFeature: SimpleFeature = {
-    val builder = AvroSimpleFeatureFactory.featureBuilder(simpleSft)
-    builder.reset()
-    builder.set("name", "test_feature")
-    builder.set("geom", WKTUtils.read("POINT(-110 30)"))
-    builder.set("dtg", "2012-01-02T05:06:07.000Z")
-
-    builder.buildFeature("fid")
-  }
+  def createSimpleFeature: SimpleFeature =
+    ScalaSimpleFeature.create(simpleSft, "fid", "test_feature", WKTUtils.read("POINT(-110 30)"), "2012-01-02T05:06:07.000Z")
 
   def getFeatures(f: File): List[SimpleFeature] = {
     // verify file can be read as generic records

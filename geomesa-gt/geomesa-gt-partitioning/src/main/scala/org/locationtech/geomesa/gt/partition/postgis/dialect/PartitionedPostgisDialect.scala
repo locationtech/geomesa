@@ -66,10 +66,6 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   def upgrade(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit =
     postCreateTable(schemaName, sft, cx)
 
-  @deprecated("Replaced with `upgrade`")
-  def recreateFunctions(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit =
-    upgrade(schemaName, sft, cx)
-
   // filter out the partition tables from exposed feature types
   override def getDesiredTablesType: Array[String] = Array("VIEW")
 
@@ -311,7 +307,6 @@ object PartitionedPostgisDialect {
     PartitionMaintenance,
     AnalyzePartitions,
     CompactPartitions,
-    PartitionSort,
     LogCleaner
   )
 

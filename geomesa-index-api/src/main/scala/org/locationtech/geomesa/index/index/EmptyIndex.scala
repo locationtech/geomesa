@@ -29,6 +29,7 @@ class EmptyIndex(ds: GeoMesaDataStore[_], sft: SimpleFeatureType)
     extends GeoMesaFeatureIndex[String, String](ds, sft, EmptyIndex.name, EmptyIndex.version, Seq.empty, IndexMode.Read) {
   override val keySpace: IndexKeySpace[String, String] = new EmptyKeySpace(sft)
   override def tieredKeySpace: Option[IndexKeySpace[_, _]] = None
+  override def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy] = None
 }
 
 object EmptyIndex extends NamedIndex {

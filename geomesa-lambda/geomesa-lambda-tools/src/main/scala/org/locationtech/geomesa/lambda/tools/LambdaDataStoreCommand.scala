@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.lambda.tools
 
-import org.locationtech.geomesa.lambda.data.{LambdaDataStore, LambdaDataStoreFactory}
+import org.locationtech.geomesa.lambda.data.{LambdaDataStore, LambdaDataStoreFactory, LambdaDataStoreParams}
 import org.locationtech.geomesa.tools.DataStoreCommand
 
 /**
@@ -27,10 +27,10 @@ trait LambdaDataStoreCommand extends DataStoreCommand[LambdaDataStore] {
       LambdaDataStoreFactory.Params.Accumulo.KeytabParam.getName     -> params.keytab,
       LambdaDataStoreFactory.Params.Accumulo.CatalogParam.getName    -> params.catalog,
       LambdaDataStoreFactory.Params.AuthsParam.getName               -> params.auths,
-      LambdaDataStoreFactory.Params.Kafka.BrokersParam.getName       -> params.brokers,
-      LambdaDataStoreFactory.Params.Kafka.ZookeepersParam.getName    -> Option(params.kafkaZookeepers).getOrElse(params.zookeepers),
-      LambdaDataStoreFactory.Params.Kafka.PartitionsParam.getName    -> Option(params.partitions).map(_.toString).orNull,
-      LambdaDataStoreFactory.Params.ExpiryParam.getName              -> "Inf" // disable expiration handling for tools
+      LambdaDataStoreParams.BrokersParam.getName                     -> params.brokers,
+      LambdaDataStoreParams.ZookeepersParam.getName                  -> Option(params.kafkaZookeepers).getOrElse(params.zookeepers),
+      LambdaDataStoreParams.PartitionsParam.getName                  -> Option(params.partitions).map(_.toString).orNull,
+      LambdaDataStoreParams.ExpiryParam.getName                      -> "Inf" // disable expiration handling for tools
     ).filter(_._2 != null)
   }
 }

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.features.avro.serde
 import org.apache.avro.io.DecoderFactory
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.FeatureSpecificReader
+import org.locationtech.geomesa.features.avro.serialization.{AvroSerialization, SimpleFeatureDatumReader}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
@@ -63,7 +63,7 @@ class Version3CompatTest extends Specification {
 
       val fis = new FileInputStream(f)
       val decoder = DecoderFactory.get().binaryDecoder(fis, null)
-      val fsr = FeatureSpecificReader(sft)
+      val fsr = SimpleFeatureDatumReader(AvroSerialization(sft, Set.empty).schema, sft)
 
       val sfList = new ListBuffer[SimpleFeature]()
       do {

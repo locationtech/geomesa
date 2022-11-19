@@ -28,7 +28,7 @@ class AccumuloExportCommand extends ExportCommand[AccumuloDataStore] with Accumu
   override val params = new AccumuloExportParams
 
   override protected def configure(job: Job, ds: AccumuloDataStore, query: Query): Unit =
-    GeoMesaAccumuloInputFormat.configure(job, connection.asJava, AccumuloJobUtils.getSingleQueryPlan(ds, query))
+    GeoMesaAccumuloInputFormat.configure(job.getConfiguration, connection.asJava, AccumuloJobUtils.getSingleQueryPlan(ds, query))
 }
 
 object AccumuloExportCommand {
