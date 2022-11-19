@@ -113,10 +113,6 @@ object GeoMesaFeatureWriter extends LazyLogging {
     }
   }
 
-  @deprecated
-  // noinspection ScalaUnusedSymbol
-  def featureWithFid(sft: SimpleFeatureType, feature: SimpleFeature): SimpleFeature = featureWithFid(feature)
-
   /**
    * Sets the feature ID on the feature. If the user has requested a specific ID, that will be used,
    * otherwise one will be generated. If possible, the original feature will be modified and returned.

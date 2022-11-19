@@ -25,17 +25,6 @@ sealed trait Expression extends ContextDependent[Expression] {
   def apply(args: Array[_ <: AnyRef]): AnyRef
 
   /**
-    * Evaluate the expression against an input
-    *
-    * @param args arguments
-    * @param ec evaluation context
-    * @return
-    */
-  @deprecated("Use `withContext` and `apply`")
-  def eval(args: Array[Any])(implicit ec: EvaluationContext): Any =
-    withContext(ec).apply(args.asInstanceOf[Array[AnyRef]])
-
-  /**
     * Gets the field dependencies that this expr relies on
     *
     * @param stack current field stack, used to detect circular dependencies

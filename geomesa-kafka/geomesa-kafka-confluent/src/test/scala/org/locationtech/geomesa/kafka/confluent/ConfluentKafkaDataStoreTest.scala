@@ -19,8 +19,8 @@ import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializ
 import org.geotools.data.{DataStoreFinder, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser._
 import org.locationtech.geomesa.kafka.confluent.ConfluentKafkaDataStoreTest._
+import org.locationtech.geomesa.kafka.confluent.SchemaParser._
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator

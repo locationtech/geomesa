@@ -54,13 +54,10 @@ class ScriptingFunctionFactoryTest extends Specification {
         val sff = new ScriptingFunctionFactory
         val hello = sff.functions.find(_.names.contains("js:hello")).head
         hello.apply(Array("geomesa")) mustEqual "hello: geomesa"
-        hello.eval(Array("geomesa")) mustEqual "hello: geomesa"
         val gbye = sff.functions.find(_.names.contains("js:gbye")).head
         gbye.apply(Array("geomesa")) mustEqual "goodbye: geomesa"
-        gbye.eval(Array("geomesa")) mustEqual "goodbye: geomesa"
         val whatsup = sff.functions.find(_.names.contains("js:whatsup")).head
         whatsup.apply(Array("geomesa")) mustEqual "whatsup: geomesa"
-        whatsup.eval(Array("geomesa")) mustEqual "whatsup: geomesa"
       } finally {
         ScriptingFunctionFactory.ConvertScriptsPath.threadLocalValue.remove()
       }

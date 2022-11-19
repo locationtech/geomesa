@@ -94,16 +94,8 @@ package object osm {
   case class AttributeField(name: String, attribute: OsmAttribute, transforms: Option[Expression]) extends OsmField {
 
     private val lookup = OsmAttribute.index(attribute)
-    private val mutableArray = Array.ofDim[Any](1)
 
     override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
-
-    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-      transforms match {
-        case None => args(lookup)
-        case Some(t) => mutableArray(0) = args(lookup); t.eval(mutableArray)
-      }
-    }
 
     private def values(args: Array[AnyRef]): AnyRef = args(lookup)
   }

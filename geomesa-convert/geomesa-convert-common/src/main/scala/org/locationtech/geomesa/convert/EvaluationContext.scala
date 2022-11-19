@@ -11,7 +11,6 @@ package org.locationtech.geomesa.convert
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.EvaluationContext.{EvaluationError, FieldAccessor}
-import org.locationtech.geomesa.convert2.AbstractConverter.AbstractApiError
 import org.locationtech.geomesa.convert2.Field
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 
@@ -74,39 +73,6 @@ trait EvaluationContext {
    * @param args single row of input
    */
   def evaluate(args: Array[AnyRef]): Either[EvaluationError, Array[AnyRef]]
-
-  /**
-    * Get the current value for the given index
-    *
-    * @param i value index
-    * @return
-    */
-  @deprecated("Replaced with `accessor`, indices are not stable between evaluation contexts")
-  def get(i: Int): Any
-
-  /**
-    * Set the current value for the given index
-    *
-    * @param i value index
-    * @param value value
-    */
-  @deprecated("Evaluation contexts should not be mutated")
-  def set(i: Int, value: Any): Unit
-
-  /**
-    * Look up an index by name
-    *
-    * @param name name
-    * @return
-    */
-  @deprecated("Replaced with `accessor`, indices are not stable between evaluation contexts")
-  def indexOf(name: String): Int
-
-  /**
-    * Clear any local (per-entry) state
-    */
-  @deprecated("Evaluation contexts should not be mutated")
-  def clear(): Unit
 }
 
 object EvaluationContext extends LazyLogging {
@@ -123,15 +89,6 @@ object EvaluationContext extends LazyLogging {
     val success = metrics.counter("success")
     val failures = metrics.counter("failure")
     new StatefulEvaluationContext(Array.empty, Map.empty, Map.empty, metrics, success, failures)
-  }
-
-  @deprecated("Replaced with `apply(fields)`")
-  def apply(
-      localNames: Seq[String],
-      globalValues: Map[String, Any] = Map.empty,
-      caches: Map[String, EnrichmentCache] = Map.empty,
-      metrics: ConverterMetrics = ConverterMetrics.empty): EvaluationContext = {
-    new EvaluationContextImpl(localNames, globalValues, caches, metrics)
   }
 
   /**
@@ -216,12 +173,6 @@ object EvaluationContext extends LazyLogging {
     */
   implicit class RichEvaluationContext(val ec: EvaluationContext) extends AnyVal {
     def getInputFilePath: Option[String] = Option(ec.accessor(InputFilePathKey).apply().asInstanceOf[String])
-    // noinspection ScalaDeprecation
-    @deprecated("Evaluation contexts should not be mutated")
-    def setInputFilePath(path: String): Unit = ec.indexOf(InputFilePathKey) match {
-      case -1 => throw new IllegalArgumentException(s"$InputFilePathKey is not present in execution context")
-      case i  => ec.set(i, path)
-    }
   }
 
   /**
@@ -249,9 +200,6 @@ object EvaluationContext extends LazyLogging {
     // note: the class isn't fully instantiated yet, but this statement is last in the initialization
     private val transforms = fields.map(_.transforms.map(_.withContext(this)))
 
-    // to support the deprecated `get` and `set` methods
-    private lazy val sortedGlobalValues: Array[(String, _ <: AnyRef)] = globalValues.toArray.sortBy(_._1).map(f => (f._1, f._2))
-
     override def accessor(name: String): FieldAccessor = {
       val i = fields.indexWhere(_.name == name)
       if (i >= 0) { new FieldValueAccessor(values, i) } else {
@@ -266,23 +214,15 @@ object EvaluationContext extends LazyLogging {
       var i = 0
       // note: since fields are in topological order we don't need to clear them
       while (i < values.length) {
-        try {
-          val value = try {
-            val fieldArgs = fields(i).fieldArg match {
-              case None => args
-              case Some(f) => fieldArray(0) = f.apply(args); fieldArray
-            }
-            transforms(i) match {
-              case Some(t) => t.apply(fieldArgs)
-              case None    => fieldArgs(0)
-            }
-          } catch {
-            case _: AbstractApiError =>
-              // back-compatible shim for fields that haven't been updated
-              // noinspection ScalaDeprecation
-              fields(i).eval(args.asInstanceOf[Array[Any]])(this).asInstanceOf[AnyRef]
+        values(i) = try {
+          val fieldArgs = fields(i).fieldArg match {
+            case None => args
+            case Some(f) => fieldArray(0) = f.apply(args); fieldArray
           }
-          values(i) = value
+          transforms(i) match {
+            case Some(t) => t.apply(fieldArgs)
+            case None    => fieldArgs(0)
+          }
         } catch {
           case NonFatal(e) => return Left(EvaluationError(fields(i).name, line, e))
         }
@@ -290,102 +230,5 @@ object EvaluationContext extends LazyLogging {
       }
       Right(values)
     }
-
-    // noinspection ScalaDeprecation
-    override def get(i: Int): Any = {
-      if (i < values.length) {
-        values(i)
-      } else if (i - values.length < sortedGlobalValues.length) {
-        sortedGlobalValues(i - values.length)._2
-      } else {
-        null
-      }
-    }
-
-    // noinspection ScalaDeprecation
-    override def set(i: Int, value: Any): Unit = {
-      if (i < values.length) {
-        values(i) = value.asInstanceOf[AnyRef]
-      } else if (i - values.length < sortedGlobalValues.length) {
-        sortedGlobalValues(i - values.length) = sortedGlobalValues(i - values.length)._1 -> value.asInstanceOf[AnyRef]
-      }
-    }
-
-    // noinspection ScalaDeprecation
-    override def indexOf(name: String): Int = {
-      val local = fields.indexWhere(_.name == name)
-      if (local != -1) { local } else {
-        val global = sortedGlobalValues.indexWhere(_._1 == name)
-        if (global == -1) { -1 } else { global + fields.length }
-      }
-    }
-
-    // noinspection ScalaDeprecation
-    override def clear(): Unit = {
-      var i = 0
-      while (i < values.length) {
-        values(i) = null
-        i += 1
-      }
-    }
-  }
-
-  @deprecated("replaced with StatefulEvaluationContext")
-  class EvaluationContextImpl(
-      localNames: Seq[String],
-      globalValues: Map[String, Any],
-      val cache: Map[String, EnrichmentCache],
-      val metrics: ConverterMetrics
-    ) extends EvaluationContext {
-
-    private val localCount = localNames.length
-    // inject the input file path as a global key so there's always a spot for it in the array
-    private val names = localNames ++ (globalValues.keys.toSeq :+ EvaluationContext.InputFilePathKey).distinct
-    private val values = Array.tabulate[Any](names.length)(i => globalValues.get(names(i)).orNull)
-
-    override val success: com.codahale.metrics.Counter = metrics.counter("success")
-    override val failure: com.codahale.metrics.Counter = metrics.counter("failure")
-
-    override def indexOf(name: String): Int = names.indexOf(name)
-
-    override def get(i: Int): Any = values(i)
-    override def set(i: Int, value: Any): Unit = values(i) = value
-
-    override def clear(): Unit = {
-      var i = 0
-      while (i < localCount) {
-        values(i) = null
-        i += 1
-      }
-    }
-
-    override def accessor(name: String): FieldAccessor =
-      new FieldValueAccessor(values.asInstanceOf[Array[AnyRef]], indexOf(name))
-
-    override def evaluate(args: Array[AnyRef]): Either[EvaluationError, Array[AnyRef]] =
-      throw new NotImplementedError()
-  }
-
-  /**
-    * Allows for override of success/failure counters
-    *
-    * @param delegate delegate context
-    * @param success success counter
-    * @param failure failure coutner
-    */
-  // noinspection ScalaDeprecation
-  @deprecated("Does not delegate line number correctly")
-  class DelegatingEvaluationContext(delegate: EvaluationContext)(
-      override val success: com.codahale.metrics.Counter = delegate.success,
-      override val failure: com.codahale.metrics.Counter = delegate.failure
-    ) extends EvaluationContext {
-    override def accessor(name: String): FieldAccessor = delegate.accessor(name)
-    override def evaluate(args: Array[AnyRef]): Either[EvaluationError, Array[AnyRef]] = delegate.evaluate(args)
-    override def metrics: ConverterMetrics = delegate.metrics
-    override def cache: Map[String, EnrichmentCache] = delegate.cache
-    override def get(i: Int): Any = delegate.get(i)
-    override def set(i: Int, value: Any): Unit = delegate.set(i, value)
-    override def indexOf(name: String): Int = delegate.indexOf(name)
-    override def clear(): Unit = delegate.clear()
   }
 }

@@ -19,20 +19,6 @@ import scala.math.Ordering
   */
 object SimpleFeatureOrdering {
 
-  // noinspection ScalaDeprecation
-  private val ComparableOrdering = new Ordering[AnyRef] {
-    override def compare(x: AnyRef, y: AnyRef): Int = nullCompare(x.asInstanceOf[Comparable[Any]], y)
-  }
-
-  /**
-    * Sort on the ith attribute of a simple feature
-    *
-    * @param i attribute to sort on
-    * @return
-    */
-  @deprecated("Use attribute name, this method does not work for all attribute types")
-  def apply(i: Int): Ordering[SimpleFeature] = new SimpleFeatureOrdering(i, ComparableOrdering)
-
   /**
    * Sort on an attribute by name. `null`, `"id"` or an empty string can be used to indicate
    * 'natural' ordering by feature ID
@@ -114,24 +100,6 @@ object SimpleFeatureOrdering {
   private class SimpleFeatureOrdering(i: Int, delegate: Ordering[AnyRef]) extends Ordering[SimpleFeature] {
     override def compare(x: SimpleFeature, y: SimpleFeature): Int =
       delegate.compare(x.getAttribute(i), y.getAttribute(i))
-  }
-
-  /**
-    * Compares two values, nulls are ordered first
-    *
-    * @param x left value
-    * @param y right value
-    * @return
-    */
-  @deprecated
-  def nullCompare(x: Comparable[Any], y: Any): Int = {
-    if (x == null) {
-      if (y == null) { 0 } else { -1 }
-    } else if (y == null) {
-      1
-    } else {
-      x.compareTo(y)
-    }
   }
 }
 

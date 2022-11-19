@@ -123,7 +123,7 @@ class WriteIndexJob(libjars: Option[(Seq[String], Iterator[() => Seq[File]])] = 
     job.setMapOutputValueClass(classOf[ScalaSimpleFeature])
     job.setNumReduceTasks(0)
 
-    GeoMesaAccumuloInputFormat.configure(job, dsInParams.asJava, plan)
+    GeoMesaAccumuloInputFormat.configure(job.getConfiguration, dsInParams.asJava, plan)
 
     // disable writing stats as we're just copying data not creating any
     val dsOutParams = dsInParams ++ Map(AccumuloDataStoreParams.GenerateStatsParam.getName -> "false")

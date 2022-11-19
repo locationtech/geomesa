@@ -6,11 +6,12 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.avro
+package org.locationtech.geomesa.features.avro.serialization
 
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, Encoder, EncoderFactory}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.avro.AbstractAvroSimpleFeatureTest
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
@@ -21,13 +22,13 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util
 
 @RunWith(classOf[JUnitRunner])
-class AvroSimpleFeatureWriterTest extends Specification with Mockito with AbstractAvroSimpleFeatureTest {
+class SimpleFeatureDatumWriterTest extends Specification with Mockito with AbstractAvroSimpleFeatureTest {
 
   import scala.collection.JavaConverters._
 
   sequential
 
-  "AvroSimpleFeatureWriter2" should {
+  "SimpleFeatureDatumWriter2" should {
 
     "correctly serialize all the datatypes provided in AvroSimpleFeature" in {
       val features = createComplicatedFeatures(10)
@@ -39,7 +40,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
         oldBaos.toByteArray
       }
 
-      val afw = new AvroSimpleFeatureWriter(features(0).getFeatureType)
+      val afw = new SimpleFeatureDatumWriter(features(0).getFeatureType)
       val newBaos = new ByteArrayOutputStream()
       val encoder = EncoderFactory.get().directBinaryEncoder(newBaos, null)
       def serializeNew(sf: SimpleFeature) = {
@@ -50,7 +51,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       }
 
       var decoder: BinaryDecoder = null
-      val fsr = FeatureSpecificReader(features(0).getFeatureType)
+      val fsr = SimpleFeatureDatumReader(afw.getSchema, features(0).getFeatureType)
       def convert(bytes: Array[Byte]) = {
         val bais = new ByteArrayInputStream(bytes)
         decoder = DecoderFactory.get().directBinaryDecoder(bais, decoder)
@@ -89,7 +90,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       userData.put(java.lang.Integer.valueOf(55), null)
       userData.put(null, "null key")
 
-      val afw = new AvroSimpleFeatureWriter(sf.getType, SerializationOptions.withUserData)
+      val afw = new SimpleFeatureDatumWriter(sf.getType, SerializationOptions.withUserData)
       val encoder = mock[Encoder]
 
       afw.write(sf, encoder)
@@ -126,7 +127,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       userData.put(java.lang.Integer.valueOf(5), null)
       userData.put(null, "null key")
 
-      val afw = new AvroSimpleFeatureWriter(sf.getType, SerializationOptions.withUserData)
+      val afw = new SimpleFeatureDatumWriter(sf.getType, SerializationOptions.withUserData)
       val encoder = mock[Encoder]
 
       afw.write(sf, encoder)

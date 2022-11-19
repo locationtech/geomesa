@@ -116,9 +116,6 @@ class JdbcMetadata(
     }
   }
 
-  // noinspection ScalaDeprecation
-  override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
-
   override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit = {
     // TODO execute as a transaction
     WithClose(pool.getConnection()) { connection =>

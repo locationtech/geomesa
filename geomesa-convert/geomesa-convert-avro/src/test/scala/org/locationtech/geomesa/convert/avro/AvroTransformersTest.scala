@@ -26,22 +26,17 @@ class AvroTransformersTest extends Specification with AvroUtils {
       "extract an inner value" >> {
         val exp = Expression("avroPath($0, '/content$type=TObj/kvmap[$k=prop3]/v')")
         exp.apply(Array(decoded)) mustEqual " foo "
-        exp.eval(Array(decoded)) mustEqual " foo "
       }
 
       "handle compound expressions" >> {
         val exp = Expression("trim(avroPath($0, '/content$type=TObj/kvmap[$k=prop3]/v'))")
         exp.apply(Array(decoded)) mustEqual "foo"
-        exp.eval(Array(decoded)) mustEqual "foo"
       }
 
       "handle null values" >> {
         Expression("avroBinaryList(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
-        Expression("avroBinaryList(avroPath($0, '/content$type=TObj/foo'))").eval(Array(decoded)) must beNull
         Expression("avroBinaryMap(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
-        Expression("avroBinaryMap(avroPath($0, '/content$type=TObj/foo'))").eval(Array(decoded)) must beNull
         Expression("avroBinaryUuid(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
-        Expression("avroBinaryUuid(avroPath($0, '/content$type=TObj/foo'))").eval(Array(decoded)) must beNull
       }
     }
   }

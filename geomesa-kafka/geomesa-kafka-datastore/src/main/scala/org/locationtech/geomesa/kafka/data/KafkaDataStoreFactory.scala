@@ -448,7 +448,4 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       }
     }
   }
-
-  @deprecated("Use KafkaDataStoreParams")
-  object KafkaDataStoreFactoryParams extends KafkaDataStoreParamsWTF
 }

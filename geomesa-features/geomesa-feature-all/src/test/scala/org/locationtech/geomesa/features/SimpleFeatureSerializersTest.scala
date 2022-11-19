@@ -10,7 +10,7 @@ package org.locationtech.geomesa.features
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.avro.{AvroFeatureSerializer, AvroSimpleFeatureFactory, ProjectingAvroFeatureDeserializer}
+import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -31,14 +31,8 @@ class SimpleFeatureSerializersTest extends Specification {
   val sftName = "SimpleFeatureSerializersTest"
   val sft = SimpleFeatureTypes.createType(sftName, "name:String,*geom:Point,dtg:Date")
 
-  val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
-
   def getFeatures: Seq[SimpleFeature] = (0 until 6).map { i =>
-    builder.reset()
-    builder.set("geom", WKTUtils.read("POINT(-110 30)"))
-    builder.set("dtg", "2012-01-02T05:06:07.000Z")
-    builder.set("name",i.toString)
-    builder.buildFeature(i.toString)
+    ScalaSimpleFeature.create(sft, i.toString, i.toString, "POINT(-110 30)", "2012-01-02T05:06:07.000Z")
   }
 
   def getFeaturesWithVisibility: Seq[SimpleFeature] = {
@@ -166,45 +160,6 @@ class SimpleFeatureSerializersTest extends Specification {
       val decoder = new AvroFeatureSerializer(sft, SerializationOptions.withUserData)
 
       decoder.deserialize(encoded) must throwA[Exception]
-    }
-  }
-
-  "ProjectingAvroFeatureDeserializer" should {
-
-    "properly project features" >> {
-      val encoder = new AvroFeatureSerializer(sft)
-
-      val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
-      val projectingDecoder = new ProjectingAvroFeatureDeserializer(sft, projectedSft)
-
-      val features = getFeatures
-      val encoded = features.map(encoder.serialize)
-      val decoded = encoded.map(projectingDecoder.deserialize)
-
-      decoded.map(_.getID) mustEqual features.map(_.getID)
-      decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
-
-      forall(decoded) { sf =>
-        sf.getAttributeCount mustEqual 1
-        sf.getAttribute(0) must beAnInstanceOf[Point]
-        sf.getFeatureType mustEqual projectedSft
-      }
-    }
-
-    "be able to decode points with user data" >> {
-      val encoder = new AvroFeatureSerializer(sft, SerializationOptions.withUserData)
-
-      val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
-      val decoder = new ProjectingAvroFeatureDeserializer(sft, projectedSft, SerializationOptions.withUserData)
-
-      val features = getFeaturesWithVisibility
-      val encoded = features.map(encoder.serialize)
-
-      val decoded = encoded.map(decoder.deserialize)
-
-      forall(features.zip(decoded)) { case (in, out) =>
-        out.getUserData mustEqual in.getUserData
-      }
     }
   }
 
