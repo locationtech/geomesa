@@ -158,9 +158,6 @@ class FileBasedMetadata(
     delete(readPartitionFiles(8).asScala.flatMap { case (_, f) => f.unparsed ++ f.parsed }, 8)
   }
 
-  // noinspection ScalaDeprecation
-  override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
-
   override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit = {
     require(threads > 0, "Threads must be a positive number")
 

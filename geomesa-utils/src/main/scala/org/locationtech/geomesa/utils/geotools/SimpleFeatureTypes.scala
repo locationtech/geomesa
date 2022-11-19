@@ -67,9 +67,6 @@ object SimpleFeatureTypes {
     val IndexZ2Shards = "geomesa.z2.splits"
     val IndexZ3Shards = "geomesa.z3.splits"
 
-    @deprecated("replaced with IndexS3Interval")
-    val S3_INTERVAL_KEY: String = IndexS3Interval
-
     // keep around old values for back compatibility
     @deprecated("EnabledIndices")
     val ENABLED_INDEX_OPTS: Seq[String] = Seq(EnabledIndices, "geomesa.indexes.enabled", "table.indexes.enabled")
