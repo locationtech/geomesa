@@ -203,13 +203,28 @@ object SQLRules extends LazyLogging {
 
     override def apply(plan: LogicalPlan): LogicalPlan = {
       logger.debug(s"Optimizer sees $plan")
-      plan.transform {
-        case agg @ Aggregate(aggregateExpressions,groupingExpressions, Project(projectList, join: Join)) =>
-          val alteredJoin = alterJoin(join)
-          Aggregate(aggregateExpressions, groupingExpressions, Project(projectList, alteredJoin))
-        case agg @ Aggregate(aggregateExpressions,groupingExpressions, join: Join) =>
-          val alteredJoin = alterJoin(join)
-          Aggregate(aggregateExpressions, groupingExpressions, alteredJoin)
+
+      // NOTE: The number of arguments in Aggregate constructor is 3 on community spark and 4 on DataBricks
+      // so we cannot use pattern matching to unapply the constructor also
+      // need to use reflection to safely create new Aggregate instance
+      val optimizeAggregate: PartialFunction[LogicalPlan, LogicalPlan] =
+        Function.unlift { plan: LogicalPlan =>
+          plan match {
+            case agg: Aggregate =>
+              agg.child match {
+                case Project(projectList, join: Join) =>
+                  val alteredJoin = SpatialOptimizationsRule.alterJoin(join)
+                  Some(Aggregates.instance(agg.groupingExpressions, agg.aggregateExpressions, Project(projectList, alteredJoin), None))
+                case join: Join =>
+                  val alteredJoin = SpatialOptimizationsRule.alterJoin(join)
+                  Some(Aggregates.instance(agg.groupingExpressions, agg.aggregateExpressions, alteredJoin, None))
+                case _ => None
+              }
+            case _ => None
+          }
+        }
+
+      val optimizeRest: PartialFunction[LogicalPlan, LogicalPlan] = {
         case join: Join =>
           alterJoin(join)
         case sort @ Sort(_, _, _) => sort    // No-op.  Just realizing what we can do:)
@@ -253,6 +268,7 @@ object SQLRules extends LazyLogging {
             filt
           }
       }
+      plan.transform(optimizeAggregate orElse optimizeRest)
     }
 
   }
