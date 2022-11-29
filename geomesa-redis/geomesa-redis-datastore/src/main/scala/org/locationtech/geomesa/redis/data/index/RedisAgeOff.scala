@@ -23,6 +23,7 @@ import redis.clients.jedis.params.ZAddParams
 
 import java.io.{Closeable, Flushable}
 import java.nio.charset.StandardCharsets
+import java.util.Collections
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.duration.Duration
@@ -111,9 +112,11 @@ class RedisAgeOff(ds: RedisDataStore) extends Closeable {
 
 object RedisAgeOff extends StrictLogging {
 
+  import redis.clients.jedis.resps.{Tuple => JedisTuple}
+
   val TtlUserDataKey = "t" // the user data is cleared, so no chance of key collision - save space with a short key
 
-  val AgeOffLockTimeout = SystemProperty("geomesa.redis.age.off.lock.timeout", "1 second")
+  val AgeOffLockTimeout: SystemProperty = SystemProperty("geomesa.redis.age.off.lock.timeout", "1 second")
 
   /**
     * Initialize the age-off for the data store
@@ -235,7 +238,7 @@ object RedisAgeOff extends StrictLogging {
       logger.debug(s"Age-off for schema '$typeName' starting with timestamp $timestamp")
 
       val ids = removeExpiredIds(timestamp)
-      if (ids.nonEmpty) {
+      if (!ids.isEmpty) {
         removeExpiredFeatures(ids, timestamp)
       }
     }
@@ -246,26 +249,28 @@ object RedisAgeOff extends StrictLogging {
       * @param timestamp expiration time
       * @return
       */
-    private def removeExpiredIds(timestamp: Long): scala.collection.Set[redis.clients.jedis.Tuple] = {
-      def exec: scala.collection.Set[redis.clients.jedis.Tuple] = {
+    private def removeExpiredIds(timestamp: Long): java.util.List[JedisTuple] = {
+      def exec: java.util.List[JedisTuple] = {
         WithClose(ds.connection.getResource) { jedis =>
           // run the select and remove in an atomic transaction
           val tx = jedis.multi()
           val scores = tx.zrangeByScoreWithScores(table, 0, timestamp)
           tx.zremrangeByScore(table, 0, timestamp)
           tx.exec()
-          scores.get.asScala
+          scores.get
         }
       }
 
-      def noLock: scala.collection.Set[redis.clients.jedis.Tuple] = {
+      def noLock: java.util.List[JedisTuple] = {
         logger.debug(s"Could not acquire distributed lock for schema '$typeName' after ${timeout}ms")
-        Set.empty[redis.clients.jedis.Tuple]
+        Collections.emptyList[JedisTuple]()
       }
 
       // acquire a lock so that we're not repeating work in multiple data store instances
       val ids = try { withLock(lockPath, timeout, exec, noLock) } catch {
-        case NonFatal(e) => logger.error("Error executing ttl transaction:", e); Set.empty[redis.clients.jedis.Tuple]
+        case NonFatal(e) =>
+          logger.error("Error executing ttl transaction:", e)
+          Collections.emptyList[JedisTuple]()
       }
 
       logger.debug(s"Age-off for schema '$typeName' found ${ids.size} features for expiration")
@@ -279,10 +284,10 @@ object RedisAgeOff extends StrictLogging {
       * @param ids expired ids and ttls
       * @param timestamp expiration time
       */
-    private def removeExpiredFeatures(ids: scala.collection.Set[redis.clients.jedis.Tuple], timestamp: Long): Unit = {
+    private def removeExpiredFeatures(ids: java.util.List[JedisTuple], timestamp: Long): Unit = {
       try {
         val fids = new java.util.HashSet[Identifier](ids.size)
-        ids.foreach(id => fids.add(FilterHelper.ff.featureId(id.getElement)))
+        ids.asScala.foreach(id => fids.add(FilterHelper.ff.featureId(id.getElement)))
 
         logger.trace(s"Age-off for schema '$typeName' found the following features: $fids")
         val trace = logger.underlying.isTraceEnabled
@@ -322,17 +327,17 @@ object RedisAgeOff extends StrictLogging {
       *
       * @param ids expired ids and ttls
       */
-    private def reinsertFailedIds(ids: scala.collection.Set[redis.clients.jedis.Tuple]): Unit = {
+    private def reinsertFailedIds(ids: java.util.List[JedisTuple]): Unit = {
       try {
         logger.debug(s"Age-off for schema '$typeName' re-inserting ttls")
         val reinserts = new java.util.HashMap[Array[Byte], java.lang.Double](ids.size)
-        ids.foreach(id => reinserts.put(id.getBinaryElement, id.getScore))
+        ids.asScala.foreach(id => reinserts.put(id.getBinaryElement, id.getScore))
         // use nx so that if a feature update has come through we don't overwrite the new ttl
         WithClose(ds.connection.getResource)(_.zadd(table, reinserts, new ZAddParams().nx()))
       } catch {
         case NonFatal(e) =>
           logger.error(s"Error re-inserting ttls for schema '$typeName'. The following features " +
-              s"may never expire: [${ids.map(_.getElement).mkString(", ")}]", e)
+              s"may never expire: [${ids.asScala.map(_.getElement).mkString(", ")}]", e)
       }
     }
   }

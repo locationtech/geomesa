@@ -74,6 +74,10 @@
             <artifactId>scala-compiler</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+        </dependency>
 
         <!-- test deps -->
         <dependency>
