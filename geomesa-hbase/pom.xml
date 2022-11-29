@@ -12,6 +12,10 @@
 
     <packaging>pom</packaging>
 
+    <properties>
+        <guava.version>${hbase.guava.version}</guava.version>
+    </properties>
+
     <modules>
         <module>geomesa-hbase-datastore</module>
         <module>geomesa-hbase-dist</module>
@@ -28,16 +32,5 @@
         <module>geomesa-hbase-spark-runtime-hbase2</module>
         <module>geomesa-hbase-tools</module>
     </modules>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${hbase.guava.version}</version>
-                <scope>provided</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
 </project>

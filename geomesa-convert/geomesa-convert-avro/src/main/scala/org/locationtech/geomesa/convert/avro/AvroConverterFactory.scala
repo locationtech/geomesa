@@ -92,15 +92,18 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
               records.foreach { record =>
                 val ud = record.get(AVRO_SIMPLE_FEATURE_USERDATA).asInstanceOf[java.util.Collection[GenericRecord]]
                 ud.asScala.foreach { rec =>
-                  Option(rec.get("key")).map(_.toString).foreach { key =>
-                    kvs.getOrElseUpdate(key, {
-                      var expression = s"avroPath($$1, '/$AVRO_SIMPLE_FEATURE_USERDATA[$$key=$key]/value')"
-                      if (Option(rec.get("valueClass")).map(_.toString).contains("java.util.Date")) {
-                        // dates have to be converted from millis
-                        expression = s"millisToDate($expression)"
-                      }
-                      Expression(expression)
-                    })
+                  if (rec.getSchema.getField("key") != null) {
+                    Option(rec.get("key")).map(_.toString).foreach { key =>
+                      kvs.getOrElseUpdate(key, {
+                        var expression = s"avroPath($$1, '/$AVRO_SIMPLE_FEATURE_USERDATA[$$key=$key]/value')"
+                        if (rec.getSchema.getField("valueClass") != null &&
+                            Option(rec.get("valueClass")).map(_.toString).contains("java.util.Date")) {
+                          // dates have to be converted from millis
+                          expression = s"millisToDate($expression)"
+                        }
+                        Expression(expression)
+                      })
+                    }
                   }
                 }
               }

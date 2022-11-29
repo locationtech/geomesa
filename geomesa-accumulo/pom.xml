@@ -11,6 +11,10 @@
     <name>GeoMesa Accumulo</name>
     <packaging>pom</packaging>
 
+    <properties>
+        <guava.version>${accumulo.guava.version}</guava.version>
+    </properties>
+
     <modules>
         <module>geomesa-accumulo-datastore</module>
         <module>geomesa-accumulo-dist</module>
