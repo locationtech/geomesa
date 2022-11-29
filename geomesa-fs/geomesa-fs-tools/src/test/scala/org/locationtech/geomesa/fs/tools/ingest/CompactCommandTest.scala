@@ -61,7 +61,7 @@ class CompactCommandTest extends Specification {
   }
 
   val numFeatures = 10000
-  val targetFileSize = 12000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
+  val targetFileSize = 8000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
 
   lazy val ds = {
     val dsParams = Map(

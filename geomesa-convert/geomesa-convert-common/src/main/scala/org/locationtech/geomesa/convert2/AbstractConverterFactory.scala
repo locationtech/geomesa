@@ -369,8 +369,8 @@ object AbstractConverterFactory extends LazyLogging {
         cur.atKey(key).right.flatMap { value =>
           value.asString.right.flatMap { string =>
             values.find(_.toString.equalsIgnoreCase(string)) match {
-              case Some(v) => Right(v.asInstanceOf[T])
-              case None => value.failed(CannotConvert(value.value.toString, values.head.getClass.getSimpleName, s"Must be one of: ${values.mkString(", ")}"))
+              case Some(v) => Right(v)
+              case None => value.failed(CannotConvert(value.toString, values.head.getClass.getSimpleName, s"Must be one of: ${values.mkString(", ")}"))
             }
           }
         }
@@ -427,7 +427,7 @@ object AbstractConverterFactory extends LazyLogging {
     protected def exprFrom(cur: ConfigCursor): Either[ConfigReaderFailures, Expression] = {
       def parse(expr: String): Either[ConfigReaderFailures, Expression] =
         try { Right(Expression(expr)) } catch {
-          case NonFatal(e) => cur.failed(CannotConvert(cur.value.toString, "Expression", e.getMessage))
+          case NonFatal(e) => cur.failed(CannotConvert(cur.toString, "Expression", e.getMessage))
         }
       for { raw  <- cur.asString.right; expr <- parse(raw).right } yield { expr }
     }

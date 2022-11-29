@@ -42,23 +42,25 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
 
   import scala.collection.JavaConverters._
 
-  // note: h2 seems to require ints as the primary key, and then prepends `<typeName>.` when returning them
+  // note: shp seems to just use `<typeName>.` plus an incrementing 1-based number for the feature id,
   // as such, we don't compare primary keys directly here
-  // there may be a way to override this behavior but I haven't found it...
 
-  sequential // note: shouldn't need to be sequential, but h2 doesn't do well with concurrent requests
+  sequential
 
-  override val spec = "name:String:index=full,age:Int,dtg:Date,*geom:Point:srid=4326"
+  override val spec = "*the_geom:Point:srid=4326,name:String:index=full,age:Int,dtg:Date"
 
-  val features = Seq.tabulate(10) { i =>
-    ScalaSimpleFeature.create(sft, s"$i", s"name$i", 20 + i, s"2018-01-01T00:0$i:00.000Z", s"POINT (45 5$i)")
+  lazy val features = Seq.tabulate(8) { u =>
+    val i = u + 1 // sync up with shp fid
+    // shp seems to round dates to whole days??
+    ScalaSimpleFeature.create(sft, s"$i", s"POINT (45 5$i)", s"name$i", 20 + i, s"2018-01-0${i}T00:00:00.000Z")
   }
 
-  val defaultFilter = ECQL.toFilter("bbox(geom,44,52,46,59) and dtg DURING 2018-01-01T00:02:30.000Z/2018-01-01T00:06:30.000Z")
+  val defaultFilter =
+    ECQL.toFilter("bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-02T12:00:00.000Z/2018-01-06T12:00:00.000Z")
 
   val accumuloParams = dsParams.asJava
   
-  var h2Params: java.util.Map[String, String] = _
+  var shpParams: java.util.Map[String, String] = _
 
   var path: Path = _
   var mergedDs: MergedDataStoreView = _
@@ -72,29 +74,28 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
   step {
     path = Files.createTempDirectory(s"combo-ds-test")
 
-    h2Params = Map(
-      "dbtype"   -> "h2",
-      "database" -> path.toFile.getAbsolutePath
+    shpParams = Map(
+      "url" -> s"file://${path.toFile.getAbsolutePath}/$sftName.shp"
     ).asJava
 
-    val h2Ds = DataStoreFinder.getDataStore(h2Params)
+    val shpDs = DataStoreFinder.getDataStore(shpParams)
     val accumuloDs = DataStoreFinder.getDataStore(accumuloParams)
 
     val copied = features.iterator
-    Seq(h2Ds, accumuloDs).foreach { ds =>
+    Seq(shpDs, accumuloDs).foreach { ds =>
       ds.createSchema(sft)
       WithClose(ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)) { writer =>
-        copied.take(5).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        copied.take(4).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
     }
 
-    foreach(Seq(h2Ds, accumuloDs)) { ds =>
-      SelfClosingIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must haveLength(5)
-    }
-    h2Ds.dispose()
+    SelfClosingIterator(shpDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must haveLength(4)
+    SelfClosingIterator(accumuloDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must haveLength(4)
+
+    shpDs.dispose()
     accumuloDs.dispose()
 
-    mergedDs = DataStoreFinder.getDataStore(comboParams(h2Params, accumuloParams)).asInstanceOf[MergedDataStoreView]
+    mergedDs = DataStoreFinder.getDataStore(comboParams(shpParams, accumuloParams)).asInstanceOf[MergedDataStoreView]
     mergedDs must not(beNull)
   }
 
@@ -114,13 +115,13 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       val sft = mergedDs.getSchema(sftName)
 
       sft.getAttributeCount mustEqual 4
-      sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("name", "age", "dtg", "geom")
+      sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("the_geom", "name", "age", "dtg")
       sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
-          Seq(classOf[String], classOf[Integer], classOf[Date], classOf[Point])
+          Seq(classOf[Point], classOf[String], classOf[Integer], classOf[Date])
     }
 
     "load via SPI config" in {
-      val h2Config = ConfigValueFactory.fromMap(h2Params)
+      val shpConfig = ConfigValueFactory.fromMap(shpParams)
       val accumuloConfig = ConfigValueFactory.fromMap(accumuloParams)
 
       def testParams(config: Config): MatchResult[Any] = {
@@ -139,23 +140,23 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       }
 
       MergedDataStoreViewTest.loadConfig =
-          ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(h2Config, accumuloConfig).asJava))
+          ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(shpConfig, accumuloConfig).asJava))
       testParams(ConfigFactory.empty())
 
       MergedDataStoreViewTest.loadConfig =
-          ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(h2Config).asJava))
+          ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(shpConfig).asJava))
       testParams(ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(accumuloConfig).asJava)))
 
       MergedDataStoreViewTest.loadConfig =
           ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(accumuloConfig).asJava))
-      testParams(ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(h2Config).asJava)))
+      testParams(ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(shpConfig).asJava)))
     }
 
     "query multiple data stores" in {
       val results = SelfClosingIterator(mergedDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList
 
-      results must haveLength(10)
-      foreach(results.sortBy(_.getAttribute(0).asInstanceOf[String]).zip(features)) { case (actual, expected) =>
+      results must haveLength(features.length)
+      foreach(results.sortBy(_.getAttribute("name").asInstanceOf[String]).zip(features)) { case (actual, expected) =>
         // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
         expected.getAttributes.asScala mustEqual actual.getAttributes.asScala
       }
@@ -163,12 +164,12 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
 
     "query multiple data stores with filters and transforms" in {
       val filters = Seq(
-        "IN('3', '4', '5', '6')",
-        "bbox(geom,44,52.5,46,56.5)",
-        "bbox(geom,44,52,46,59) and dtg DURING 2018-01-01T00:02:30.000Z/2018-01-01T00:06:30.000Z",
-        "name IN('name3', 'name4', 'name5', 'name6') and bbox(geom,44,52,46,59) and dtg DURING 2018-01-01T00:01:30.000Z/2018-01-01T00:07:30.000Z"
+        s"IN('$sftName.3', '$sftName.4', '5', '6')",
+        "bbox(the_geom,44,52.5,46,56.5)",
+        "bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-02T12:00:00.000Z/2018-01-06T12:00:00.000Z",
+        "name IN('name3', 'name4', 'name5', 'name6') and bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-01T12:00:00.000Z/2018-01-07T12:00:00.000Z"
       )
-      val transforms = Seq(null, Array("geom"), Array("geom", "dtg"), Array("name"), Array("dtg", "geom", "age", "name"))
+      val transforms = Seq(null, Array("the_geom"), Array("the_geom", "dtg"), Array("name"), Array("dtg", "the_geom", "age", "name"))
 
       foreach(filters) { filter =>
         val ecql = ECQL.toFilter(filter)
@@ -192,19 +193,19 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
 
     "apply filters to each data store impl" in {
       val filters = Seq(
-        "IN('3', '4', '5', '6')",
-        "bbox(geom,44,52.5,46,56.5)",
-        "bbox(geom,44,52,46,59) and dtg DURING 2018-01-01T00:02:30.000Z/2018-01-01T00:06:30.000Z",
-        "name IN('name3', 'name4', 'name5', 'name6') and bbox(geom,44,52,46,59) and dtg DURING 2018-01-01T00:01:30.000Z/2018-01-01T00:07:30.000Z"
+        s"IN('$sftName.3', '$sftName.4', '5', '6')",
+        "bbox(the_geom,44,52.5,46,56.5)",
+        "bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-02T12:00:00.000Z/2018-01-06T12:00:00.000Z",
+        "name IN('name3', 'name4', 'name5', 'name6') and bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-01T12:00:00.000Z/2018-01-07T12:00:00.000Z"
       )
 
       // these filters exclude the '5' feature
-      val h2FilteredParams = new java.util.HashMap[String, String](h2Params)
-      h2FilteredParams.put(MergedDataStoreViewFactory.StoreFilterParam.key, "dtg < '2018-01-01T00:06:00.000Z'")
+      val shpFilteredParams = new java.util.HashMap[String, String](shpParams)
+      shpFilteredParams.put(MergedDataStoreViewFactory.StoreFilterParam.key, "dtg < '2018-01-06T00:00:00.000Z'")
       val accumuloFilteredParams = new java.util.HashMap[String, String](accumuloParams)
-      accumuloFilteredParams.put(MergedDataStoreViewFactory.StoreFilterParam.key, "dtg >= '2018-01-01T00:06:00.000Z'")
+      accumuloFilteredParams.put(MergedDataStoreViewFactory.StoreFilterParam.key, "dtg >= '2018-01-06T00:00:00.000Z'")
 
-      val ds = DataStoreFinder.getDataStore(comboParams(h2FilteredParams, accumuloFilteredParams))
+      val ds = DataStoreFinder.getDataStore(comboParams(shpFilteredParams, accumuloFilteredParams))
       try {
         foreach(filters) { filter =>
           val ecql = ECQL.toFilter(filter)
@@ -222,12 +223,12 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
     }
 
     "query multiple data stores with sorting" in {
-      foreach(Seq[Array[String]](null, Array("geom", "dtg"))) { transform =>
+      foreach(Seq[Array[String]](null, Array("the_geom", "dtg"))) { transform =>
         val query = new Query(sftName, Filter.INCLUDE, transform: _*)
         query.setSortBy(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.DESCENDING))
         val results = SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
-        results must haveLength(10)
+        results must haveLength(features.length)
         // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
         foreach(results.map(_.getAttribute("dtg")).zip(features.reverse.map(_.getAttribute("dtg")))) {
           case (actual, expected) => expected mustEqual actual
@@ -236,7 +237,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
     }
 
     "query multiple data stores and return bins" in {
-      val query = new Query(sftName, defaultFilter, "name", "dtg", "geom")
+      val query = new Query(sftName, defaultFilter, "name", "dtg", "the_geom")
       query.getHints.put(QueryHints.BIN_TRACK, "name")
 
       val bytes = SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).map { f =>
@@ -246,7 +247,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
         copy
       }
 
-      val expected = features.slice(3, 7).map { f =>
+      val expected = features.slice(2, 6).map { f =>
         val pt = f.getDefaultGeometry.asInstanceOf[Point]
         val time = f.getAttribute("dtg").asInstanceOf[Date].getTime
         EncodedValues(f.getAttribute("name").hashCode, pt.getY.toFloat, pt.getX.toFloat, time, -1)
@@ -257,7 +258,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
     }
 
     "query multiple data stores and return arrow" in {
-      val query = new Query(sftName, defaultFilter, "name", "dtg", "geom")
+      val query = new Query(sftName, defaultFilter, "name", "dtg", "the_geom")
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
@@ -267,14 +268,14 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       def in() = new ByteArrayInputStream(out.toByteArray)
       WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        val expected = features.slice(3, 7)
+        val expected = features.slice(2, 6)
         reader.dictionaries.keySet mustEqual Set("name")
         reader.dictionaries.apply("name").iterator.toSeq must containAllOf(expected.map(_.getAttribute("name")))
         val results = SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList
         results must haveLength(4)
         foreach(results.zip(expected)) { case (actual, e) =>
           actual.getAttributeCount mustEqual 3
-          foreach(Seq("name", "dtg", "geom")) { attribute =>
+          foreach(Seq("name", "dtg", "the_geom")) { attribute =>
             actual.getAttribute(attribute) mustEqual e.getAttribute(attribute)
           }
         }
@@ -292,8 +293,8 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
 
         val stat = StatsScan.decodeStat(sft)(results.head.getAttribute(0).asInstanceOf[String])
         stat must beAnInstanceOf[MinMax[Date]]
-        stat.asInstanceOf[MinMax[Date]].min mustEqual features(3).getAttribute("dtg")
-        stat.asInstanceOf[MinMax[Date]].max mustEqual features(6).getAttribute("dtg")
+        stat.asInstanceOf[MinMax[Date]].min mustEqual features(2).getAttribute("dtg")
+        stat.asInstanceOf[MinMax[Date]].max mustEqual features(5).getAttribute("dtg")
       }
     }
 
@@ -302,7 +303,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       val width = 480
       val height = 360
 
-      val query = new Query(sftName, defaultFilter, "geom")
+      val query = new Query(sftName, defaultFilter, "the_geom")
       query.getHints.put(QueryHints.DENSITY_BBOX, envelope)
       query.getHints.put(QueryHints.DENSITY_WIDTH, width)
       query.getHints.put(QueryHints.DENSITY_HEIGHT, height)
