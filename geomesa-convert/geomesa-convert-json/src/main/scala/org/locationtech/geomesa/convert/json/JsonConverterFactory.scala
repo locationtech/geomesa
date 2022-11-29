@@ -187,9 +187,9 @@ object JsonConverterFactory {
       }
       config.right.flatMap { case (jType, path, rootPath) =>
         if (path.isDefined && rootPath.isDefined) {
-          cur.failed(CannotConvert(cur.value.toString, "JsonField", "Json fields must define only one of 'path' or 'root-path'"))
+          cur.failed(CannotConvert(cur.toString, "JsonField", "Json fields must define only one of 'path' or 'root-path'"))
         } else if (jType.isDefined && path.isEmpty && rootPath.isEmpty) {
-          cur.failed(CannotConvert(cur.value.toString, "JsonField", "Json fields must define a 'path' or 'root-path'"))
+          cur.failed(CannotConvert(cur.toString, "JsonField", "Json fields must define a 'path' or 'root-path'"))
         } else if (jType.isEmpty) {
           Right(DerivedField(name, transform))
         } else {
@@ -198,16 +198,16 @@ object JsonConverterFactory {
             case (None, Some(p)) => (p, true)
           }
           jType.get.toLowerCase(Locale.US) match {
-            case "string"           => Right(new StringJsonField(name, jsonPath, pathIsRoot, transform))
-            case "float"            => Right(new FloatJsonField(name, jsonPath, pathIsRoot, transform))
-            case "double"           => Right(new DoubleJsonField(name, jsonPath, pathIsRoot, transform))
-            case "integer" | "int"  => Right(new IntJsonField(name, jsonPath, pathIsRoot, transform))
-            case "boolean" | "bool" => Right(new BooleanJsonField(name, jsonPath, pathIsRoot, transform))
-            case "long"             => Right(new LongJsonField(name, jsonPath, pathIsRoot, transform))
-            case "geometry"         => Right(new GeometryJsonField(name, jsonPath, pathIsRoot, transform))
-            case "array" | "list"   => Right(new ArrayJsonField(name, jsonPath, pathIsRoot, transform))
-            case "object" | "map"   => Right(new ObjectJsonField(name, jsonPath, pathIsRoot, transform))
-            case t => cur.failed(CannotConvert(cur.value.toString, "JsonField", s"Invalid json-type '$t'"))
+            case "string"           => Right(StringJsonField(name, jsonPath, pathIsRoot, transform))
+            case "float"            => Right(FloatJsonField(name, jsonPath, pathIsRoot, transform))
+            case "double"           => Right(DoubleJsonField(name, jsonPath, pathIsRoot, transform))
+            case "integer" | "int"  => Right(IntJsonField(name, jsonPath, pathIsRoot, transform))
+            case "boolean" | "bool" => Right(BooleanJsonField(name, jsonPath, pathIsRoot, transform))
+            case "long"             => Right(LongJsonField(name, jsonPath, pathIsRoot, transform))
+            case "geometry"         => Right(GeometryJsonField(name, jsonPath, pathIsRoot, transform))
+            case "array" | "list"   => Right(ArrayJsonField(name, jsonPath, pathIsRoot, transform))
+            case "object" | "map"   => Right(ObjectJsonField(name, jsonPath, pathIsRoot, transform))
+            case t => cur.failed(CannotConvert(cur.toString, "JsonField", s"Invalid json-type '$t'"))
           }
         }
       }

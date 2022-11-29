@@ -10,6 +10,7 @@ package org.locationtech.geomesa.arrow
 
 import org.apache.arrow.vector.ipc.ArrowStreamWriter
 import org.apache.arrow.vector.ipc.message.IpcOption
+import org.apache.arrow.vector.types.MetadataVersion
 import org.apache.arrow.vector.types.pojo.Schema
 import org.apache.arrow.vector.{FieldVector, VectorSchemaRoot}
 import org.locationtech.geomesa.arrow.io.records.RecordBatchLoader
@@ -36,17 +37,15 @@ package object io {
 
   object FormatVersion {
 
-    val LatestVersion = "0.16"
+    val LatestVersion = "10.0.1"
 
     val ArrowFormatVersion: SystemProperty = SystemProperty("geomesa.arrow.format.version", LatestVersion)
 
     def options(version: String): IpcOption = {
-      val opt = new IpcOption()
-      if (version != LatestVersion) {
-        lazy val semver = SemanticVersion(version, lenient = true) // avoid parsing if it's a known version (0.10)
-        opt.write_legacy_ipc_format = version == "0.10" || (semver.major == 0 && semver.minor < 15)
-      }
-      opt
+      lazy val semver = SemanticVersion(version, lenient = true) // avoid parsing if it's a known version (0.10)
+      val legacy = version != LatestVersion && (version == "0.10" || (semver.major == 0 && semver.minor < 15))
+      val meta = if (legacy) { MetadataVersion.V4 } else { MetadataVersion.DEFAULT }
+      new IpcOption(legacy, meta)
     }
 
     def version(opt: IpcOption): String = if (opt.write_legacy_ipc_format) { "0.10" } else { LatestVersion }
