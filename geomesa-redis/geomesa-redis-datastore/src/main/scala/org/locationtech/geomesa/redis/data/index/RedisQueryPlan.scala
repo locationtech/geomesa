@@ -121,7 +121,7 @@ object RedisQueryPlan {
 
     private def singleTableScan(ds: RedisDataStore, table: Array[Byte]): CloseableIterator[Array[Byte]] = {
       if (pipeline) {
-        val result = Seq.newBuilder[Response[java.util.Set[Array[Byte]]]]
+        val result = Seq.newBuilder[Response[java.util.List[Array[Byte]]]]
         result.sizeHint(ranges.length)
         WithClose(ds.connection.getResource) { jedis =>
           WithClose(jedis.pipelined()) { pipe =>

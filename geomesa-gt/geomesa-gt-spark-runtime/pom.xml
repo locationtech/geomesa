@@ -44,7 +44,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${geoserver.guava.version}</version>
+            <version>${geotools.guava.version}</version>
             <scope>compile</scope>
         </dependency>
 

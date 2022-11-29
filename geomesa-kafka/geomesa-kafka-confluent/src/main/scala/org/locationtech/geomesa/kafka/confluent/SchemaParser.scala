@@ -42,7 +42,7 @@ object SchemaParser {
     builder.setName(name.getOrElse(schema.getName))
 
     // any extra props on the schema go in the SFT user data
-    val sftUserData = schema.getProps
+    val sftUserData = new java.util.HashMap[String, AnyRef](schema.getObjectProps)
 
     var defaultGeomField: Option[String] = None
     var visibilityField: Option[String] = None
@@ -143,13 +143,13 @@ object SchemaParser {
       }
 
     // any field properties that are not one of the defined geomesa avro properties will go in the attribute user data
-    val extraProps = field.getProps.asScala.filterNot {
-      case (key, _) => reservedPropertyKeys.contains(key)
-    }.toMap
+    val extraProps = field.getObjectProps.asScala.collect {
+      case (k, v: String) if !reservedPropertyKeys.contains(k) => k -> v
+    }
 
     val exclude = GeoMesaAvroExcludeField.parse(field).getOrElse(false)
 
-    GeoMesaAvroMetadata(metadata, extraProps, exclude)
+    GeoMesaAvroMetadata(metadata, extraProps.toMap, exclude)
   }
 
   private case class GeoMesaAvroMetadata(field: GeoMesaAvroField, extraProps: Map[String, String], exclude: Boolean)
