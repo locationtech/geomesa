@@ -21,6 +21,7 @@ import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.index.api.IndexAdapter.RequiredVisibilityWriter
+import org.locationtech.geomesa.utils.concurrent.ExitingExecutor.NamedThreadFactory
 import org.locationtech.geomesa.utils.io.IsFlushableImplicits
 
 import java.nio.charset.StandardCharsets
@@ -59,8 +60,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.util.Random
 import scala.util.control.NonFatal
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder
-import java.time.Instant
 import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
 
 class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore] with StrictLogging {
@@ -592,7 +591,7 @@ object HBaseIndexAdapter extends LazyLogging {
 
     val pool: ExecutorService = Executors.newFixedThreadPool(
       indices.length,
-      new ThreadFactoryBuilder().setNameFormat(s"geomesa-hbase-index-writer-%d").build())
+      new NamedThreadFactory(s"geomesa-hbase-index-writer-%d"))
 
     private val deleteVis = HBaseSystemProperties.DeleteVis.option.map(new CellVisibility(_))
 
@@ -708,8 +707,7 @@ object HBaseIndexAdapter extends LazyLogging {
     override def flush(): Unit = FlushWithLogging.raise(mutators)(BufferedMutatorIsFlushable.arrayIsFlushable)
 
     override def close(): Unit = {
-      CloseWithLogging.raise(mutators)
-      CloseWithLogging.raise(pool)
+      CloseWithLogging.raise(mutators, pool)
       if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
         logger.warn(s"Failed to terminate $pool pool after 60 seconds. Abandoning pool.")
       }
