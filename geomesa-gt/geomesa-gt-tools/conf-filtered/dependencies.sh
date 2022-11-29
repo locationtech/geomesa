@@ -13,7 +13,7 @@
 
 hadoop_install_version="%%hadoop.version.recommended%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
-guava_install_version="%%geoserver.guava.version%%"
+guava_install_version="%%geotools.guava.version%%"
 
 function dependencies() {
   local classpath="$1"

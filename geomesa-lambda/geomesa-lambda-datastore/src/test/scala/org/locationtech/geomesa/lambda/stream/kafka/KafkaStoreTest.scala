@@ -45,7 +45,7 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
     val props = new Properties()
     props.put("bootstrap.servers", brokers)
     WithClose(AdminClient.create(props)) { admin =>
-      admin.createTopics(Collections.singletonList(new NewTopic(topic, 2, 1))).all().get
+      admin.createTopics(Collections.singletonList(new NewTopic(topic, 2, 1.toShort))).all().get
     }
     logger.trace(s"created topic $topic")
   }

@@ -87,6 +87,8 @@ class SimpleFeatureArrowFileWriter private (
 
 object SimpleFeatureArrowFileWriter {
 
+  import scala.collection.JavaConverters._
+
   /**
    * For writing simple features to an arrow file.
    *
@@ -111,6 +113,7 @@ object SimpleFeatureArrowFileWriter {
     val provider: DictionaryProvider with Closeable = new DictionaryProvider with Closeable {
       private val dictionaries = vector.dictionaries.collect { case (_, d) => d.id -> d.toDictionary(vector.encoding) }
       override def lookup(id: Long): Dictionary = dictionaries(id)
+      override def getDictionaryIds: java.util.Set[java.lang.Long] = dictionaries.keys.map(Long.box).toSet.asJava
       override def close(): Unit = CloseWithLogging(dictionaries.values)
     }
     new SimpleFeatureArrowFileWriter(vector, provider, os, ipcOpts, sort)
@@ -123,6 +126,7 @@ object SimpleFeatureArrowFileWriter {
     new DictionaryProvider with Closeable {
       private val dicts = dictionaries.collect { case (_, d) => d.id -> d.toDictionary(encoding) }
       override def lookup(id: Long): Dictionary = dicts(id)
+      override def getDictionaryIds: java.util.Set[java.lang.Long] = dicts.keys.map(Long.box).toSet.asJava
       override def close(): Unit = CloseWithLogging(dicts.values)
     }
   }

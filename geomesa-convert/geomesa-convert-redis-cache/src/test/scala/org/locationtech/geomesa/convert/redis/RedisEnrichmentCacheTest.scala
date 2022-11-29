@@ -90,16 +90,18 @@ class RedisEnrichmentCacheTest extends Specification {
         """
           |{
           |   type = "redis"
-          |   redis-url = "foo"
+          |   redis-url = "redis://localhost:0"
           |   expiration = 10
           |}
         """.stripMargin
       )
 
-      val cache = ServiceLoader.load(classOf[EnrichmentCacheFactory]).iterator().asScala.find(_.canProcess(conf)).map(_.build(conf))
-
-      cache must not be None
+      val cache = ServiceLoader.load(classOf[EnrichmentCacheFactory]).asScala.find(_.canProcess(conf)).map(_.build(conf))
+      try {
+        cache must beSome
+      } finally {
+        cache.foreach(_.close())
+      }
     }
-
   }
 }

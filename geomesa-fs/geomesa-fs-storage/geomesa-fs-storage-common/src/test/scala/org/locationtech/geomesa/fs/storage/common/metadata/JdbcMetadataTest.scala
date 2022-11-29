@@ -232,5 +232,5 @@ class JdbcMetadataTest extends Specification with AllExpectations {
   }
 
   def getConfig(root: Path): Map[String, String] =
-    Map(JdbcMetadata.Config.UrlKey -> s"jdbc:h2:split:${new File(root.toString).getAbsolutePath}/metadata")
+    Map(JdbcMetadata.Config.UrlKey -> s"jdbc:h2:split:${new File(root.toString).getAbsolutePath}/metadata;CASE_INSENSITIVE_IDENTIFIERS=true")
 }
