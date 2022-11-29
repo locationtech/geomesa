@@ -40,12 +40,12 @@ object AvroPath extends BasicParser {
 
   private def convert(record: Any): Any = {
     record match {
-      case x: Utf8              => x.toString
-      case x: ByteBuffer        => convertBytes(x)
-      case x: GenericFixed      => x.bytes()
-      case x: GenericEnumSymbol => x.toString
-      case x: GenericArray[Any] => convertList(x)
-      case x                    => x
+      case x: Utf8                 => x.toString
+      case x: ByteBuffer           => convertBytes(x)
+      case x: GenericFixed         => x.bytes()
+      case x: GenericEnumSymbol[_] => x.toString
+      case x: GenericArray[Any]    => convertList(x)
+      case x                       => x
     }
   }
 
@@ -70,7 +70,8 @@ object AvroPath extends BasicParser {
   case class PathExpr(field: String, predicate: AvroPredicate) extends AvroPath {
     override def eval(record: Any): Option[Any] = {
       record match {
-        case gr: GenericRecord =>
+        // schema null check supports our parquet support
+        case gr: GenericRecord if gr.getSchema == null || gr.getSchema.getField(field) != null =>
           gr.get(field) match {
             case x: GenericRecord => Some(x).filter(predicate)
             case x                => Option(convert(x))
