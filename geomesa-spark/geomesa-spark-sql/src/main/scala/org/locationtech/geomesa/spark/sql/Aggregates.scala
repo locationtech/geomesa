@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
+package org.locationtech.geomesa.spark.sql
 
 import org.apache.spark.sql.catalyst.plans.logical.Aggregate
 
