@@ -6,12 +6,12 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.sql
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.IndexPartitioner
 import org.geotools.factory.CommonFactoryFinder
+import org.locationtech.geomesa.spark.SpatialRDD
 import org.locationtech.jts.geom.{Coordinate, Envelope, Geometry}
 import org.locationtech.jts.index.strtree.{AbstractNode, Boundable, STRtree}
 import org.opengis.feature.simple.SimpleFeature

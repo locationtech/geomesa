@@ -50,8 +50,8 @@ object AvroPath extends BasicParser {
   }
 
   private def convertBytes(x: ByteBuffer): Array[Byte] = {
-    val start = x.position
-    val length = x.limit - start
+    val start = x.position()
+    val length = x.limit() - start
     val bytes = Array.ofDim[Byte](length)
     x.get(bytes, 0, length)
     x.position(start)

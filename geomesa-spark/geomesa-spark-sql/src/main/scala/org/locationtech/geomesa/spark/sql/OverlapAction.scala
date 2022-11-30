@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.sql
 
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.index.sweepline.{SweepLineInterval, SweepLineOverlapAction}
