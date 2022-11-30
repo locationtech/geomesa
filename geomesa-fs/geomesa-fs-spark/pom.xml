@@ -12,10 +12,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-spark-core_${scala.binary.version}</artifactId>
         </dependency>
@@ -36,7 +32,18 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-storage-orc_${scala.binary.version}</artifactId>
         </dependency>
-        
+
+        <!-- provided dependencies -->
+
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+        </dependency>
+
         <!-- test dependencies -->
         <dependency>
             <groupId>org.specs2</groupId>

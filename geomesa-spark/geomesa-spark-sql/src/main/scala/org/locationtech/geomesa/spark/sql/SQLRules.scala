@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
+package org.locationtech.geomesa.spark.sql
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.catalyst.expressions._
@@ -15,12 +15,12 @@ import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
 import org.apache.spark.sql.types.{DataTypes, StructType}
+import org.apache.spark.sql.{SQLContext, Strategy}
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.spark.GeoMesaRelation.PartitionedIndexedRDD
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
-import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils, SparkVersions}
+import org.locationtech.geomesa.spark.sql.GeoMesaRelation.PartitionedIndexedRDD
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.opengis.filter.expression.{Expression => GTExpression, Literal => GTLiteral}

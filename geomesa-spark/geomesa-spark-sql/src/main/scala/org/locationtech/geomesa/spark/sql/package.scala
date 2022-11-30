@@ -19,7 +19,7 @@ import org.locationtech.jts.geom.{Geometry, LineString}
 /**
  * User-facing module imports
  */
-package object geotools extends DataFrameFunctions.Library with SpatialEncoders {
+package object sql extends DataFrameFunctions.Library with SpatialEncoders {
 
   def st_distanceSpheroid = udf((g1: Geometry, g2: Geometry) =>
     GeometricDistanceFunctions.ST_DistanceSpheroid(g1, g2))

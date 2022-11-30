@@ -13,7 +13,7 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Column, TypedColumn, _}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.spark.DataFrameFunctions._
+import org.locationtech.geomesa.spark.sql.DataFrameFunctions._
 import org.locationtech.geomesa.spark.jts._
 import org.locationtech.geomesa.spark.jts.util.WKTUtils
 import org.specs2.mutable.Specification
