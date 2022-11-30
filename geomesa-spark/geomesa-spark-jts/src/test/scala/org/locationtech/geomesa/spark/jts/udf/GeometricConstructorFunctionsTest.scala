@@ -284,9 +284,8 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       r.collect().head.getAs[Point](0) mustEqual expected
       dfBlank.select(st_makePoint(0, 1)).first mustEqual expected
 
-      // it would be nice if this worked (GEOMESA-2454); check that it doesn't so we know if it does in the future
       import spark.implicits._
-      r.as[GeometryContainer].head must haveClass[GeometryContainer] must throwAn[AnalysisException]
+      r.as[GeometryContainer].head must haveClass[GeometryContainer]
     }
 
     "st_makePointM" >> {

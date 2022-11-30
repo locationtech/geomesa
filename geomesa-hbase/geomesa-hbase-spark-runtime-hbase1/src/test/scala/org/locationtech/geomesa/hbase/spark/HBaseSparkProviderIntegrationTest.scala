@@ -9,12 +9,13 @@
 package org.locationtech.geomesa.hbase.spark
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.spark.sql.{DataFrame, SQLContext, SQLTypes, SparkSession}
+import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseDataStoreFactory}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
+import org.locationtech.geomesa.spark.sql.SQLTypes
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

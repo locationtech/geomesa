@@ -6,17 +6,17 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.sql
 
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions.udf
-import org.locationtech.geomesa.spark.GeometricDistanceFunctions._
 import org.locationtech.geomesa.spark.jts.udf.GeometricAccessorFunctions._
 import org.locationtech.geomesa.spark.jts.udf.GeometricCastFunctions._
 import org.locationtech.geomesa.spark.jts.udf.GeometricConstructorFunctions._
 import org.locationtech.geomesa.spark.jts.udf.GeometricOutputFunctions._
 import org.locationtech.geomesa.spark.jts.udf.GeometricProcessingFunctions.{ST_BufferPoint, ST_antimeridianSafeGeom}
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
+import org.locationtech.geomesa.spark.sql.GeometricDistanceFunctions._
 
 /**
  * Re-wrapping the UDFs so we can access them from PySpark without using the SQL API.
