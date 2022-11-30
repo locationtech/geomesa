@@ -6,7 +6,7 @@ from pyspark import SparkContext
 from pyspark.sql.column import Column
 
 spark_context = SparkContext.getOrCreate()
-geomesa_udfs = spark_context._jvm.org.locationtech.geomesa.spark.GeomesaPysparkFunctions
+geomesa_udfs = spark_context._jvm.org.locationtech.geomesa.spark.sql.GeomesaPysparkFunctions
 
 # Geometric Accessor Functions
 
