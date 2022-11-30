@@ -6,9 +6,9 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.apache.spark.sql
+package org.locationtech.geomesa.spark.sql
 
-import org.locationtech.geomesa.spark.GeometricDistanceFunctions
+import org.apache.spark.sql.SQLContext
 import org.locationtech.geomesa.spark.jts._
 
 object SQLTypes {

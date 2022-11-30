@@ -23,6 +23,11 @@
         <!-- only needed for packaging into the shaded jar -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-spark-core_${scala.binary.version}</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-spark-sql_${scala.binary.version}</artifactId>
             <scope>runtime</scope>
         </dependency>
@@ -40,15 +45,12 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-cqengine-datastore_${scala.binary.version}</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
 
         <!-- bring in guava and relocate it -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${hadoop.guava.version}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -57,6 +59,21 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- provided dependencies -->
+
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
         </dependency>
 
         <!-- test dependencies -->
@@ -73,22 +90,6 @@
             <artifactId>geomesa-spark-sql_${scala.binary.version}</artifactId>
             <classifier>tests</classifier>
             <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_${scala.binary.version}</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_${scala.binary.version}</artifactId>
-            <version>${spark.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-mapreduce-client-common</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

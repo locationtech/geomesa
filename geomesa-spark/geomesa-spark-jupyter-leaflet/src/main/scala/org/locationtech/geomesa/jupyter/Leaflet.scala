@@ -12,7 +12,7 @@ object L {
   import org.apache.commons.text.CharacterPredicates.ASCII_ALPHA_NUMERALS
   import org.apache.commons.text.{RandomStringGenerator, StringEscapeUtils}
   import org.apache.spark.sql._
-  import org.locationtech.geomesa.spark.SparkUtils
+  import org.locationtech.geomesa.spark.sql.SparkUtils
   import org.locationtech.jts.geom._
   import org.opengis.feature.`type`.AttributeDescriptor
   import org.opengis.feature.simple.SimpleFeature

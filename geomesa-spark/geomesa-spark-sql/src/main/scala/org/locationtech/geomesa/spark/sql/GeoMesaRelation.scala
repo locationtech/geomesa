@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa.spark.sql
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
@@ -20,9 +20,10 @@ import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStore
-import org.locationtech.geomesa.spark.GeoMesaRelation.{CachedRDD, IndexedRDD, PartitionedIndexedRDD, PartitionedRDD}
-import org.locationtech.geomesa.spark.GeoMesaSparkSQL.GEOMESA_SQL_FEATURE
 import org.locationtech.geomesa.spark.jts.util.WKTUtils
+import org.locationtech.geomesa.spark.sql.GeoMesaRelation.{CachedRDD, IndexedRDD, PartitionedIndexedRDD, PartitionedRDD}
+import org.locationtech.geomesa.spark.sql.GeoMesaSparkSQL.GEOMESA_SQL_FEATURE
+import org.locationtech.geomesa.spark.{GeoMesaSpark, SpatialRDD}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Envelope

@@ -10,7 +10,6 @@ package org.locationtech.geomesa.spark.sql
 
 import org.apache.spark.sql.{DataFrame, Dataset, Encoder}
 import org.locationtech.geomesa.features.serialization.GeoJsonSerializer
-import org.locationtech.geomesa.spark.SparkUtils
 
 import java.io.StringWriter
 
