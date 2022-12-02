@@ -13,7 +13,7 @@ import org.locationtech.geomesa.utils.concurrent.ExitingExecutor.NamedThreadFact
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.{Callable, Executors, TimeUnit}
 
 @RunWith(classOf[JUnitRunner])
 class ExitingExecutorTest extends Specification {
@@ -21,12 +21,15 @@ class ExitingExecutorTest extends Specification {
   "NamedThreadFactory" should {
     "create new threads with specified name pattern" in {
       val pool = Executors.newFixedThreadPool(2, new NamedThreadFactory("geomesa-%d"))
-      val name = pool.submit(() => {
-        val first = Thread.currentThread().getName
-        val second = pool.submit(() => Thread.currentThread().getName).get()
-        Seq(first, second)
+      val name = pool.submit(new Callable[Seq[String]]() {
+        override def call(): Seq[String] = {
+          val first = Thread.currentThread().getName
+          val second =
+            pool.submit(new Callable[String]() { override def call(): String = Thread.currentThread().getName }).get()
+          Seq(first, second)
+        }
       }).get()
-      name must equalTo(Seq("geomesa-0", "geomesa-1"))
+      name mustEqual Seq("geomesa-0", "geomesa-1")
       pool.shutdown()
       pool.awaitTermination(15, TimeUnit.SECONDS)
       pool.isTerminated must beTrue
