@@ -16,6 +16,7 @@ import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
+import org.apache.hadoop.security.UserGroupInformation
 import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 import org.locationtech.geomesa.hbase.data.HBaseDataStore.NoAuthsProvider
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
@@ -215,7 +216,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     }
 
     // master auths is the superset of auths this connector/user can support
-    val userName = User.getCurrent.getName
+    val userName = UserGroupInformation.getLoginUser.getUserName
     val masterAuths = VisibilityClient.getAuths(connection, userName).getAuthList.asScala.map(_.toStringUtf8)
 
     // get the auth params passed in as a comma-delimited string
