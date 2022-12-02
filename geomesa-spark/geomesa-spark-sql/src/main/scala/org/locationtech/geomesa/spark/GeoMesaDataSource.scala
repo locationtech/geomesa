@@ -60,27 +60,36 @@ class GeoMesaDataSource extends DataSourceRegister
       data: DataFrame): BaseRelation = {
 
     val newFeatureName = parameters(GEOMESA_SQL_FEATURE)
-    val sft = SparkUtils.createFeatureType(newFeatureName, data.schema)
+    val rddSft = SparkUtils.createFeatureType(newFeatureName, data.schema)
 
-    WithStore[DataStore](parameters) { ds =>
+    val storeSft = WithStore[DataStore](parameters) { ds =>
       if (ds.getTypeNames.contains(newFeatureName)) {
         val existing = ds.getSchema(newFeatureName)
-        if (!compatible(existing, sft)) {
+        if (!compatible(existing, rddSft)) {
           throw new IllegalStateException(
             "The dataframe is not compatible with the existing schema in the datastore:" +
-                s"\n  Dataframe schema: ${SimpleFeatureTypes.encodeType(sft)}" +
-                s"\n  Datastore schema: ${SimpleFeatureTypes.encodeType(existing)}")
+              s"\n  Dataframe schema: ${SimpleFeatureTypes.encodeType(rddSft)}" +
+              s"\n  Datastore schema: ${SimpleFeatureTypes.encodeType(existing)}")
         }
+        existing
       } else {
-        sft.getUserData.put("override.reserved.words", java.lang.Boolean.TRUE)
-        ds.createSchema(sft)
+        rddSft.getUserData.put("override.reserved.words", java.lang.Boolean.TRUE)
+        ds.createSchema(rddSft)
+        rddSft
       }
     }
 
-    val structType = if (data.queryExecution == null) { SparkUtils.createStructType(sft) } else { data.schema }
+    val structType = if (data.queryExecution == null) {
+      SparkUtils.createStructType(rddSft)
+    } else {
+      data.schema
+    }
 
+    // we need to pass schema to every worker in a serializable way
+    val sftString = SimpleFeatureTypes.encodeType(storeSft, includeUserData = true)
+    val typeName = storeSft.getTypeName
     val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions { partition =>
-      val sft = WithStore[DataStore](parameters)(_.getSchema(newFeatureName))
+      val sft = SimpleFeatureTypes.createType(typeName, sftString)
       val mappings = SparkUtils.rowsToFeatures(sft, structType)
       partition.map { row =>
         val sf = mappings.apply(row)
@@ -91,7 +100,7 @@ class GeoMesaDataSource extends DataSourceRegister
 
     GeoMesaSpark(parameters.asJava).save(rddToSave, parameters, newFeatureName)
 
-    GeoMesaRelation(sqlContext, parameters, data.schema, sft)
+    GeoMesaRelation(sqlContext, parameters, data.schema, rddSft)
   }
 
   // are schemas compatible? we're flexible with order, but require the same number, names and types
