@@ -85,9 +85,9 @@ object HadoopUtils extends LazyLogging {
 
     override def run(): Unit = {
       try {
-        logger.debug(s"Checking whether TGT needs renewing for ${UserGroupInformation.getCurrentUser}")
-        logger.debug(s"Logged in from keytab? ${UserGroupInformation.getCurrentUser.isFromKeytab}")
-        UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
+        logger.debug(s"Checking whether TGT needs renewing for ${UserGroupInformation.getLoginUser}")
+        logger.debug(s"Logged in from keytab? ${UserGroupInformation.getLoginUser.isFromKeytab}")
+        UserGroupInformation.getLoginUser.checkTGTAndReloginFromKeytab()
       } catch {
         case NonFatal(e) => logger.warn("Error checking and renewing TGT", e)
       }

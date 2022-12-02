@@ -9,21 +9,20 @@
 package org.locationtech.geomesa.spark.hbase
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.security.User
-import org.apache.hadoop.hbase.security.token.TokenUtil
 import org.apache.hadoop.io.Text
-import org.apache.hadoop.security.UserGroupInformation
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.geotools.data.{Query, Transaction}
+import org.geotools.data.{DataStore, Query, Transaction}
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.ScanPlan
 import org.locationtech.geomesa.hbase.data._
-import org.locationtech.geomesa.hbase.jobs.{GeoMesaHBaseInputFormat, HBaseJobUtils}
+import org.locationtech.geomesa.hbase.jobs.{GeoMesaHBaseInputFormat, HBaseJobUtils, Security}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.spark.{DataStoreConnector, SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
 import org.opengis.feature.simple.SimpleFeature
+
+import scala.collection.JavaConverters._
 
 class HBaseSpatialRDDProvider extends SpatialRDDProvider {
 
@@ -32,6 +31,13 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     HBaseDataStoreFactory.canProcess(params)
 
+  override def sft(params: Map[String, String], typeName: String) = {
+    val conf = HBaseConnectionPool.getConfiguration(params.asJava)
+    Security.doAuthorized(conf) {
+      Option(WithStore[DataStore](params)(_.getSchema(typeName)))
+    }
+  }
+
   def rdd(
       conf: Configuration,
       sc: SparkContext,
@@ -39,14 +45,6 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       origQuery: Query): SpatialRDD = {
 
     val ds = DataStoreConnector[HBaseDataStore](dsParams)
-
-    if (User.isSecurityEnabled) {
-      // configure auth token so that the HBase TokenUtil can pick it up for
-      // authentication in the remote worker processes - the keytab won't be accessible there
-      // needs to be in UserGroupInformation.getCurrentUser().getCredentials()
-      val token = TokenUtil.obtainToken(ds.connection, User.getCurrent)
-      UserGroupInformation.getCurrentUser.getCredentials.addToken(token.getService, token)
-    }
 
     // get the query plan to set up the iterators, ranges, etc
     lazy val sft = ds.getSchema(origQuery.getTypeName)
@@ -60,7 +58,8 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
     lazy val rddSft = origQuery.getHints.getTransformSchema.getOrElse(sft)
 
     def queryPlanToRdd(qp: ScanPlan): RDD[SimpleFeature] = {
-      val config = new Configuration(conf)
+      // we need to merge geomesa config with existing hadoop config
+      val config = HBaseConnectionPool.getConfiguration(dsParams.asJava)
       GeoMesaHBaseInputFormat.configure(config, qp)
       sc.newAPIHadoopRDD(config, classOf[GeoMesaHBaseInputFormat], classOf[Text], classOf[SimpleFeature]).map(_._2)
     }
@@ -104,9 +103,12 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
     */
   def unsafeSave(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit = {
     rdd.foreachPartition { iter =>
-      val ds = DataStoreConnector[HBaseDataStore](writeDataStoreParams)
-      WithClose(ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)) { writer =>
-        iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+      val conf = HBaseConnectionPool.getConfiguration(writeDataStoreParams.asJava)
+      Security.doAuthorized(conf) {
+        val ds = DataStoreConnector[HBaseDataStore](writeDataStoreParams)
+        WithClose(ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
       }
     }
   }
