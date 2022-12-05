@@ -16,11 +16,8 @@ import scala.collection.JavaConverters._
 class OrSplittingFilter extends DefaultFilterVisitor {
 
   // This function really returns a Seq[Filter].
-  override def visit(filter: Or, data: scala.Any): AnyRef = {
-    filter.getChildren.asScala.flatMap { subfilter =>
-      this.visit(subfilter, data)
-    }
-  }
+  override def visit(filter: Or, data: scala.Any): AnyRef =
+    filter.getChildren.asScala.flatMap(subfilter => this.visit(subfilter, data)).toSeq
 
   def visit(filter: Filter, data: scala.Any): Seq[Filter] = {
     filter match {

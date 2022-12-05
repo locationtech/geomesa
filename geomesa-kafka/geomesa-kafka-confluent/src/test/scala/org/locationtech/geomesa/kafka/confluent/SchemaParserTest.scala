@@ -11,7 +11,6 @@ package org.locationtech.geomesa.kafka.confluent
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
 import org.locationtech.jts.geom.impl.CoordinateArraySequenceFactory
@@ -25,6 +24,8 @@ import java.util.Date
 class SchemaParserTest extends Specification {
 
   import SchemaParser._
+
+  import scala.collection.JavaConverters._
 
   private val invalidGeomesaAvroSchemaJson =
     s"""{
@@ -358,12 +359,28 @@ class SchemaParserTest extends Specification {
     }
 
     "convert a schema with valid geomesa avro properties into an SFT" in {
-      val expectedSft = "id:String:cardinality=high:index=full,f1:Point,f2:Double,*f3:Geometry,f4:Date,f5:Date;" +
-        "geomesa.index.dtg='f4',geomesa.table.compression.enabled='true',geomesa.visibility.field='f6'," +
-        "geomesa.table.sharing='false'"
       val sft = SchemaParser.schemaToSft(validGeomesaAvroSchema)
 
-      SimpleFeatureTypes.encodeType(sft, includeUserData = true) mustEqual expectedSft
+      sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("id", "f1", "f2", "f3", "f4", "f5")
+      sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
+          Seq(classOf[String], classOf[Point], classOf[java.lang.Double], classOf[Geometry], classOf[Date], classOf[Date])
+      sft.getAttributeDescriptors.asScala.map(_.getUserData.asScala) mustEqual
+          Seq(
+            Map("cardinality" -> "high", "index" -> "full"),
+            Map("srid" -> "4326", "default" -> "false"),
+            Map.empty,
+            Map("srid" -> "4326", "default" -> "true"),
+            Map.empty,
+            Map.empty
+          )
+
+      sft.getUserData.asScala mustEqual Map(
+        "geomesa.index.dtg"->"f4",
+        "geomesa.table.compression.enabled" -> "true",
+        "geomesa.visibility.field" -> "f6",
+        "geomesa.table.sharing" -> "false",
+        "geomesa.mixed.geometries" -> "true"
+      )
     }
   }
 }

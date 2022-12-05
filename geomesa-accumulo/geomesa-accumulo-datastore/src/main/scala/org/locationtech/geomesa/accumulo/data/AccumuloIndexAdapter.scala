@@ -36,6 +36,7 @@ import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index, Z3IndexValues
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -123,16 +124,17 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
   }
 
   override def deleteTables(tables: Seq[String]): Unit = {
-    tables.par.foreach { table =>
+    def deleteOne(table: String): Unit = {
       if (tableOps.exists(table)) {
         tableOps.delete(table)
       }
     }
+    tables.toList.map(table => CachedThreadPool.submit(() => deleteOne(table))).foreach(_.get)
   }
 
   override def clearTables(tables: Seq[String], prefix: Option[Array[Byte]]): Unit = {
     val auths = ds.auths // get the auths once up front
-    tables.par.foreach { table =>
+    def clearOne(table: String): Unit = {
       if (tableOps.exists(table)) {
         WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queries.threads)) { deleter =>
           val range = prefix.map(p => Range.prefix(new Text(p))).getOrElse(new Range())
@@ -141,6 +143,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
         }
       }
     }
+    tables.toList.map(table => CachedThreadPool.submit(() => clearOne(table))).foreach(_.get)
   }
 
   override def createQueryPlan(strategy: QueryStrategy): AccumuloQueryPlan = {

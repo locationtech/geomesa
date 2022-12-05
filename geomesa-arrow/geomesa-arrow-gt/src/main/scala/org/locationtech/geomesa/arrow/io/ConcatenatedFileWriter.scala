@@ -20,8 +20,6 @@ import scala.util.control.NonFatal
 
 object ConcatenatedFileWriter {
 
-  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableLike
-
   /**
    * Reduce function for concatenating separate arrow files
    *
@@ -57,7 +55,9 @@ object ConcatenatedFileWriter {
   }
 
   private def generateEmptyResponse(sft: SimpleFeatureType, dictionaryFields: Seq[String], encoding: SimpleFeatureEncoding, ipcOpts: IpcOption, sort: Option[(String, Boolean)]) = {
-    val dictionaries = dictionaryFields.mapWithIndex { case (name, i) =>
+    var i = -1
+    val dictionaries = dictionaryFields.map { name =>
+      i += 1
       name -> ArrowDictionary.create(sft.getTypeName, i, Array.empty[AnyRef])
     }
     val os = new ByteArrayOutputStream()

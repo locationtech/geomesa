@@ -16,10 +16,9 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.jts.geom.{LineString, Point, Polygon}
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -29,7 +28,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets.UTF_8
 import java.text.SimpleDateFormat
 import java.util.UUID
-import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
@@ -42,9 +40,9 @@ class SimpleFeatureDatumReaderTest extends Specification with LazyLogging {
     val sft = SimpleFeatureTypes.createType("test","f0:Point,f1:Polygon,f2:LineString")
     val sf = new ScalaSimpleFeature(sft, "fakeid")
 
-    sf.setAttribute("f0", GeohashUtils.wkt2geom("POINT(45.0 49.0)").asInstanceOf[Point])
-    sf.setAttribute("f1", GeohashUtils.wkt2geom("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
-    sf.setAttribute("f2", GeohashUtils.wkt2geom("LINESTRING(47.28515625 25.576171875, 48 26, 49 27)").asInstanceOf[LineString])
+    sf.setAttribute("f0", WKTUtils.read("POINT(45.0 49.0)"))
+    sf.setAttribute("f1", WKTUtils.read("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))"))
+    sf.setAttribute("f2", WKTUtils.read("LINESTRING(47.28515625 25.576171875, 48 26, 49 27)"))
 
     sf
   }
@@ -110,13 +108,9 @@ class SimpleFeatureDatumReaderTest extends Specification with LazyLogging {
   def randomString(fieldId: Int, len: Int) : String = Seq.fill(len)(fieldId).mkString
 
   def createStringFeatures(sft:SimpleFeatureType, size: Int, id: String): SimpleFeature = {
-    val lst = new mutable.MutableList[String]
-    for(i <- 0 until size)
-      lst += randomString(i, 8)
-
     val sf = new ScalaSimpleFeature(sft, id)
-    for(i <- lst.indices) {
-      sf.setAttribute(i, lst(i))
+    for(i <- 0 until size) {
+      sf.setAttribute(i, randomString(i, 8))
     }
     sf
   }
@@ -176,8 +170,8 @@ class SimpleFeatureDatumReaderTest extends Specification with LazyLogging {
         sf.setAttribute("f4", r.nextBoolean().asInstanceOf[Object])
         sf.setAttribute("f5", UUID.fromString("12345678-1234-1234-1234-123456789012"))
         sf.setAttribute("f6", new SimpleDateFormat("yyyyMMdd").parse("20140102"))
-        sf.setAttribute("f7", GeohashUtils.wkt2geom("POINT(45.0 49.0)").asInstanceOf[Point])
-        sf.setAttribute("f8", GeohashUtils.wkt2geom("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
+        sf.setAttribute("f7", WKTUtils.read("POINT(45.0 49.0)"))
+        sf.setAttribute("f8", WKTUtils.read("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))"))
         sf
       }
 
