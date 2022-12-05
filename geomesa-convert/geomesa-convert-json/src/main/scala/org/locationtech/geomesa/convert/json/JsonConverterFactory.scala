@@ -75,8 +75,9 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
         }
 
         // track the 'properties', geometry type and 'id' in each feature
-        val props = scala.collection.mutable.Map.empty[String, ListBuffer[String]]
-        val geoms = scala.collection.mutable.Set.empty[ObjectType]
+        // use linkedHashSet/Map to retain insertion order
+        val props = scala.collection.mutable.LinkedHashMap.empty[String, ListBuffer[String]]
+        val geoms = scala.collection.mutable.LinkedHashSet.empty[ObjectType]
         var hasId = true
 
         features.take(AbstractConverterFactory.inferSampleSize).foreach { feature =>
@@ -85,7 +86,7 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
           hasId = hasId && feature.id.isDefined
         }
 
-        val idJsonField = if (hasId) { Some(new StringJsonField("id", "$.id", false, None)) } else { None }
+        val idJsonField = if (hasId) { Some(StringJsonField("id", "$.id", pathIsRoot = false, None)) } else { None }
         val idField = idJsonField match {
           case None    => Some(Expression("md5(string2bytes(json2string($0)))"))
           case Some(f) => Some(Expression(s"$$${f.name}"))
@@ -118,12 +119,12 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
           inferredTypes += inferred.copy(name = attr) // note: side-effect in map
           // account for optional nodes by wrapping transform with a try/null
           val transform = Some(Expression(s"try(${inferred.transform.apply(0)},null)"))
-          new StringJsonField(attr, path, false, transform)
+          StringJsonField(attr, path, pathIsRoot = false, transform)
         }
 
         // the geometry field
         val geomType = if (geoms.size > 1) { ObjectType.GEOMETRY } else { geoms.head }
-        val geomField = new GeometryJsonField(name("geom"), "$.geometry", false, None)
+        val geomField = GeometryJsonField(name("geom"), "$.geometry", pathIsRoot = false, None)
         inferredTypes += InferredType(geomField.name, geomType, IdentityTransform)
 
         // validate the existing schema, if any

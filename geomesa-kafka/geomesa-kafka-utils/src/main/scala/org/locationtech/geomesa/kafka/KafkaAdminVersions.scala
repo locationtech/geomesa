@@ -35,7 +35,7 @@ object KafkaAdminVersions extends LazyLogging {
         tryInvocation(m.invoke(admin, groupId, partitions)): Unit
     }.getOrElse {
       logger.warn("This version of Kafka does not support deleteConsumerGroupOffsets")
-      (_, _, _) => Unit
+      (_, _, _) => ()
     }
   }
 }

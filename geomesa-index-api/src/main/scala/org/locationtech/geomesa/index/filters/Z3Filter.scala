@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.filters
 import org.locationtech.geomesa.index.filters.RowFilter.RowFilterFactory
 import org.locationtech.geomesa.index.index.z3.Z3IndexValues
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.sfcurve.zorder.Z3
+import org.locationtech.geomesa.zorder.sfcurve.Z3
 
 import java.nio.ByteBuffer
 

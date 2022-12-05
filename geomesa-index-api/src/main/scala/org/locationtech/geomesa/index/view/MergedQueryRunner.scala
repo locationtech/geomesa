@@ -251,7 +251,8 @@ class MergedQueryRunner(
       readers: Seq[FeatureReader[SimpleFeatureType, SimpleFeature]],
       single: FeatureReader[SimpleFeatureType, SimpleFeature] => CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
     if (parallel) {
-      SelfClosingIterator(readers.par.map(single).iterator).flatMap(i => i)
+      // not truly parallel but should kick them all off up front
+      SelfClosingIterator(readers.toList.map(single).iterator).flatMap(i => i)
     } else {
       SelfClosingIterator(readers.iterator).flatMap(single)
     }

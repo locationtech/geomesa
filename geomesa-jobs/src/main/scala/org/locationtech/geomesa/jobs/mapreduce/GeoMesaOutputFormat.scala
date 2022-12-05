@@ -80,6 +80,20 @@ object GeoMesaOutputFormat {
   }
 
   /**
+   * Helper for java interop
+   *
+   * @param conf conf
+   * @param params data store parameters
+   * @param sft simple feature type to write, must exist already in the store
+   */
+  def setOutputJava(
+      conf: Configuration,
+      params: java.util.Map[String, String],
+      sft: SimpleFeatureType): Unit = {
+    setOutput(conf, params.asScala.toMap, sft)
+  }
+
+  /**
     * Record writer for GeoMesa datastores.
     *
     * All feature types must exist already in the datastore. The input key is ignored.

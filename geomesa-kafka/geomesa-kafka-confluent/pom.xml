@@ -102,7 +102,7 @@
                 </exclusion>
                 <exclusion>
                     <groupId>com.kjetland</groupId>
-                    <artifactId>mbknor-jackson-jsonschema_2.13</artifactId>
+                    <artifactId>*</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>log4j</groupId>
@@ -128,7 +128,7 @@
                 </exclusion>
                 <exclusion>
                     <groupId>com.kjetland</groupId>
-                    <artifactId>mbknor-jackson-jsonschema_2.13</artifactId>
+                    <artifactId>*</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>log4j</groupId>

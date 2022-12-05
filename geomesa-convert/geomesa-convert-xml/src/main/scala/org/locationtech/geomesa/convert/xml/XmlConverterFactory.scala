@@ -53,7 +53,9 @@ object XmlConverterFactory {
         path       <- optional(cur, "feature-path").right
         xsd        <- optional(cur, "xsd").right
       } yield {
-        val namespaces = namespace.value.unwrapped().asInstanceOf[java.util.Map[String, String]].asScala.toMap
+        val namespaces =
+          namespace.valueOpt.map(_.unwrapped().asInstanceOf[java.util.Map[String, String]].asScala.toMap)
+              .getOrElse(Map.empty)
         XmlConfig(`type`, provider, namespaces, xsd, path, idField, caches, userData)
       }
     }
@@ -101,7 +103,7 @@ object XmlConverterFactory {
               case Some(v) => Right(v.asInstanceOf[T])
               case None =>
                 val msg = s"Must be one of: ${values.mkString(", ")}"
-                value.failed(CannotConvert(value.value.toString, values.head.getClass.getSimpleName, msg))
+                value.failed(CannotConvert(value.valueOpt.map(_.toString).orNull, values.head.getClass.getSimpleName, msg))
             }
           }
         }

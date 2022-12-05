@@ -425,9 +425,14 @@ class QueryFilterSplitterTest extends Specification {
         options.head.strategies must haveLength(2)
         options.head.strategies.map(_.index.name) must containTheSameElementsAs(Seq(Z2Index.name, AttributeIndex.name))
         options.head.strategies.find(_.index.name == Z2Index.name).get.primary must beSome(f(geom))
-        options.head.strategies.find(_.index.name == Z2Index.name).get.secondary must beNone
         options.head.strategies.find(_.index.name == AttributeIndex.name).get.primary must beSome(f(indexedAttr))
-        options.head.strategies.find(_.index.name == AttributeIndex.name).get.secondary must beSome(not(geom))
+        options.head.strategies.find(_.index.name == Z2Index.name).get.secondary match {
+          case None =>
+            options.head.strategies.find(_.index.name == AttributeIndex.name).get.secondary must beSome(not(geom))
+          case Some(secondary) =>
+            secondary mustEqual not(indexedAttr)
+            options.head.strategies.find(_.index.name == AttributeIndex.name).get.secondary must beNone
+        }
       }
 
       "and collapse overlapping query filters" >> {

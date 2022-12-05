@@ -33,7 +33,7 @@ class JsonPathPropertyAccessorTest extends Specification {
       val accessors =
         PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature(sft, ""), "$.json.foo", classOf[String], null)
       accessors must not(beNull)
-      accessors.asScala must contain(JsonPathPropertyAccessor)
+      accessors.asScala.indexOf(JsonPathPropertyAccessor) must beGreaterThanOrEqualTo(0)
     }
 
     "access json values in simple features" in {
