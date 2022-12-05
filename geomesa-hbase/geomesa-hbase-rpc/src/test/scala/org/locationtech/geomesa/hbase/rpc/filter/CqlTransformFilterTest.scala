@@ -66,7 +66,7 @@ class CqlTransformFilterTest extends Specification with LazyLogging {
       val filterTransform = CqlTransformFilter.parseFrom(Base64.getDecoder.decode(base64TransformerFilter))
 
       def getAttributes(cell: Cell): Seq[AnyRef] =
-        serializer.deserialize(cell.getValueArray, cell.getValueOffset, cell.getValueLength).getAttributes.asScala
+        serializer.deserialize(cell.getValueArray, cell.getValueOffset, cell.getValueLength).getAttributes.asScala.toSeq
 
       filter.filterKeyValue(cells.head) mustEqual ReturnCode.INCLUDE
       filter.transformCell(cells.head) mustEqual cells.head

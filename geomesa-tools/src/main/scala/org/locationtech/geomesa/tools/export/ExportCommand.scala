@@ -300,7 +300,7 @@ object ExportCommand extends LazyLogging {
     query.setPropertyNames(attributes: _*)
 
     if (!params.sortFields.isEmpty) {
-      val fields = params.sortFields.asScala
+      val fields = params.sortFields.asScala.toSeq
       if (fields.exists(a => sft.indexOf(a) == -1)) {
         val errors = fields.filter(a => sft.indexOf(a) == -1)
         throw new ParameterException(s"Invalid sort attribute${if (errors.lengthCompare(1) == 0) "" else "s"}: " +

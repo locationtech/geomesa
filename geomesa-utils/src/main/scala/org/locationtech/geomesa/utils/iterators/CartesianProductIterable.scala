@@ -19,17 +19,16 @@ package org.locationtech.geomesa.utils.iterators
  * increment slowly).
  *
  * @param seqs the list-of-lists whose items are to be recombined
- * @tparam T the type of items
  */
 
 case class CartesianProductIterable(seqs: Seq[Seq[_]]) extends Iterable[Seq[_]] {
   lazy val expectedSize: Long = seqs.map(_.size.toLong).product
 
   def iterator: Iterator[Seq[_]] = new Iterator[Seq[_]] {
-    val n: Int = seqs.size
-    val maxes: Vector[Int] = seqs.map(seq => seq.size).toVector
-    val indexes = new scala.collection.mutable.ArraySeq[Int](seqs.size)
-    var nextItem: Seq[_] = if (isValid) realize else null
+    private val n: Int = seqs.size
+    private val maxes: Vector[Int] = seqs.map(seq => seq.size).toVector
+    private val indexes = Array.ofDim[Int](seqs.size)
+    private var nextItem: Seq[_] = if (isValid) realize else null
 
     def isValid: Boolean = (0 until n).forall(i => indexes(i) < maxes(i))
 

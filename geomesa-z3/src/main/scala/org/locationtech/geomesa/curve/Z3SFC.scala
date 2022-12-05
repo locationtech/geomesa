@@ -10,8 +10,7 @@ package org.locationtech.geomesa.curve
 
 import org.locationtech.geomesa.curve.NormalizedDimension._
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
-import org.locationtech.sfcurve.IndexRange
-import org.locationtech.sfcurve.zorder.{Z3, ZRange}
+import org.locationtech.geomesa.zorder.sfcurve.{IndexRange, Z3, ZRange}
 
 /**
   * Z3 space filling curve

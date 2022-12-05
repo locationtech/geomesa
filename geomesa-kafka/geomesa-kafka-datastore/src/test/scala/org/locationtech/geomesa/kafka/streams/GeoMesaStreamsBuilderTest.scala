@@ -103,7 +103,7 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
             }
           }
         }
-        buf
+        buf.toSeq
       }
 
       val timestampExtractor = new TimestampExtractingTransformer()

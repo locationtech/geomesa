@@ -28,7 +28,7 @@ import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.zk.ZookeeperMetadata
 import org.opengis.filter.Filter
 import pureconfig.error.{CannotConvert, ConfigReaderFailures, FailureReason}
-import pureconfig.{ConfigCursor, ConfigReader, Derivation}
+import pureconfig.{ConfigCursor, ConfigReader, ConfigSource}
 
 import java.awt.RenderingHints
 import java.io.IOException
@@ -88,7 +88,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  private val LayerViewReader = Derivation.Successful(ConfigReader.fromCursor(readLayerViewConfig))
+  private val LayerViewReader = ConfigReader.fromCursor(readLayerViewConfig)
   private val LayerViewClassTag = ClassTag[LayerViewConfig](classOf[LayerViewConfig])
 
   val DefaultCatalog: String = "geomesa-catalog"
@@ -343,7 +343,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
             case c => Seq(asConfigObject(c))
           }
           e.getKey -> views.map { c =>
-            pureconfig.loadConfigOrThrow[LayerViewConfig](c.toConfig)(LayerViewClassTag, LayerViewReader)
+            ConfigSource.fromConfig(c.toConfig).loadOrThrow[LayerViewConfig](LayerViewClassTag, LayerViewReader)
           }
         }
         val configs = entries.map(f => (f._1, f._2.toSeq))

@@ -185,7 +185,7 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
         case "dtg"  => dtg
         case "name" => f1.getAttribute("name")
       }
-      ScalaSimpleFeature.create(sft, f1.getID, attributes: _*)
+      ScalaSimpleFeature.create(sft, f1.getID, attributes.toSeq: _*)
     }
   }
 
@@ -251,7 +251,7 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
           case "dtg"  => dtg
           case "name" => f.getAttribute("name")
         }
-        ScalaSimpleFeature.create(sft, f1.getID, attributes: _*)
+        ScalaSimpleFeature.create(sft, f1.getID, attributes.toSeq: _*)
       }
     }
   }

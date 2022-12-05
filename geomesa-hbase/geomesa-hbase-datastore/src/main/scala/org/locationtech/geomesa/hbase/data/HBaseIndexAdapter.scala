@@ -21,6 +21,7 @@ import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.index.api.IndexAdapter.RequiredVisibilityWriter
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.IsFlushableImplicits
 
 import java.nio.charset.StandardCharsets
@@ -148,11 +149,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
   override def deleteTables(tables: Seq[String]): Unit = {
     WithClose(ds.connection.getAdmin) { admin =>
-      tables.par.foreach { name =>
+      def deleteOne(name: String): Unit = {
         val table = TableName.valueOf(name)
         if (admin.tableExists(table)) {
           HBaseVersions.disableTableAsync(admin, table)
-          val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
+          val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite)
           logger.debug(s"Waiting for table '$table' to be disabled with " +
               s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
           val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
@@ -163,11 +164,12 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
           admin.deleteTable(table)
         }
       }
+      tables.toList.map(t => CachedThreadPool.submit(() => deleteOne(t))).foreach(_.get)
     }
   }
 
   override def clearTables(tables: Seq[String], prefix: Option[Array[Byte]]): Unit = {
-    tables.par.foreach { name =>
+    def clearOne(name: String): Unit = {
       val tableName = TableName.valueOf(name)
       WithClose(ds.connection.getTable(tableName)) { table =>
         val scan = new Scan().setFilter(new KeyOnlyFilter)
@@ -183,6 +185,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         }
       }
     }
+    tables.toList.map(t => CachedThreadPool.submit(() => clearOne(t))).foreach(_.get)
   }
 
   override def createQueryPlan(strategy: QueryStrategy): HBaseQueryPlan = {
@@ -539,7 +542,7 @@ object HBaseIndexAdapter extends LazyLogging {
    */
   def waitForTable(admin: Admin, table: TableName): Unit = {
     if (!admin.isTableAvailable(table)) {
-      val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
+      val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite)
       logger.debug(s"Waiting for table '$table' to become available with " +
           s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
       val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)

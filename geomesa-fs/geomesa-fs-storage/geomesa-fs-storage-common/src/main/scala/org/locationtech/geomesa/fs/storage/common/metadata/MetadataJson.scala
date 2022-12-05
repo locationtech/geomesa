@@ -18,7 +18,7 @@ import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
-import pureconfig.ConfigWriter
+import pureconfig.{ConfigSource, ConfigWriter}
 
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
@@ -57,7 +57,7 @@ object MetadataJson extends MethodProfiling {
         }
         if (config.hasPath("name")) {
           cached = profile("Parsed metadata configuration") {
-            pureconfig.loadConfigOrThrow[NamedOptions](config)
+            ConfigSource.fromConfig(config).loadOrThrow[NamedOptions]
           }
           cache.put(key, cached)
         } else {
@@ -100,8 +100,8 @@ object MetadataJson extends MethodProfiling {
     }
     val toCache = if (data == interpolated) { metadata } else {
       // reload through ConfigFactory to resolve substitutions
-      pureconfig.loadConfigOrThrow[NamedOptions](
-        ConfigFactory.load(ConfigFactory.parseString(interpolated, ParseOptions)))
+      ConfigSource.fromConfig(ConfigFactory.load(ConfigFactory.parseString(interpolated, ParseOptions)))
+          .loadOrThrow[NamedOptions]
     }
     cache.put(context.root.toUri.toString, toCache)
     PathCache.register(context.fc, file)

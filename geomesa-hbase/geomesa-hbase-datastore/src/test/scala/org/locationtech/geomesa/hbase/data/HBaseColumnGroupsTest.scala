@@ -257,7 +257,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
               case p: Point => s"POINT (${Math.round(p.getX * 10) / 10d} ${Math.round(p.getY * 10) / 10d})"
               case a => a
             }
-            ScalaSimpleFeature.create(f.getFeatureType, f.getID, attributes: _*)
+            ScalaSimpleFeature.create(f.getFeatureType, f.getID, attributes.toSeq: _*)
           }.toList
           results must containTheSameElementsAs((4 to 8).toFeatures(query.getPropertyNames))
         }

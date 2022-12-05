@@ -357,12 +357,12 @@ class AvroSimpleFeatureTypeParserTest extends Specification {
     }
 
     "convert a schema with valid geomesa avro properties into an SFT" in {
-      val expectedSft = "id:String:cardinality=high:index=full,f1:Point,f2:Double,*f3:Geometry,f4:Date,f5:Date;" +
-        "geomesa.index.dtg='f4',geomesa.table.compression.enabled='true',geomesa.visibility.field='f6'," +
-        "geomesa.table.sharing='false'"
       val sft = AvroSimpleFeatureTypeParser.schemaToSft(validGeomesaAvroSchema)
-
-      SimpleFeatureTypes.encodeType(sft, includeUserData = true) mustEqual expectedSft
+      val expectedSftString = "id:String:cardinality=high:index=full,f1:Point,f2:Double,*f3:Geometry,f4:Date,f5:Date;" +
+          "geomesa.index.dtg='f4',geomesa.table.compression.enabled='true',geomesa.visibility.field='f6'," +
+          "geomesa.table.sharing='false'"
+      val expectedSft = SimpleFeatureTypes.createType(sft.getName.getNamespaceURI, sft.getTypeName, expectedSftString)
+      sft mustEqual expectedSft
     }
   }
 }
