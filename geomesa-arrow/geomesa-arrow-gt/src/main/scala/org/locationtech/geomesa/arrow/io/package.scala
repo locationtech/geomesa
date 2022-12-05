@@ -164,8 +164,8 @@ package object io {
       sort: Option[(String, Boolean)],
       batches: CloseableIterator[Array[Byte]],
       firstBatchHasHeader: Boolean): CloseableIterator[Array[Byte]] = {
-    val body = new ArrowFileIterator(sft, dictionaries, encoding, sort, ipcOpts, batches, firstBatchHasHeader)
-    body ++ CloseableIterator.single(if (ipcOpts.write_legacy_ipc_format) { legacyFooter } else { footer })
+    val ft = if (ipcOpts.write_legacy_ipc_format) { legacyFooter } else { footer }
+    new ArrowFileIterator(sft, dictionaries, encoding, sort, ipcOpts, batches, firstBatchHasHeader, ft)
   }
 
   // per arrow streaming format footer is the encoded int -1, 0
@@ -179,16 +179,25 @@ package object io {
       sort: Option[(String, Boolean)],
       ipcOpts: IpcOption,
       batches: CloseableIterator[Array[Byte]],
-      firstBatchHasHeader: Boolean
+      firstBatchHasHeader: Boolean,
+      footer: Array[Byte]
     ) extends CloseableIterator[Array[Byte]] {
 
     private var seenBatch = false
+    private var seenFooter = false
 
-    override def hasNext: Boolean = batches.hasNext || !seenBatch
+    override def hasNext: Boolean = batches.hasNext || !seenBatch || !seenFooter
 
     override def next(): Array[Byte] = {
       if (seenBatch) {
-        batches.next()
+        if (batches.hasNext) {
+          batches.next()
+        } else if (seenFooter) {
+          throw new NoSuchElementException("Next on an empty iterator")
+        } else {
+          seenFooter = true
+          footer
+        }
       } else {
         seenBatch = true
         if (batches.hasNext) {

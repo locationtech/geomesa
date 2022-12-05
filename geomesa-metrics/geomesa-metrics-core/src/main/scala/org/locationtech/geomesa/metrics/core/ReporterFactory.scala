@@ -70,7 +70,7 @@ object ReporterFactory {
     private def timeUnit(cur: ConfigObjectCursor, key: String, fallback: String): Either[ConfigReaderFailures, TimeUnit] = {
       val primary = cur.atKey(key).right.flatMap(_.asString).right.flatMap { unit =>
         TimeUnit.values().find(_.toString.equalsIgnoreCase(unit)).toRight[ConfigReaderFailures](
-          ConfigReaderFailures(cur.failureFor(CannotConvert(cur.toString, "TimeUnit", "Does not match a TimeUnit")))
+          ConfigReaderFailures(cur.failureFor(CannotConvert(cur.valueOpt.map(_.toString).orNull, "TimeUnit", "Does not match a TimeUnit")))
         )
       }
       if (primary.isRight || fallback == null) { primary } else {
@@ -83,7 +83,7 @@ object ReporterFactory {
       if (cur.isUndefined) { Right(-1L) } else {
         cur.asString.right.flatMap { d =>
           try { Right(Duration(d).toMillis) } catch {
-            case NonFatal(e) => cur.failed(CannotConvert(cur.toString, "Duration", e.getMessage))
+            case NonFatal(e) => cur.failed(CannotConvert(cur.valueOpt.map(_.toString).orNull, "Duration", e.getMessage))
           }
         }
       }

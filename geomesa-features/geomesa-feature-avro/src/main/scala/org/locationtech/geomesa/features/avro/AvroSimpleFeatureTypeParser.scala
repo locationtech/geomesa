@@ -52,7 +52,7 @@ object AvroSimpleFeatureTypeParser {
 
       metadata.field match {
         case GeometryField(_, geomType, default) if !metadata.exclude =>
-          builder.add(fieldName, geomType)
+          builder.add(fieldName, geomType, org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
           if (default) {
             defaultGeomField.foreach { name =>
               throw new IllegalArgumentException(s"There may be only one default geometry field in a schema: " +
@@ -60,6 +60,7 @@ object AvroSimpleFeatureTypeParser {
             }
             builder.setDefaultGeometry(fieldName)
             defaultGeomField = Some(fieldName)
+            builder.get(fieldName).getUserData.put("default", "true")
           }
 
         case DateField(_) if !metadata.exclude =>

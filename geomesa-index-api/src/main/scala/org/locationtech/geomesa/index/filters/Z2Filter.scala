@@ -12,7 +12,7 @@ import org.locationtech.geomesa.index.filters.RowFilter.RowFilterFactory
 import org.locationtech.geomesa.index.filters.Z3Filter._
 import org.locationtech.geomesa.index.index.z2.Z2IndexValues
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.sfcurve.zorder.Z2
+import org.locationtech.geomesa.zorder.sfcurve.Z2
 
 import java.nio.ByteBuffer
 

@@ -61,8 +61,6 @@ class ScalaSimpleFeature private (sft: SimpleFeatureType, values: Array[AnyRef])
 
 object ScalaSimpleFeature {
 
-  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
-
   import scala.collection.JavaConverters._
 
   /**
@@ -102,8 +100,10 @@ object ScalaSimpleFeature {
   def retype(sft: SimpleFeatureType, in: SimpleFeature): SimpleFeature = {
     if (sft == in.getFeatureType) { in } else {
       val out = new ScalaSimpleFeature(sft, in.getID)
-      sft.getAttributeDescriptors.asScala.foreachIndex { case (d, i) =>
+      var i = 0
+      sft.getAttributeDescriptors.asScala.foreach { d =>
         out.setAttribute(i, in.getAttribute(d.getLocalName))
+        i += 1
       }
       out.getUserData.putAll(in.getUserData)
       out

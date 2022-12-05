@@ -58,7 +58,6 @@ class DelimitedTextConverterFactory
       format: CSVFormat,
       lines: Seq[String],
       sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableLike
 
     // : Seq[List[String]]
     val rows = lines.flatMap { line =>
@@ -87,15 +86,19 @@ class DelimitedTextConverterFactory
       val converterConfig = DelimitedTextConfig(typeToProcess, formats.find(_._2 == format).get._1,
         Some(Expression("md5(string2bytes($0))")), Map.empty, Map.empty)
 
-      val fields = schema.getAttributeDescriptors.asScala.mapWithIndex { case (d, i) =>
-        BasicField(d.getLocalName, Some(Expression(types(i).transform(i + 1)))) // 0 is the whole record
+      val fields = {
+        var i = -1
+        schema.getAttributeDescriptors.asScala.map { d =>
+          i += 1
+          BasicField(d.getLocalName, Some(Expression(types(i).transform(i + 1)))) // 0 is the whole record
+        }
       }
 
       val options = DelimitedTextOptions(None, CharNotSpecified, CharNotSpecified, None,
         SimpleFeatureValidator.default, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
       val config = configConvert.to(converterConfig)
-          .withFallback(fieldConvert.to(fields))
+          .withFallback(fieldConvert.to(fields.toSeq))
           .withFallback(optsConvert.to(options))
           .toConfig
 
@@ -151,7 +154,7 @@ class DelimitedTextConverterFactory
           SimpleFeatureValidator.default, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
         val config = configConvert.to(converterConfig)
-            .withFallback(fieldConvert.to(fields))
+            .withFallback(fieldConvert.to(fields.toSeq))
             .withFallback(optsConvert.to(options))
             .toConfig
 

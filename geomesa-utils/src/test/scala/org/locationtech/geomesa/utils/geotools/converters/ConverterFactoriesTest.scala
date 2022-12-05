@@ -10,7 +10,6 @@ package org.locationtech.geomesa.utils.geotools.converters
 
 import org.geotools.util.factory.GeoTools
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.converters.ScalaCollectionsConverterFactory.{ListToListConverter, MapToMapConverter}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -32,12 +31,17 @@ class ConverterFactoriesTest extends Specification {
         "seq and list" >> {
           val converter = factory.createConverter(classOf[Seq[_]], classOf[java.util.List[_]], null)
           converter must not(beNull)
-          converter must beAnInstanceOf[ListToListConverter]
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.SeqToJava)
         }
-        "list and sequence" >> {
-          val converter = factory.createConverter(classOf[java.util.List[_]], classOf[Seq[_]], null)
+        "list and mutable sequence" >> {
+          val converter = factory.createConverter(classOf[java.util.List[_]], classOf[scala.collection.mutable.Seq[_]], null)
           converter must not(beNull)
-          converter must beAnInstanceOf[ListToListConverter]
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.JavaToMutableSeq)
+        }
+        "list and immutable sequence" >> {
+          val converter = factory.createConverter(classOf[java.util.List[_]], classOf[scala.collection.immutable.Seq[_]], null)
+          converter must not(beNull)
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.JavaToImmutableSeq)
         }
       }
 
@@ -45,22 +49,27 @@ class ConverterFactoriesTest extends Specification {
         "list and java list" >> {
           val converter = factory.createConverter(classOf[List[_]], classOf[java.util.List[_]], null)
           converter must not(beNull)
-          converter must beAnInstanceOf[ListToListConverter]
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.SeqToJava)
         }
-        "java list and list" >> {
-          val converter = factory.createConverter(classOf[java.util.List[_]], classOf[List[_]], null)
+        "java list and immutable list" >> {
+          val converter = factory.createConverter(classOf[java.util.List[_]], classOf[scala.collection.immutable.List[_]], null)
           converter must not(beNull)
-          converter must beAnInstanceOf[ListToListConverter]
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.JavaToImmutableSeq)
         }
-        "array list and sequence" >> {
-          val converter = factory.createConverter(classOf[java.util.ArrayList[_]], classOf[Seq[_]], null)
+        "array list and immutable sequence" >> {
+          val converter = factory.createConverter(classOf[java.util.ArrayList[_]], classOf[scala.collection.immutable.Seq[_]], null)
           converter must not(beNull)
-          converter must beAnInstanceOf[ListToListConverter]
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.JavaToImmutableSeq)
+        }
+        "array list and mutable sequence" >> {
+          val converter = factory.createConverter(classOf[java.util.ArrayList[_]], classOf[scala.collection.mutable.Seq[_]], null)
+          converter must not(beNull)
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.JavaToMutableSeq)
         }
         "sequence and array list" >> {
           val converter = factory.createConverter(classOf[Seq[_]], classOf[java.util.ArrayList[_]], null)
           converter must not(beNull)
-          converter must beAnInstanceOf[ListToListConverter]
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.SeqToJava)
         }
       }
 
@@ -68,12 +77,17 @@ class ConverterFactoriesTest extends Specification {
         "map and java map" >> {
           val converter = factory.createConverter(classOf[Map[_, _]], classOf[java.util.Map[_, _]], null)
           converter must not(beNull)
-          converter must beAnInstanceOf[MapToMapConverter]
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.MapToJava)
         }
-        "java map and map" >> {
-          val converter = factory.createConverter(classOf[java.util.Map[_, _]], classOf[Map[_, _]], null)
+        "java map and immutable map" >> {
+          val converter = factory.createConverter(classOf[java.util.Map[_, _]], classOf[scala.collection.immutable.Map[_, _]], null)
           converter must not(beNull)
-          converter must beAnInstanceOf[MapToMapConverter]
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.JavaToImmutableMap)
+        }
+        "java map and mutable map" >> {
+          val converter = factory.createConverter(classOf[java.util.Map[_, _]], classOf[scala.collection.mutable.Map[_, _]], null)
+          converter must not(beNull)
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.JavaToMutableMap)
         }
       }
 
@@ -81,22 +95,32 @@ class ConverterFactoriesTest extends Specification {
         "map and java hashmap" >> {
           val converter = factory.createConverter(classOf[Map[_, _]], classOf[java.util.HashMap[_, _]], null)
           converter must not(beNull)
-          converter must beAnInstanceOf[MapToMapConverter]
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.MapToJava)
         }
-        "java hashmap and map" >> {
-          val converter = factory.createConverter(classOf[java.util.HashMap[_, _]], classOf[Map[_, _]], null)
+        "java hashmap and immutable map" >> {
+          val converter = factory.createConverter(classOf[java.util.HashMap[_, _]], classOf[scala.collection.immutable.Map[_, _]], null)
           converter must not(beNull)
-          converter must beAnInstanceOf[MapToMapConverter]
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.JavaToImmutableMap)
         }
-        "java map and hashmap" >> {
-          val converter = factory.createConverter(classOf[java.util.Map[_, _]], classOf[HashMap[_, _]], null)
+        "java hashmap and mutable map" >> {
+          val converter = factory.createConverter(classOf[java.util.HashMap[_, _]], classOf[scala.collection.mutable.Map[_, _]], null)
           converter must not(beNull)
-          converter must beAnInstanceOf[MapToMapConverter]
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.JavaToMutableMap)
+        }
+        "java map and immutable hashmap" >> {
+          val converter = factory.createConverter(classOf[java.util.Map[_, _]], classOf[scala.collection.immutable.HashMap[_, _]], null)
+          converter must not(beNull)
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.JavaToImmutableMap)
+        }
+        "java map and mutable hashmap" >> {
+          val converter = factory.createConverter(classOf[java.util.Map[_, _]], classOf[scala.collection.mutable.HashMap[_, _]], null)
+          converter must not(beNull)
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.JavaToMutableMap)
         }
         "hashmap and java map" >> {
           val converter = factory.createConverter(classOf[HashMap[_, _]], classOf[java.util.Map[_, _]], null)
           converter must not(beNull)
-          converter must beAnInstanceOf[MapToMapConverter]
+          converter must beTheSameAs(ScalaCollectionsConverterFactory.MapToJava)
         }
       }
     }
@@ -104,20 +128,20 @@ class ConverterFactoriesTest extends Specification {
     "convert lists" >> {
       val converter = factory.createConverter(classOf[List[Int]], classOf[java.util.List[Int]], null)
       val converted = converter.convert(List(3, 2, 1), classOf[java.util.List[Int]])
-      converted must beAnInstanceOf[java.util.List[Int]]
-      converted.asInstanceOf[java.util.List[Int]].size mustEqual 3
-      converted.asInstanceOf[java.util.List[Int]].get(0) mustEqual 3
-      converted.asInstanceOf[java.util.List[Int]].get(1) mustEqual 2
-      converted.asInstanceOf[java.util.List[Int]].get(2) mustEqual 1
+      converted must not(beNull)
+      converted.size mustEqual 3
+      converted.get(0) mustEqual 3
+      converted.get(1) mustEqual 2
+      converted.get(2) mustEqual 1
     }
 
     "convert maps" >> {
       val converter = factory.createConverter(classOf[Map[String, Int]], classOf[java.util.Map[String, Int]], null)
       val converted = converter.convert(Map("one" -> 1, "two" -> 2), classOf[java.util.Map[String, Int]])
-      converted must beAnInstanceOf[java.util.Map[String, Int]]
-      converted.asInstanceOf[java.util.Map[String, Int]].size mustEqual 2
-      converted.asInstanceOf[java.util.Map[String, Int]].get("one") mustEqual 1
-      converted.asInstanceOf[java.util.Map[String, Int]].get("two") mustEqual 2
+      converted must not(beNull)
+      converted.size mustEqual 2
+      converted.get("one") mustEqual 1
+      converted.get("two") mustEqual 2
     }
 
     "return null for unhandled class types" >> {
@@ -165,21 +189,21 @@ class ConverterFactoriesTest extends Specification {
       list.add(2)
       list.add(1)
       val converted = converter.convert(list.toString, classOf[java.util.List[Int]])
-      converted must beAnInstanceOf[java.util.List[Int]]
-      converted.asInstanceOf[java.util.List[Int]].size mustEqual 3
-      converted.asInstanceOf[java.util.List[Int]].get(0) mustEqual 3
-      converted.asInstanceOf[java.util.List[Int]].get(1) mustEqual 2
-      converted.asInstanceOf[java.util.List[Int]].get(2) mustEqual 1
+      converted must not(beNull)
+      converted.size mustEqual 3
+      converted.get(0) mustEqual 3
+      converted.get(1) mustEqual 2
+      converted.get(2) mustEqual 1
     }
 
     "convert from geomesa string to List" >> {
       val converter = factory.createConverter(classOf[String], classOf[java.util.List[Int]], hints)
       val converted = converter.convert("3,2,1", classOf[java.util.List[Int]])
-      converted must beAnInstanceOf[java.util.List[Int]]
-      converted.asInstanceOf[java.util.List[Int]].size mustEqual 3
-      converted.asInstanceOf[java.util.List[Int]].get(0) mustEqual 3
-      converted.asInstanceOf[java.util.List[Int]].get(1) mustEqual 2
-      converted.asInstanceOf[java.util.List[Int]].get(2) mustEqual 1
+      converted must not(beNull)
+      converted.size mustEqual 3
+      converted.get(0) mustEqual 3
+      converted.get(1) mustEqual 2
+      converted.get(2) mustEqual 1
     }
 
     "return null if can't convert to List" >> {
@@ -194,19 +218,19 @@ class ConverterFactoriesTest extends Specification {
       map.put("one", 1)
       map.put("two", 2)
       val converted = converter.convert(map.toString, classOf[java.util.Map[String, Int]])
-      converted must beAnInstanceOf[java.util.Map[String, Int]]
-      converted.asInstanceOf[java.util.Map[String, Int]].size mustEqual 2
-      converted.asInstanceOf[java.util.Map[String, Int]].get("one") mustEqual 1
-      converted.asInstanceOf[java.util.Map[String, Int]].get("two") mustEqual 2
+      converted must not(beNull)
+      converted.size mustEqual 2
+      converted.get("one") mustEqual 1
+      converted.get("two") mustEqual 2
     }
 
     "convert from geomesa string to Map" >> {
       val converter = factory.createConverter(classOf[String], classOf[java.util.Map[String, Int]], hints)
       val converted = converter.convert("one->1,two->2", classOf[java.util.Map[String, Int]])
-      converted must beAnInstanceOf[java.util.Map[String, Int]]
-      converted.asInstanceOf[java.util.Map[String, Int]].size mustEqual 2
-      converted.asInstanceOf[java.util.Map[String, Int]].get("one") mustEqual 1
-      converted.asInstanceOf[java.util.Map[String, Int]].get("two") mustEqual 2
+      converted must not(beNull)
+      converted.size mustEqual 2
+      converted.get("one") mustEqual 1
+      converted.get("two") mustEqual 2
     }
 
     "return null if can't convert to Map" >> {

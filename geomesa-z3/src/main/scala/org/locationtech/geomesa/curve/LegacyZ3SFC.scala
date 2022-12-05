@@ -10,7 +10,7 @@ package org.locationtech.geomesa.curve
 
 import org.locationtech.geomesa.curve.NormalizedDimension.{SemiNormalizedLat, SemiNormalizedLon, SemiNormalizedTime}
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
-import org.locationtech.sfcurve.zorder.Z3
+import org.locationtech.geomesa.zorder.sfcurve.Z3
 
 @deprecated("Z3SFC", "1.3.2")
 class LegacyZ3SFC(period: TimePeriod) extends {

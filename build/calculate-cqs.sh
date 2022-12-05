@@ -30,3 +30,4 @@ for cq in $(grep ':test' build/deps-raw | grep '^\[INFO\] +-' | grep -v 'org.loc
   fi
 done
 rm build/deps-raw
+

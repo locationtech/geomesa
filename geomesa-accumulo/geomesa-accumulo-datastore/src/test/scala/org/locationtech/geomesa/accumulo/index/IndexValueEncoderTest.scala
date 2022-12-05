@@ -40,7 +40,7 @@ class IndexValueEncoderTest extends Specification {
     SimpleFeatureTypes.createType("IndexValueEncoderTest" + index.getAndIncrement, schema)
 
   def getIndexValueFields(sft: SimpleFeatureType): Seq[String] =
-    IndexValueEncoder.getIndexSft(sft).getAttributeDescriptors.asScala.map(_.getLocalName)
+    IndexValueEncoder.getIndexSft(sft).getAttributeDescriptors.asScala.map(_.getLocalName).toSeq
 
   "IndexValueEncoder" should {
     "default to id,geom,date" in {

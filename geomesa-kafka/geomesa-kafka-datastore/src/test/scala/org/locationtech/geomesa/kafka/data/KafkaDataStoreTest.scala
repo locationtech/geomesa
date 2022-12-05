@@ -1009,7 +1009,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         consumer.metadata.resetCache()
         val fs = consumer.getFeatureSource(sft.getTypeName)
         val q = new Query(null, Filter.INCLUDE)
-        fs.getFeatures(q).features().close() must not throwA[NullPointerException]()
+        fs.getFeatures(q).features().close() must not(throwA[NullPointerException])
       } finally {
         producer.dispose()
         consumer.dispose()

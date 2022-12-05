@@ -137,10 +137,11 @@ object BinaryOutputEncoder extends LazyLogging {
     case null => 0L
     case n: Number => n.longValue()
     case _ =>
-      import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
       var sum = 0L
-      label.toString.getBytes(StandardCharsets.UTF_8).iterator.take(8).foreachIndex {
-        case (b, i) => sum += (b & 0xffL) << (8 * i)
+      var i = 0
+      label.toString.getBytes(StandardCharsets.UTF_8).iterator.take(8).foreach { b =>
+        sum += (b & 0xffL) << (8 * i)
+        i += 1
       }
       sum
   }

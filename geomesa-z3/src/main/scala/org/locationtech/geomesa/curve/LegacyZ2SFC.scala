@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.curve
 
 import org.locationtech.geomesa.curve.NormalizedDimension.{SemiNormalizedLat, SemiNormalizedLon}
-import org.locationtech.sfcurve.zorder.Z2
+import org.locationtech.geomesa.zorder.sfcurve.Z2
 
 @deprecated("Z2SFC", "1.3.2")
 object LegacyZ2SFC extends Z2SFC(31) {

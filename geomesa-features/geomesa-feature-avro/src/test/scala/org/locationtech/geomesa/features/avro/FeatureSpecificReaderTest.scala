@@ -17,6 +17,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{LineString, Point, Polygon}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -25,21 +26,20 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.text.SimpleDateFormat
 import java.util.UUID
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.io.Codec.UTF8
 import scala.io.Source
 import scala.util.Random
 
 class FeatureSpecificReaderTest extends LazyLogging {
 
-
   def createTypeWithGeo: AvroSimpleFeature = {
     val sft = SimpleFeatureTypes.createType("test","f0:Point,f1:Polygon,f2:LineString")
     val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
 
-    sf.setAttribute("f0", GeohashUtils.wkt2geom("POINT(45.0 49.0)").asInstanceOf[Point])
-    sf.setAttribute("f1", GeohashUtils.wkt2geom("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
-    sf.setAttribute("f2", GeohashUtils.wkt2geom("LINESTRING(47.28515625 25.576171875, 48 26, 49 27)").asInstanceOf[LineString])
+    sf.setAttribute("f0", WKTUtils.read("POINT(45.0 49.0)").asInstanceOf[Point])
+    sf.setAttribute("f1", WKTUtils.read("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
+    sf.setAttribute("f2", WKTUtils.read("LINESTRING(47.28515625 25.576171875, 48 26, 49 27)").asInstanceOf[LineString])
 
     sf
   }
@@ -110,12 +110,12 @@ class FeatureSpecificReaderTest extends LazyLogging {
     val r = new Random()
     r.setSeed(0)
 
-    var lst = new mutable.MutableList[String]
+    val lst = ArrayBuffer.empty[String]
     for(i <- 0 until size)
       lst += randomString(i, 8, r)
 
     val sf = new AvroSimpleFeature(new FeatureIdImpl(id), sft)
-    for(i <- 0 until lst.size) {
+    for(i <- lst.indices) {
       sf.setAttribute(i, lst(i))
     }
     sf
@@ -259,8 +259,8 @@ class FeatureSpecificReaderTest extends LazyLogging {
       sf.setAttribute("f4", r.nextBoolean().asInstanceOf[Object])
       sf.setAttribute("f5", UUID.fromString("12345678-1234-1234-1234-123456789012"))
       sf.setAttribute("f6", new SimpleDateFormat("yyyyMMdd").parse("20140102"))
-      sf.setAttribute("f7", GeohashUtils.wkt2geom("POINT(45.0 49.0)").asInstanceOf[Point])
-      sf.setAttribute("f8", GeohashUtils.wkt2geom("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
+      sf.setAttribute("f7", WKTUtils.read("POINT(45.0 49.0)").asInstanceOf[Point])
+      sf.setAttribute("f8", WKTUtils.read("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
       list += sf
     }
     list.toList
