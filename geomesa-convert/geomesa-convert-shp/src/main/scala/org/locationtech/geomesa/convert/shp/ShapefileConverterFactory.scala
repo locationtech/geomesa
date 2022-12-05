@@ -24,8 +24,6 @@ import scala.util.control.NonFatal
 class ShapefileConverterFactory
   extends AbstractConverterFactory[ShapefileConverter, BasicConfig, BasicField, BasicOptions] {
 
-  import org.locationtech.geomesa.utils.conversions.ScalaImplicits._
-
   import scala.collection.JavaConverters._
 
   override protected val typeToProcess: String = ShapefileConverterFactory.TypeToProcess
@@ -47,8 +45,10 @@ class ShapefileConverterFactory
         ds = ShapefileConverter.getDataStore(url)
         val fields = sft match {
           case None =>
-            ds.getSchema.getAttributeDescriptors.asScala.mapWithIndex { case (d, i) =>
-              BasicField(d.getLocalName, Some(Column(i + 1)))
+            var i = 0
+            ds.getSchema.getAttributeDescriptors.asScala.map { d =>
+              i += 1
+              BasicField(d.getLocalName, Some(Column(i)))
             }
 
           case Some(s) =>
@@ -66,7 +66,7 @@ class ShapefileConverterFactory
         val shpConfig = BasicConfig(TypeToProcess, Some(Column(0)), Map.empty, Map.empty)
 
         val config = BasicConfigConvert.to(shpConfig)
-            .withFallback(BasicFieldConvert.to(fields))
+            .withFallback(BasicFieldConvert.to(fields.toSeq))
             .withFallback(BasicOptionsConvert.to(BasicOptions.default))
             .toConfig
 

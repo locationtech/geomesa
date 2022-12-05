@@ -10,7 +10,7 @@ package org.locationtech.geomesa.kafka.confluent
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.locationtech.geomesa.utils.text.{DateParsing, WKBUtils, WKTUtils}
 import org.locationtech.jts.geom._
 import org.opengis.feature.simple.SimpleFeatureType
@@ -19,11 +19,12 @@ import java.nio.ByteBuffer
 import java.time.format.DateTimeFormatter
 import java.util.{Date, Locale}
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
 import scala.reflect.{ClassTag, classTag}
 import scala.util.control.NonFatal
 
 object SchemaParser {
+
+  import scala.collection.JavaConverters._
 
   private val reservedPropertyKeys: Set[String] = Set(
     GeoMesaAvroGeomFormat.KEY,
@@ -38,89 +39,101 @@ object SchemaParser {
    * Convert an Avro [[Schema]] into a [[SimpleFeatureType]].
    */
   def schemaToSft(schema: Schema, name: Option[String] = None): SimpleFeatureType = {
-    val builder = new SimpleFeatureTypeBuilder
-    builder.setName(name.getOrElse(schema.getName))
-
-    // any extra props on the schema go in the SFT user data
-    val sftUserData = new java.util.HashMap[String, AnyRef](schema.getObjectProps)
+    val builder = new SchemaBuilder()
 
     var defaultGeomField: Option[String] = None
     var visibilityField: Option[String] = None
 
     schema.getFields.asScala.foreach { field =>
-      val fieldName = field.name
       val metadata = parseMetadata(field)
 
       metadata.field match {
         case GeometryField(_, geomType, default) if !metadata.exclude =>
-          builder.add(fieldName, geomType)
           if (default) {
             defaultGeomField.foreach { name =>
-              throw new IllegalArgumentException(s"There may be only one default geometry field in a schema: " +
-                s"'$name' was already declared as the default")
+              throw new IllegalArgumentException("There may be only one default geometry field in a schema: " +
+                  s"'$name' was already declared as the default")
             }
-            builder.setDefaultGeometry(fieldName)
-            defaultGeomField = Some(fieldName)
+            defaultGeomField = Some(field.name)
           }
+
+          addGeometryToBuilder(builder, field.name, geomType, default, metadata.extraProps)
 
         case DateField(_) if !metadata.exclude =>
-          builder.add(fieldName, classOf[Date])
+          builder.addDate(field.name).withOptions(metadata.extraProps.toSeq: _*)
 
         case VisibilityField =>
-          if (!metadata.exclude) {
-            addFieldToBuilder(builder, field)
-          }
           visibilityField.foreach { name =>
             throw new IllegalArgumentException(s"There may be only one visibility field in a schema: " +
-              s"'$name' was already declared as the visibility")
+                s"'$name' was already declared as the visibility")
           }
-          sftUserData.put(GeoMesaAvroVisibilityField.KEY, fieldName)
-          visibilityField = Some(fieldName)
+          visibilityField = Some(field.name)
+
+          if (!metadata.exclude) {
+            addFieldToBuilder(builder, field, userData = metadata.extraProps)
+          }
+          builder.userData(GeoMesaAvroVisibilityField.KEY, field.name)
 
         case StandardField if !metadata.exclude =>
-          addFieldToBuilder(builder, field)
+          addFieldToBuilder(builder, field, userData = metadata.extraProps)
 
         case _ =>
       }
-
-      // any extra props on the field go in the attribute user data
-      if (!metadata.exclude) {
-        builder.get(fieldName).getUserData.putAll(metadata.extraProps.asJava)
-      }
     }
 
-    val sft = builder.buildFeatureType()
-    sft.getUserData.putAll(sftUserData)
-    sft
+    // any extra props on the schema go in the SFT user data
+    builder.userData.userData(schema.getObjectProps.asScala.map { case (k, v) => k -> v.toString }.toMap)
+    builder.build(name.getOrElse(schema.getName))
   }
 
   @tailrec
-  private def addFieldToBuilder(builder: SimpleFeatureTypeBuilder,
-                                field: Schema.Field,
-                                typeOverride: Option[Schema.Type] = None): Unit = {
+  private def addFieldToBuilder(
+      builder: SchemaBuilder,
+      field: Schema.Field,
+      typeOverride: Option[Schema.Type] = None,
+      userData: Map[String, String] = Map.empty): Unit = {
     typeOverride.getOrElse(field.schema.getType) match {
-      case Schema.Type.STRING  => builder.add(field.name, classOf[java.lang.String])
-      case Schema.Type.BOOLEAN => builder.add(field.name, classOf[java.lang.Boolean])
-      case Schema.Type.INT     => builder.add(field.name, classOf[java.lang.Integer])
-      case Schema.Type.DOUBLE  => builder.add(field.name, classOf[java.lang.Double])
-      case Schema.Type.LONG    => builder.add(field.name, classOf[java.lang.Long])
-      case Schema.Type.FLOAT   => builder.add(field.name, classOf[java.lang.Float])
-      case Schema.Type.BYTES   => builder.add(field.name, classOf[Array[Byte]])
+      case Schema.Type.STRING  => builder.addString(field.name).withOptions(userData.toSeq: _*)
+      case Schema.Type.BOOLEAN => builder.addBoolean(field.name).withOptions(userData.toSeq: _*)
+      case Schema.Type.INT     => builder.addInt(field.name).withOptions(userData.toSeq: _*)
+      case Schema.Type.DOUBLE  => builder.addDouble(field.name).withOptions(userData.toSeq: _*)
+      case Schema.Type.LONG    => builder.addLong(field.name).withOptions(userData.toSeq: _*)
+      case Schema.Type.FLOAT   => builder.addFloat(field.name).withOptions(userData.toSeq: _*)
+      case Schema.Type.BYTES   => builder.addBytes(field.name).withOptions(userData.toSeq: _*)
       case Schema.Type.UNION   =>
         // if a union has more than one non-null type, it is not supported
         val types = field.schema.getTypes.asScala.map(_.getType).filter(_ != Schema.Type.NULL).toSet
         if (types.size != 1) {
           throw UnsupportedAvroTypeException(types.mkString("[", ", ", "]"))
         } else {
-          addFieldToBuilder(builder, field, Option(types.head))
+          addFieldToBuilder(builder, field, Option(types.head), userData)
         }
+      case Schema.Type.ENUM    => builder.addString(field.name).withOptions(userData.toSeq: _*)
       case Schema.Type.MAP     => throw UnsupportedAvroTypeException(Schema.Type.MAP.getName)
       case Schema.Type.RECORD  => throw UnsupportedAvroTypeException(Schema.Type.RECORD.getName)
-      case Schema.Type.ENUM    => builder.add(field.name, classOf[java.lang.String])
       case Schema.Type.ARRAY   => throw UnsupportedAvroTypeException(Schema.Type.ARRAY.getName)
       case Schema.Type.FIXED   => throw UnsupportedAvroTypeException(Schema.Type.FIXED.getName)
       case Schema.Type.NULL    => throw UnsupportedAvroTypeException(Schema.Type.NULL.getName)
       case _                   => throw UnsupportedAvroTypeException("unknown")
+    }
+  }
+
+  private def addGeometryToBuilder(
+      builder: SchemaBuilder,
+      name: String,
+      geometry: Class[_],
+      default: Boolean,
+      userData: Map[String, String] = Map.empty): Unit = {
+    geometry match {
+      case t if t == classOf[Point] => builder.addPoint(name, default).withOptions(userData.toSeq: _*)
+      case t if t == classOf[LineString] => builder.addLineString(name, default).withOptions(userData.toSeq: _*)
+      case t if t == classOf[Polygon] => builder.addPolygon(name, default).withOptions(userData.toSeq: _*)
+      case t if t == classOf[MultiPoint] => builder.addMultiPoint(name, default).withOptions(userData.toSeq: _*)
+      case t if t == classOf[MultiLineString] => builder.addMultiLineString(name, default).withOptions(userData.toSeq: _*)
+      case t if t == classOf[MultiPolygon] => builder.addMultiPolygon(name, default).withOptions(userData.toSeq: _*)
+      case t if t == classOf[GeometryCollection] => builder.addGeometryCollection(name, default).withOptions(userData.toSeq: _*)
+      case t if t == classOf[Geometry] => builder.addMixedGeometry(name, default).withOptions(userData.toSeq: _*)
+      case _ => throw new IllegalArgumentException(s"Unknown geometry type: $geometry")
     }
   }
 

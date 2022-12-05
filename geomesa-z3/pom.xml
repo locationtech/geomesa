@@ -15,12 +15,6 @@
         <dependency>
             <groupId>io.sgr</groupId>
             <artifactId>s2-geometry-library-java</artifactId>
-            <version>1.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.sfcurve</groupId>
-            <artifactId>sfcurve-zorder_${scala.binary.version}</artifactId>
-            <version>0.2.2</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
@@ -37,7 +31,6 @@
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>2.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

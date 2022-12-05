@@ -69,7 +69,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
   def getAuths(user: String): Seq[String] = {
     adminUser.runAs(new PrivilegedExceptionAction[Seq[String]]() {
       override def run(): Seq[String] = {
-        VisibilityClient.getAuths(adminConn, user).getAuthList.asScala.map(_.toStringUtf8)
+        VisibilityClient.getAuths(adminConn, user).getAuthList.asScala.map(_.toStringUtf8).toSeq
       }
     })
   }

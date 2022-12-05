@@ -50,8 +50,8 @@ trait AbstractAvroSimpleFeatureTest {
       sf.setAttribute("f4", r.nextBoolean().asInstanceOf[Object])
       sf.setAttribute("f5", UUID.fromString("12345678-1234-1234-1234-123456789012"))
       sf.setAttribute("f6", new SimpleDateFormat("yyyyMMdd").parse("20140102"))
-      sf.setAttribute("f7", GeohashUtils.wkt2geom("POINT(45.0 49.0)").asInstanceOf[Point])
-      sf.setAttribute("f8", GeohashUtils.wkt2geom("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
+      sf.setAttribute("f7", WKTUtils.read("POINT(45.0 49.0)").asInstanceOf[Point])
+      sf.setAttribute("f8", WKTUtils.read("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
       sf.setAttribute("f9", r.nextLong().asInstanceOf[Object])
 
       // test nulls on a few data types

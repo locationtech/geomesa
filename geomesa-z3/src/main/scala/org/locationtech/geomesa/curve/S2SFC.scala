@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.curve
 
 import com.google.common.geometry._
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 
 /**
   * S2 space-filling curve
