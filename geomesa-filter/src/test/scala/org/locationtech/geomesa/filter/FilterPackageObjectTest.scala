@@ -263,7 +263,7 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
 
     def breakUpOr(f: Filter): Seq[Filter] = {
        f match {
-         case or: Or => or.getChildren.asScala
+         case or: Or => or.getChildren.asScala.toSeq
          case _ => Seq(f)
        }
     }

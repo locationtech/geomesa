@@ -18,7 +18,7 @@ import org.opengis.feature.simple.SimpleFeature
 
 import java.io.Closeable
 import scala.annotation.tailrec
-import scala.collection.{GenTraversableOnce, Iterator}
+import scala.collection.Iterator
 
 // A CloseableIterator is one which involves some kind of close function which should be called at the end of use.
 object CloseableIterator {
@@ -30,7 +30,7 @@ object CloseableIterator {
   implicit def iteratorToCloseable[A](iter: Iterator[A]): CloseableIterator[A] = apply(iter)
 
   // This apply method provides us with a simple interface for creating new CloseableIterators.
-  def apply[A](iter: Iterator[A], close: => Unit = Unit): CloseableIterator[A] =
+  def apply[A](iter: Iterator[A], close: => Unit = ()): CloseableIterator[A] =
     new CloseableIteratorImpl[A](iter, close)
 
   // for wrapping java iterators
@@ -43,17 +43,17 @@ object CloseableIterator {
   def apply(iter: FeatureIterator[SimpleFeature]): CloseableIterator[SimpleFeature] =
     new CloseableFeatureIterator(iter)
 
-  def single[A](elem: A, close: => Unit = Unit): CloseableIterator[A] =
+  def single[A](elem: A, close: => Unit = ()): CloseableIterator[A] =
     new CloseableSingleIterator(elem, close)
 
-  def fill[A](length: Int, close: => Unit = Unit)(elem: => A): CloseableIterator[A] =
+  def fill[A](length: Int, close: => Unit = ())(elem: => A): CloseableIterator[A] =
     new CloseableIteratorImpl(Iterator.fill(length)(elem), close)
 
   def empty[A]: CloseableIterator[A] = empty
 
-  private def wrap[A](t: GenTraversableOnce[A]): CloseableIterator[A] = t match {
+  private def wrap[A](t: IterableOnce[A]): CloseableIterator[A] = t match {
     case c: CloseableIterator[A] => c
-    case c => new CloseableIteratorImpl(c.toIterator, Unit)
+    case c => new CloseableIteratorImpl(c.iterator, ())
   }
 
   class CloseableIteratorImpl[A](iter: Iterator[A], closeIter: => Unit) extends CloseableIterator[A] {
@@ -123,13 +123,13 @@ object CloseableIterator {
       queue.clear()
     }
 
-    override def ++[B >: A](that: => GenTraversableOnce[B]): CloseableIterator[B] = {
-      lazy val applied = CloseableIterator.wrap(that)
+    override def concat[B >: A](xs: => IterableOnce[B]): CloseableIterator[B] = {
+      lazy val applied = CloseableIterator.wrap(xs)
       new ConcatCloseableIterator[B](queue.+:(() => current).:+(() => applied))
     }
   }
 
-  private final class FlatMapCloseableIterator[A, B](source: CloseableIterator[A], f: A => GenTraversableOnce[B])
+  private final class FlatMapCloseableIterator[A, B](source: CloseableIterator[A], f: A => IterableOnce[B])
       extends CloseableIterator[B] {
 
     private var cur: CloseableIterator[B] = empty
@@ -158,6 +158,8 @@ trait CloseableIterator[+A] extends Iterator[A] with Closeable {
 
   override def filter(p: A => Boolean): CloseableIterator[A] = new CloseableIteratorImpl(super.filter(p), close())
 
+  override def withFilter(p: A => Boolean): CloseableIterator[A] = filter(p)
+
   override def filterNot(p: A => Boolean): CloseableIterator[A] =
     new CloseableIteratorImpl(super.filterNot(p), close())
 
@@ -166,17 +168,23 @@ trait CloseableIterator[+A] extends Iterator[A] with Closeable {
   override def takeWhile(p: A => Boolean): CloseableIterator[A] =
     new CloseableIteratorImpl(super.takeWhile(p), close())
 
+  override def drop(n: Int): CloseableIterator[A] = new CloseableIteratorImpl(super.drop(n), close())
+
+  override def dropWhile(p: A => Boolean): CloseableIterator[A] = new CloseableIteratorImpl(super.dropWhile(p), close())
+
   override def collect[B](pf: PartialFunction[A, B]): CloseableIterator[B] =
     new CloseableIteratorImpl(super.collect(pf), close())
 
-  override def ++[B >: A](that: => GenTraversableOnce[B]): CloseableIterator[B] = {
-    lazy val applied = CloseableIterator.wrap(that)
+  override def concat[B >: A](xs: => IterableOnce[B]): CloseableIterator[B] = {
+    lazy val applied = CloseableIterator.wrap(xs)
     val queue = new scala.collection.mutable.Queue[() => CloseableIterator[B]]
     queue.enqueue(() => this)
     queue.enqueue(() => applied)
     new ConcatCloseableIterator[B](queue)
   }
 
-  override def flatMap[B](f: A => GenTraversableOnce[B]): CloseableIterator[B] =
+  override def flatMap[B](f: A => IterableOnce[B]): CloseableIterator[B] =
     new FlatMapCloseableIterator(this, f)
+
+  override def tapEach[U](f: A => U): CloseableIterator[A] = new CloseableIteratorImpl(super.tapEach(f), close())
 }

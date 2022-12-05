@@ -18,9 +18,6 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat$;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import scala.Predef;
-import scala.Tuple2;
-import scala.collection.JavaConverters;
 
 import java.io.IOException;
 import java.util.Map;
@@ -54,9 +51,6 @@ public class GeoMesaOutputFormat extends OutputFormat<Text, SimpleFeature> {
     }
 
     public static void setOutput(Configuration conf, Map<String, String> dataStoreParams, SimpleFeatureType type) {
-        Object m = JavaConverters.mapAsScalaMapConverter(dataStoreParams).asScala();
-        scala.collection.immutable.Map<String, String> scalaParams =
-              ((scala.collection.mutable.Map<String, String>) m).toMap(Predef.<Tuple2<String, String>>conforms());
-        GeoMesaOutputFormat$.MODULE$.setOutput(conf, scalaParams, type, scala.Option.apply(null));
+        GeoMesaOutputFormat$.MODULE$.setOutputJava(conf, dataStoreParams, type);
     }
 }

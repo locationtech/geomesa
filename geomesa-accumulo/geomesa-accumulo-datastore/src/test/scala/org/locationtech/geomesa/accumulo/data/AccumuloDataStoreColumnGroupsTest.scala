@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.geotools.data._
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
@@ -54,7 +54,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
       s"2018-01-01T0$i:00:01.000Z", s"POINT (45.$i 55)")
   }
 
-  val transformCache = Caffeine.newBuilder().build(
+  val transformCache: LoadingCache[Array[String], (SimpleFeatureType, Seq[Transform])] = Caffeine.newBuilder().build(
     new CacheLoader[Array[String], (SimpleFeatureType, Seq[Transform])]() {
       override def load(transform: Array[String]): (SimpleFeatureType, Seq[Transform]) = {
         val definitions = Transforms.apply(sft, transform)
@@ -260,7 +260,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
             case p: Point => s"POINT (${Math.round(p.getX * 10) / 10d} ${Math.round(p.getY * 10) / 10d})"
             case a => a
           }
-          ScalaSimpleFeature.create(f.getFeatureType, f.getID, attributes: _*)
+          ScalaSimpleFeature.create(f.getFeatureType, f.getID, attributes.toSeq: _*)
         }.toList
         results must containTheSameElementsAs((4 to 8).toFeatures(query.getPropertyNames))
       }

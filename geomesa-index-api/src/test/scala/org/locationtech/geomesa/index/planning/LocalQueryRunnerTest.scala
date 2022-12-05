@@ -65,7 +65,7 @@ class LocalQueryRunnerTest extends Specification {
         case None    => CloseableIterator(LocalQueryRunnerTest.this.features.iterator)
         case Some(f) => CloseableIterator(LocalQueryRunnerTest.this.features.iterator.filter(f.evaluate))
       }
-      new Iterator[SimpleFeature] {
+      new CloseableIterator[SimpleFeature] {
         private val internal = iter
         override def hasNext: Boolean = {
           if (internal.hasNext) {
@@ -78,6 +78,8 @@ class LocalQueryRunnerTest extends Specification {
         override def next(): SimpleFeature = {
           internal.next()
         }
+
+        override def close(): Unit = internal.close()
       }
     }
   }

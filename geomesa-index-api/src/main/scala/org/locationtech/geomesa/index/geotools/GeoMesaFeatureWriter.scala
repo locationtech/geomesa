@@ -18,6 +18,7 @@ import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
 import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, Z3FeatureIdGenerator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -195,7 +196,9 @@ object GeoMesaFeatureWriter extends LazyLogging {
       if (writer == null) {
         // reconfigure the partition each time - this should be idempotent, and block
         // until it is fully created (which may happen in some other thread)
-        indices.par.foreach(index => ds.adapter.createTable(index, Some(p), index.getSplits(Some(p))))
+        def createOne(index: GeoMesaFeatureIndex[_, _]): Unit =
+          ds.adapter.createTable(index, Some(p), index.getSplits(Some(p)))
+        indices.toList.map(i => CachedThreadPool.submit(() => createOne(i))).foreach(_.get)
         writer = ds.adapter.createWriter(sft, indices, Some(p))
         cache.put(p, writer)
       }

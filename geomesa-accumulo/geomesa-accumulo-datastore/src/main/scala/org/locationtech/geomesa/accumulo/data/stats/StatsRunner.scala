@@ -72,14 +72,14 @@ class StatsRunner(ds: AccumuloDataStore) extends Runnable with Closeable {
     * Updates metadata accordingly.
     */
   override def run(): Unit = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
-
     // convert to iterator so we check shutdown before each update
     val sfts = ds.getTypeNames.map(ds.getSchema).iterator.filter(_ => !shutdown.get())
     // try to get an exclusive lock on the sft - if not, don't wait just move along
     val lockTimeout = Some(1000L)
     // force execution of iterator
-    val minUpdate = sfts.map(new StatRunner(ds, _, lockTimeout).call()).map(_.toEpochMilli).minOption
+    val minUpdate = if (sfts.isEmpty) { None } else {
+      Some(sfts.map(new StatRunner(ds, _, lockTimeout).call()).map(_.toEpochMilli).min)
+    }
     // wait at least one minute before running again
     val minWait = 60000L
     val nextRun = minUpdate.map(_ - Instant.now(Clock.systemUTC()).toEpochMilli).filter(_ > minWait).getOrElse(minWait)

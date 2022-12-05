@@ -389,7 +389,7 @@ object ConfluentKafkaDataStoreTest {
        |  ]
        |}""".stripMargin
   val schema1: Schema = new Schema.Parser().parse(schemaJson1)
-  val encodedSft1: String = s"id:String:cardinality=high,*position:Point,speed:Double,date:Date"
+  val encodedSft1: String = s"id:String:cardinality=high,*position:Point:srid=4326,speed:Double,date:Date"
 
   val schemaJson2: String =
     s"""{
@@ -411,7 +411,7 @@ object ConfluentKafkaDataStoreTest {
        |  ]
        |}""".stripMargin
   val schema2: Schema = new Schema.Parser().parse(schemaJson2)
-  val encodedSft2: String = s"*shape:Geometry,date:Date"
+  val encodedSft2: String = s"*shape:Geometry:srid=4326,date:Date"
 
   val schemaJson2_NoGeoMesa: String =
     s"""{

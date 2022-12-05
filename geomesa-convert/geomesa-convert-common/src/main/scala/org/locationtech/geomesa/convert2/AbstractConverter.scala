@@ -51,10 +51,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     extends SimpleFeatureConverter with ParsingConverter[T] with LazyLogging {
 
   import AbstractConverter.{IdFieldName, UserDataFieldPrefix}
-  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-  import scala.collection.JavaConverters._
 
   if (fields.exists(f => f.name == IdFieldName || f.name.startsWith(UserDataFieldPrefix))) {
     throw new IllegalArgumentException(
@@ -63,24 +60,37 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 
   private val requiredFields: Array[Field] = AbstractConverter.requiredFields(this)
 
-  private val attributeIndices: Array[(Int, Int)] =
-    sft.getAttributeDescriptors.asScala.toArray.flatMapWithIndex { case (d, i) =>
+  private val attributeIndices: Array[(Int, Int)] = {
+    val builder = Array.newBuilder[(Int, Int)]
+    builder.sizeHint(sft.getAttributeCount)
+    var i = 0
+    while (i < sft.getAttributeCount) {
+      val d = sft.getDescriptor(i)
       // note: missing fields are already checked and logged in requiredFields
       val j = requiredFields.indexWhere(_.name == d.getLocalName)
-      if (j == -1) { None } else { Some(i -> j)}
+      if (j != -1) {
+        builder += i -> j
+      }
+      i += 1
     }
+    builder.result()
+  }
 
 
   private val idIndex: Int = requiredFields.indexWhere(_.name == IdFieldName)
 
-  private val userDataIndices: Array[(String, Int)] =
-    requiredFields.flatMapWithIndex { case (f, i) =>
-      if (f.name.startsWith(UserDataFieldPrefix)) {
-        Seq(f.name.substring(UserDataFieldPrefix.length) -> i)
-      } else {
-        Seq.empty
+  private val userDataIndices: Array[(String, Int)] = {
+    val builder = Array.newBuilder[(String, Int)]
+    builder.sizeHint(requiredFields.count(_.name.startsWith(UserDataFieldPrefix)))
+    var i = 0
+    while (i < requiredFields.length) {
+      if (requiredFields(i).name.startsWith(UserDataFieldPrefix)) {
+        builder += requiredFields(i).name.substring(UserDataFieldPrefix.length) -> i
       }
+      i += 1
     }
+    builder.result
+  }
 
   private val metrics = ConverterMetrics(sft, options.reporters)
 

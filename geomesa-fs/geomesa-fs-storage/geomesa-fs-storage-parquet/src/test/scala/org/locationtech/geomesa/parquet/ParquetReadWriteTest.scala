@@ -75,7 +75,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
         sf = reader.read()
       }
     }
-    result
+    result.toSeq
   }
 
   def readFile(geoFilter: org.opengis.filter.Filter, tsft: SimpleFeatureType): Seq[SimpleFeature] = {

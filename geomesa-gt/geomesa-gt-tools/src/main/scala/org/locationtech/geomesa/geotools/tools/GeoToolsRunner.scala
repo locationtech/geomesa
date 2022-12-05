@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.geotools.tools
 
-import org.locationtech.geomesa.tools._
+import org.locationtech.geomesa.tools.{Command, Runner}
 
 object GeoToolsRunner extends Runner {
 

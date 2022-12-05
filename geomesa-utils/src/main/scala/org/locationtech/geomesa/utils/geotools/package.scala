@@ -26,7 +26,7 @@ package object geotools {
 
   // use the epsg jar if it's available (e.g. in geoserver), otherwise use the less-rich constant
   val CRS_EPSG_4326: CoordinateReferenceSystem =
-    try { CRS.decode("EPSG:4326", true) } catch { case t: Throwable => DefaultGeographicCRS.WGS84 }
+    try { CRS.decode("EPSG:4326", true) } catch { case _: Throwable => DefaultGeographicCRS.WGS84 }
 
   val CrsEpsg4326: CoordinateReferenceSystem = CRS_EPSG_4326
 

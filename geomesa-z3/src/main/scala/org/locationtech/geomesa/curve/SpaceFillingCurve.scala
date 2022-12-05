@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.curve
 
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 
 trait SpaceFillingCurve {
 

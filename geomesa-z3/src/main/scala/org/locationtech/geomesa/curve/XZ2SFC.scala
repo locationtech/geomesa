@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.curve
 
 import org.locationtech.geomesa.curve.XZ2SFC.{QueryWindow, XElement}
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 
 import scala.collection.mutable.ArrayBuffer
 

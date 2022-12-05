@@ -56,7 +56,7 @@ class SimpleFeatureDatumReader extends DatumReader[SimpleFeature] {
     this.sft = sft
     this.fid = if (schema.getField(FidField.name) != null) { Some(FidField) } else { None }
     this.userData = if (schema.getField(UserDataField.name) != null) { Some(UserDataField) } else { None }
-    this.fields = sft.getAttributeDescriptors.asScala.map(AvroField.apply)
+    this.fields = sft.getAttributeDescriptors.asScala.map(AvroField.apply).toSeq
   }
 
   override def read(reuse: SimpleFeature, in: Decoder): SimpleFeature = {

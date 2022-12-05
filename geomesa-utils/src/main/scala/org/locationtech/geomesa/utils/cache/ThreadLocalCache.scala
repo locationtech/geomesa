@@ -33,10 +33,7 @@ class ThreadLocalCache[K <: AnyRef, V <: AnyRef](
     expiry: Duration,
     executor: ScheduledExecutorService = ThreadLocalCache.executor,
     ticker: Option[Ticker] = None
-  ) extends scala.collection.mutable.Map[K, V]
-    with scala.collection.mutable.MapLike[K, V, ThreadLocalCache[K, V]]
-    with Runnable
-    with Closeable {
+  ) extends Runnable with Closeable {
 
   import scala.collection.JavaConverters._
 
@@ -56,12 +53,7 @@ class ThreadLocalCache[K <: AnyRef, V <: AnyRef](
 
   private val cleanup = executor.scheduleWithFixedDelay(this, expiry.toMillis, expiry.toMillis, TimeUnit.MILLISECONDS)
 
-  // show the class name for toString
-  override def stringPrefix : String = "ThreadLocalCache"
-
-  override def get(key: K): Option[V] = Option(caches.get.getIfPresent(key))
-
-  override def getOrElseUpdate(key: K, op: => V): V = {
+  def getOrElseUpdate(key: K, op: => V): V = {
     val cached = caches.get.getIfPresent(key)
     if (cached != null) { cached } else {
       val value = op
@@ -69,20 +61,6 @@ class ThreadLocalCache[K <: AnyRef, V <: AnyRef](
       value
     }
   }
-
-  override def +=(kv: (K, V)): this.type = {
-    caches.get.put(kv._1, kv._2)
-    this
-  }
-
-  override def -=(key: K): this.type = {
-    caches.get.invalidate(key)
-    this
-  }
-
-  override def empty: ThreadLocalCache[K, V] = new ThreadLocalCache[K, V](expiry)
-
-  override def iterator: Iterator[(K, V)] = caches.get.asMap.asScala.iterator
 
   /**
    * Gets an iterator across all thread-local values, not just the current thread

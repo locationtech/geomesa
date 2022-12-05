@@ -13,65 +13,63 @@ import org.geotools.util.{Converter, ConverterFactory}
 
 class ScalaCollectionsConverterFactory extends ConverterFactory {
 
-  def createConverter(source: Class[_], target: Class[_], hints: Hints): Converter =
-    if (classOf[Seq[_]].isAssignableFrom(source)
-        && classOf[java.util.List[_]].isAssignableFrom(target)) {
-      ScalaCollectionsConverterFactory.ListToJavaList
-    } else if (classOf[java.util.List[_]].isAssignableFrom(source)
-        && classOf[Seq[_]].isAssignableFrom(target)) {
-      ScalaCollectionsConverterFactory.JavaListToList
-    } else if (classOf[Map[_, _]].isAssignableFrom(source)
-        && classOf[java.util.Map[_, _]].isAssignableFrom(target)) {
-      ScalaCollectionsConverterFactory.MapToJavaMap
-    } else if (classOf[java.util.Map[_, _]].isAssignableFrom(source)
-        && classOf[Map[_, _]].isAssignableFrom(target)) {
-      ScalaCollectionsConverterFactory.JavaMapToMap
-    } else {
-      null
+  def createConverter(source: Class[_], target: Class[_], hints: Hints): Converter = {
+    if (classOf[java.util.List[_]].isAssignableFrom(target)) {
+       if (classOf[scala.collection.Seq[_]].isAssignableFrom(source)) {
+         return ScalaCollectionsConverterFactory.SeqToJava
+       }
+    } else if (classOf[java.util.List[_]].isAssignableFrom(source)) {
+      if (classOf[scala.collection.immutable.Seq[_]].isAssignableFrom(target)) {
+        return ScalaCollectionsConverterFactory.JavaToImmutableSeq
+      } else if (classOf[scala.collection.mutable.Seq[_]].isAssignableFrom(target)) {
+        return ScalaCollectionsConverterFactory.JavaToMutableSeq
+      }
+    } else if (classOf[java.util.Map[_, _]].isAssignableFrom(target)) {
+      if (classOf[scala.collection.Map[_, _]].isAssignableFrom(source)) {
+        return ScalaCollectionsConverterFactory.MapToJava
+      }
+    } else if (classOf[java.util.Map[_, _]].isAssignableFrom(source)) {
+      if (classOf[scala.collection.immutable.Map[_, _]].isAssignableFrom(target)) {
+        return ScalaCollectionsConverterFactory.JavaToImmutableMap
+      } else if (classOf[scala.collection.mutable.Map[_, _]].isAssignableFrom(target)) {
+        return ScalaCollectionsConverterFactory.JavaToMutableMap
+      }
     }
+    null
+  }
 }
 
 object ScalaCollectionsConverterFactory {
 
-  private val ListToJavaList = new ListToListConverter(true)
-  private val JavaListToList = new ListToListConverter(false)
-  private val MapToJavaMap   = new MapToMapConverter(true)
-  private val JavaMapToMap   = new MapToMapConverter(false)
+  import scala.collection.JavaConverters._
 
-  /**
-    * Convert between scala and java lists
-    *
-    * @param scalaToJava scala to java or java to scala
-    */
-  class ListToListConverter(scalaToJava: Boolean) extends Converter {
-
-    import scala.collection.JavaConverters._
-
-    override def convert[T](source: scala.Any, target: Class[T]): T = {
-      if (scalaToJava) {
-        source.asInstanceOf[Seq[_]].asJava.asInstanceOf[T]
-      } else {
-        source.asInstanceOf[java.util.List[_]].asScala.asInstanceOf[T]
-      }
-    }
+  object SeqToJava extends Converter {
+    override def convert[T](source: Any, target: Class[T]): T =
+      source.asInstanceOf[scala.collection.Seq[_]].asJava.asInstanceOf[T]
   }
 
-  /**
-    * Convert between scala and java maps
-    *
-    * @param scalaToJava scala to java or java to scala
-    */
-  class MapToMapConverter(scalaToJava: Boolean) extends Converter {
-
-    import scala.collection.JavaConverters._
-
-    override def convert[T](source: scala.Any, target: Class[T]): T = {
-      if (scalaToJava) {
-        source.asInstanceOf[Map[_, _]].asJava.asInstanceOf[T]
-      } else {
-        source.asInstanceOf[java.util.Map[_, _]].asScala.asInstanceOf[T]
-      }
-    }
+  object JavaToImmutableSeq extends Converter {
+    override def convert[T](source: Any, target: Class[T]): T =
+      source.asInstanceOf[java.util.List[_]].asScala.toSeq.asInstanceOf[T]
   }
 
+  object JavaToMutableSeq extends Converter {
+    override def convert[T](source: Any, target: Class[T]): T =
+      source.asInstanceOf[java.util.List[_]].asScala.asInstanceOf[T]
+  }
+
+  object MapToJava extends Converter {
+    override def convert[T](source: Any, target: Class[T]): T =
+      source.asInstanceOf[scala.collection.Map[_, _]].asJava.asInstanceOf[T]
+  }
+
+  object JavaToImmutableMap extends Converter {
+    override def convert[T](source: Any, target: Class[T]): T =
+      source.asInstanceOf[java.util.Map[_, _]].asScala.toMap.asInstanceOf[T]
+  }
+
+  object JavaToMutableMap extends Converter {
+    override def convert[T](source: Any, target: Class[T]): T =
+      source.asInstanceOf[java.util.Map[_, _]].asScala.asInstanceOf[T]
+  }
 }

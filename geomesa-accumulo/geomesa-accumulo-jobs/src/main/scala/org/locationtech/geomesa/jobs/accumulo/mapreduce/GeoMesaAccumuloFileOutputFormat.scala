@@ -23,6 +23,7 @@ import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -70,7 +71,9 @@ object GeoMesaAccumuloFileOutputFormat extends LazyLogging {
         logger.debug(s"Creating index tables for ${parts.length} partitions")
         parts.flatMap { p =>
           // create the partitions up front so we know the number of splits and reducers - this call is idempotent
-          indices.par.foreach(index => ds.adapter.createTable(index, Some(p), index.getSplits(Some(p))))
+          def createOne(index: GeoMesaFeatureIndex[_, _]): Unit =
+            ds.adapter.createTable(index, Some(p), index.getSplits(Some(p)))
+          indices.toList.map(index => CachedThreadPool.submit(() => createOne(index))).foreach(_.get)
           indices.flatMap(_.getTableNames(Some(p)))
         }
     }

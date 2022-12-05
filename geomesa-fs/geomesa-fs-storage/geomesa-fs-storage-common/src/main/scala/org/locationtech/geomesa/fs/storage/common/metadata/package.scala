@@ -120,20 +120,18 @@ package object metadata {
     protected def compactedWriter: ConfigWriter[CompactedConfig]
     protected def options: ConfigRenderOptions
 
-    private val partitionReader = Derivation.Successful(PartitionReader)
-    private val compactedReader = Derivation.Successful(CompactedReader)
     private val partitionCt = ClassTag[PartitionConfig](classOf[PartitionConfig])
     private val compactedCt = ClassTag[CompactedConfig](classOf[CompactedConfig])
 
     def renderPartition(partition: PartitionConfig): String =
       partitionWriter.to(partition).render(options)
     def parsePartition(config: Config): PartitionConfig =
-      pureconfig.loadConfigOrThrow[PartitionConfig](config)(partitionCt, partitionReader)
+      ConfigSource.fromConfig(config).loadOrThrow[PartitionConfig](partitionCt, PartitionReader)
 
     def renderCompaction(compaction: Seq[PartitionConfig]): String =
       compactedWriter.to(CompactedConfig(compaction)).render(options)
     def parseCompaction(config: Config): Seq[PartitionConfig] =
-      pureconfig.loadConfigOrThrow[CompactedConfig](config)(compactedCt, compactedReader).partitions
+      ConfigSource.fromConfig(config).loadOrThrow[CompactedConfig](compactedCt, CompactedReader).partitions
   }
 
   object MetadataConverter {
@@ -237,8 +235,8 @@ package object metadata {
       val name = obj.keys.head
       obj.atKeyOrUndefined(name).asListCursor.right.flatMap { list =>
         if (list.size != 5) {
-          cur.failed(CannotConvert(cur.value.toString,
-            classOf[PartitionConfig].getSimpleName, s"value ${cur.value} does not have the expected 6 elements"))
+          cur.failed(CannotConvert(cur.valueOpt.map(_.toString).getOrElse(""),
+            classOf[PartitionConfig].getSimpleName, s"value ${cur.valueOpt.orNull} does not have the expected 6 elements"))
         } else {
           for {
             action <- PartitionActionReader.from(list.atIndexOrUndefined(0)).right
@@ -315,8 +313,8 @@ package object metadata {
   private def readStorageFileCompact(cur: ConfigCursor): Either[ConfigReaderFailures, StorageFile] = {
     cur.asListCursor.right.flatMap { list =>
       if (list.size < 3 || list.size > 5) {
-        cur.failed(CannotConvert(cur.value.toString,
-          classOf[StorageFile].getSimpleName, s"value ${cur.value} does not have the expected number of elements"))
+        cur.failed(CannotConvert(cur.valueOpt.map(_.toString).getOrElse(""),
+          classOf[StorageFile].getSimpleName, s"value ${cur.valueOpt.orNull} does not have the expected number of elements"))
       } else {
         for {
           name   <- list.atIndexOrUndefined(0).asString.right
@@ -352,8 +350,8 @@ package object metadata {
   private def readEnvelope(env: ConfigListCursor): Either[ConfigReaderFailures, Seq[Double]] = {
     convertList[Double](env).right.flatMap { coords =>
       if (coords.isEmpty || coords.length == 4) { Right(coords) } else {
-        env.failed(CannotConvert(env.value.toString,
-          "Seq[Double]", s"value ${env.value} does not have the expected 4 elements"))
+        env.failed(CannotConvert(env.valueOpt.map(_.toString).getOrElse(""),
+          "Seq[Double]", s"value ${env.valueOpt.orNull} does not have the expected 4 elements"))
       }
     }
   }
@@ -367,8 +365,8 @@ package object metadata {
   private def readBound(cur: ConfigCursor): Either[ConfigReaderFailures, (Int, String, String)] = {
     cur.asListCursor.right.flatMap { list =>
       if (list.size != 3) {
-        cur.failed(CannotConvert(cur.value.toString,
-          "Tuple3[Int, String, String]", s"value ${cur.value} does not have 3 elements"))
+        cur.failed(CannotConvert(cur.valueOpt.map(_.toString).getOrElse(""),
+          "Tuple3[Int, String, String]", s"value ${cur.valueOpt.orNull} does not have 3 elements"))
       } else {
         for {
           attribute <- list.atIndexOrUndefined(0).asInt.right
