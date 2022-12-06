@@ -9,14 +9,17 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.github.benmanes.caffeine.cache.Ticker
+import org.locationtech.geomesa.features.SerializationOption
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
+import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam, ReadWriteFlag}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 
-import java.util.Properties
 import java.util.concurrent.ScheduledExecutorService
+import java.util.{Locale, Properties}
 import scala.concurrent.duration.Duration
 
 object KafkaDataStoreParams extends KafkaDataStoreParamsWTF
@@ -152,11 +155,39 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
   val SerializationType =
     new GeoMesaParam[String](
       "kafka.serialization.type",
-      "Type of serialization to use. Must be one of 'kryo' or 'avro'",
-      default = "kryo",
-      enumerations = Seq("kryo", "avro"),
+      "Type of serialization to use. Must be one of 'kryo', 'avro', or 'avro-native'",
+      default = SerializationTypes.Types.head,
+      enumerations = SerializationTypes.Types,
       supportsNiFiExpressions = true
     )
+
+  object SerializationTypes {
+
+    val Kryo = "kryo"
+    val Avro = "avro"
+    val AvroNative = "avro-native"
+
+    val Types = Seq(Kryo, Avro, AvroNative)
+
+    def fromName(name: String): SerializationType = {
+      name.toLowerCase(Locale.US) match {
+        case Kryo => org.locationtech.geomesa.features.SerializationType.KRYO
+        case Avro => org.locationtech.geomesa.features.SerializationType.AVRO
+        case AvroNative => org.locationtech.geomesa.features.SerializationType.AVRO
+        case _ =>
+          throw new IllegalArgumentException(
+            s"Invalid serialization type, valid types are ${Types.mkString(", ")}: $name")
+      }
+    }
+
+    def opts(name: String): Set[SerializationOption] = {
+      name.toLowerCase(Locale.US) match {
+        case AvroNative => Set(SerializationOption.NativeCollections)
+        case _ => Set.empty
+      }
+    }
+
+  }
 
   val LayerViews =
     new GeoMesaParam[String](

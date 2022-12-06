@@ -21,6 +21,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConverters._
 
+@deprecated("Use ScalaSimpleFeatureFactory")
 class AvroSimpleFeatureFactory extends AbstractFeatureFactoryImpl {
 
   override def createSimpleFeature(attrs: Array[AnyRef],
@@ -38,6 +39,7 @@ class AvroSimpleFeatureFactory extends AbstractFeatureFactoryImpl {
 
 }
 
+@deprecated("Use ScalaSimpleFeatureFactory")
 object AvroSimpleFeatureFactory {
   def init = {
     Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[AvroSimpleFeatureFactory])

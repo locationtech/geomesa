@@ -15,7 +15,6 @@ import org.apache.avro.Schema.{Field, Type}
 import org.apache.avro.generic.{GenericData, GenericRecord}
 import org.apache.avro.{JsonProperties, Schema}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeoMesaAvroDateFormat, GeoMesaAvroDeserializableEnumProperty, GeoMesaAvroGeomFormat, GeoMesaAvroVisibilityField}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.kafka.confluent.ConfluentFeatureSerializer.ConfluentFeatureMapper
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
@@ -96,6 +95,8 @@ class ConfluentFeatureSerializer(
 }
 
 object ConfluentFeatureSerializer {
+
+  import SchemaParser.{GeoMesaAvroDateFormat, GeoMesaAvroDeserializableEnumProperty, GeoMesaAvroGeomFormat, GeoMesaAvroVisibilityField}
 
   def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL, schemaOverride: Option[Schema] = None): Builder =
     new Builder(sft, schemaRegistryUrl, schemaOverride)

@@ -12,7 +12,7 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
@@ -28,7 +28,7 @@ class QueryProcessTest extends Specification with TestWithFeatureType {
 
   val features = List("a", "b").flatMap { name =>
     List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
-      val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
+      val sf = ScalaSimpleFeature.create(sft, name + i.toString)
       sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
       sf.setAttribute("dtg", s"2011-01-0${i}T00:00:00Z")
       sf.setAttribute("type", name)

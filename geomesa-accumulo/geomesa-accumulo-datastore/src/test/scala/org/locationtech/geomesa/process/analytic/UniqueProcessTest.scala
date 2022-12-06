@@ -13,7 +13,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -36,7 +36,7 @@ class UniqueProcessTest extends Specification with TestWithFeatureType {
   addFeatures({
     val geom = WKTUtils.read("POINT(45.0 49.0)")
 
-    val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
+    val builder = new SimpleFeatureBuilder(sft, new ScalaSimpleFeatureFactory)
     val dtFormat = new SimpleDateFormat("yyyyMMdd HH:mm:SS")
     dtFormat.setTimeZone(TimeZone.getTimeZone("UTC"))
 

@@ -3,171 +3,30 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * http://www.opensource.org/licenses/apache2.0.php. 
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.avro
-
-import com.typesafe.scalalogging.LazyLogging
-import org.apache.avro.SchemaBuilder.{ArrayDefault, FieldTypeBuilder, NullDefault}
-import org.apache.avro.{Schema, SchemaBuilder}
-import org.locationtech.geomesa.features.avro.serialization.AvroField.{FidField, UserDataField, VersionField}
-import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.locationtech.geomesa.utils.text.WKBUtils
-import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.SimpleFeatureType
+package org.locationtech.geomesa.features.avro.serialization
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale, UUID}
-import scala.collection.JavaConverters._
 
-@deprecated("replaced with org.locationtech.geomesa.features.avro.serialization.AvroField")
-object AvroSimpleFeatureUtils extends LazyLogging {
+/**
+ * Serialization of lists and map types as opaque byte arrays, previously contained in AvroSimpleFeatureUtils
+ */
+object CollectionSerialization {
 
-  @deprecated("Replaced with FidField.name")
-  val FEATURE_ID_AVRO_FIELD_NAME: String = FidField.name
-  @deprecated("Replaced with VersionField.name")
-  val AVRO_SIMPLE_FEATURE_VERSION: String = VersionField.name
-  @deprecated("Replaced with UserDataField.name")
-  val AVRO_SIMPLE_FEATURE_USERDATA: String = UserDataField.name
-
-  @deprecated("Replaced with org.locationtech.geomesa.features.avro.SerializationVersions.DefaultVersion and MaxVersion")
-  val VERSION: Int = SerializationVersions.DefaultVersion
-
-  @deprecated("Replaced with org.locationtech.geomesa.features.avro.AvroNamespace")
-  val AVRO_NAMESPACE: String = org.locationtech.geomesa.features.avro.AvroNamespace
-
-  implicit class RichBuilder(val builder: FieldTypeBuilder[ArrayDefault[Schema]]) extends AnyVal {
-    def simpleTypeUnion(hints: String): NullDefault[ArrayDefault[Schema]] = {
-      builder.unionOf
-          .nullType.and.stringType.and.intType.and.longType
-          .and.floatType.and.doubleType.and.booleanType.and.bytesType
-          .endUnion()
-    }
-  }
-
-  def generateSchema(sft: SimpleFeatureType,
-                     withUserData: Boolean,
-                     withFeatureId: Boolean,
-                     namespace: String = AVRO_NAMESPACE): Schema = {
-    val nameEncoder = new FieldNameEncoder(VERSION)
-    val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
-      SchemaBuilder.record(nameEncoder.encode(sft.getTypeName))
-        .namespace(namespace)
-        .fields
-        .name(AVRO_SIMPLE_FEATURE_VERSION).`type`.intType.noDefault
-
-    val withFid = if (withFeatureId) {
-      initialAssembler.name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
-    } else {
-      initialAssembler
-    }
-
-    val withFields =
-      sft.getAttributeDescriptors.asScala.foldLeft(withFid) { case (assembler, ad) =>
-        addField(assembler, nameEncoder.encode(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
-      }
-
-    val fullSchema = if (withUserData) {
-      withFields.name(AVRO_SIMPLE_FEATURE_USERDATA).`type`.array().items()
-          .record("userDataItem").fields()
-          .name("key").`type`.simpleTypeUnion("key").noDefault()
-          .name("value").`type`.simpleTypeUnion("value").noDefault()
-          .endRecord().noDefault()
-    } else {
-      withFields
-    }
-
-    fullSchema.endRecord
-  }
-
-  def addField(assembler: SchemaBuilder.FieldAssembler[Schema],
-               name: String,
-               ct: Class[_],
-               nillable: Boolean): SchemaBuilder.FieldAssembler[Schema] = {
-    val baseType = if (nillable) assembler.name(name).`type`.nullable() else assembler.name(name).`type`
-    ct match {
-      case c if classOf[String].isAssignableFrom(c)              => baseType.stringType.noDefault
-      case c if classOf[java.lang.Integer].isAssignableFrom(c)   => baseType.intType.noDefault
-      case c if classOf[java.lang.Long].isAssignableFrom(c)      => baseType.longType.noDefault
-      case c if classOf[java.lang.Double].isAssignableFrom(c)    => baseType.doubleType.noDefault
-      case c if classOf[java.lang.Float].isAssignableFrom(c)     => baseType.floatType.noDefault
-      case c if classOf[java.lang.Boolean].isAssignableFrom(c)   => baseType.booleanType.noDefault
-      case c if classOf[UUID].isAssignableFrom(c)                => baseType.bytesType.noDefault
-      case c if classOf[Date].isAssignableFrom(c)                => baseType.longType.noDefault
-      case c if classOf[Geometry].isAssignableFrom(c)            => baseType.bytesType.noDefault
-      case c if classOf[java.util.List[_]].isAssignableFrom(c)   => baseType.bytesType.noDefault
-      case c if classOf[java.util.Map[_, _]].isAssignableFrom(c) => baseType.bytesType.noDefault
-      case c if classOf[Array[Byte]].isAssignableFrom(c)         => baseType.bytesType.noDefault
-    }
-  }
-
-  val primitiveTypes =
-    List(
-      classOf[String],
-      classOf[java.lang.Integer],
-      classOf[Int],
-      classOf[java.lang.Long],
-      classOf[Long],
-      classOf[java.lang.Double],
-      classOf[Double],
-      classOf[java.lang.Float],
-      classOf[Float],
-      classOf[java.lang.Boolean],
-      classOf[Boolean]
-    )
-
-  case class Binding(clazz: Class[_], conv: AnyRef => Any)
-
-  // Resulting functions in map are not thread-safe...use only as
-  // member variable, not in a static context
-  def createTypeMap(sft: SimpleFeatureType, nameEncoder: FieldNameEncoder): Map[String, Binding] = {
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-
-    sft.getAttributeDescriptors.asScala.map { ad =>
-      val binding = ad.getType.getBinding
-      val converter = if (primitiveTypes.contains(binding)) {
-        (value: AnyRef) => value
-      } else if (classOf[UUID].isAssignableFrom(binding)) {
-        (value: AnyRef) => encodeUUID(value.asInstanceOf[UUID])
-      } else if (classOf[Date].isAssignableFrom(binding)) {
-        (value: AnyRef) => value.asInstanceOf[Date].getTime
-      } else if (classOf[Geometry].isAssignableFrom(binding) ) {
-        (value: AnyRef) => ByteBuffer.wrap(WKBUtils.write(value.asInstanceOf[Geometry]))
-      } else if (ad.isList) {
-        (value: AnyRef) => encodeList(value.asInstanceOf[java.util.List[_]], ad.getListType())
-      } else if (ad.isMap) {
-        (value: AnyRef) => {
-          val (keyclass, valueclass) = ad.getMapTypes()
-          encodeMap(value.asInstanceOf[java.util.Map[_, _]], keyclass, valueclass)
-        }
-      } else if (classOf[Array[Byte]].isAssignableFrom(binding)) {
-        (value: AnyRef) => ByteBuffer.wrap(value.asInstanceOf[Array[Byte]])
-      } else {
-        (value: AnyRef) => FastConverter.convert(value, classOf[String])
-      }
-
-      (nameEncoder.encode(ad.getLocalName), Binding(ad.getType.getBinding, converter))
-    }.toMap
-  }
-
-  def encodeUUID(uuid: UUID) =
-    ByteBuffer.allocate(16)
-        .putLong(uuid.getMostSignificantBits)
-        .putLong(uuid.getLeastSignificantBits)
-        .flip.asInstanceOf[ByteBuffer]
-
-  def decodeUUID(bb: ByteBuffer): UUID = new UUID(bb.getLong, bb.getLong)
+  import scala.collection.JavaConverters._
 
   /**
    * Encodes a list of primitives or Dates into a byte buffer. The list items must be all of the same
    * class.
    *
-   * @param list
+   * @param list list
    * @return
    */
-  def encodeList(list: java.util.List[_], binding: Class[_]): ByteBuffer = {
+  def encodeList(list: java.util.List[_], binding: String): ByteBuffer = {
     val size = Option(list).map(_.size)
     size match {
       case Some(s) if s == 0 => encodeEmptyCollection
@@ -179,10 +38,10 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   /**
    * Decodes a byte buffer created with @see encodeList back into a list
    *
-   * @param bb
+   * @param bb buffer
    * @return
    */
-  def decodeList(bb: ByteBuffer): java.util.List[_] = {
+  def decodeList(bb: ByteBuffer): java.util.List[AnyRef] = {
     val size = bb.getInt
     if (size < 0) {
       null
@@ -190,9 +49,13 @@ object AvroSimpleFeatureUtils extends LazyLogging {
       java.util.Collections.emptyList()
     } else {
       val list = new java.util.ArrayList[Object](size)
-      val label = AvroSimpleFeatureUtils.getString(bb)
+      val label = getString(bb)
       val readMethod = getReadMethod(label, bb)
-      (0 to size - 1).foreach(_ => list.add(readMethod()))
+      var i = 0
+      while (i < size) {
+        list.add(readMethod())
+        i += 1
+      }
       list
     }
   }
@@ -201,10 +64,10 @@ object AvroSimpleFeatureUtils extends LazyLogging {
    * Encodes a map of primitives or Dates into a byte buffer. The map keys must be all of the same
    * class, and the map values must all be of the same class.
    *
-   * @param map
+   * @param map map
    * @return
    */
-  def encodeMap(map: java.util.Map[_, _], keyBinding: Class[_], valueBinding: Class[_]): ByteBuffer = {
+  def encodeMap(map: java.util.Map[_, _], keyBinding: String, valueBinding: String): ByteBuffer = {
     val size = Option(map).map(_.size)
     size match {
       case Some(s) if s == 0 => encodeEmptyCollection
@@ -216,10 +79,10 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   /**
    * Decodes a byte buffer created with @see encodeMap back into a map.
    *
-   * @param bb
+   * @param bb buffer
    * @return
    */
-  def decodeMap(bb: ByteBuffer): java.util.Map[_, _] = {
+  def decodeMap(bb: ByteBuffer): java.util.Map[AnyRef, AnyRef] = {
     val size = bb.getInt
     if (size < 0) {
       null
@@ -227,14 +90,16 @@ object AvroSimpleFeatureUtils extends LazyLogging {
       java.util.Collections.emptyMap()
     } else {
       val map = new java.util.HashMap[Object, Object](size)
-      val keyType = AvroSimpleFeatureUtils.getString(bb)
-      val valueType = AvroSimpleFeatureUtils.getString(bb)
+      val keyType = getString(bb)
+      val valueType = getString(bb)
       val keyReadMethod = getReadMethod(keyType, bb)
       val valueReadMethod = getReadMethod(valueType, bb)
-      (0 to size - 1).foreach { _ =>
+      var i = 0
+      while (i < size) {
         val key = keyReadMethod()
         val value = valueReadMethod()
         map.put(key, value)
+        i += 1
       }
       map
     }
@@ -249,17 +114,15 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   /**
    * Encodes a list that has entries.
    *
-   * @param list
-   * @param size
+   * @param list list
+   * @param size size of list
    * @return
    */
-  private def encodeNonEmptyList(list: java.util.List[_], size: Int, binding: Class[_]): ByteBuffer = {
-    // get the class label for the list items
-    val label = binding.getSimpleName
+  private def encodeNonEmptyList(list: java.util.List[_], size: Int, label: String): ByteBuffer = {
     // get the appropriate write method for the list type
     val (bytesPerItem, putMethod): (Int, (ByteBuffer, Any) => Unit) = getWriteMethod(label)
     // calculate the total size needed to encode the list
-    val totalBytes = getTotalBytes(bytesPerItem, size, list.iterator().asScala, binding.getSimpleName)
+    val totalBytes = getTotalBytes(bytesPerItem, size, list.iterator().asScala, label)
 
     val labelBytes = label.getBytes(StandardCharsets.UTF_8)
     // 4 bytes for list size + 4 bytes for label bytes size + label bytes + item bytes
@@ -267,7 +130,7 @@ object AvroSimpleFeatureUtils extends LazyLogging {
     // first put the size of the list
     bb.putInt(size)
     // put the type of the list
-    AvroSimpleFeatureUtils.putString(bb, label)
+    putString(bb, label)
     // put each item
     list.asScala.foreach(v => putMethod(bb, v))
     // flip (reset) the buffer so that it's ready for reading
@@ -278,18 +141,15 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   /**
    * Encodes a map that has entries.
    *
-   * @param map
-   * @param size
+   * @param map map
+   * @param size size of map
    * @return
    */
-  private def encodeNonEmptyMap(map: java.util.Map[_, _],
-                                size: Int,
-                                keyBinding: Class[_],
-                                valueBinding: Class[_]): ByteBuffer = {
-    // pull out the class labels for the map keys/values
-    val keyLabel = keyBinding.getSimpleName
-    val valueLabel = valueBinding.getSimpleName
-
+  private def encodeNonEmptyMap(
+      map: java.util.Map[_, _],
+      size: Int,
+      keyLabel: String,
+      valueLabel: String): ByteBuffer = {
     // get the appropriate write methods and approximate sizes for keys and values
     val (bytesPerKeyItem, keyPutMethod)     = getWriteMethod(keyLabel)
     val (bytesPerValueItem, valuePutMethod) = getWriteMethod(valueLabel)
@@ -306,8 +166,8 @@ object AvroSimpleFeatureUtils extends LazyLogging {
     // first put the size of the map
     bb.putInt(size)
     // put the types of the keys and values
-    AvroSimpleFeatureUtils.putString(bb, keyLabel)
-    AvroSimpleFeatureUtils.putString(bb, valueLabel)
+    putString(bb, keyLabel)
+    putString(bb, valueLabel)
     // put each key value pair
     map.asScala.foreach { case (k, v) =>
       keyPutMethod(bb, k)
@@ -321,7 +181,7 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   /**
    * Gets the appropriate byte buffer method for the given object type.
    *
-   * @param label
+   * @param label class type
    * @return size per item (if known, otherwise -1) + read method
    */
   private def getWriteMethod(label: String): (Int, (ByteBuffer, Any) => Unit) =
@@ -344,13 +204,13 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   /**
    * Gets the appropriate byte buffer method for the given object type.
    *
-   * @param label
-   * @param bb
+   * @param label class type
+   * @param bb buffer
    * @return
    */
   private def getReadMethod(label: String, bb: ByteBuffer): () => Object =
     label.toLowerCase(Locale.US) match {
-      case "string"  => () => AvroSimpleFeatureUtils.getString(bb)
+      case "string"  => () => getString(bb)
       case "int" |
            "integer" => () => bb.getInt.asInstanceOf[Object]
       case "double"  => () => bb.getDouble.asInstanceOf[Object]
@@ -369,9 +229,9 @@ object AvroSimpleFeatureUtils extends LazyLogging {
    * Gets the total bytes needed to encode the given values. For most types, the size is fixed, but
    * Strings and bytes are encoded with a dynamic length.
    *
-   * @param bytesPerItem
-   * @param size
-   * @param values
+   * @param bytesPerItem bytes per item
+   * @param size number of items
+   * @param values values
    * @return
    */
   private def getTotalBytes(bytesPerItem: Int, size: Int, values: Iterator[_], label: String): Int =
@@ -391,7 +251,7 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   /**
    * Reads a string from a byte buffer that has been written using @see putString.
    *
-   * @param bb
+   * @param bb buffer
    * @return
    */
   private def getString(bb: ByteBuffer): String = {
@@ -404,8 +264,8 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   /**
    * Writes a string to a byte buffer by encoding the length first, then the bytes of the string.
    *
-   * @param bb
-   * @param s
+   * @param bb buffer
+   * @param s string
    * @return
    */
   private def putString(bb: ByteBuffer, s: String): ByteBuffer = putBytes(bb, s.getBytes(StandardCharsets.UTF_8))
@@ -413,8 +273,8 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   /**
     * Writes a byte array to a byte buffer by encoding the length first, then the bytes
     *
-    * @param bb
-    * @param arr
+    * @param bb buffer
+    * @param arr array
     * @return
     */
   private def putBytes(bb: ByteBuffer, arr: Array[Byte]): ByteBuffer = bb.putInt(arr.length).put(arr)
@@ -422,7 +282,7 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   /**
     * Reads a byte array from a byte buffer that has been written using @see putBytes
     *
-    * @param bb
+    * @param bb buffer
     * @return
     */
   private def getBytes(bb: ByteBuffer): Array[Byte] = {

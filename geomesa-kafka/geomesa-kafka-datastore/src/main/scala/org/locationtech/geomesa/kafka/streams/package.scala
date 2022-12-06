@@ -133,7 +133,7 @@ package object streams {
           val sft = ds.getSchema(typeNames(i))
           KafkaDataStore.topic(sft) match {
             case t if t == topic =>
-              val internal = ds.serialization(sft, ds.config.serialization, `lazy` = false).serializer
+              val internal = ds.serialization(sft).serializer
               return new GeoMesaMessageSerializer(sft, internal)
 
             case t => topics += t
@@ -213,7 +213,7 @@ package object streams {
    *
    * See
    *   * @see [[org.locationtech.geomesa.features.kryo.impl.KryoFeatureSerialization#writeFeature]]
-   *   * @see [[org.locationtech.geomesa.features.avro.AvroSimpleFeatureWriter#write]]
+   *   * @see [[org.locationtech.geomesa.features.avro.serialization.SimpleFeatureDatumWriter#write]]
    *
    * @param converters attribute converters to enforce feature type schema
    * @param attributes message attributes

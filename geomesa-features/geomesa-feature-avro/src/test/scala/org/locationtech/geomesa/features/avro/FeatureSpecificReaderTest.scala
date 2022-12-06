@@ -13,7 +13,9 @@ import org.apache.avro.io.{DecoderFactory, EncoderFactory}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.{Assert, Test}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.avro.serialization.SimpleFeatureDatumWriter
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -33,9 +35,9 @@ import scala.util.Random
 class FeatureSpecificReaderTest extends LazyLogging {
 
 
-  def createTypeWithGeo: AvroSimpleFeature = {
+  def createTypeWithGeo: SimpleFeature = {
     val sft = SimpleFeatureTypes.createType("test","f0:Point,f1:Polygon,f2:LineString")
-    val sf = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
+    val sf = new ScalaSimpleFeature(sft, "fakeid")
 
     sf.setAttribute("f0", GeohashUtils.wkt2geom("POINT(45.0 49.0)").asInstanceOf[Point])
     sf.setAttribute("f1", GeohashUtils.wkt2geom("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
@@ -44,11 +46,11 @@ class FeatureSpecificReaderTest extends LazyLogging {
     sf
   }
 
-  def writeAvroFile(sfList: List[AvroSimpleFeature]) : File = {
+  def writeAvroFile(sfList: List[SimpleFeature]) : File = {
     val f = File.createTempFile("avro", ".tmp")
     f.deleteOnExit()
     val fos = new FileOutputStream(f)
-    val writer = new AvroSimpleFeatureWriter(sfList(0).getFeatureType)
+    val writer = new SimpleFeatureDatumWriter(sfList.head.getFeatureType)
 
     // Use a regular binary encoder for buffered file writes
     val encoder = EncoderFactory.get().binaryEncoder(fos, null)
@@ -60,7 +62,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
     f
   }
 
-  def writePipeFile(sfList: List[AvroSimpleFeature]) : File = {
+  def writePipeFile(sfList: List[SimpleFeature]) : File = {
     val f = File.createTempFile("pipe", ".tmp")
     f.deleteOnExit()
     val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), UTF_8))
@@ -105,7 +107,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
     sb.toString()
   }
 
-  def createStringFeatures(schema:String, size: Int, id: String) : AvroSimpleFeature = {
+  def createStringFeatures(schema:String, size: Int, id: String) : SimpleFeature = {
     val sft = SimpleFeatureTypes.createType("test", schema)
     val r = new Random()
     r.setSeed(0)
@@ -114,7 +116,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
     for(i <- 0 until size)
       lst += randomString(i, 8, r)
 
-    val sf = new AvroSimpleFeature(new FeatureIdImpl(id), sft)
+    val sf = new ScalaSimpleFeature(sft, id)
     for(i <- 0 until lst.size) {
       sf.setAttribute(i, lst(i))
     }
@@ -133,7 +135,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
     }
     val geoSchema = sb.toString()
 
-    val sfList: List[AvroSimpleFeature] =
+    val sfList: List[SimpleFeature] =
       for (i <- (0 until numRecords).toList) yield createStringFeatures(geoSchema, numFields,i.toString)
 
     val oldType = sfList(0).getType
@@ -205,7 +207,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
     val numRecords = 100
     val geoSchema = buildStringSchema(numFields)
 
-    val sfList :List[AvroSimpleFeature] =
+    val sfList :List[SimpleFeature] =
       for (i <- (0 until numRecords).toList) yield  createStringFeatures(geoSchema, numFields, i.toString)
 
     val oldType = sfList(0).getType
@@ -240,17 +242,16 @@ class FeatureSpecificReaderTest extends LazyLogging {
     }
   }
 
-  def createComplicatedFeatures(numFeatures : Int) : List[AvroSimpleFeature] = {
+  def createComplicatedFeatures(numFeatures : Int) : List[SimpleFeature] = {
     val geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date,f7:Point:srid=4326,f8:Polygon:srid=4326"
     val sft = SimpleFeatureTypes.createType("test", geoSchema)
     val r = new Random()
     r.setSeed(0)
 
 
-    val list = new ListBuffer[AvroSimpleFeature]
+    val list = new ListBuffer[SimpleFeature]
     for(i <- 0 until numFeatures){
-      val fid = new FeatureIdImpl(r.nextString(5))
-      val sf = new AvroSimpleFeature(fid, sft)
+      val sf = new ScalaSimpleFeature(sft, r.nextString(5))
 
       sf.setAttribute("f0", r.nextString(10).asInstanceOf[Object])
       sf.setAttribute("f1", r.nextInt().asInstanceOf[Object])
@@ -313,7 +314,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
 
     // serialize
     val baos = new ByteArrayOutputStream()
-    val writer = new AvroSimpleFeatureWriter(sft, SerializationOptions.withUserData)
+    val writer = new SimpleFeatureDatumWriter(sft, SerializationOptions.withUserData)
     val encoder = EncoderFactory.get().binaryEncoder(baos, null)
     writer.write(sf, encoder)
     encoder.flush()

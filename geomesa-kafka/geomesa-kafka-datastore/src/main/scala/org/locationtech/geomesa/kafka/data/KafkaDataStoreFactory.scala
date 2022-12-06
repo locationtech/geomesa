@@ -14,9 +14,11 @@ import org.apache.commons.lang3.StringUtils
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.index.metadata.MetadataStringSerializer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
+import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams.{LazyFeatures, SerializationType}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
@@ -46,7 +48,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
 
   override def createDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore = {
     val config = KafkaDataStoreFactory.buildConfig(params)
-    val serializer = new GeoMessageSerializerFactory()
+    val serializer = KafkaDataStoreFactory.buildSerializer(params)
     val ds = config.zookeepers match {
       case None =>
         val meta = new KafkaMetadata(config, MetadataStringSerializer)
@@ -158,7 +160,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     }
     val clearOnStart = ClearOnStart.lookup(params)
 
-    val serialization = org.locationtech.geomesa.features.SerializationType.withName(SerializationType.lookup(params))
+    val serialization = SerializationTypes.fromName(SerializationType.lookup(params))
 
     val indices = {
       val cqEngine = {
@@ -242,6 +244,14 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
     KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, clearOnStart, topics, serialization,
       indices, looseBBox, layerViews, authProvider, audit, metrics, ns)
+  }
+
+  def buildSerializer(params: java.util.Map[String, Serializable]): GeoMessageSerializerFactory = {
+    val serialization = SerializationType.lookup(params)
+    val serializationType = KafkaDataStoreParams.SerializationTypes.fromName(serialization)
+    val nativeOpts = KafkaDataStoreParams.SerializationTypes.opts(serialization)
+    val lazyOpts = if (LazyFeatures.lookup(params).booleanValue()) { Set(SerializationOption.Lazy) } else { Set.empty }
+    new GeoMessageSerializerFactory(serializationType, nativeOpts ++ lazyOpts)
   }
 
   private def buildAuthProvider(params: java.util.Map[String, Serializable]): AuthorizationsProvider = {

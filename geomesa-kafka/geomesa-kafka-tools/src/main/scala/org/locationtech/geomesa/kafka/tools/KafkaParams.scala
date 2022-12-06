@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka.tools
 
 import com.beust.jcommander.Parameter
+import org.locationtech.geomesa.kafka.tools.KafkaDataStoreCommand.SerializationValidator
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
 
 import java.io.File
@@ -40,6 +41,7 @@ trait KafkaDataStoreParams {
   def partitions: Int
   def fromBeginning: Boolean
   def readBack: Duration
+  def serialization: String
 }
 
 trait ProducerDataStoreParams extends KafkaDataStoreParams {
@@ -55,6 +57,11 @@ trait ProducerDataStoreParams extends KafkaDataStoreParams {
 
   @Parameter(names = Array("--config"), description = "Properties file used to configure the Kafka producer")
   var producerProperties: File = _
+
+  @Parameter(names = Array("--serialization"),
+    description = "Serialization format to use, ones of 'kryo', 'avro', or 'avro-native'",
+    validateValueWith = Array(classOf[SerializationValidator]))
+  var serialization: String = _
 
   override val consumerProperties: File = null
   override val numConsumers: Int = 0
@@ -80,6 +87,7 @@ trait ConsumerDataStoreParams extends KafkaDataStoreParams {
   var consumerProperties: File = _
 
   override val producerProperties: File = null
+  override val serialization: String = null
 
   override val replication: Int = 1
   override val partitions: Int = 1
@@ -93,6 +101,7 @@ trait StatusDataStoreParams extends KafkaDataStoreParams {
   @Parameter(names = Array("--config"), description = "Properties file used to configure the Kafka admin client")
   var producerProperties: File = _
 
+  override val serialization: String = null
   override val consumerProperties: File = null
   override val numConsumers: Int = 0
   override val replication: Int = 1

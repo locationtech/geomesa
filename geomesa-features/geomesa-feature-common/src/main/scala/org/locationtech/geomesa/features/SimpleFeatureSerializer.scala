@@ -128,6 +128,7 @@ object SimpleFeatureSerializer {
     def withoutId: T = add(SerializationOption.WithoutId)
     def `lazy`: T = add(SerializationOption.Lazy)
     def active: T = remove(SerializationOption.Lazy)
+    def opts(opts: Set[SerializationOption]): T = { options ++= opts; this }
 
     def build(): SimpleFeatureSerializer
   }

@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.features
 
 import org.apache.avro.io.{BinaryDecoder, BinaryEncoder, DecoderFactory, EncoderFactory}
-import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.features.avro.{AvroSimpleFeature, AvroSimpleFeatureWriter, FeatureSpecificReader}
+import org.locationtech.geomesa.features.avro.serialization.{SimpleFeatureDatumReader, SimpleFeatureDatumWriter}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.{Point, Polygon}
+import org.opengis.feature.simple.SimpleFeature
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.text.SimpleDateFormat
@@ -29,17 +29,16 @@ object SerializationTester {
 
   def main(args: Array[String]) = {
 
-    def createComplicatedFeatures(numFeatures : Int) : List[AvroSimpleFeature] = {
+    def createComplicatedFeatures(numFeatures : Int) : List[SimpleFeature] = {
       val geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date," +
           "*f7:Point:srid=4326,f8:Polygon:srid=4326,f9:List[Double],f10:Map[String,Int]"
       val sft = SimpleFeatureTypes.createType("test", geoSchema)
       val r = new Random()
       r.setSeed(0)
 
-      val list = new ListBuffer[AvroSimpleFeature]
+      val list = new ListBuffer[SimpleFeature]
       for(i <- 0 until numFeatures){
-        val fid = new FeatureIdImpl(r.nextString(5))
-        val sf = new AvroSimpleFeature(fid, sft)
+        val sf = new ScalaSimpleFeature(sft, r.nextString(5))
 
         sf.setAttribute("f0", r.nextString(10).asInstanceOf[Object])
         sf.setAttribute("f1", r.nextInt().asInstanceOf[Object])
@@ -79,8 +78,8 @@ object SerializationTester {
     val features = createComplicatedFeatures(5000)
 
     def two() = {
-      val writer = new AvroSimpleFeatureWriter(features(0).getType)
-      val reader = FeatureSpecificReader(features(0).getType)
+      val writer = new SimpleFeatureDatumWriter(features.head.getType)
+      val reader = SimpleFeatureDatumReader(writer.getSchema, features.head.getType)
       val baos = new ByteArrayOutputStream()
       var reusableEncoder: BinaryEncoder = null
       var reusableDecoder: BinaryDecoder = null

@@ -12,7 +12,7 @@ import org.geotools.data.DataUtilities
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
-import org.locationtech.geomesa.features.avro.AvroDataFileReader
+import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ByteExportStream
 import org.locationtech.geomesa.tools.export.formats.{AvroExporter, DelimitedExporter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

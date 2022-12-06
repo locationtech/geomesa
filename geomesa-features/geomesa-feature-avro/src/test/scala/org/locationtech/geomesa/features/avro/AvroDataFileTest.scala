@@ -11,6 +11,7 @@ package org.locationtech.geomesa.features.avro
 import org.apache.avro.file.DataFileStream
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -33,7 +34,7 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
     "read and write a data file with simple features in it" >> {
       val features = createComplicatedFeatures(50)
       val tmpFile = getTmpFile
-      val dfw = new AvroDataFileWriter(new FileOutputStream(tmpFile), complexSft)
+      val dfw = new io.AvroDataFileWriter(new FileOutputStream(tmpFile), complexSft)
       try {
         features.foreach(dfw.append)
       } finally {
@@ -58,7 +59,7 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       sf2.getIdentifier.asInstanceOf[FeatureIdImpl].setID("fid2")
 
       val tmpFile = getTmpFile
-      val dfw = new AvroDataFileWriter(new FileOutputStream(tmpFile), simpleSft)
+      val dfw = new io.AvroDataFileWriter(new FileOutputStream(tmpFile), simpleSft)
       try {
         dfw.append(sf)
         dfw.append(sf2)
@@ -85,7 +86,7 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
     "preserve lots of user data" >> {
       val features = createComplicatedFeatures(50)
       val tmpFile = getTmpFile
-      val dfw = new AvroDataFileWriter(new FileOutputStream(tmpFile), complexSft)
+      val dfw = new io.AvroDataFileWriter(new FileOutputStream(tmpFile), complexSft)
       try {
         features.foreach(dfw.append)
       } finally {
@@ -104,7 +105,7 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID("fid1")
 
       val tmpFile = getTmpFile
-      val dfw = new AvroDataFileWriter(new FileOutputStream(tmpFile), simpleSft)
+      val dfw = new io.AvroDataFileWriter(new FileOutputStream(tmpFile), simpleSft)
       try {
         dfw.append(sf)
       } finally {
@@ -125,7 +126,7 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       val compressed = getTmpFile
 
       Seq((uncompressed, NO_COMPRESSION), (compressed, DEFAULT_COMPRESSION)).foreach { case (file, compression) =>
-        val dfw = new AvroDataFileWriter(new FileOutputStream(file), complexSft, compression)
+        val dfw = new io.AvroDataFileWriter(new FileOutputStream(file), complexSft, compression)
         try {
           features.foreach(dfw.append)
         } finally {
@@ -145,7 +146,7 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
     "serialize byte arrays" >> {
       val features = createComplicatedFeatures(3)
       val tmpFile = getTmpFile
-      val dfw = new AvroDataFileWriter(new FileOutputStream(tmpFile), complexSft)
+      val dfw = new io.AvroDataFileWriter(new FileOutputStream(tmpFile), complexSft)
       try {
         features.foreach(dfw.append)
       } finally {
@@ -164,7 +165,7 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       val sft = SimpleFeatureTypes.createType("bytesTest",
         "b1:Bytes,b2:Bytes,m1:Map[String,Bytes],bl:List[Bytes],*geom:Point,dtg:Date")
 
-      val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+      val builder = ScalaSimpleFeatureFactory.featureBuilder(sft)
       builder.reset()
       builder.set("b1", "testencoding$^@#$\u0000\u0023".getBytes(StandardCharsets.ISO_8859_1))
       builder.set("b2", null)
@@ -175,7 +176,7 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
 
       val sf = builder.buildFeature("fid")
       val tmpFile = getTmpFile
-      val dfw = new AvroDataFileWriter(new FileOutputStream(tmpFile), sft)
+      val dfw = new io.AvroDataFileWriter(new FileOutputStream(tmpFile), sft)
       try {
         dfw.append(sf)
       } finally {

@@ -360,6 +360,34 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       }
     }
 
+    "write/read avro collection attributes" >> {
+      foreach(KafkaDataStoreParams.SerializationTypes.Types) { serde =>
+        val params = Map(KafkaDataStoreParams.SerializationType.key -> serde)
+        val sft = SimpleFeatureTypes.createType("kafka", "names:List[String],props:Map[String,String],dtg:Date,*geom:Point:srid=4326")
+        val path = getUniquePath
+        val (producer, consumer) = (getStore(path, 0, params), getStore(path, 1, params))
+        try {
+          producer.createSchema(sft)
+          consumer.metadata.resetCache()
+          val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
+
+          val f0 = ScalaSimpleFeature.create(sft, "sm", List("smith1", "smith2"), Map("s" -> "smith"), "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+          val f1 = ScalaSimpleFeature.create(sft, "jo", List("jones"), Map("j1" -> "jones1", "j2" -> "jones2"), "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
+
+          // initial write
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+              containTheSameElementsAs(Seq(f0, f1)))
+        } finally {
+          consumer.dispose()
+          producer.dispose()
+        }
+      }
+    }
+
     "expire entries" >> {
       foreach(Seq(true, false)) { cqEngine =>
         val executor = mock[ScheduledExecutorService]

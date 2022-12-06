@@ -60,12 +60,16 @@ Argument                 Description
 
 Generate an Avro schema based on a ``SimpleFeatureType``.
 
-======================== ==================================================
+============================ ==================================================
 Argument                 Description
-======================== ==================================================
-``-s, --spec *``         The ``SimpleFeatureType`` specification to create
-``-f, --feature-name``   The name of the schema to create
-======================== ==================================================
+============================ ==================================================
+``-s, --spec *``             The ``SimpleFeatureType`` specification to create
+``-f, --feature-name``       The name of the schema to create
+``--use-native-collections`` Encode list and map type attributes as native Avro
+                             records
+``--kafka-compatible``       Exclude the feature ID, which aligns with the
+                             schema used for GeoMesa Kafka topics
+============================ ==================================================
 
 See :ref:`cli_create_schema` for details on specifying a ``SimpleFeatureType``.
 

@@ -26,6 +26,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   *
   * @param opts serialization options
   */
+@deprecated("Replaced with SimpleFeatureDatumReader")
 class FeatureSpecificReader(opts: SerializationOptions) extends DatumReader[SimpleFeature] {
 
   private val includeUserData = opts.withUserData
@@ -75,6 +76,7 @@ class FeatureSpecificReader(opts: SerializationOptions) extends DatumReader[Simp
   }
 }
 
+@deprecated("Replaced with SimpleFeatureDatumReader")
 object FeatureSpecificReader {
 
   /**

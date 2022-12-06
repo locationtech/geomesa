@@ -27,7 +27,7 @@ import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroDataFileReader
+import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
 import org.locationtech.geomesa.parquet.ParquetPathReader
@@ -204,18 +204,19 @@ class ExportCommandTest extends Specification {
 
   def readFeatures(format: ExportFormat, file: String, sft: SimpleFeatureType = this.sft): Seq[SimpleFeature] = {
     format match {
-      case ExportFormat.Arrow   => readArrow(file)
-      case ExportFormat.Avro    => readAvro(file)
-      case ExportFormat.Bin     => readBin(file, sft)
-      case ExportFormat.Csv     => readCsv(file)
-      case ExportFormat.Json    => readJson(file, sft)
-      case ExportFormat.Leaflet => readLeaflet(file, sft)
-      case ExportFormat.Orc     => readOrc(file, sft)
-      case ExportFormat.Parquet => readParquet(file, sft)
-      case ExportFormat.Shp     => readShp(file, sft)
-      case ExportFormat.Tsv     => readTsv(file)
-      case ExportFormat.Gml2    => readGml2(file, sft)
-      case ExportFormat.Gml3    => readGml3(file, sft)
+      case ExportFormat.Arrow      => readArrow(file)
+      case ExportFormat.Avro       => readAvro(file)
+      case ExportFormat.AvroNative => readAvro(file)
+      case ExportFormat.Bin        => readBin(file, sft)
+      case ExportFormat.Csv        => readCsv(file)
+      case ExportFormat.Json       => readJson(file, sft)
+      case ExportFormat.Leaflet    => readLeaflet(file, sft)
+      case ExportFormat.Orc        => readOrc(file, sft)
+      case ExportFormat.Parquet    => readParquet(file, sft)
+      case ExportFormat.Shp        => readShp(file, sft)
+      case ExportFormat.Tsv        => readTsv(file)
+      case ExportFormat.Gml2       => readGml2(file, sft)
+      case ExportFormat.Gml3       => readGml3(file, sft)
     }
   }
 

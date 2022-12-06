@@ -16,7 +16,7 @@ import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroDataFileWriter
+import org.locationtech.geomesa.features.avro.io.AvroDataFileWriter
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
