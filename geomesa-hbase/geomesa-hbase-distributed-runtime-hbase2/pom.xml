@@ -54,22 +54,9 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>org.locationtech.geomesa:geomesa-*-runtime*</exclude>
-                                    <exclude>org.slf4j:*</exclude>
                                     <exclude>com.google.guava:*</exclude>
                                 </excludes>
                             </artifactSet>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
                             <relocations>
                                 <relocation>
                                     <pattern>javax.measure</pattern>
@@ -85,9 +72,6 @@
                                     <shadedPattern>org.locationtech.geomesa.hbase.shade.io.netty</shadedPattern>
                                 </relocation>
                             </relocations>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                            </transformers>
                         </configuration>
                     </execution>
                 </executions>
