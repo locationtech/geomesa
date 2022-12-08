@@ -2780,8 +2780,18 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <!-- 3.1.0 was released 2018-04-06. -->
-                    <version>3.1.0</version>
+                    <version>3.3.0</version> <!-- released 2022-09-12 -->
+                    <configuration>
+                        <archive>
+                            <!-- automatic module config for java 9+ compatibility -->
+                            <manifestEntries>
+                                <Project-Version>${project.version}</Project-Version>
+                                <Git-Revision>${git.commit.id}</Git-Revision>
+                                <Build-Timestamp>${git.build.time}</Build-Timestamp>
+                                <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
+                            </manifestEntries>
+                        </archive>
+                    </configuration>
                     <executions>
                         <execution>
                             <!-- binds to the default test-jar goal to exclude logging configs -->
@@ -2820,8 +2830,41 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <!-- 3.2.1 was released 2018-11-12. -->
-                    <version>3.2.1</version>
+                    <version>3.4.1</version><!-- published 2022-10-21 -->
+                    <configuration>
+                        <artifactSet>
+                            <excludes combine.children="append">
+                                <exclude>org.locationtech.geomesa:geomesa-*-runtime*</exclude>
+                                <exclude>org.slf4j:*</exclude>
+                                <exclude>org.geotools:gt-render:*</exclude>
+                                <exclude>org.geotools:gt-coverage:*</exclude>
+                                <exclude>it.geosolutions.jaiext.*</exclude>
+                            </excludes>
+                        </artifactSet>
+                        <createDependencyReducedPom>false</createDependencyReducedPom>
+                        <filters combine.children="append">
+                            <filter>
+                                <artifact>*:*</artifact>
+                                <excludes>
+                                    <exclude>META-INF/MANIFEST.MF</exclude>
+                                    <exclude>META-INF/*.SF</exclude>
+                                    <exclude>META-INF/*.DSA</exclude>
+                                    <exclude>META-INF/*.RSA</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
+                        <transformers combine.children="append">
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <manifestEntries>
+                                    <Project-Version>${project.version}</Project-Version>
+                                    <Git-Revision>${git.commit.id}</Git-Revision>
+                                    <Build-Timestamp>${git.build.time}</Build-Timestamp>
+                                    <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
+                                </manifestEntries>
+                            </transformer>
+                        </transformers>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>net.alchim31.maven</groupId>
@@ -2955,7 +2998,7 @@
                 <plugin>
                     <groupId>pl.project13.maven</groupId>
                     <artifactId>git-commit-id-plugin</artifactId>
-                    <version>2.2.5</version>
+                    <version>4.9.10</version> <!-- version 4.x is latest to support java 8 -->
                     <configuration>
                         <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
                         <runOnlyOnce>false</runOnlyOnce>
@@ -3026,7 +3069,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>3.3.0</version> <!-- released 2022-01-04 -->
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -3056,6 +3099,43 @@
         </pluginManagement>
 
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <!-- set up the module name based on the group and artifact id. the end result will (sort of)
+                         map to the top-level package, which is considered best practice. our packages are not
+                         consistent enough to make that completely true, but it would be disruptive to change them all -->
+                    <execution>
+                        <id>set-module-name-step-1</id>
+                        <goals>
+                            <goal>regex-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>module.name</name>
+                            <value>${project.artifactId}</value>
+                            <!-- replace the trailing _{scala_version} -->
+                            <regex>([a-z][a-z0-9-]+)(_[0-9.]+)?</regex>
+                            <replacement>org.locationtech.$1</replacement>
+                            <failIfNoMatch>false</failIfNoMatch>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>set-module-name-step-2</id>
+                        <goals>
+                            <goal>regex-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>module.name</name>
+                            <value>${module.name}</value>
+                            <!-- module names are not allowed to have dashes -->
+                            <regex>-</regex>
+                            <replacement>.</replacement>
+                            <failIfNoMatch>false</failIfNoMatch>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
