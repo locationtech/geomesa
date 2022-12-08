@@ -50,6 +50,8 @@ class SimpleFeatureDatumReader extends DatumReader[SimpleFeature] {
    * @param sft simple feature type
    */
   def setFeatureType(sft: SimpleFeatureType): Unit = {
+    // ideally, we could re-construct the feature type from the schema... going forward, that should be possible,
+    // but to support older data files we still need this
     require(schema != null, "setSchema must be called before setFeatureType")
     this.sft = sft
     this.fid = if (schema.getField(FidField.name) != null) { Some(FidField) } else { None }
