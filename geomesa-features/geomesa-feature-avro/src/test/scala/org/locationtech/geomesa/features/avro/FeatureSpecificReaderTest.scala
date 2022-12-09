@@ -34,7 +34,6 @@ import scala.util.Random
 
 class FeatureSpecificReaderTest extends LazyLogging {
 
-
   def createTypeWithGeo: SimpleFeature = {
     val sft = SimpleFeatureTypes.createType("test","f0:Point,f1:Polygon,f2:LineString")
     val sf = new ScalaSimpleFeature(sft, "fakeid")
