@@ -10,6 +10,7 @@ package org.locationtech.geomesa.features.avro.serialization
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.io.{DecoderFactory, EncoderFactory}
+import org.apache.commons.io.IOUtils
 import org.geotools.data.DataUtilities
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -24,17 +25,18 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.io._
+import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets.UTF_8
 import java.text.SimpleDateFormat
 import java.util.UUID
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import scala.io.Codec.UTF8
-import scala.io.Source
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureDatumReaderTest extends Specification with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   def createTypeWithGeo: SimpleFeature = {
     val sft = SimpleFeatureTypes.createType("test","f0:Point,f1:Polygon,f2:LineString")
@@ -92,10 +94,10 @@ class SimpleFeatureDatumReaderTest extends Specification with LazyLogging {
     f
   }
 
-  def readPipeFile(f:File, sft:SimpleFeatureType) : List[SimpleFeature] = {
+  def readPipeFile(f: File, sft: SimpleFeatureType) : List[SimpleFeature] = {
     val sfList = ListBuffer[SimpleFeature]()
-    WithClose(Source.fromFile(f)(UTF8)) { source =>
-      source.getLines.foreach { line =>
+    WithClose(new FileInputStream(f)) { is =>
+      IOUtils.lineIterator(is, StandardCharsets.UTF_8).asScala.foreach { line =>
         sfList += ScalaSimpleFeature.copy(DataUtilities.createFeature(sft, line)) // use ScalaSimpleFeature for equality comparison
       }
     }
