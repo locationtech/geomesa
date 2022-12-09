@@ -76,6 +76,7 @@ object KafkaMigrateZkCommand {
     @Parameter(names = Array("--config"), description = "Properties file used to configure the Kafka admin client")
     var producerProperties: File = _
 
+    override val serialization: String = null
     override val consumerProperties: File = null
     override val partitions: Int = 1 // note: ignored for the metadata topic
     override val numConsumers: Int = 0

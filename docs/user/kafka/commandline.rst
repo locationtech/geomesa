@@ -88,6 +88,7 @@ Argument                 Description
 ======================== ==================================================
 ``--partitions``         The number of partitions used for the Kafka topic
 ``--replication``        The replication factor for the Kafka topic
+``--serialization``      The serialization format to use
 ``--delay``              The delay inserted between messages
 ======================== ==================================================
 

@@ -12,7 +12,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.locationtech.geomesa.utils.stats.Cardinality
@@ -31,7 +31,7 @@ class HighCardinalityAttributeOrQueryTest extends Specification with TestWithFea
     .spec
 
   val numFeatures = 10
-  val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+  val builder = ScalaSimpleFeatureFactory.featureBuilder(sft)
   val features = (0 until numFeatures).map { i =>
     builder.set("geom", WKTUtils.read(s"POINT(45.0 45.$i)"))
     builder.set("dtg", f"2014-01-01T01:00:$i%02d.000Z")

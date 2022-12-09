@@ -22,7 +22,6 @@ import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.CachingFeatureCollection
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
@@ -276,11 +275,11 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
 
       val pt = WKTUtils.read("POINT (0 0)")
-      val one = AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("one", new Integer(1), new Date(), pt), "1")
-      val two = AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("two", new Integer(2), new Date(), pt), "2")
+      val one = ScalaSimpleFeature.create(sft, "1", "one", new Integer(1), new Date(), pt)
+      val two = ScalaSimpleFeature.create(sft, "2", "two", new Integer(2), new Date(), pt)
 
       val fs = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
-      fs.addFeatures(DataUtilities.collection(java.util.Arrays.asList(one, two)))
+      fs.addFeatures(DataUtilities.collection(java.util.Arrays.asList[SimpleFeature](one, two)))
 
       // indexed attribute
       val q1 = ECQL.toFilter("name = 'one'")

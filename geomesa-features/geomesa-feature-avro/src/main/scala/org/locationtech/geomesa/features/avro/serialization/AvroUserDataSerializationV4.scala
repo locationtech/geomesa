@@ -17,13 +17,13 @@ import org.locationtech.jts.geom.Geometry
 
 import java.util.{Date, UUID}
 
-@deprecated("does not match declared schema")
 object AvroUserDataSerializationV4 extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
   val NullMarkerString = "<null>"
 
+  @deprecated("does not match declared schema")
   def serialize(out: Encoder, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
     // may not be able to write all entries - must pre-filter to know correct count
     val filtered = map.asScala.filter { case (key, value) =>

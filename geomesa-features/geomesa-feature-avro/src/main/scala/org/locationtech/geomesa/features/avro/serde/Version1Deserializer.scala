@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets
 /**
  * Version 1 AvroSimpleFeature encodes fields as WKT (Well Known Text) in an Avro String
  */
+@deprecated("Deprecated with no replacement")
 object Version1Deserializer extends ASFDeserializer {
 
   override def setGeometry(sf: ScalaSimpleFeature, field: Int, in:Decoder): Unit = {

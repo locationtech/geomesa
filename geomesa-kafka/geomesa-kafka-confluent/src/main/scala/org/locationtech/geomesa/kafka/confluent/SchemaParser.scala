@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.avro
+package org.locationtech.geomesa.kafka.confluent
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
@@ -23,9 +23,9 @@ import scala.collection.JavaConverters._
 import scala.reflect.{ClassTag, classTag}
 import scala.util.control.NonFatal
 
-@deprecated("GeoMesa-confluent-specific implementation removed without replacement")
-object AvroSimpleFeatureTypeParser {
-  val reservedPropertyKeys: Set[String] = Set(
+object SchemaParser {
+
+  private val reservedPropertyKeys: Set[String] = Set(
     GeoMesaAvroGeomFormat.KEY,
     GeoMesaAvroGeomType.KEY,
     GeoMesaAvroGeomDefault.KEY,

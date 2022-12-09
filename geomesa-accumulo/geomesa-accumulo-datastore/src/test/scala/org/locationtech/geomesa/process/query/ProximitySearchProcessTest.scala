@@ -17,7 +17,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -48,7 +47,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
 
       List("a", "b").foreach { name =>
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
-          val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
+          val sf = ScalaSimpleFeature.create(sft, name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
           sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
           sf.setAttribute("type", name)
@@ -72,7 +71,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
 
       val inputFeatures = new DefaultFeatureCollection(sftName, sft)
       List(1, 2, 3).zip(List(p1, p2, p3)).foreach { case (i, p) =>
-        val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), i.toString)
+        val sf = ScalaSimpleFeature.create(sft, i.toString)
         sf.setDefaultGeometry(p)
         sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
         sf.setAttribute("type", "fake")
@@ -143,7 +142,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
 
       val inputFeatures = new DefaultFeatureCollection(sftName, sft)
       List(1, 2, 3).zip(List(p1, p2, p3)).foreach { case (i, p) =>
-        val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), i.toString)
+        val sf = ScalaSimpleFeature.create(sft, i.toString)
         sf.setDefaultGeometry(p)
         sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
         sf.setAttribute("type", "fake")
@@ -155,7 +154,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
 
       List("a", "b").foreach { name =>
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
-          val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
+          val sf = ScalaSimpleFeature.create(sft, name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
           sf.setAttribute("dtg", "2011-01-01T00:00:00Z")
           sf.setAttribute("type", name)

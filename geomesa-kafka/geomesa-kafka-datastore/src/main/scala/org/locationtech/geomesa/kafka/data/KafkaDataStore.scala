@@ -98,7 +98,7 @@ class KafkaDataStore(
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config.brokers, topic, config.consumers)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
-        val serializer = serialization.apply(sft, config.serialization, config.indices.lazyDeserialization)
+        val serializer = serialization.apply(sft)
         val initialLoad = config.consumers.readBack.isDefined
         val expiry = config.indices.expiry
         new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, serializer, initialLoad, expiry)
@@ -141,7 +141,7 @@ class KafkaDataStore(
       KafkaDataStore.consumers(config.brokers, topic, conf)
     }
     val frequency = java.time.Duration.ofMillis(KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis)
-    val serializer = serialization.apply(sft, config.serialization, config.indices.lazyDeserialization)
+    val serializer = serialization.apply(sft)
     val consumer = new GeoMessageConsumer(consumers, frequency, serializer, processor)
     consumer.startConsumers(errorHandler)
     consumer
@@ -298,7 +298,7 @@ class KafkaDataStore(
     }
     val producer = getTransactionalProducer(sft, transaction)
     val vis = sft.isVisibilityRequired
-    val serializer = serialization.apply(sft, config.serialization, `lazy` = false)
+    val serializer = serialization.apply(sft)
     val writer = filter match {
       case None if vis    => new AppendKafkaFeatureWriter(sft, producer, serializer) with RequiredVisibilityWriter
       case None           => new AppendKafkaFeatureWriter(sft, producer, serializer)
@@ -553,6 +553,7 @@ object KafkaDataStore extends LazyLogging {
       producers: ProducerConfig,
       clearOnStart: Boolean,
       topics: TopicConfig,
+      @deprecated("unused")
       serialization: SerializationType,
       indices: IndexConfig,
       looseBBox: Boolean,
@@ -578,6 +579,7 @@ object KafkaDataStore extends LazyLogging {
       resolution: IndexResolution,
       ssiTiers: Seq[(Double, Double)],
       cqAttributes: Seq[(String, CQIndexType)],
+      @deprecated("unused")
       lazyDeserialization: Boolean,
       executor: Option[(ScheduledExecutorService, Ticker)]
     )

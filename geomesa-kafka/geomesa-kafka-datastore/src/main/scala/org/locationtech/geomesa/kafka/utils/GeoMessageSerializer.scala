@@ -11,10 +11,11 @@ package org.locationtech.geomesa.kafka.utils
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.producer.Partitioner
 import org.apache.kafka.common.Cluster
+import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.{SerializationOption, SerializationType, SimpleFeatureSerializer}
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeatureType
@@ -78,14 +79,29 @@ object GeoMessageSerializer {
     * @param `lazy` use lazy deserialization
     * @return
     */
+  @deprecated("Use apply(SimpleFeatureType, SerializationType, Set[SerializationOption])")
   def apply(
       sft: SimpleFeatureType,
       serialization: SerializationType = SerializationType.KRYO,
       `lazy`: Boolean = false): GeoMessageSerializer = {
-    val kryoBuilder = KryoFeatureSerializer.builder(sft).withoutId.withUserData.immutable
-    val avroBuilder = AvroFeatureSerializer.builder(sft).withoutId.withUserData.immutable
-    val kryoSerializer = if (`lazy`) { kryoBuilder.`lazy`.build() } else { kryoBuilder.build() }
-    val avroSerializer = if (`lazy`) { avroBuilder.`lazy`.build() } else { avroBuilder.build() }
+    apply(sft, serialization, if (`lazy`) { Set(SerializationOption.Lazy) } else { Set.empty[SerializationOption] })
+  }
+
+  /**
+   * Create a message serializer
+   *
+   * @param sft simple feature type
+   * @param serialization serialization type (avro or kryo)
+   * @param opts extra serialization options
+   * @return
+   */
+  def apply(
+      sft: SimpleFeatureType,
+      serialization: SerializationType,
+      opts: Set[SerializationOption]): GeoMessageSerializer = {
+    val options = SerializationOptions.builder.withoutId.withUserData.immutable.build ++ opts
+    val kryoSerializer = KryoFeatureSerializer.builder(sft).opts(options).build()
+    val avroSerializer = AvroFeatureSerializer.builder(sft).opts(options).build()
     val (serializer, version) = serialization match {
       case SerializationType.KRYO => (kryoSerializer, KryoVersion)
       case SerializationType.AVRO => (avroSerializer, AvroVersion)
@@ -132,9 +148,8 @@ object GeoMessageSerializer {
     override def close(): Unit = {}
   }
 
-  class GeoMessageSerializerFactory {
-    def apply(sft: SimpleFeatureType, serialization: SerializationType, `lazy`: Boolean): GeoMessageSerializer =
-      GeoMessageSerializer.apply(sft, serialization, `lazy`)
+  class GeoMessageSerializerFactory(serialization: SerializationType, opts: Set[SerializationOption] = Set.empty) {
+    def apply(sft: SimpleFeatureType): GeoMessageSerializer = GeoMessageSerializer.apply(sft, serialization, opts)
   }
 }
 

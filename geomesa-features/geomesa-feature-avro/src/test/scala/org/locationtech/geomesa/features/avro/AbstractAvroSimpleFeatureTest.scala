@@ -85,7 +85,7 @@ trait AbstractAvroSimpleFeatureTest {
       dfs.iterator().asScala.toList
     }
 
-    val dfr = new AvroDataFileReader(new FileInputStream(f))
+    val dfr = new io.AvroDataFileReader(new FileInputStream(f))
     try {
       dfr.toList
     } finally {
