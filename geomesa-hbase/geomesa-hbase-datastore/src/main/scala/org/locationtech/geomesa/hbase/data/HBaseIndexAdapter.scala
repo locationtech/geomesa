@@ -21,8 +21,8 @@ import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.index.api.IndexAdapter.RequiredVisibilityWriter
-import org.locationtech.geomesa.utils.concurrent.ExitingExecutor.NamedThreadFactory
-import org.locationtech.geomesa.utils.io.IsFlushableImplicits
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
+import org.locationtech.geomesa.utils.io.{IsCloseable, IsFlushableImplicits}
 
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
@@ -57,10 +57,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging, Wi
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.concurrent.TimeUnit
 import scala.util.Random
 import scala.util.control.NonFatal
-
-import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
 
 class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore] with StrictLogging {
 
@@ -588,12 +587,13 @@ object HBaseIndexAdapter extends LazyLogging {
 
     private val batchSize = HBaseSystemProperties.WriteBatchSize.toLong
     private val flushTimeout = HBaseSystemProperties.WriteFlushTimeout.toLong
-
-    val pool: ExecutorService = Executors.newFixedThreadPool(
-      indices.length,
-      new NamedThreadFactory(s"geomesa-hbase-index-writer-%d"))
-
     private val deleteVis = HBaseSystemProperties.DeleteVis.option.map(new CellVisibility(_))
+
+    private val pools = {
+      // mimic config from default hbase connection
+      val maxThreads = math.max(1, ds.connection.getConfiguration.getInt("hbase.htable.threads.max", Int.MaxValue))
+      Array.fill(indices.length)(new CachedThreadPool(maxThreads))
+    }
 
     private val mutators = indices.toArray.map { index =>
       val table = index.getTableNames(partition) match {
@@ -607,7 +607,7 @@ object HBaseIndexAdapter extends LazyLogging {
       // We have to pass a pool explicitly and close it after manually,
       // cause of HBase issue where pools got leaked and never closed
       // (in case of long running Spark jobs 24+ hours the workers go out of memory without custom pool)
-      params.pool(pool)
+      params.pool(pools(indices.indexOf(index)))
       ds.connection.getBufferedMutator(params)
     }
 
@@ -707,9 +707,11 @@ object HBaseIndexAdapter extends LazyLogging {
     override def flush(): Unit = FlushWithLogging.raise(mutators)(BufferedMutatorIsFlushable.arrayIsFlushable)
 
     override def close(): Unit = {
-      CloseWithLogging.raise(mutators, pool)
-      if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
-        logger.warn(s"Failed to terminate $pool pool after 60 seconds. Abandoning pool.")
+      try { CloseWithLogging.raise(mutators) } finally {
+        pools.foreach(CloseWithLogging(_)(IsCloseable.executorServiceIsCloseable))
+      }
+      if (!pools.foldLeft(true) { case (terminated, pool) => terminated && pool.awaitTermination(60, TimeUnit.SECONDS) }) {
+        logger.warn("Failed to terminate thread pool after 60 seconds")
       }
     }
   }
