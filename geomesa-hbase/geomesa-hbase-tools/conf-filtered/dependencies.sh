@@ -59,6 +59,7 @@ function dependencies() {
     # since they have separate package names, should be safe to install both
     "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
     "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
+    "io.dropwizard.metrics:metrics-core:3.2.6:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
   )
 
@@ -72,11 +73,9 @@ function dependencies() {
       "org.apache.hbase.thirdparty:hbase-shaded-miscellaneous:${hbase_thirdparty_version}:jar"
       "org.apache.hbase.thirdparty:hbase-shaded-netty:${hbase_thirdparty_version}:jar"
       "org.apache.hbase.thirdparty:hbase-shaded-protobuf:${hbase_thirdparty_version}:jar"
-      "io.dropwizard.metrics:metrics-core:3.2.6:jar"
     )
   else
     gavs+=(
-      "io.dropwizard.metrics:metrics-core:3.1.2:jar"
       "com.yammer.metrics:metrics-core:2.2.0:jar"
     )
   fi
