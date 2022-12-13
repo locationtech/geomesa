@@ -11,8 +11,8 @@ package org.locationtech.geomesa.accumulo.tools.data
 import com.beust.jcommander.{Parameter, Parameters}
 import org.locationtech.geomesa.accumulo.tools.data.AddAttributeIndexCommand.AddAttributeIndexParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
-import org.locationtech.geomesa.jobs.accumulo.index.AttributeIndexJob
-import org.locationtech.geomesa.jobs.accumulo.index.AttributeIndexJob.AttributeIndexArgs
+import org.locationtech.geomesa.accumulo.jobs.index.AttributeIndexJob
+import org.locationtech.geomesa.accumulo.jobs.index.AttributeIndexJob.AttributeIndexArgs
 import org.locationtech.geomesa.tools.{Command, RequiredAttributesParam, RequiredTypeNameParam}
 
 class AddAttributeIndexCommand extends AccumuloDataStoreCommand {
