@@ -28,7 +28,6 @@ import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBa
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, RunnableStats}
 import org.locationtech.geomesa.index.utils.LocalLocking
-import org.locationtech.geomesa.kafka.KafkaConsumerVersions
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
@@ -37,6 +36,7 @@ import org.locationtech.geomesa.kafka.index._
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor.GeoMessageConsumer
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.{GeoMessagePartitioner, GeoMessageSerializerFactory}
+import org.locationtech.geomesa.kafka.versions.KafkaConsumerVersions
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.security.AuthorizationsProvider
