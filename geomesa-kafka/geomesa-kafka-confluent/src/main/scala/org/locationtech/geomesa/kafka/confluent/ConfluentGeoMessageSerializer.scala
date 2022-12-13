@@ -32,11 +32,8 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
 object ConfluentGeoMessageSerializer {
 
   class ConfluentGeoMessageSerializerFactory(schemaRegistryUrl: URL, schemaOverrides: Map[String, Schema])
-      extends GeoMessageSerializerFactory {
-    override def apply(
-        sft: SimpleFeatureType,
-        serialization: SerializationType,
-        `lazy`: Boolean): GeoMessageSerializer = {
+      extends GeoMessageSerializerFactory(null) {
+    override def apply(sft: SimpleFeatureType): GeoMessageSerializer = {
       val serializer =
         ConfluentFeatureSerializer.builder(sft, schemaRegistryUrl, schemaOverrides.get(sft.getTypeName))
             .withoutId.withUserData.build()

@@ -17,6 +17,7 @@ import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.{DataStore, FileDataStore, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
@@ -379,7 +380,7 @@ object ExportCommand extends LazyLogging {
     // used only for streaming export formats
     private lazy val stream = {
       // avro compression is handled differently, see AvroExporter below
-      val gzip = options.gzip.filter(_ => options.format != ExportFormat.Avro)
+      val gzip = options.gzip.filter(_ => options.format != ExportFormat.Avro && options.format != ExportFormat.AvroNative)
       new LazyExportStream(options.file, gzip)
     }
 
@@ -393,19 +394,20 @@ object ExportCommand extends LazyLogging {
     private lazy val fids = !Option(hints.get(QueryHints.ARROW_INCLUDE_FID)).contains(java.lang.Boolean.FALSE)
 
     private val exporter = options.format match {
-      case ExportFormat.Arrow   => new ArrowExporter(stream, hints, dictionaries)
-      case ExportFormat.Avro    => new AvroExporter(stream, options.gzip)
-      case ExportFormat.Bin     => new BinExporter(stream, hints)
-      case ExportFormat.Csv     => DelimitedExporter.csv(stream, options.headers, fids)
-      case ExportFormat.Gml2    => GmlExporter.gml2(stream)
-      case ExportFormat.Gml3    => GmlExporter(stream)
-      case ExportFormat.Json    => new GeoJsonExporter(stream)
-      case ExportFormat.Leaflet => new LeafletMapExporter(stream)
-      case ExportFormat.Null    => NullExporter
-      case ExportFormat.Orc     => new OrcFileSystemExporter(name)
-      case ExportFormat.Parquet => new ParquetFileSystemExporter(name)
-      case ExportFormat.Shp     => new ShapefileExporter(new File(name))
-      case ExportFormat.Tsv     => DelimitedExporter.tsv(stream, options.headers, fids)
+      case ExportFormat.Arrow      => new ArrowExporter(stream, hints, dictionaries)
+      case ExportFormat.Avro       => new AvroExporter(stream, options.gzip)
+      case ExportFormat.AvroNative => new AvroExporter(stream, options.gzip, Set(SerializationOption.NativeCollections))
+      case ExportFormat.Bin        => new BinExporter(stream, hints)
+      case ExportFormat.Csv        => DelimitedExporter.csv(stream, options.headers, fids)
+      case ExportFormat.Gml2       => GmlExporter.gml2(stream)
+      case ExportFormat.Gml3       => GmlExporter(stream)
+      case ExportFormat.Json       => new GeoJsonExporter(stream)
+      case ExportFormat.Leaflet    => new LeafletMapExporter(stream)
+      case ExportFormat.Null       => NullExporter
+      case ExportFormat.Orc        => new OrcFileSystemExporter(name)
+      case ExportFormat.Parquet    => new ParquetFileSystemExporter(name)
+      case ExportFormat.Shp        => new ShapefileExporter(new File(name))
+      case ExportFormat.Tsv        => DelimitedExporter.tsv(stream, options.headers, fids)
       // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _ => throw new NotImplementedError(s"Export for '${options.format}' is not implemented")
     }
@@ -556,7 +558,7 @@ object ExportCommand extends LazyLogging {
 
     @Parameter(
       names = Array("-F", "--output-format"),
-      description = "File format of output files (csv|tsv|gml|json|shp|avro|leaflet|orc|parquet|arrow)",
+      description = "File format of output files (csv|tsv|gml|json|shp|avro|avro-native|leaflet|orc|parquet|arrow)",
       converter = classOf[ExportFormatConverter])
     var explicitOutputFormat: ExportFormat = _
 

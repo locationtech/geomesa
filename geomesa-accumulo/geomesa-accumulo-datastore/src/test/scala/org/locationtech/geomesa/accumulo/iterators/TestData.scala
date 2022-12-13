@@ -16,8 +16,7 @@ import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.accumulo.index.IndexValueEncoder
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -90,10 +89,11 @@ object TestData extends LazyLogging {
   def createSF(e: Entry, sft: SimpleFeatureType): SimpleFeature = {
     val geometry: Geometry = WKTUtils.read(e.wkt)
     val entry =
-      AvroSimpleFeatureFactory.buildAvroFeature(
+      ScalaSimpleFeature.create(
         sft,
-        List(null, null, null, null, geometry, Date.from(e.dt.toInstant), Date.from(e.dt.toInstant)),
-        s"${e.id}")
+        s"${e.id}",
+        null, null, null, null, geometry, Date.from(e.dt.toInstant), Date.from(e.dt.toInstant)
+        )
     entry.setAttribute("attr2", "2nd" + e.id)
     entry.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     entry

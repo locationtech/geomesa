@@ -19,7 +19,10 @@ import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldCon
 import org.locationtech.geomesa.convert2.TypeInference.{FunctionTransform, InferredType}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
-import org.locationtech.geomesa.features.avro._
+import org.locationtech.geomesa.features.avro.io.AvroDataFile
+import org.locationtech.geomesa.features.avro.serialization.AvroField.{FidField, UserDataField, VersionField}
+import org.locationtech.geomesa.features.avro.serialization.AvroSerialization
+import org.locationtech.geomesa.features.avro.{FieldNameEncoder, SerializationVersions}
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
@@ -31,7 +34,6 @@ import scala.util.control.NonFatal
 
 class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroConfig, BasicField, BasicOptions] {
 
-  import AvroSimpleFeatureUtils.{AVRO_SIMPLE_FEATURE_USERDATA, AVRO_SIMPLE_FEATURE_VERSION, FEATURE_ID_AVRO_FIELD_NAME}
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
   import scala.collection.JavaConverters._
@@ -62,19 +64,20 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
           // get the version from the first record
           val version =
             records.headOption
-                .flatMap(r => Option(r.get(AVRO_SIMPLE_FEATURE_VERSION)).map(_.asInstanceOf[Int]))
-                .getOrElse(AvroSimpleFeatureUtils.VERSION)
+                .flatMap(r => Option(r.get(VersionField.name)).map(_.asInstanceOf[Int]))
+                .getOrElse(SerializationVersions.DefaultVersion)
           val nameEncoder = new FieldNameEncoder(version)
           val dataSft = AvroDataFile.getSft(dfs)
+          val native = AvroSerialization.usesNativeCollections(dfs.getSchema)
 
           val fields = dataSft.getAttributeDescriptors.asScala.map { descriptor =>
             // some types need a function applied to the underlying avro value
             val fn = ObjectType.selectType(descriptor).head match {
-              case ObjectType.DATE     => Some("millisToDate")
-              case ObjectType.UUID     => Some("avroBinaryUuid")
-              case ObjectType.LIST     => Some("avroBinaryList")
-              case ObjectType.MAP      => Some("avroBinaryMap")
-              case ObjectType.GEOMETRY => Some("geometry") // note: handles both wkt (v1) and wkb (v2)
+              case ObjectType.DATE            => Some("millisToDate")
+              case ObjectType.UUID            => Some("avroBinaryUuid")
+              case ObjectType.GEOMETRY        => Some("geometry") // note: handles both wkt (v1) and wkb (v2)
+              case ObjectType.LIST if !native => Some("avroBinaryList")
+              case ObjectType.MAP if !native  => Some("avroBinaryMap")
               case _ => None
             }
 
@@ -83,18 +86,18 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
             BasicField(descriptor.getLocalName, Some(Expression(expression)))
           }
 
-          val id = Expression(s"avroPath($$1, '/$FEATURE_ID_AVRO_FIELD_NAME')")
+          val id = Expression(s"avroPath($$1, '/${FidField.name}')")
           val userData: Map[String, Expression] =
-            if (dfs.getSchema.getField(AVRO_SIMPLE_FEATURE_USERDATA) == null) { Map.empty } else {
+            if (dfs.getSchema.getField(UserDataField.name) == null) { Map.empty } else {
               // avro user data is stored as an array of 'key', 'keyClass', 'value', and 'valueClass'
               // our converters require global key->expression, so pull out the unique keys
               val kvs = scala.collection.mutable.Map.empty[String, Expression]
               records.foreach { record =>
-                val ud = record.get(AVRO_SIMPLE_FEATURE_USERDATA).asInstanceOf[java.util.Collection[GenericRecord]]
+                val ud = record.get(UserDataField.name).asInstanceOf[java.util.Collection[GenericRecord]]
                 ud.asScala.foreach { rec =>
                   Option(rec.get("key")).map(_.toString).foreach { key =>
                     kvs.getOrElseUpdate(key, {
-                      var expression = s"avroPath($$1, '/$AVRO_SIMPLE_FEATURE_USERDATA[$$key=$key]/value')"
+                      var expression = s"avroPath($$1, '/${UserDataField.name}[$$key=$key]/value')"
                       if (Option(rec.get("valueClass")).map(_.toString).contains("java.util.Date")) {
                         // dates have to be converted from millis
                         expression = s"millisToDate($expression)"

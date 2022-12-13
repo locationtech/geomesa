@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.utils.concurrent
 
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ThreadFactory, ThreadPoolExecutor, TimeUnit}
 
 object ExitingExecutor {
@@ -40,25 +39,6 @@ object ExitingExecutor {
     override def newThread(r: Runnable): Thread = {
       val thread = underlying.newThread(r)
       thread.setDaemon(true)
-      thread
-    }
-  }
-
-  /**
-   * Thread factory that creates threads with custom names putting a thread number
-   * replacing `%d` pattern. For example `thread-%d`, will produce `thread-1`, `thread-2`, ... threads
-   * @param namePattern Thread name
-   */
-  class NamedThreadFactory(namePattern: String) extends ThreadFactory {
-    require(namePattern.contains("%d"), "name pattern should contain %d to set the thread number")
-    private val group = Option(System.getSecurityManager)
-      .map(_.getThreadGroup)
-      .getOrElse(Thread.currentThread.getThreadGroup)
-    private val counter = new AtomicInteger(0)
-    override def newThread(r: Runnable): Thread = {
-      val thread = new Thread(group, r, namePattern.format(counter.getAndIncrement()), 0)
-      if (thread.isDaemon) thread.setDaemon(false)
-      if (thread.getPriority != Thread.NORM_PRIORITY) thread.setPriority(Thread.NORM_PRIORITY)
       thread
     }
   }

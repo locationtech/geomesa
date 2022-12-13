@@ -33,7 +33,8 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
   val options = Seq(
       Set.empty[SerializationOption],
 //      Set(Immutable),
-      Set(WithUserData)
+      Set(WithUserData),
+      Set(NativeCollections)
 //      Set(Lazy),
 //      Set(Immutable, WithUserData),
 //      Set(Lazy, Immutable),
@@ -173,7 +174,7 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      forall(options) { opts =>
+      foreach(options) { opts =>
         val serializer = new AvroFeatureSerializer(sft, opts)
         val serialized = serializer.serialize(sf)
         val deserialized = serializer.deserialize(serialized)

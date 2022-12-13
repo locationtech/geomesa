@@ -22,6 +22,7 @@ import java.util.Date
  * Trait that encapsulates the methods needed to deserialize
  * an AvroSimpleFeature
  */
+@deprecated("Deprecated with no replacement")
 trait ASFDeserializer {
 
   protected val buffers = new SoftThreadLocal[(ByteBuffer, Array[Byte])]

@@ -23,6 +23,7 @@ import scala.collection.JavaConverters._
 import scala.reflect.{ClassTag, classTag}
 import scala.util.control.NonFatal
 
+@deprecated("GeoMesa-confluent-specific implementation removed without replacement")
 object AvroSimpleFeatureTypeParser {
   val reservedPropertyKeys: Set[String] = Set(
     GeoMesaAvroGeomFormat.KEY,

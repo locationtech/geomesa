@@ -23,7 +23,7 @@ import java.util.{Collection => JCollection, List => JList}
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-
+@deprecated("Use ScalaSimpleFeature")
 class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
   extends SimpleFeature
   with Serializable {

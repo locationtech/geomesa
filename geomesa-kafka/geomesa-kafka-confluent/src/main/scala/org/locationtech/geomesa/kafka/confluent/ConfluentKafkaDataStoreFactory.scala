@@ -93,7 +93,7 @@ object ConfluentKafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogg
           case (topic, schemaConfig) =>
             try {
               val schema = new Schema.Parser().parse(schemaConfig.render(ConfigRenderOptions.concise()))
-              val sft = AvroSimpleFeatureTypeParser.schemaToSft(schema, Some(topic))
+              val sft = SchemaParser.schemaToSft(schema, Some(topic))
               topic -> (sft, schema)
             } catch {
               case NonFatal(ex) =>

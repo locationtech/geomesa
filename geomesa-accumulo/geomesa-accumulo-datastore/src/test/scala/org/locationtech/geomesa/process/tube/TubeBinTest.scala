@@ -13,7 +13,7 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.GeometryCollection
@@ -21,13 +21,12 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-
 @RunWith(classOf[JUnitRunner])
 class TubeBinTest extends Specification with LazyLogging {
 
-  import scala.collection.JavaConverters._
-
   import TubeBuilder.DefaultDtgField
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -40,7 +39,7 @@ class TubeBinTest extends Specification with LazyLogging {
       val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
 
       val features = for(day <- 1 until 20) yield {
-        val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), day.toString)
+        val sf = ScalaSimpleFeature.create(sft, day.toString)
         val lat = 40+day
         sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
         sf.setAttribute(DefaultDtgField, f"2011-01-$day%02dT00:00:00Z")

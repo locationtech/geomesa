@@ -11,6 +11,7 @@ package org.locationtech.geomesa.features.avro
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.SchemaBuilder.{ArrayDefault, FieldTypeBuilder, NullDefault}
 import org.apache.avro.{Schema, SchemaBuilder}
+import org.locationtech.geomesa.features.avro.serialization.AvroField.{FidField, UserDataField, VersionField}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
@@ -21,20 +22,21 @@ import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale, UUID}
 import scala.collection.JavaConverters._
 
+@deprecated("replaced with org.locationtech.geomesa.features.avro.serialization.AvroField")
 object AvroSimpleFeatureUtils extends LazyLogging {
 
-  val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
-  val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
-  val AVRO_SIMPLE_FEATURE_USERDATA: String = "__userdata__"
+  @deprecated("Replaced with FidField.name")
+  val FEATURE_ID_AVRO_FIELD_NAME: String = FidField.name
+  @deprecated("Replaced with VersionField.name")
+  val AVRO_SIMPLE_FEATURE_VERSION: String = VersionField.name
+  @deprecated("Replaced with UserDataField.name")
+  val AVRO_SIMPLE_FEATURE_USERDATA: String = UserDataField.name
 
-  // Increment whenever encoding changes and handle in reader and writer
-  // Version 2 changed the WKT geom to a binary geom
-  // Version 3 adds byte array types to the schema...and is backwards compatible with V2
-  // Version 4 adds a custom name encoder function for the avro schema
-  //           v4 can read version 2 and 3 files but version 3 cannot read version 4
-  // Version 5 changes user data to be a union type and fixes the coding to match the declared avro schema
-  val VERSION: Int = 5
-  val AVRO_NAMESPACE: String = "org.geomesa"
+  @deprecated("Replaced with org.locationtech.geomesa.features.avro.SerializationVersions.DefaultVersion and MaxVersion")
+  val VERSION: Int = SerializationVersions.DefaultVersion
+
+  @deprecated("Replaced with org.locationtech.geomesa.features.avro.AvroNamespace")
+  val AVRO_NAMESPACE: String = org.locationtech.geomesa.features.avro.AvroNamespace
 
   implicit class RichBuilder(val builder: FieldTypeBuilder[ArrayDefault[Schema]]) extends AnyVal {
     def simpleTypeUnion(hints: String): NullDefault[ArrayDefault[Schema]] = {

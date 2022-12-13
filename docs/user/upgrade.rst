@@ -102,6 +102,13 @@ However, this change impacts the JARs bundled with the command-line tools, which
 `reload4j <https://reload4j.qos.ch/>`__ instead. Other environments using GeoMesa (i.e. GeoServer) must be
 hardened independently.
 
+Kafka Serialization
+-------------------
+
+The GeoMesa Kafka data store now supports a new serialization format, ``avro-native``. This format uses Avro
+array and map types for ``List`` and ``Map`` type attributes, which makes it easier to read with standard Avro
+tools. Note that GeoMesa versions before 3.5.0 will not be able to consume topics written in this format.
+
 Deprecated Modules
 ------------------
 

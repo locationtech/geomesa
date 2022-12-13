@@ -34,7 +34,7 @@ class ConfluentMetadata(schemaRegistry: SchemaRegistryClient, sftOverrides: Map[
             val sft = sftOverrides.getOrElse(topic, {
               val subject = topic + SubjectPostfix
               val schemaId = schemaRegistry.getLatestSchemaMetadata(subject).getId
-              val sft = AvroSimpleFeatureTypeParser.schemaToSft(schemaRegistry.getById(schemaId))
+              val sft = SchemaParser.schemaToSft(schemaRegistry.getById(schemaId))
               // store the schema id to access the schema when creating the feature serializer
               sft.getUserData.put(SchemaIdKey, schemaId.toString)
               sft

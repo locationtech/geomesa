@@ -18,6 +18,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import java.nio.ByteBuffer
 import scala.util.control.NonFatal
 
+@deprecated("Replaced with SimpleFeatureDatumWriter")
 class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: Set[SerializationOption] = Set.empty)
   extends DatumWriter[SimpleFeature] {
 

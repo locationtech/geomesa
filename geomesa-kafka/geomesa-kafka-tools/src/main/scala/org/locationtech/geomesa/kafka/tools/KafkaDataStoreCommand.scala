@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.kafka.tools
 
+import com.beust.jcommander.{IValueValidator, ParameterException}
 import org.apache.commons.io.FileUtils
 import org.apache.kafka.clients.producer.Producer
 import org.locationtech.geomesa.kafka.data.{KafkaDataStore, KafkaDataStoreParams}
@@ -16,6 +17,7 @@ import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.util.Locale
 
 /**
   * Abstract class for commands that require a KafkaDataStore
@@ -34,18 +36,19 @@ trait KafkaDataStoreCommand extends DataStoreCommand[KafkaDataStore] {
       Option(params.producerProperties).map(FileUtils.readFileToString(_, StandardCharsets.UTF_8)).orNull
 
     Map[String, String](
-      KafkaDataStoreParams.Brokers.getName          -> params.brokers,
-      KafkaDataStoreParams.Zookeepers.getName       -> params.zookeepers,
-      KafkaDataStoreParams.ZkPath.getName           -> params.zkPath,
-      KafkaDataStoreParams.Catalog.getName          -> params.catalog,
-      KafkaDataStoreParams.ConsumerCount.getName    -> params.numConsumers.toString,
-      KafkaDataStoreParams.TopicPartitions.getName  -> params.partitions.toString,
-      KafkaDataStoreParams.TopicReplication.getName -> params.replication.toString,
-      KafkaDataStoreParams.ConsumerReadBack.getName -> readBack,
-      KafkaDataStoreParams.ConsumerConfig.getName   -> consumerProps,
-      KafkaDataStoreParams.ProducerConfig.getName   -> producerProps,
-      KafkaDataStoreParams.CacheExpiry.getName      -> "0s",
-      "kafka.schema.registry.url"                   -> params.schemaRegistryUrl
+      KafkaDataStoreParams.Brokers.getName           -> params.brokers,
+      KafkaDataStoreParams.Zookeepers.getName        -> params.zookeepers,
+      KafkaDataStoreParams.ZkPath.getName            -> params.zkPath,
+      KafkaDataStoreParams.Catalog.getName           -> params.catalog,
+      KafkaDataStoreParams.ConsumerCount.getName     -> params.numConsumers.toString,
+      KafkaDataStoreParams.TopicPartitions.getName   -> params.partitions.toString,
+      KafkaDataStoreParams.TopicReplication.getName  -> params.replication.toString,
+      KafkaDataStoreParams.ConsumerReadBack.getName  -> readBack,
+      KafkaDataStoreParams.ConsumerConfig.getName    -> consumerProps,
+      KafkaDataStoreParams.ProducerConfig.getName    -> producerProps,
+      KafkaDataStoreParams.CacheExpiry.getName       -> "0s",
+      KafkaDataStoreParams.SerializationType.getName -> params.serialization,
+      "kafka.schema.registry.url"                    -> params.schemaRegistryUrl
     ).filter(_._2 != null)
   }
 }
@@ -63,5 +66,14 @@ object KafkaDataStoreCommand {
       () => ClassPathUtils.getJarsFromClasspath(classOf[KafkaDataStore]),
       () => ClassPathUtils.getJarsFromClasspath(classOf[Producer[_, _]])
     ) ++ super.libjarsPaths
+  }
+
+  class SerializationValidator extends IValueValidator[String] {
+    import KafkaDataStoreParams.SerializationTypes.Types
+    override def validate(name: String, value: String): Unit = {
+      if (value != null && !Types.contains(value.toLowerCase(Locale.US))) {
+        throw new ParameterException(s"Invalid serialization type. Valid types are ${Types.mkString(", ")}")
+      }
+    }
   }
 }

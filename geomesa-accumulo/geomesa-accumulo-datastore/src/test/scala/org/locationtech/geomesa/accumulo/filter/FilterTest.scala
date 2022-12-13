@@ -18,8 +18,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.accumulo.iterators.TestData
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Coordinate
@@ -29,7 +28,6 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.util.Date
-
 
 @RunWith(classOf[JUnitRunner])
 class FilterTest extends Specification with TestWithFeatureType with LazyLogging {
@@ -113,7 +111,7 @@ class IdQueryTest extends Specification with TestWithFeatureType {
   override val spec = "age:Int:index=join,name:String:index=join,dtg:Date,*geom:Point:srid=4326"
 
   val geomBuilder = JTSFactoryFinder.getGeometryFactory
-  val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
+  val builder = new SimpleFeatureBuilder(sft, new ScalaSimpleFeatureFactory)
   val data = List(
     ("1", Array(10, "johndoe", new Date), geomBuilder.createPoint(new Coordinate(10, 10))),
     ("2", Array(20, "janedoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20))),

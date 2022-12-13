@@ -18,7 +18,6 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
@@ -223,7 +222,7 @@ class TubeSelectProcessTest extends TestWithMultipleSfts {
 
       (startTime to endTime).by(timePerPoint).foreach { t =>
         i+=1
-        val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft1, List(), i.toString)
+        val sf = ScalaSimpleFeature.create(sft1, i.toString)
         sf.setDefaultGeometry(curPoint)
         sf.setAttribute("dtg", new Date(t))
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
