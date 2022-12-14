@@ -61,7 +61,7 @@ Argument                 Description
 Generate an Avro schema based on a ``SimpleFeatureType``.
 
 ============================ ==================================================
-Argument                 Description
+Argument                     Description
 ============================ ==================================================
 ``-s, --spec *``             The ``SimpleFeatureType`` specification to create
 ``-f, --feature-name``       The name of the schema to create
