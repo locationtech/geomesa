@@ -90,6 +90,103 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 4.0.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Scala Versions
+--------------
+
+Scala 2.11 support has been removed, and Scala 2.13 support has been added.
+
+GeoTools/GeoServer Versions
+---------------------------
+
+GeoTools has been upgraded from ``23.3`` to ``27.2``. GeoServer has been upgrade from ``2.17.3`` to ``2.21.2``.
+JTS has been upgraded from ``1.17.0`` to ``1.18.2``.
+
+As part of this upgrade, various GeoTools methods have changed in incompatible ways. Several classes, in
+particular ``Query`` and ``SimpleFeatureBuilder``, have changed from accepting arrays to using varargs (variable
+arguments). Additionally, the various ``DataStore`` methods, such as ``DataStoreFinder``, now require
+``Map<String, ?>`` instead of ``Map<String, ? extends Serializable>``.
+
+Dependency Version Upgrades
+---------------------------
+
+The following high-level dependencies have been upgraded. For a full changelist of all the dependency changes,
+see TODO commit hash link on github
+
+* Apache Hadoop ``2.8.5`` -> ``2.10.2``
+* Apache Spark ``2.4.7`` -> ``3.3.1``
+* Apache Accumulo ``2.0.0`` -> ``2.0.1``
+* Apache HBase ``1.4.12`` -> ``1.4.13``, ``2.2.3`` -> ``2.4.4``
+* Apache Kafka ``2.1.1`` -> ``2.8.2``
+* Apache Arrow ``0.16.0`` -> 1``0.0.1``
+* Apache Avro ``1.8.2`` -> ``1.11.1``
+* Apache Parquet ``1.9.0`` -> ``1.12.3``
+* Apache Orc ``1.5.4`` -> ``1.8.1``
+* Jedis ``3.0.1`` -> ``4.3.1``
+* Confluent ``5.1.0`` -> ``6.2.7``
+* Kryo ``3.0.3`` -> ``4.0.2``
+* Typesafe Config ``1.3.3`` -> ``1.4.2``
+
+Removal of Deprecated Modules
+-----------------------------
+
+The following deprecated modules were removed:
+
+* geomesa-bigtable
+* geomesa-kudu
+* geomesa-stream
+* geomesa-geojson
+* geomesa-web
+* geomesa-feature-nio
+* geomesa-convert-metrics-cloudwatch
+* geomesa-convert-metrics-ganglia
+* geomesa-convert-metrics-graphite
+
+The following deprecated classes/methods were removed:
+
+* Various unused ``GeoHash`` methods
+* GeoMesaAccumuloInputFormat configure with Job
+* ArrowNoopWriter
+* Converter transform eval methods (replaced with apply)
+* Converter EvaluationContext mutation methods
+* TransformSimpleFeature attributes (replaced with apply)
+* geomesa-feature-common ObjectTypes (moved to geomesa-utils)
+* geomesa-fs-storage-api metadata compact, reload
+* PartitionedPostgisDialect recreateFunctions (replaced with upgrade)
+* Arrow double pass and multi-file hints
+* QueryProperties onFullTableScan
+* GeoMesaFeatureWriter featureWithFid with feature type
+* Z2/XZ2/S2 IndexValues bounds (replaced with spatialBounds)
+* StrategyDecider selectFilterPlan without stats
+* KafkaDataStoreFactoryParams (replaced with KafkaDataStoreParams)
+* LambdaDataStoreFactory parameters (replaced with LamdaDataStoreParams)
+* GeoMesaSparkKryoRegistrator broadcast
+* JavaGeoMesaSpark asKeyValueList
+* TerminalCallback terminalWidth
+* RichSimpleFeatureType getZShards (replaced with getZ2/getZ3Shards)
+* geomesa-utils FeatureHandler
+* GenerateFeatureWrappers (replaced with GenerateRichFeatureModels)
+* SimpleFeatureOrdering apply by-index (use apply by-name)
+* SimpleFeatureTypes S3_INTERVAL_KEY (replaced with IndexS3Interval)
+* Avro old serialization classes
+* HBase deprecated coprocessor alias
+* SimpleFeatureSerializers
+
+Package Changes
+---------------
+
+The following packages were moved or renamed in order to fix split packages required for Java 9+:
+
+* ``org.locationtech.geomesa.jobs.accumulo`` -> ``org.locationtech.geomesa.accumulo.jobs``
+* ``org.locationtech.geomesa.spark.accumulo`` -> ``org.locationtech.geomesa.accumulo.spark``
+* ``org.locationtech.geomesa.spark.hbase`` -> ``org.locationtech.geomesa.hbase.spark``
+* ``org.locationtech.geomesa.arrow.vector`` (partial) -> ``package org.locationtech.geomesa.arrow.jts``
+* ``org.locationtech.geomesa.parquet`` -> ``org.locationtech.geomesa.fs.storage.parquet``
+* ``org.locationtech.geomesa.process`` (partial) -> ``org.locationtech.geomesa.process.wps``
+
+
 Version 3.5.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
