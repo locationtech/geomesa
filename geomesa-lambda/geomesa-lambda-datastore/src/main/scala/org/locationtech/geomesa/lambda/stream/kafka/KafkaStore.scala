@@ -20,13 +20,13 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
+import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.kafka.versions.KafkaConsumerVersions
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
 import org.locationtech.geomesa.security.AuthorizationsProvider
-import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -110,14 +110,15 @@ class KafkaStore(
     }
   }
 
-  override def read(filter: Option[Filter] = None,
-                    transforms: Option[Array[String]] = None,
-                    hints: Option[Hints] = None,
-                    explain: Explainer = new ExplainLogging): CloseableIterator[SimpleFeature] = {
+  override def read(
+      filter: Option[Filter] = None,
+      transforms: Option[Array[String]] = None,
+      hints: Option[Hints] = None,
+      explain: Explainer = new ExplainLogging): QueryResult = {
     val query = new Query()
     filter.foreach(query.setFilter)
     transforms.foreach(query.setPropertyNames(_: _*))
-    hints.foreach(query.setHints) // note: we want to share the hints object
+    hints.foreach(query.setHints)
     queryRunner.runQuery(sft, query, explain)
   }
 

@@ -23,6 +23,7 @@ import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.utils.index.ByteArrays
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -152,10 +153,10 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
       val qps = getQueryPlans(query)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
-      val returnedFeatures = queryPlanner.runQuery(sft, query, ExplainNull)
-      // the same simple feature gets reused - so make sure you access in serial order
-      val aggregates = returnedFeatures.map(f =>
-        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+      val aggregates = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator()) { returnedFeatures =>
+        // the same simple feature gets reused - so make sure you access in serial order
+        returnedFeatures.map(_.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
+      }
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       val bin = aggregates.flatMap(a => a.grouped(16).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)
@@ -178,10 +179,10 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
       val qps = getQueryPlans(query)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
-      val returnedFeatures = queryPlanner.runQuery(sft, query, ExplainNull)
-      // the same simple feature gets reused - so make sure you access in serial order
-      val aggregates = returnedFeatures.map(f =>
-        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+      val aggregates = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator()) { returnedFeatures =>
+        // the same simple feature gets reused - so make sure you access in serial order
+        returnedFeatures.map(_.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
+      }
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       forall(aggregates) { a =>
         val window = a.grouped(16).map(BinaryOutputEncoder.decode(_).dtg).sliding(2).filter(_.length > 1)
@@ -208,10 +209,10 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
       val qps = getQueryPlans(query)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
-      val returnedFeatures = queryPlanner.runQuery(sft, query, ExplainNull)
-      // the same simple feature gets reused - so make sure you access in serial order
-      val aggregates = returnedFeatures.map(f =>
-        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+      val aggregates = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator()) { returnedFeatures =>
+        // the same simple feature gets reused - so make sure you access in serial order
+        returnedFeatures.map(_.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toList
+      }
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       val bin = aggregates.flatMap(a => a.grouped(24).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)
@@ -227,7 +228,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
       val query = new Query(sftName, Filter.INCLUDE)
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
-      val results = queryPlanner.runQuery(sft, query, ExplainNull).toList
+      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(30)
     }
 
@@ -235,7 +236,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
       val query = new Query(sftName, ECQL.toFilter("track = 'track1'"))
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
-      val results = queryPlanner.runQuery(sft, query, ExplainNull).toList
+      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(10)
       forall(results)(_.getAttribute("track") mustEqual "track1")
     }
@@ -244,7 +245,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
       val query = new Query(sftName, Filter.INCLUDE, "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
-      val results = queryPlanner.runQuery(sft, query, ExplainNull).toList
+      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(30)
       forall(results)(_.getAttributeCount mustEqual 2)
     }
@@ -253,7 +254,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
       val query = new Query(sftName, ECQL.toFilter("track = 'track2'"), "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
-      val results = queryPlanner.runQuery(sft, query, ExplainNull).toList
+      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(10)
       forall(results)(_.getAttributeCount mustEqual 2)
     }
@@ -263,7 +264,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       query.getHints.put(SAMPLE_BY, "track")
       query.getHints.put(QUERY_INDEX, Z2Index.name)
-      val results = queryPlanner.runQuery(sft, query, ExplainNull).toList
+      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(30)
       results.count(_.getAttribute("track") == "track1") must beLessThan(10)
       results.count(_.getAttribute("track") == "track2") must beLessThan(10)
@@ -280,7 +281,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
       query.getHints.put(QUERY_INDEX, Z2Index.name)
 
       // have to evaluate attributes before pulling into collection, as the same sf is reused
-      val results = queryPlanner.runQuery(sft, query, ExplainNull).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList)
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins.length must beLessThan(30)
@@ -288,13 +289,13 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
     }
   }
 
-  def execute(ecql: String, transforms: Option[Array[String]] = None, explain: Explainer = ExplainNull) = {
+  def execute(ecql: String, transforms: Option[Array[String]] = None, explain: Explainer = ExplainNull): Seq[SimpleFeature] = {
     val query = transforms match {
       case None    => new Query(sftName, ECQL.toFilter(ecql))
       case Some(t) => new Query(sftName, ECQL.toFilter(ecql), t: _*)
     }
     query.getHints.put(QUERY_INDEX, Z2Index.name)
-    queryPlanner.runQuery(sft, query, explain).toSeq
+    WithClose(queryPlanner.runQuery(sft, query, explain).iterator())(_.toList)
   }
 
   def getQueryPlans(query: Query): Seq[AccumuloQueryPlan] =

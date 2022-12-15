@@ -101,8 +101,8 @@ Scala 2.11 support has been removed, and Scala 2.13 support has been added.
 GeoTools/GeoServer Versions
 ---------------------------
 
-GeoTools has been upgraded from ``23.3`` to ``27.2``. GeoServer has been upgrade from ``2.17.3`` to ``2.21.2``.
-JTS has been upgraded from ``1.17.0`` to ``1.18.2``.
+GeoTools has been upgraded from ``23.3`` to ``28.0``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.0``.
+JTS has been upgraded from ``1.17.0`` to ``1.19.0``.
 
 As part of this upgrade, various GeoTools methods have changed in incompatible ways. Several classes, in
 particular ``Query`` and ``SimpleFeatureBuilder``, have changed from accepting arrays to using varargs (variable
@@ -128,6 +128,7 @@ see TODO commit hash link on github
 * Confluent ``5.1.0`` -> ``6.2.7``
 * Kryo ``3.0.3`` -> ``4.0.2``
 * Typesafe Config ``1.3.3`` -> ``1.4.2``
+* EJML ``0.34`` -> ``0.41``
 
 Removal of Deprecated Modules
 -----------------------------

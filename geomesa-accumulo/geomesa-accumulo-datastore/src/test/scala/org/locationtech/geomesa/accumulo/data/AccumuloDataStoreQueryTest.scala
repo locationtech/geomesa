@@ -33,6 +33,7 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Coordinate
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -408,7 +409,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val queryPlanner = new QueryPlanner(ds)
-      val results = queryPlanner.runQuery(sft, query, ExplainNull).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList)
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(2)

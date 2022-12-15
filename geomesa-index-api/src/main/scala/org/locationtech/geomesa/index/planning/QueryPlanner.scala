@@ -16,6 +16,7 @@ import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, DensityScan}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
+import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, Reprojection, SortingSimpleFeatureIterator}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -26,6 +27,7 @@ import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.iterators.ExceptionalIterator
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, StatParser}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
 
 import scala.collection.JavaConverters._
@@ -46,16 +48,20 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
     * @param output planning explanation output
     * @return
     */
-  def planQuery(sft: SimpleFeatureType,
-                query: Query,
-                index: Option[String] = None,
-                output: Explainer = new ExplainLogging): Seq[QueryPlan[DS]] = {
-    getQueryPlans(sft, query, index, output).toList // toList forces evaluation of entire iterator
+  def planQuery(
+      sft: SimpleFeatureType,
+      query: Query,
+      index: Option[String] = None,
+      output: Explainer = new ExplainLogging): Seq[QueryPlan[DS]] =
+    getQueryPlans(sft, configureQuery(sft, query), query.getFilter, index, output).toList // toList forces evaluation of entire iterator
+
+  override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryResult = {
+    val query = configureQuery(sft, original)
+    val plans = getQueryPlans(sft, query, original.getFilter, None, explain)
+    QueryResult(query.getHints.getReturnSft, query.getHints, run(query, plans))
   }
 
-  override def runQuery(sft: SimpleFeatureType, query: Query, explain: Explainer): CloseableIterator[SimpleFeature] = {
-    val plans = getQueryPlans(sft, query, None, explain)
-
+  private def run(query: Query, plans: Seq[QueryPlan[DS]])(): CloseableIterator[SimpleFeature] = {
     var iterator = SelfClosingIterator(plans.iterator).flatMap(p => p.scan(ds).map(p.resultsToFeatures.apply))
 
     if (!query.getHints.isSkipReduce) {
@@ -97,26 +103,24 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
     * Set up the query plans and strategies used to execute them
     *
     * @param sft simple feature type
-    * @param original query to plan
+    * @param query query to plan - must have been run through `configureQuery` to set expected hints, etc
     * @param requested override index to use for executing the query
     * @param output planning explanation output
     * @return
     */
-  protected def getQueryPlans(
+  private def getQueryPlans(
       sft: SimpleFeatureType,
-      original: Query,
+      query: Query,
+      original: Filter,
       requested: Option[String],
       output: Explainer): Seq[QueryPlan[DS]] = {
     import org.locationtech.geomesa.filter.filterToString
 
     profile(time => output(s"Query planning took ${time}ms")) {
-      // set hints that we'll need later on, fix the query filter so it meets our expectations going forward
-      val query = configureQuery(sft, original)
-
       val hints = query.getHints
 
       output.pushLevel(s"Planning '${query.getTypeName}' ${filterToString(query.getFilter)}")
-      output(s"Original filter: ${filterToString(original.getFilter)}")
+      output(s"Original filter: ${filterToString(original)}")
       output(s"Hints: bin[${hints.isBinQuery}] arrow[${hints.isArrowQuery}] density[${hints.isDensityQuery}] " +
           s"stats[${hints.isStatsQuery}] " +
           s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")

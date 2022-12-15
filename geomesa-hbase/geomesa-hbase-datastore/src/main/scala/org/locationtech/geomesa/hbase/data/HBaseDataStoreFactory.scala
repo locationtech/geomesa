@@ -12,11 +12,10 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.Connection
-import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
+import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
-import org.apache.hadoop.security.UserGroupInformation
 import org.locationtech.geomesa.hbase.data.HBaseDataStore.NoAuthsProvider
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -52,7 +51,6 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       threads = QueryThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params),
-      caching = CachingParam.lookup(params),
       parallelPartitionScans = PartitionParallelScansParam.lookup(params),
       maxRangesPerExtendedScan = MaxRangesPerExtendedScanParam.lookup(params)
     )
@@ -154,7 +152,6 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       AuditQueriesParam,
       LooseBBoxParam,
       PartitionParallelScansParam,
-      CachingParam,
       AuthsParam,
       ForceEmptyAuthsParam
     )
@@ -182,7 +179,6 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       threads: Int,
       timeout: Option[Long],
       looseBBox: Boolean,
-      caching: Boolean,
       parallelPartitionScans: Boolean,
       maxRangesPerExtendedScan: Int
     ) extends DataStoreQueryConfig

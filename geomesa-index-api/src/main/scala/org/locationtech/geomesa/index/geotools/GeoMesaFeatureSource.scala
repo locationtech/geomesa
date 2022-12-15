@@ -8,38 +8,27 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator, SimpleFeatureSource}
-import org.geotools.feature.collection.SortedSimpleFeatureCollection
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.index.conf.QueryHints.{COST_EVALUATION, QUERY_INDEX}
 import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCountMaxFeatures
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.{DelegatingResourceInfo, GeoMesaQueryCapabilities}
-import org.locationtech.geomesa.index.planning.QueryRunner
-import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortBy
 import org.opengis.referencing.crs.CoordinateReferenceSystem
-import org.opengis.util.ProgressListener
 
 import java.awt.RenderingHints.Key
 import java.net.URI
 import java.util
 import java.util.Collections
-import scala.collection.JavaConverters._
 import scala.util.Try
 
-class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
-                           val sft: SimpleFeatureType,
-                           private [geotools] val runner: QueryRunner)
+class GeoMesaFeatureSource(val ds: GeoMeasBaseStore, val sft: SimpleFeatureType)
     extends SimpleFeatureSource with LazyLogging {
 
   lazy private val hints = Collections.unmodifiableSet(Collections.emptySet[Key])
@@ -61,11 +50,9 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCount
 
-    val useExactCount = query.getHints.isExactCount.getOrElse(QueryExactCount.get.toBoolean)
-    val hints = new Hints()
-    GeoMesaFeatureSource.CountHints.foreach { key =>
-      if (query.getHints.asScala.contains(key)) { hints.put(key, query.getHints.get(key)) }
-    }
+    // configure the query hints
+    val hints = ds.getFeatureReader(sft, Transaction.AUTO_COMMIT, query).hints
+    val useExactCount = hints.isExactCount.getOrElse(QueryExactCount.get.toBoolean)
 
     val count = if (useExactCount &&
       !query.isMaxFeaturesUnlimited &&
@@ -124,95 +111,11 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
 
 object GeoMesaFeatureSource {
 
-  val CountHints = Seq(QUERY_INDEX, COST_EVALUATION)
-
   object GeoMesaQueryCapabilities extends QueryCapabilities {
     override def isOffsetSupported = false
     override def isReliableFIDSupported = true
     override def isUseProvidedFIDSupported = true
     override def supportsSorting(sortAttributes: SortBy*) = true
-  }
-
-  trait CachingFeatureSource extends GeoMesaFeatureSource {
-
-    private val featureCache: LoadingCache[Query, SimpleFeatureCollection] =
-      Caffeine.newBuilder().build(
-        new CacheLoader[Query, SimpleFeatureCollection] {
-          override def load(query: Query): SimpleFeatureCollection =
-            new CachingFeatureCollection(new GeoMesaFeatureCollection(CachingFeatureSource.this, query))
-        })
-
-    abstract override def getFeatures(query: Query): SimpleFeatureCollection = {
-      // geotools bug in Query.hashCode
-      if (query.getStartIndex == null) {
-        query.setStartIndex(0)
-      }
-
-      if (query.getSortBy == null) {
-        featureCache.get(query)
-      } else {
-        // Uses mergesort
-        new SortedSimpleFeatureCollection(featureCache.get(query), query.getSortBy: _*)
-      }
-    }
-
-    abstract override def getCount(query: Query): Int = getFeatures(query).size()
-  }
-
-  /*_*/
-  class CachingFeatureCollection(delegate: SimpleFeatureCollection) extends SimpleFeatureCollection {
-  /*_*/
-
-    lazy private val featureList = {
-      // use ListBuffer for constant append time and size
-      val buf = scala.collection.mutable.ListBuffer.empty[SimpleFeature]
-      val iter = delegate.features
-
-      while (iter.hasNext) {
-        buf.append(iter.next())
-      }
-      iter.close()
-      buf
-    }
-
-    override def features: SimpleFeatureIterator = new SimpleFeatureIterator() {
-      private val iter = featureList.iterator
-      override def hasNext: Boolean = iter.hasNext
-      override def next: SimpleFeature = iter.next()
-      override def close(): Unit = {}
-    }
-
-    override def size: Int = featureList.length
-
-    override def toArray: Array[AnyRef] = featureList.toArray
-
-    /*_*/
-    override def toArray[O](a: Array[O with Object]): Array[O with Object] = {
-      import scala.collection.JavaConverters._
-      // noinspection ScalaRedundantCast
-      featureList.asJava.toArray(a).asInstanceOf[Array[O with Object]]
-    }
-    /*_*/
-
-    override def contains(o: scala.Any): Boolean = featureList.contains(o)
-
-    override def containsAll(o: util.Collection[_]): Boolean = featureList.asJava.containsAll(o)
-
-    override def isEmpty: Boolean = featureList.isEmpty
-
-    override def subCollection(filter: Filter): SimpleFeatureCollection =
-      new CachingFeatureCollection(delegate.subCollection(filter))
-
-    override def sort(order: SortBy): SimpleFeatureCollection = delegate.sort(order)
-
-    override def getID: String = delegate.getID
-
-    override def accepts(visitor: FeatureVisitor, progress: ProgressListener): Unit =
-      delegate.accepts(visitor, progress)
-
-    override def getSchema: SimpleFeatureType = delegate.getSchema
-
-    override def getBounds: ReferencedEnvelope = delegate.getBounds
   }
 
   class DelegatingResourceInfo(source: SimpleFeatureSource) extends ResourceInfo {

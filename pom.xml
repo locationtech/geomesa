@@ -59,12 +59,11 @@
         <scala.xml.version>1.3.0</scala.xml.version>
         <scala.parsers.version>1.1.2</scala.parsers.version>
 
-        <gt.version>27.2</gt.version> <!-- make sure this tracks with gs, jts, and spatial4j -->
-        <geoserver.version>2.21.2</geoserver.version>
-        <jts.version>1.18.2</jts.version> <!-- needs to track with gt/gs version -->
+        <gt.version>28.0</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
+        <geoserver.version>2.22.0</geoserver.version>
+        <jts.version>1.19.0</jts.version> <!-- needs to track with gt/gs version -->
         <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
-        <!-- match dependency version used by gt-referencing for convenience -->
-        <ejml.version>0.34</ejml.version>
+        <ejml.version>0.41</ejml.version> <!-- needs to track with gt/gs version -->
         <avro.version>1.11.1</avro.version> <!-- see also confluent.avro.version -->
         <parquet.version>1.12.3</parquet.version>
         <orc.version>1.8.1</orc.version>
@@ -257,12 +256,6 @@
             </distributionManagement>
         </profile>
 
-        <profile>
-            <id>benchmarks</id>
-            <modules>
-                <module>benchmarks</module>
-            </modules>
-        </profile>
     </profiles>
 
     <dependencies>

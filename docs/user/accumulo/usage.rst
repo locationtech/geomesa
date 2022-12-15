@@ -68,7 +68,6 @@ Parameter                              Type    Description
 ``accumulo.remote.stats.enable``       Boolean Process statistical calculations in Accumulo tablets servers as a
                                                distributed call
 ``geomesa.partition.scan.parallel``    Boolean For partitioned schemas, execute scans in parallel instead of sequentially
-``geomesa.query.caching``              Boolean Toggle caching of results
 ====================================== ======= ==========================================================================
 
 Note: it is an error to specify both ``accumulo.password`` and ``accumulo.keytab.path``.
