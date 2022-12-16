@@ -13,8 +13,6 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.feature._
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.partition.TablePartition
-import org.locationtech.geomesa.index.planning.QueryRunner
-import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
@@ -26,8 +24,8 @@ import org.opengis.filter.identity.FeatureId
 import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 
-class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeatureType, runner: QueryRunner)
-    extends GeoMesaFeatureSource(ds, sft, runner) with SimpleFeatureStore {
+class GeoMesaFeatureStore(ds: GeoMeasBaseStore, sft: SimpleFeatureType)
+    extends GeoMesaFeatureSource(ds, sft) with SimpleFeatureStore {
 
   private var transaction: Transaction = Transaction.AUTO_COMMIT
 

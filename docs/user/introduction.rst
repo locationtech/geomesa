@@ -43,16 +43,16 @@ Not sure where to begin? Take a look at :doc:`/user/getting_started`.
 Community and Support
 ---------------------
 
-The main GeoMesa website is http://www.geomesa.org/. For additional information, see:
+The main GeoMesa website is `geomesa.org <https://www.geomesa.org/>`_. For additional information, see:
 
-* Getting started `tutorials <http://www.geomesa.org/tutorials/>`_
+* Getting started `tutorials <https://www.geomesa.org/tutorials/>`_
 * The GeoMesa `users <https://accounts.eclipse.org/mailing-list/geomesa-users>`_ and
   `developers <https://accounts.eclipse.org/mailing-list/geomesa-dev>`_ mailing list archives
 * The community chat on `Gitter <https://gitter.im/locationtech/geomesa/>`_.
 
 |locationtech-icon|
 
-GeoMesa is a member of the `LocationTech <http://www.locationtech.org/projects/technology.geomesa>`_ working group
+GeoMesa is a member of the `LocationTech <https://projects.eclipse.org/projects/locationtech.geomesa>`_ working group
 of the Eclipse Foundation.
 
 Community Modules
@@ -67,7 +67,7 @@ License
 -------
 
 GeoMesa is open-source software, and is licensed under the Apache License Version 2.0: 
-http://apache.org/licenses/LICENSE-2.0.html
+https://apache.org/licenses/LICENSE-2.0.html
 
 .. |locationtech-icon| image:: _static/img/locationtech.png
 

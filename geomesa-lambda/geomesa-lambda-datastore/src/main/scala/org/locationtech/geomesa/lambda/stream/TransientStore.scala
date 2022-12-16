@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.lambda.stream
 
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.lambda.stream.stats.TransientStats
@@ -28,10 +29,11 @@ trait TransientStore extends HasGeoMesaStats with Closeable {
 
   def removeSchema(): Unit
 
-  def read(filter: Option[Filter] = None,
-           transforms: Option[Array[String]] = None,
-           hints: Option[Hints] = None,
-           explain: Explainer = new ExplainLogging): CloseableIterator[SimpleFeature]
+  def read(
+      filter: Option[Filter] = None,
+      transforms: Option[Array[String]] = None,
+      hints: Option[Hints] = None,
+      explain: Explainer = new ExplainLogging): QueryResult
 
   def write(feature: SimpleFeature): Unit
 

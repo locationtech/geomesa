@@ -1,7 +1,7 @@
 GeoMesa Scala Console
 =====================
 
-The GeoMesa tools have a ``scala-console`` command that starts a Scala REPL configured
+The GeoMesa tools have a ``scala-console`` command that starts a Scala REPL (read/evaluate/print/loop) configured
 for use with GeoMesa. The command will place the GeoMesa classpath and configuration
 for that distribution on the REPL's classpath. Additionally it will preload commonly
 used imports. The command also comes with tooling that will provide the option to

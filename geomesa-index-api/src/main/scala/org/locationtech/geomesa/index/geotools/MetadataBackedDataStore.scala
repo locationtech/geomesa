@@ -10,11 +10,12 @@ package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
-import org.geotools.data.simple.SimpleFeatureSource
+import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureSource}
 import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
@@ -39,7 +40,7 @@ import scala.util.control.NonFatal
   * Abstract base class for data store implementations using metadata to track schemas
   */
 abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStore
-    with HasGeoMesaMetadata[String] with DistributedLocking with LazyLogging {
+    with HasGeoMesaMetadata[String] with HasGeoMesaFeatureReader with DistributedLocking with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -308,13 +309,13 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
    * @param transaction transaction to use (currently ignored)
    * @return feature reader
    */
-  override def getFeatureReader(query: Query, transaction: Transaction): GeoMesaFeatureReader = {
+  override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader = {
     require(query.getTypeName != null, "Type name is required in the query")
     val sft = getSchema(query.getTypeName)
     if (sft == null) {
       throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
     }
-    getFeatureReader(sft, transaction, query)
+    getFeatureReader(sft, transaction, query).reader()
   }
 
   /**
@@ -363,20 +364,6 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     }
     getFeatureWriter(sft, transaction, None)
   }
-
-  /**
-   * Internal method to get a feature reader without reloading the simple feature type. We don't expose this
-   * widely as we want to ensure that the sft has been loaded from our catalog
-   *
-   * @param sft simple feature type
-   * @param transaction transaction
-   * @param query query
-   * @return
-   */
-  private[geomesa] def getFeatureReader(
-      sft: SimpleFeatureType,
-      transaction: Transaction,
-      query: Query): GeoMesaFeatureReader
 
   /**
    * Internal method to get a feature writer without reloading the simple feature type. We don't expose this

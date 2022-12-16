@@ -8,8 +8,7 @@ Installing GeoMesa FileSystem
     .. parsed-literal::
 
         $ export TAG="|release_version|"
-        # note: |scala_binary_version| is the Scala build version
-        $ export VERSION="|scala_binary_version|-${TAG}"
+        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -86,36 +85,27 @@ Installing GeoMesa FileSystem in GeoServer
 
     See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
 
-The FileSystem GeoServer plugin is bundled by default in the GeoMesa FS binary distribution. To install, extract
-``$GEOMESA_FS_HOME/dist/gs-plugins/geomesa-fs-gs-plugin_${VERSION}-install.tar.gz`` into GeoServer's
-``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with Parquet 1.9.0
-bundled. If you require a different version, modify the ``pom.xml`` and build the GeoMesa FileSystem geoserver plugin
-project from scratch with Maven.
+To install the GeoMesa data store, extract the contents of the
+``geomesa-fs-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-fs_${VERSION}/dist/gs-plugins/``
+in the binary distribution or ``geomesa-fs/geomesa-fs-gs-plugin/target/`` in the source
+distribution into your GeoServer's ``lib`` directory:
 
-This distribution does not include the Hadoop JARs; the following JARs should be copied from the ``lib`` directory of
-your Hadoop installations into GeoServer's ``WEB-INF/lib`` directory:
+.. code-block:: bash
 
-(Note the versions may vary depending on your installation.)
+    $ tar -xzvf \
+      geomesa-fs_${VERSION}/dist/gs-plugins/geomesa-fs-gs-plugin_${VERSION}-install.tar.gz \
+      -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
-  * hadoop-auth-2.8.4.jar
-  * hadoop-common-2.8.4.jar
-  * hadoop-hdfs-2.8.4.jar
-  * hadoop-hdfs-client-2.8.4.jar
-  * snappy-java-1.1.1.6.jar
-  * commons-configuration-1.6.jar
-  * commons-logging-1.1.3.jar
-  * commons-cli-1.2.jar
-  * commons-io-2.5.jar
-  * protobuf-java-2.5.0.jar
-  * hadoop-aws-2.8.4.jar
-  * aws-java-sdk-core-1.10.6.jar
-  * aws-java-sdk-s3-1.10.6.jar
-  * joda-time-2.8.1.jar
-  * httpclient-4.5.2.jar
-  * httpcore-4.4.4.jar
-  * commons-httpclient-3.1.jar
+Next, install the JARs for Hadoop. By default, JARs will be downloaded from Maven central. You may
+override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do not have an internet connection
+you can download the JARs manually.
 
-You can use the bundled ``$GEOMESA_FS_HOME/bin/install-dependencies.sh`` script to install these JARs.
+Edit the file ``geomesa-fs_${VERSION}/conf/dependencies.sh`` to set the version of Hadoop
+to match the target environment, and then run the script:
+
+.. code-block:: bash
+
+    $ ./bin/install-dependencies.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 The FileSystem data store requires the configuration file ``core-site.xml`` to be on the classpath. This can
 be accomplished by placing the file in ``geoserver/WEB-INF/classes`` (you should make the directory if it

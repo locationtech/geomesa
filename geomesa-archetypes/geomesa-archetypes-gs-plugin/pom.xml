@@ -12,49 +12,99 @@
     <name>GeoMesa GeoServer Plugin Archetype</name>
     <packaging>pom</packaging>
 
+    <properties>
+        <gs.commons.codec.version>1.15</gs.commons.codec.version>
+        <gs.commons.io.version>2.8.0</gs.commons.io.version>
+        <gs.commons.lang.version>2.5</gs.commons.lang.version>
+        <gs.commons.lang3.version>3.8.1</gs.commons.lang3.version>
+        <gs.commons.logging.version>1.2</gs.commons.logging.version>
+        <gs.commons.pool.version>1.5.4</gs.commons.pool.version>
+        <gs.jackson.version>2.13.2</gs.jackson.version>
+        <gs.jackson.databind.version>2.13.4.1</gs.jackson.databind.version>
+        <gs.error.prone.version>2.3.4</gs.error.prone.version>
+        <gs.checker.qual.version>3.5.0</gs.checker.qual.version>
+        <gs.objenesis.version>3.2</gs.objenesis.version>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
-            <!-- Dependencies already in geoserver -->
+            <!-- dependencies already in geoserver -->
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
-                <version>1.9</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>commons-httpclient</groupId>
-                <artifactId>commons-httpclient</artifactId>
-                <version>3.1</version>
+                <version>${gs.commons.codec.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>2.6</version>
+                <version>${gs.commons.io.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>commons-lang</groupId>
                 <artifactId>commons-lang</artifactId>
-                <version>2.4</version>
+                <version>${gs.commons.lang.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>commons-lang</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.7</version>
+                <version>${gs.commons.lang3.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>commons-logging</groupId>
                 <artifactId>commons-logging</artifactId>
-                <version>1.1.1</version>
+                <version>${gs.commons.logging.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>commons-pool</groupId>
                 <artifactId>commons-pool</artifactId>
-                <version>1.5.4</version>
+                <version>${gs.commons.pool.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${gs.jackson.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${gs.jackson.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${gs.jackson.databind.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-xml</artifactId>
+                <version>${gs.jackson.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.errorprone</groupId>
+                <artifactId>error_prone_annotations</artifactId>
+                <version>${gs.error.prone.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.checkerframework</groupId>
+                <artifactId>checker-qual</artifactId>
+                <version>${gs.checker.qual.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.objenesis</groupId>
+                <artifactId>objenesis</artifactId>
+                <version>${gs.objenesis.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>

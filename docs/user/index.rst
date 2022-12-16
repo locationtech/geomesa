@@ -3,15 +3,15 @@ User Manual
 
 .. toctree::
    :caption: Table of Contents
-   :maxdepth: 3
+   :maxdepth: 2
    :numbered:
 
    introduction
    getting_started
    download
    install
-   geotools
    architecture
+   geotools
    datastores/index
    cli/index
    convert/index

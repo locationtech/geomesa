@@ -12,17 +12,20 @@ GeoServer Versions
 ------------------
 
 Not all versions of GeoServer are compatible with all versions of GeoMesa. Refer to the chart below for which
-version to install. It is recommended to use the latest GeoServer bug-fix release for the compatible minor version.
+version to install. It is recommended to use the latest GeoServer bug-fix release for the compatible minor version,
+although this may occasionally cause errors as GeoServer does not follow semantic versioning.
 
 .. note::
 
-    New versions of GeoServer are released regularly. GeoMesa 3+ may work with newer versions of GeoServer, but
+    New versions of GeoServer are released regularly. GeoMesa may work with newer versions of GeoServer, but
     only the versions listed below have been verified.
 
 +-------------------+-------------------+
 | GeoMesa Version   | GeoServer Version |
 +===================+===================+
-| 3.1.1 and later   | 2.17.3            |
+| 4.0.0 and later   | 2.22.0            |
++-------------------+-------------------+
+| 3.1.1 to 3.5.x    | 2.17.3            |
 +-------------------+-------------------+
 | 3.0.x to 3.1.0    | 2.17.0            |
 +-------------------+-------------------+
@@ -174,19 +177,22 @@ configure your application server with the following system properties::
 Logging Explain Query Planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-GeoMesa data stores can explain their plan for executing queries,
+GeoMesa data stores can show their plan for executing queries,
 as described in :ref:`explain_query`. To enable the logging of explain query
 planning in GeoServer, add the following to the
-``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties`` file::
+``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.xml`` file::
 
-    log4j.category.org.locationtech.geomesa.index.utils.Explainer=TRACE
+    <Logger name="org.locationtech.geomesa.index.utils.Explainer" level="trace">
+      <AppenderRef ref="stdout"/>
+      <AppenderRef ref="geoserverlogfile"/>
+    </Logger>
 
 If you are not sure of the location of your GeoServer data directory, it
 is printed out when you start GeoServer::
 
-    ----------------------------------
-    - GEOSERVER_DATA_DIR: /path/to/geoserver-data-dir
-    ----------------------------------
+    --------------------------------------------------------------------
+    CONFIG [org.geoserver] - Loading catalog /path/to/geoserver-data-dir
+    --------------------------------------------------------------------
 
 It may also be helpful to refer to GeoServer's `Advanced log configuration`__ documentation for the
 specifics of how and where to manage the GeoServer logs.
@@ -201,14 +207,11 @@ when registering the data store in GeoServer.
 
 GeoMesa data stores will generally write audited queries to log files. To configure an audit log, set the level for
 ``org.locationtech.geomesa.utils.audit`` to ``DEBUG``. This can be accomplished by editing the GeoServer logging
-configuration (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties``)::
+configuration (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.xml``)::
 
-   log4j.appender.metrics=org.apache.log4j.FileAppender
-   log4j.appender.metrics.File=metrics.log
-   log4j.appender.metrics.layout=org.apache.log4j.PatternLayout
-   log4j.appender.metrics.layout.ConversionPattern=%m%n
-
-   log4j.logger.org.locationtech.geomesa.utils.audit=DEBUG, metrics
+   <Logger name="org.locationtech.geomesa.utils.audit" level="debug" additivity="false">
+     <AppenderRef ref="auditLogFile"/> <!-- note: requires an appender to be defined with this name -->
+   </Logger>
 
 The Accumulo data store will also write audited queries to the ``<catalog>_queries`` table.
 

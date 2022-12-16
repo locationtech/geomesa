@@ -243,8 +243,8 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       val expected =
         ECQL.toFilter("bbox(geom,0,0,180,90) AND dtg >= '2018-01-01T00:00:00.000Z' AND dtg < '2018-01-02T00:00:00.000Z'")
       // compare toString to get around crs comparison failures in bbox
-      decomposeAnd(ps.getCoveringFilter("2018/01/01/3")).map(_.toString) must
-          containTheSameElementsAs(decomposeAnd(expected).map(_.toString))
+      decomposeAnd(ps.getCoveringFilter("2018/01/01/3")).map(ECQL.toCQL) must
+          containTheSameElementsAs(decomposeAnd(expected).map(ECQL.toCQL))
     }
 
     "calculate covering filters for monthly datetime" >> {

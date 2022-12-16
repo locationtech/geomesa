@@ -27,6 +27,7 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class LocalQueryRunnerTest extends Specification {
+
   sequential
 
   import org.locationtech.geomesa.filter.ff
@@ -84,30 +85,33 @@ class LocalQueryRunnerTest extends Specification {
     }
   }
 
+  def runQuery(runner: QueryRunner, query: Query): Seq[SimpleFeature] =
+    WithClose(runner.runQuery(sft, query).iterator().map(ScalaSimpleFeature.copy))(_.toList)
+
   "InMemoryQueryRunner" should {
     "not sort" in {
-      runner.runQuery(sft, new Query("LocalQueryRunnerTest")).map(ScalaSimpleFeature.copy).toSeq mustEqual features
+      runQuery(runner, new Query("LocalQueryRunnerTest")).toSeq mustEqual features
     }
 
     "sort by an attribute" in {
       val q = new Query("LocalQueryRunnerTest")
       q.setSortBy(new SortByImpl(ff.property("name"), SortOrder.ASCENDING))
-      runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).toSeq mustEqual features
+      runQuery(runner, q) mustEqual features
       q.setSortBy(new SortByImpl(ff.property("name"), SortOrder.DESCENDING))
-      runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).toSeq mustEqual features.reverse
+      runQuery(runner, q) mustEqual features.reverse
     }
 
     "sort by multiple attributes" in {
       val q = new Query("LocalQueryRunnerTest")
       q.setSortBy(new SortByImpl(ff.property("age"), SortOrder.ASCENDING),
         new SortByImpl(ff.property("name"), SortOrder.DESCENDING))
-      runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).toSeq mustEqual Seq(features(3), features(1), features(0), features(2))
+      runQuery(runner, q) mustEqual Seq(features(3), features(1), features(0), features(2))
     }
 
     "sort by projections" in {
       val q = new Query("LocalQueryRunnerTest", Filter.INCLUDE, "derived=strConcat('aa', name)", "geom")
       q.setSortBy(new SortByImpl(ff.property("derived"), SortOrder.DESCENDING))
-      runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).map(_.getID).toSeq mustEqual features.reverse.map(_.getID)
+      runQuery(runner, q).map(_.getID) mustEqual features.reverse.map(_.getID)
     }
 
     "query for Arrow in various configurations" in {
@@ -120,9 +124,10 @@ class LocalQueryRunnerTest extends Specification {
         q.getHints.put(QueryHints.Internal.SKIP_REDUCE, skipReduce)
         // note: need to copy the features as the same object is re-used in the iterator
         try {
-          WithClose(failingRunner.runQuery(sft, q)) { iter =>
-            iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
-          }
+          runQuery(failingRunner, q)
+              .map(_.getAttribute(0).asInstanceOf[Array[Byte]])
+              .reduceLeftOption(_ ++ _)
+              .getOrElse(Array.empty[Byte])
         } catch {
           case _: Exception => // Swallowing exception from intentionally failing iterator.
         }
@@ -137,9 +142,10 @@ class LocalQueryRunnerTest extends Specification {
       q.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
       // note: need to copy the features as the same object is re-used in the iterator
       try {
-        WithClose(failingRunner.runQuery(sft, q)) { iter =>
-          iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
-        }
+        runQuery(failingRunner, q)
+            .map(_.getAttribute(0).asInstanceOf[Array[Byte]])
+            .reduceLeftOption(_ ++ _)
+            .getOrElse(Array.empty[Byte])
       } catch {
         case _: Exception => // Swallowing exception from intentionally failing iterator.
       }

@@ -348,11 +348,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    if (config.queries.caching) {
-      new GeoMesaFeatureStore(this, sft, queryPlanner) with GeoMesaFeatureSource.CachingFeatureSource
-    } else {
-      new GeoMesaFeatureStore(this, sft, queryPlanner)
-    }
+    new GeoMesaFeatureStore(this, sft)
   }
 
   override private[geomesa] def getFeatureReader(
@@ -362,7 +358,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (transaction != Transaction.AUTO_COMMIT) {
       logger.warn("Ignoring transaction - not supported")
     }
-    GeoMesaFeatureReader(sft, query, queryPlanner, config.queries.timeout, config.audit)
+    GeoMesaFeatureReader(sft, query, queryPlanner, config.audit)
   }
 
   /**

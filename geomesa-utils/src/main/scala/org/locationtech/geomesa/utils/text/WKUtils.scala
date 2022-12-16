@@ -79,9 +79,9 @@ trait WKBUtils {
     // dimensions in each coordinate, some information may be lost
     if (geometry == null) { true } else {
       val coord = geometry.getCoordinate
-      // check for dimensions - use NaN != NaN to verify z coordinate
-      // TODO check for M coordinate when added to JTS
-      coord == null || java.lang.Double.isNaN(coord.getZ)
+      // check for dimensions
+      // TODO WKBWriter still only supports z or m but not both
+      coord == null || (java.lang.Double.isNaN(coord.getZ) && java.lang.Double.isNaN(coord.getM))
     }
   }
 }

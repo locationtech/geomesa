@@ -305,7 +305,7 @@ GeoMesa allows configuration of the number of shards (or splits) into which the 
 divided. This parameter may be changed individually for each ``SimpleFeatureType``. If nothing is specified,
 GeoMesa will default to 4 shards. The number of shards must be between 1 and 127.
 
-Shards allow us to pre-split tables, which provides some initial parallelism for reads and writes. As more data is
+Shards allow for tables to be pre-split, which provides some initial parallelism for reads and writes. As more data is
 written, tables will generally split based on size, thus obviating the need for explicit shards. For small data sets,
 shards are more important as the tables might never split due to size. Setting the number of shards too high can
 reduce performance, as it requires more calculations to be performed per query.

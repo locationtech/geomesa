@@ -145,8 +145,8 @@ Query Index
 
 GeoMesa may be able to use several different indices to satisfy a particular query. For example,
 a query with a spatial filter and an attribute filter could potentially use either the primary
-spatial index or the attribute index. GeoMesa uses cost-based query planning to pick the best index;
-however, the index can be overridden if desired.
+spatial index or the attribute index. GeoMesa will try to pick the best index; however, the index
+can be specified directly if desired.
 
 ====================== ======================= ===========================
 Key                    Type                    GeoServer Conversion
@@ -183,7 +183,7 @@ For more details, see :ref:`query_planning`.
 Query Planning Type
 -------------------
 
-As explained above, GeoMesa uses cost-based query planning to determine the best index for a given query.
+GeoMesa uses cost-based query planning to determine the best index for a given query.
 By default, heuristics are used to pick the index. This method is quite fast, but may not always account for
 unusual data distributions. If heuristic-based query planning is not working as desired, stat-based query
 planning can be used, based on data statistics gathered during ingestion. ``Stats`` uses cost-based planning;

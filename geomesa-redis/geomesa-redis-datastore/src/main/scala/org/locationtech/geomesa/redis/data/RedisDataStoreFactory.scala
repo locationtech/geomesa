@@ -75,7 +75,6 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       AuditQueriesParam,
       LooseBBoxParam,
       PartitionParallelScansParam,
-      CachingParam,
       AuthsParam,
       ForceEmptyAuthsParam
     )
@@ -130,7 +129,6 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       threads = QueryThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params).booleanValue(),
-      caching = CachingParam.lookup(params),
       parallelPartitionScans = PartitionParallelScansParam.lookup(params)
     )
 
@@ -155,7 +153,6 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       threads: Int,
       timeout: Option[Long],
       looseBBox: Boolean,
-      caching: Boolean,
       parallelPartitionScans: Boolean
     ) extends DataStoreQueryConfig
 }

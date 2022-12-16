@@ -102,7 +102,7 @@ Providers must implement the following interface:
          *
          * @param params parameters
          */
-        void configure(Map<String, ? extends Serializable> params);
+        void configure(Map<String, ?> params);
     }
 
 When a GeoMesa data store is instantiated, it will scan for available service providers

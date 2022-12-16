@@ -38,6 +38,8 @@ class DescriptiveStats(val sft: SimpleFeatureType, val properties: Seq[String]) 
 
   clear()
 
+  private implicit def toDMatrixRMaj(sm: SimpleMatrix): DMatrixRMaj = sm.getMatrix[DMatrixRMaj]
+
   override def clear(): Unit = {
     _count = 0L
     CommonOps_DDRM.fill(_min, java.lang.Double.MAX_VALUE)
@@ -52,14 +54,19 @@ class DescriptiveStats(val sft: SimpleFeatureType, val properties: Seq[String]) 
 
   def copyFrom(that: DescriptiveStats): Unit = {
     _count = that._count
-    _min.set(that._min)
-    _max.set(that._max)
-    _sum.set(that._sum)
-    _mean.set(that._mean)
-    _m2n.set(that._m2n)
-    _m3n.set(that._m3n)
-    _m4n.set(that._m4n)
-    _c2.set(that._c2)
+    copyTo(_min, that._min)
+    copyTo(_max, that._max)
+    copyTo(_sum, that._sum)
+    copyTo(_mean, that._mean)
+    copyTo(_m2n, that._m2n)
+    copyTo(_m3n, that._m3n)
+    copyTo(_m4n, that._m4n)
+    copyTo(_c2, that._c2)
+  }
+
+  private def copyTo(to: SimpleMatrix, from: SimpleMatrix): Unit = {
+    to.reshape(from.numRows(), from.numCols())
+    System.arraycopy(from.data, 0, to.data, 0, from.data.length)
   }
 
   def count: Long = _count
@@ -146,10 +153,10 @@ class DescriptiveStats(val sft: SimpleFeatureType, val properties: Seq[String]) 
 
     if (_count < 1) {
       _count = 1
-      _min.set(values_v)
-      _max.set(values_v)
-      _sum.set(values_v)
-      _mean.set(values_v)
+      _min.insertIntoThis(0, 0, values_v)
+      _max.insertIntoThis(0, 0, values_v)
+      _sum.insertIntoThis(0, 0, values_v)
+      _mean.insertIntoThis(0, 0, values_v)
     } else {
 
       _sum += values_v

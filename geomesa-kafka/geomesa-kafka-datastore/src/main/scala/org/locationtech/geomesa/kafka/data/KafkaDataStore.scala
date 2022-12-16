@@ -276,16 +276,16 @@ class KafkaDataStore(
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new KafkaFeatureStore(this, sft, runner, cache(typeName))
+    new KafkaFeatureStore(this, sft, cache(typeName))
   }
 
-  private[geomesa] def getFeatureReader(
+  override private[geomesa] def getFeatureReader(
       sft: SimpleFeatureType,
       transaction: Transaction,
       query: Query): GeoMesaFeatureReader = {
     // kick off the kafka consumers for this sft, if not already started
     caches.get(layerViewLookup.getOrElse(query.getTypeName, query.getTypeName))
-    GeoMesaFeatureReader(sft, query, runner, None, config.audit)
+    GeoMesaFeatureReader(sft, query, runner, config.audit)
   }
 
   override private[geomesa] def getFeatureWriter(

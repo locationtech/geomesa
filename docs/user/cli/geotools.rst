@@ -17,8 +17,12 @@ __ https://github.com/locationtech/geomesa/releases
 
 .. note::
 
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
+    The examples below expect a version to be set in the environment:
+
+    .. parsed-literal::
+
+        $ export TAG="|release_version|"
+        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 
 Extract it somewhere convenient:
 
