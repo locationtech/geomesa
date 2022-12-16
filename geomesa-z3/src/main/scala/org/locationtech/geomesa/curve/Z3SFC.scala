@@ -57,11 +57,13 @@ class Z3SFC(period: TimePeriod, precision: Int = 21) extends SpaceTimeFillingCur
     val zbounds = for { (xmin, ymin, xmax, ymax) <- xy ; (tmin, tmax) <- t } yield {
       ZRange(index(xmin, ymin, tmin), index(xmax, ymax, tmax))
     }
-    Z3.zranges(zbounds.toArray, precision, maxRanges)
+    Z3.zranges(zbounds.toArray, precision, maxRanges, Z3SFC.MaxRecursion)
   }
 }
 
 object Z3SFC {
+
+  private val MaxRecursion = sys.props.get("geomesa.scan.ranges.recurse").map(_.toInt).orElse(Some(Int.MaxValue))
 
   private val SfcDay   = new Z3SFC(TimePeriod.Day)
   private val SfcWeek  = new Z3SFC(TimePeriod.Week)

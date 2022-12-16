@@ -1,7 +1,7 @@
 .. _converters:
 
-GeoMesa Convert
-===============
+GeoMesa Converters
+==================
 
 GeoMesa Convert is a configurable and extensible library for converting data into GeoTools ``SimpleFeature``\ s,
 which can then be written to GeoMesa. The convert library is the easiest way to ingest data into

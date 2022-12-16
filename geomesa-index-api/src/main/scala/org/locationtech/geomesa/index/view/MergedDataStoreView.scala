@@ -13,6 +13,7 @@ import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureSource}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
@@ -38,7 +39,7 @@ class MergedDataStoreView(
     deduplicate: Boolean,
     parallel: Boolean,
     namespace: Option[String] = None
-  ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaStats {
+  ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
 
   require(stores.nonEmpty, "No delegate stores configured")
 
@@ -55,7 +56,13 @@ class MergedDataStoreView(
   }
 
   override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader =
-    GeoMesaFeatureReader(getSchema(query.getTypeName), query, runner, None, None)
+    getFeatureReader(getSchema(query.getTypeName), transaction, query).reader()
+
+  override private[geomesa] def getFeatureReader(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      query: Query): GeoMesaFeatureReader =
+    GeoMesaFeatureReader(sft, query, runner, None)
 }
 
 object MergedDataStoreView {

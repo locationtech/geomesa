@@ -18,4 +18,4 @@ Upgrading
 ---------
 
 Upgrade instructions are available under the installation sections, above. For details on API changes between
-versions, see :ref:`upgrade_guide`.
+versions, see the :ref:`upgrade_guide`.

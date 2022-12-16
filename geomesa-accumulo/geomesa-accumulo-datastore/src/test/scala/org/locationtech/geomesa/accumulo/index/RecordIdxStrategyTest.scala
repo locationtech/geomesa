@@ -70,7 +70,7 @@ class RecordIdxStrategyTest extends Specification with TestWithFeatureType {
 
   def runQuery(query: Query): CloseableIterator[SimpleFeature] = {
     query.getHints.put(QUERY_INDEX, IdIndex.name)
-    planner.runQuery(sft, query, ExplainNull)
+    planner.runQuery(sft, query, ExplainNull).iterator()
   }
 
   "RecordIdxStrategy" should {

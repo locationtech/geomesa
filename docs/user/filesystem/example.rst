@@ -8,8 +8,7 @@ folder which contains an example csv file that we will ingest. First set the ver
 .. parsed-literal::
 
     $ export TAG="|release_version|"
-    # note: |scala_binary_version| is the Scala build version
-    $ export VERSION="|scala_binary_version|-${TAG}"
+    $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 
 Then download and extract the binary distribution:
 

@@ -79,12 +79,12 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
           store1.write(feature)
           store1.flush()
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read()).toSeq must beEqualTo(Seq(feature)))
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEqualTo(Seq(feature)))
           }
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read()).toSeq must beEqualTo(Seq(feature)))
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEqualTo(Seq(feature)))
           }
         }
       } finally {
@@ -113,18 +113,18 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
           store1.write(feature)
           store1.flush()
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read()).toSeq must beEqualTo(Seq(feature)))
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEqualTo(Seq(feature)))
           }
           // run once with nothing expired
           store1.persist()
           foreach(Seq(store1, store2)) { store =>
-            SelfClosingIterator(store.read()).toSeq mustEqual Seq(feature)
+            SelfClosingIterator(store.read().iterator()).toSeq mustEqual Seq(feature)
           }
           // move the clock forward and run again
           clock.tick = 2000
           store1.persist()
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read()) must beEmpty)
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()) must beEmpty)
           }
           val persisted = SelfClosingIterator(ds.getFeatureReader(new Query(ns), Transaction.AUTO_COMMIT)).toSeq
           persisted.map(DataUtilities.encodeFeature) mustEqual Seq(DataUtilities.encodeFeature(feature))
@@ -161,7 +161,7 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
           store1.flush()
           store2.flush()
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read()).toSeq must containTheSameElementsAs(Seq(feature1, feature2)))
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must containTheSameElementsAs(Seq(feature1, feature2)))
           }
           // move forward the clock to simulate an update
           clock.tick = 1
@@ -170,12 +170,12 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
           store1.flush()
           store2.flush()
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read()).toSeq must containTheSameElementsAs(Seq(update1, update2)))
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must containTheSameElementsAs(Seq(update1, update2)))
           }
           clock.tick = 2
           store1.delete(update1)
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read()).toSeq must beEqualTo(Seq(update2)))
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEqualTo(Seq(update2)))
           }
           // move the clock forward and run persistence
           clock.tick = 2000
@@ -185,13 +185,13 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
 
           store1.delete(update2)
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read()).toSeq must beEmpty)
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEmpty)
           }
           // move the clock forward and run persistence
           clock.tick = 4000
           store2.persist()
           foreach(Seq(store1, store2)) { store =>
-            SelfClosingIterator(store.read()) must beEmpty
+            SelfClosingIterator(store.read().iterator()) must beEmpty
           }
           persisted = SelfClosingIterator(ds.getFeatureReader(new Query(ns), Transaction.AUTO_COMMIT)).toSeq
           persisted must beEmpty
@@ -224,7 +224,7 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
           store1.write(feature1)
           store1.flush()
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read()).toSeq must beEqualTo(Seq(feature1)))
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEqualTo(Seq(feature1)))
           }
           // move forward the clock to simulate an update
           // the first feature is expired, but the update is not
@@ -232,7 +232,7 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
           store2.write(update1)
           store2.flush()
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read()).toSeq must beEqualTo(Seq(update1)))
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEqualTo(Seq(update1)))
           }
           // run persistence
           store1.persist()
@@ -241,13 +241,13 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
           persisted must beEmpty
           // ensure non-expired feature still comes back
           foreach(Seq(store1, store2)) { store =>
-            SelfClosingIterator(store.read()).toSeq mustEqual Seq(update1)
+            SelfClosingIterator(store.read().iterator()).toSeq mustEqual Seq(update1)
           }
           // move the clock forward and run persistence
           clock.tick = 4000
           store2.persist()
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read()) must beEmpty)
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()) must beEmpty)
           }
           persisted = SelfClosingIterator(ds.getFeatureReader(new Query(ns), Transaction.AUTO_COMMIT)).toSeq
           persisted.map(DataUtilities.encodeFeature) mustEqual Seq(update1).map(DataUtilities.encodeFeature)

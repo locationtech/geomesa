@@ -4,8 +4,6 @@ Installing GeoMesa Kafka
 .. note::
 
     GeoMesa currently supports Kafka version |kafka_version|, and has been tested up to |kafka_tested_version|.
-    However, not all features are supported for versions prior to 1.0. The runtime classpath requires Kafka
-    version 2+, but should be compatible with brokers back to Kafka 0.10.
 
 .. note::
 
@@ -14,8 +12,7 @@ Installing GeoMesa Kafka
     .. parsed-literal::
 
         $ export TAG="|release_version|"
-        # note: |scala_binary_version| is the Scala build version
-        $ export VERSION="|scala_binary_version|-${TAG}"
+        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -126,7 +123,7 @@ Installing the GeoMesa Kafka Data Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install the GeoMesa data store, extract the contents of the
-``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/geoserver/``
+``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/gs-plugins/``
 in the binary distribution or ``geomesa-kafka/geomesa-kafka-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
@@ -137,8 +134,8 @@ distribution into your GeoServer's ``lib`` directory:
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 Next, install the JARs for Kafka and Zookeeper. By default, JARs will be downloaded from Maven central. You may
-override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do no have an internet connection
-you can download the JARs manually via http://search.maven.org/.
+override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do not have an internet connection
+you can download the JARs manually.
 
 Edit the file ``geomesa-kafka_${VERSION}/conf/dependencies.sh`` to set the versions of Kafka and Zookeeper
 to match the target environment, and then run the script:
@@ -149,37 +146,6 @@ to match the target environment, and then run the script:
 
 .. warning::
 
-    Ensure that the Scala version (either ``_2.11`` or ``_2.12``) of both GeoMesa and Kafka match to avoid
-    compatibility issues.
-
-The specific JARs needed for some common configurations are listed below:
-
-.. tabs::
-
-    .. tab:: Kafka 2.0.0
-
-        * kafka-clients-2.0.0.jar
-        * kafka_2.11-2.0.0.jar
-        * zkclient-0.10.jar
-        * zookeeper-3.4.10.jar
-        * metrics-core-2.2.0.jar
-        * jopt-simple-5.0.4.jar
-
-    .. tab:: Kafka 1.0.1
-
-        * kafka-clients-1.0.1.jar
-        * kafka_2.11-1.0.1.jar
-        * zkclient-0.10.jar
-        * zookeeper-3.4.10.jar
-        * metrics-core-2.2.0.jar
-        * jopt-simple-5.0.4.jar
-
-    .. tab:: Kafka 0.10
-
-        * kafka-clients-0.10.2.1.jar
-        * kafka_2.11-0.10.2.1.jar
-        * zkclient-0.10.jar
-        * zookeeper-3.4.10.jar
-        * metrics-core-2.2.0.jar
+    Ensure that the Scala version of both GeoMesa and Kafka match to avoid compatibility errors.
 
 Restart GeoServer after the JARs are installed.

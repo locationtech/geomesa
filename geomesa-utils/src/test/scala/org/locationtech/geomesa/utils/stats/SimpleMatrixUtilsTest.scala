@@ -19,6 +19,9 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class SimpleMatrixUtilsTest extends Specification with StatTestHelper {
 
+
+  private implicit def toDMatrixRMaj(sm: SimpleMatrix): DMatrixRMaj = sm.getMatrix[DMatrixRMaj]
+
   implicit class extract(sm: SimpleMatrix) {
     def array: Array[Double] = sm.getMatrix.asInstanceOf[DMatrixRMaj].data
     def matrix: DMatrixRMaj = sm.getMatrix.asInstanceOf[DMatrixRMaj]

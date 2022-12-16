@@ -55,12 +55,8 @@ class ScriptingFunctionFactory extends TransformerFunctionFactory with LazyLoggi
     }
   }
 
-  // TODO try with no catch and logging...evaluate whats happening here
   def evalScriptFile(loader: ClassLoader, e: ScriptEngine, f: URI): AnyRef =
-    try {
-      val lines = IOUtils.toString(f, "UTF-8")
-      e.eval(lines)
-    }
+    e.eval(IOUtils.toString(f, "UTF-8"))
 }
 
 object ScriptingFunctionFactory extends LazyLogging {

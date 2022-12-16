@@ -13,6 +13,7 @@ Not sure where to begin? Take a look at :doc:`/user/getting_started`.
     :maxdepth: 1
 
     attributes
+    json
     index_overview
     index_basics
     index_ext

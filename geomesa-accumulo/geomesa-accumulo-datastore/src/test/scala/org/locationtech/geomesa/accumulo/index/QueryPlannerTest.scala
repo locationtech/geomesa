@@ -21,6 +21,7 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.iterators.ExceptionalIterator
 import org.opengis.filter.sort.SortBy
 import org.specs2.mutable.Specification
@@ -47,7 +48,7 @@ class QueryPlannerTest extends Specification with TestWithFeatureType {
     "return a LazySortedIterator when the query has an order by clause" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(SortBy.NATURAL_ORDER)
-      val result = planner.runQuery(sft, query)
+      val result = planner.runQuery(sft, query).iterator()
       result must beAnInstanceOf[ExceptionalIterator[_]]
       result.asInstanceOf[ExceptionalIterator[_]].delegate must beAnInstanceOf[SortingSimpleFeatureIterator]
     }
@@ -90,7 +91,7 @@ class QueryPlannerTest extends Specification with TestWithFeatureType {
       query.setSortBy(SortBy.NATURAL_ORDER)
       query.setProperties(Collections.singletonList(ff.property("s")))
 
-      val result = planner.runQuery(sft, query).toList
+      val result = WithClose(planner.runQuery(sft, query).iterator())(_.toList)
 
       result.map(_.getID) mustEqual Seq("id", "id2")
       forall(result)(r => r.getAttributeCount mustEqual 1)

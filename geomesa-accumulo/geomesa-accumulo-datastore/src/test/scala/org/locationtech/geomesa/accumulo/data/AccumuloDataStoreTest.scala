@@ -22,7 +22,6 @@ import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.CachingFeatureCollection
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
@@ -410,32 +409,6 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       reader.close()
       updated.getID mustEqual "2"
       updated.getAttribute("name") mustEqual "2-updated"
-    }
-
-    "allow caching to be configured" in {
-      DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> false)).asJava)
-          .asInstanceOf[AccumuloDataStore].config.queries.caching must beFalse
-      DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> true)).asJava)
-          .asInstanceOf[AccumuloDataStore].config.queries.caching must beTrue
-    }
-
-    "support caching for improved WFS performance due to count/getFeatures" in {
-      val ds = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> true)).asJava).asInstanceOf[AccumuloDataStore]
-
-      "typeOf feature source must be CachingAccumuloFeatureCollection" >> {
-        val fc = ds.getFeatureSource(defaultTypeName).getFeatures(Filter.INCLUDE)
-        fc must beAnInstanceOf[CachingFeatureCollection]
-      }
-
-      "support getCount" >> {
-        val query = new Query(defaultTypeName, Filter.INCLUDE)
-        val fs = ds.getFeatureSource(defaultTypeName)
-        val count = fs.getCount(query)
-        count mustEqual 2
-        val features = SelfClosingIterator(fs.getFeatures(query).features()).toList
-        features must haveSize(2)
-        features.map(_.getID) must containAllOf(Seq("f1", "f2"))
-      }
     }
 
     "Project to date/geom" in {

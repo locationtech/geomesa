@@ -12,10 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection.GeoMesaFeatureVisitingCollection
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.DelegatingResourceInfo
-import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCapabilities
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.opengis.feature.`type`.Name
@@ -26,7 +24,6 @@ import org.opengis.filter.sort.SortBy
 import java.awt.RenderingHints.Key
 import java.util.Collections
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
   * Feature source for merged data store view
@@ -141,29 +138,11 @@ class MergedFeatureSourceView(
   class MergedFeatureCollection(query: Query)
       extends GeoMesaFeatureVisitingCollection(MergedFeatureSourceView.this, ds.stats, query) {
 
-    private val open = new AtomicBoolean(false)
+    private lazy val featureReader = ds.getFeatureReader(sft, Transaction.AUTO_COMMIT, query)
 
-    override def getSchema: SimpleFeatureType = {
-      if (!open.get) {
-        // once opened the query will already be configured by the query planner,
-        // otherwise we have to compute it here
-        ds.runner.configureQuery(sft, query)
-      }
-      // copy the query so that we don't set any hints for transforms, etc
-      val copy = new Query(query)
-      copy.setHints(new Hints(query.getHints))
-      QueryPlanner.setQueryTransforms(sft, copy)
-      ds.runner.getReturnSft(sft, copy.getHints)
-    }
+    override def getSchema: SimpleFeatureType = featureReader.schema
 
-    override protected def openIterator(): java.util.Iterator[SimpleFeature] = {
-      val iter = super.openIterator()
-      open.set(true)
-      iter
-    }
-
-    override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] =
-      ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+    override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = featureReader.reader()
 
     override def getBounds: ReferencedEnvelope = MergedFeatureSourceView.this.getBounds(query)
 

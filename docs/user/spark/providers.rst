@@ -195,9 +195,3 @@ query passed to the ``rdd()`` method. In the example above, this is "locations".
 
     Do not use the GeoTools RDD provider with a GeoMesa data store that has a provider implementation.
     The providers described above provide additional optimizations to improve read and write performance.
-
-If your data store supports it, use the ``save()`` method to save features:
-
-.. code-block:: scala
-
-    GeoMesaSpark(params).save(rdd, params, "locations")

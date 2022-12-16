@@ -24,8 +24,8 @@ is self-describing, you do not need to specify any converter config or simple fe
 
     $ geomesa-accumulo ingest ... -f mySft myFeatures.avro
 
-If your data is too large for a single file, you may run multiple exports and use CQL
-filters to separate your data.
+If your data is too large for a single file, you may use the ``--chunk-size`` export option, and/or run multiple
+exports and use CQL filters to separate your data.
 
 If the schema does not already exist in the destination cluster, it will be created with the latest index formats
 available in GeoMesa, which may perform better. You could use this technique to migrate data between tables

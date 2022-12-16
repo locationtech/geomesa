@@ -78,12 +78,17 @@ Each point in this curve can be assigned a sequential value, letting GeoMesa rep
 GeoMesa Indexing Key
 --------------------
 
-The basic principle of GeoMesa’s index is to represent the three dimensions of longitude, latitude, and time with a three-dimensional space filling curve, using the values of the points along this curve as the key. This lets it store a record in a key-value store with a key that represents the three data dimensions that we most often use for queries. 
+The basic principle of GeoMesa’s index is to represent the three dimensions of longitude, latitude, and time with a
+three-dimensional space filling curve, using the values of the points along this curve as the key. This lets it
+store a record in a key-value store with a key that represents the three data dimensions that we most often use for queries.
 
-The actual key structure is more complex than a simple key-value pair. Below is a more detailed representation of GeoMesa's index in Accumulo: 
+The actual key structure is more complex than a simple key-value pair. Below is a more detailed representation of
+GeoMesa's index key:
 
-.. image:: _static/img/accumulo-key.png
+.. image:: _static/img/row-key.png
    :align: center
 
-Note the  Z3 encoding in the Key section and the `Simple Feature <https://en.wikipedia.org/wiki/Simple_Features>`_ (a spatial record) in the Value section. The structure of this key can be adjusted depending on the data, but this is the default. 
+Note the  Z3 encoding in the Key section and the `Simple Feature <https://en.wikipedia.org/wiki/Simple_Features>`_
+(a spatial record) in the Value section. The structure of this key can be adjusted depending on the data,
+but this is the default.
 

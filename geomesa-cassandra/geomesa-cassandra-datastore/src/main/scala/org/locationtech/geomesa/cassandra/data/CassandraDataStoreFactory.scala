@@ -86,7 +86,6 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
       threads = QueryThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params),
-      caching = CachingParam.lookup(params),
       parallelPartitionScans = PartitionParallelScansParam.lookup(params)
     )
 
@@ -143,7 +142,6 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       Params.AuditQueriesParam,
       Params.LooseBBoxParam,
       Params.PartitionParallelScansParam,
-      Params.CachingParam,
       Params.QueryThreadsParam,
       Params.QueryTimeoutParam
     )
@@ -208,7 +206,6 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       threads: Int,
       timeout: Option[Long],
       looseBBox: Boolean,
-      caching: Boolean,
       parallelPartitionScans: Boolean
     ) extends DataStoreQueryConfig
 }

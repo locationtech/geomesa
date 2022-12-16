@@ -7,9 +7,8 @@ GeoMesa uses system properties for various runtime configuration options. As a c
 can be specified in an XML file instead of the command line. When run, GeoMesa will load
 the file ``geomesa-site.xml`` from the classpath (if available), and use any properties configured there.
 
-To configure a GeoMesa binary distribution, place ``geomesa-site.xml`` in the ``conf`` folder.
-For GeoServer, place the file under ``geoserver/WEB-INF/classes``. For other environments,
-ensure the file is available at the root level of the classpath.
+Ensure the file is available at the root level of the classpath. In the GeoMesa command-line tools,
+place it in the ``conf`` folder. For GeoServer, place it under ``geoserver/WEB-INF/classes``.
 
 Each tools distribution contains a template file with the default settings at
 ``conf/geomesa-site.xml.template``. Do not modify this file directly as it is never read;
@@ -266,6 +265,14 @@ geomesa.scan.block-full-table.threshold
 This property works in conjunction with ``geomesa.scan.block-full-table``, above. If a query puts a reasonable limit
 on the number of features that are returned (through the use of ``maxFeatures``), then it will not be blocked.
 The property is specified as an integer. By default, a limit of 1000 or less is allowed.
+
+geomesa.scan.ranges.recurse
++++++++++++++++++++++++++++
+
+This property controls the max level of recursion that will be used when generating scan ranges. Higher levels of
+recursion will generate more accurate ranges at the cost of longer query planning times, and lower levels will do
+the opposite. By default there is no limit. Generally this does not need to be configured, and setting it may
+limit the ranges generated to substantially less than ``geomesa.scan.ranges.target``. It is specified as a integer.
 
 geomesa.scan.ranges.target
 ++++++++++++++++++++++++++

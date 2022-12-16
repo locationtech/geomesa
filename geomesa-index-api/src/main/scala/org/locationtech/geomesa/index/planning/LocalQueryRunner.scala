@@ -20,6 +20,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
+import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, FeatureSampler, Reprojection, SortingSimpleFeatureIterator}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils, VisibilityEvaluator}
@@ -61,9 +62,12 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
     */
   protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature]
 
-  override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): CloseableIterator[SimpleFeature] = {
+  override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryResult = {
     val query = configureQuery(sft, original)
+    QueryResult(query.getHints.getReturnSft, query.getHints, run(sft, query, explain))
+  }
 
+  private def run(sft: SimpleFeatureType, query: Query, explain: Explainer)(): CloseableIterator[SimpleFeature] = {
     explain.pushLevel(s"$name query: '${sft.getTypeName}' ${org.locationtech.geomesa.filter.filterToString(query.getFilter)}")
     explain(s"bin[${query.getHints.isBinQuery}] arrow[${query.getHints.isArrowQuery}] " +
         s"density[${query.getHints.isDensityQuery}] stats[${query.getHints.isStatsQuery}] " +

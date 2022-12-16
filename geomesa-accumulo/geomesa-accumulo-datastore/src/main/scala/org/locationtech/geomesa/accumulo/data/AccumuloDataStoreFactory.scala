@@ -100,7 +100,6 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       AuditQueriesParam,
       LooseBBoxParam,
       PartitionParallelScansParam,
-      CachingParam,
       AuthsParam,
       ForceEmptyAuthsParam
     )
@@ -213,7 +212,6 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       recordThreads = RecordThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params),
-      caching = CachingParam.lookup(params),
       parallelPartitionScans = PartitionParallelScansParam.lookup(params)
     )
 
@@ -298,7 +296,6 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       recordThreads: Int,
       timeout: Option[Long],
       looseBBox: Boolean,
-      caching: Boolean,
       parallelPartitionScans: Boolean
     ) extends DataStoreQueryConfig
 
