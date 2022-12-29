@@ -299,6 +299,7 @@ INSERT INTO "supersession" VALUES('grid_transformation','EPSG','9629','grid_tran
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -565,3 +566,5 @@ INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15891','helme
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)

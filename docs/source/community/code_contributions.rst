@@ -167,6 +167,7 @@ Preliminary step: install clang. For example:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -720,6 +721,9 @@ Configure PROJ with the `scan-build <https://clang-analyzer.llvm.org/scan-build.
 Configure PROJ with the :program:`scan-build` utility of clang:
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+Configure PROJ with the :program:`scan-build` utility of clang:
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 
 ::
     mkdir csa_build
@@ -768,6 +772,7 @@ Configure PROJ with the :program:`scan-build` utility of clang:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1321,6 +1326,9 @@ Build using ``scan-build``:
 Build using :program:`scan-build`:
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+Build using :program:`scan-build`:
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 
 ::
 
@@ -1369,6 +1377,7 @@ If CSA finds errors, they will be emitted during the build. And in which case,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1922,6 +1931,9 @@ at the end of the build process, ``scan-build`` will emit a warning message
 at the end of the build process, :program:`scan-build` will emit a warning message
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+at the end of the build process, :program:`scan-build` will emit a warning message
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 indicating errors have been found and how to display the error report. This
 is with something like
 
