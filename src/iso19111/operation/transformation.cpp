@@ -752,10 +752,13 @@ static TransformationNNPtr createFifteenParamsTransform(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -864,10 +867,14 @@ static TransformationNNPtr createFifteenParamsTransform(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
  * This method is defined as [EPSG:1053]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1053)
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1053/index.html">
@@ -908,6 +915,8 @@ static TransformationNNPtr createFifteenParamsTransform(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
@@ -1001,10 +1010,13 @@ TransformationNNPtr Transformation::createTimeDependentPositionVector(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1113,10 +1125,14 @@ TransformationNNPtr Transformation::createTimeDependentPositionVector(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
  * This method is defined as [EPSG:1056]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1056)
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1056/index.html">
@@ -1157,6 +1173,8 @@ TransformationNNPtr Transformation::createTimeDependentPositionVector(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
@@ -1281,10 +1299,13 @@ static TransformationNNPtr _createMolodensky(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1393,10 +1414,14 @@ static TransformationNNPtr _createMolodensky(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
  * This method is defined as [EPSG:9604]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9604)
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9604/index.html">
@@ -1437,6 +1462,8 @@ static TransformationNNPtr _createMolodensky(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
@@ -1490,10 +1517,13 @@ TransformationNNPtr Transformation::createMolodensky(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1602,10 +1632,14 @@ TransformationNNPtr Transformation::createMolodensky(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
  * This method is defined as [EPSG:9605]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9605)
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9605/index.html">
@@ -1646,6 +1680,8 @@ TransformationNNPtr Transformation::createMolodensky(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
@@ -1858,6 +1894,7 @@ buildAccuracyZero() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1866,6 +1903,8 @@ buildAccuracyZero() {
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -2011,11 +2050,15 @@ buildAccuracyZero() {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
  * This method is defined as [EPSG:9601]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9601)
  * *
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -2051,6 +2094,8 @@ buildAccuracyZero() {
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
  * @param sourceCRSIn Source CRS.
@@ -2093,6 +2138,7 @@ TransformationNNPtr Transformation::createLongitudeRotation(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2101,6 +2147,8 @@ TransformationNNPtr Transformation::createLongitudeRotation(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -2246,11 +2294,15 @@ TransformationNNPtr Transformation::createLongitudeRotation(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
  * This method is defined as [EPSG:9619]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9619)
  * *
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -2286,11 +2338,14 @@ TransformationNNPtr Transformation::createLongitudeRotation(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
  * @param sourceCRSIn Source CRS.
  * @param targetCRSIn Target CRS.
  * @param offsetLat Latitude offset to add.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2322,6 +2377,8 @@ TransformationNNPtr Transformation::createLongitudeRotation(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param offsetLong Longitude offset to add.
 =======
  * @param offsetLon Longitude offset to add.
@@ -2366,6 +2423,7 @@ TransformationNNPtr Transformation::createLongitudeRotation(
 =======
  * @param offsetLon Longitude offset to add.
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
  * @param offsetLong Longitude offset to add.
 >>>>>>> 86ade66356 (typo fixes)
@@ -2431,6 +2489,8 @@ TransformationNNPtr Transformation::createLongitudeRotation(
  * @param offsetLon Longitude offset to add.
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param accuracies Vector of positional accuracy (might be empty).
  * @return new Transformation.
  */
@@ -2456,6 +2516,7 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2468,6 +2529,8 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     const common::Angle &offsetLong,
 =======
     const common::Angle &offsetLon,
@@ -2512,6 +2575,7 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 =======
     const common::Angle &offsetLon,
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     const common::Angle &offsetLong,
 >>>>>>> 86ade66356 (typo fixes)
@@ -2577,6 +2641,8 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
     const common::Angle &offsetLon,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies) {
     return create(
         properties, sourceCRSIn, targetCRSIn, nullptr,
@@ -2603,6 +2669,7 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2615,6 +2682,8 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
         VectorOfValues{offsetLat, offsetLong}, accuracies);
 =======
         VectorOfValues{offsetLat, offsetLon}, accuracies);
@@ -2659,6 +2728,7 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 =======
         VectorOfValues{offsetLat, offsetLon}, accuracies);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         VectorOfValues{offsetLat, offsetLong}, accuracies);
 >>>>>>> 86ade66356 (typo fixes)
@@ -2724,12 +2794,15 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
         VectorOfValues{offsetLat, offsetLon}, accuracies);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
 
 /** \brief Instantiate a transformation with method Geographic 3D offsets
  *
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2757,6 +2830,8 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -2902,11 +2977,15 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
  * This method is defined as [EPSG:9660]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9660)
  * *
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -2942,11 +3021,14 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
  * @param sourceCRSIn Source CRS.
  * @param targetCRSIn Target CRS.
  * @param offsetLat Latitude offset to add.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2978,6 +3060,8 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param offsetLong Longitude offset to add.
 =======
  * @param offsetLon Longitude offset to add.
@@ -3022,6 +3106,7 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 =======
  * @param offsetLon Longitude offset to add.
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
  * @param offsetLong Longitude offset to add.
 >>>>>>> 86ade66356 (typo fixes)
@@ -3087,6 +3172,8 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
  * @param offsetLon Longitude offset to add.
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param offsetHeight Height offset to add.
  * @param accuracies Vector of positional accuracy (might be empty).
  * @return new Transformation.
@@ -3113,6 +3200,7 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3125,6 +3213,8 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     const common::Angle &offsetLong, const common::Length &offsetHeight,
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight,
@@ -3169,6 +3259,7 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight,
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     const common::Angle &offsetLong, const common::Length &offsetHeight,
 >>>>>>> 86ade66356 (typo fixes)
@@ -3234,6 +3325,8 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
     const common::Angle &offsetLon, const common::Length &offsetHeight,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies) {
     return create(
         properties, sourceCRSIn, targetCRSIn, nullptr,
@@ -3261,6 +3354,7 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3273,6 +3367,8 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
         VectorOfValues{offsetLat, offsetLong, offsetHeight}, accuracies);
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight}, accuracies);
@@ -3317,6 +3413,7 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight}, accuracies);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         VectorOfValues{offsetLat, offsetLong, offsetHeight}, accuracies);
 >>>>>>> 86ade66356 (typo fixes)
@@ -3382,6 +3479,8 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
         VectorOfValues{offsetLat, offsetLon, offsetHeight}, accuracies);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -3409,6 +3508,7 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3417,6 +3517,8 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -3562,11 +3664,15 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
  * This method is defined as [EPSG:9618]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9618)
  * *
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -3602,11 +3708,14 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
  * @param sourceCRSIn Source CRS.
  * @param targetCRSIn Target CRS.
  * @param offsetLat Latitude offset to add.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3638,6 +3747,8 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param offsetLong Longitude offset to add.
 =======
  * @param offsetLon Longitude offset to add.
@@ -3682,6 +3793,7 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 =======
  * @param offsetLon Longitude offset to add.
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
  * @param offsetLong Longitude offset to add.
 >>>>>>> 86ade66356 (typo fixes)
@@ -3747,6 +3859,8 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
  * @param offsetLon Longitude offset to add.
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param offsetHeight Geoid undulation to add.
  * @param accuracies Vector of positional accuracy (might be empty).
  * @return new Transformation.
@@ -3773,6 +3887,7 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3785,6 +3900,8 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     const common::Angle &offsetLong, const common::Length &offsetHeight,
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight,
@@ -3829,6 +3946,7 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight,
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     const common::Angle &offsetLong, const common::Length &offsetHeight,
 >>>>>>> 86ade66356 (typo fixes)
@@ -3894,6 +4012,8 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
     const common::Angle &offsetLon, const common::Length &offsetHeight,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies) {
     return create(
         properties, sourceCRSIn, targetCRSIn, nullptr,
@@ -3922,6 +4042,7 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3934,6 +4055,8 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
         VectorOfValues{offsetLat, offsetLong, offsetHeight}, accuracies);
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight}, accuracies);
@@ -3978,6 +4101,7 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight}, accuracies);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         VectorOfValues{offsetLat, offsetLong, offsetHeight}, accuracies);
 >>>>>>> 86ade66356 (typo fixes)
@@ -4043,12 +4167,15 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
         VectorOfValues{offsetLat, offsetLon, offsetHeight}, accuracies);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
 
 /** \brief Instantiate a transformation with method Vertical Offset.
  *
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4076,6 +4203,8 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -4221,11 +4350,15 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
  * This method is defined as [EPSG:9616]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9616)
  * *
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -4261,6 +4394,8 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
  * @param sourceCRSIn Source CRS.
@@ -4304,10 +4439,13 @@ TransformationNNPtr Transformation::createVerticalOffset(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4416,10 +4554,14 @@ TransformationNNPtr Transformation::createVerticalOffset(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
  * This method is defined as [EPSG:1069]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1069)
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1069/index.html">
@@ -4460,6 +4602,8 @@ TransformationNNPtr Transformation::createVerticalOffset(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
