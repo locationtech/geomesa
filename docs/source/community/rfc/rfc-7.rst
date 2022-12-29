@@ -76,6 +76,7 @@ developed with backwards-compatible policies that aim to provide consistent
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 behavior across different versions. CMake is currently the preferred build
 =======
 behaviour across different versions. CMake is currently the preferred build
@@ -111,6 +112,12 @@ behaviour across different versions. CMake is currently the preferred build
 =======
 behavior across different versions. CMake is currently the preferred build
 >>>>>>> 86ade66356 (typo fixes)
+=======
+behavior across different versions. CMake is currently the preferred build
+=======
+behaviour across different versions. CMake is currently the preferred build
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 tool for PROJ for the following reasons:
 
 - It has existed in the PROJ code base since 2014, and is familiar to active
