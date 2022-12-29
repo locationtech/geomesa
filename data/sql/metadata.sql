@@ -14,6 +14,7 @@ INSERT INTO "metadata" VALUES('DATABASE.LAYOUT.VERSION.MINOR', 2);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "metadata" VALUES('EPSG.VERSION', 'v10.081');
@@ -50,6 +51,10 @@ INSERT INTO "metadata" VALUES('EPSG.DATE', '2023-01-19');
 INSERT INTO "metadata" VALUES('EPSG.VERSION', 'v10.078');
 INSERT INTO "metadata" VALUES('EPSG.DATE', '2022-12-13');
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "metadata" VALUES('EPSG.VERSION', 'v10.078');
+INSERT INTO "metadata" VALUES('EPSG.DATE', '2022-12-13');
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
 -- The value of ${PROJ_VERSION} is substituted at build time by the actual
 -- value.
