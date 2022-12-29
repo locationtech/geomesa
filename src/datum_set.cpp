@@ -67,7 +67,10 @@ int pj_datum_set(PJ_CONTEXT *ctx, paralist *pl, PJ *projdef)
         if( !curr ) return -1;
 
         /* find the datum definition */
+<<<<<<< HEAD
         const struct PJ_DATUMS * pj_datums = pj_get_datums_ref();
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         for (i = 0; (s = pj_datums[i].id) && strcmp(name, s) ; ++i) {}
 
         if (!s) {
