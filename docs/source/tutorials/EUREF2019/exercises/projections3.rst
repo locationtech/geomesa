@@ -40,6 +40,7 @@ The backbone of the UTM projection is a Transverse Mercator projection. In
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -121,6 +122,12 @@ this exercise we will model the behaviour of the UTM projection using the
 =======
 this exercise we will model the behavior of the UTM projection using the
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+this exercise we will model the behavior of the UTM projection using the
+=======
+this exercise we will model the behaviour of the UTM projection using the
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 Transverse Mercator.
 
 
@@ -175,6 +182,7 @@ For all the exercises below the aim is to find the lowest tolerance for each
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -256,6 +264,12 @@ roundtrip test. You can of course make alle tests pass by setting a tolerance of
 =======
 roundtrip test. You can of course make all tests pass by setting a tolerance of
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+roundtrip test. You can of course make all tests pass by setting a tolerance of
+=======
+roundtrip test. You can of course make alle tests pass by setting a tolerance of
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 1000 km - that's not the point: How low can you go?
 
 After you have answered all exercise 3 questions below, based on your findings
