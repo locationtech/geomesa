@@ -1,0 +1,16 @@
+Basic Installation
+==================
+
+These are generic installation instructions. See details online at
+https://proj.org/install.html
+
+
+PROJ can be built using a modern C/C++ compiler with CMake. From the source
+directory, use the following commands to configure, build and install PROJ:
+
+    mkdir build
+    cd build
+    cmake ..
+    cmake --build .
+    cmake --build . --target install
+
