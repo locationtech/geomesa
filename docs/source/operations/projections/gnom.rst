@@ -4,6 +4,7 @@
 Gnomonic
 ********************************************************************************
 
+<<<<<<< HEAD
 For a sphere, the gnomonic projection is a projection from the center of
 the sphere onto a plane tangent to the center point of the projection.
 This projects great circles to straight lines.  For an ellipsoid, it is
@@ -19,6 +20,14 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 | **Available forms** | Forward and inverse, spherical and ellipsoidal           |
 +---------------------+----------------------------------------------------------+
 | **Defined area**    | Within a quarter circumference of the center point       |
+=======
++---------------------+----------------------------------------------------------+
+| **Classification**  | Pseudocylindrical                                        |
++---------------------+----------------------------------------------------------+
+| **Available forms** | Forward and inverse, spherical projection                |
++---------------------+----------------------------------------------------------+
+| **Defined area**    | Global                                                   |
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 +---------------------+----------------------------------------------------------+
 | **Alias**           | gnom                                                     |
 +---------------------+----------------------------------------------------------+
@@ -35,7 +44,11 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
    :align: center
    :alt:   Gnomonic
 
+<<<<<<< HEAD
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
+=======
+   proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50``
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 
 Parameters
 ################################################################################
@@ -46,6 +59,7 @@ Parameters
 
 .. include:: ../options/lat_0.rst
 
+<<<<<<< HEAD
 .. include:: ../options/x_0.rst
 
 .. include:: ../options/y_0.rst
@@ -53,3 +67,10 @@ Parameters
 .. include:: ../options/ellps.rst
 
 .. include:: ../options/R.rst
+=======
+.. include:: ../options/R.rst
+
+.. include:: ../options/x_0.rst
+
+.. include:: ../options/y_0.rst
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
