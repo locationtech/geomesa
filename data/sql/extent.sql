@@ -285,8 +285,11 @@ INSERT INTO "extent" VALUES('EPSG','1298','Europe - ETRF by country','Europe - o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar; Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.24,-9.56,31.59,0);
 =======
 INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar; Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.21,-9.56,31.59,0);
@@ -305,6 +308,9 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -314,6 +320,7 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar; Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.21,-9.56,31.59,0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -344,6 +351,8 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','1300','Iran - FD58','Iran - Arwaz area and onshore Gulf coast west of 54°E, Lavan Island, offshore Balal field and South Pars blocks 2 and 3.',26.21,33.22,47.13,53.61,0);
 INSERT INTO "extent" VALUES('EPSG','1301','Portugal - Azores C - onshore','Portugal - central Azores onshore - Faial, Graciosa, Pico, Sao Jorge, Terceira.',38.32,39.14,-28.9,-26.97,0);
 INSERT INTO "extent" VALUES('EPSG','1302','Asia - Cambodia and Vietnam - mainland','Cambodia - mainland onshore; Vietnam - mainland onshore.',8.33,23.4,102.14,109.53,0);
@@ -406,8 +415,11 @@ INSERT INTO "extent" VALUES('EPSG','1351','Asia - Middle East - Qatar offshore a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.',57.9,71.24,4.39,31.32,0);
 =======
 INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.',57.93,71.21,4.68,31.22,0);
@@ -426,6 +438,9 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -435,6 +450,7 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.',57.93,71.21,4.68,31.22,0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -465,6 +481,8 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','1353','France - onshore','France - onshore.',NULL,NULL,NULL,NULL,1);
 INSERT INTO "extent" VALUES('EPSG','1354','Europe - British Isles - UK and Ireland onshore','Ireland - onshore. United Kingdom (UK) - onshore - England; Scotland; Wales; Northern Ireland. Isle of Man.',49.81,60.9,-10.56,1.84,0);
 INSERT INTO "extent" VALUES('EPSG','1355','Indonesia - Sumatra','Indonesia - Sumatra.',-5.99,5.97,95.16,106.13,0);
@@ -863,10 +881,14 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -877,6 +899,8 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','1741','Norway - zone I','Norway - west of 3°30''W of Oslo (7°13''22.5"E of Greenwich).',57.92,63.17,4.39,7.23,0);
 INSERT INTO "extent" VALUES('EPSG','1742','Norway - zone II','Norway - between 3°30''W and 1°10'' W of Oslo (7°13''22.5"E and 9°33''22.5"E of Greenwich).',57.9,64.23,7.22,9.56,0);
 INSERT INTO "extent" VALUES('EPSG','1743','Norway - zone III','Norway - between 1°10''W and 1°15''E of Oslo (9°33''22.5"E and 11°58''22.5"E of Greenwich).',58.78,67.58,9.55,11.98,0);
@@ -885,6 +909,7 @@ INSERT INTO "extent" VALUES('EPSG','1745','Norway - zone V','Norway - between 4�
 INSERT INTO "extent" VALUES('EPSG','1746','Norway - zone VI','Norway - between 8°10''E and 12°10''E of Oslo (18°53''22.5"E and 22°53''22.5"E of Greenwich).',68.33,70.93,18.88,22.89,0);
 INSERT INTO "extent" VALUES('EPSG','1747','Norway - zone VII','Norway - between 12°10''E and 16°15''E of Oslo (22°53''22.5"E and 26°58''22.5"E of Greenwich).',68.58,71.24,22.88,26.98,0);
 INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of 16°15''E of Oslo (26°58''22.5"E of Greenwich).',69.02,71.19,26.97,31.32,0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -908,6 +933,14 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','1741','Norway - zone I','Norway - west of 3°30''W of Oslo (7°13''22.5"E of Greenwich).',57.93,63.06,4.68,7.23,0);
 INSERT INTO "extent" VALUES('EPSG','1742','Norway - zone II','Norway - between 3°30''W and 1°10'' W of Oslo (7°13''22.5"E and 9°33''22.5"E of Greenwich).',57.95,63.87,7.22,9.56,0);
 INSERT INTO "extent" VALUES('EPSG','1743','Norway - zone III','Norway - between 1°10''W and 1°15''E of Oslo (9°33''22.5"E and 11°58''22.5"E of Greenwich).',58.84,65.76,9.55,11.98,0);
@@ -922,14 +955,20 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
@@ -945,12 +984,16 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -966,6 +1009,8 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','1749','Asia - Middle East - Qatar offshore and UAE west of 54°E','Qatar - offshore. United Arab Emirates (UAE) - Abu Dhabi - onshore and offshore west of 54°E.',22.76,27.05,50.55,54.01,0);
 INSERT INTO "extent" VALUES('EPSG','1750','UAE - east of 54°E','United Arab Emirates (UAE) onshore and offshore east of 54°E - Abu Dhabi; Dubai; Sharjah; Ajman; Fujairah; Ras Al Kaimah; Umm Al Qaiwain.',22.63,26.27,54.0,57.13,0);
 INSERT INTO "extent" VALUES('EPSG','1751','Peru - east of 73°W','Peru - east of 73°W, onshore.',-18.39,-2.14,-73.0,-68.67,0);
@@ -1557,6 +1602,7 @@ INSERT INTO "extent" VALUES('EPSG','2329','Syria - Deir area','Syria - Deir area
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1565,6 +1611,10 @@ INSERT INTO "extent" VALUES('EPSG','2329','Syria - Deir area','Syria - Deir area
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','2330','Europe - North Sea','Denmark - North Sea; Germany - North Sea; Netherlands - offshore; Norway - North Sea south of 62°N; United Kingdom (UKCS) - North Sea south of 62°N.',51.03,62.01,-5.05,10.86,0);
 INSERT INTO "extent" VALUES('EPSG','2331','Norway - offshore north of 65°N','Norway - offshore north of 65°N.',65.0,72.0,-0.5,32.02,1);
 INSERT INTO "extent" VALUES('EPSG','2332','Norway - offshore north of 65°N; Svalbard','Norway - offshore north of 65°N. Also Svalbard.',65.0,84.73,-3.35,38.01,0);
@@ -1574,10 +1624,14 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1588,6 +1642,8 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','2330','Europe - North Sea','Denmark - North Sea; Germany - North Sea; Netherlands - offshore; Norway - North Sea south of 62°N; United Kingdom (UKCS) - North Sea south of 62°N.',51.03,62.01,-5.05,11.14,0);
 INSERT INTO "extent" VALUES('EPSG','2331','Norway - offshore north of 65°N','Norway - offshore north of 65°N.',65.0,72.0,-0.5,32.02,1);
 INSERT INTO "extent" VALUES('EPSG','2332','Norway - offshore north of 65°N; Svalbard','Norway - offshore north of 65°N. Also Svalbard.',65.0,84.73,-3.35,38.01,0);
@@ -1599,14 +1655,20 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
@@ -1627,12 +1689,16 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1653,6 +1719,8 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','2335','Spain - Balearic Islands','Spain - Balearic Islands.',38.59,40.15,1.12,4.39,0);
 INSERT INTO "extent" VALUES('EPSG','2336','Spain - mainland except northwest','Spain - onshore mainland except northwest (north of 41°30''N and west of 4°30''W).',35.26,43.56,-7.54,3.39,0);
 INSERT INTO "extent" VALUES('EPSG','2337','Spain - mainland northwest','Spain - onshore mainland north of 41°30''N and west of 4°30'' W.',41.5,43.82,-9.37,-4.5,0);
@@ -1672,8 +1740,11 @@ INSERT INTO "extent" VALUES('EPSG','2343','Europe - British Isles and Channel Is
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore','Finland and Norway - onshore.',57.9,71.24,4.39,31.59,0);
 =======
 INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore','Finland and Norway - onshore.',57.93,71.21,4.68,31.59,0);
@@ -1692,6 +1763,9 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -1701,6 +1775,7 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore','Finland and Norway - onshore.',57.93,71.21,4.68,31.59,0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1731,6 +1806,8 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','2345','Asia - Middle East - Iraq; Israel; Jordan; Lebanon; Kuwait; Saudi Arabia; Syria','Iraq, Israel, Jordan, Lebanon, Kuwait, Saudi Arabia and Syria - onshore.',16.37,37.39,34.17,55.67,0);
 INSERT INTO "extent" VALUES('EPSG','2346','World - WGS72 BE to WGS 84 - by country','World. Vietnam - offshore.',-90.0,90.0,-180.0,180.0,0);
 INSERT INTO "extent" VALUES('EPSG','2347','Algeria - north of 31.5°N','Algeria - onshore north of 35 grads North (31°30''N).',31.5,37.14,-3.85,9.22,0);
@@ -1816,8 +1893,11 @@ INSERT INTO "extent" VALUES('EPSG','2419','Central America - Belize to Costa Ric
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austria; Belgium; Denmark; Finland; Faroe islands; France; Germany (west); Gibraltar; Greece; Italy; Luxembourg; Netherlands; Norway; Portugal; Spain; Sweden; Switzerland.',34.88,71.24,-9.56,31.59,0);
 =======
 INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austria; Belgium; Denmark; Finland; Faroe islands; France; Germany (west); Gibraltar; Greece; Italy; Luxembourg; Netherlands; Norway; Portugal; Spain; Sweden; Switzerland.',34.88,71.21,-9.56,31.59,0);
@@ -1836,6 +1916,9 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -1845,6 +1928,7 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austria; Belgium; Denmark; Finland; Faroe islands; France; Germany (west); Gibraltar; Greece; Italy; Luxembourg; Netherlands; Norway; Portugal; Spain; Sweden; Switzerland.',34.88,71.21,-9.56,31.59,0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1875,6 +1959,8 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','2421','Europe - west central (by country)','Austria; Denmark; France; Germany (west); Netherlands; Switzerland.',42.33,57.8,-4.87,17.17,0);
 INSERT INTO "extent" VALUES('EPSG','2422','Slovenia - Gorenjska - central','Slovenia - central Gorenjska (Upper Carniola) with part of the Kamnik or Savinja Alps.',46.14,46.45,14.01,14.61,0);
 INSERT INTO "extent" VALUES('EPSG','2423','Europe - FSU onshore','Armenia; Azerbaijan; Belarus; Estonia - onshore; Georgia - onshore; Kazakhstan; Kyrgyzstan; Latvia - onshore; Lithuania - onshore; Moldova; Russian Federation - onshore; Tajikistan; Turkmenistan; Ukraine - onshore; Uzbekistan.',35.14,81.91,19.57,-168.97,0);
@@ -3058,8 +3144,11 @@ INSERT INTO "extent" VALUES('EPSG','3593','New Zealand - offshore','New Zealand 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.24,-9.56,31.59,0);
 =======
 INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.21,-9.56,31.59,0);
@@ -3078,6 +3167,9 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -3087,6 +3179,7 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.21,-9.56,31.59,0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3117,6 +3210,8 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','3595','Finland - west of 19.5°E onshore nominal','Finland - nominally onshore west of 19°30''E but may be used in adjacent areas to east if a municipality chooses to use one zone over its whole extent.',60.08,60.34,19.24,19.5,0);
 INSERT INTO "extent" VALUES('EPSG','3596','Finland - 19.5°E to 20.5°E onshore nominal','Finland - nominally onshore between 19°30''E and 20°30''E but may be used in adjacent areas if a municipality chooses to use one zone over its whole extent.',59.92,60.48,19.5,20.5,0);
 INSERT INTO "extent" VALUES('EPSG','3597','Finland - 20.5°E to 21.5°E onshore nominal','Finland - nominally onshore between 20°30''E and 21°30''E but may be used in adjacent areas if a municipality chooses to use one zone over its whole extent.',59.84,69.33,20.5,21.5,0);
@@ -3168,6 +3263,7 @@ INSERT INTO "extent" VALUES('EPSG','3635','Mexico - east of 90°W','Mexico east 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3176,6 +3272,10 @@ INSERT INTO "extent" VALUES('EPSG','3635','Mexico - east of 90°W','Mexico east 
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','3636','Norway - onshore - west of 6°E','Norway - onshore - west of 6°E.',58.32,62.64,4.39,6.01,0);
 INSERT INTO "extent" VALUES('EPSG','3637','USA - 102°W to 96°W and GoM OCS','United States (USA) - between 102°W and 96°W. Iowa; Kansas; Minnesota; Nebraska; North Dakota; Oklahoma; South Dakota; Texas; Gulf of Mexico outer continental shelf (GoM OCS) west of approximately 96°W - protraction areas Corpus Christi; Port Isabel.',25.83,49.01,-102.0,-95.87,0);
 INSERT INTO "extent" VALUES('EPSG','3638','South America - 84°W to 78°W, S hemisphere and SIRGAS95 by country','Ecuador (mainland whole country including areas in northern hemisphere and east of 78°W), onshore and offshore. In remainder of South America, between 84°W and 78°W, southern hemisphere, onshore and offshore.',-56.45,1.45,-84.0,-75.21,0);
@@ -3184,10 +3284,14 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3198,6 +3302,8 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','3636','Norway - onshore - west of 6°E','Norway - onshore - west of 6°E.',58.32,62.49,4.68,6.0,0);
 INSERT INTO "extent" VALUES('EPSG','3637','USA - 102°W to 96°W and GoM OCS','United States (USA) - between 102°W and 96°W. Iowa; Kansas; Minnesota; Nebraska; North Dakota; Oklahoma; South Dakota; Texas; Gulf of Mexico outer continental shelf (GoM OCS) west of approximately 96°W - protraction areas Corpus Christi; Port Isabel.',25.83,49.01,-102.0,-95.87,0);
 INSERT INTO "extent" VALUES('EPSG','3638','South America - 84°W to 78°W, S hemisphere and SIRGAS95 by country','Ecuador (mainland whole country including areas in northern hemisphere and east of 78°W), onshore and offshore. In remainder of South America, between 84°W and 78°W, southern hemisphere, onshore and offshore.',-56.45,1.45,-84.0,-75.21,0);
@@ -3208,14 +3314,20 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
@@ -3235,12 +3347,16 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3260,6 +3376,8 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','3640','USA - 96°W to 90°W and GoM OCS','United States (USA) - between 96°W and 90°W - Arkansas; Illinois; Iowa; Kansas; Louisiana; Michigan; Minnesota; Mississippi; Missouri; Nebraska; Oklahoma; Tennessee; Texas; Wisconsin; Gulf of Mexico outer continental shelf (GoM OCS) between approximately 96°W and 90°W - protraction areas East Breaks; Alaminos Canyon; Garden Banks; Keathley Canyon; Sigsbee Escarpment; Ewing Bank; Green Canyon; Walker Ridge; Amery Terrace.',25.61,49.38,-96.01,-89.86,0);
 INSERT INTO "extent" VALUES('EPSG','3641','USA - 90°W to 84°W and GoM OCS','United States (USA) - between 90°W and 84°W onshore and offshore - Alabama; Arkansas; Florida; Georgia; Indiana; Illinois; Kentucky; Louisiana; Michigan; Minnesota; Mississippi; Missouri; North Carolina; Ohio; Tennessee; Wisconsin; Gulf of Mexico outer continental shelf (GoM OCS) between approximately 90°W and 84°W - protraction areas Mobile; Viosca Knoll; Mississippi Canyon; Atwater Valley; Lund; Lund South; Pensacola; Destin Dome; De Soto Canyon; Lloyd Ridge; Henderson; Florida Plain; Campeche Escarpment; Apalachicola; Florida Middle Ground; The Elbow; Vernon Basin; Howell Hook; Rankin.',23.95,48.32,-90.01,-83.91,0);
 INSERT INTO "extent" VALUES('EPSG','3642','USA - 84°W to 78°W and GoM OCS','United States (USA) - between 84°W and 78°W onshore and offshore - Florida; Georgia; Maryland; Michigan; New York; North Carolina; Ohio; Pennsylvania; South Carolina; Tennessee; Virginia; West Virginia; Gulf of Mexico outer continental shelf (GoM OCS) east of approximately 84°W - protraction areas Gainesville; Tarpon Springs; St Petersburg; Charlotte Harbor; Pulley Ridge; Dry Tortugas; Tortugas Valley; Miami; Key West.',23.81,46.13,-84.09,-77.99,0);
@@ -3277,10 +3395,14 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -3291,6 +3413,8 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','3647','Norway - onshore - 7°E to 8°E','Norway - onshore - between 7°E and 8°E.',57.9,63.59,6.99,8.01,0);
 INSERT INTO "extent" VALUES('EPSG','3648','Norway - onshore - 8°E to 9°E','Norway - onshore - between 8°E and 9°E.',58.0,64.1,8.0,9.01,0);
 INSERT INTO "extent" VALUES('EPSG','3649','Norway - onshore - 9°E to 10°E','Norway - onshore - between 9°E and 10°E.',58.44,64.25,9.0,10.01,0);
@@ -3330,10 +3454,14 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3344,6 +3472,8 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','3647','Norway - onshore - 7°E to 8°E','Norway - onshore - between 7°E and 8°E.',57.93,63.52,7.0,8.0,0);
 INSERT INTO "extent" VALUES('EPSG','3648','Norway - onshore - 8°E to 9°E','Norway - onshore - between 8°E and 9°E.',58.03,63.87,8.0,9.0,0);
 INSERT INTO "extent" VALUES('EPSG','3649','Norway - onshore - 9°E to 10°E','Norway - onshore - between 9°E and 10°E.',58.52,64.16,9.0,10.0,0);
@@ -3354,6 +3484,9 @@ INSERT INTO "extent" VALUES('EPSG','3651','Norway - onshore - 11°E to 12°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 INSERT INTO "extent" VALUES('EPSG','3652','USA - Michigan - SPCS - W','United States (USA) - Michigan - counties of Baraga; Dickinson; Gogebic; Houghton; Iron; Keweenaw; Marquette; Menominee; Ontonagon.',45.09,48.32,-90.42,-83.44,0);
@@ -3399,6 +3532,7 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3495,6 +3629,36 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+INSERT INTO "extent" VALUES('EPSG','3652','USA - Michigan - SPCS - W','United States (USA) - Michigan - counties of Baraga; Dickinson; Gogebic; Houghton; Iron; Keweenaw; Marquette; Menominee; Ontonagon.',45.09,48.32,-90.42,-83.44,0);
+INSERT INTO "extent" VALUES('EPSG','3653','Norway - onshore - 12°E to 13°E','Norway - onshore - between 12°E and 13°E.',59.88,68.15,12.0,13.0,0);
+INSERT INTO "extent" VALUES('EPSG','3654','Norway - onshore - 13°E to 14°E','Norway - onshore - between 13°E and 14°E.',64.01,68.37,13.0,14.0,0);
+INSERT INTO "extent" VALUES('EPSG','3655','Norway - onshore - 14°E to 15°E','Norway - onshore - between 14°E and 15°E.',64.03,69.05,14.0,15.0,0);
+INSERT INTO "extent" VALUES('EPSG','3656','Norway - onshore - 15°E to 16°E','Norway - onshore - between 15°E and 16°E.',66.14,69.35,15.0,16.0,0);
+INSERT INTO "extent" VALUES('EPSG','3657','Norway - onshore - 16°E to 17°E','Norway - onshore - between 16°E and 17°E.',66.88,69.45,16.0,17.0,0);
+INSERT INTO "extent" VALUES('EPSG','3658','Norway - onshore - 17°E to 18°E','Norway - onshore - between 17°E and 18°E.',67.94,69.68,17.0,18.0,0);
+INSERT INTO "extent" VALUES('EPSG','3659','Germany - Schleswig-Holstein - west of 10.5°E','Germany - Schleswig-Holstein - west of 10°30''E including Heligoland.',53.37,55.09,7.8,10.5,0);
+INSERT INTO "extent" VALUES('EPSG','3660','Norway - onshore - 18°E to 19°E','Norway - onshore - between 18°E and 19°E.',68.04,70.27,18.0,19.0,0);
+INSERT INTO "extent" VALUES('EPSG','3661','Norway - onshore - 19°E to 20°E','Norway - onshore - between 19°E and 20°E.',68.33,70.34,19.0,20.0,0);
+INSERT INTO "extent" VALUES('EPSG','3662','Norway - onshore - 20°E to 21°E','Norway - onshore - between 20°E and 21°E.',68.37,70.29,20.0,21.0,0);
+INSERT INTO "extent" VALUES('EPSG','3663','Norway - onshore - 21°E to 22°E','Norway - onshore - between 21°E and 22°E.',69.03,70.71,21.0,22.0,0);
+INSERT INTO "extent" VALUES('EPSG','3664','USA - CONUS and Alaska - onshore','United States (USA) - CONUS and Alaska - onshore - Alabama; Alaska mainland; Arizona; Arkansas; California; Colorado; Connecticut; Delaware; Florida; Georgia; Idaho; Illinois; Indiana; Iowa; Kansas; Kentucky; Louisiana; Maine; Maryland; Massachusetts; Michigan; Minnesota; Mississippi; Missouri; Montana; Nebraska; Nevada; New Hampshire; New Jersey; New Mexico; New York; North Carolina; North Dakota; Ohio; Oklahoma; Oregon; Pennsylvania; Rhode Island; South Carolina; South Dakota; Tennessee; Texas; Utah; Vermont; Virginia; Washington; West Virginia; Wisconsin; Wyoming.',24.41,71.4,-168.26,-66.91,0);
+INSERT INTO "extent" VALUES('EPSG','3665','Norway - onshore - 22°E to 23°E','Norway - onshore - between 22°E and 23°E.',68.69,70.81,22.0,23.0,0);
+INSERT INTO "extent" VALUES('EPSG','3666','Indonesia - Java, Java Sea and western Sumatra','Indonesia - Bali, Java and western Sumatra onshore, offshore southern Java Sea, Madura Strait and western Bali Sea.',-8.91,5.97,95.16,117.01,0);
+INSERT INTO "extent" VALUES('EPSG','3667','Norway - onshore - 23°E to 24°E','Norway - onshore - between 23°E and 24°E.',68.62,71.08,23.0,24.0,0);
+INSERT INTO "extent" VALUES('EPSG','3668','Norway - onshore - 24°E to 25°E','Norway - onshore - between 24°E and 25°E.',68.58,71.16,24.0,25.0,0);
+INSERT INTO "extent" VALUES('EPSG','3669','Norway - onshore - 25°E to 26°E','Norway - onshore - between 25°E and 26°E.',68.59,71.21,25.0,26.0,0);
+INSERT INTO "extent" VALUES('EPSG','3670','Portugal - Azores and Madeira','Portugal - Azores and Madeira island groups and surrounding EEZ - Flores, Corvo; Graciosa, Terceira, Sao Jorge, Pico, Faial; Sao Miguel, Santa Maria; Madeira, Porto Santo, Desertas; Selvagens.',29.24,43.07,-35.58,-12.48,0);
+INSERT INTO "extent" VALUES('EPSG','3671','Norway - onshore - 26°E to 27°E','Norway - onshore - between 26°E and 27°E.',69.71,71.17,26.0,27.0,0);
+INSERT INTO "extent" VALUES('EPSG','3672','Norway - onshore - 27°E to 28°E','Norway - onshore - between 27°E and 28°E.',69.9,71.17,27.0,28.0,0);
+INSERT INTO "extent" VALUES('EPSG','3673','Norway - onshore - 28°E to 29°E','Norway - onshore - between 28°E and 29°E.',69.03,71.13,28.0,29.0,0);
+INSERT INTO "extent" VALUES('EPSG','3674','Norway - onshore - 29°E to 30°E','Norway - onshore - between 29°E and 30°E.',69.02,70.93,29.0,30.0,0);
+INSERT INTO "extent" VALUES('EPSG','3675','Paraguay - north of 22°S','Paraguay - north of 22°S.',-22.0,-19.29,-62.57,-57.81,0);
+INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','Norway - onshore - east of 30°E.',69.46,70.77,30.0,31.22,0);
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','3677','Portugal - Azores 30°W to 24°W','Portugal - between 30°W and 24°W - central and eastern Azores - Graciosa, Terceira, Sao Jorge, Pico, Faial; Sao Miguel and Santa Maria islands and surrounding EEZ.',33.52,42.96,-30.0,-24.0,0);
 INSERT INTO "extent" VALUES('EPSG','3678','Portugal - Madeira and EEZ E of 18°W','Portugal - Madeira, Porto Santo, Desertas and Selvagens islands and surrounding EEZ east of 18°W.',29.24,36.46,-18.0,-12.48,0);
 INSERT INTO "extent" VALUES('EPSG','3679','Portugal - Madeira island onshore','Portugal - Madeira island onshore.',32.58,32.93,-17.31,-16.66,0);
@@ -3894,10 +4058,14 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -3908,10 +4076,13 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','4066','Norway - onshore - 6°E to 12°E','Norway - onshore - between 6°E and 12°E.',57.9,67.58,6.0,12.01,0);
 INSERT INTO "extent" VALUES('EPSG','4067','Norway - onshore - 12°E to 18°E','Norway - onshore - between 12°E and 18°E.',59.88,69.96,12.0,18.01,0);
 INSERT INTO "extent" VALUES('EPSG','4068','Norway - onshore - 18°E to 24°E','Norway - onshore - between 18°E and 24°E.',68.04,71.15,18.0,24.01,0);
 INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','Norway - onshore - between 24°E and 30°E.',68.58,71.24,24.0,30.01,0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3935,6 +4106,14 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','4066','Norway - onshore - 6°E to 12°E','Norway - onshore - between 6°E and 12°E.',57.93,65.76,6.0,12.0,0);
 INSERT INTO "extent" VALUES('EPSG','4067','Norway - onshore - 12°E to 18°E','Norway - onshore - between 12°E and 18°E.',59.88,69.68,12.0,18.01,0);
 INSERT INTO "extent" VALUES('EPSG','4068','Norway - onshore - 18°E to 24°E','Norway - onshore - between 18°E and 24°E.',68.04,71.08,18.0,24.01,0);
@@ -3945,14 +4124,20 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
@@ -3968,12 +4153,16 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3989,6 +4178,8 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','4070','Arctic - 81°10''N to 76°10''N, 114°W to 84°W','Arctic - between 81°10''N and 76°10''N, approximately 114°W to approximately 84°W. May be extended westwards or eastwards within the latitude limits.',76.16,81.17,-114.0,-84.0,0);
 INSERT INTO "extent" VALUES('EPSG','4071','Arctic - 81°10''N to 76°10''N, 84°W to 54°W','Arctic - between 81°10''N and 76°10''N, approximately 84°W to approximately 54°W. May be extended westwards or eastwards within the latitude limits.',76.16,81.17,-84.0,-54.0,0);
 INSERT INTO "extent" VALUES('EPSG','4072','Arctic - 81°10''N to 76°10''N, Canada east of 84°W','Arctic - between 81°10''N and 76°10''N, Canada east of approximately 84°W. May be extended westwards within the latitude limits.',76.16,81.17,-84.0,-64.78,0);
@@ -4537,8 +4728,11 @@ INSERT INTO "extent" VALUES('EPSG','4608','Europe - EVRF2019','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; North Macedonia; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.24,-9.56,31.59,0);
 =======
 INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; North Macedonia; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.21,-9.56,31.59,0);
@@ -4557,6 +4751,9 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -4566,6 +4763,7 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; North Macedonia; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.21,-9.56,31.59,0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4596,6 +4794,8 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','4610','Argentina - Buenos Aires city','Argentina - autonomous city of Buenos Aires.',-34.71,-34.5,-58.54,-58.29,0);
 INSERT INTO "extent" VALUES('EPSG','4611','Malaysia - East Malaysia - Sarawak onshore','Malaysia - East Malaysia - Sarawak onshore.',0.85,5.03,109.54,115.69,0);
 INSERT INTO "extent" VALUES('EPSG','4612','Canada - Newfoundland','Canada - Newfoundland - onshore.',46.56,51.68,-59.48,-52.54,0);
@@ -4652,8 +4852,11 @@ INSERT INTO "extent" VALUES('EPSG','4655','UK - Manchester to Dore','United King
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norway - inshore and nearshore.',57.75,71.39,4.08,31.77,0);
 =======
 INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norway - inshore and nearshore.',57.75,71.38,4.08,31.77,0);
@@ -4672,6 +4875,9 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -4681,6 +4887,7 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norway - inshore and nearshore.',57.75,71.38,4.08,31.77,0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4711,6 +4918,8 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','4657','St Martin','St Martin - onshore and offshore.',17.87,18.19,-63.66,-62.73,0);
 INSERT INTO "extent" VALUES('EPSG','4658','St Barthelemy','St Barthélemy - onshore and offshore.',17.64,18.32,-63.11,-62.21,0);
 INSERT INTO "extent" VALUES('EPSG','4659','Italy - mainland west of 16°E','Italy - mainland northwest of approximately 16°E, including San Marino and Vatican City State.',39.65,47.1,6.62,16.53,0);
@@ -4741,10 +4950,14 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -4755,6 +4968,8 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('EPSG','4677','UK - Crewe to Holyhead','United Kingdom (UK) - on or related to the rail route from Crewe via Chester to Holyhead.',53.02,53.46,-4.71,-2.28,0);
 INSERT INTO "extent" VALUES('EPSG','4678','UK - Chester to Shrewsbury','United Kingdom (UK) - on or related to the rail route from from Chester via Wrexham to Shrewsbury.',52.5,53.26,-3.16,-2.65,0);
 INSERT INTO "extent" VALUES('EPSG','4679','UK - Shrewsbury to Crewe','United Kingdom (UK) - on or related to the rail route from Shrewsbury to Crewe.',52.65,53.16,-2.91,-2.3,0);
@@ -4774,8 +4989,11 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4790,6 +5008,9 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -4797,6 +5018,7 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4819,3 +5041,5 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
