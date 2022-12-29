@@ -289,7 +289,11 @@ int main(int argc, char *argv[]) {
     file.reset();
 
     if (listFiles) {
+<<<<<<< HEAD
         std::cout << "filename,area_of_use,source_id,file_size" << std::endl;
+=======
+        std::cout << "filename,source_id,area_of_use,file_size" << std::endl;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     }
 
     std::string proj_data_version_str;
@@ -362,7 +366,11 @@ int main(int argc, char *argv[]) {
                                           << " as it is only useful starting "
                                              "with PROJ-data "
                                           << version_added
+<<<<<<< HEAD
                                           << " and we are targeting "
+=======
+                                          << " and we are targetting "
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;
@@ -390,7 +398,11 @@ int main(int argc, char *argv[]) {
                                           << " as it is no longer useful "
                                              "starting with PROJ-data "
                                           << version_removed
+<<<<<<< HEAD
                                           << " and we are targeting "
+=======
+                                          << " and we are targetting "
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;
