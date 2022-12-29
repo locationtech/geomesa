@@ -14,7 +14,10 @@ source:
   git_rev: ${GITHUB_SHA}
   url:
   sha256:
+<<<<<<< HEAD
   patches:
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 build:
   number: 2112

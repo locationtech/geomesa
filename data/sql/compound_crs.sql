@@ -800,6 +800,7 @@ INSERT INTO "compound_crs" VALUES('EPSG','10173','JGD2011 / Japan Plane Rectangu
 INSERT INTO "usage" VALUES('EPSG','18605','compound_crs','EPSG','10173','EPSG','4676','EPSG','1092');
 INSERT INTO "compound_crs" VALUES('EPSG','10174','JGD2011 / Japan Plane Rectangular CS XIII + JGD2011 (vertical) height',NULL,'EPSG','6681','EPSG','6695',0);
 INSERT INTO "usage" VALUES('EPSG','18606','compound_crs','EPSG','10174','EPSG','1866','EPSG','1092');
+<<<<<<< HEAD
 INSERT INTO "compound_crs" VALUES('EPSG','10184','DoPw22 Grid + ODN height',NULL,'EPSG','10183','EPSG','5701',0);
 INSERT INTO "usage" VALUES('EPSG','18669','compound_crs','EPSG','10184','EPSG','4686','EPSG','1141');
 INSERT INTO "compound_crs" VALUES('EPSG','10189','ShAb07 Grid + ODN height',NULL,'EPSG','10188','EPSG','5701',0);
@@ -830,6 +831,8 @@ INSERT INTO "compound_crs" VALUES('EPSG','10276','SMITB20 Grid + ODN height',NUL
 INSERT INTO "usage" VALUES('EPSG','19179','compound_crs','EPSG','10276','EPSG','4688','EPSG','1141');
 INSERT INTO "compound_crs" VALUES('EPSG','10281','RBEPP12 Grid + ODN height',NULL,'EPSG','10280','EPSG','5701',0);
 INSERT INTO "usage" VALUES('EPSG','19185','compound_crs','EPSG','10281','EPSG','4689','EPSG','1141');
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "compound_crs" VALUES('EPSG','20001','ETRS89 + SVD2006 height',NULL,'EPSG','4258','EPSG','20000',0);
 INSERT INTO "usage" VALUES('EPSG','17956','compound_crs','EPSG','20001','EPSG','4058','EPSG','1026');
 INSERT INTO "compound_crs" VALUES('EPSG','20003','MWC18 Grid + ODN height',NULL,'EPSG','20002','EPSG','5701',0);
