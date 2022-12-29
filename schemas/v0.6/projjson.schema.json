@@ -11,8 +11,12 @@
     { "$ref": "#/definitions/ellipsoid" },
     { "$ref": "#/definitions/prime_meridian" },
     { "$ref": "#/definitions/single_operation" },
+<<<<<<< HEAD
     { "$ref": "#/definitions/concatenated_operation" },
     { "$ref": "#/definitions/coordinate_metadata" }
+=======
+    { "$ref": "#/definitions/concatenated_operation" }
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
   ],
 
   "definitions": {
@@ -92,9 +96,12 @@
                                  "unspecified" ] },
         "meridian": { "$ref": "#/definitions/meridian" },
         "unit": { "$ref": "#/definitions/unit" },
+<<<<<<< HEAD
         "minimum_value": { "type": "number" },
         "maximum_value": { "type": "number" },
         "range_meaning": { "type": "string", "enum": [ "exact", "wraparound"] },
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         "id": { "$ref": "#/definitions/id" },
         "ids": { "$ref": "#/definitions/ids" }
       },
@@ -212,6 +219,7 @@
       "additionalProperties": false
     },
 
+<<<<<<< HEAD
     "coordinate_metadata": {
       "type": "object",
       "properties": {
@@ -224,6 +232,8 @@
       "additionalProperties": false
     },
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     "coordinate_system": {
       "type": "object",
       "properties": {
@@ -482,7 +492,10 @@
         "type": { "type": "string", "enum": ["DynamicGeodeticReferenceFrame"] },
         "name": {},
         "anchor": {},
+<<<<<<< HEAD
         "anchor_epoch": {},
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         "ellipsoid": {},
         "prime_meridian": {},
         "frame_reference_epoch": { "type": "number" },
@@ -507,7 +520,10 @@
         "type": { "type": "string", "enum": ["DynamicVerticalReferenceFrame"] },
         "name": {},
         "anchor": {},
+<<<<<<< HEAD
         "anchor_epoch": {},
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         "frame_reference_epoch": { "type": "number" },
         "$schema" : {},
         "scope": {},
@@ -656,7 +672,10 @@
         "type": { "type": "string", "enum": ["GeodeticReferenceFrame"] },
         "name": { "type": "string" },
         "anchor": { "type": "string" },
+<<<<<<< HEAD
         "anchor_epoch": { "type": "number" },
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         "ellipsoid": { "$ref": "#/definitions/ellipsoid" },
         "prime_meridian": { "$ref": "#/definitions/prime_meridian" },
         "$schema" : {},
@@ -1153,7 +1172,10 @@
         "type": { "type": "string", "enum": ["VerticalReferenceFrame"] },
         "name": { "type": "string" },
         "anchor": { "type": "string" },
+<<<<<<< HEAD
         "anchor_epoch": { "type": "number" },
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         "$schema" : {},
         "scope": {},
         "area": {},
