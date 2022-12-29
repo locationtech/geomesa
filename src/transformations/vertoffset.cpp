@@ -66,6 +66,7 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -141,6 +142,9 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
     // We need to add lam0 (+lon_0) since it is substracted in fwd_prepare(),
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    // We need to add lam0 (+lon_0) since it is substracted in fwd_prepare(),
+>>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
     // which is desirable for map projections, but not
     // for that method which modifies only the Z component.
     xyz.x = lpz.lam + P->lam0;
