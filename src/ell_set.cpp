@@ -620,6 +620,7 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -664,6 +665,10 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
     if (!(P->f >= 0.0 && P->f < 1.0)) {
 =======
     if (P->f == 1.0) {
@@ -672,6 +677,9 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
     if (!(P->f >= 0.0 && P->f < 1.0)) {
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -785,6 +793,7 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 =======
     if (!(P->f >= 0.0 && P->f < 1.0)) {
@@ -950,6 +959,8 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
     if (!(P->f >= 0.0 && P->f < 1.0)) {
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
         proj_log_error(P, _("Invalid eccentricity"));
         proj_errno_set (P, PROJ_ERR_INVALID_OP_ILLEGAL_ARG_VALUE);
         return PROJ_ERR_INVALID_OP_ILLEGAL_ARG_VALUE;
