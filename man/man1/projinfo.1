@@ -1,0 +1,826 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "PROJINFO" "1" "Sep 1, 2022" "9.1.0" "PROJ"
+.SH NAME
+projinfo \- Geodetic object and coordinate operation queries
+.SH SYNOPSIS
+.INDENT 0.0
+.INDENT 3.5
+.nf
+\fBprojinfo\fP
+.in +2
+[\-o formats] [\-k crs|operation|datum|ensemble|ellipsoid] [\-\-summary] [\-q]
+[[\-\-area name_or_code] | [\-\-bbox west_long,south_lat,east_long,north_lat]]
+[\-\-spatial\-test contains|intersects]
+[\-\-crs\-extent\-use none|both|intersection|smallest]
+[\-\-grid\-check none|discard_missing|sort|known_available]
+[\-\-pivot\-crs always|if_no_direct_transformation|never|{auth:code[,auth:code]*}]
+[\-\-show\-superseded] [\-\-hide\-ballpark] [\-\-accuracy {accuracy}]
+[\-\-allow\-ellipsoidal\-height\-as\-vertical\-crs]
+[\-\-boundcrs\-to\-wgs84]
+[\-\-authority name]
+[\-\-main\-db\-path path] [\-\-aux\-db\-path path]*
+[\-\-dump\-db\-structure]
+[\-\-identify] [\-\-3d]
+[\-\-output\-id AUTH:CODE]
+[\-\-c\-ify] [\-\-single\-line]
+\-\-searchpaths | \-\-remote\-data |
+\-\-list\-crs [list\-crs\-filter] |
+\-\-dump\-db\-structure [{object_definition} | {object_reference}] |
+{object_definition} | {object_reference} | (\-s {srs_def} \-t {srs_def})
+
+.in -2
+.fi
+.sp
+.sp
+where {object_definition} or {srs_def} is one of the possibilities accepted
+by \fI\%proj_create()\fP
+.INDENT 0.0
+.IP \(bu 2
+a proj\-string,
+.IP \(bu 2
+a WKT string,
+.IP \(bu 2
+an object code (like \(dqEPSG:4326\(dq, \(dqurn:ogc:def:crs:EPSG::4326\(dq,
+\(dqurn:ogc:def:coordinateOperation:EPSG::1671\(dq),
+.IP \(bu 2
+an Object name. e.g \(dqWGS 84\(dq, \(dqWGS 84 / UTM zone 31N\(dq. In that case as
+uniqueness is not guaranteed, heuristics are applied to determine the appropriate best match.
+.IP \(bu 2
+a OGC URN combining references for compound coordinate reference systems
+(e.g \(dq\fI\%urn:ogc:def:crs,crs:EPSG::2393,crs:EPSG::5717\fP\(dq or custom abbreviated
+syntax \(dqEPSG:2393+5717\(dq),
+.IP \(bu 2
+a OGC URN combining references for references for projected or derived CRSs
+e.g. for Projected 3D CRS \(dqUTM zone 31N / WGS 84 (3D)\(dq:
+\(dq\fI\%urn:ogc:def:crs,crs:EPSG::4979,cs:PROJ::ENh,coordinateOperation:EPSG::16031\fP\(dq
+(\fIadded in 6.2\fP)
+.IP \(bu 2
+a OGC URN combining references for concatenated operations
+(e.g. \(dq\fI\%urn:ogc:def:coordinateOperation,coordinateOperation:EPSG::3895,coordinateOperation:EPSG::1618\fP\(dq)
+.IP \(bu 2
+a PROJJSON string. The jsonschema is at \fI\%https://proj.org/schemas/v0.4/projjson.schema.json\fP (\fIadded in 6.2\fP)
+.IP \(bu 2
+a compound CRS made from two object names separated with \(dq + \(dq. e.g. \(dqWGS 84 + EGM96 height\(dq (\fIadded in 7.1\fP)
+.UNINDENT
+.sp
+{object_reference} is a filename preceded by the \(aq@\(aq character.  The
+file referenced by the {object_reference} must contain a valid
+{object_definition}.
+.UNINDENT
+.UNINDENT
+.SH DESCRIPTION
+.sp
+\fBprojinfo\fP is a program that can query information on a geodetic object,
+coordinate reference system (CRS) or coordinate operation, when the \fB\-s\fP and \fB\-t\fP
+options are specified, and display it under different formats (PROJ string, WKT string
+or PROJJSON string).
+.sp
+It can also be used to query coordinate operations available between two CRS.
+.sp
+The program is named with some reference to the GDAL \fBgdalsrsinfo\fP that offers
+partly similar services.
+.sp
+The following control parameters can appear in any order:
+.INDENT 0.0
+.TP
+.B \-o formats
+formats is a comma separated combination of:
+\fBall\fP, \fBdefault\fP, \fBPROJ\fP, \fBWKT_ALL\fP, \fBWKT2:2015\fP, \fBWKT2:2019\fP, \fBWKT1:GDAL\fP, \fBWKT1:ESRI\fP, \fBPROJJSON\fP, \fBSQL\fP\&.
+.sp
+Except \fBall\fP and \fBdefault\fP, other formats can be preceded by \fB\-\fP to disable them.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+WKT2_2019 was previously called WKT2_2018.
+.UNINDENT
+.UNINDENT
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+Before PROJ 6.3.0, WKT1:GDAL was implicitly calling \-\-boundcrs\-to\-wgs84.
+This is no longer the case.
+.UNINDENT
+.UNINDENT
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+When SQL is specified, \fI\%\-\-output\-id\fP must be specified.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-k crs|operation|datum|ensemble|ellipsoid
+When used to query a single object with a AUTHORITY:CODE, determines the (k)ind of the object
+in case there are CRS, coordinate operations or ellipsoids with the same CODE.
+The default is crs.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-summary
+When listing coordinate operations available between 2 CRS, return the
+result in a summary format, mentioning only the name of the coordinate
+operation, its accuracy and its area of use.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+only used for coordinate operation computation
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-q
+Turn on quiet mode. Quiet mode is only available for queries on single objects,
+and only one output format is selected. In that mode, only the PROJ, WKT or PROJJSON
+string is displayed, without other introduction output. The output is then
+potentially compatible of being piped in other utilities.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-area name_or_code
+Specify an area of interest to restrict the results when researching
+coordinate operations between 2 CRS. The area of interest can be specified either
+as a name (e.g \(dqDenmark \- onshore\(dq) or a AUTHORITY:CODE (EPSG:3237)
+This option is exclusive of \fI\%\-\-bbox\fP\&.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+only used for coordinate operation computation
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-bbox west_long,south_lat,east_long,north_lat
+Specify an area of interest to restrict the results when researching
+coordinate operations between 2 CRS. The area of interest is specified as a
+bounding box with geographic coordinates, expressed in degrees in a
+unspecified geographic CRS.
+\fIwest_long\fP and \fIeast_long\fP should be in the [\-180,180] range, and
+\fIsouth_lat\fP and \fInorth_lat\fP in the [\-90,90]. \fIwest_long\fP is generally lower than
+\fIeast_long\fP, except in the case where the area of interest crosses the antimeridian.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+only used for coordinate operation computation
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-spatial\-test contains|intersects
+Specify how the area of use of coordinate operations found in the database
+are compared to the area of use specified explicitly with \fI\%\-\-area\fP or \fI\%\-\-bbox\fP,
+or derived implicitly from the area of use of the source and target CRS.
+By default, \fBprojinfo\fP will only keep coordinate operations whose are of use
+is strictly within the area of interest (\fBcontains\fP strategy).
+If using the \fBintersects\fP strategy, the spatial test is relaxed, and any
+coordinate operation whose area of use at least partly intersects the
+area of interest is listed.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+only used for coordinate operation computation
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-crs\-extent\-use none|both|intersection|smallest
+Specify which area of interest to consider when no explicit one is specified
+with \fI\%\-\-area\fP or \fI\%\-\-bbox\fP options.
+By default (\fBsmallest\fP strategy), the area of
+use of the source or target CRS will be looked, and the one that is the
+smallest one in terms of area will be used as the area of interest.
+If using \fBnone\fP, no area of interest is used.
+If using \fBboth\fP, only coordinate operations that relate (contain or intersect
+depending of the \fI\%\-\-spatial\-test\fP strategy) to the area of use of both CRS
+are selected.
+If using \fBintersection\fP, the area of interest is the intersection of the
+bounding box of the area of use of the source and target CRS
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+only used for coordinate operation computation
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-grid\-check none|discard_missing|sort|known_available
+Specify how the presence or absence of a horizontal or vertical shift grid
+required for a coordinate operation affects the results returned when
+researching coordinate operations between 2 CRS.
+The default strategy is \fBsort\fP (if \fI\%PROJ_NETWORK\fP is not defined).
+In that case, all candidate
+operations are returned, but the actual availability of the grids is used
+to determine the sorting order. That is, if a coordinate operation involves
+using a grid that is not available in the PROJ resource directories
+(determined by the \fI\%PROJ_DATA\fP environment variable, it will be listed in
+the bottom of the results.
+The \fBnone\fP strategy completely disables the checks of presence of grids and
+this returns the results as if all the grids where available.
+The \fBdiscard_missing\fP strategy discards results that involve grids not
+present in the PROJ resource directories.
+The \fBknown_available\fP strategy discards results that involve grids not
+present in the PROJ resource directories and that are not known of the CDN.
+This is the default strategy is \fI\%PROJ_NETWORK\fP is set to \fBON\fP\&.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+only used for coordinate operation computation
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-pivot\-crs always|if_no_direct_transformation|never|{auth:code[,auth:code]*}
+Determine if intermediate (pivot) CRS can be used when researching coordinate
+operation between 2 CRS. A typical example is the WGS84 pivot. By default,
+\fBprojinfo\fP will consider any potential pivot if there is no direct transformation
+( \fBif_no_direct_transformation\fP). If using the \fBnever\fP strategy,
+only direct transformations between the source and target CRS will be
+used. If using the \fBalways\fP strategy, intermediate CRS will be considered
+even if there are direct transformations.
+It is also possible to restrict the pivot CRS to consider by specifying
+one or several CRS by their AUTHORITY:CODE.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+only used for coordinate operation computation
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-show\-superseded
+When enabled, coordinate operations that are superseded by others will be
+listed. Note that supersession is not equivalent to deprecation: superseded
+operations are still considered valid although they have a better equivalent,
+whereas deprecated operations have been determined to be erroneous and are
+not considered at all.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+only used for coordinate operation computation
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-hide\-ballpark
+New in version 7.1.
+
+.sp
+Hides any coordinate operation that is, or contains, a
+\fI\%Ballpark transformation\fP
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+only used for coordinate operation computation
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-accuracy {accuracy}
+New in version 8.0.
+
+.sp
+Sets the minimum desired accuracy for returned coordinate operations.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+only used for coordinate operation computation
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-allow\-ellipsoidal\-height\-as\-vertical\-crs
+New in version 8.0.
+
+.sp
+Allows exporting a geographic or projected 3D CRS as a compound CRS whose
+vertical CRS represents the ellipsoidal height.
+.sp
+\fBNOTE:\fP
+.INDENT 7.0
+.INDENT 3.5
+only used for CRS, and with WKT1:GDAL output format
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-boundcrs\-to\-wgs84
+When specified, this option researches a coordinate operation from the
+base geographic CRS of the single CRS, source or target CRS to the WGS84
+geographic CRS, and if found, wraps those CRS into a BoundCRS object.
+This is mostly to be used for early\-binding approaches.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-authority name
+Specify the name of the authority into which to restrict looks up for
+objects, when specifying an object by name or when coordinate operations are
+computed. The default is to allow all authorities.
+.sp
+When used with SQL output, this restricts the authorities to which intermediate
+objects can belong to (the default is EPSG and PROJ). Note that the authority
+of the \fI\%\-\-output\-id\fP option will also be implicitly added.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-main\-db\-path path
+Specify the name and path of the database to be used by \fBprojinfo\fP\&.
+The default is \fBproj.db\fP in the PROJ resource directories.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-aux\-db\-path path
+Specify the name and path of auxiliary databases, that are to be combined
+with the main database. Those auxiliary databases must have a table
+structure that is identical to the main database, but can be partly filled
+and their entries can refer to entries of the main database.
+The option may be repeated to specify several auxiliary databases.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-identify
+When used with an object definition, this queries the PROJ database to find
+known objects, typically CRS, that are close or identical to the object.
+Each candidate object is associated with an approximate likelihood percentage.
+This is useful when used with a WKT string that lacks a EPSG identifier,
+such as ESRI WKT1. This might also be used with PROJ strings.
+For example, \fI+proj=utm +zone=31 +datum=WGS84 +type=crs\fP will be identified
+with a likelihood of 70% to EPSG:32631
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-dump\-db\-structure
+New in version 8.1.
+
+.sp
+Outputs the sequence of SQL statements to create a new empty valid auxiliary
+database. This option can be specified as the only switch of the utility.
+If also specifying a CRS object and the \fI\%\-\-output\-id\fP option, the
+definition of the object as SQL statements will be appended.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-list\-crs [list\-crs\-filter]
+New in version 8.1.
+
+.sp
+Outputs a list (authority name:code and CRS name) of the filtered CRSs from the database.
+If no filter is provided all authority names and types of non deprecated CRSs are dumped.
+list\-crs\-filter is a comma separated combination of: allow_deprecated,geodetic,geocentric,
+geographic,geographic_2d,geographic_3d,vertical,projected,compound.
+Affected by options \fI\%\-\-authority\fP, \fI\%\-\-area\fP, \fI\%\-\-bbox\fP and \fI\%\-\-spatial\-test\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-3d
+New in version 6.3.
+
+.sp
+\(dqPromote\(dq 2D CRS(s) to their 3D version, where the vertical axis is the
+ellipsoidal height in metres, using the ellipsoid of the base geodetic CRS.
+Depending on PROJ versions and the exact nature of the CRS involved,
+especially before PROJ 9.1, a mix of 2D and 3D CRS could lead to 2D or 3D
+transformations. Starting with PROJ 9.1, both CRS need to be 3D for vertical
+transformation to possibly happen.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-output\-id=AUTH:NAME
+New in version 8.1.
+
+.sp
+Identifier to assign to the object (for SQL output).
+.sp
+It is strongly recommended that new objects should not be added in common
+registries, such as \fBEPSG\fP, \fBESRI\fP, \fBIAU\fP, etc.
+Users should use a custom authority name instead. If a new object should be
+added to the official EPSG registry, users are invited to follow the
+procedure explained at \fI\%https://epsg.org/dataset\-change\-requests.html\fP\&.
+.sp
+Combined with \fI\%\-\-dump\-db\-structure\fP, users can create
+auxiliary databases, instead of directly modifying the main \fBproj.db\fP database.
+See the \fI\%example how to export to an auxiliary database\fP\&.
+.sp
+Those auxiliary databases can be specified through
+\fBproj_context_set_database_path()\fP or the \fI\%PROJ_AUX_DB\fP
+environment variable.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-c\-ify
+For developers only. Modify the string output of the utility so that it
+is easy to put those strings in C/C++ code
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-single\-line
+Output PROJ, WKT or PROJJSON strings on a single line, instead of multiple
+indented lines by default.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-searchpaths
+New in version 7.0.
+
+.sp
+Output the directories into which PROJ resources will be looked for
+(if not using C API such as \fBproj_context_set_search_paths()\fP
+that will override them.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-remote\-data
+New in version 7.0.
+
+.sp
+Display information regarding if \fI\%Network capabilities\fP is enabled, and the
+related URL.
+.UNINDENT
+.SH EXAMPLES
+.INDENT 0.0
+.IP 1. 3
+Query the CRS object corresponding to EPSG:4326
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+projinfo EPSG:4326
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Output:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+PROJ.4 string:
++proj=longlat +datum=WGS84 +no_defs +type=crs
+
+WKT2:2019 string:
+GEOGCRS[\(dqWGS 84\(dq,
+    DATUM[\(dqWorld Geodetic System 1984\(dq,
+        ELLIPSOID[\(dqWGS 84\(dq,6378137,298.257223563,
+            LENGTHUNIT[\(dqmetre\(dq,1]]],
+    PRIMEM[\(dqGreenwich\(dq,0,
+        ANGLEUNIT[\(dqdegree\(dq,0.0174532925199433]],
+    CS[ellipsoidal,2],
+        AXIS[\(dqgeodetic latitude (Lat)\(dq,north,
+            ORDER[1],
+            ANGLEUNIT[\(dqdegree\(dq,0.0174532925199433]],
+        AXIS[\(dqgeodetic longitude (Lon)\(dq,east,
+            ORDER[2],
+            ANGLEUNIT[\(dqdegree\(dq,0.0174532925199433]],
+    USAGE[
+        SCOPE[\(dqunknown\(dq],
+        AREA[\(dqWorld\(dq],
+        BBOX[\-90,\-180,90,180]],
+    ID[\(dqEPSG\(dq,4326]]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.IP 2. 3
+List the coordinate operations between NAD27 (designed with its CRS name)
+and NAD83 (designed with its EPSG code 4269) within an area of interest
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+projinfo \-s NAD27 \-t EPSG:4269 \-\-area \(dqUSA \- Missouri\(dq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Output:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+DERIVED_FROM(EPSG):1241, NAD27 to NAD83 (1), 0.15 m, USA \- CONUS including EEZ
+
+PROJ string:
++proj=pipeline +step +proj=axisswap +order=2,1 +step +proj=unitconvert \e
++xy_in=deg +xy_out=rad +step +proj=hgridshift +grids=conus \e
++step +proj=unitconvert +xy_in=rad +xy_out=deg +step +proj=axisswap +order=2,1
+
+WKT2:2019 string:
+COORDINATEOPERATION[\(dqNAD27 to NAD83 (1)\(dq,
+    SOURCECRS[
+        GEOGCRS[\(dqNAD27\(dq,
+            DATUM[\(dqNorth American Datum 1927\(dq,
+                ELLIPSOID[\(dqClarke 1866\(dq,6378206.4,294.978698213898,
+                    LENGTHUNIT[\(dqmetre\(dq,1]]],
+            PRIMEM[\(dqGreenwich\(dq,0,
+                ANGLEUNIT[\(dqdegree\(dq,0.0174532925199433]],
+            CS[ellipsoidal,2],
+                AXIS[\(dqgeodetic latitude (Lat)\(dq,north,
+                    ORDER[1],
+                    ANGLEUNIT[\(dqdegree\(dq,0.0174532925199433]],
+                AXIS[\(dqgeodetic longitude (Lon)\(dq,east,
+                    ORDER[2],
+                    ANGLEUNIT[\(dqdegree\(dq,0.0174532925199433]]]],
+    TARGETCRS[
+        GEOGCRS[\(dqNAD83\(dq,
+            DATUM[\(dqNorth American Datum 1983\(dq,
+                ELLIPSOID[\(dqGRS 1980\(dq,6378137,298.257222101,
+                    LENGTHUNIT[\(dqmetre\(dq,1]]],
+            PRIMEM[\(dqGreenwich\(dq,0,
+                ANGLEUNIT[\(dqdegree\(dq,0.0174532925199433]],
+            CS[ellipsoidal,2],
+                AXIS[\(dqgeodetic latitude (Lat)\(dq,north,
+                    ORDER[1],
+                    ANGLEUNIT[\(dqdegree\(dq,0.0174532925199433]],
+                AXIS[\(dqgeodetic longitude (Lon)\(dq,east,
+                    ORDER[2],
+                    ANGLEUNIT[\(dqdegree\(dq,0.0174532925199433]]]],
+    METHOD[\(dqCTABLE2\(dq],
+    PARAMETERFILE[\(dqLatitude and longitude difference file\(dq,\(dqconus\(dq],
+    OPERATIONACCURACY[0.15],
+    USAGE[
+        SCOPE[\(dqunknown\(dq],
+        AREA[\(dqUSA \- CONUS including EEZ\(dq],
+        BBOX[23.81,\-129.17,49.38,\-65.69]],
+    ID[\(dqDERIVED_FROM(EPSG)\(dq,1241]]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.IP 3. 3
+Export an object as a PROJJSON string
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+projinfo GDA94 \-o PROJJSON \-q
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Output:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+{
+    \(dqtype\(dq: \(dqGeographicCRS\(dq,
+    \(dqname\(dq: \(dqGDA94\(dq,
+    \(dqdatum\(dq: {
+        \(dqtype\(dq: \(dqGeodeticReferenceFrame\(dq,
+        \(dqname\(dq: \(dqGeocentric Datum of Australia 1994\(dq,
+        \(dqellipsoid\(dq: {
+            \(dqname\(dq: \(dqGRS 1980\(dq,
+            \(dqsemi_major_axis\(dq: 6378137,
+            \(dqinverse_flattening\(dq: 298.257222101
+        }
+    },
+    \(dqcoordinate_system\(dq: {
+        \(dqsubtype\(dq: \(dqellipsoidal\(dq,
+        \(dqaxis\(dq: [
+        {
+            \(dqname\(dq: \(dqGeodetic latitude\(dq,
+            \(dqabbreviation\(dq: \(dqLat\(dq,
+            \(dqdirection\(dq: \(dqnorth\(dq,
+            \(dqunit\(dq: \(dqdegree\(dq
+        },
+        {
+            \(dqname\(dq: \(dqGeodetic longitude\(dq,
+            \(dqabbreviation\(dq: \(dqLon\(dq,
+            \(dqdirection\(dq: \(dqeast\(dq,
+            \(dqunit\(dq: \(dqdegree\(dq
+        }
+        ]
+    },
+    \(dqarea\(dq: \(dqAustralia \- GDA\(dq,
+    \(dqbbox\(dq: {
+        \(dqsouth_latitude\(dq: \-60.56,
+        \(dqwest_longitude\(dq: 93.41,
+        \(dqnorth_latitude\(dq: \-8.47,
+        \(dqeast_longitude\(dq: 173.35
+    },
+    \(dqid\(dq: {
+        \(dqauthority\(dq: \(dqEPSG\(dq,
+        \(dqcode\(dq: 4283
+    }
+}
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.IP 4. 3
+Exporting the SQL statements to insert a new CRS in an auxiliary database.
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Get the SQL statements for a custom CRS
+projinfo \(dq+proj=merc +lat_ts=5 +datum=WGS84 +type=crs +title=my_crs\(dq \-\-output\-id HOBU:MY_CRS \-o SQL \-q > my_crs.sql
+cat my_crs.sql
+
+# Initialize an auxiliary database with the schema of the reference database
+echo \(dq.schema\(dq | sqlite3 /path/to/proj.db | sqlite3 aux.db
+
+# Append the content of the definition of HOBU:MY_CRS
+sqlite3 aux.db < my_crs.db
+
+# Check that everything works OK
+projinfo \-\-aux\-db\-path aux.db HOBU:MY_CRS
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+or more simply:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# Create an auxiliary database with the definition of a custom CRS.
+projinfo \(dq+proj=merc +lat_ts=5 +datum=WGS84 +type=crs +title=my_crs\(dq \-\-output\-id HOBU:MY_CRS \-\-dump\-db\-structure | sqlite3 aux.db
+
+# Check that everything works OK
+projinfo \-\-aux\-db\-path aux.db HOBU:MY_CRS
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Output:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+INSERT INTO geodetic_crs VALUES(\(aqHOBU\(aq,\(aqGEODETIC_CRS_MY_CRS\(aq,\(aqunknown\(aq,\(aq\(aq,\(aqgeographic 2D\(aq,\(aqEPSG\(aq,\(aq6424\(aq,\(aqEPSG\(aq,\(aq6326\(aq,NULL,0);
+INSERT INTO usage VALUES(\(aqHOBU\(aq,\(aqUSAGE_GEODETIC_CRS_MY_CRS\(aq,\(aqgeodetic_crs\(aq,\(aqHOBU\(aq,\(aqGEODETIC_CRS_MY_CRS\(aq,\(aqPROJ\(aq,\(aqEXTENT_UNKNOWN\(aq,\(aqPROJ\(aq,\(aqSCOPE_UNKNOWN\(aq);
+INSERT INTO conversion VALUES(\(aqHOBU\(aq,\(aqCONVERSION_MY_CRS\(aq,\(aqunknown\(aq,\(aq\(aq,\(aqEPSG\(aq,\(aq9805\(aq,\(aqMercator (variant B)\(aq,\(aqEPSG\(aq,\(aq8823\(aq,\(aqLatitude of 1st standard parallel\(aq,5,\(aqEPSG\(aq,\(aq9122\(aq,\(aqEPSG\(aq,\(aq8802\(aq,\(aqLongitude of natural origin\(aq,0,\(aqEPSG\(aq,\(aq9122\(aq,\(aqEPSG\(aq,\(aq8806\(aq,\(aqFalse easting\(aq,0,\(aqEPSG\(aq,\(aq9001\(aq,\(aqEPSG\(aq,\(aq8807\(aq,\(aqFalse northing\(aq,0,\(aqEPSG\(aq,\(aq9001\(aq,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
+INSERT INTO usage VALUES(\(aqHOBU\(aq,\(aqUSAGE_CONVERSION_MY_CRS\(aq,\(aqconversion\(aq,\(aqHOBU\(aq,\(aqCONVERSION_MY_CRS\(aq,\(aqPROJ\(aq,\(aqEXTENT_UNKNOWN\(aq,\(aqPROJ\(aq,\(aqSCOPE_UNKNOWN\(aq);
+INSERT INTO projected_crs VALUES(\(aqHOBU\(aq,\(aqMY_CRS\(aq,\(aqmy_crs\(aq,\(aq\(aq,\(aqEPSG\(aq,\(aq4400\(aq,\(aqHOBU\(aq,\(aqGEODETIC_CRS_MY_CRS\(aq,\(aqHOBU\(aq,\(aqCONVERSION_MY_CRS\(aq,NULL,0);
+INSERT INTO usage VALUES(\(aqHOBU\(aq,\(aqUSAGE_PROJECTED_CRS_MY_CRS\(aq,\(aqprojected_crs\(aq,\(aqHOBU\(aq,\(aqMY_CRS\(aq,\(aqPROJ\(aq,\(aqEXTENT_UNKNOWN\(aq,\(aqPROJ\(aq,\(aqSCOPE_UNKNOWN\(aq);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+PROJ.4 string:
++proj=merc +lat_ts=5 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs
+
+WKT2:2019 string:
+PROJCRS[\(dqmy_crs\(dq,
+    BASEGEOGCRS[\(dqunknown\(dq,
+        ENSEMBLE[\(dqWorld Geodetic System 1984 ensemble\(dq,
+            MEMBER[\(dqWorld Geodetic System 1984 (Transit)\(dq],
+            MEMBER[\(dqWorld Geodetic System 1984 (G730)\(dq],
+            MEMBER[\(dqWorld Geodetic System 1984 (G873)\(dq],
+            MEMBER[\(dqWorld Geodetic System 1984 (G1150)\(dq],
+            MEMBER[\(dqWorld Geodetic System 1984 (G1674)\(dq],
+            MEMBER[\(dqWorld Geodetic System 1984 (G1762)\(dq],
+            ELLIPSOID[\(dqWGS 84\(dq,6378137,298.257223563,
+                LENGTHUNIT[\(dqmetre\(dq,1]],
+            ENSEMBLEACCURACY[2.0]],
+        PRIMEM[\(dqGreenwich\(dq,0,
+            ANGLEUNIT[\(dqdegree\(dq,0.0174532925199433]],
+        ID[\(dqHOBU\(dq,\(dqGEODETIC_CRS_MY_CRS\(dq]],
+    CONVERSION[\(dqunknown\(dq,
+        METHOD[\(dqMercator (variant B)\(dq,
+            ID[\(dqEPSG\(dq,9805]],
+        PARAMETER[\(dqLatitude of 1st standard parallel\(dq,5,
+            ANGLEUNIT[\(dqdegree\(dq,0.0174532925199433],
+            ID[\(dqEPSG\(dq,8823]],
+        PARAMETER[\(dqLongitude of natural origin\(dq,0,
+            ANGLEUNIT[\(dqdegree\(dq,0.0174532925199433],
+            ID[\(dqEPSG\(dq,8802]],
+        PARAMETER[\(dqFalse easting\(dq,0,
+            LENGTHUNIT[\(dqmetre\(dq,1],
+            ID[\(dqEPSG\(dq,8806]],
+        PARAMETER[\(dqFalse northing\(dq,0,
+            LENGTHUNIT[\(dqmetre\(dq,1],
+            ID[\(dqEPSG\(dq,8807]]],
+    CS[Cartesian,2],
+        AXIS[\(dq(E)\(dq,east,
+            ORDER[1],
+            LENGTHUNIT[\(dqmetre\(dq,1]],
+        AXIS[\(dq(N)\(dq,north,
+            ORDER[2],
+            LENGTHUNIT[\(dqmetre\(dq,1]],
+    ID[\(dqHOBU\(dq,\(dqMY_CRS\(dq]]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.IP 5. 3
+Get the WKT representation of EPSG:25832 in the WKT1:GDAL output format and on a single line
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+projinfo \-o WKT1:GDAL \-\-single\-line EPSG:25832
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Output:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+WKT1:GDAL string:
+PROJCS[\(dqETRS89 / UTM zone 32N\(dq,GEOGCS[\(dqETRS89\(dq,DATUM[\(dqEuropean_Terrestrial_Reference_System_1989\(dq,SPHEROID[\(dqGRS 1980\(dq,6378137,298.257222101,AUTHORITY[\(dqEPSG\(dq,\(dq7019\(dq]],AUTHORITY[\(dqEPSG\(dq,\(dq6258\(dq]],PRIMEM[\(dqGreenwich\(dq,0,AUTHORITY[\(dqEPSG\(dq,\(dq8901\(dq]],UNIT[\(dqdegree\(dq,0.0174532925199433,AUTHORITY[\(dqEPSG\(dq,\(dq9122\(dq]],AUTHORITY[\(dqEPSG\(dq,\(dq4258\(dq]],PROJECTION[\(dqTransverse_Mercator\(dq],PARAMETER[\(dqlatitude_of_origin\(dq,0],PARAMETER[\(dqcentral_meridian\(dq,9],PARAMETER[\(dqscale_factor\(dq,0.9996],PARAMETER[\(dqfalse_easting\(dq,500000],PARAMETER[\(dqfalse_northing\(dq,0],UNIT[\(dqmetre\(dq,1,AUTHORITY[\(dqEPSG\(dq,\(dq9001\(dq]],AXIS[\(dqEasting\(dq,EAST],AXIS[\(dqNorthing\(dq,NORTH],AUTHORITY[\(dqEPSG\(dq,\(dq25832\(dq]]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fBcs2cs(1)\fP, \fBcct(1)\fP, \fBgeod(1)\fP, \fBgie(1)\fP, \fBproj(1)\fP, \fBprojsync(1)\fP
+.SH BUGS
+.sp
+A list of known bugs can be found at \fI\%https://github.com/OSGeo/PROJ/issues\fP
+where new bug reports can be submitted to.
+.SH HOME PAGE
+.sp
+\fI\%https://proj.org/\fP
+.SH AUTHOR
+Even Rouault
+.SH COPYRIGHT
+1983-2022
+.\" Generated by docutils manpage writer.
+.
