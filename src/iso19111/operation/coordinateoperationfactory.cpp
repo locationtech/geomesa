@@ -33,9 +33,16 @@
 #include "proj/common.hpp"
 #include "proj/coordinateoperation.hpp"
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "proj/coordinates.hpp"
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 #include "proj/crs.hpp"
 #include "proj/io.hpp"
 #include "proj/metadata.hpp"
@@ -172,6 +179,7 @@ struct CoordinateOperationContext::Private {
     bool discardSuperseded_ = true;
     bool allowBallpark_ = true;
 <<<<<<< HEAD
+<<<<<<< HEAD
     std::shared_ptr<util::optional<common::DataEpoch>> sourceCoordinateEpoch_{
         std::make_shared<util::optional<common::DataEpoch>>()};
     std::shared_ptr<util::optional<common::DataEpoch>> targetCoordinateEpoch_{
@@ -180,7 +188,13 @@ struct CoordinateOperationContext::Private {
     Private() = default;
     Private(const Private &) = default;
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 //! @endcond
 
@@ -198,6 +212,7 @@ CoordinateOperationContext::CoordinateOperationContext()
 // ---------------------------------------------------------------------------
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 CoordinateOperationContext::CoordinateOperationContext(
     const CoordinateOperationContext &other)
     : d(internal::make_unique<Private>(*(other.d))) {}
@@ -205,7 +220,13 @@ CoordinateOperationContext::CoordinateOperationContext(
 // ---------------------------------------------------------------------------
 
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 /** \brief Return the authority factory, or null */
 const io::AuthorityFactoryPtr &
 CoordinateOperationContext::getAuthorityFactory() const {
@@ -453,6 +474,7 @@ CoordinateOperationContext::getIntermediateCRS() const {
 // ---------------------------------------------------------------------------
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /** \brief Set the source coordinate epoch.
  */
 void CoordinateOperationContext::setSourceCoordinateEpoch(
@@ -494,7 +516,13 @@ CoordinateOperationContext::getTargetCoordinateEpoch() const {
 // ---------------------------------------------------------------------------
 
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 /** \brief Creates a context for a coordinate operation.
  *
  * If a non null authorityFactory is provided, the resulting context should
@@ -531,6 +559,7 @@ CoordinateOperationContextNNPtr CoordinateOperationContext::create(
 // ---------------------------------------------------------------------------
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /** \brief Clone a coordinate operation context.
  *
  * @return a new context.
@@ -545,7 +574,13 @@ CoordinateOperationContextNNPtr CoordinateOperationContext::clone() const {
 // ---------------------------------------------------------------------------
 
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 //! @cond Doxygen_Suppress
 struct CoordinateOperationFactory::Private {
 
@@ -4132,6 +4167,7 @@ void CoordinateOperationFactory::Private::createOperationsGeodToGeod(
     if (geodSrc->ellipsoid()->celestialBody() !=
         geodDst->ellipsoid()->celestialBody()) {
 <<<<<<< HEAD
+<<<<<<< HEAD
         const char *envVarVal = getenv("PROJ_IGNORE_CELESTIAL_BODY");
         if (envVarVal == nullptr) {
             std::string osMsg(
@@ -4158,7 +4194,16 @@ void CoordinateOperationFactory::Private::createOperationsGeodToGeod(
         throw util::UnsupportedOperationException(
             "Source and target ellipsoid do not belong to the same "
             "celestial body");
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+        throw util::UnsupportedOperationException(
+            "Source and target ellipsoid do not belong to the same "
+            "celestial body");
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
     }
 
     auto geogSrc = dynamic_cast<const crs::GeographicCRS *>(geodSrc);
@@ -6030,10 +6075,18 @@ void CoordinateOperationFactory::Private::createOperationsCompoundToCompound(
             }
         }
 <<<<<<< HEAD
+<<<<<<< HEAD
         // Symmetrical situation with the promoted-to-3D target geographic CRS
 =======
         // Symetrical situation with the promoted-to-3D target geographic CRS
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+        // Symetrical situation with the promoted-to-3D target geographic CRS
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         else if (!dstGeog->identifiers().empty() &&
                  intermGeogDst->identifiers().empty() &&
                  !intermGeogSrc->identifiers().empty() &&
@@ -6343,6 +6396,7 @@ CoordinateOperationFactory::createOperations(
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     auto resFiltered = filterAndSort(
         Private::createOperations(l_resolvedSourceCRS, l_resolvedTargetCRS,
                                   contextPrivate),
@@ -6407,11 +6461,20 @@ CoordinateOperationFactory::createOperations(
     return createOperations(sourceCRS, targetCoordinateMetadata->crs(),
                             newContext);
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     return filterAndSort(Private::createOperations(l_resolvedSourceCRS,
                                                    l_resolvedTargetCRS,
                                                    contextPrivate),
                          context, sourceCRSExtent, targetCRSExtent);
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
