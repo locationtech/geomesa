@@ -1,0 +1,560 @@
+
+-------------------------------------------------------------------------------
+===============================================================================
+
+Test the 4D API handling of cs2cs style transformation options.
+
+These tests are mostly based on the same material as those in
+more_builtins.gie, since we are testing the same kinds of things,
+but provided through a different interface.
+
+===============================================================================
+
+
+<gie-strict>
+
+-------------------------------------------------------------------------------
+# Test the handling of the +towgs84 parameter.
+-------------------------------------------------------------------------------
+# (additional tests of the towgs84 handling can be found in DHDN_ETRS89.gie)
+-------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
+# This example is from Lotti Jivall: "Simplified transformations from
+# ITRF2008/IGS08 to ETRS89 for maritime applications" (see also more_builtins.gie)
+-------------------------------------------------------------------------------
+operation  proj=geocent \
+           towgs84 = 0.676780, 0.654950, -0.528270, \
+                    -0.022742, 0.012667,  0.022704, \
+                    -0.01070
+-------------------------------------------------------------------------------
+tolerance 1 um
+
+direction inverse
+
+# Broken test. FIXME
+#accept     3565285.00000000  855949.00000000  5201383.00000000
+#expect     3565285.41342351  855948.67986759  5201382.72939791
+-------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
+# This example is a random point, transformed from ED50 to ETRS89 using KMStrans2.
+-------------------------------------------------------------------------------
+operation proj=latlong ellps=intl \
+          towgs84 =  -081.07030, -089.36030, -115.75260, \
+                      000.48488, 000.02436, 000.41321, -0.540645
+-------------------------------------------------------------------------------
+tolerance  25 mm
+
+accept     16.82    55.17        61.0
+expect     16.8210462130   55.1705688946       29.0317
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+operation  proj=latlong nadgrids=ntf_r93.gsb  ellps=GRS80
+-------------------------------------------------------------------------------
+# This functionality is also tested in more_builtins.gie
+-------------------------------------------------------------------------------
+tolerance 1 mm
+accept    2.25                 46.5
+expect    2.250704350387       46.500051597273
+direction inverse
+accept    2.250704350387       46.500051597273
+expect    2.25                 46.5
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+operation  proj=latlong geoidgrids=egm96_15.gtx  ellps=GRS80
+-------------------------------------------------------------------------------
+tolerance 15 cm      # lax tolerance due to widespread bad egm96 file
+
+accept    12.5 55.5   0
+expect    12.5 55.5 -36.3941
+
+direction inverse
+
+accept    12.5 55.5 -36.3941
+expect    12.5 55.5  0
+-------------------------------------------------------------------------------
+operation  proj=merc geoidgrids=egm96_15.gtx  ellps=GRS80
+-------------------------------------------------------------------------------
+tolerance 0.1 mm
+accept    12.5 55.5 0
+expect    1391493.63492   7424275.19462  -36.3941
+direction inverse
+accept    1391493.63492   7424275.19462  -36.3941
+expect    12.5 55.5 0
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+# Same as the two above, but also do axis swapping.
+-------------------------------------------------------------------------------
+# NOTE: A number of the tests below are commented out. The actually do the
+# right thing, but the gie distance computation is not yet able to cope
+# with "unusual" axis orders
+-------------------------------------------------------------------------------
+operation  proj=latlong geoidgrids=egm96_15.gtx  axis=neu ellps=GRS80
+-------------------------------------------------------------------------------
+tolerance 15 cm      # lax tolerance due to widely distributed, bad egm96 file
+# Broken test. FIXME
+#accept    12.5 55.5  0
+#expect    55.5 12.5 -36.3941
+#direction inverse
+#accept    55.5 12.5 -36.3941
+#expect    12.5 55.5  0
+-------------------------------------------------------------------------------
+operation  proj=latlong geoidgrids=egm96_15.gtx  axis=dne ellps=GRS80
+-------------------------------------------------------------------------------
+tolerance 15 cm      # lax tolerance due to widely distributed, bad egm96 file
+# accept    12.5 55.5  0
+# expect    36.3941 55.5 12.5
+# direction inverse
+# accept    36.3941 55.5 12.5
+# expect    12.5 55.5  0
+-------------------------------------------------------------------------------
+operation  proj=merc geoidgrids=egm96_15.gtx  ellps=GRS80
+-------------------------------------------------------------------------------
+tolerance 0.1 mm
+accept    12.5 55.5 0
+expect    1391493.63492   7424275.19462  -36.3941
+direction inverse
+accept    1391493.63492   7424275.19462  -36.3941
+expect    12.5 55.5 0
+-------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
+# Some more complex axis swapping.
+-------------------------------------------------------------------------------
+operation  proj=latlong geoidgrids=egm96_15.gtx  axis=nue ellps=GRS80
+-------------------------------------------------------------------------------
+tolerance 15 cm      # lax tolerance due to widely distributed, bad egm96 file
+# Broken test. FIXME
+#accept    12.5 55.5 0
+#expect    55.5 -36.3941 12.5
+# direction inverse
+# accept    55.5 -36.3941 12.5
+# expect    12.5 55.5 0
+-------------------------------------------------------------------------------
+operation  proj=merc geoidgrids=egm96_15.gtx axis=sue ellps=GRS80
+-------------------------------------------------------------------------------
+tolerance 15 cm
+accept    12.5 55.5 0
+expect    -7424275.1946 -36.3941  1391493.6349 0.0000
+# direction inverse
+# accept    -7424275.1946 -36.3941  1391493.6349 0.0000
+# expect    12.5 55.5 0
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+# A test case from a comment by Github user c0nk
+-------------------------------------------------------------------------------
+operation  proj=somerc \
+           lat_0=46.95240555555556 lon_0=7.439583333333333 k_0=1 \
+           x_0=2600000 y_0=1200000 ellps=bessel \
+           towgs84=674.374,15.056,405.346
+-------------------------------------------------------------------------------
+tolerance 20 cm
+accept    7.438632495 46.951082877
+expect    2600000.0  1200000.0
+-------------------------------------------------------------------------------
+# Same test, but now implemented as a pipeline. This is for testing a nasty bug,
+# where, at the end of pipeline creation, a false warning about missing ellps was
+# left behind from the creation of the Helmert step  (now repaired in pj_init).
+-------------------------------------------------------------------------------
+operation proj=pipeline \
+     step proj=cart ellps=WGS84 \
+     step proj=helmert x=674.37400 y=15.05600 z=405.34600 inv \
+     step proj=cart ellps=bessel inv \
+     step proj=somerc lat_0=46.95240555555556 lon_0=7.439583333333333 \
+                      k_0=1 x_0=2600000 y_0=1200000 ellps=bessel units=m
+-------------------------------------------------------------------------------
+tolerance 20 cm
+accept    7.438632495 46.951082877 0
+expect    2600000.0  1200000.0
+-------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
+# Make sure that transient errors are returned correctly.
+-------------------------------------------------------------------------------
+operation +proj=geos +lon_0=0.00 +lat_0=0.00 +a=6378169.00 +b=6356583.80 +h=35785831.0
+-------------------------------------------------------------------------------
+accept  85.05493299 46.5261074
+expect  failure
+
+accept  85.05493299 46.5261074 0
+expect  failure
+
+accept  85.05493299 46.5261074 0 0
+expect  failure
+
+-------------------------------------------------------------------------------
+# Test that Google's Web Mercator works as intended (see #834 for details).
+-------------------------------------------------------------------------------
+use_proj4_init_rules true
+operation   proj=pipeline step init=epsg:26915 inv step init=epsg:3857
+-------------------------------------------------------------------------------
+tolerance   20 cm
+accept      487147.594520173    4934316.46263998
+expect      -10370728.80        5552839.74
+
+accept      487147.594520173    4934316.46263998    0
+expect      -10370728.80        5552839.74          0
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+# Test Google's Web Mercator with +proj=webmerc +ellps=WGS84
+-------------------------------------------------------------------------------
+use_proj4_init_rules true
+operation   proj=pipeline step init=epsg:26915 inv step proj=webmerc datum=WGS84
+-------------------------------------------------------------------------------
+tolerance   20 cm
+accept      487147.594520173    4934316.46263998
+expect      -10370728.80        5552839.74
+
+accept      487147.594520173    4934316.46263998    0
+expect      -10370728.80        5552839.74          0
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+# Web Mercator test data from EPSG Guidance Note 7-2, p. 44.
+-------------------------------------------------------------------------------
+operation   proj=webmerc +ellps=WGS84
+tolerance   1 cm
+
+accept      -100.33333333       24.46358028
+expect      -11169055.58        2810000.00
+
+accept      -100.33333333       24.38178694
+expect      -11169055.58        2800000.00
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+# Test that +datum parameters are handled correctly in pipelines.
+# See #872 for details.
+-------------------------------------------------------------------------------
+operation   +proj=pipeline \
+            +step +proj=longlat +datum=GGRS87 +inv \
+            +step +proj=longlat +datum=WGS84
+-------------------------------------------------------------------------------
+tolerance   20 cm
+accept      23.7275 37.9838 0
+expect      23.729194873180   37.986398897578   31.289740102
+-------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
+# Test that +towgs84=0,0,0 parameter is handled as still implying cart
+# transformation
+-------------------------------------------------------------------------------
+operation   +proj=pipeline \
+            +step +proj=utm +zone=11 +ellps=clrk66 +towgs84=0,0,0 +inv \
+            +step +proj=utm +zone=11 +datum=WGS84
+
+-------------------------------------------------------------------------------
+tolerance   20 cm
+accept      440720 3751320 0
+expect      440719.958709357 3751294.2109841 -4.44340920541435
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+# Test that pipelines with unit mismatch between steps can't be constructed.
+-------------------------------------------------------------------------------
+operation   +proj=pipeline \
+            +step +proj=merc \
+            +step +proj=merc
+expect      failure pjd_err_malformed_pipeline
+
+operation   +proj=pipeline \
+            +step +proj=latlong \
+            +step +proj=merc \
+            +step +proj=helmert +x=200 +y=100
+expect      failure pjd_err_malformed_pipeline
+
+operation   +proj=pipeline \
+            +step +proj=merc +ellps=WGS84 \
+            +step +proj=unitconvert +xy_in=m +xy_out=km
+accept      12          56
+expect      1335.8339   7522.963
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+# Test invalid pipelines
+-------------------------------------------------------------------------------
+# proj= before first step
+operation   +proj=pipeline +proj=merc +step +inv +proj=merc
+expect      failure pjd_err_malformed_pipeline
+
+# o_proj= before first step
+operation   +proj=pipeline +o_proj=merc +step +proj=ob_tran
+expect      failure pjd_err_malformed_pipeline
+
+# nested pipeline
+operation   +proj=pipeline +step +proj=pipeline +step +proj=merc
+expect      failure pjd_err_malformed_pipeline
+
+-------------------------------------------------------------------------------
+# Test Pipeline Coordinate Stack
+-------------------------------------------------------------------------------
+operation  +proj=pipeline \
+            +step +proj=push +v_1 \
+            +step +proj=utm +zone=32 \
+            +step +proj=utm +zone=33 +inv \
+            +step +proj=pop +v_1
+
+accept      12  56  0   2020
+expect      12  56  0   2020
+roundtrip   10
+
+operation   +proj=pipeline \
+            +step +proj=latlon \ # dummy step
+            +step +proj=push +v_1 \
+            +step +proj=utm +zone=32 \
+            +step +proj=utm +zone=33 +inv \
+            +step +proj=pop +v_1 \
+            +step +proj=affine # dummy step
+
+accept      12  56  0   2020
+expect      12  56  0   2020
+roundtrip   10
+
+# push value to stack without popping it again
+operation  +proj=pipeline \
+            +step +proj=push +v_1 \
+            +step +proj=utm +zone=32 \
+            +step +proj=utm +zone=33 +inv
+
+accept      12  56  0   2020
+expect      18  56  0   2020
+
+# test that multiple pushes and pops works
+operation  +proj=pipeline \
+            +step +proj=push +v_1 \
+            +step +proj=utm +zone=32 \
+            +step +proj=push +v_1 \
+            +step +proj=utm +zone=33 +inv \
+            +step +proj=utm +zone=34 \
+            +step +proj=pop +v_1 \
+            +step +proj=utm +zone=32 +inv \
+            +step +proj=pop +v_1
+
+accept      12  56  0   2020
+expect      12  56  0   2020
+
+# pop from empty stack
+operation  +proj=pipeline \
+            +step +proj=utm +zone=32 \
+            +step +proj=utm +zone=33 +inv \
+            +step +proj=pop +v_1
+
+accept      12  56  0   2020
+expect      18  56  0   2020
+
+operation   +proj=pipeline \
+            +step +proj=push +v_2 \
+            +step +inv +proj=eqearth \
+            +step +proj=laea \
+            +step +proj=pop +v_2
+
+accept      900000      6000000 0   2020
+expect      896633.0226 6000000 0   2020
+
+# Datum shift in cartesian space but keeping the height
+# (simulates a datum-shift with affin since ISO19111 code
+# currently obfuscates proj-strings using cart/helmert/invcart)
+operation   +proj=pipeline +ellps=GRS80 \
+            +step +proj=push +v_3 \
+            +step +proj=cart \
+            +step +proj=affine +xoff=1000 +yoff=2000 +xoff=3000 \
+            +step +proj=cart +inv \
+            +step +proj=pop +v_3
+tolerance   50 cm
+
+accept      12              56              0
+expect      12.0280112877   55.9896187413   0
+roundtrip   1
+
+operation   +proj=push +v_3
+accept      12 56 0 0
+expect      12 56 0 0
+
+operation   +proj=pop +v_3
+accept      12 56 0 0
+expect      12 56 0 0
+
+-------------------------------------------------------------------------------
+# Test Pipeline +omit_inv
+-------------------------------------------------------------------------------
+
+operation   +proj=pipeline +step +proj=affine +xoff=1 +yoff=1 +omit_inv
+
+accept      2 49 0 0
+expect      3 50 0 0
+
+direction inverse
+accept      2 49 0 0
+expect      2 49 0 0
+
+
+operation   +proj=pipeline +step +inv +proj=affine +xoff=1 +yoff=1 +omit_inv
+
+accept      2 49 0 0
+expect      1 48 0 0
+
+direction inverse
+accept      2 49 0 0
+expect      2 49 0 0
+
+-------------------------------------------------------------------------------
+# Test Pipeline +omit_fwd
+-------------------------------------------------------------------------------
+
+operation   +proj=pipeline +step +proj=affine +xoff=1 +yoff=1 +omit_fwd
+
+accept      2 49 0 0
+expect      2 49 0 0
+
+direction inverse
+accept      2 49 0 0
+expect      1 48 0 0
+
+
+operation   +proj=pipeline +step +inv +proj=affine +xoff=1 +yoff=1 +omit_fwd
+
+accept      2 49 0 0
+expect      2 49 0 0
+
+direction inverse
+accept      2 49 0 0
+expect      3 50 0 0
+
+-------------------------------------------------------------------------------
+# Test bugfix of https://github.com/OSGeo/proj.4/issues/1002
+# (do not interpolate nodata values)
+-------------------------------------------------------------------------------
+operation   +proj=latlong +ellps=WGS84 +geoidgrids=tests/test_nodata.gtx
+-------------------------------------------------------------------------------
+accept      4.05        52.1        0
+expect      4.05        52.1        -10
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+# Test null grid with vgridshift
+-------------------------------------------------------------------------------
+operation   proj=vgridshift  grids=tests/test_nodata.gtx,null  ellps=GRS80
+-------------------------------------------------------------------------------
+accept      4.05        52.1        0
+expect      4.05        52.1        -10
+
+# Outside validity area of test_nodata.gtx. Fallback on null
+accept      4.05        -52.1        0
+expect      4.05        -52.1        0
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+# Test bug fix of https://github.com/OSGeo/proj.4/issues/1025.
+# Using geocent in the new API with a custom ellipsoid should return coordinates
+# that correspond to that particular ellipsoid and not WGS84 as demonstrated in
+# the bug report.
+-------------------------------------------------------------------------------
+operation   +proj=pipeline +step \
+            +proj=longlat +a=3396190 +b=3376200 +inv +step \
+            +proj=geocent +a=3396190 +b=3376200 +lon_0=0 +units=m
+accept      0.0         0.0     0.0
+expect      3396190.0   0.0     0.0
+roundtrip   1
+
+operation   +proj=geocent +a=3396190 +b=3376200 +lon_0=0 +units=m
+accept      0.0         0.0     0.00
+expect      3396190.0   0.0     0.0
+roundtrip   1
+
+
+-------------------------------------------------------------------------------
+# Check that geocent and cart take into account to_meter (#1053)
+-------------------------------------------------------------------------------
+
+operation   +proj=geocent +a=1000 +b=1000 +to_meter=1000
+accept      90 0 0
+expect      0 1 0
+roundtrip   1
+
+operation   +proj=cart +a=1000 +b=1000 +to_meter=1000
+accept      90 0 0
+expect      0 1 0
+roundtrip   1
+
+-------------------------------------------------------------------------------
+# Check that vunits / vto_meter is honored
+-------------------------------------------------------------------------------
+
+operation   +proj=longlat +a=1 +b=1 +vto_meter=1000
+accept      0 0 1000
+expect      0 0 1
+roundtrip   1
+
+operation   +proj=longlat +a=1 +b=1 +vto_meter=2000/2
+accept      0 0 1000
+expect      0 0 1
+roundtrip   1
+
+operation  +proj=longlat +a=1 +b=1 +vto_meter=1/0
+expect     failure   errno invalid_op_illegal_arg_value
+
+operation   +proj=longlat +a=1 +b=1 +vto_meter=1000 +geoc
+accept      0 0 1000
+expect      0 0 1
+roundtrip   1
+
+operation   +proj=longlat +a=1 +b=1 +vunits=km
+accept      0 0 1000
+expect      0 0 1
+roundtrip   1
+
+operation   +proj=merc +a=1 +b=1 +vto_meter=1000
+accept      0 0 1000
+expect      0 0 1
+roundtrip   1
+
+operation   +proj=merc +a=1 +b=1 +vunits=km
+accept      0 0 1000
+expect      0 0 1
+roundtrip   1
+
+-------------------------------------------------------------------------------
+# Check that proj_create() returns a syntax error when an exception is caught
+# in the creation of a PJ object.
+-------------------------------------------------------------------------------
+operation   this is a bogus CRS meant to trigger a syntax error in proj_create()
+expect      failure   errno invalid_op_wrong_syntax
+
+-------------------------------------------------------------------------------
+# Test proj=set
+-------------------------------------------------------------------------------
+
+operation   +proj=set
+accept      1 2 3 4
+expect      1 2 3 4
+roundtrip   1
+
+operation   +proj=set +v_1=10 +v_2=20 +v_3=30 +v_4=40
+accept      1 2 3 4
+expect      10 20 30 40
+
+operation   +proj=set +v_1=10 +v_2=20 +v_3=30 +v_4=40
+direction   inverse
+accept      1 2 3 4
+expect      10 20 30 40
+
+</gie-strict>
