@@ -2543,6 +2543,7 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
               "+proj=cea +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2702,10 +2703,24 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 =======
 >>>>>>> 0890f076c7 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
+=======
+>>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 9172626758 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
 
     EXPECT_EQ(conv->exportToWKT(WKTFormatter::create().get()),
               "CONVERSION[\"Lambert Cylindrical Equal Area (Spherical)\",\n"
