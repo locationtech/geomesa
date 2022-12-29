@@ -48,6 +48,7 @@ INSERT INTO "usage" VALUES('EPSG','10276','concatenated_operation','EPSG','7811'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -349,6 +350,11 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "concatenated_operation" VALUES('EPSG','7965','Poolbeg height (ft(Br36)) to Malin Head height (1)','','EPSG','5754','EPSG','5731',0.1,'1',0);
+INSERT INTO "usage" VALUES('EPSG','10349','concatenated_operation','EPSG','7965','EPSG','1305','EPSG','1059');
+INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br36)) to Belfast height (1)','','EPSG','5754','EPSG','5732',0.1,'1',0);
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','10351','concatenated_operation','EPSG','7967','EPSG','2530','EPSG','1059');
 INSERT INTO "concatenated_operation" VALUES('EPSG','7973','NGVD29 height (ftUS) to NAVD88 height (1)','','EPSG','5702','EPSG','5703',0.02,'IOGP - US Conus W',0);
 INSERT INTO "usage" VALUES('EPSG','10356','concatenated_operation','EPSG','7973','EPSG','2950','EPSG','1099');
