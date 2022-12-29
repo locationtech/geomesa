@@ -458,7 +458,11 @@ static void helmert_forward_4d (PJ_COORD &point, PJ *P) {
     point.xyz = xyz;
 =======
     point.xyz = helmert_forward_3d (point.lpz, P);
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 
@@ -482,7 +486,11 @@ static void helmert_reverse_4d (PJ_COORD& point, PJ *P) {
     point.lpz = lpz;
 =======
     point.lpz = helmert_reverse_3d (point.xyz, P);
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 /* Arcsecond to radians */

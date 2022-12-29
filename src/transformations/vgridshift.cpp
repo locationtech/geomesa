@@ -114,7 +114,11 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
         coo.xyz = xyz;
 =======
         coo.xyz = forward_3d (coo.lpz, P);
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
         return;
     }
 
@@ -130,7 +134,11 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 =======
     if (coo.lpzt.t < Q->t_epoch && Q->t_final > Q->t_epoch)
         coo.xyz = forward_3d (coo.lpz, P);
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 static void reverse_4d(PJ_COORD& coo, PJ *P) {
@@ -146,7 +154,11 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
         coo.lpz = lpz;
 =======
         coo.lpz = reverse_3d (coo.xyz, P);
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
         return;
     }
 
@@ -162,7 +174,11 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 =======
     if (coo.lpzt.t < Q->t_epoch && Q->t_final > Q->t_epoch)
         coo.lpz = reverse_3d (coo.xyz, P);
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 static PJ *destructor (PJ *P, int errlev) {
