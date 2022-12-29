@@ -294,6 +294,7 @@ int main(int argc, char *argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         std::cout << "filename,area_of_use,source_id,file_size" << std::endl;
 =======
         std::cout << "filename,source_id,area_of_use,file_size" << std::endl;
@@ -323,6 +324,9 @@ int main(int argc, char *argv[]) {
 =======
         std::cout << "filename,source_id,area_of_use,file_size" << std::endl;
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        std::cout << "filename,source_id,area_of_use,file_size" << std::endl;
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     }
 
     std::string proj_data_version_str;
@@ -400,6 +404,7 @@ int main(int argc, char *argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                                           << " and we are targeting "
 =======
                                           << " and we are targetting "
@@ -429,6 +434,9 @@ int main(int argc, char *argv[]) {
 =======
                                           << " and we are targetting "
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                          << " and we are targetting "
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;
@@ -461,6 +469,7 @@ int main(int argc, char *argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                                           << " and we are targeting "
 =======
                                           << " and we are targetting "
@@ -490,6 +499,9 @@ int main(int argc, char *argv[]) {
 =======
                                           << " and we are targetting "
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                          << " and we are targetting "
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;
