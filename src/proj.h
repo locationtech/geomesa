@@ -820,6 +820,7 @@ typedef enum
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -899,11 +900,22 @@ typedef enum
     PJ_TYPE_COORDINATE_METADATA,
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     PJ_TYPE_COORDINATE_METADATA,
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 } PJ_TYPE;
 
 /** Comparison criterion. */
@@ -1629,6 +1641,7 @@ PJ PROJ_DLL *proj_concatoperation_get_step(PJ_CONTEXT *ctx,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1708,11 +1721,22 @@ double PROJ_DLL proj_coordinate_metadata_get_epoch(PJ_CONTEXT *ctx, const PJ *ob
 
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 double PROJ_DLL proj_coordinate_metadata_get_epoch(PJ_CONTEXT *ctx, const PJ *obj);
 
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 /**@}*/
 
 #ifdef __cplusplus

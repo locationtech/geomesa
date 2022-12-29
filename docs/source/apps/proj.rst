@@ -32,6 +32,7 @@ proj
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -53,9 +54,12 @@ proj
 =======
 >>>>>>> c292d42888 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -115,12 +119,17 @@ proj
 >>>>>>> 1048b37894 (d)
 =======
 >>>>>>> c292d42888 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 .. _invproj:
 
 ================================================================================
 invproj
 ================================================================================
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -156,6 +165,8 @@ invproj
 =======
 >>>>>>> c292d42888 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -167,6 +178,7 @@ invproj
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -313,6 +325,12 @@ invproj
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c292d42888 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 .. only:: html
 
     Cartographic projection filter.
