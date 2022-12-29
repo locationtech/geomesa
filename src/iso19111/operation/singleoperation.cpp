@@ -205,6 +205,7 @@ CoordinateOperation::sourceCoordinateEpoch() const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     return *(d->sourceCoordinateEpoch_);
 =======
     return d->sourceCoordinateEpoch_;
@@ -234,6 +235,9 @@ CoordinateOperation::sourceCoordinateEpoch() const {
 =======
     return d->sourceCoordinateEpoch_;
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    return d->sourceCoordinateEpoch_;
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -249,6 +253,7 @@ CoordinateOperation::targetCoordinateEpoch() const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     return *(d->targetCoordinateEpoch_);
 =======
     return d->targetCoordinateEpoch_;
@@ -278,6 +283,9 @@ CoordinateOperation::targetCoordinateEpoch() const {
 =======
     return d->targetCoordinateEpoch_;
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    return d->targetCoordinateEpoch_;
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -331,6 +339,7 @@ void CoordinateOperation::setCRSs(const CoordinateOperation *in,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -375,6 +384,8 @@ void CoordinateOperation::setTargetCoordinateEpoch(
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 void CoordinateOperation::setAccuracies(
     const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies) {
     d->coordinateOperationAccuracies_ = accuracies;
@@ -2010,6 +2021,7 @@ bool Transformation::isGeographic3DToGravityRelatedHeight(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "1118", // Geog3D to Geog2D+GravityRelatedHeight (ISG)
 =======
 <<<<<<< HEAD
@@ -2035,6 +2047,8 @@ bool Transformation::isGeographic3DToGravityRelatedHeight(
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
         "9661", // Geographic3D to GravityRelatedHeight (EGM)
         "9662", // Geographic3D to GravityRelatedHeight (Ausgeoid98)
         "9663", // Geographic3D to GravityRelatedHeight (OSGM-GB)
