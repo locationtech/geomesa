@@ -274,6 +274,7 @@ int pj_get_suggested_operation(PJ_CONTEXT*,
 }
 
 /**************************************************************************************/
+<<<<<<< HEAD
 static void warnAboutMissingGrid(PJ* P)
 /**************************************************************************************/
 {
@@ -310,6 +311,8 @@ static void warnAboutMissingGrid(PJ* P)
 }
 
 /**************************************************************************************/
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 PJ_COORD proj_trans (PJ *P, PJ_DIRECTION direction, PJ_COORD coord) {
 /***************************************************************************************
 Apply the transformation P to the coordinate coord, preferring the 4D interfaces if
@@ -338,7 +341,11 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
             P->alternativeCoordinateOperations.size());
 
         // We may need several attempts. For example the point at
+<<<<<<< HEAD
         // long=-111.5 lat=45.26 falls into the bounding box of the Canadian
+=======
+        // lon=-111.5 lat=45.26 falls into the bounding box of the Canadian
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         // ntv2_0.gsb grid, except that it is not in any of the subgrids, being
         // in the US. We thus need another retry that will select the conus
         // grid.
@@ -374,8 +381,11 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
                 P->iCurCoordOp = iBest;
             }
             PJ_COORD res = coord;
+<<<<<<< HEAD
             if( alt.pj->hasCoordinateEpoch )
                 coord.xyzt.t = alt.pj->coordinateEpoch;
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
             if( direction == PJ_FWD )
                 pj_fwd4d( res, alt.pj );
             else
@@ -386,12 +396,15 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
             if( res.xyzt.x != HUGE_VAL ) {
                 return res;
             }
+<<<<<<< HEAD
             else if( P->errorIfBestTransformationNotAvailable ||
                      P->warnIfBestTransformationNotAvailable ) {
                 warnAboutMissingGrid(alt.pj);
                 if( P->errorIfBestTransformationNotAvailable )
                     return res;
             }
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
             if( iRetry == N_MAX_RETRY ) {
                 break;
             }
@@ -441,8 +454,11 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
     }
 
     P->iCurCoordOp = 0; // dummy value, to be used by proj_trans_get_last_used_operation()
+<<<<<<< HEAD
     if( P->hasCoordinateEpoch )
         coord.xyzt.t = P->coordinateEpoch;
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     if (direction == PJ_FWD)
         pj_fwd4d (coord, P);
     else
@@ -453,7 +469,11 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 /*****************************************************************************/
 PJ* proj_trans_get_last_used_operation(PJ* P)
 /******************************************************************************
+<<<<<<< HEAD
     Return the operation used during the last invocation of proj_trans().
+=======
+    Return the operation used during the last invokation of proj_trans().
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     This is especially useful when P has been created with proj_create_crs_to_crs()
     and has several alternative operations.
     The returned object must be freed with proj_destroy().
@@ -925,6 +945,11 @@ a null-pointer is returned. The definition arguments may use '+' as argument sta
 indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
 "zone=32"}.
 **************************************************************************************/
+<<<<<<< HEAD
+=======
+    PJ *P;
+    const char *c;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     if (nullptr==ctx)
         ctx = pj_get_default_ctx ();
@@ -934,13 +959,21 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
     }
 
     /* We assume that free format is used, and build a full proj_create compatible string */
+<<<<<<< HEAD
     char *c = pj_make_args (argc, argv);
+=======
+    c = pj_make_args (argc, argv);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     if (nullptr==c) {
         proj_context_errno_set(ctx, PROJ_ERR_INVALID_OP /* ENOMEM */);
         return nullptr;
     }
 
+<<<<<<< HEAD
     PJ *P = proj_create (ctx, c);
+=======
+    P = proj_create (ctx, c);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     free ((char *) c);
     return P;
@@ -1695,6 +1728,7 @@ static PJ* add_coord_op_to_list(
     return op;
 }
 
+<<<<<<< HEAD
 namespace {
 struct ObjectKeeper {
     PJ *m_obj = nullptr;
@@ -1718,6 +1752,11 @@ static PJ* create_operation_to_geog_crs(PJ_CONTEXT* ctx, const PJ* crs) {
     }
     (void)keeper;
 
+=======
+/*****************************************************************************/
+static PJ* create_operation_to_geog_crs(PJ_CONTEXT* ctx, const PJ* crs) {
+/*****************************************************************************/
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     // Create a geographic 2D long-lat degrees CRS that is related to the
     // CRS
     auto geodetic_crs = proj_crs_get_geodetic_crs(ctx, crs);
@@ -1958,14 +1997,20 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
     if( !ctx ) {
         ctx = pj_get_default_ctx();
     }
+<<<<<<< HEAD
     pj_load_ini(ctx); // to set ctx->errorIfBestTransformationNotAvailableDefault
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     const char* authority = nullptr;
     double accuracy = -1;
     bool allowBallparkTransformations = true;
     bool forceOver = false;
+<<<<<<< HEAD
     bool warnIfBestTransformationNotAvailable = ctx->warnIfBestTransformationNotAvailableDefault;
     bool errorIfBestTransformationNotAvailable = ctx->errorIfBestTransformationNotAvailableDefault;
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     for (auto iter = options; iter && iter[0]; ++iter) {
         const char *value;
         if ((value = getOptionValue(*iter, "AUTHORITY="))) {
@@ -1982,6 +2027,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
                             "Invalid value for ALLOW_BALLPARK option.");
                 return nullptr;
             }
+<<<<<<< HEAD
         } else if ((value = getOptionValue(*iter, "ONLY_BEST="))) {
             warnIfBestTransformationNotAvailable = false;
             if( ci_equal(value, "yes") )
@@ -1993,6 +2039,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
                             "Invalid value for ONLY_BEST option.");
                 return nullptr;
             }
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         }
         else if ((value = getOptionValue(*iter, "FORCE_OVER="))) {
             if (ci_equal(value, "yes")) {
@@ -2041,9 +2089,13 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
         ctx, operation_ctx, PROJ_SPATIAL_CRITERION_PARTIAL_INTERSECTION);
     proj_operation_factory_context_set_grid_availability_use(
         ctx, operation_ctx,
+<<<<<<< HEAD
         (errorIfBestTransformationNotAvailable ||
          warnIfBestTransformationNotAvailable ||
          proj_context_is_network_enabled(ctx)) ?
+=======
+        proj_context_is_network_enabled(ctx) ?
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
             PROJ_GRID_AVAILABILITY_KNOWN_AVAILABLE:
             PROJ_GRID_AVAILABILITY_DISCARD_OPERATION_IF_MISSING_GRID);
 
@@ -2064,6 +2116,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 
     ctx->forceOver = forceOver;
 
+<<<<<<< HEAD
     const int old_debug_level = ctx->debug_level;
     if( errorIfBestTransformationNotAvailable || warnIfBestTransformationNotAvailable )
         ctx->debug_level = PJ_LOG_NONE;
@@ -2076,11 +2129,17 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
         P->warnIfBestTransformationNotAvailable = warnIfBestTransformationNotAvailable;
     }
 
+=======
+    PJ* P = proj_list_get(ctx, op_list, 0);
+    assert(P);
+
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     if( P == nullptr || op_count == 1 ||
         proj_get_type(source_crs) == PJ_TYPE_GEOCENTRIC_CRS ||
         proj_get_type(target_crs) == PJ_TYPE_GEOCENTRIC_CRS ) {
         proj_list_destroy(op_list);
         ctx->forceOver = false;
+<<<<<<< HEAD
 
         if( P != nullptr &&
             (errorIfBestTransformationNotAvailable ||
@@ -2105,6 +2164,13 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
     auto preparedOpList = pj_create_prepared_operations(ctx, source_crs, target_crs,
                                                    op_list);
     ctx->debug_level = old_debug_level;
+=======
+        return P;
+    }
+
+    auto preparedOpList = pj_create_prepared_operations(ctx, source_crs, target_crs,
+                                                   op_list);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     ctx->forceOver = false;
     proj_list_destroy(op_list);
@@ -2115,12 +2181,15 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
         return nullptr;
     }
 
+<<<<<<< HEAD
     for( auto& op: preparedOpList ) {
         op.pj->over = forceOver;
         op.pj->errorIfBestTransformationNotAvailable = errorIfBestTransformationNotAvailable;
         op.pj->warnIfBestTransformationNotAvailable = warnIfBestTransformationNotAvailable;
     }
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     // If there's finally juste a single result, return it directly
     if( preparedOpList.size() == 1 )
     {
@@ -2133,7 +2202,10 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
     P->alternativeCoordinateOperations = std::move(preparedOpList);
     // The returned P is rather dummy
     P->descr = "Set of coordinate operations";
+<<<<<<< HEAD
     P->over = forceOver;
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     P->iso_obj = nullptr;
     P->fwd = nullptr;
     P->inv = nullptr;
@@ -2347,8 +2419,12 @@ PJ_INFO proj_info (void) {
         }
     }
 
+<<<<<<< HEAD
     if (info.searchpath != empty)
         free(const_cast<char*>(info.searchpath));
+=======
+    free(const_cast<char*>(info.searchpath));
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     info.searchpath = buf ? buf : empty;
 
     info.paths = ctx->c_compat_paths;
@@ -2393,12 +2469,19 @@ PJ_PROJ_INFO proj_pj_info(PJ *P) {
     if (pj_param(P->ctx, P->params, "tproj").i)
         pjinfo.id = pj_param(P->ctx, P->params, "sproj").s;
 
+<<<<<<< HEAD
     pjinfo.description = P->descr;
     if( P->iso_obj ) {
         auto identifiedObj = dynamic_cast<NS_PROJ::common::IdentifiedObject*>(P->iso_obj.get());
         if( identifiedObj ) {
             pjinfo.description = identifiedObj->nameStr().c_str();
         }
+=======
+    if( P->iso_obj ) {
+        pjinfo.description = P->iso_obj->nameStr().c_str();
+    } else {
+        pjinfo.description = P->descr;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     }
 
     // accuracy
