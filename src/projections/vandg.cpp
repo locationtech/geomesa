@@ -134,6 +134,9 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -287,6 +290,7 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 >>>>>>> locationtech-main
 =======
             // This code path is triggered for coordinates generated in the forward path when |lon|>180deg and +over
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -339,6 +343,9 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
             d = M_TWOPI - d;
         }
         // (29-18) but change pi/3 to 4*pi/3 to flip sign of cos

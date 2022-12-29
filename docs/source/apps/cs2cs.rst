@@ -33,6 +33,12 @@ Synopsis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -256,6 +262,7 @@ Synopsis
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     |           [--authority <name>] [--no-ballpark] [--accuracy <accuracy>] [--3d]
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -299,6 +306,12 @@ Synopsis
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+    |           [--authority <name>] [--no-ballpark] [--accuracy <accuracy>] [--3d]
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
     |           ([*+opt[=arg]* ...] [+to *+opt[=arg]* ...] | {source_crs} {target_crs})
     |           file ...
 
@@ -337,6 +350,10 @@ Synopsis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    - a CRS name and a coordinate epoch, separated with '@'. For example "ITRF2014@2025.0". (*added in 9.2*)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -479,6 +496,7 @@ Synopsis
 =======
 >>>>>>> locationtech-main
 =======
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -528,6 +546,9 @@ Synopsis
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
     - a OGC URN combining references for compound coordinate reference systems
       (e.g "urn:ogc:def:crs,crs:EPSG::2393,crs:EPSG::5717" or custom abbreviated
       syntax "EPSG:2393+5717"),
@@ -694,6 +715,9 @@ The following control parameters can appear in any order:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -922,6 +946,7 @@ The following control parameters can appear in any order:
 =======
 >>>>>>> locationtech-main
 =======
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -965,6 +990,9 @@ The following control parameters can appear in any order:
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 .. option:: --no-ballpark
 
     .. versionadded:: 8.0.0
@@ -1103,6 +1131,12 @@ The x-y output data will appear as three lines of:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1408,6 +1442,7 @@ which is an approximation at a level of several tens of metres.
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1493,6 +1528,9 @@ which is an approximation at a level of several tens of metres.
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
     1402285.98  5076292.42 0.00
 
 .. note::
@@ -1502,6 +1540,12 @@ which is an approximation at a level of several tens of metres.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1578,7 +1622,13 @@ which is an approximation at a level of several tens of metres.
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Using EPSG CRS codes
 --------------------

@@ -95,6 +95,9 @@ developed with backwards-compatible policies that aim to provide consistent
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -248,6 +251,7 @@ behaviour across different versions. CMake is currently the preferred build
 >>>>>>> locationtech-main
 =======
 behaviour across different versions. CMake is currently the preferred build
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -300,6 +304,9 @@ behaviour across different versions. CMake is currently the preferred build
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 tool for PROJ for the following reasons:
 
 - It has existed in the PROJ code base since 2014, and is familiar to active
