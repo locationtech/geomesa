@@ -120,6 +120,7 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -161,10 +162,13 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
     double lat1, lon1, lat2, lon2;
 
     coslam = cos(lp.lam);
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -209,11 +213,14 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
     double lam1, phi1, lam2, phi2;
 
     coslam = cos(lp.lam);
     cosphi = cos(lp.phi);
     sinphi = sin(lp.phi);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -397,6 +404,9 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 
     coslam = cos(lp.lam);
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
     switch (Q->mode) {
     case N_POLE:
         coslam = - coslam;
@@ -426,6 +436,7 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -446,10 +457,13 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         cosphi = cos(lp.phi);
         sinphi = sin(lp.phi);
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -624,6 +638,8 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
         cosphi = cos(lp.phi);
         sinphi = sin(lp.phi);
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         rho = fabs(Q->Mp - pj_mlfn(lp.phi, sinphi, cosphi, Q->en));
         xy.x = rho * sin(lp.lam);
         xy.y = rho * coslam;
@@ -659,6 +675,7 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -729,6 +746,8 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         lat1 = P->phi0 / DEG_TO_RAD;
         lon1 = 0;
         lat2 = lp.phi / DEG_TO_RAD;
@@ -776,6 +795,7 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -814,10 +834,13 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         phi1 = P->phi0 / DEG_TO_RAD;
         lam1 = P->lam0 / DEG_TO_RAD;
         phi2 = lp.phi / DEG_TO_RAD;
         lam2 = (lp.lam+P->lam0) / DEG_TO_RAD;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1109,6 +1132,14 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
         xy.x = s12 * sin(azi1);
         xy.y = s12 * cos(azi1);
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+
+        geod_inverse(&Q->g, phi1, lam1, phi2, lam2, &s12, &azi1, &azi2);
+        azi1 *= DEG_TO_RAD;
+        xy.x = s12 * sin(azi1) / P->a;
+        xy.y = s12 * cos(azi1) / P->a;
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         break;
     }
     return xy;
@@ -1142,6 +1173,7 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9495cd99e8 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
@@ -1183,6 +1215,8 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a30c7d3fa7 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 
     if (Q->mode == EQUIT)
     {
@@ -1197,6 +1231,7 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
         {
 =======
     double  coslam, cosphi, sinphi;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1513,12 +1548,28 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 =======
         {
 >>>>>>> 14f7081728 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+
+    sinphi = sin(lp.phi);
+    cosphi = cos(lp.phi);
+    coslam = cos(lp.lam);
+    switch (Q->mode) {
+    case EQUIT:
+        xy.y = cosphi * coslam;
+        goto oblcon;
+    case OBLIQ:
+        xy.y = Q->sinph0 * sinphi + Q->cosph0 * cosphi * coslam;
+oblcon:
+        if (fabs(fabs(xy.y) - 1.) < TOL)
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
             if (xy.y < 0.) {
                 proj_errno_set(P, PROJ_ERR_COORD_TRANSFM_OUTSIDE_PROJECTION_DOMAIN);
                 return xy;
             }
             else
                 return aeqd_e_forward(lp, P);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1584,6 +1635,8 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a30c7d3fa7 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         }
         else
         {
@@ -1631,6 +1684,7 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
         }
 =======
         else {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2284,6 +2338,14 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
         }
 <<<<<<< HEAD
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            xy.y = acos(xy.y);
+            xy.y /= sin(xy.y);
+            xy.x = xy.y * cosphi * sin(lp.lam);
+            xy.y *= (Q->mode == EQUIT) ? sinphi :
+                Q->cosph0 * sinphi - Q->sinph0 * cosphi * coslam;
+        }
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         break;
     case N_POLE:
         lp.phi = -lp.phi;
@@ -2303,6 +2365,7 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9172626758 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2447,6 +2510,9 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 14f7081728 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         if (fabs(lp.phi - M_HALFPI) < EPS10) {
             proj_errno_set(P, PROJ_ERR_COORD_TRANSFM_OUTSIDE_PROJECTION_DOMAIN);
             return xy;
@@ -2476,6 +2542,7 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9495cd99e8 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
@@ -2517,12 +2584,15 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a30c7d3fa7 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         xy.x = xy.y * sinlam;
         xy.y *= coslam;
 =======
         xy.x = xy.y * sin(lp.lam);
         xy.y *= coslam;
         break;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2697,6 +2767,9 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
         xy.x = xy.y * sinlam;
         xy.y *= coslam;
 >>>>>>> 14f7081728 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
     }
     return xy;
 }
@@ -2747,6 +2820,7 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -2788,10 +2862,13 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
     double azi1, azi2, s12, lat1, lon1, lat2, lon2;
 
     if ((s12 = hypot(xy.x, xy.y)) < EPS10) {
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2836,10 +2913,13 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
     double c;
     double azi1, azi2, s12, x2, y2, lat1, lon1, lat2, lon2;
 
     if ((c = hypot(xy.x, xy.y)) < EPS10) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3023,6 +3103,9 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
 
     if ((s12 = hypot(xy.x, xy.y)) < EPS10) {
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         lp.phi = P->phi0;
         lp.lam = 0.;
         return (lp);
@@ -3052,6 +3135,7 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -3093,6 +3177,8 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         lat1 = P->phi0 / DEG_TO_RAD;
         lon1 = 0;
         azi1 = atan2(xy.x, xy.y) / DEG_TO_RAD; // Clockwise from north
@@ -3106,6 +3192,7 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
 
         x2 = xy.x * P->a;
         y2 = xy.y * P->a;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3434,6 +3521,19 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
         lp.phi = pj_inv_mlfn(Q->mode == N_POLE ? Q->Mp - s12 : Q->Mp + s12,
                              Q->en);
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+        lat1 = P->phi0 / DEG_TO_RAD;
+        lon1 = P->lam0 / DEG_TO_RAD;
+        azi1 = atan2(x2, y2) / DEG_TO_RAD;
+        s12 = sqrt(x2 * x2 + y2 * y2);
+        geod_direct(&Q->g, lat1, lon1, azi1, s12, &lat2, &lon2, &azi2);
+        lp.phi = lat2 * DEG_TO_RAD;
+        lp.lam = lon2 * DEG_TO_RAD;
+        lp.lam -= P->lam0;
+    } else { /* Polar */
+        lp.phi = pj_inv_mlfn(Q->mode == N_POLE ? Q->Mp - c : Q->Mp + c, Q->en);
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         lp.lam = atan2(xy.x, Q->mode == N_POLE ? -xy.y : xy.y);
     }
     return lp;
@@ -3513,6 +3613,7 @@ PJ *PROJECTION(aeqd) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3533,10 +3634,13 @@ PJ *PROJECTION(aeqd) {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
     geod_init(&Q->g, 1, P->f);
 =======
     geod_init(&Q->g, P->a, P->es / (1 + sqrt(P->one_es)));
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3710,6 +3814,8 @@ PJ *PROJECTION(aeqd) {
 =======
     geod_init(&Q->g, 1, P->f);
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 
     if (fabs(fabs(P->phi0) - M_HALFPI) < EPS10) {
         Q->mode = P->phi0 < 0. ? S_POLE : N_POLE;
