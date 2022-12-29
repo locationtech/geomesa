@@ -85,12 +85,16 @@ INSERT INTO "usage" VALUES('EPSG','7986','helmert_transformation','EPSG','1065',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -114,6 +118,10 @@ INSERT INTO "usage" VALUES('EPSG','7986','helmert_transformation','EPSG','1065',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 (2)','Replaced by Amersfoort to ETRS89 (4) (tfm code 15740). Dutch sources also quote an equivalent transformation using the Coordinate Frame 7-parameter method - see tfm code 1751.','EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4289','EPSG','4258',0.5,593.032,26.0,478.741,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,3903453.148,368135.313,5012970.306,'EPSG','9001','NCG-Nld 2000 MB',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 (2)','Replaced by Amersfoort to ETRS89 (4) (tfm code 15740). Dutch sources also quote an equivalent transformation using the Coordinate Frame 7-parameter method - see tfm code 1751.','EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4289','EPSG','4258',0.5,593.032,26.0,478.741,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,3903453.148,368135.313,5012970.306,'EPSG','9001','NCG-Nld 2000',0);
@@ -161,8 +169,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 (2)','Replaced by Amersfoort to ETRS89 (4) (tfm code 15740). Dutch sources also quote an equivalent transformation using the Coordinate Frame 7-parameter method - see tfm code 1751.','EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4289','EPSG','4258',0.5,593.032,26.0,478.741,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,3903453.148,368135.313,5012970.306,'EPSG','9001','NCG-Nld 2000',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -206,6 +217,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 (2)','Replaced by Amersfoort to ETRS89 (4) (tfm code 15740). Dutch sources also quote an equivalent transformation using the Coordinate Frame 7-parameter method - see tfm code 1751.','EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4289','EPSG','4258',0.5,593.032,26.0,478.741,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,3903453.148,368135.313,5012970.306,'EPSG','9001','NCG-Nld 2000',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 (2)','Replaced by Amersfoort to ETRS89 (4) (tfm code 15740). Dutch sources also quote an equivalent transformation using the Coordinate Frame 7-parameter method - see tfm code 1751.','EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4289','EPSG','4258',0.5,593.032,26.0,478.741,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,3903453.148,368135.313,5012970.306,'EPSG','9001','NCG-Nld 2000',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -277,6 +289,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','7987','helmert_transformation','EPSG','1066','EPSG','1275','EPSG','1035');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1067','Minna to WGS 84 (11)','Used by Statoil for deep water blocks 210, 213, 217 and 218. Parameter values interpolated from Racal Survey geocentric translation contour charts for each of these four blocks and then meaned.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4263','EPSG','4326',8.0,-92.1,-89.9,114.9,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Stat-Nga',0);
 INSERT INTO "usage" VALUES('EPSG','7988','helmert_transformation','EPSG','1067','EPSG','3817','EPSG','1136');
@@ -612,12 +626,16 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1226','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -641,6 +659,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1226','Schwarzeck to WGS 84 
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 Beware! Source CRS uses German legal metres, transformation parameter values are in (International) metres. See tfm code 1271 for example.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',35.0,616.0,97.0,-251.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Nam',0);
 =======
 Beware!  Source CRS uses German legal metres, transformation parameter values are in (International) metres. See tfm code 1271 for example.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',35.0,616.0,97.0,-251.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Nam',0);
@@ -688,8 +710,11 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 Beware!  Source CRS uses German legal metres, transformation parameter values are in (International) metres. See tfm code 1271 for example.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',35.0,616.0,97.0,-251.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Nam',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -733,6 +758,7 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 Beware!  Source CRS uses German legal metres, transformation parameter values are in (International) metres. See tfm code 1271 for example.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',35.0,616.0,97.0,-251.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Nam',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 Beware!  Source CRS uses German legal metres, transformation parameter values are in (International) metres. See tfm code 1271 for example.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',35.0,616.0,97.0,-251.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Nam',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -804,6 +830,8 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','8147','helmert_transformation','EPSG','1226','EPSG','1169','EPSG','1160');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1227','Tananarive to WGS 84 (1)','Accuracy estimate not available.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4297','EPSG','4326',999.0,-189.0,-242.0,-91.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Mdg',0);
 INSERT INTO "usage" VALUES('EPSG','8148','helmert_transformation','EPSG','1227','EPSG','1149','EPSG','1160');
@@ -890,12 +918,16 @@ INSERT INTO "usage" VALUES('EPSG','8188','helmert_transformation','EPSG','1267',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -919,6 +951,10 @@ INSERT INTO "usage" VALUES('EPSG','8188','helmert_transformation','EPSG','1267',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 (2)','Beware! Source CRS uses GLM, tfm param in m. Example: Schwarzeck φ=19°35''46.952"S λ=20°41''50.649"E h=1185.99m; X=5623409.386 Y=2124618.003 Z=-2125847.632 GLM; X=5623485.84m Y=2124646.89m Z=-2125876.54m; WGS 84 X=5624101.48m Y=2124748.97m Z=-2126132.35m.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',999.0,615.64,102.08,-255.81,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SLI-Nam',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 (2)','Beware!  Source CRS uses GLM, tfm param in m. Example: Schwarzeck φ=19°35''46.952"S λ=20°41''50.649"E h=1185.99m; X=5623409.386 Y=2124618.003 Z=-2125847.632 GLM; X=5623485.84m Y=2124646.89m Z=-2125876.54m; WGS 84 X=5624101.48m Y=2124748.97m Z=-2126132.35m.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',999.0,615.64,102.08,-255.81,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SLI-Nam',0);
@@ -966,8 +1002,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 (2)','Beware!  Source CRS uses GLM, tfm param in m. Example: Schwarzeck φ=19°35''46.952"S λ=20°41''50.649"E h=1185.99m; X=5623409.386 Y=2124618.003 Z=-2125847.632 GLM; X=5623485.84m Y=2124646.89m Z=-2125876.54m; WGS 84 X=5624101.48m Y=2124748.97m Z=-2126132.35m.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',999.0,615.64,102.08,-255.81,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SLI-Nam',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1011,6 +1050,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 (2)','Beware!  Source CRS uses GLM, tfm param in m. Example: Schwarzeck φ=19°35''46.952"S λ=20°41''50.649"E h=1185.99m; X=5623409.386 Y=2124618.003 Z=-2125847.632 GLM; X=5623485.84m Y=2124646.89m Z=-2125876.54m; WGS 84 X=5624101.48m Y=2124748.97m Z=-2126132.35m.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',999.0,615.64,102.08,-255.81,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SLI-Nam',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 (2)','Beware!  Source CRS uses GLM, tfm param in m. Example: Schwarzeck φ=19°35''46.952"S λ=20°41''50.649"E h=1185.99m; X=5623409.386 Y=2124618.003 Z=-2125847.632 GLM; X=5623485.84m Y=2124646.89m Z=-2125876.54m; WGS 84 X=5624101.48m Y=2124748.97m Z=-2126132.35m.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',999.0,615.64,102.08,-255.81,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SLI-Nam',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1082,6 +1122,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','8192','helmert_transformation','EPSG','1271','EPSG','1169','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1272','GGRS87 to WGS 84 (1)','','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4121','EPSG','4326',1.0,-199.87,74.79,246.62,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Hel-Grc',0);
 INSERT INTO "usage" VALUES('EPSG','8193','helmert_transformation','EPSG','1272','EPSG','3254','EPSG','1041');
@@ -1501,12 +1543,16 @@ INSERT INTO "usage" VALUES('EPSG','8579','helmert_transformation','EPSG','1658',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1530,6 +1576,10 @@ INSERT INTO "usage" VALUES('EPSG','8579','helmert_transformation','EPSG','1658',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89 (1)','May be taken as approximate transformation Monte Mario to WGS 84 - see code 1660. For more accurate transformations to explicit realizations of ETRS89 see Monte Mario to IGM95 (4) and Monte Mario to RDN2008 (5), CTs 9733 and 9734.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4265','EPSG','4258',4.0,-104.1,-49.1,-9.9,'EPSG','9001',0.971,-2.917,0.714,'EPSG','9104',-11.68,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita main',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89 (1)','May be taken as approximate transformation Monte Mario to WGS 84 - see code 1660. For more accurate transformations to explicit realizations of ETRS89 see Monte Mario to IGM95 (4) and Monte Mario to RDN2008 (5), CTs 9733 and 9734. ','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4265','EPSG','4258',4.0,-104.1,-49.1,-9.9,'EPSG','9001',0.971,-2.917,0.714,'EPSG','9104',-11.68,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita main',0);
@@ -1577,8 +1627,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89 (1)','May be taken as approximate transformation Monte Mario to WGS 84 - see code 1660. For more accurate transformations to explicit realizations of ETRS89 see Monte Mario to IGM95 (4) and Monte Mario to RDN2008 (5), CTs 9733 and 9734. ','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4265','EPSG','4258',4.0,-104.1,-49.1,-9.9,'EPSG','9001',0.971,-2.917,0.714,'EPSG','9104',-11.68,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita main',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1622,6 +1675,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89 (1)','May be taken as approximate transformation Monte Mario to WGS 84 - see code 1660. For more accurate transformations to explicit realizations of ETRS89 see Monte Mario to IGM95 (4) and Monte Mario to RDN2008 (5), CTs 9733 and 9734. ','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4265','EPSG','4258',4.0,-104.1,-49.1,-9.9,'EPSG','9001',0.971,-2.917,0.714,'EPSG','9104',-11.68,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita main',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89 (1)','May be taken as approximate transformation Monte Mario to WGS 84 - see code 1660. For more accurate transformations to explicit realizations of ETRS89 see Monte Mario to IGM95 (4) and Monte Mario to RDN2008 (5), CTs 9733 and 9734. ','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4265','EPSG','4258',4.0,-104.1,-49.1,-9.9,'EPSG','9001',0.971,-2.917,0.714,'EPSG','9104',-11.68,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita main',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1693,6 +1747,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','8580','helmert_transformation','EPSG','1659','EPSG','2372','EPSG','1044');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1660','Monte Mario to WGS 84 (4)','Parameter values from Monte Mario to ETRS89 (1) (code 1659). Assumes ETRS89 and WGS 84 can be considered the same to within the accuracy of the transformation.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4265','EPSG','4326',4.0,-104.1,-49.1,-9.9,'EPSG','9001',0.971,-2.917,0.714,'EPSG','9104',-11.68,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Ita main',0);
 INSERT INTO "usage" VALUES('EPSG','8581','helmert_transformation','EPSG','1660','EPSG','2372','EPSG','1252');
@@ -1741,12 +1797,16 @@ INSERT INTO "usage" VALUES('EPSG','8592','helmert_transformation','EPSG','1671',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1770,6 +1830,10 @@ INSERT INTO "usage" VALUES('EPSG','8592','helmert_transformation','EPSG','1671',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 (2)','Parameter values from Amersfoort to ETRS89 (1) (code 1751) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (1) (code 1112). Replaced by Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Nld 2000',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 (2)','Parameter values from Amersfoort to ETRS89 (1) (code 1751) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (1) (code 1112). Replaced by Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Nld',0);
@@ -1817,8 +1881,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 (2)','Parameter values from Amersfoort to ETRS89 (1) (code 1751) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (1) (code 1112). Replaced by Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Nld',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1862,6 +1929,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 (2)','Parameter values from Amersfoort to ETRS89 (1) (code 1751) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (1) (code 1112). Replaced by Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Nld',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 (2)','Parameter values from Amersfoort to ETRS89 (1) (code 1751) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (1) (code 1112). Replaced by Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Nld',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1933,6 +2001,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','8593','helmert_transformation','EPSG','1672','EPSG','1275','EPSG','1252');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1673','DHDN to WGS 84 (1)','Parameter values from DHDN to ETRS89 (1) (code 1309) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaced by DHDN to WGS 84 (2) (tfm code 1777).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4314','EPSG','4326',5.0,582.0,105.0,414.0,'EPSG','9001',-1.04,-0.35,3.08,'EPSG','9104',8.3,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Deu W',0);
 INSERT INTO "usage" VALUES('EPSG','8594','helmert_transformation','EPSG','1673','EPSG','2326','EPSG','1045');
@@ -1989,12 +2059,16 @@ INSERT INTO "usage" VALUES('EPSG','8622','helmert_transformation','EPSG','1701',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2018,6 +2092,10 @@ INSERT INTO "usage" VALUES('EPSG','8622','helmert_transformation','EPSG','1701',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 (1)','Replaced by Amersfoort to ETRS89 (3) (tfm code 15739). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas 10-parameter method (M-B) - see tfm code 1066.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2000 CF',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 (1)','Replaced by Amersfoort to ETRS89 (3) (tfm code 15739). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas 10-parameter method (M-B) - see tfm code 1066.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2000',0);
@@ -2065,8 +2143,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 (1)','Replaced by Amersfoort to ETRS89 (3) (tfm code 15739). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas 10-parameter method (M-B) - see tfm code 1066.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2000',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2110,6 +2191,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 (1)','Replaced by Amersfoort to ETRS89 (3) (tfm code 15739). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas 10-parameter method (M-B) - see tfm code 1066.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2000',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 (1)','Replaced by Amersfoort to ETRS89 (3) (tfm code 15739). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas 10-parameter method (M-B) - see tfm code 1066.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2000',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2181,6 +2263,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','8672','helmert_transformation','EPSG','1751','EPSG','1275','EPSG','1035');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1753','CH1903 to WGS 84 (1)','Implemented in Bundesamt für Landestopografie programme GRANIT. Used from 1987 to 1997. Not recommended for current usage - replaced by CH1903 to WGS 84 (2) (code 1766).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4149','EPSG','4326',1.0,660.077,13.551,369.344,'EPSG','9001',2.484,1.783,2.939,'EPSG','9113',5.66,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BfL-CH 1',0);
 INSERT INTO "usage" VALUES('EPSG','8674','helmert_transformation','EPSG','1753','EPSG','1286','EPSG','1232');
@@ -2273,12 +2357,16 @@ INSERT INTO "usage" VALUES('EPSG','8717','helmert_transformation','EPSG','1796',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2302,6 +2390,10 @@ INSERT INTO "usage" VALUES('EPSG','8717','helmert_transformation','EPSG','1796',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84 (1)','Derived at 2 stations. Accuracy 25m, 25m and 32m in X, Y and Z axes.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4194','EPSG','4326',48.0,164.0,138.0,-189.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Grl S',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84 (1)','Derived at 2 stations.  Accuracy 25m, 25m and 32m in X, Y and Z axes.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4194','EPSG','4326',48.0,164.0,138.0,-189.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Grl S',0);
@@ -2349,8 +2441,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84 (1)','Derived at 2 stations.  Accuracy 25m, 25m and 32m in X, Y and Z axes.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4194','EPSG','4326',48.0,164.0,138.0,-189.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Grl S',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2394,6 +2489,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84 (1)','Derived at 2 stations.  Accuracy 25m, 25m and 32m in X, Y and Z axes.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4194','EPSG','4326',48.0,164.0,138.0,-189.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Grl S',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84 (1)','Derived at 2 stations.  Accuracy 25m, 25m and 32m in X, Y and Z axes.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4194','EPSG','4326',48.0,164.0,138.0,-189.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Grl S',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2465,6 +2561,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','8718','helmert_transformation','EPSG','1797','EPSG','3362','EPSG','1160');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1798','Qornoq 1927 to WGS 84 (2)','','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4194','EPSG','4326',1.0,163.511,127.533,-159.789,'EPSG','9001',0.0,0.0,0.814,'EPSG','9104',-0.6,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'KMS-Grl',0);
 INSERT INTO "usage" VALUES('EPSG','8719','helmert_transformation','EPSG','1798','EPSG','3362','EPSG','1153');
@@ -2624,12 +2722,16 @@ INSERT INTO "usage" VALUES('EPSG','8797','helmert_transformation','EPSG','1876',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2653,6 +2755,10 @@ INSERT INTO "usage" VALUES('EPSG','8797','helmert_transformation','EPSG','1876',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)','Derived by Brazilian Institute of Geography and Statistics (IBGE) in 1989 at Chua origin point. In use by Shell throughout Brazil. For use by Petrobras and ANP, replaced by tfm code 5882 from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',5.0,-66.87,4.37,-38.52,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra 5m 1989',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)','Derived by Brazilian Institute of Geography and Statistics (IBGE) in 1989 at Chua origin point. In use by Shell throughout Brazil. For use by Petrobras and ANP, replaced by tfm code 5882 from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',5.0,-66.87,4.37,-38.52,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGBE-Bra',0);
@@ -2700,8 +2806,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)','Derived by Brazilian Institute of Geography and Statistics (IBGE) in 1989 at Chua origin point. In use by Shell throughout Brazil. For use by Petrobras and ANP, replaced by tfm code 5882 from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',5.0,-66.87,4.37,-38.52,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGBE-Bra',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2745,6 +2854,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)','Derived by Brazilian Institute of Geography and Statistics (IBGE) in 1989 at Chua origin point. In use by Shell throughout Brazil. For use by Petrobras and ANP, replaced by tfm code 5882 from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',5.0,-66.87,4.37,-38.52,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGBE-Bra',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)','Derived by Brazilian Institute of Geography and Statistics (IBGE) in 1989 at Chua origin point. In use by Shell throughout Brazil. For use by Petrobras and ANP, replaced by tfm code 5882 from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',5.0,-66.87,4.37,-38.52,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGBE-Bra',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2816,6 +2926,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','8798','helmert_transformation','EPSG','1877','EPSG','1053','EPSG','1210');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1878','SWEREF99 to ETRS89 (1)','Can be taken as an approximate transformation SWEREF99 to WGS 84 - see code 1879.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4619','EPSG','4258',0.0,0.0,0.0,0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NLS-Swe',0);
 INSERT INTO "usage" VALUES('EPSG','8799','helmert_transformation','EPSG','1878','EPSG','1225','EPSG','1161');
@@ -2930,6 +3042,7 @@ INSERT INTO "usage" VALUES('EPSG','8847','helmert_transformation','EPSG','1926',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2946,6 +3059,10 @@ INSERT INTO "usage" VALUES('EPSG','8847','helmert_transformation','EPSG','1926',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3105,12 +3222,17 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1927','IGN56 Lifou to WGS 84 (2)','Withdrawn by information source and replaced by improved information - see tfm code 15902.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4633','EPSG','4326',1.0,137.092,131.66,91.475,'EPSG','9001',-1.9436,-11.5993,-4.3321,'EPSG','9104',-7.4824,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
 INSERT INTO "usage" VALUES('EPSG','8848','helmert_transformation','EPSG','1927','EPSG','2814','EPSG','1041');
@@ -3119,8 +3241,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1927','IGN56 Lifou to WGS 84 (2)','Withdrawn by information source and replaced by improved information - see tfm code 15902.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4633','EPSG','4326',1.0,137.092,131.66,91.475,'EPSG','9001',-1.9436,-11.5993,-4.3321,'EPSG','9104',-7.4824,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
 INSERT INTO "usage" VALUES('EPSG','8848','helmert_transformation','EPSG','1927','EPSG','2814','EPSG','1041');
@@ -3150,6 +3275,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3194,6 +3320,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','8849','helmert_transformation','EPSG','1928','EPSG','2819','EPSG','1041');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1929','IGN72 Grand Terre to WGS 84 (2)','','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4634','EPSG','4326',NULL,97.295,-263.247,310.882,'EPSG','9001',-1.5999,0.8386,3.1409,'EPSG','9104',13.3259,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',1);
 INSERT INTO "usage" VALUES('EPSG','8850','helmert_transformation','EPSG','1929','EPSG','2822','EPSG','1041');
@@ -3262,6 +3392,7 @@ INSERT INTO "usage" VALUES('EPSG','8873','helmert_transformation','EPSG','1952',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3278,6 +3409,10 @@ INSERT INTO "usage" VALUES('EPSG','8873','helmert_transformation','EPSG','1952',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3437,12 +3572,17 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1953','TM75 to ETRS89 (2)','TM75 is based on the geodetic datum of 1965 which should not be confused with the mapping adjustment of 1965 (TM65). May be taken as approximate transformations TM75 to WGS 84, TM65 to WGS 84 and OSNI 1952 to WGS 84 - see codes 1954, 1641 and 1955.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4300','EPSG','4258',1.0,482.5,-130.6,564.6,'EPSG','9001',-1.042,-0.214,-0.631,'EPSG','9104',8.15,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OSI-Ire',0);
 INSERT INTO "usage" VALUES('EPSG','8874','helmert_transformation','EPSG','1953','EPSG','1305','EPSG','1041');
@@ -3451,8 +3591,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1953','TM75 to ETRS89 (2)','TM75 is based on the geodetic datum of 1965 which should not be confused with the mapping adjustment of 1965 (TM65). May be taken as approximate transformations TM75 to WGS 84, TM65 to WGS 84 and OSNI 1952 to WGS 84 - see codes 1954, 1641 and 1955.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4300','EPSG','4258',1.0,482.5,-130.6,564.6,'EPSG','9001',-1.042,-0.214,-0.631,'EPSG','9104',8.15,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OSI-Ire',0);
 INSERT INTO "usage" VALUES('EPSG','8874','helmert_transformation','EPSG','1953','EPSG','1305','EPSG','1041');
@@ -3482,6 +3625,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3526,6 +3670,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','8875','helmert_transformation','EPSG','1954','EPSG','1305','EPSG','1252');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1955','OSNI 1952 to WGS 84 (1)','Parameter values from TM75 to ETRS89 (2) (code 1953). Assumes each pair of (i) OSNI 1952 and TM75, and (ii) ETRS89 and WGS 84, can be considered the same to within the accuracy of the transformation.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4188','EPSG','4326',1.0,482.5,-130.6,564.6,'EPSG','9001',-1.042,-0.214,-0.631,'EPSG','9104',8.15,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Ire',0);
 INSERT INTO "usage" VALUES('EPSG','8876','helmert_transformation','EPSG','1955','EPSG','2530','EPSG','1252');
@@ -3568,12 +3716,16 @@ INSERT INTO "usage" VALUES('EPSG','8883','helmert_transformation','EPSG','1962',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3597,6 +3749,10 @@ INSERT INTO "usage" VALUES('EPSG','8883','helmert_transformation','EPSG','1962',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to WGS 84 (2)','Withdrawn by information source and replaced by improved information - see CT code 15903.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4662','EPSG','4326',1.0,97.295,-263.247,310.882,'EPSG','9001',-1.5999,0.8386,3.1409,'EPSG','9104',13.3259,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl v2',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to WGS 84 (2)','Withdrawn by information source and replaced by improved information - see tfm code 15903.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4662','EPSG','4326',1.0,97.295,-263.247,310.882,'EPSG','9001',-1.5999,0.8386,3.1409,'EPSG','9104',13.3259,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
@@ -3644,8 +3800,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to WGS 84 (2)','Withdrawn by information source and replaced by improved information - see tfm code 15903.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4662','EPSG','4326',1.0,97.295,-263.247,310.882,'EPSG','9001',-1.5999,0.8386,3.1409,'EPSG','9104',13.3259,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3689,6 +3848,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to WGS 84 (2)','Withdrawn by information source and replaced by improved information - see tfm code 15903.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4662','EPSG','4326',1.0,97.295,-263.247,310.882,'EPSG','9001',-1.5999,0.8386,3.1409,'EPSG','9104',13.3259,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to WGS 84 (2)','Withdrawn by information source and replaced by improved information - see tfm code 15903.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4662','EPSG','4326',1.0,97.295,-263.247,310.882,'EPSG','9001',-1.5999,0.8386,3.1409,'EPSG','9104',13.3259,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3760,6 +3920,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','8884','helmert_transformation','EPSG','1963','EPSG','2822','EPSG','1041');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1964','RGR92 to Reunion 1947 (1)','Note: Because of the large rotation about the Y-axis this transformation is not reversible. Errors of up to 0.5m may occur. For the reverse transformation use Piton des Neiges to RGR92 (1) (code 1926).','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4627','EPSG','4626',0.1,-789.99,627.333,89.685,'EPSG','9001',-0.6072,-76.8019,10.568,'EPSG','9104',32.2083,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGN-Reu 0.1m',0);
 INSERT INTO "usage" VALUES('EPSG','8885','helmert_transformation','EPSG','1964','EPSG','3337','EPSG','1031');
@@ -3908,12 +4070,16 @@ INSERT INTO "usage" VALUES('EPSG','9024','helmert_transformation','EPSG','3990',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3937,6 +4103,10 @@ INSERT INTO "usage" VALUES('EPSG','9024','helmert_transformation','EPSG','3990',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4)','Derived at 3 stations. Accuracy 20m in each axis. Info source gives source CRS as Arc 1950. From inspection of parameter values, analysis of TR8350.2 contour chart sand geographic applicability of CRS, OGP believes that the this shuld be Arc 1960.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4210','EPSG','4326',35.0,-153.0,-5.0,-292.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Bdi',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4)','Derived at 3 stations. Accuracy 20m in each axis. Info source gives source CRS as Arc 1950. From inspection of parameter values,  analysis of TR8350.2 contour chart sand geographic applicability of CRS, OGP believes that the this shuld be Arc 1960.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4210','EPSG','4326',35.0,-153.0,-5.0,-292.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Bdi',0);
@@ -3984,8 +4154,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4)','Derived at 3 stations. Accuracy 20m in each axis. Info source gives source CRS as Arc 1950. From inspection of parameter values,  analysis of TR8350.2 contour chart sand geographic applicability of CRS, OGP believes that the this shuld be Arc 1960.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4210','EPSG','4326',35.0,-153.0,-5.0,-292.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Bdi',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4029,6 +4202,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4)','Derived at 3 stations. Accuracy 20m in each axis. Info source gives source CRS as Arc 1950. From inspection of parameter values,  analysis of TR8350.2 contour chart sand geographic applicability of CRS, OGP believes that the this shuld be Arc 1960.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4210','EPSG','4326',35.0,-153.0,-5.0,-292.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Bdi',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4)','Derived at 3 stations. Accuracy 20m in each axis. Info source gives source CRS as Arc 1950. From inspection of parameter values,  analysis of TR8350.2 contour chart sand geographic applicability of CRS, OGP believes that the this shuld be Arc 1960.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4210','EPSG','4326',35.0,-153.0,-5.0,-292.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Bdi',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4100,6 +4274,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','9025','helmert_transformation','EPSG','3998','EPSG','1058','EPSG','1160');
 INSERT INTO "helmert_transformation" VALUES('EPSG','4064','RGRDC 2005 to WGS 84 (1)','Approximation at the +/- 1m level assuming that RGRDC 2005 is equivalent to WGS 84 within the accuracy of the transformation.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4046','EPSG','4326',1.0,0.0,0.0,0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-DUC',0);
 INSERT INTO "usage" VALUES('EPSG','9027','helmert_transformation','EPSG','4064','EPSG','3613','EPSG','1252');
@@ -4180,6 +4356,7 @@ INSERT INTO "usage" VALUES('EPSG','9114','helmert_transformation','EPSG','4599',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4196,6 +4373,10 @@ INSERT INTO "usage" VALUES('EPSG','9114','helmert_transformation','EPSG','4599',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4309,8 +4490,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4386,10 +4570,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 >>>>>>> 74eac2217b (typo fixes)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','4827','S-JTSK to ETRS89 (4)','Derived at approximately 700 points. Scale difference incorporated into rotation matrix. Replaces S-JTSK to ETRS89 (3) (code 4829) to use more common method. May be taken as approximate transformation S-JTSK to WGS 84 - see code 4836.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4156','EPSG','4258',1.0,485.0,169.5,483.8,'EPSG','9001',7.786,4.398,4.103,'EPSG','9104',0.0,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'UGKK-Svk',0);
@@ -4545,6 +4733,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 >>>>>>> 74eac2217b (typo fixes)
 >>>>>>> 48ae38528d (typo fixes)
 =======
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','4827','S-JTSK to ETRS89 (4)','Derived at approximately 700 points. Scale difference incorporated into rotation matrix. Replaces S-JTSK to ETRS89 (3) (code 4829) to use more common method. May be taken as approximate transformation S-JTSK to WGS 84 - see code 4836.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4156','EPSG','4258',1.0,485.0,169.5,483.8,'EPSG','9001',7.786,4.398,4.103,'EPSG','9104',0.0,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'UGKK-Svk',0);
 INSERT INTO "usage" VALUES('EPSG','9120','helmert_transformation','EPSG','4827','EPSG','1211','EPSG','1041');
 INSERT INTO "helmert_transformation" VALUES('EPSG','4828','S-JTSK to WGS 84 (4)','Parameter values from S-JTSK to ETRS89 (4) (code 4827). Assumes ETRS89 and WGS 84 can be considered the same to within the accuracy of the transformation.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4156','EPSG','4326',1.0,485.0,169.5,483.5,'EPSG','9001',7.786,4.398,4.103,'EPSG','9104',0.0,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Svk',1);
@@ -4554,11 +4744,20 @@ INSERT INTO "usage" VALUES('EPSG','9122','helmert_transformation','EPSG','4829',
 INSERT INTO "helmert_transformation" VALUES('EPSG','4830','Amersfoort to ETRS89 (5)','Replaces Amersfoort to ETRS89 (3) (tfm code 15739). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas method - see tfm code 4831.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.4171,50.3319,465.5524,'EPSG','9001',1.9342,-1.6677,9.1019,'EPSG','9109',4.0725,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2008',0);
 INSERT INTO "usage" VALUES('EPSG','9123','helmert_transformation','EPSG','4830','EPSG','1275','EPSG','1035');
 INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 (6)','Replaces Amersfoort to ETRS89 (4) (tfm code 15740). Dutch sources also quote an equivalent transformation using the Coordinate Frame 7-parameter method - see tfm code 4830.','EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4289','EPSG','4258',0.5,593.0248,25.9984,478.7459,'EPSG','9001',1.9342,-1.6677,9.1019,'EPSG','9109',4.0725,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,3903453.1482,368135.3134,5012970.3051,'EPSG','9001','NCG-Nld 2008',0);
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','9124','helmert_transformation','EPSG','4831','EPSG','1275','EPSG','1035');
 INSERT INTO "helmert_transformation" VALUES('EPSG','4832','Mexico ITRF92 to WGS 84 (1)','Approximation at the +/- 1m level assuming that Mexico ITRF92 is equivalent to WGS 84.
 ','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4483','EPSG','4326',1.0,0.0,0.0,0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Mex',0);
@@ -4588,12 +4787,16 @@ INSERT INTO "usage" VALUES('EPSG','9125','helmert_transformation','EPSG','4832',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4617,6 +4820,10 @@ INSERT INTO "usage" VALUES('EPSG','9125','helmert_transformation','EPSG','4832',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 (4)','Parameter values from Amersfoort to ETRS89 (5) (tfm code 4830) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.4171,50.3319,465.5524,'EPSG','9001',1.9342,-1.6677,9.1019,'EPSG','9109',4.0725,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld 2008',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 (4)','Parameter values from Amersfoort to ETRS89 (5) (tfm code 4830) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.4171,50.3319,465.5524,'EPSG','9001',1.9342,-1.6677,9.1019,'EPSG','9109',4.0725,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld',0);
@@ -4664,8 +4871,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 (4)','Parameter values from Amersfoort to ETRS89 (5) (tfm code 4830) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.4171,50.3319,465.5524,'EPSG','9001',1.9342,-1.6677,9.1019,'EPSG','9109',4.0725,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4709,6 +4919,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 (4)','Parameter values from Amersfoort to ETRS89 (5) (tfm code 4830) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.4171,50.3319,465.5524,'EPSG','9001',1.9342,-1.6677,9.1019,'EPSG','9109',4.0725,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 (4)','Parameter values from Amersfoort to ETRS89 (5) (tfm code 4830) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.4171,50.3319,465.5524,'EPSG','9001',1.9342,-1.6677,9.1019,'EPSG','9109',4.0725,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4780,6 +4991,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','9126','helmert_transformation','EPSG','4833','EPSG','1275','EPSG','1252');
 INSERT INTO "helmert_transformation" VALUES('EPSG','4834','Chua to WGS 84 (3)','Parameter values from Chua to SIRGAS 2000 (1) (tfm code 4069) assuming that within the tfm accuracy SIRGAS 2000 is equivalent to WGS 84.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4224','EPSG','4326',5.0,-144.35,242.88,-33.2,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bra DF post 2000',0);
 INSERT INTO "usage" VALUES('EPSG','9127','helmert_transformation','EPSG','4834','EPSG','3619','EPSG','1252');
@@ -5019,6 +5232,7 @@ INSERT INTO "usage" VALUES('EPSG','9515','helmert_transformation','EPSG','5878',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5035,6 +5249,10 @@ INSERT INTO "usage" VALUES('EPSG','9515','helmert_transformation','EPSG','5878',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5194,12 +5412,17 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','5881','SAD69(96) to SIRGAS 2000 (2)','Parameter values from SAD69 to SIRGAS 2000 (1) (tfm code 15485) assuming that SAD69 and SAD69(96) are equal within the accuracy of the transformation. Used by Petrobras and ANP throughout Brazil from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','5527','EPSG','4674',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra',0);
 INSERT INTO "usage" VALUES('EPSG','9516','helmert_transformation','EPSG','5881','EPSG','1053','EPSG','1252');
@@ -5208,8 +5431,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','5881','SAD69(96) to SIRGAS 2000 (2)','Parameter values from SAD69 to SIRGAS 2000 (1) (tfm code 15485) assuming that SAD69 and SAD69(96) are equal within the accuracy of the transformation. Used by Petrobras and ANP throughout Brazil from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','5527','EPSG','4674',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra',0);
 INSERT INTO "usage" VALUES('EPSG','9516','helmert_transformation','EPSG','5881','EPSG','1053','EPSG','1252');
@@ -5239,6 +5465,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5283,6 +5510,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','9517','helmert_transformation','EPSG','5882','EPSG','1053','EPSG','1252');
 INSERT INTO "helmert_transformation" VALUES('EPSG','5888','Combani 1950 to RGM04 (1)','','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4632','EPSG','4470',0.3,-599.928,-275.552,-195.665,'EPSG','9001',-0.0835,-0.4715,0.0602,'EPSG','9104',49.2814,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGN-Myt',0);
 INSERT INTO "usage" VALUES('EPSG','9519','helmert_transformation','EPSG','5888','EPSG','3340','EPSG','1033');
@@ -5331,6 +5562,7 @@ INSERT INTO "usage" VALUES('EPSG','9639','helmert_transformation','EPSG','6194',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5347,6 +5579,10 @@ INSERT INTO "usage" VALUES('EPSG','9639','helmert_transformation','EPSG','6194',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5506,12 +5742,17 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','6195','SAD69(96) to WGS 84 (2)','Parameter values from SAD69(96) to SIRGAS 2000 (2)) (tfm code 5881) assuming that SIRGAS 2000 and WGS 84 are equal within the accuracy of the transformation, based on SAD69 to SIRGAS 2000 (1)) (tfm code 15485). Used by Petrobras and ANP from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','5527','EPSG','4326',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bra',0);
 INSERT INTO "usage" VALUES('EPSG','9640','helmert_transformation','EPSG','6195','EPSG','1053','EPSG','1257');
@@ -5520,8 +5761,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','6195','SAD69(96) to WGS 84 (2)','Parameter values from SAD69(96) to SIRGAS 2000 (2)) (tfm code 5881) assuming that SIRGAS 2000 and WGS 84 are equal within the accuracy of the transformation, based on SAD69 to SIRGAS 2000 (1)) (tfm code 15485). Used by Petrobras and ANP from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','5527','EPSG','4326',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bra',0);
 INSERT INTO "usage" VALUES('EPSG','9640','helmert_transformation','EPSG','6195','EPSG','1053','EPSG','1257');
@@ -5551,6 +5795,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5595,6 +5840,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','9641','helmert_transformation','EPSG','6196','EPSG','4127','EPSG','1136');
 INSERT INTO "helmert_transformation" VALUES('EPSG','6205','MGI 1901 to ETRS89 (5)','Derived at 31 stations in July 2010. Residuals generally less than +/- 0.7m horizontally.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','3906','EPSG','4258',1.0,517.4399,228.7318,579.7954,'EPSG','9001',-4.045,-4.304,15.612,'EPSG','9104',-8.312,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'KAT-Mkd',0);
 INSERT INTO "usage" VALUES('EPSG','9646','helmert_transformation','EPSG','6205','EPSG','1148','EPSG','1041');
@@ -5818,12 +6067,16 @@ INSERT INTO "usage" VALUES('EPSG','9873','helmert_transformation','EPSG','6976',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5847,6 +6100,10 @@ INSERT INTO "usage" VALUES('EPSG','9873','helmert_transformation','EPSG','6976',
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)','Derived at 6 stations. Accuracy 3m, 3m and 4m in X, Y and Z axes. Also used as a transformation from SAD69 to SIRGAS-Chile - see code 6970. Unlike IGM Chile, NGA extends use of this tfm to all Chile south of 44°S.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',6.0,-79.0,13.0,-14.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NGA-Chile 44-',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)','Derived at 6 stations. Accuracy 3m, 3m and 4m in X, Y and Z axes. Also used as a transformation from SAD69 to SIRGAS-Chile - see code 6970.  Unlike IGM Chile, NGA extends use of this tfm to all Chile south of 44°S.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',6.0,-79.0,13.0,-14.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NGA-Chile 44-',0);
@@ -5894,8 +6151,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)','Derived at 6 stations. Accuracy 3m, 3m and 4m in X, Y and Z axes. Also used as a transformation from SAD69 to SIRGAS-Chile - see code 6970.  Unlike IGM Chile, NGA extends use of this tfm to all Chile south of 44°S.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',6.0,-79.0,13.0,-14.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NGA-Chile 44-',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5939,6 +6199,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)','Derived at 6 stations. Accuracy 3m, 3m and 4m in X, Y and Z axes. Also used as a transformation from SAD69 to SIRGAS-Chile - see code 6970.  Unlike IGM Chile, NGA extends use of this tfm to all Chile south of 44°S.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',6.0,-79.0,13.0,-14.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NGA-Chile 44-',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)','Derived at 6 stations. Accuracy 3m, 3m and 4m in X, Y and Z axes. Also used as a transformation from SAD69 to SIRGAS-Chile - see code 6970.  Unlike IGM Chile, NGA extends use of this tfm to all Chile south of 44°S.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',6.0,-79.0,13.0,-14.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NGA-Chile 44-',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6010,6 +6271,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','9874','helmert_transformation','EPSG','6977','EPSG','2805','EPSG','1160');
 INSERT INTO "helmert_transformation" VALUES('EPSG','6992','IGD05 to IGD05/12','','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','7136','EPSG','7139',0.05,0.2255,-0.3709,-0.1171,'EPSG','9001',-0.00388,0.00063,-0.0182,'EPSG','9104',0.013443,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SOI-Isr',0);
 INSERT INTO "usage" VALUES('EPSG','9875','helmert_transformation','EPSG','6992','EPSG','1126','EPSG','1027');
@@ -6119,12 +6382,16 @@ INSERT INTO "usage" VALUES('EPSG','10280','helmert_transformation','EPSG','7817'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6148,6 +6415,10 @@ INSERT INTO "usage" VALUES('EPSG','10280','helmert_transformation','EPSG','7817'
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS89 (1)','Derived using 90 stations by IGM Italy on behalf of ASIG. mse = 18cm. Use only for horizontal coordinates; geoid heights must be calculated with ALBGEO3 software. May be taken as approximate transformation from Albanian 1987 to WGS 84 (see code 7834).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4191','EPSG','4258',0.2,-44.183,-0.58,-38.489,'EPSG','9001',-2.3867,-2.7072,3.5196,'EPSG','9104',-8.2703,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Alb 2D',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS89 (1)','Derived using 90 stations by IGM Italy on behalf of ASIG. mse = 18cm.  Use only for horizontal coordinates; geoid heights must be calculated with ALBGEO3 software. May be taken as approximate transformation from Albanian 1987 to WGS 84 (see code 7834).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4191','EPSG','4258',0.2,-44.183,-0.58,-38.489,'EPSG','9001',-2.3867,-2.7072,3.5196,'EPSG','9104',-8.2703,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Alb 2D',0);
@@ -6195,8 +6466,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS89 (1)','Derived using 90 stations by IGM Italy on behalf of ASIG. mse = 18cm.  Use only for horizontal coordinates; geoid heights must be calculated with ALBGEO3 software. May be taken as approximate transformation from Albanian 1987 to WGS 84 (see code 7834).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4191','EPSG','4258',0.2,-44.183,-0.58,-38.489,'EPSG','9001',-2.3867,-2.7072,3.5196,'EPSG','9104',-8.2703,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Alb 2D',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6240,6 +6514,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS89 (1)','Derived using 90 stations by IGM Italy on behalf of ASIG. mse = 18cm.  Use only for horizontal coordinates; geoid heights must be calculated with ALBGEO3 software. May be taken as approximate transformation from Albanian 1987 to WGS 84 (see code 7834).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4191','EPSG','4258',0.2,-44.183,-0.58,-38.489,'EPSG','9001',-2.3867,-2.7072,3.5196,'EPSG','9104',-8.2703,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Alb 2D',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS89 (1)','Derived using 90 stations by IGM Italy on behalf of ASIG. mse = 18cm.  Use only for horizontal coordinates; geoid heights must be calculated with ALBGEO3 software. May be taken as approximate transformation from Albanian 1987 to WGS 84 (see code 7834).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4191','EPSG','4258',0.2,-44.183,-0.58,-38.489,'EPSG','9001',-2.3867,-2.7072,3.5196,'EPSG','9104',-8.2703,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Alb 2D',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6311,6 +6586,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','10288','helmert_transformation','EPSG','7833','EPSG','3212','EPSG','1032');
 INSERT INTO "helmert_transformation" VALUES('EPSG','7834','Albanian 1987 to WGS 84 (1)','Parameter values from Albanian 1987 to ETRS89 (1) (code 7833). Assumes ETRS89 and WGS 84 can be considered the same to within the accuracy of the transformation.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4191','EPSG','4326',1.0,-44.183,-0.58,-38.489,'EPSG','9001',-2.3867,-2.7072,3.5196,'EPSG','9104',-8.2703,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IOGP-Alb 2D',0);
 INSERT INTO "usage" VALUES('EPSG','10289','helmert_transformation','EPSG','7834','EPSG','3212','EPSG','1252');
@@ -6977,12 +7254,16 @@ INSERT INTO "usage" VALUES('EPSG','11495','helmert_transformation','EPSG','15484
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7006,6 +7287,10 @@ INSERT INTO "usage" VALUES('EPSG','11495','helmert_transformation','EPSG','15484
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000 (1)','Accuracy generally better than 1m except in Amazon basin where it degenerates to 5m. May be used as CT between SAD69(96) and SIRGAS 2000 and between SAD69 and WGS 84 - see tfm codes 5881 and 5882. Used by Petrobras and ANP throughout Brazil from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4674',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra 5m 1994',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000 (1)','Accuracy generally better than 1m except in Amazon basin where it degenerates to 5m. May be used as CT between SAD69(96) and SIRGAS 2000 and between SAD69 and WGS 84 - see tfm codes 5881 and 5882. Used by Petrobras and ANP throughout Brazil from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4674',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra',0);
@@ -7053,8 +7338,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000 (1)','Accuracy generally better than 1m except in Amazon basin where it degenerates to 5m. May be used as CT between SAD69(96) and SIRGAS 2000 and between SAD69 and WGS 84 - see tfm codes 5881 and 5882. Used by Petrobras and ANP throughout Brazil from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4674',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7098,6 +7386,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000 (1)','Accuracy generally better than 1m except in Amazon basin where it degenerates to 5m. May be used as CT between SAD69(96) and SIRGAS 2000 and between SAD69 and WGS 84 - see tfm codes 5881 and 5882. Used by Petrobras and ANP throughout Brazil from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4674',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000 (1)','Accuracy generally better than 1m except in Amazon basin where it degenerates to 5m. May be used as CT between SAD69(96) and SIRGAS 2000 and between SAD69 and WGS 84 - see tfm codes 5881 and 5882. Used by Petrobras and ANP throughout Brazil from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4674',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7169,6 +7458,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','11496','helmert_transformation','EPSG','15485','EPSG','1053','EPSG','1257');
 INSERT INTO "helmert_transformation" VALUES('EPSG','15493','Minna to WGS 84 (15)','Adopted by MPN for all joint venture operations from 1/1/1996.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4263','EPSG','4326',5.0,-94.031,-83.317,116.708,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'MPN-Nga',0);
 INSERT INTO "usage" VALUES('EPSG','11504','helmert_transformation','EPSG','15493','EPSG','3590','EPSG','1136');
@@ -7287,6 +7578,7 @@ INSERT INTO "usage" VALUES('EPSG','11749','helmert_transformation','EPSG','15738
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7303,6 +7595,10 @@ INSERT INTO "usage" VALUES('EPSG','11749','helmert_transformation','EPSG','15738
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7462,12 +7758,17 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15739','Amersfoort to ETRS89 (3)','Replaces Amersfoort to ETRS89 (1) (tfm code 1751). Replaced by Amersfoort to ETRS89 (5) (tfm code 4830). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas 10-parameter method (M-B) - see tfm code 15740.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.2369,50.0087,465.658,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2004',0);
 INSERT INTO "usage" VALUES('EPSG','11750','helmert_transformation','EPSG','15739','EPSG','1275','EPSG','1035');
@@ -7476,8 +7777,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15739','Amersfoort to ETRS89 (3)','Replaces Amersfoort to ETRS89 (1) (tfm code 1751). Replaced by Amersfoort to ETRS89 (5) (tfm code 4830). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas 10-parameter method (M-B) - see tfm code 15740.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.2369,50.0087,465.658,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2004',0);
 INSERT INTO "usage" VALUES('EPSG','11750','helmert_transformation','EPSG','15739','EPSG','1275','EPSG','1035');
@@ -7507,6 +7811,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7551,6 +7856,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','11751','helmert_transformation','EPSG','15740','EPSG','1275','EPSG','1035');
 INSERT INTO "helmert_transformation" VALUES('EPSG','15741','Deir ez Zor to WGS 84 (2)','Derived by Elf in 1991 from tfm code 1584 concatenated with a tfm from WGS72BE to WGS84.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4227','EPSG','4326',5.0,-187.5,14.1,237.6,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Elf-Syr Deir 1991',0);
 INSERT INTO "usage" VALUES('EPSG','11752','helmert_transformation','EPSG','15741','EPSG','2329','EPSG','1136');
@@ -7647,12 +7956,16 @@ INSERT INTO "usage" VALUES('EPSG','11789','helmert_transformation','EPSG','15778
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7676,6 +7989,10 @@ INSERT INTO "usage" VALUES('EPSG','11789','helmert_transformation','EPSG','15778
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 84 (1)','Derived at origin station in Dhaka. Source information given to 3 decimal places but rounded by OGP to be commensurate with stated accuracy. For consistency with Survey of Bangladesh, Gulshan 303 to WGS 84 (2) [code 9679] should be preferred.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4682','EPSG','4326',1.0,283.7,735.9,261.1,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bgd rounded',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 84 (1)','Derived at origin station in Dhaka. Source information given to 3 decimal places but rounded by OGP to be commensurate with stated accuracy.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4682','EPSG','4326',1.0,283.7,735.9,261.1,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SB-Bgd',0);
@@ -7723,8 +8040,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 84 (1)','Derived at origin station in Dhaka. Source information given to 3 decimal places but rounded by OGP to be commensurate with stated accuracy.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4682','EPSG','4326',1.0,283.7,735.9,261.1,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SB-Bgd',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7768,6 +8088,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 84 (1)','Derived at origin station in Dhaka. Source information given to 3 decimal places but rounded by OGP to be commensurate with stated accuracy.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4682','EPSG','4326',1.0,283.7,735.9,261.1,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SB-Bgd',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 84 (1)','Derived at origin station in Dhaka. Source information given to 3 decimal places but rounded by OGP to be commensurate with stated accuracy.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4682','EPSG','4326',1.0,283.7,735.9,261.1,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SB-Bgd',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7839,6 +8160,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','11790','helmert_transformation','EPSG','15779','EPSG','1041','EPSG','1136');
 INSERT INTO "helmert_transformation" VALUES('EPSG','15780','POSGAR 94 to WGS 84 (1)','','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4190','EPSG','4326',1.0,0.0,0.0,0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Arg',1);
 INSERT INTO "usage" VALUES('EPSG','11791','helmert_transformation','EPSG','15780','EPSG','1033','EPSG','1252');
@@ -8035,12 +8358,16 @@ INSERT INTO "usage" VALUES('EPSG','11894','helmert_transformation','EPSG','15883
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8064,6 +8391,10 @@ INSERT INTO "usage" VALUES('EPSG','11894','helmert_transformation','EPSG','15883
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91-93 (1)','Determined in April 1993, modified in December 1999. May be taken as approximate transformation to WGS 84: see IGN53 Mare to WGS 84 (3) (code 15901).','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4641','EPSG','4749',2.0,287.58,177.78,-135.41,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl 2m',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91-93 (1)','Determined in April 1993, modified in December 1999. May be taken as approximate transformation to WGS 84: see IGN53 Mare to WGS 84 (3) (code 15901).','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4641','EPSG','4749',2.0,287.58,177.78,-135.41,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl 1m',0);
@@ -8111,8 +8442,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91-93 (1)','Determined in April 1993, modified in December 1999. May be taken as approximate transformation to WGS 84: see IGN53 Mare to WGS 84 (3) (code 15901).','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4641','EPSG','4749',2.0,287.58,177.78,-135.41,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl 1m',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8156,6 +8490,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91-93 (1)','Determined in April 1993, modified in December 1999. May be taken as approximate transformation to WGS 84: see IGN53 Mare to WGS 84 (3) (code 15901).','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4641','EPSG','4749',2.0,287.58,177.78,-135.41,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl 1m',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91-93 (1)','Determined in April 1993, modified in December 1999. May be taken as approximate transformation to WGS 84: see IGN53 Mare to WGS 84 (3) (code 15901).','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4641','EPSG','4749',2.0,287.58,177.78,-135.41,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl 1m',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8227,6 +8562,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','11895','helmert_transformation','EPSG','15884','EPSG','2819','EPSG','1042');
 INSERT INTO "helmert_transformation" VALUES('EPSG','15885','ST87 Ouvea to RGNC91-93 (1)','Determined in December 1999. May be used as approximate transformation to WGS 84 - see ST87 Ouvea to WGS 84 (2) (code 15881).','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4750','EPSG','4749',0.5,-56.263,16.136,-22.856,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl 1m',0);
 INSERT INTO "usage" VALUES('EPSG','11896','helmert_transformation','EPSG','15885','EPSG','2813','EPSG','1035');
@@ -8283,6 +8620,7 @@ INSERT INTO "usage" VALUES('EPSG','11911','helmert_transformation','EPSG','15900
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8299,6 +8637,10 @@ INSERT INTO "usage" VALUES('EPSG','11911','helmert_transformation','EPSG','15900
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8409,8 +8751,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','15901','IGN53 Mare to WGS 84 (3)','Parameter values taken from IGN53 Mare to RGNC91-93 (1) (code 15884) assuming that RGNC91-93 is equivalent to WGS 84 to within the accuracy of the transformation.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4641','EPSG','4326',2.0,287.58,177.78,-135.41,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
@@ -8454,6 +8799,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 =======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8529,6 +8875,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','15901','IGN53 Mare to WGS 84 (3)','Parameter values taken from IGN53 Mare to RGNC91-93 (1) (code 15884) assuming that RGNC91-93 is equivalent to WGS 84 to within the accuracy of the transformation.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4641','EPSG','4326',2.0,287.58,177.78,-135.41,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
 INSERT INTO "usage" VALUES('EPSG','11912','helmert_transformation','EPSG','15901','EPSG','2819','EPSG','1252');
 INSERT INTO "helmert_transformation" VALUES('EPSG','15902','IGN56 Lifou to WGS 84 (3)','Parameter values taken from IGN56 Lifou to RGNC91-93 (1) (code 15883) assuming that RGNC91-93 is equivalent to WGS 84 to within the accuracy of the transformation.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4633','EPSG','4326',1.0,335.47,222.58,-230.94,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
@@ -8539,6 +8889,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8575,6 +8926,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 =======
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8593,7 +8946,21 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 =======
 >>>>>>> 48ae38528d (typo fixes)
 =======
+<<<<<<< HEAD
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','11914','helmert_transformation','EPSG','15903','EPSG','2822','EPSG','1252');
 INSERT INTO "helmert_transformation" VALUES('EPSG','15904','NEA74 Noumea to WGS 84 (2)','Parameter values taken from NEA74 Noumea to RGNC91-93 (1) (code 15886) assuming that RGNC91-93 is equivalent to WGS 84 to within the accuracy of the transformation.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4644','EPSG','4326',1.0,-10.18,-350.43,291.37,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
 INSERT INTO "usage" VALUES('EPSG','11915','helmert_transformation','EPSG','15904','EPSG','2823','EPSG','1252');
@@ -8661,12 +9028,16 @@ INSERT INTO "usage" VALUES('EPSG','11942','helmert_transformation','EPSG','15931
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8690,6 +9061,10 @@ INSERT INTO "usage" VALUES('EPSG','11942','helmert_transformation','EPSG','15931
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84 (3)','Parameter values from Amersfoort to ETRS89 (3) (tfm code 15739) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (2) (code 1672). Replaced by Amersfoort to WGS 84 (4) (tfm code 4833).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.2369,50.0087,465.658,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld 2004',0);
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84 (3)','Parameter values from Amersfoort to ETRS89 (3) (tfm code 15739) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (2) (code 1672). Replaced by Amersfoort to WGS 84 (4) (tfm code 4833).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.2369,50.0087,465.658,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld',0);
@@ -8737,8 +9112,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84 (3)','Parameter values from Amersfoort to ETRS89 (3) (tfm code 15739) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (2) (code 1672). Replaced by Amersfoort to WGS 84 (4) (tfm code 4833).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.2369,50.0087,465.658,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8782,6 +9160,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84 (3)','Parameter values from Amersfoort to ETRS89 (3) (tfm code 15739) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (2) (code 1672). Replaced by Amersfoort to WGS 84 (4) (tfm code 4833).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.2369,50.0087,465.658,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84 (3)','Parameter values from Amersfoort to ETRS89 (3) (tfm code 15739) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (2) (code 1672). Replaced by Amersfoort to WGS 84 (4) (tfm code 4833).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.2369,50.0087,465.658,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld',0);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8853,6 +9232,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','11945','helmert_transformation','EPSG','15934','EPSG','1275','EPSG','1252');
 INSERT INTO "helmert_transformation" VALUES('EPSG','15935','Beijing 1954 to WGS 84 (5)','Concatenated via WGS 72BE. Recomputation by Shelltech in 1981 of SSB 1980 observation.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4214','EPSG','4326',10.0,18.0,-136.8,-73.7,'EPSG','9001',0.0,0.0,0.814,'EPSG','9104',-0.38,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Shlt-Chn BeiBu',0);
 INSERT INTO "usage" VALUES('EPSG','11946','helmert_transformation','EPSG','15935','EPSG','3561','EPSG','1136');
