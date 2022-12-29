@@ -310,6 +310,7 @@ int main(int argc, char *argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -326,6 +327,8 @@ int main(int argc, char *argv[]) {
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
         std::cout << "filename,area_of_use,source_id,file_size" << std::endl;
 =======
         std::cout << "filename,source_id,area_of_use,file_size" << std::endl;
@@ -376,6 +379,7 @@ int main(int argc, char *argv[]) {
         std::cout << "filename,area_of_use,source_id,file_size" << std::endl;
 >>>>>>> 86ade66356 (typo fixes)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
         std::cout << "filename,area_of_use,source_id,file_size" << std::endl;
@@ -444,6 +448,13 @@ int main(int argc, char *argv[]) {
         std::cout << "filename,area_of_use,source_id,file_size" << std::endl;
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+        std::cout << "filename,area_of_use,source_id,file_size" << std::endl;
+=======
+        std::cout << "filename,source_id,area_of_use,file_size" << std::endl;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
     }
 
     std::string proj_data_version_str;
@@ -537,6 +548,7 @@ int main(int argc, char *argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -553,6 +565,8 @@ int main(int argc, char *argv[]) {
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << " and we are targeting "
 =======
                                           << " and we are targetting "
@@ -603,6 +617,7 @@ int main(int argc, char *argv[]) {
                                           << " and we are targeting "
 >>>>>>> 86ade66356 (typo fixes)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << " and we are targeting "
@@ -671,6 +686,13 @@ int main(int argc, char *argv[]) {
                                           << " and we are targeting "
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+                                          << " and we are targeting "
+=======
+                                          << " and we are targetting "
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;
@@ -719,6 +741,7 @@ int main(int argc, char *argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -735,6 +758,8 @@ int main(int argc, char *argv[]) {
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << " and we are targeting "
 =======
                                           << " and we are targetting "
@@ -785,6 +810,7 @@ int main(int argc, char *argv[]) {
                                           << " and we are targeting "
 >>>>>>> 86ade66356 (typo fixes)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << " and we are targeting "
@@ -853,6 +879,13 @@ int main(int argc, char *argv[]) {
                                           << " and we are targeting "
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+                                          << " and we are targeting "
+=======
+                                          << " and we are targetting "
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;
