@@ -250,6 +250,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -331,6 +332,12 @@ Optional
 =======
     the inverse transformation.
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+    the inverse transformation.
+=======
+    the inverse tranformation.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 
 .. option:: +inv_u=<u_11,u_12,...,u_ij,..,u_mn>
 
@@ -353,6 +360,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -434,6 +442,12 @@ Optional
 =======
     the inverse transformation.
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+    the inverse transformation.
+=======
+    the inverse tranformation.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 
 .. option:: +inv_v=<v_11,v_12,...,v_ij,..,v_mn>
 
@@ -456,6 +470,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -537,6 +552,12 @@ Optional
 =======
     the inverse transformation.
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+    the inverse transformation.
+=======
+    the inverse tranformation.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 
 .. option:: +inv_c=<c_1,c_2,...,c_N>
 
@@ -559,6 +580,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -640,6 +662,12 @@ Optional
 =======
     the inverse transformation.
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+    the inverse transformation.
+=======
+    the inverse tranformation.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 
 .. option:: +range=<value>
 
