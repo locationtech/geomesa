@@ -317,9 +317,14 @@ Conversion::create(const util::PropertyMap &properties,
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a
  * <a href="../../../operations/projections/utm.html">
  * Universal Transverse Mercator</a> conversion.
+=======
+/** \brief Instantiate a [Universal Transverse Mercator]
+ *(https://proj.org/operations/projections/utm.html) conversion.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * UTM is a family of conversions, of EPSG codes from 16001 to 16060 for the
  * northern hemisphere, and 17001 to 17060 for the southern hemisphere,
@@ -350,6 +355,7 @@ ConversionNNPtr Conversion::createUTM(const util::PropertyMap &properties,
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/tmerc.html">
  * Transverse Mercator</a> projection method.
@@ -357,6 +363,13 @@ ConversionNNPtr Conversion::createUTM(const util::PropertyMap &properties,
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9807/index.html">
  * EPSG:9807</a>.
+=======
+/** \brief Instantiate a conversion based on the [Transverse Mercator]
+ *(https://proj.org/operations/projections/tmerc.html) projection method.
+ *
+ * This method is defined as [EPSG:9807]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9807)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -378,9 +391,15 @@ ConversionNNPtr Conversion::createTransverseMercator(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/gstmerc.html">
  * Gauss Schreiber Transverse Mercator</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Gauss Schreiber Transverse
+ *Mercator]
+ *(https://proj.org/operations/projections/gstmerc.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * This method is also known as Gauss-Laborde Reunion.
  *
@@ -407,6 +426,7 @@ ConversionNNPtr Conversion::createGaussSchreiberTransverseMercator(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/tmerc.html">
  * Transverse Mercator South Orientated</a> projection method.
@@ -414,6 +434,14 @@ ConversionNNPtr Conversion::createGaussSchreiberTransverseMercator(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9808/index.html">
  * EPSG:9808</a>.
+=======
+/** \brief Instantiate a conversion based on the [Transverse Mercator South
+ *Orientated]
+ *(https://proj.org/operations/projections/tmerc.html) projection method.
+ *
+ * This method is defined as [EPSG:9808]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9808)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -436,9 +464,14 @@ ConversionNNPtr Conversion::createTransverseMercatorSouthOriented(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/tpeqd.html">
  * Two Point Equidistant</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the  [Two Point Equidistant]
+ *(https://proj.org/operations/projections/tpeqd.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -471,9 +504,14 @@ Conversion::createTwoPointEquidistant(const util::PropertyMap &properties,
 /** \brief Instantiate a conversion based on the Tunisia Mapping Grid projection
  * method.
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9816/index.html">
  * EPSG:9816</a>.
+=======
+ * This method is defined as [EPSG:9816]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9816)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * \note There is currently no implementation of the method formulas in PROJ.
  *
@@ -484,19 +522,27 @@ Conversion::createTwoPointEquidistant(const util::PropertyMap &properties,
  * @param falseEasting See \ref false_easting
  * @param falseNorthing See \ref false_northing
  * @return a new Conversion.
+<<<<<<< HEAD
  * @deprecated. Use createTunisiaMiningGrid() instead
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  */
 ConversionNNPtr Conversion::createTunisiaMappingGrid(
     const util::PropertyMap &properties, const common::Angle &centerLat,
     const common::Angle &centerLong, const common::Length &falseEasting,
     const common::Length &falseNorthing) {
     return create(
+<<<<<<< HEAD
         properties, EPSG_CODE_METHOD_TUNISIA_MINING_GRID,
+=======
+        properties, EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID,
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         createParams(centerLat, centerLong, falseEasting, falseNorthing));
 }
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the Tunisia Mining Grid projection
  * method.
  *
@@ -533,6 +579,13 @@ ConversionNNPtr Conversion::createTunisiaMiningGrid(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9822/index.html">
  * EPSG:9822</a>.
+=======
+/** \brief Instantiate a conversion based on the [Albers Conic Equal Area]
+ *(https://proj.org/operations/projections/aea.html) projection method.
+ *
+ * This method is defined as [EPSG:9822]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9822)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @note the order of arguments is conformant with the corresponding EPSG
  * mode and different than OGRSpatialReference::setACEA() of GDAL &lt;= 2.3
@@ -563,6 +616,7 @@ Conversion::createAlbersEqualArea(const util::PropertyMap &properties,
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/lcc.html">
  * Lambert Conic Conformal 1SP</a> projection method.
@@ -570,6 +624,13 @@ Conversion::createAlbersEqualArea(const util::PropertyMap &properties,
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9801/index.html">
  * EPSG:9801</a>.
+=======
+/** \brief Instantiate a conversion based on the [Lambert Conic Conformal 1SP]
+ *(https://proj.org/operations/projections/lcc.html) projection method.
+ *
+ * This method is defined as [EPSG:9801]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9801)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -591,6 +652,7 @@ ConversionNNPtr Conversion::createLambertConicConformal_1SP(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/lcc.html">
  * Lambert Conic Conformal 2SP</a> projection method.
@@ -598,6 +660,13 @@ ConversionNNPtr Conversion::createLambertConicConformal_1SP(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9802/index.html">
  * EPSG:9802</a>.
+=======
+/** \brief Instantiate a conversion based on the [Lambert Conic Conformal (2SP)]
+ *(https://proj.org/operations/projections/lcc.html) projection method.
+ *
+ * This method is defined as [EPSG:9802]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9802)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @note the order of arguments is conformant with the corresponding EPSG
  * mode and different than OGRSpatialReference::setLCC() of GDAL &lt;= 2.3
@@ -628,6 +697,7 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/lcc.html">
  * Lambert Conic Conformal (2SP Michigan)</a> projection method.
@@ -635,6 +705,14 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1051/index.html">
  * EPSG:1051</a>.
+=======
+/** \brief Instantiate a conversion based on the [Lambert Conic Conformal (2SP
+ *Michigan)]
+ *(https://proj.org/operations/projections/lcc.html) projection method.
+ *
+ * This method is defined as [EPSG:1051]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1051)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -666,6 +744,7 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP_Michigan(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/lcc.html">
  * Lambert Conic Conformal (2SP Belgium)</a> projection method.
@@ -673,6 +752,14 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP_Michigan(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9803/index.html">
  * EPSG:9803</a>.
+=======
+/** \brief Instantiate a conversion based on the [Lambert Conic Conformal (2SP
+ *Belgium)]
+ *(https://proj.org/operations/projections/lcc.html) projection method.
+ *
+ * This method is defined as [EPSG:9803]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9803)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * \warning The formulas used currently in PROJ are, incorrectly, the ones of
  * the regular LCC_2SP method.
@@ -708,6 +795,7 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP_Belgium(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/aeqd.html">
  * Modified Azimuthal Equidistant</a> projection method.
@@ -715,6 +803,14 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP_Belgium(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9832/index.html">
  * EPSG:9832</a>.
+=======
+/** \brief Instantiate a conversion based on the [Modified Azimuthal
+ *Equidistant]
+ *(https://proj.org/operations/projections/aeqd.html) projection method.
+ *
+ * This method is defined as [EPSG:9832]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9832)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -735,6 +831,7 @@ ConversionNNPtr Conversion::createAzimuthalEquidistant(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/aeqd.html">
  * Guam Projection</a> method.
@@ -742,6 +839,13 @@ ConversionNNPtr Conversion::createAzimuthalEquidistant(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9831/index.html">
  * EPSG:9831</a>.
+=======
+/** \brief Instantiate a conversion based on the [Guam Projection]
+ *(https://proj.org/operations/projections/aeqd.html) projection method.
+ *
+ * This method is defined as [EPSG:9831]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9831)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  *is
@@ -763,6 +867,7 @@ ConversionNNPtr Conversion::createGuamProjection(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/bonne.html">
  * Bonne</a> projection method.
@@ -770,6 +875,13 @@ ConversionNNPtr Conversion::createGuamProjection(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9827/index.html">
  * EPSG:9827</a>.
+=======
+/** \brief Instantiate a conversion based on the [Bonne]
+ *(https://proj.org/operations/projections/bonne.html) projection method.
+ *
+ * This method is defined as [EPSG:9827]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9827)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -792,6 +904,7 @@ ConversionNNPtr Conversion::createBonne(const util::PropertyMap &properties,
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/cea.html">
  * Lambert Cylindrical Equal Area (Spherical)</a> projection method.
@@ -799,6 +912,14 @@ ConversionNNPtr Conversion::createBonne(const util::PropertyMap &properties,
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9834/index.html">
  * EPSG:9834</a>.
+=======
+/** \brief Instantiate a conversion based on the [Lambert Cylindrical Equal Area
+ *(Spherical)]
+ *(https://proj.org/operations/projections/cea.html) projection method.
+ *
+ * This method is defined as [EPSG:9834]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9834)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * \warning The PROJ cea computation code would select the ellipsoidal form if
  * a non-spherical ellipsoid is used for the base GeographicCRS.
@@ -824,6 +945,7 @@ ConversionNNPtr Conversion::createLambertCylindricalEqualAreaSpherical(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/cea.html">
  * Lambert Cylindrical Equal Area (ellipsoidal form)</a> projection method.
@@ -831,6 +953,14 @@ ConversionNNPtr Conversion::createLambertCylindricalEqualAreaSpherical(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9835/index.html">
  * EPSG:9835</a>.
+=======
+/** \brief Instantiate a conversion based on the [Lambert Cylindrical Equal Area
+ *(ellipsoidal form)]
+ *(https://proj.org/operations/projections/cea.html) projection method.
+ *
+ * This method is defined as [EPSG:9835]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9835)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -852,6 +982,7 @@ ConversionNNPtr Conversion::createLambertCylindricalEqualArea(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/cass.html">
  * Cassini-Soldner</a> projection method.
@@ -859,6 +990,13 @@ ConversionNNPtr Conversion::createLambertCylindricalEqualArea(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9806/index.html">
  * EPSG:9806</a>.
+=======
+/** \brief Instantiate a conversion based on the [Cassini-Soldner]
+ * (https://proj.org/operations/projections/cass.html) projection method.
+ *
+ * This method is defined as [EPSG:9806]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9806)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -879,9 +1017,14 @@ ConversionNNPtr Conversion::createCassiniSoldner(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eqdc.html">
  * Equidistant Conic</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Equidistant Conic]
+ *(https://proj.org/operations/projections/eqdc.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -912,9 +1055,14 @@ ConversionNNPtr Conversion::createEquidistantConic(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eck1.html">
  * Eckert I</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Eckert I]
+ * (https://proj.org/operations/projections/eck1.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -935,9 +1083,14 @@ ConversionNNPtr Conversion::createEckertI(const util::PropertyMap &properties,
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eck2.html">
  * Eckert II</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Eckert II]
+ * (https://proj.org/operations/projections/eck2.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -957,9 +1110,14 @@ ConversionNNPtr Conversion::createEckertII(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eck3.html">
  * Eckert III</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Eckert III]
+ * (https://proj.org/operations/projections/eck3.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -979,9 +1137,14 @@ ConversionNNPtr Conversion::createEckertIII(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eck4.html">
  * Eckert IV</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Eckert IV]
+ * (https://proj.org/operations/projections/eck4.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1001,9 +1164,14 @@ ConversionNNPtr Conversion::createEckertIV(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eck5.html">
  * Eckert V</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Eckert V]
+ * (https://proj.org/operations/projections/eck5.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1024,9 +1192,14 @@ ConversionNNPtr Conversion::createEckertV(const util::PropertyMap &properties,
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eck6.html">
  * Eckert VI</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Eckert VI]
+ * (https://proj.org/operations/projections/eck6.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1046,16 +1219,26 @@ ConversionNNPtr Conversion::createEckertVI(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eqc.html">
  * Equidistant Cylindrical</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Equidistant Cylindrical]
+ *(https://proj.org/operations/projections/eqc.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * This is also known as the Equirectangular method, and in the particular case
  * where the latitude of first parallel is 0.
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1028/index.html">
  * EPSG:1028</a>.
+=======
+ * This method is defined as [EPSG:1028]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1028)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @note This is the equivalent OGRSpatialReference::SetEquirectangular2(
  * 0.0, latitudeFirstParallel, falseEasting, falseNorthing ) of GDAL &lt;= 2.3,
@@ -1081,16 +1264,27 @@ ConversionNNPtr Conversion::createEquidistantCylindrical(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eqc.html">
  * Equidistant Cylindrical (Spherical)</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Equidistant Cylindrical
+ *(Spherical)]
+ *(https://proj.org/operations/projections/eqc.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * This is also known as the Equirectangular method, and in the particular case
  * where the latitude of first parallel is 0.
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1029/index.html">
  * EPSG:1029</a>.
+=======
+ * This method is defined as [EPSG:1029]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1029)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @note This is the equivalent OGRSpatialReference::SetEquirectangular2(
  * 0.0, latitudeFirstParallel, falseEasting, falseNorthing ) of GDAL &lt;= 2.3,
@@ -1117,9 +1311,14 @@ ConversionNNPtr Conversion::createEquidistantCylindricalSpherical(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/gall.html">
  * Gall (Stereographic)</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Gall (Stereographic)]
+ * (https://proj.org/operations/projections/gall.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1140,9 +1339,14 @@ ConversionNNPtr Conversion::createGall(const util::PropertyMap &properties,
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/goode.html">
  * Goode Homolosine</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Goode Homolosine]
+ * (https://proj.org/operations/projections/goode.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1162,9 +1366,14 @@ ConversionNNPtr Conversion::createGoodeHomolosine(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/igh.html">
  * Interrupted Goode Homolosine</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Interrupted Goode Homolosine]
+ * (https://proj.org/operations/projections/igh.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1189,9 +1398,14 @@ ConversionNNPtr Conversion::createInterruptedGoodeHomolosine(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/geos.html">
  * Geostationary Satellite View</a> projection method,
+=======
+/** \brief Instantiate a conversion based on the [Geostationary Satellite View]
+ * (https://proj.org/operations/projections/geos.html) projection method,
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  * with the sweep angle axis of the viewing instrument being x
  *
  * There is no equivalent in EPSG.
@@ -1215,9 +1429,14 @@ ConversionNNPtr Conversion::createGeostationarySatelliteSweepX(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/geos.html">
  * Geostationary Satellite View</a> projection method,
+=======
+/** \brief Instantiate a conversion based on the [Geostationary Satellite View]
+ * (https://proj.org/operations/projections/geos.html) projection method,
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  * with the sweep angle axis of the viewing instrument being y.
  *
  * There is no equivalent in EPSG.
@@ -1241,9 +1460,14 @@ ConversionNNPtr Conversion::createGeostationarySatelliteSweepY(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/gnom.html">
  * Gnomonic</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Gnomonic]
+ *(https://proj.org/operations/projections/gnom.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1266,9 +1490,15 @@ ConversionNNPtr Conversion::createGnomonic(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/omerc.html">
  * Hotine Oblique Mercator (Variant A)</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Hotine Oblique Mercator
+ *(Variant A)]
+ *(https://proj.org/operations/projections/omerc.html) projection method
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * This is the variant with the no_uoff parameter, which corresponds to
  * GDAL &gt;=2.3 Hotine_Oblique_Mercator projection.
@@ -1277,6 +1507,7 @@ ConversionNNPtr Conversion::createGnomonic(
  * equator on one of the intermediate surfaces inherent in the method), that is
  * at the natural origin of the coordinate system).
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9812/index.html">
  * EPSG:9812</a>.
@@ -1285,6 +1516,15 @@ ConversionNNPtr Conversion::createGnomonic(
  * 90deg, this maps to the
  * <a href="../../../operations/projections/somerc.html">
  * Swiss Oblique Mercator</a> formulas.
+=======
+ * This method is defined as [EPSG:9812]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9812)
+ *
+ * \note In the case where azimuthInitialLine = angleFromRectifiedToSkrewGrid =
+ *90deg,
+ * this maps to the  [Swiss Oblique Mercator]
+ *(https://proj.org/operations/projections/somerc.html) formulas.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1315,15 +1555,22 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorVariantA(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/omerc.html">
  * Hotine Oblique Mercator (Variant B)</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Hotine Oblique Mercator
+ *(Variant B)]
+ *(https://proj.org/operations/projections/omerc.html) projection method
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * This is the variant without the no_uoff parameter, which corresponds to
  * GDAL &gt;=2.3 Hotine_Oblique_Mercator_Azimuth_Center projection.
  * In this variant, the false grid coordinates are defined at the projection
  *centre.
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9815/index.html">
  * EPSG:9815</a>.
@@ -1332,6 +1579,15 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorVariantA(
  * 90deg, this maps to the
  * <a href="../../../operations/projections/somerc.html">
  * Swiss Oblique Mercator</a> formulas.
+=======
+ * This method is defined as [EPSG:9815]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9815)
+ *
+ * \note In the case where azimuthInitialLine = angleFromRectifiedToSkrewGrid =
+ *90deg,
+ * this maps to the  [Swiss Oblique Mercator]
+ *(https://proj.org/operations/projections/somerc.html) formulas.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1362,9 +1618,15 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorVariantB(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/omerc.html">
  * Hotine Oblique Mercator Two Point Natural Origin</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Hotine Oblique Mercator Two
+ *Point Natural Origin]
+ *(https://proj.org/operations/projections/omerc.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1404,6 +1666,7 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorTwoPointNaturalOrigin(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/labrd.html">
  * Laborde Oblique Mercator</a> projection method.
@@ -1411,6 +1674,13 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorTwoPointNaturalOrigin(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9813/index.html">
  * EPSG:9813</a>.
+=======
+/** \brief Instantiate a conversion based on the [Laborde Oblique Mercator]
+ *(https://proj.org/operations/projections/labrd.html) projection method.
+ *
+ * This method is defined as [EPSG:9813]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9813)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1436,9 +1706,15 @@ ConversionNNPtr Conversion::createLabordeObliqueMercator(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/imw_p.html">
  * International Map of the World Polyconic</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [International Map of the World
+ *Polyconic]
+ *(https://proj.org/operations/projections/imw_p.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1468,6 +1744,7 @@ ConversionNNPtr Conversion::createInternationalMapWorldPolyconic(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/krovak.html">
  * Krovak (north oriented)</a> projection method.
@@ -1475,6 +1752,13 @@ ConversionNNPtr Conversion::createInternationalMapWorldPolyconic(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1041/index.html">
  * EPSG:1041</a>.
+=======
+/** \brief Instantiate a conversion based on the [Krovak (north oriented)]
+ *(https://proj.org/operations/projections/krovak.html) projection method.
+ *
+ * This method is defined as [EPSG:1041]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1041)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * The coordinates are returned in the "GIS friendly" order: easting, northing.
  * This method is similar to createKrovak(), except that the later returns
@@ -1520,6 +1804,7 @@ ConversionNNPtr Conversion::createKrovakNorthOriented(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/krovak.html">
  * Krovak</a> projection method.
@@ -1527,6 +1812,13 @@ ConversionNNPtr Conversion::createKrovakNorthOriented(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9819/index.html">
  * EPSG:9819</a>.
+=======
+/** \brief Instantiate a conversion based on the [Krovak]
+ *(https://proj.org/operations/projections/krovak.html) projection method.
+ *
+ * This method is defined as [EPSG:9819]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9819)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * The coordinates are returned in the historical order: southing, westing
  * This method is similar to createKrovakNorthOriented(), except that the later
@@ -1574,6 +1866,7 @@ Conversion::createKrovak(const util::PropertyMap &properties,
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/laea.html">
  * Lambert Azimuthal Equal Area</a> projection method.
@@ -1581,6 +1874,13 @@ Conversion::createKrovak(const util::PropertyMap &properties,
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9820/index.html">
  * EPSG:9820</a>.
+=======
+/** \brief Instantiate a conversion based on the [Lambert Azimuthal Equal Area]
+ *(https://proj.org/operations/projections/laea.html) projection method.
+ *
+ * This method is defined as [EPSG:9820]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9820)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1601,9 +1901,14 @@ ConversionNNPtr Conversion::createLambertAzimuthalEqualArea(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/mill.html">
  * Miller Cylindrical</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Miller Cylindrical]
+ *(https://proj.org/operations/projections/mill.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1623,6 +1928,7 @@ ConversionNNPtr Conversion::createMillerCylindrical(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/merc.html">
  * Mercator (variant A)</a> projection method.
@@ -1634,6 +1940,17 @@ ConversionNNPtr Conversion::createMillerCylindrical(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9804/index.html">
  * EPSG:9804</a>.
+=======
+/** \brief Instantiate a conversion based on the [Mercator]
+ *(https://proj.org/operations/projections/merc.html) projection method.
+ *
+ * This is the variant, also known as Mercator (1SP), defined with the scale
+ * factor. Note that latitude of natural origin (centerLat) is a parameter,
+ * but unused in the transformation formulas.
+ *
+ * This method is defined as [EPSG:9804]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9804)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1655,6 +1972,7 @@ ConversionNNPtr Conversion::createMercatorVariantA(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/merc.html">
  * Mercator (variant B)</a> projection method.
@@ -1667,6 +1985,17 @@ ConversionNNPtr Conversion::createMercatorVariantA(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9805/index.html">
  * EPSG:9805</a>.
+=======
+/** \brief Instantiate a conversion based on the [Mercator]
+ *(https://proj.org/operations/projections/merc.html) projection method.
+ *
+ * This is the variant, also known as Mercator (2SP), defined with the latitude
+ * of the first standard parallel (the second standard parallel is implicitly
+ * the opposite value). The latitude of natural origin is fixed to zero.
+ *
+ * This method is defined as [EPSG:9805]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9805)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1687,16 +2016,27 @@ ConversionNNPtr Conversion::createMercatorVariantB(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/webmerc.html">
  * Popular Visualisation Pseudo Mercator</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Popular Visualisation Pseudo
+ *Mercator]
+ *(https://proj.org/operations/projections/webmerc.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * Also known as WebMercator. Mostly/only used for Projected CRS EPSG:3857
  * (WGS 84 / Pseudo-Mercator)
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1024/index.html">
  * EPSG:1024</a>.
+=======
+ * This method is defined as [EPSG:1024]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1024)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1717,9 +2057,14 @@ ConversionNNPtr Conversion::createPopularVisualisationPseudoMercator(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/moll.html">
  * Mollweide</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Mollweide]
+ * (https://proj.org/operations/projections/moll.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1739,6 +2084,7 @@ ConversionNNPtr Conversion::createMollweide(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/nzmg.html">
  * New Zealand Map Grid</a> projection method.
@@ -1746,6 +2092,13 @@ ConversionNNPtr Conversion::createMollweide(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9811/index.html">
  * EPSG:9811</a>.
+=======
+/** \brief Instantiate a conversion based on the [New Zealand Map Grid]
+ * (https://proj.org/operations/projections/nzmg.html) projection method.
+ *
+ * This method is defined as [EPSG:9811]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9811)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1766,6 +2119,7 @@ ConversionNNPtr Conversion::createNewZealandMappingGrid(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/sterea.html">
  * Oblique Stereographic (alternative)</a> projection method.
@@ -1773,6 +2127,14 @@ ConversionNNPtr Conversion::createNewZealandMappingGrid(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9809/index.html">
  * EPSG:9809</a>.
+=======
+/** \brief Instantiate a conversion based on the [Oblique Stereographic
+ *(Alternative)]
+ *(https://proj.org/operations/projections/sterea.html) projection method.
+ *
+ * This method is defined as [EPSG:9809]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9809)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1794,6 +2156,7 @@ ConversionNNPtr Conversion::createObliqueStereographic(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/ortho.html">
  * Orthographic</a> projection method.
@@ -1801,6 +2164,13 @@ ConversionNNPtr Conversion::createObliqueStereographic(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9840/index.html">
  * EPSG:9840</a>.
+=======
+/** \brief Instantiate a conversion based on the [Orthographic]
+ *(https://proj.org/operations/projections/ortho.html) projection method.
+ *
+ * This method is defined as [EPSG:9840]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9840)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * \note Before PROJ 7.2, only the spherical formulation was implemented.
  *
@@ -1823,6 +2193,7 @@ ConversionNNPtr Conversion::createOrthographic(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/poly.html">
  * American Polyconic</a> projection method.
@@ -1830,6 +2201,13 @@ ConversionNNPtr Conversion::createOrthographic(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9818/index.html">
  * EPSG:9818</a>.
+=======
+/** \brief Instantiate a conversion based on the [American Polyconic]
+ *(https://proj.org/operations/projections/poly.html) projection method.
+ *
+ * This method is defined as [EPSG:9818]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9818)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1850,6 +2228,7 @@ ConversionNNPtr Conversion::createAmericanPolyconic(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/stere.html">
  * Polar Stereographic (Variant A)</a> projection method.
@@ -1857,6 +2236,14 @@ ConversionNNPtr Conversion::createAmericanPolyconic(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9810/index.html">
  * EPSG:9810</a>.
+=======
+/** \brief Instantiate a conversion based on the [Polar Stereographic (Variant
+ *A)]
+ *(https://proj.org/operations/projections/stere.html) projection method.
+ *
+ * This method is defined as [EPSG:9810]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9810)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * This is the variant of polar stereographic defined with a scale factor.
  *
@@ -1880,6 +2267,7 @@ ConversionNNPtr Conversion::createPolarStereographicVariantA(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/stere.html">
  * Polar Stereographic (Variant B)</a> projection method.
@@ -1887,6 +2275,14 @@ ConversionNNPtr Conversion::createPolarStereographicVariantA(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9829/index.html">
  * EPSG:9829</a>.
+=======
+/** \brief Instantiate a conversion based on the [Polar Stereographic (Variant
+ *B)]
+ *(https://proj.org/operations/projections/stere.html) projection method.
+ *
+ * This method is defined as [EPSG:9829]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9829)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * This is the variant of polar stereographic defined with a latitude of
  * standard parallel.
@@ -1911,9 +2307,14 @@ ConversionNNPtr Conversion::createPolarStereographicVariantB(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/robin.html">
  * Robinson</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Robinson]
+ * (https://proj.org/operations/projections/robin.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1933,9 +2334,14 @@ ConversionNNPtr Conversion::createRobinson(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/sinu.html">
  * Sinusoidal</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Sinusoidal]
+ * (https://proj.org/operations/projections/sinu.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -1955,14 +2361,23 @@ ConversionNNPtr Conversion::createSinusoidal(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/stere.html">
  * Stereographic</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Stereographic]
+ *(https://proj.org/operations/projections/stere.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG. This method implements the original "Oblique
  * Stereographic" method described in "Snyder's Map Projections - A Working
  *manual",
+<<<<<<< HEAD
  * which is different from the "Oblique Stereographic (alternative)" method
+=======
+ * which is different from the "Oblique Stereographic (alternative") method
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  * implemented in createObliqueStereographic().
  *
  * @param properties See \ref general_properties of the conversion. If the name
@@ -1985,9 +2400,14 @@ ConversionNNPtr Conversion::createStereographic(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/vandg.html">
  * Van der Grinten</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Van der Grinten]
+ * (https://proj.org/operations/projections/vandg.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -2007,9 +2427,14 @@ ConversionNNPtr Conversion::createVanDerGrinten(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag1.html">
  * Wagner I</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Wagner I]
+ * (https://proj.org/operations/projections/wag1.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -2030,9 +2455,14 @@ ConversionNNPtr Conversion::createWagnerI(const util::PropertyMap &properties,
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag2.html">
  * Wagner II</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Wagner II]
+ * (https://proj.org/operations/projections/wag2.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -2052,9 +2482,14 @@ ConversionNNPtr Conversion::createWagnerII(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag3.html">
  * Wagner III</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Wagner III]
+ * (https://proj.org/operations/projections/wag3.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -2077,9 +2512,14 @@ ConversionNNPtr Conversion::createWagnerIII(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag4.html">
  * Wagner IV</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Wagner IV]
+ * (https://proj.org/operations/projections/wag4.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -2099,9 +2539,14 @@ ConversionNNPtr Conversion::createWagnerIV(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag5.html">
  * Wagner V</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Wagner V]
+ * (https://proj.org/operations/projections/wag5.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -2122,9 +2567,14 @@ ConversionNNPtr Conversion::createWagnerV(const util::PropertyMap &properties,
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag6.html">
  * Wagner VI</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Wagner VI]
+ * (https://proj.org/operations/projections/wag6.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -2144,9 +2594,14 @@ ConversionNNPtr Conversion::createWagnerVI(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag7.html">
  * Wagner VII</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Wagner VII]
+ * (https://proj.org/operations/projections/wag7.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -2166,9 +2621,15 @@ ConversionNNPtr Conversion::createWagnerVII(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/qsc.html">
  * Quadrilateralized Spherical Cube</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Quadrilateralized Spherical
+ *Cube]
+ *(https://proj.org/operations/projections/qsc.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -2191,9 +2652,14 @@ ConversionNNPtr Conversion::createQuadrilateralizedSphericalCube(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/sch.html">
  * Spherical Cross-Track Height</a> projection method.
+=======
+/** \brief Instantiate a conversion based on the [Spherical Cross-Track Height]
+ *(https://proj.org/operations/projections/sch.html) projection method.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * There is no equivalent in EPSG.
  *
@@ -2217,6 +2683,7 @@ ConversionNNPtr Conversion::createSphericalCrossTrackHeight(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eqearth.html">
  * Equal Earth</a> projection method.
@@ -2224,6 +2691,13 @@ ConversionNNPtr Conversion::createSphericalCrossTrackHeight(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1078/Equal-Earth.html">
  * EPSG:1078</a>.
+=======
+/** \brief Instantiate a conversion based on the [Equal Earth]
+ * (https://proj.org/operations/projections/eqearth.html) projection method.
+ *
+ * This method is defined as [EPSG:1078]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1078)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -2241,6 +2715,7 @@ ConversionNNPtr Conversion::createEqualEarth(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/nsper.html">
  * Vertical Perspective</a> projection method.
@@ -2248,6 +2723,13 @@ ConversionNNPtr Conversion::createEqualEarth(
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9838/index.html">
  * EPSG:9838</a>.
+=======
+/** \brief Instantiate a conversion based on the [Vertical Perspective]
+ * (https://proj.org/operations/projections/nsper.html) projection method.
+ *
+ * This method is defined as [EPSG:9838]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9838)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * The PROJ implementation of the EPSG Vertical Perspective has the current
  * limitations with respect to the method described in EPSG:
@@ -2389,9 +2871,14 @@ ConversionNNPtr Conversion::createPoleRotationNetCDFCFConvention(
 /** \brief Instantiate a conversion based on the Change of Vertical Unit
  * method.
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1069/index.html">
  * EPSG:1069</a> [DEPRECATED].
+=======
+ * This method is defined as [EPSG:1069]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1069)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -2418,9 +2905,14 @@ Conversion::createChangeVerticalUnit(const util::PropertyMap &properties,
 /** \brief Instantiate a conversion based on the Change of Vertical Unit
  * method (without explicit conversion factor)
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1104/index.html">
  * EPSG:1104</a>.
+=======
+ * This method is defined as [EPSG:1104]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1104)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -2439,9 +2931,14 @@ Conversion::createChangeVerticalUnit(const util::PropertyMap &properties) {
 /** \brief Instantiate a conversion based on the Height Depth Reversal
  * method.
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1068/index.html">
  * EPSG:1068</a>.
+=======
+ * This method is defined as [EPSG:1068]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1068)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -2462,11 +2959,18 @@ Conversion::createHeightDepthReversal(const util::PropertyMap &properties) {
  *
  * This swaps the longitude, latitude axis.
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9843/index.html">
  * EPSG:9843</a> for 2D or
  * <a href="https://epsg.org/coord-operation-method_9844/index.html">
  * EPSG:9844</a> for Geographic3D horizontal.
+=======
+ * This method is defined as [EPSG:9843]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9843),
+ * or for 3D as [EPSG:9844]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9844)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param is3D Whether this should apply on 3D geographicCRS
  * @return a new Conversion.
@@ -2488,9 +2992,14 @@ ConversionNNPtr Conversion::createAxisOrderReversal(bool is3D) {
 
 /** \brief Instantiate a conversion based on the Geographic/Geocentric method.
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9602/index.html">
  * EPSG:9602</a>.
+=======
+ * This method is defined as [EPSG:9602]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9602),
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -3902,7 +4411,11 @@ void Conversion::_exportToPROJString(
         double southPoleLat = parameterValueNumeric(
             PROJ_WKT2_NAME_PARAMETER_SOUTH_POLE_LATITUDE_GRIB_CONVENTION,
             common::UnitOfMeasure::DEGREE);
+<<<<<<< HEAD
         double southPoleLong = parameterValueNumeric(
+=======
+        double southPoleLon = parameterValueNumeric(
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
             PROJ_WKT2_NAME_PARAMETER_SOUTH_POLE_LONGITUDE_GRIB_CONVENTION,
             common::UnitOfMeasure::DEGREE);
         double rotation = parameterValueNumeric(
@@ -3912,7 +4425,11 @@ void Conversion::_exportToPROJString(
         formatter->addParam("o_proj", "longlat");
         formatter->addParam("o_lon_p", -rotation);
         formatter->addParam("o_lat_p", -southPoleLat);
+<<<<<<< HEAD
         formatter->addParam("lon_0", southPoleLong);
+=======
+        formatter->addParam("lon_0", southPoleLon);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         bConversionDone = true;
     } else if (ci_equal(
                    methodName,
@@ -4061,14 +4578,22 @@ void Conversion::_exportToPROJString(
         const auto latOrigin = parameterValueNumeric(
             EPSG_CODE_PARAMETER_LATITUDE_TOPOGRAPHIC_ORIGIN,
             common::UnitOfMeasure::DEGREE);
+<<<<<<< HEAD
         const auto longOrigin = parameterValueNumeric(
+=======
+        const auto lonOrigin = parameterValueNumeric(
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
             EPSG_CODE_PARAMETER_LONGITUDE_TOPOGRAPHIC_ORIGIN,
             common::UnitOfMeasure::DEGREE);
         const auto heightOrigin = parameterValueNumeric(
             EPSG_CODE_PARAMETER_ELLIPSOIDAL_HEIGHT_TOPOCENTRIC_ORIGIN,
             common::UnitOfMeasure::METRE);
         formatter->addParam("lat_0", latOrigin);
+<<<<<<< HEAD
         formatter->addParam("lon_0", longOrigin);
+=======
+        formatter->addParam("lon_0", lonOrigin);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         formatter->addParam("h_0", heightOrigin);
         bConversionDone = true;
     }
@@ -4104,6 +4629,7 @@ void Conversion::_exportToPROJString(
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
                 // No need to add explicit f=0 or R_A if the ellipsoid is a
@@ -4117,6 +4643,10 @@ void Conversion::_exportToPROJString(
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+                // No need to add explicit f=0 if the ellipsoid is a sphere
+                if (strcmp(mapping->proj_name_aux, "f=0") == 0) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                     crs::CRS *horiz = l_sourceCRS.get();
                     const auto compound =
                         dynamic_cast<const crs::CompoundCRS *>(horiz);
@@ -4278,9 +4808,14 @@ void Conversion::_exportToPROJString(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Return whether a conversion is a
  * <a href="../../../operations/projections/utm.html">
  * Universal Transverse Mercator</a> conversion.
+=======
+/** \brief Return whether a conversion is a [Universal Transverse Mercator]
+ * (https://proj.org/operations/projections/utm.html) conversion.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  *
  * @param[out] zone UTM zone number between 1 and 60.
  * @param[out] north true for UTM northern hemisphere, false for UTM southern
@@ -4393,6 +4928,7 @@ ConversionNNPtr Conversion::identify() const {
 
 /** \brief Instantiate a conversion with method Geographic 2D offsets
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9619/index.html">
  * EPSG:9619</a>.
@@ -4401,25 +4937,43 @@ ConversionNNPtr Conversion::identify() const {
  * At minimum the name should be defined.
  * @param offsetLat Latitude offset to add.
  * @param offsetLong Longitude offset to add.
+=======
+ * This method is defined as [EPSG:9619]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9619)
+ * *
+ * @param properties See \ref general_properties of the conversion.
+ * At minimum the name should be defined.
+ * @param offsetLat Latitude offset to add.
+ * @param offsetLon Longitude offset to add.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  * @return new conversion.
  */
 ConversionNNPtr
 Conversion::createGeographic2DOffsets(const util::PropertyMap &properties,
                                       const common::Angle &offsetLat,
+<<<<<<< HEAD
                                       const common::Angle &offsetLong) {
+=======
+                                      const common::Angle &offsetLon) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     return create(
         properties,
         createMethodMapNameEPSGCode(EPSG_CODE_METHOD_GEOGRAPHIC2D_OFFSETS),
         VectorOfParameters{
             createOpParamNameEPSGCode(EPSG_CODE_PARAMETER_LATITUDE_OFFSET),
             createOpParamNameEPSGCode(EPSG_CODE_PARAMETER_LONGITUDE_OFFSET)},
+<<<<<<< HEAD
         VectorOfValues{offsetLat, offsetLong});
+=======
+        VectorOfValues{offsetLat, offsetLon});
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
 
 /** \brief Instantiate a conversion with method Geographic 3D offsets
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9660/index.html">
  * EPSG:9660</a>.
@@ -4428,12 +4982,25 @@ Conversion::createGeographic2DOffsets(const util::PropertyMap &properties,
  * At minimum the name should be defined.
  * @param offsetLat Latitude offset to add.
  * @param offsetLong Longitude offset to add.
+=======
+ * This method is defined as [EPSG:9660]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9660)
+ * *
+ * @param properties See \ref general_properties of the Conversion.
+ * At minimum the name should be defined.
+ * @param offsetLat Latitude offset to add.
+ * @param offsetLon Longitude offset to add.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param offsetHeight Height offset to add.
  * @return new Conversion.
  */
 ConversionNNPtr Conversion::createGeographic3DOffsets(
     const util::PropertyMap &properties, const common::Angle &offsetLat,
+<<<<<<< HEAD
     const common::Angle &offsetLong, const common::Length &offsetHeight) {
+=======
+    const common::Angle &offsetLon, const common::Length &offsetHeight) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     return create(
         properties,
         createMethodMapNameEPSGCode(EPSG_CODE_METHOD_GEOGRAPHIC3D_OFFSETS),
@@ -4441,7 +5008,11 @@ ConversionNNPtr Conversion::createGeographic3DOffsets(
             createOpParamNameEPSGCode(EPSG_CODE_PARAMETER_LATITUDE_OFFSET),
             createOpParamNameEPSGCode(EPSG_CODE_PARAMETER_LONGITUDE_OFFSET),
             createOpParamNameEPSGCode(EPSG_CODE_PARAMETER_VERTICAL_OFFSET)},
+<<<<<<< HEAD
         VectorOfValues{offsetLat, offsetLong, offsetHeight});
+=======
+        VectorOfValues{offsetLat, offsetLon, offsetHeight});
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -4450,6 +5021,7 @@ ConversionNNPtr Conversion::createGeographic3DOffsets(
  * height
  * offsets
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9618/index.html">
  * EPSG:9618</a>.
@@ -4458,12 +5030,25 @@ ConversionNNPtr Conversion::createGeographic3DOffsets(
  * At minimum the name should be defined.
  * @param offsetLat Latitude offset to add.
  * @param offsetLong Longitude offset to add.
+=======
+ * This method is defined as [EPSG:9618]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9618)
+ * *
+ * @param properties See \ref general_properties of the Conversion.
+ * At minimum the name should be defined.
+ * @param offsetLat Latitude offset to add.
+ * @param offsetLon Longitude offset to add.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param offsetHeight Geoid undulation to add.
  * @return new Conversion.
  */
 ConversionNNPtr Conversion::createGeographic2DWithHeightOffsets(
     const util::PropertyMap &properties, const common::Angle &offsetLat,
+<<<<<<< HEAD
     const common::Angle &offsetLong, const common::Length &offsetHeight) {
+=======
+    const common::Angle &offsetLon, const common::Length &offsetHeight) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     return create(
         properties,
         createMethodMapNameEPSGCode(
@@ -4472,17 +5057,27 @@ ConversionNNPtr Conversion::createGeographic2DWithHeightOffsets(
             createOpParamNameEPSGCode(EPSG_CODE_PARAMETER_LATITUDE_OFFSET),
             createOpParamNameEPSGCode(EPSG_CODE_PARAMETER_LONGITUDE_OFFSET),
             createOpParamNameEPSGCode(EPSG_CODE_PARAMETER_GEOID_UNDULATION)},
+<<<<<<< HEAD
         VectorOfValues{offsetLat, offsetLong, offsetHeight});
+=======
+        VectorOfValues{offsetLat, offsetLon, offsetHeight});
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
 
 /** \brief Instantiate a conversion with method Vertical Offset.
  *
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9616/index.html">
  * EPSG:9616</a>.
  *
+=======
+ * This method is defined as [EPSG:9616]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9616)
+ * *
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
  * @param properties See \ref general_properties of the Conversion.
  * At minimum the name should be defined.
  * @param offsetHeight Geoid undulation to add.

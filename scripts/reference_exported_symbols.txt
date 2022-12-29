@@ -92,12 +92,15 @@ osgeo::proj::common::UnitOfMeasure::type() const
 osgeo::proj::common::UnitOfMeasure::~UnitOfMeasure()
 osgeo::proj::common::UnitOfMeasure::UnitOfMeasure(osgeo::proj::common::UnitOfMeasure const&)
 osgeo::proj::common::UnitOfMeasure::UnitOfMeasure(std::string const&, double, osgeo::proj::common::UnitOfMeasure::Type, std::string const&, std::string const&)
+<<<<<<< HEAD
 osgeo::proj::coordinates::CoordinateMetadata::coordinateEpochAsDecimalYear() const
 osgeo::proj::coordinates::CoordinateMetadata::coordinateEpoch() const
 osgeo::proj::coordinates::CoordinateMetadata::~CoordinateMetadata()
 osgeo::proj::coordinates::CoordinateMetadata::create(dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&)
 osgeo::proj::coordinates::CoordinateMetadata::create(dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, double)
 osgeo::proj::coordinates::CoordinateMetadata::crs() const
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::crs::BoundCRS::baseCRS() const
 osgeo::proj::crs::BoundCRS::baseCRSWithCanonicalBoundCRS() const
 osgeo::proj::crs::BoundCRS::~BoundCRS()
@@ -124,7 +127,10 @@ osgeo::proj::crs::CRS::extractGeographicCRS() const
 osgeo::proj::crs::CRS::extractVerticalCRS() const
 osgeo::proj::crs::CRS::getNonDeprecated(dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::io::DatabaseContext> > const&) const
 osgeo::proj::crs::CRS::identify(std::shared_ptr<osgeo::proj::io::AuthorityFactory> const&) const
+<<<<<<< HEAD
 osgeo::proj::crs::CRS::isDynamic(bool) const
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::crs::CRS::normalizeForVisualization() const
 osgeo::proj::crs::CRS::promoteTo3D(std::string const&, std::shared_ptr<osgeo::proj::io::DatabaseContext> const&) const
 osgeo::proj::crs::CRS::shallowClone() const
@@ -210,14 +216,20 @@ osgeo::proj::cs::CartesianCS::createSouthPoleEastingNorthNorthingNorth(osgeo::pr
 osgeo::proj::cs::CartesianCS::createWestingSouthing(osgeo::proj::common::UnitOfMeasure const&)
 osgeo::proj::cs::CoordinateSystemAxis::abbreviation() const
 osgeo::proj::cs::CoordinateSystemAxis::~CoordinateSystemAxis()
+<<<<<<< HEAD
 osgeo::proj::cs::CoordinateSystemAxis::create(osgeo::proj::util::PropertyMap const&, std::string const&, osgeo::proj::cs::AxisDirection const&, osgeo::proj::common::UnitOfMeasure const&, osgeo::proj::util::optional<double> const&, osgeo::proj::util::optional<double> const&, osgeo::proj::util::optional<osgeo::proj::cs::RangeMeaning> const&, std::shared_ptr<osgeo::proj::cs::Meridian> const&)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::cs::CoordinateSystemAxis::create(osgeo::proj::util::PropertyMap const&, std::string const&, osgeo::proj::cs::AxisDirection const&, osgeo::proj::common::UnitOfMeasure const&, std::shared_ptr<osgeo::proj::cs::Meridian> const&)
 osgeo::proj::cs::CoordinateSystemAxis::direction() const
 osgeo::proj::cs::CoordinateSystem::axisList() const
 osgeo::proj::cs::CoordinateSystemAxis::maximumValue() const
 osgeo::proj::cs::CoordinateSystemAxis::meridian() const
 osgeo::proj::cs::CoordinateSystemAxis::minimumValue() const
+<<<<<<< HEAD
 osgeo::proj::cs::CoordinateSystemAxis::rangeMeaning() const
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::cs::CoordinateSystemAxis::unit() const
 osgeo::proj::cs::CoordinateSystem::~CoordinateSystem()
 osgeo::proj::cs::DateTimeTemporalCS::create(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&)
@@ -236,7 +248,10 @@ osgeo::proj::cs::OrdinalCS::create(osgeo::proj::util::PropertyMap const&, std::v
 osgeo::proj::cs::OrdinalCS::~OrdinalCS()
 osgeo::proj::cs::ParametricCS::create(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&)
 osgeo::proj::cs::ParametricCS::~ParametricCS()
+<<<<<<< HEAD
 osgeo::proj::cs::RangeMeaning::valueOf(std::string const&)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::cs::SphericalCS::create(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&)
 osgeo::proj::cs::SphericalCS::create(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&)
 osgeo::proj::cs::SphericalCS::~SphericalCS()
@@ -249,7 +264,10 @@ osgeo::proj::cs::VerticalCS::createGravityRelatedHeight(osgeo::proj::common::Uni
 osgeo::proj::cs::VerticalCS::create(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&)
 osgeo::proj::cs::VerticalCS::~VerticalCS()
 osgeo::proj::datum::Datum::anchorDefinition() const
+<<<<<<< HEAD
 osgeo::proj::datum::Datum::anchorEpoch() const
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::datum::Datum::conventionalRS() const
 osgeo::proj::datum::Datum::~Datum()
 osgeo::proj::datum::DatumEnsemble::asDatum(std::shared_ptr<osgeo::proj::io::DatabaseContext> const&) const
@@ -283,7 +301,10 @@ osgeo::proj::datum::Ellipsoid::squaredEccentricity() const
 osgeo::proj::datum::EngineeringDatum::create(osgeo::proj::util::PropertyMap const&, osgeo::proj::util::optional<std::string> const&)
 osgeo::proj::datum::EngineeringDatum::~EngineeringDatum()
 osgeo::proj::datum::GeodeticReferenceFrame::create(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::datum::Ellipsoid> > const&, osgeo::proj::util::optional<std::string> const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::datum::PrimeMeridian> > const&)
+<<<<<<< HEAD
 osgeo::proj::datum::GeodeticReferenceFrame::create(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::datum::Ellipsoid> > const&, osgeo::proj::util::optional<std::string> const&, osgeo::proj::util::optional<osgeo::proj::common::Measure> const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::datum::PrimeMeridian> > const&)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::datum::GeodeticReferenceFrame::ellipsoid() const
 osgeo::proj::datum::GeodeticReferenceFrame::~GeodeticReferenceFrame()
 osgeo::proj::datum::GeodeticReferenceFrame::hasEquivalentNameToUsingAlias(osgeo::proj::common::IdentifiedObject const*, std::shared_ptr<osgeo::proj::io::DatabaseContext> const&) const
@@ -299,7 +320,10 @@ osgeo::proj::datum::TemporalDatum::calendar() const
 osgeo::proj::datum::TemporalDatum::create(osgeo::proj::util::PropertyMap const&, osgeo::proj::common::DateTime const&, std::string const&)
 osgeo::proj::datum::TemporalDatum::~TemporalDatum()
 osgeo::proj::datum::TemporalDatum::temporalOrigin() const
+<<<<<<< HEAD
 osgeo::proj::datum::VerticalReferenceFrame::create(osgeo::proj::util::PropertyMap const&, osgeo::proj::util::optional<std::string> const&, osgeo::proj::util::optional<osgeo::proj::common::Measure> const&, osgeo::proj::util::optional<osgeo::proj::datum::RealizationMethod> const&)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::datum::VerticalReferenceFrame::create(osgeo::proj::util::PropertyMap const&, osgeo::proj::util::optional<std::string> const&, osgeo::proj::util::optional<osgeo::proj::datum::RealizationMethod> const&)
 osgeo::proj::datum::VerticalReferenceFrame::realizationMethod() const
 osgeo::proj::datum::VerticalReferenceFrame::~VerticalReferenceFrame()
@@ -606,7 +630,10 @@ osgeo::proj::operation::Conversion::createStereographic(osgeo::proj::util::Prope
 osgeo::proj::operation::Conversion::createTransverseMercator(osgeo::proj::util::PropertyMap const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Scale const&, osgeo::proj::common::Length const&, osgeo::proj::common::Length const&)
 osgeo::proj::operation::Conversion::createTransverseMercatorSouthOriented(osgeo::proj::util::PropertyMap const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Scale const&, osgeo::proj::common::Length const&, osgeo::proj::common::Length const&)
 osgeo::proj::operation::Conversion::createTunisiaMappingGrid(osgeo::proj::util::PropertyMap const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Length const&, osgeo::proj::common::Length const&)
+<<<<<<< HEAD
 osgeo::proj::operation::Conversion::createTunisiaMiningGrid(osgeo::proj::util::PropertyMap const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Length const&, osgeo::proj::common::Length const&)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::Conversion::createTwoPointEquidistant(osgeo::proj::util::PropertyMap const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Length const&, osgeo::proj::common::Length const&)
 osgeo::proj::operation::Conversion::createUTM(osgeo::proj::util::PropertyMap const&, int, bool)
 osgeo::proj::operation::Conversion::createVanDerGrinten(osgeo::proj::util::PropertyMap const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Length const&, osgeo::proj::common::Length const&)
@@ -622,7 +649,10 @@ osgeo::proj::operation::Conversion::createWagnerV(osgeo::proj::util::PropertyMap
 osgeo::proj::operation::Conversion::identify() const
 osgeo::proj::operation::Conversion::inverse() const
 osgeo::proj::operation::Conversion::isUTM(int&, bool&) const
+<<<<<<< HEAD
 osgeo::proj::operation::CoordinateOperationContext::clone() const
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::CoordinateOperationContext::~CoordinateOperationContext()
 osgeo::proj::operation::CoordinateOperationContext::create(std::shared_ptr<osgeo::proj::io::AuthorityFactory> const&, std::shared_ptr<osgeo::proj::metadata::Extent> const&, double)
 osgeo::proj::operation::CoordinateOperationContext::getAllowBallparkTransformations() const
@@ -634,9 +664,13 @@ osgeo::proj::operation::CoordinateOperationContext::getDiscardSuperseded() const
 osgeo::proj::operation::CoordinateOperationContext::getGridAvailabilityUse() const
 osgeo::proj::operation::CoordinateOperationContext::getIntermediateCRS() const
 osgeo::proj::operation::CoordinateOperationContext::getSourceAndTargetCRSExtentUse() const
+<<<<<<< HEAD
 osgeo::proj::operation::CoordinateOperationContext::getSourceCoordinateEpoch() const
 osgeo::proj::operation::CoordinateOperationContext::getSpatialCriterion() const
 osgeo::proj::operation::CoordinateOperationContext::getTargetCoordinateEpoch() const
+=======
+osgeo::proj::operation::CoordinateOperationContext::getSpatialCriterion() const
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::CoordinateOperationContext::getUsePROJAlternativeGridNames() const
 osgeo::proj::operation::CoordinateOperationContext::setAllowBallparkTransformations(bool)
 osgeo::proj::operation::CoordinateOperationContext::setAllowUseIntermediateCRS(osgeo::proj::operation::CoordinateOperationContext::IntermediateCRSUse)
@@ -646,17 +680,24 @@ osgeo::proj::operation::CoordinateOperationContext::setDiscardSuperseded(bool)
 osgeo::proj::operation::CoordinateOperationContext::setGridAvailabilityUse(osgeo::proj::operation::CoordinateOperationContext::GridAvailabilityUse)
 osgeo::proj::operation::CoordinateOperationContext::setIntermediateCRS(std::vector<std::pair<std::string, std::string>, std::allocator<std::pair<std::string, std::string> > > const&)
 osgeo::proj::operation::CoordinateOperationContext::setSourceAndTargetCRSExtentUse(osgeo::proj::operation::CoordinateOperationContext::SourceTargetCRSExtentUse)
+<<<<<<< HEAD
 osgeo::proj::operation::CoordinateOperationContext::setSourceCoordinateEpoch(osgeo::proj::util::optional<osgeo::proj::common::DataEpoch> const&)
 osgeo::proj::operation::CoordinateOperationContext::setSpatialCriterion(osgeo::proj::operation::CoordinateOperationContext::SpatialCriterion)
 osgeo::proj::operation::CoordinateOperationContext::setTargetCoordinateEpoch(osgeo::proj::util::optional<osgeo::proj::common::DataEpoch> const&)
+=======
+osgeo::proj::operation::CoordinateOperationContext::setSpatialCriterion(osgeo::proj::operation::CoordinateOperationContext::SpatialCriterion)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::CoordinateOperationContext::setUsePROJAlternativeGridNames(bool)
 osgeo::proj::operation::CoordinateOperation::~CoordinateOperation()
 osgeo::proj::operation::CoordinateOperation::coordinateOperationAccuracies() const
 osgeo::proj::operation::CoordinateOperationFactory::~CoordinateOperationFactory()
 osgeo::proj::operation::CoordinateOperationFactory::create()
 osgeo::proj::operation::CoordinateOperationFactory::createOperation(dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&) const
+<<<<<<< HEAD
 osgeo::proj::operation::CoordinateOperationFactory::createOperations(dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::coordinates::CoordinateMetadata> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, dropbox::oxygen::nn<std::unique_ptr<osgeo::proj::operation::CoordinateOperationContext, std::default_delete<osgeo::proj::operation::CoordinateOperationContext> > > const&) const
 osgeo::proj::operation::CoordinateOperationFactory::createOperations(dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::coordinates::CoordinateMetadata> > const&, dropbox::oxygen::nn<std::unique_ptr<osgeo::proj::operation::CoordinateOperationContext, std::default_delete<osgeo::proj::operation::CoordinateOperationContext> > > const&) const
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::CoordinateOperationFactory::createOperations(dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, dropbox::oxygen::nn<std::unique_ptr<osgeo::proj::operation::CoordinateOperationContext, std::default_delete<osgeo::proj::operation::CoordinateOperationContext> > > const&) const
 osgeo::proj::operation::CoordinateOperation::hasBallparkTransformation() const
 osgeo::proj::operation::CoordinateOperation::interpolationCRS() const
@@ -858,7 +899,10 @@ proj_context_use_proj4_init_rules
 proj_convert_conversion_to_other_method
 proj_coord
 proj_coord_error()
+<<<<<<< HEAD
 proj_coordinate_metadata_get_epoch
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 proj_coordoperation_create_inverse
 proj_coordoperation_get_accuracy
 proj_coordoperation_get_grid_used
@@ -932,7 +976,10 @@ proj_create_conversion_stereographic
 proj_create_conversion_transverse_mercator
 proj_create_conversion_transverse_mercator_south_oriented
 proj_create_conversion_tunisia_mapping_grid
+<<<<<<< HEAD
 proj_create_conversion_tunisia_mining_grid
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 proj_create_conversion_two_point_equidistant
 proj_create_conversion_utm
 proj_create_conversion_van_der_grinten
