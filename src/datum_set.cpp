@@ -94,6 +94,7 @@ int pj_datum_set(PJ_CONTEXT *ctx, paralist *pl, PJ *projdef)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         const struct PJ_DATUMS * pj_datums = pj_get_datums_ref();
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -292,6 +293,8 @@ int pj_datum_set(PJ_CONTEXT *ctx, paralist *pl, PJ *projdef)
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
         for (i = 0; (s = pj_datums[i].id) && strcmp(name, s) ; ++i) {}
 
         if (!s) {
