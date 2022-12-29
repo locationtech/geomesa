@@ -248,9 +248,19 @@ The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.
 The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.org/programs/gdalsrsinfo.html>`__ utility that offers
 =======
 The program is named with some reference to the GDAL :program:`gdalsrsinfo` that offers
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 9172626758 (Merge pull request #3524 from cffk/merid-update-fix)
 partly similar services.
 
 
