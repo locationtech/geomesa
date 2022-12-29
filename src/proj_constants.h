@@ -65,6 +65,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -90,6 +91,8 @@
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 /* Deprecated because of wrong name. Use EPSG_xxx_METHOD_TUNISIA_MINING_GRID instead */
 #define EPSG_NAME_METHOD_TUNISIA_MAPPING_GRID "Tunisia Mapping Grid"
 #define EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID 9816
@@ -127,6 +130,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -140,12 +144,17 @@
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
 =======
 #define EPSG_NAME_METHOD_TUNISIA_MAPPING_GRID "Tunisia Mapping Grid"
 #define EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID 9816
 
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -206,6 +215,9 @@
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 #define EPSG_NAME_METHOD_ALBERS_EQUAL_AREA "Albers Equal Area"
 #define EPSG_CODE_METHOD_ALBERS_EQUAL_AREA 9822
 

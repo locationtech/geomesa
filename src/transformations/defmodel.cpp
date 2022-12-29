@@ -123,6 +123,7 @@ struct Grid : public GridPrototype {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -139,6 +140,8 @@ struct Grid : public GridPrototype {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     bool getLongLatOffset(int ix, int iy, double &longOffsetRadian,
                           double &latOffsetRadian) const {
         if (!checkHorizontal(STR_DEGREE)) {
@@ -152,6 +155,7 @@ struct Grid : public GridPrototype {
         }
         longOffsetRadian = longOffsetDeg * DEG_TO_RAD;
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -313,6 +317,10 @@ struct Grid : public GridPrototype {
         longOffsetRadian = longOffsetDeg * DEG_TO_RAD;
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
+=======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     bool getLonLatOffset(int ix, int iy, double &lonOffsetRadian,
                          double &latOffsetRadian) const {
         if (!checkHorizontal(STR_DEGREE)) {
@@ -325,8 +333,18 @@ struct Grid : public GridPrototype {
             return false;
         }
         lonOffsetRadian = lonOffsetDeg * DEG_TO_RAD;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
         latOffsetRadian = latOffsetDeg * DEG_TO_RAD;
         return true;
     }
@@ -406,6 +424,7 @@ struct Grid : public GridPrototype {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -422,6 +441,8 @@ struct Grid : public GridPrototype {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     bool getLongLatZOffset(int ix, int iy, double &longOffsetRadian,
                            double &latOffsetRadian, double &zOffset) const {
         return getLongLatOffset(ix, iy, longOffsetRadian, latOffsetRadian) &&
@@ -429,6 +450,7 @@ struct Grid : public GridPrototype {
     bool getLonLatZOffset(int ix, int iy, double &lonOffsetRadian,
                           double &latOffsetRadian, double &zOffset) const {
         return getLonLatOffset(ix, iy, lonOffsetRadian, latOffsetRadian) &&
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -448,12 +470,17 @@ struct Grid : public GridPrototype {
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
 =======
     bool getLonLatZOffset(int ix, int iy, double &lonOffsetRadian,
                           double &latOffsetRadian, double &zOffset) const {
         return getLonLatOffset(ix, iy, lonOffsetRadian, latOffsetRadian) &&
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -523,6 +550,9 @@ struct Grid : public GridPrototype {
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
                getZOffset(ix, iy, zOffset);
     }
 
