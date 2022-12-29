@@ -611,10 +611,18 @@ Weak points:
   but there is nothing really handy in them for simple georeferencing with
   the coordinate of the upper-left pixel and the resolution. The practice is
 <<<<<<< HEAD
+<<<<<<< HEAD
   to write explicit long and lat variables with all values taken by the grid.
 =======
   to write explicit lon and lat variables with all values taken by the grid.
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+  to write explicit lon and lat variables with all values taken by the grid.
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
   GDAL has for many years supported a simpler syntax, using a GeoTransform
   attribute.
 
