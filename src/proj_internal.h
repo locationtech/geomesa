@@ -576,10 +576,15 @@ struct PJconsts {
      ISO-19111 interface
     **************************************************************************************/
 
+<<<<<<< HEAD
     NS_PROJ::util::BaseObjectPtr iso_obj{};
     bool                                 iso_obj_is_coordinate_operation = false;
     double coordinateEpoch = 0;
     bool   hasCoordinateEpoch = false;
+=======
+    NS_PROJ::common::IdentifiedObjectPtr iso_obj{};
+    bool                                 iso_obj_is_coordinate_operation = false;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     // cached results
     mutable std::string lastWKT{};
@@ -596,8 +601,11 @@ struct PJconsts {
     **************************************************************************************/
     std::vector<PJCoordOperation> alternativeCoordinateOperations{};
     int iCurCoordOp = -1;
+<<<<<<< HEAD
     bool errorIfBestTransformationNotAvailable = false;
     bool warnIfBestTransformationNotAvailable = true; /* to remove in PROJ 10? */
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     /*************************************************************************************
 
@@ -698,8 +706,11 @@ struct pj_ctx{
     std::string lastFullErrorMessage{}; // used by proj_context_errno_string
     int     last_errno = 0;
     int     debug_level = PJ_LOG_ERROR;
+<<<<<<< HEAD
     bool errorIfBestTransformationNotAvailableDefault = false;
     bool warnIfBestTransformationNotAvailableDefault = true;
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     void    (*logger)(void *, int, const char *) = nullptr;
     void    *logger_app_data = nullptr;
     struct projCppContext* cpp_context = nullptr; /* internal context for C++ code */
@@ -746,6 +757,16 @@ struct pj_ctx{
     static pj_ctx createDefault();
 };
 
+<<<<<<< HEAD
+=======
+/* Generate pj_list external or make list from include file */
+#ifndef PJ_DATUMS_
+C_NAMESPACE_VAR struct PJ_DATUMS pj_datums[];
+#endif
+
+
+
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 
 #ifdef PJ_LIB_
@@ -820,6 +841,10 @@ double  pj_tsfn(double, double, double);
 double  pj_msfn(double, double, double);
 double  PROJ_DLL pj_phi2(PJ_CONTEXT *, const double, const double);
 double  pj_sinhpsi2tanphi(PJ_CONTEXT *, const double, const double);
+<<<<<<< HEAD
+=======
+double  pj_qsfn_(double, PJ *);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 double *pj_authset(double);
 double  pj_authlat(double, double *);
 
@@ -836,7 +861,11 @@ void  *pj_gauss_ini(double, double, double *,double *);
 PJ_LP     pj_gauss(PJ_CONTEXT *, PJ_LP, const void *);
 PJ_LP     pj_inv_gauss(PJ_CONTEXT *, PJ_LP, const void *);
 
+<<<<<<< HEAD
 const struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
+=======
+struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 PJ *pj_new(void);
 PJ *pj_default_destructor (PJ *P, int errlev);

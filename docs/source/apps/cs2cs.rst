@@ -13,8 +13,12 @@ Synopsis
 
     | **cs2cs** [**-eEfIlrstvwW** [args]]
     |           [[--area <name_or_code>] | [--bbox <west_long,south_lat,east_long,north_lat>]]
+<<<<<<< HEAD
     |           [--authority <name>] [--3d]
     |           [--accuracy <accuracy>] [--only-best[=yes|=no]] [--no-ballpark]
+=======
+    |           [--authority <name>] [--no-ballpark] [--accuracy <accuracy>] [--3d]
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     |           ([*+opt[=arg]* ...] [+to *+opt[=arg]* ...] | {source_crs} {target_crs})
     |           file ...
 
@@ -27,7 +31,10 @@ Synopsis
       "urn:ogc:def:coordinateOperation:EPSG::1671"),
     - an Object name. e.g "WGS 84", "WGS 84 / UTM zone 31N". In that case as
       uniqueness is not guaranteed, heuristics are applied to determine the appropriate best match.
+<<<<<<< HEAD
     - a CRS name and a coordinate epoch, separated with '@'. For example "ITRF2014@2025.0". (*added in 9.2*)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     - a OGC URN combining references for compound coordinate reference systems
       (e.g "urn:ogc:def:crs,crs:EPSG::2393,crs:EPSG::5717" or custom abbreviated
       syntax "EPSG:2393+5717"),
@@ -168,6 +175,7 @@ The following control parameters can appear in any order:
     `south_lat` and `north_lat` in the [-90,90]. `west_long` is generally lower than
     `east_long`, except in the case where the area of interest crosses the antimeridian.
 
+<<<<<<< HEAD
 .. option:: --only-best[=yes|=no]
 
     .. versionadded:: 9.2.0
@@ -185,6 +193,8 @@ The following control parameters can appear in any order:
     ``only_best_default`` setting of :ref:`proj-ini` (:option:`--only-best`
     when specified overrides such default value).
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 .. option:: --no-ballpark
 
     .. versionadded:: 8.0.0
@@ -303,6 +313,7 @@ The x-y output data will appear as three lines of:
 
 ::
 
+<<<<<<< HEAD
     1402285.93  5076292.58 0.00
 
 
@@ -339,6 +350,14 @@ would return:
 which is the result when the NAD27 and NAD83 datums are dealt as identical,
 which is an approximation at a level of several tens of metres.
 
+=======
+    1402285.98  5076292.42 0.00
+
+.. note::
+
+    To get those exact values, you have need to have all current grids installed
+    locally or use networking capabilities mentioned above.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Using EPSG CRS codes
 --------------------

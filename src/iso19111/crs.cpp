@@ -179,6 +179,7 @@ const BoundCRSPtr &CRS::canonicalBoundCRS() PROJ_PURE_DEFN {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Return whether a CRS is a dynamic CRS.
  *
  * A dynamic CRS is a CRS that contains a geodetic CRS whose geodetic reference
@@ -224,6 +225,8 @@ bool CRS::isDynamic(bool considerWGS84AsDynamic) const {
 
 // ---------------------------------------------------------------------------
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 /** \brief Return the GeodeticCRS of the CRS.
  *
  * Returns the GeodeticCRS contained in a CRS. This works currently with
@@ -663,7 +666,11 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
                     ->createOperations(NN_NO_CHECK(geodCRS), hubCRS, ctxt);
             CRSPtr candidateBoundCRS;
             int candidateCount = 0;
+<<<<<<< HEAD
             bool candidateHasExactlyMatchingExtent = false;
+=======
+            bool candidateHasExactlyMachingExtent = false;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
             for (const auto &op : list) {
                 auto transf =
                     util::nn_dynamic_pointer_cast<operation::Transformation>(
@@ -683,16 +690,27 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
                         extentResolved->contains(NN_NO_CHECK(opExtent));
                     if (candidateBoundCRS) {
                         if (exactlyMatchingExtent &&
+<<<<<<< HEAD
                             !candidateHasExactlyMatchingExtent) {
                             candidateBoundCRS = nullptr;
                         } else if (exactlyMatchingExtent ==
                                    candidateHasExactlyMatchingExtent) {
+=======
+                            !candidateHasExactlyMachingExtent) {
+                            candidateBoundCRS = nullptr;
+                        } else if (exactlyMatchingExtent ==
+                                   candidateHasExactlyMachingExtent) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                             candidateCount++;
                         }
                     }
                     if (candidateBoundCRS == nullptr) {
                         candidateCount = 1;
+<<<<<<< HEAD
                         candidateHasExactlyMatchingExtent =
+=======
+                        candidateHasExactlyMachingExtent =
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                             exactlyMatchingExtent;
                         candidateBoundCRS =
                             BoundCRS::create(thisAsCRS, hubCRS,
@@ -740,17 +758,29 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
                                             NN_NO_CHECK(opExtent));
                                     if (candidateBoundCRS) {
                                         if (exactlyMatchingExtent &&
+<<<<<<< HEAD
                                             !candidateHasExactlyMatchingExtent) {
                                             candidateBoundCRS = nullptr;
                                         } else if (
                                             exactlyMatchingExtent ==
                                             candidateHasExactlyMatchingExtent) {
+=======
+                                            !candidateHasExactlyMachingExtent) {
+                                            candidateBoundCRS = nullptr;
+                                        } else if (
+                                            exactlyMatchingExtent ==
+                                            candidateHasExactlyMachingExtent) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                                             candidateCount++;
                                         }
                                     }
                                     if (candidateBoundCRS == nullptr) {
                                         candidateCount = 1;
+<<<<<<< HEAD
                                         candidateHasExactlyMatchingExtent =
+=======
+                                        candidateHasExactlyMachingExtent =
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                                             exactlyMatchingExtent;
                                         candidateBoundCRS =
                                             BoundCRS::create(
@@ -4328,7 +4358,11 @@ void ProjectedCRS::_exportToWKT(io::WKTFormatter *formatter) const {
         if (!isWKT2 && !l_identifiers.empty() &&
             *(l_identifiers[0]->codeSpace()) == "ESRI") {
             try {
+<<<<<<< HEAD
                 // If the id of the object is in the ESRI namespace, then
+=======
+                // If the id of the objet is in the ESRI namespace, then
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                 // try to find the full ESRI WKT from the database
                 const auto definition = dbContext->getTextDefinition(
                     "projected_crs", "ESRI", l_identifiers[0]->code());
@@ -4876,6 +4910,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
     const bool l_implicitCS = hasImplicitCS();
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const auto addCRS = [&](const ProjectedCRSNNPtr &crs, const bool eqName,
                             bool hasNonMatchingId) {
 =======
@@ -4885,6 +4920,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
     const auto addCRS = [&](const ProjectedCRSNNPtr &crs, const bool eqName,
                             bool hasNonMatchingId) {
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    const auto addCRS = [&](const ProjectedCRSNNPtr &crs, const bool eqName) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         const auto &l_unit = cs->axisList()[0]->unit();
         if (_isEquivalentTo(crs.get(),
                             util::IComparable::Criterion::
@@ -4906,6 +4944,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
                 res.clear();
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 res.emplace_back(crs, hasNonMatchingId ? 70 : 100);
 =======
                 res.emplace_back(crs, 100);
@@ -4913,6 +4952,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
                 res.emplace_back(crs, hasNonMatchingId ? 70 : 100);
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+                res.emplace_back(crs, 100);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
             } else {
                 res.emplace_back(crs, eqName ? 90 : 70);
             }
@@ -4955,12 +4997,15 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         bool hasNonMatchingId = false;
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
         bool hasNonMatchingId = false;
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         if (hasCodeCompatibleOfAuthorityFactory(this, authorityFactory)) {
             // If the CRS has already an id, check in the database for the
             // official object, and verify that they are equivalent.
@@ -4979,6 +5024,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
                         res.emplace_back(crs, match ? 100 : 25);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         if (match) {
                             return res;
                         }
@@ -4990,10 +5036,14 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
                             return res;
                         }
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+                        return res;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                     } catch (const std::exception &) {
                     }
                 }
             }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
             hasNonMatchingId = true;
@@ -5002,6 +5052,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
             hasNonMatchingId = true;
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         } else if (!insignificantName) {
             for (int ipass = 0; ipass < 2; ipass++) {
                 const bool approximateMatch = ipass == 1;
@@ -5019,6 +5071,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     if (addCRS(crsNN, eqName, false).second == 100) {
 =======
                     if (addCRS(crsNN, eqName).second == 100) {
@@ -5026,6 +5079,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
                     if (addCRS(crsNN, eqName, false).second == 100) {
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+                    if (addCRS(crsNN, eqName).second == 100) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                         return res;
                     }
                 }
@@ -5063,6 +5119,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (!foundEquivalentName && (res.empty() || res.front().second < 50)) {
 =======
         if (!hasCodeCompatibleOfAuthorityFactory(this, authorityFactory) &&
@@ -5071,6 +5128,10 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
         if (!foundEquivalentName && (res.empty() || res.front().second < 50)) {
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+        if (!hasCodeCompatibleOfAuthorityFactory(this, authorityFactory) &&
+            !foundEquivalentName && (res.empty() || res.front().second < 50)) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
             std::set<std::pair<std::string, std::string>> alreadyKnown;
             for (const auto &pair : res) {
                 const auto &ids = pair.first->identifiers();
@@ -5094,6 +5155,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 addCRS(crs, insignificantName, hasNonMatchingId);
 =======
                 addCRS(crs, insignificantName);
@@ -5101,6 +5163,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
                 addCRS(crs, insignificantName, hasNonMatchingId);
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+                addCRS(crs, insignificantName);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
             }
 
             res.sort(lambdaSort);
