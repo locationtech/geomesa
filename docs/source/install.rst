@@ -124,6 +124,7 @@ Fedora
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -315,6 +316,9 @@ On Fedora the ``dnf`` package manager is used::
 On Fedora the ``dnf`` package manager is used::
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+On Fedora the :program:`dnf` package manager is used::
+>>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 
     sudo dnf install proj
 
@@ -343,6 +347,7 @@ Red Hat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -534,6 +539,9 @@ On Red Hat based system packages are installed with ``yum``::
 On Red Hat based system packages are installed with ``yum``::
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+On Red Hat based system packages are installed with :program:`yum`::
+>>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 
     sudo yum install proj
 
@@ -630,6 +638,7 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 
     As an alternative on systems where network access is disabled, the
     :ref:`proj-data <datumgrid>`
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -858,6 +867,10 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+    package can be downloaded and added to the :envvar:`PROJ_DATA` directory
+    (called ``PROJ_LIB`` before PROJ 9.1)
+>>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Starting with PROJ 9.2, a ``uninstall`` target is available to remove files
 installed by the ``install`` target::
