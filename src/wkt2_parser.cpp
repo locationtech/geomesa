@@ -95,10 +95,13 @@ static const wkt2_tokens tokens[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
     PAIR(ANCHOREPOCH),
 =======
 <<<<<<< HEAD
@@ -126,6 +129,7 @@ static const wkt2_tokens tokens[] = {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -155,6 +159,10 @@ static const wkt2_tokens tokens[] = {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
     PAIR(CONVERSION), PAIR(METHOD), PAIR(REMARK), PAIR(GEOGCRS),
     PAIR(BASEGEOGCRS), PAIR(SCOPE), PAIR(AREA), PAIR(BBOX), PAIR(CITATION),
     PAIR(URI), PAIR(VERTCRS), PAIR(VDATUM), PAIR(GEOIDMODEL), PAIR(COMPOUNDCRS),
@@ -184,10 +192,13 @@ static const wkt2_tokens tokens[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
     PAIR(AXISMINVALUE), PAIR(AXISMAXVALUE), PAIR(RANGEMEANING),
     PAIR(exact), PAIR(wraparound),
 =======
@@ -219,6 +230,7 @@ static const wkt2_tokens tokens[] = {
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -249,6 +261,10 @@ static const wkt2_tokens tokens[] = {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     // CS types
     PAIR(AFFINE), PAIR(CARTESIAN), PAIR(CYLINDRICAL), PAIR(ELLIPSOIDAL),
