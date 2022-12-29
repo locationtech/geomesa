@@ -2625,6 +2625,7 @@ TEST(crs, projectedCRS_identify_db) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2694,6 +2695,9 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+        EXPECT_EQ(res.size(), 0U);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
     }
     {
         // Existing code, but not matching content
@@ -2716,6 +2720,7 @@ TEST(crs, projectedCRS_identify_db) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2783,6 +2788,10 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+        EXPECT_EQ(res.front().first->getEPSGCode(), 32631);
+        EXPECT_EQ(res.front().second, 25);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
     }
     {
         // Identify by exact name
@@ -3409,6 +3418,7 @@ TEST(crs, projectedCRS_identify_db) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -3505,6 +3515,8 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -7402,6 +7414,7 @@ TEST(crs, projected_is_equivalent_to_with_proj4_extension) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -7473,3 +7486,5 @@ TEST(crs, is_dynamic) {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)

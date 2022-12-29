@@ -240,6 +240,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -266,6 +267,9 @@ Optional
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    the inverse tranformation.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 
 .. option:: +inv_u=<u_11,u_12,...,u_ij,..,u_mn>
 
@@ -278,6 +282,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -304,6 +309,9 @@ Optional
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    the inverse tranformation.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 
 .. option:: +inv_v=<v_11,v_12,...,v_ij,..,v_mn>
 
@@ -316,6 +324,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -342,6 +351,9 @@ Optional
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    the inverse tranformation.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 
 .. option:: +inv_c=<c_1,c_2,...,c_N>
 
@@ -354,6 +366,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -380,6 +393,9 @@ Optional
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    the inverse tranformation.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 
 .. option:: +range=<value>
 

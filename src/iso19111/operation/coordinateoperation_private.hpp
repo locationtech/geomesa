@@ -51,6 +51,7 @@ struct CoordinateOperation::Private {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -87,6 +88,10 @@ struct CoordinateOperation::Private {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    util::optional<common::DataEpoch> sourceCoordinateEpoch_{};
+    util::optional<common::DataEpoch> targetCoordinateEpoch_{};
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
     bool hasBallparkTransformation_ = false;
 
     // do not set this for a ProjectedCRS.definingConversion
