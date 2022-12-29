@@ -198,6 +198,7 @@ fallback_strategy
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -409,6 +410,9 @@ fallback_strategy
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  specified triangles are not transformed. This is also the behaviour for
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
   ``format_version`` before 1.1. If ``fallback_strategy`` is set to
   ``nearest_side``, then points that do not fall into any triangle are 
   transformed according to the triangle closest to them by euclidean distance.
