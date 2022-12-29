@@ -71,12 +71,16 @@ fi
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -100,6 +104,10 @@ fi
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,aclocal.m4,depcomp,ltmain.sh,*.pdf,./m4/*,./fix_typos/*,./docs/build/*,./src/*generated*,./test/googletest/*,./include/proj/internal/nlohmann/json.hpp,*.before_reformat,./test/cli/test27,./test/cli/test83,./test/cli/pj_out27.dist,./test/cli/pj_out83.dist,geodesic.h,geodesic.c,geodtest.c,./docs/source/spelling_wordlist.txt"
 =======
 EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,aclocal.m4,depcomp,ltmain.sh,*.pdf,./m4/*,./fix_typos/*,./docs/build/*,./src/*generated*,./test/googletest/*,./include/proj/internal/nlohmann/json.hpp,*.before_reformat,./test/cli/test27,./test/cli/test83,./test/cli/pj_out27.dist,./test/cli/pj_out83.dist"
@@ -147,8 +155,11 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,aclocal.m4,depcomp,ltmain.sh,*.pdf,./m4/*,./fix_typos/*,./docs/build/*,./src/*generated*,./test/googletest/*,./include/proj/internal/nlohmann/json.hpp,*.before_reformat,./test/cli/test27,./test/cli/test83,./test/cli/pj_out27.dist,./test/cli/pj_out83.dist"
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -192,6 +203,7 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,aclocal.m4,depcomp,ltmain.sh,*.pdf,./m4/*,./fix_typos/*,./docs/build/*,./src/*generated*,./test/googletest/*,./include/proj/internal/nlohmann/json.hpp,*.before_reformat,./test/cli/test27,./test/cli/test83,./test/cli/pj_out27.dist,./test/cli/pj_out83.dist"
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,aclocal.m4,depcomp,ltmain.sh,*.pdf,./m4/*,./fix_typos/*,./docs/build/*,./src/*generated*,./test/googletest/*,./include/proj/internal/nlohmann/json.hpp,*.before_reformat,./test/cli/test27,./test/cli/test83,./test/cli/pj_out27.dist,./test/cli/pj_out83.dist"
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -263,6 +275,8 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 WORDS_WHITE_LIST="metres,als,lsat,twon,ang,PJD_ERR_LSAT_NOT_IN_RANGE,COLOR_GRAT,interm,Interm,Cartesian,cartesian,CARTESIAN,kilometre,centimetre,millimetre,millimetres,Australia,LINZ,LaTeX,BibTeX"
 
 python3 fix_typos/codespell/codespell.py -w -i 3 -q 2 -S $EXCLUDED_FILES \
