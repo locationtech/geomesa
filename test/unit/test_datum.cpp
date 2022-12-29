@@ -265,14 +265,18 @@ TEST(datum, datum_with_ANCHOR) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
@@ -296,10 +300,13 @@ TEST(datum, datum_with_ANCHOR) {
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
     ASSERT_TRUE(datum->anchorDefinition());
     EXPECT_EQ(*datum->anchorDefinition(), "My anchor");
     ASSERT_FALSE(datum->anchorEpoch());
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -316,6 +323,8 @@ TEST(datum, datum_with_ANCHOR) {
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -331,8 +340,11 @@ TEST(datum, datum_with_ANCHOR) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -340,6 +352,7 @@ TEST(datum, datum_with_ANCHOR) {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -390,6 +403,8 @@ TEST(datum, datum_with_ANCHOR) {
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
     auto expected = "DATUM[\"WGS_1984 with anchor\",\n"
                     "    ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n"
                     "        LENGTHUNIT[\"metre\",1],\n"
@@ -418,14 +433,18 @@ TEST(datum, datum_with_ANCHOR) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
@@ -449,6 +468,8 @@ TEST(datum, datum_with_ANCHOR) {
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 TEST(datum, datum_with_ANCHOREPOCH) {
     auto datum = GeodeticReferenceFrame::create(
         PropertyMap().set(IdentifiedObject::NAME_KEY, "my_datum"),
@@ -484,12 +505,15 @@ TEST(datum, datum_with_ANCHOREPOCH) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -506,8 +530,11 @@ TEST(datum, datum_with_ANCHOREPOCH) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -515,6 +542,7 @@ TEST(datum, datum_with_ANCHOREPOCH) {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -565,6 +593,8 @@ TEST(datum, datum_with_ANCHOREPOCH) {
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 TEST(datum, dynamic_geodetic_reference_frame) {
     auto drf = DynamicGeodeticReferenceFrame::create(
         PropertyMap().set(IdentifiedObject::NAME_KEY, "test"), Ellipsoid::WGS84,

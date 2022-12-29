@@ -86,6 +86,7 @@ radians are interpreted to be decimal degrees by convention.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -94,6 +95,8 @@ radians are interpreted to be decimal degrees by convention.
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 Explicit specification of input units can be accomplished by adding the appropriate
 =======
 Explict specification of input units can be accomplished by adding the appropriate
@@ -114,8 +117,11 @@ Explicit specification of input units can be accomplished by adding the appropri
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -125,6 +131,7 @@ Explict specification of input units can be accomplished by adding the appropria
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -191,6 +198,8 @@ Explict specification of input units can be accomplished by adding the appropria
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 suffix to input values.
 
 
@@ -225,6 +234,7 @@ suffix to input values.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -233,6 +243,8 @@ suffix to input values.
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explicitly
 =======
 Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explictly
@@ -253,8 +265,11 @@ Example of use.  The longitude of the central meridian ``+lon_0=90``, can also b
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -264,6 +279,7 @@ Example of use.  The longitude of the central meridian ``+lon_0=90``, can also b
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -330,6 +346,8 @@ Example of use.  The longitude of the central meridian ``+lon_0=90``, can also b
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 with units of decimal degrees as ``+lon_0=90d`` or in radian
 units as ``+lon_0=1.570796r`` (approximately).
 
