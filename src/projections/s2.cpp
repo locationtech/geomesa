@@ -281,10 +281,18 @@ inline bool UVtoSphereXYZ(int face, double u, double v, PJ_XYZ* xyz) {
 static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
     struct pj_opaque *Q = static_cast<struct pj_opaque*>(P->opaque);
 <<<<<<< HEAD
+<<<<<<< HEAD
     double lat;
 =======
     double lat, lon;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+    double lat, lon;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
     /* Convert the geodetic latitude to a geocentric latitude.
      * This corresponds to the shift from the ellipsoid to the sphere
@@ -295,13 +303,23 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
         lat = lp.phi;
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     // Convert the lat/long to x,y,z on the unit sphere
 =======
     lon = lp.lam;
 
     // Convert the lat/lon to x,y,z on the unit sphere
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+    lon = lp.lam;
+
+    // Convert the lat/lon to x,y,z on the unit sphere
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
     double x, y, z;
     double sinlat, coslat;
     double sinlon, coslon;
@@ -309,12 +327,21 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
     sinlat = sin(lat);
     coslat = cos(lat);
 <<<<<<< HEAD
+<<<<<<< HEAD
     sinlon = sin(lp.lam);
     coslon = cos(lp.lam);
 =======
     sinlon = sin(lon);
     coslon = cos(lon);
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+    sinlon = sin(lon);
+    coslon = cos(lon);
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
     x = coslat * coslon;
     y = coslat * sinlon;
     z = sinlat;
