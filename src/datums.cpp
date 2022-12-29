@@ -38,7 +38,11 @@
  * datum name for the comments if available.
  */
 
+<<<<<<< HEAD
 static const struct PJ_DATUMS pj_datums[] = {
+=======
+C_NAMESPACE_VAR const struct PJ_DATUMS pj_datums[] = {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 /* id       definition                               ellipse  comments */
 /* --       ----------                               -------  -------- */
 {"WGS84",   "towgs84=0,0,0",                         "WGS84", ""},
@@ -68,9 +72,15 @@ static const struct PJ_DATUMS pj_datums[] = {
 {nullptr,      nullptr,                                    nullptr,    nullptr}
 };
 
+<<<<<<< HEAD
 const struct PJ_DATUMS *pj_get_datums_ref()
 {
     return pj_datums;
+=======
+struct PJ_DATUMS *pj_get_datums_ref()
+{
+    return (struct PJ_DATUMS *)pj_datums;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 static const struct PJ_PRIME_MERIDIANS pj_prime_meridians[] = {
