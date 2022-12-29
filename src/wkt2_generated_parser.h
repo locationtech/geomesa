@@ -72,6 +72,7 @@ extern int pj_wkt2_debug;
     T_ORDER = 277,
     T_ANCHOR = 278,
 <<<<<<< HEAD
+<<<<<<< HEAD
     T_ANCHOREPOCH = 279,
     T_CONVERSION = 280,
     T_METHOD = 281,
@@ -204,6 +205,8 @@ extern int pj_wkt2_debug;
     T_STRING = 408,
     T_UNSIGNED_INTEGER_DIFFERENT_ONE_TWO_THREE = 409
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     T_CONVERSION = 279,
     T_METHOD = 280,
     T_REMARK = 281,
@@ -329,7 +332,14 @@ extern int pj_wkt2_debug;
     T_UNSPECIFIED = 401,
     T_STRING = 402,
     T_UNSIGNED_INTEGER_DIFFERENT_ONE_TWO_THREE = 403
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
   };
 #endif
 
