@@ -808,6 +808,7 @@ INSERT INTO "usage" VALUES('EPSG','18606','compound_crs','EPSG','10174','EPSG','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -816,6 +817,8 @@ INSERT INTO "usage" VALUES('EPSG','18606','compound_crs','EPSG','10174','EPSG','
 >>>>>>> 86ade66356 (typo fixes)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "compound_crs" VALUES('EPSG','10184','DoPw22 Grid + ODN height',NULL,'EPSG','10183','EPSG','5701',0);
 INSERT INTO "usage" VALUES('EPSG','18669','compound_crs','EPSG','10184','EPSG','4686','EPSG','1141');
 INSERT INTO "compound_crs" VALUES('EPSG','10189','ShAb07 Grid + ODN height',NULL,'EPSG','10188','EPSG','5701',0);
@@ -878,8 +881,17 @@ INSERT INTO "usage" VALUES('EPSG','19185','compound_crs','EPSG','10281','EPSG','
 >>>>>>> 86ade66356 (typo fixes)
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "compound_crs" VALUES('EPSG','20001','ETRS89 + SVD2006 height',NULL,'EPSG','4258','EPSG','20000',0);
 INSERT INTO "usage" VALUES('EPSG','17956','compound_crs','EPSG','20001','EPSG','4058','EPSG','1026');
 INSERT INTO "compound_crs" VALUES('EPSG','20003','MWC18 Grid + ODN height',NULL,'EPSG','20002','EPSG','5701',0);
