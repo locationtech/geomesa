@@ -212,6 +212,7 @@ static const ParamMapping paramLatNatLatCenter = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static const ParamMapping paramLongNatLongCenter = {
 =======
 static const ParamMapping paramLonNatLonCenter = {
@@ -241,6 +242,9 @@ static const ParamMapping paramLonNatLonCenter = {
 =======
 static const ParamMapping paramLonNatLonCenter = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static const ParamMapping paramLonNatLonCenter = {
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     EPSG_NAME_PARAMETER_LONGITUDE_OF_NATURAL_ORIGIN,
     EPSG_CODE_PARAMETER_LONGITUDE_OF_NATURAL_ORIGIN, WKT1_LONGITUDE_OF_CENTER,
     common::UnitOfMeasure::Type::ANGULAR, lon_0};
@@ -251,6 +255,7 @@ static const ParamMapping *const paramsAEQD[]{
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     &paramLatNatLatCenter, &paramLongNatLongCenter, &paramFalseEasting,
 =======
     &paramLatNatLatCenter, &paramLonNatLonCenter, &paramFalseEasting,
@@ -280,6 +285,9 @@ static const ParamMapping *const paramsAEQD[]{
 =======
     &paramLatNatLatCenter, &paramLonNatLonCenter, &paramFalseEasting,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    &paramLatNatLatCenter, &paramLonNatLonCenter, &paramFalseEasting,
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     &paramFalseNorthing, nullptr};
 
 static const ParamMapping *const paramsNatOrigin[] = {
@@ -310,6 +318,7 @@ static const ParamMapping *const paramsEQDC[] = {&paramLatNatLatCenter,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                                                  &paramLongNatLongCenter,
 =======
                                                  &paramLonNatLonCenter,
@@ -339,6 +348,9 @@ static const ParamMapping *const paramsEQDC[] = {&paramLatNatLatCenter,
 =======
                                                  &paramLonNatLonCenter,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                                 &paramLonNatLonCenter,
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
                                                  &paramLatitude1stStdParallel,
                                                  &paramLatitude2ndStdParallel,
                                                  &paramFalseEasting,
@@ -350,6 +362,7 @@ static const ParamMapping *const paramsEQDC[] = {&paramLatNatLatCenter,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static const ParamMapping *const paramsLongNatOrigin[] = {
 =======
 static const ParamMapping *const paramsLonNatOrigin[] = {
@@ -379,6 +392,9 @@ static const ParamMapping *const paramsLonNatOrigin[] = {
 =======
 static const ParamMapping *const paramsLonNatOrigin[] = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static const ParamMapping *const paramsLonNatOrigin[] = {
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     &paramLongitudeNatOrigin, &paramFalseEasting, &paramFalseNorthing, nullptr};
 
 static const ParamMapping *const paramsEqc[] = {
@@ -458,6 +474,7 @@ static const ParamMapping paramLatPoint1 = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static const ParamMapping paramLongPoint1 = {
 =======
 static const ParamMapping paramLonPoint1 = {
@@ -487,6 +504,9 @@ static const ParamMapping paramLonPoint1 = {
 =======
 static const ParamMapping paramLonPoint1 = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static const ParamMapping paramLonPoint1 = {
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     "Longitude of 1st point", 0, "longitude_of_point_1",
     common::UnitOfMeasure::Type::ANGULAR, lon_1};
 
@@ -499,6 +519,7 @@ static const ParamMapping paramLatPoint2 = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static const ParamMapping paramLongPoint2 = {
 =======
 static const ParamMapping paramLonPoint2 = {
@@ -528,6 +549,9 @@ static const ParamMapping paramLonPoint2 = {
 =======
 static const ParamMapping paramLonPoint2 = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static const ParamMapping paramLonPoint2 = {
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     "Longitude of 2nd point", 0, "longitude_of_point_2",
     common::UnitOfMeasure::Type::ANGULAR, lon_2};
 
@@ -539,6 +563,7 @@ static const ParamMapping *const paramsHomTwoPoint[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     &paramLongPoint1,
@@ -580,6 +605,11 @@ static const ParamMapping *const paramsHomTwoPoint[] = {
     &paramLatPoint2,
     &paramLonPoint2,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    &paramLonPoint1,
+    &paramLatPoint2,
+    &paramLonPoint2,
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     &paramScaleFactorInitialLine,
     &paramFalseEastingProjectionCentre,
     &paramFalseNorthingProjectionCentre,
@@ -594,6 +624,7 @@ static const ParamMapping *const paramsIMWP[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static const ParamMapping paramLongCentreLongCenter = {
 =======
 static const ParamMapping paramLonCentreLonCenter = {
@@ -623,6 +654,9 @@ static const ParamMapping paramLonCentreLonCenter = {
 =======
 static const ParamMapping paramLonCentreLonCenter = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static const ParamMapping paramLonCentreLonCenter = {
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     EPSG_NAME_PARAMETER_LONGITUDE_OF_ORIGIN,
     EPSG_CODE_PARAMETER_LONGITUDE_OF_ORIGIN, WKT1_LONGITUDE_OF_CENTER,
     common::UnitOfMeasure::Type::ANGULAR, lon_0};
@@ -652,6 +686,7 @@ static const ParamMapping *const krovakParameters[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     &paramLongCentreLongCenter,
 =======
     &paramLonCentreLonCenter,
@@ -681,6 +716,9 @@ static const ParamMapping *const krovakParameters[] = {
 =======
     &paramLonCentreLonCenter,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    &paramLonCentreLonCenter,
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     &paramColatitudeConeAxis,
     &paramLatitudePseudoStdParallel,
     &paramScaleFactorPseudoStdParallel,
@@ -694,6 +732,7 @@ static const ParamMapping *const paramsLaea[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     &paramLatNatLatCenter, &paramLongNatLongCenter, &paramFalseEasting,
@@ -709,11 +748,14 @@ static const ParamMapping *const paramsMiller[] = {
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     &paramLatNatLatCenter, &paramLonNatLonCenter, &paramFalseEasting,
     &paramFalseNorthing, nullptr};
 
 static const ParamMapping *const paramsMiller[] = {
     &paramLonNatLonCenter, &paramFalseEasting, &paramFalseNorthing, nullptr};
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -744,6 +786,8 @@ static const ParamMapping *const paramsMiller[] = {
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
 static const ParamMapping paramLatMerc1SP = {
     EPSG_NAME_PARAMETER_LATITUDE_OF_NATURAL_ORIGIN,
@@ -774,6 +818,7 @@ static const ParamMapping paramLatStdParallel = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static const ParamMapping paramsLongOrigin = {
 =======
 static const ParamMapping paramsLonOrigin = {
@@ -803,6 +848,9 @@ static const ParamMapping paramsLonOrigin = {
 =======
 static const ParamMapping paramsLonOrigin = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static const ParamMapping paramsLonOrigin = {
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     EPSG_NAME_PARAMETER_LONGITUDE_OF_ORIGIN,
     EPSG_CODE_PARAMETER_LONGITUDE_OF_ORIGIN, WKT1_CENTRAL_MERIDIAN,
     common::UnitOfMeasure::Type::ANGULAR, lon_0};
@@ -813,6 +861,7 @@ static const ParamMapping *const paramsPolarStereo[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     &paramLatStdParallel, &paramsLongOrigin, &paramFalseEasting,
@@ -828,11 +877,14 @@ static const ParamMapping *const paramsLongNatOriginLongitudeCentre[] = {
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     &paramLatStdParallel, &paramsLonOrigin, &paramFalseEasting,
     &paramFalseNorthing, nullptr};
 
 static const ParamMapping *const paramsLonNatOriginLongitudeCentre[] = {
     &paramLonNatLonCenter, &paramFalseEasting, &paramFalseNorthing, nullptr};
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -863,6 +915,8 @@ static const ParamMapping *const paramsLongNatOriginLongitudeCentre[] = {
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
 static const ParamMapping paramLatTrueScaleWag3 = {
     "Latitude of true scale", 0, WKT1_LATITUDE_OF_ORIGIN,
@@ -881,6 +935,7 @@ static const ParamMapping paramPegLat = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static const ParamMapping paramPegLong = {
 =======
 static const ParamMapping paramPegLon = {
@@ -910,6 +965,9 @@ static const ParamMapping paramPegLon = {
 =======
 static const ParamMapping paramPegLon = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static const ParamMapping paramPegLon = {
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     "Peg point longitude", 0, "peg_point_longitude",
     common::UnitOfMeasure::Type::ANGULAR, "plon_0"};
 
@@ -927,6 +985,7 @@ static const ParamMapping *const paramsSch[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     &paramPegLat, &paramPegLong, &paramPegHeading, &paramPegHeight, nullptr};
 =======
     &paramPegLat, &paramPegLon, &paramPegHeading, &paramPegHeight, nullptr};
@@ -956,6 +1015,9 @@ static const ParamMapping *const paramsSch[] = {
 =======
     &paramPegLat, &paramPegLon, &paramPegHeading, &paramPegHeight, nullptr};
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    &paramPegLat, &paramPegLon, &paramPegHeading, &paramPegHeight, nullptr};
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
 static const ParamMapping *const paramsWink1[] = {
     &paramLongitudeNatOrigin, &paramLat1stParallelLatTs, &paramFalseEasting,
@@ -979,6 +1041,7 @@ static const ParamMapping *const paramsLoxim[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static const ParamMapping paramLongCentre = {
 =======
 static const ParamMapping paramLonCentre = {
@@ -1008,6 +1071,9 @@ static const ParamMapping paramLonCentre = {
 =======
 static const ParamMapping paramLonCentre = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static const ParamMapping paramLonCentre = {
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     EPSG_NAME_PARAMETER_LONGITUDE_PROJECTION_CENTRE,
     EPSG_CODE_PARAMETER_LONGITUDE_PROJECTION_CENTRE, WKT1_LONGITUDE_OF_CENTER,
     common::UnitOfMeasure::Type::ANGULAR, lon_0};
@@ -1024,6 +1090,7 @@ static const ParamMapping *const paramsLabordeObliqueMercator[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     &paramLongCentre,
 =======
     &paramLonCentre,
@@ -1053,6 +1120,9 @@ static const ParamMapping *const paramsLabordeObliqueMercator[] = {
 =======
     &paramLonCentre,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    &paramLonCentre,
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     &paramLabordeObliqueMercatorAzimuth,
     &paramScaleFactorInitialLine,
     &paramFalseEasting,
@@ -1069,6 +1139,7 @@ static const ParamMapping paramLatTopoOrigin = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static const ParamMapping paramLongTopoOrigin = {
 =======
 static const ParamMapping paramLonTopoOrigin = {
@@ -1098,6 +1169,9 @@ static const ParamMapping paramLonTopoOrigin = {
 =======
 static const ParamMapping paramLonTopoOrigin = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static const ParamMapping paramLonTopoOrigin = {
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     EPSG_NAME_PARAMETER_LONGITUDE_TOPOGRAPHIC_ORIGIN,
     EPSG_CODE_PARAMETER_LONGITUDE_TOPOGRAPHIC_ORIGIN, nullptr,
     common::UnitOfMeasure::Type::ANGULAR, lon_0};
@@ -1119,6 +1193,7 @@ static const ParamMapping *const paramsVerticalPerspective[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     &paramLongTopoOrigin,
 =======
     &paramLonTopoOrigin,
@@ -1148,6 +1223,9 @@ static const ParamMapping *const paramsVerticalPerspective[] = {
 =======
     &paramLonTopoOrigin,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    &paramLonTopoOrigin,
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     &paramHeightTopoOrigin, // unsupported by PROJ right now
     &paramViewpointHeight,
     &paramFalseEasting,  // PROJ addition
@@ -1197,6 +1275,7 @@ static const ParamMapping *const paramsGeographicTopocentric[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     &paramLatTopoOrigin, &paramLongTopoOrigin, &paramHeightTopoOriginWithH0,
 =======
     &paramLatTopoOrigin, &paramLonTopoOrigin, &paramHeightTopoOriginWithH0,
@@ -1226,6 +1305,9 @@ static const ParamMapping *const paramsGeographicTopocentric[] = {
 =======
     &paramLatTopoOrigin, &paramLonTopoOrigin, &paramHeightTopoOriginWithH0,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    &paramLatTopoOrigin, &paramLonTopoOrigin, &paramHeightTopoOriginWithH0,
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     nullptr};
 
 static const MethodMapping projectionMethodMappings[] = {
@@ -1244,6 +1326,7 @@ static const MethodMapping projectionMethodMappings[] = {
     {PROJ_WKT2_NAME_METHOD_TWO_POINT_EQUIDISTANT, 0, "Two_Point_Equidistant",
      "tpeqd", nullptr, paramsTPEQD},
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1283,6 +1366,8 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     {EPSG_NAME_METHOD_TUNISIA_MAPPING_GRID,
      EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID, "Tunisia_Mapping_Grid", nullptr,
      nullptr, // no proj equivalent
@@ -1343,6 +1428,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
      nullptr, paramsLongNatOrigin},
@@ -1391,10 +1477,15 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+     nullptr, paramsLonNatOrigin},
+
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     {EPSG_NAME_METHOD_LAMBERT_CYLINDRICAL_EQUAL_AREA_SPHERICAL,
      EPSG_CODE_METHOD_LAMBERT_CYLINDRICAL_EQUAL_AREA_SPHERICAL,
      "Cylindrical_Equal_Area", "cea", nullptr, paramsCEA},
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1430,10 +1521,13 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> efa88b5285 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     {EPSG_NAME_METHOD_LAMBERT_CYLINDRICAL_EQUAL_AREA,
      EPSG_CODE_METHOD_LAMBERT_CYLINDRICAL_EQUAL_AREA, "Cylindrical_Equal_Area",
      "cea", nullptr, paramsCEA},
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1525,6 +1619,8 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> efa88b5285 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     {EPSG_NAME_METHOD_CASSINI_SOLDNER, EPSG_CODE_METHOD_CASSINI_SOLDNER,
      "Cassini_Soldner", "cass", nullptr, paramsNatOrigin},
 
@@ -1541,6 +1637,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
      paramsLongNatOrigin},
@@ -1602,6 +1699,8 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
      paramsLonNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_ECKERT_II, 0, "Eckert_II", "eck2", nullptr,
@@ -1619,11 +1718,14 @@ static const MethodMapping projectionMethodMappings[] = {
     {PROJ_WKT2_NAME_METHOD_ECKERT_VI, 0, "Eckert_VI", "eck6", nullptr,
      paramsLonNatOrigin},
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     {EPSG_NAME_METHOD_EQUIDISTANT_CYLINDRICAL,
      EPSG_CODE_METHOD_EQUIDISTANT_CYLINDRICAL, "Equirectangular", "eqc",
@@ -1639,6 +1741,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
      "mbtfpq", nullptr, paramsLongNatOrigin},
@@ -1694,6 +1797,8 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
      "mbtfpq", nullptr, paramsLonNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_GALL_STEREOGRAPHIC, 0, "Gall_Stereographic", "gall",
@@ -1708,11 +1813,14 @@ static const MethodMapping projectionMethodMappings[] = {
     {PROJ_WKT2_NAME_METHOD_INTERRUPTED_GOODE_HOMOLOSINE_OCEAN, 0, nullptr,
      "igh_o", nullptr, paramsLonNatOrigin},
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     // No proper WKT1 representation fr sweep=x
     {PROJ_WKT2_NAME_METHOD_GEOSTATIONARY_SATELLITE_SWEEP_X, 0, nullptr, "geos",
@@ -1757,6 +1865,7 @@ static const MethodMapping projectionMethodMappings[] = {
 
     {EPSG_NAME_METHOD_LAMBERT_AZIMUTHAL_EQUAL_AREA_SPHERICAL,
      EPSG_CODE_METHOD_LAMBERT_AZIMUTHAL_EQUAL_AREA_SPHERICAL,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1832,6 +1941,9 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      "Lambert_Azimuthal_Equal_Area", "laea", "R_A", paramsLaea},
 >>>>>>> efa88b5285 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+     "Lambert_Azimuthal_Equal_Area", "laea", nullptr, paramsLaea},
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     {PROJ_WKT2_NAME_METHOD_MILLER_CYLINDRICAL, 0, "Miller_Cylindrical", "mill",
      "R_A", paramsMiller},
@@ -1849,6 +1961,7 @@ static const MethodMapping projectionMethodMappings[] = {
      "webmerc", nullptr, paramsNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_MOLLWEIDE, 0, "Mollweide", "moll", nullptr,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1897,6 +2010,8 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
      paramsLonNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_NATURAL_EARTH, 0, "Natural_Earth", "natearth",
@@ -1905,11 +2020,14 @@ static const MethodMapping projectionMethodMappings[] = {
     {PROJ_WKT2_NAME_METHOD_NATURAL_EARTH_II, 0, "Natural_Earth_II", "natearth2",
      nullptr, paramsLonNatOrigin},
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     {EPSG_NAME_METHOD_NZMG, EPSG_CODE_METHOD_NZMG, "New_Zealand_Map_Grid",
      "nzmg", nullptr, paramsNatOrigin},
@@ -1935,6 +2053,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
      paramsLongNatOrigin},
 =======
      paramsLonNatOrigin},
@@ -1964,6 +2083,9 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      paramsLonNatOrigin},
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+     paramsLonNatOrigin},
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     {EPSG_NAME_METHOD_AMERICAN_POLYCONIC, EPSG_CODE_METHOD_AMERICAN_POLYCONIC,
      "Polyconic", "poly", nullptr, paramsNatOrigin},
@@ -1982,6 +2104,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
      paramsLongNatOriginLongitudeCentre},
 =======
      paramsLonNatOriginLongitudeCentre},
@@ -2011,6 +2134,9 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      paramsLonNatOriginLongitudeCentre},
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+     paramsLonNatOriginLongitudeCentre},
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     {PROJ_WKT2_NAME_METHOD_PEIRCE_QUINCUNCIAL_SQUARE, 0, nullptr, "peirce_q",
      "shape=square", paramsNatOriginScale},
@@ -2024,6 +2150,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
      paramsLongNatOriginLongitudeCentre},
 =======
      paramsLonNatOriginLongitudeCentre},
@@ -2053,6 +2180,9 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      paramsLonNatOriginLongitudeCentre},
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+     paramsLonNatOriginLongitudeCentre},
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     {PROJ_WKT2_NAME_METHOD_STEREOGRAPHIC, 0, "Stereographic", "stere", nullptr,
      paramsObliqueStereo},
@@ -2063,6 +2193,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
      paramsLongNatOrigin},
@@ -2112,6 +2243,8 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
      paramsLonNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_VAN_DER_GRINTEN, 0, "VanDerGrinten", "vandg", "R_A",
@@ -2123,11 +2256,14 @@ static const MethodMapping projectionMethodMappings[] = {
     {PROJ_WKT2_NAME_METHOD_WAGNER_II, 0, "Wagner_II", "wag2", nullptr,
      paramsLonNatOrigin},
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     {PROJ_WKT2_NAME_METHOD_WAGNER_III, 0, "Wagner_III", "wag3", nullptr,
      paramsWag3},
@@ -2138,6 +2274,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
      paramsLongNatOrigin},
@@ -2187,6 +2324,8 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
      paramsLonNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_WAGNER_V, 0, "Wagner_V", "wag5", nullptr,
@@ -2198,11 +2337,14 @@ static const MethodMapping projectionMethodMappings[] = {
     {PROJ_WKT2_NAME_METHOD_WAGNER_VII, 0, "Wagner_VII", "wag7", nullptr,
      paramsLonNatOrigin},
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     {PROJ_WKT2_NAME_METHOD_QUADRILATERALIZED_SPHERICAL_CUBE, 0,
      "Quadrilateralized_Spherical_Cube", "qsc", nullptr, paramsNatOrigin},
@@ -2218,6 +2360,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     {"Aitoff", 0, "Aitoff", "aitoff", nullptr, paramsLongNatOrigin},
 =======
     {"Aitoff", 0, "Aitoff", "aitoff", nullptr, paramsLonNatOrigin},
@@ -2247,6 +2390,9 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
     {"Aitoff", 0, "Aitoff", "aitoff", nullptr, paramsLonNatOrigin},
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    {"Aitoff", 0, "Aitoff", "aitoff", nullptr, paramsLonNatOrigin},
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     {"Winkel I", 0, "Winkel_I", "wink1", nullptr, paramsWink1},
 
@@ -2260,6 +2406,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
      paramsLongNatOrigin},
 =======
      paramsLonNatOrigin},
@@ -2267,10 +2414,14 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      paramsLonNatOrigin},
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+     paramsLonNatOrigin},
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     {"Loximuthal", 0, "Loximuthal", "loxim", nullptr, paramsLoxim},
 
     {"Quartic Authalic", 0, "Quartic_Authalic", "qua_aut", nullptr,
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2328,6 +2479,9 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      paramsLonNatOrigin},
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+     paramsLonNatOrigin},
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     {"Transverse Cylindrical Equal Area", 0,
      "Transverse_Cylindrical_Equal_Area", "tcea", nullptr, paramsObliqueStereo},
@@ -2338,6 +2492,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
      "eqearth", nullptr, paramsLongNatOrigin},
 =======
      "eqearth", nullptr, paramsLonNatOrigin},
@@ -2367,6 +2522,9 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      "eqearth", nullptr, paramsLonNatOrigin},
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+     "eqearth", nullptr, paramsLonNatOrigin},
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     {EPSG_NAME_METHOD_LABORDE_OBLIQUE_MERCATOR,
      EPSG_CODE_METHOD_LABORDE_OBLIQUE_MERCATOR, "Laborde_Oblique_Mercator",
@@ -2408,6 +2566,7 @@ const struct MethodNameCode methodNameCodes[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     METHOD_NAME_CODE(TUNISIA_MINING_GRID),
 =======
     METHOD_NAME_CODE(TUNISIA_MAPPING_GRID),
@@ -2437,6 +2596,9 @@ const struct MethodNameCode methodNameCodes[] = {
 =======
     METHOD_NAME_CODE(TUNISIA_MAPPING_GRID),
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    METHOD_NAME_CODE(TUNISIA_MAPPING_GRID),
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     METHOD_NAME_CODE(ALBERS_EQUAL_AREA),
     METHOD_NAME_CODE(LAMBERT_CONIC_CONFORMAL_2SP),
     METHOD_NAME_CODE(LAMBERT_CONIC_CONFORMAL_2SP_BELGIUM),
@@ -2875,6 +3037,7 @@ static const ParamMapping paramSouthPoleLatGRIB = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static const ParamMapping paramSouthPoleLongGRIB = {
 =======
 static const ParamMapping paramSouthPoleLonGRIB = {
@@ -2904,6 +3067,9 @@ static const ParamMapping paramSouthPoleLonGRIB = {
 =======
 static const ParamMapping paramSouthPoleLonGRIB = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static const ParamMapping paramSouthPoleLonGRIB = {
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_WKT2_NAME_PARAMETER_SOUTH_POLE_LONGITUDE_GRIB_CONVENTION, 0, nullptr,
     common::UnitOfMeasure::Type::ANGULAR, nullptr};
 
@@ -2917,6 +3083,7 @@ static const ParamMapping *const paramsPoleRotationGRIBConvention[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     &paramSouthPoleLatGRIB, &paramSouthPoleLongGRIB, &paramAxisRotationGRIB,
 =======
     &paramSouthPoleLatGRIB, &paramSouthPoleLonGRIB, &paramAxisRotationGRIB,
@@ -2946,6 +3113,9 @@ static const ParamMapping *const paramsPoleRotationGRIBConvention[] = {
 =======
     &paramSouthPoleLatGRIB, &paramSouthPoleLonGRIB, &paramAxisRotationGRIB,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    &paramSouthPoleLatGRIB, &paramSouthPoleLonGRIB, &paramAxisRotationGRIB,
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     nullptr};
 
 static const ParamMapping paramGridNorthPoleLatitudeNetCDF = {
