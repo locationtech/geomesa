@@ -185,6 +185,7 @@ set(SRC_LIBPROJ_ISO19111
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -252,6 +253,8 @@ set(SRC_LIBPROJ_ISO19111
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
   iso19111/crs.cpp
   iso19111/datum.cpp
   iso19111/coordinatesystem.cpp
@@ -417,6 +420,7 @@ add_custom_target(check_wkt2_grammar_md5 ALL
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -492,6 +496,9 @@ add_custom_target(check_wkt2_grammar_md5 ALL
                       "-DEXPECTED_MD5SUM=f9ee543089ae55a895ae6e16cd0a68b2"
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                      "-DEXPECTED_MD5SUM=f9ee543089ae55a895ae6e16cd0a68b2"
+>>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
                       -P "${CMAKE_CURRENT_SOURCE_DIR}/check_md5sum.cmake"
                   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/wkt2_grammar.y"
