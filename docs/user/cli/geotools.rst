@@ -35,8 +35,8 @@ Extract it somewhere convenient:
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
-Alternatively, it may be built from source. For more information refer to :ref:`building_from_source`
-in the developer manual, or to the ``README.md`` file in the the source distribution. If you have built from
+Alternatively, it may be built from source. For more information, refer to the instructions on
+`GitHub <https://github.com/locationtech/geomesa#building-from-source>`__. If you have built from
 source, the distribution is created in the ``target`` directory of ``geomesa-gt/geomesa-gt-dist``.
 
 Setting up the Command Line Tools

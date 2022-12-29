@@ -26,38 +26,31 @@ import java.lang.reflect.InvocationTargetException
 import java.nio.charset.Charset
 import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
-import scala.reflect.ClassTag
+import scala.reflect.{ClassTag, classTag}
 import scala.util.control.NonFatal
 
 /**
   * Abstract converter factory implementation. Subclasses need to implement `typeToProcess` and make available
   * pureconfig readers for the converter configuration
+ *
+ *  The converter to use is identified by the 'type' field in the config, e.g. 'xml' or 'json'
   */
-abstract class AbstractConverterFactory[S <: AbstractConverter[_, C, F, O]: ClassTag,
-                                        C <: ConverterConfig: ClassTag,
-                                        F <: Field,
-                                        O <: ConverterOptions: ClassTag]
-    extends SimpleFeatureConverterFactory {
+abstract class AbstractConverterFactory[S <: AbstractConverter[_, C, F, O] : ClassTag, C <: ConverterConfig : ClassTag, F <: Field : ClassTag, O <: ConverterOptions : ClassTag](
+    val typeToProcess: String,
+    protected val configConvert: ConverterConfigConvert[C],
+    protected val fieldConvert: FieldConvert[F],
+    protected val optsConvert: ConverterOptionsConvert[O]
+  ) extends SimpleFeatureConverterFactory {
 
-  /**
-    * The converter to use is identified by the 'type' field in the config, e.g. 'xml' or 'json'
-    *
-    * @return
-    */
-  protected def typeToProcess: String
-
-  protected implicit def configConvert: ConverterConfigConvert[C]
-  protected implicit def fieldConvert: FieldConvert[F]
-  protected implicit def optsConvert: ConverterOptionsConvert[O]
+  private def loadConfig(config: ConfigObjectSource): C = config.loadOrThrow[C](classTag[C], configConvert)
+  private def loadFields(config: ConfigObjectSource): Seq[F] = config.loadOrThrow[Seq[F]](classTag[Seq[F]], fieldConvert)
+  private def loadOptions(config: ConfigObjectSource): O = config.loadOrThrow[O](classTag[O], optsConvert)
 
   override def apply(sft: SimpleFeatureType, conf: Config): Option[SimpleFeatureConverter] = {
     if (!conf.hasPath("type") || !conf.getString("type").equalsIgnoreCase(typeToProcess)) { None } else {
       val (config, fields, opts) = try {
         val c = ConfigSource.fromConfig(withDefaults(conf))
-        val config = c.loadOrThrow[C]
-        val fields = c.loadOrThrow[Seq[F]]
-        val opts = c.loadOrThrow[O]
-        (config, fields, opts)
+        (loadConfig(c), loadFields(c), loadOptions(c))
       } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid configuration: ${e.getMessage}")
       }
