@@ -94,6 +94,7 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     static const std::string ANCHOREPOCH; // WKT2-2019
 =======
 <<<<<<< HEAD
@@ -125,10 +126,21 @@ class WKTConstants {
     static const std::string ANCHOREPOCH; // WKT2-2019
 >>>>>>> 86ade66356 (typo fixes)
 =======
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
     static const std::string ANCHOREPOCH; // WKT2-2019
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
     static const std::string CONVERSION;
     static const std::string METHOD;
     static const std::string REMARK;
@@ -187,6 +199,7 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -195,6 +208,8 @@ class WKTConstants {
 >>>>>>> 86ade66356 (typo fixes)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
     static const std::string GEOIDMODEL;         // WKT2-2019
     static const std::string COORDINATEMETADATA; // WKT2-2019
     static const std::string EPOCH;              // WKT2-2019
@@ -239,8 +254,18 @@ class WKTConstants {
 =======
 =======
     static const std::string GEOIDMODEL; // WKT2-2019
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+    static const std::string GEOIDMODEL; // WKT2-2019
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 
     // WKT2 alternate (longer or shorter)
     static const std::string GEODETICCRS;
