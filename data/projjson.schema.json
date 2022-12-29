@@ -16,6 +16,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     { "$ref": "#/definitions/concatenated_operation" },
@@ -49,6 +50,9 @@
 =======
     { "$ref": "#/definitions/concatenated_operation" }
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    { "$ref": "#/definitions/concatenated_operation" }
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
   ],
 
   "definitions": {
@@ -133,6 +137,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         "minimum_value": { "type": "number" },
@@ -165,6 +170,8 @@
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
         "id": { "$ref": "#/definitions/id" },
         "ids": { "$ref": "#/definitions/ids" }
       },
@@ -287,6 +294,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -327,6 +335,8 @@
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     "coordinate_system": {
       "type": "object",
       "properties": {
@@ -590,6 +600,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "anchor_epoch": {},
 =======
 <<<<<<< HEAD
@@ -615,6 +626,8 @@
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
         "ellipsoid": {},
         "prime_meridian": {},
         "frame_reference_epoch": { "type": "number" },
@@ -644,6 +657,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "anchor_epoch": {},
 =======
 <<<<<<< HEAD
@@ -669,6 +683,8 @@
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
         "frame_reference_epoch": { "type": "number" },
         "$schema" : {},
         "scope": {},
@@ -822,6 +838,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "anchor_epoch": { "type": "number" },
 =======
 <<<<<<< HEAD
@@ -847,6 +864,8 @@
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
         "ellipsoid": { "$ref": "#/definitions/ellipsoid" },
         "prime_meridian": { "$ref": "#/definitions/prime_meridian" },
         "$schema" : {},
@@ -1348,6 +1367,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "anchor_epoch": { "type": "number" },
 =======
 <<<<<<< HEAD
@@ -1373,6 +1393,8 @@
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
         "$schema" : {},
         "scope": {},
         "area": {},
