@@ -16,10 +16,14 @@ Synopsis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     |           [--authority <name>] [--3d]
     |           [--accuracy <accuracy>] [--only-best[=yes|=no]] [--no-ballpark]
 =======
     |           [--authority <name>] [--no-ballpark] [--accuracy <accuracy>] [--3d]
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
     |           [--authority <name>] [--no-ballpark] [--accuracy <accuracy>] [--3d]
@@ -28,6 +32,9 @@ Synopsis
     |           [--authority <name>] [--3d]
     |           [--accuracy <accuracy>] [--only-best[=yes|=no]] [--no-ballpark]
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     |           ([*+opt[=arg]* ...] [+to *+opt[=arg]* ...] | {source_crs} {target_crs})
     |           file ...
 
@@ -43,6 +50,7 @@ Synopsis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     - a CRS name and a coordinate epoch, separated with '@'. For example "ITRF2014@2025.0". (*added in 9.2*)
 =======
 >>>>>>> locationtech-main
@@ -51,6 +59,11 @@ Synopsis
 =======
     - a CRS name and a coordinate epoch, separated with '@'. For example "ITRF2014@2025.0". (*added in 9.2*)
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    - a CRS name and a coordinate epoch, separated with '@'. For example "ITRF2014@2025.0". (*added in 9.2*)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     - a OGC URN combining references for compound coordinate reference systems
       (e.g "urn:ogc:def:crs,crs:EPSG::2393,crs:EPSG::5717" or custom abbreviated
       syntax "EPSG:2393+5717"),
@@ -194,8 +207,11 @@ The following control parameters can appear in any order:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 .. option:: --only-best[=yes|=no]
 
     .. versionadded:: 9.2.0
@@ -214,12 +230,17 @@ The following control parameters can appear in any order:
     when specified overrides such default value).
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 .. option:: --no-ballpark
 
     .. versionadded:: 8.0.0
@@ -341,6 +362,9 @@ The x-y output data will appear as three lines of:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     1402285.93  5076292.58 0.00
 
 
@@ -378,6 +402,7 @@ which is the result when the NAD27 and NAD83 datums are dealt as identical,
 which is an approximation at a level of several tens of metres.
 
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     1402285.98  5076292.42 0.00
@@ -428,6 +453,15 @@ which is the result when the NAD27 and NAD83 datums are dealt as identical,
 which is an approximation at a level of several tens of metres.
 
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    1402285.98  5076292.42 0.00
+
+.. note::
+
+    To get those exact values, you have need to have all current grids installed
+    locally or use networking capabilities mentioned above.
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Using EPSG CRS codes
 --------------------

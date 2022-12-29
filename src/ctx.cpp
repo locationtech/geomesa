@@ -153,6 +153,7 @@ pj_ctx::pj_ctx(const pj_ctx& other) :
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     errorIfBestTransformationNotAvailableDefault(other.errorIfBestTransformationNotAvailableDefault),
     warnIfBestTransformationNotAvailableDefault(other.warnIfBestTransformationNotAvailableDefault),
 =======
@@ -163,6 +164,12 @@ pj_ctx::pj_ctx(const pj_ctx& other) :
     errorIfBestTransformationNotAvailableDefault(other.errorIfBestTransformationNotAvailableDefault),
     warnIfBestTransformationNotAvailableDefault(other.warnIfBestTransformationNotAvailableDefault),
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    errorIfBestTransformationNotAvailableDefault(other.errorIfBestTransformationNotAvailableDefault),
+    warnIfBestTransformationNotAvailableDefault(other.warnIfBestTransformationNotAvailableDefault),
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     logger(other.logger),
     logger_app_data(other.logger_app_data),
     cpp_context(other.cpp_context ? other.cpp_context->clone(this) : nullptr),

@@ -44,6 +44,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include <proj/coordinates.hpp>
 =======
 >>>>>>> locationtech-main
@@ -52,6 +53,11 @@
 =======
 #include <proj/coordinates.hpp>
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+#include <proj/coordinates.hpp>
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 #include <proj/crs.hpp>
 #include <proj/io.hpp>
 #include <proj/metadata.hpp>
@@ -63,6 +69,7 @@ using namespace NS_PROJ::common;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 using namespace NS_PROJ::coordinates;
 =======
 >>>>>>> locationtech-main
@@ -71,6 +78,11 @@ using namespace NS_PROJ::coordinates;
 =======
 using namespace NS_PROJ::coordinates;
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+using namespace NS_PROJ::coordinates;
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 using namespace NS_PROJ::crs;
 using namespace NS_PROJ::io;
 using namespace NS_PROJ::metadata;
@@ -860,6 +872,9 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     CoordinateMetadataPtr sourceCoordinateMetadata;
     if (!sourceCRS) {
         sourceCoordinateMetadata =
@@ -878,6 +893,7 @@ static void outputOperations(
     if (!sourceCRS) {
         std::cerr << "source CRS string is not a CRS" << std::endl;
         std::exit(1);
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
     if (!sourceCRS) {
@@ -900,6 +916,9 @@ static void outputOperations(
             sourceCoordinateMetadata.reset();
         }
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     }
 
     auto targetObj =
@@ -910,6 +929,9 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     CoordinateMetadataPtr targetCoordinateMetadata;
     if (!targetCRS) {
         targetCoordinateMetadata =
@@ -937,6 +959,7 @@ static void outputOperations(
     // TODO: handle promotion of CoordinateMetadata
     if (sourceCRS && targetCRS && dbContext && !promoteTo3D) {
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -975,6 +998,15 @@ static void outputOperations(
     // TODO: handle promotion of CoordinateMetadata
     if (sourceCRS && targetCRS && dbContext && !promoteTo3D) {
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    if (!targetCRS) {
+        std::cerr << "target CRS string is not a CRS" << std::endl;
+        std::exit(1);
+    }
+
+    if (dbContext && !promoteTo3D) {
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         // Auto-promote source/target CRS if it is specified by its name,
         // if it has a known 3D version of it and that the other CRS is 3D.
         // e.g projinfo -s "WGS 84 + EGM96 height" -t "WGS 84"
@@ -1002,6 +1034,7 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     auto nnSourceCRS = NN_NO_CHECK(sourceCRS);
     auto nnTargetCRS = NN_NO_CHECK(targetCRS);
@@ -1012,6 +1045,12 @@ static void outputOperations(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+=======
+    auto nnSourceCRS = NN_NO_CHECK(sourceCRS);
+    auto nnTargetCRS = NN_NO_CHECK(targetCRS);
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     std::vector<CoordinateOperationNNPtr> list;
     size_t spatialCriterionPartialIntersectionResultCount = 0;
     bool spatialCriterionPartialIntersectionMoreRelevant = false;
@@ -1026,8 +1065,11 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 
         const auto createOperations = [&]() {
             if (sourceCoordinateMetadata) {
@@ -1045,12 +1087,17 @@ static void outputOperations(
         };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         ctxt->setSpatialCriterion(spatialCriterion);
         ctxt->setSourceAndTargetCRSExtentUse(crsExtentUse);
         ctxt->setGridAvailabilityUse(gridAvailabilityUse);
@@ -1065,10 +1112,14 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         list = createOperations();
 =======
         list = CoordinateOperationFactory::create()->createOperations(
             nnSourceCRS, nnTargetCRS, ctxt);
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
         list = CoordinateOperationFactory::create()->createOperations(
@@ -1077,6 +1128,9 @@ static void outputOperations(
 =======
         list = createOperations();
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         if (!spatialCriterionExplicitlySpecified &&
             spatialCriterion == CoordinateOperationContext::SpatialCriterion::
                                     STRICT_CONTAINMENT) {
@@ -1087,11 +1141,15 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                 auto list2 = createOperations();
 =======
                 auto list2 =
                     CoordinateOperationFactory::create()->createOperations(
                         nnSourceCRS, nnTargetCRS, ctxt);
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
                 auto list2 =
@@ -1101,6 +1159,9 @@ static void outputOperations(
 =======
                 auto list2 = createOperations();
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                 spatialCriterionPartialIntersectionResultCount = list2.size();
                 if (spatialCriterionPartialIntersectionResultCount == 1 &&
                     list.size() == 1 &&

@@ -1807,19 +1807,26 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                     // preferred coordinate system for geographic lat, long
                     return;
                 }
                 if (authName == metadata::Identifier::EPSG && code == "6423") {
                     // preferred coordinate system for geographic lat, long, h
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                     // preferred coordinate system for geographic lat, lon
                     return;
                 }
                 if (authName == metadata::Identifier::EPSG && code == "6423") {
                     // preferred coordinate system for geographic lat, lon, h
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
@@ -1831,6 +1838,9 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
                 if (authName == metadata::Identifier::EPSG && code == "6423") {
                     // preferred coordinate system for geographic lat, long, h
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                     return;
                 }
             }

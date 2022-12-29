@@ -1000,26 +1000,37 @@ bool Evaluator<Grid, GridSet, EvaluatorIface>::forward(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                 if (!grid->getLongLatOffset(ix0, iy0, dx00, dy00) ||
                     !grid->getLongLatOffset(ix1, iy0, dx10, dy10) ||
                     !grid->getLongLatOffset(ix0, iy1, dx01, dy01) ||
                     !grid->getLongLatOffset(ix1, iy1, dx11, dy11)) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                 if (!grid->getLonLatOffset(ix0, iy0, dx00, dy00) ||
                     !grid->getLonLatOffset(ix1, iy0, dx10, dy10) ||
                     !grid->getLonLatOffset(ix0, iy1, dx01, dy01) ||
                     !grid->getLonLatOffset(ix1, iy1, dx11, dy11)) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                     return false;
                 }
             } else /* if (compEx->displacementType == DisplacementType::THREE_D)
@@ -1032,26 +1043,37 @@ bool Evaluator<Grid, GridSet, EvaluatorIface>::forward(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                 if (!grid->getLongLatZOffset(ix0, iy0, dx00, dy00, dz00) ||
                     !grid->getLongLatZOffset(ix1, iy0, dx10, dy10, dz10) ||
                     !grid->getLongLatZOffset(ix0, iy1, dx01, dy01, dz01) ||
                     !grid->getLongLatZOffset(ix1, iy1, dx11, dy11, dz11)) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                 if (!grid->getLonLatZOffset(ix0, iy0, dx00, dy00, dz00) ||
                     !grid->getLonLatZOffset(ix1, iy0, dx10, dy10, dz10) ||
                     !grid->getLonLatZOffset(ix0, iy1, dx01, dy01, dz01) ||
                     !grid->getLonLatZOffset(ix1, iy1, dx11, dy11, dz11)) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                     return false;
                 }
                 const double dzInterp =

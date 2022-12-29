@@ -40,6 +40,7 @@ extensions = [
     'redirects',
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     'program_with_link',
 =======
 <<<<<<< HEAD
@@ -52,7 +53,12 @@ extensions = [
 =======
     'program_with_link',
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 ]
 
 # Add any paths that contain templates here, relative to this directory.

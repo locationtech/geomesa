@@ -1691,6 +1691,9 @@ static bool isPointInExtent(double x, double y, const ExtentAndRes &extent,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 const VerticalShiftGrid *VerticalShiftGrid::gridAt(double longitude,
                                                    double lat) const {
     for (const auto &child : m_children) {
@@ -1698,14 +1701,18 @@ const VerticalShiftGrid *VerticalShiftGrid::gridAt(double longitude,
         if (isPointInExtent(longitude, lat, extentChild)) {
             return child->gridAt(longitude, lat);
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 const VerticalShiftGrid *VerticalShiftGrid::gridAt(double lon,
                                                    double lat) const {
     for (const auto &child : m_children) {
         const auto &extentChild = child->extentAndRes();
         if (isPointInExtent(lon, lat, extentChild)) {
             return child->gridAt(lon, lat);
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
@@ -1718,6 +1725,9 @@ const VerticalShiftGrid *VerticalShiftGrid::gridAt(double longitude,
         if (isPointInExtent(longitude, lat, extentChild)) {
             return child->gridAt(longitude, lat);
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         }
     }
     return this;
@@ -1727,6 +1737,7 @@ const VerticalShiftGrid *VerticalShiftGrid::gridAt(double longitude,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 const VerticalShiftGrid *VerticalShiftGridSet::gridAt(double longitude,
 =======
 const VerticalShiftGrid *VerticalShiftGridSet::gridAt(double lon,
@@ -1737,6 +1748,12 @@ const VerticalShiftGrid *VerticalShiftGridSet::gridAt(double lon,
 =======
 const VerticalShiftGrid *VerticalShiftGridSet::gridAt(double longitude,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+const VerticalShiftGrid *VerticalShiftGridSet::gridAt(double longitude,
+=======
+const VerticalShiftGrid *VerticalShiftGridSet::gridAt(double lon,
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                                                       double lat) const {
     for (const auto &grid : m_grids) {
         if (grid->isNullGrid()) {
@@ -1746,11 +1763,15 @@ const VerticalShiftGrid *VerticalShiftGridSet::gridAt(double longitude,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         if (isPointInExtent(longitude, lat, extent)) {
             return grid->gridAt(longitude, lat);
 =======
         if (isPointInExtent(lon, lat, extent)) {
             return grid->gridAt(lon, lat);
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
         if (isPointInExtent(lon, lat, extent)) {
@@ -1760,6 +1781,9 @@ const VerticalShiftGrid *VerticalShiftGridSet::gridAt(double longitude,
         if (isPointInExtent(longitude, lat, extent)) {
             return grid->gridAt(longitude, lat);
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         }
     }
     return nullptr;
@@ -1805,6 +1829,7 @@ class NullHorizontalShiftGrid : public HorizontalShiftGrid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     bool valueAt(int, int, bool, float &longShift,
 =======
     bool valueAt(int, int, bool, float &lonShift,
@@ -1815,6 +1840,12 @@ class NullHorizontalShiftGrid : public HorizontalShiftGrid {
 =======
     bool valueAt(int, int, bool, float &longShift,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    bool valueAt(int, int, bool, float &longShift,
+=======
+    bool valueAt(int, int, bool, float &lonShift,
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                  float &latShift) const override;
 
     void reassign_context(PJ_CONTEXT *) override {}
@@ -1831,6 +1862,9 @@ class NullHorizontalShiftGrid : public HorizontalShiftGrid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 bool NullHorizontalShiftGrid::valueAt(int, int, bool, float &longShift,
                                       float &latShift) const {
     longShift = 0.0f;
@@ -1838,6 +1872,7 @@ bool NullHorizontalShiftGrid::valueAt(int, int, bool, float &longShift,
 bool NullHorizontalShiftGrid::valueAt(int, int, bool, float &lonShift,
                                       float &latShift) const {
     lonShift = 0.0f;
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 bool NullHorizontalShiftGrid::valueAt(int, int, bool, float &lonShift,
@@ -1849,6 +1884,9 @@ bool NullHorizontalShiftGrid::valueAt(int, int, bool, float &longShift,
                                       float &latShift) const {
     longShift = 0.0f;
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     latShift = 0.0f;
     return true;
 }
@@ -1882,6 +1920,7 @@ class NTv1Grid : public HorizontalShiftGrid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     bool valueAt(int, int, bool, float &longShift,
 =======
     bool valueAt(int, int, bool, float &lonShift,
@@ -1892,6 +1931,12 @@ class NTv1Grid : public HorizontalShiftGrid {
 =======
     bool valueAt(int, int, bool, float &longShift,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    bool valueAt(int, int, bool, float &longShift,
+=======
+    bool valueAt(int, int, bool, float &lonShift,
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                  float &latShift) const override;
 
     static NTv1Grid *open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
@@ -1984,6 +2029,7 @@ bool NTv1Grid::valueAt(int x, int y, bool compensateNTConvention,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                        float &longShift, float &latShift) const {
 =======
                        float &lonShift, float &latShift) const {
@@ -1994,6 +2040,12 @@ bool NTv1Grid::valueAt(int x, int y, bool compensateNTConvention,
 =======
                        float &longShift, float &latShift) const {
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+                       float &longShift, float &latShift) const {
+=======
+                       float &lonShift, float &latShift) const {
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     assert(x >= 0 && y >= 0 && x < m_width && y < m_height);
 
     double two_doubles[2];
@@ -2014,11 +2066,15 @@ bool NTv1Grid::valueAt(int x, int y, bool compensateNTConvention,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     longShift = (compensateNTConvention ? -1 : 1) *
                 static_cast<float>(two_doubles[1] * ((M_PI / 180.0) / 3600.0));
 =======
     lonShift = (compensateNTConvention ? -1 : 1) *
                static_cast<float>(two_doubles[1] * ((M_PI / 180.0) / 3600.0));
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
     lonShift = (compensateNTConvention ? -1 : 1) *
@@ -2028,6 +2084,9 @@ bool NTv1Grid::valueAt(int x, int y, bool compensateNTConvention,
     longShift = (compensateNTConvention ? -1 : 1) *
                 static_cast<float>(two_doubles[1] * ((M_PI / 180.0) / 3600.0));
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 
     return true;
 }
@@ -2053,6 +2112,7 @@ class CTable2Grid : public HorizontalShiftGrid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     bool valueAt(int, int, bool, float &longShift,
 =======
     bool valueAt(int, int, bool, float &lonShift,
@@ -2063,6 +2123,12 @@ class CTable2Grid : public HorizontalShiftGrid {
 =======
     bool valueAt(int, int, bool, float &longShift,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    bool valueAt(int, int, bool, float &longShift,
+=======
+    bool valueAt(int, int, bool, float &lonShift,
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                  float &latShift) const override;
 
     static CTable2Grid *open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
@@ -2147,6 +2213,7 @@ bool CTable2Grid::valueAt(int x, int y, bool compensateNTConvention,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                           float &longShift, float &latShift) const {
 =======
                           float &lonShift, float &latShift) const {
@@ -2157,6 +2224,12 @@ bool CTable2Grid::valueAt(int x, int y, bool compensateNTConvention,
 =======
                           float &longShift, float &latShift) const {
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+                          float &longShift, float &latShift) const {
+=======
+                          float &lonShift, float &latShift) const {
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     assert(x >= 0 && y >= 0 && x < m_width && y < m_height);
 
     float two_floats[2];
@@ -2175,6 +2248,7 @@ bool CTable2Grid::valueAt(int x, int y, bool compensateNTConvention,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     longShift = (compensateNTConvention ? -1 : 1) * two_floats[0];
 =======
     lonShift = (compensateNTConvention ? -1 : 1) * two_floats[0];
@@ -2185,6 +2259,12 @@ bool CTable2Grid::valueAt(int x, int y, bool compensateNTConvention,
 =======
     longShift = (compensateNTConvention ? -1 : 1) * two_floats[0];
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    longShift = (compensateNTConvention ? -1 : 1) * two_floats[0];
+=======
+    lonShift = (compensateNTConvention ? -1 : 1) * two_floats[0];
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 
     return true;
 }
@@ -2240,6 +2320,7 @@ class NTv2Grid : public HorizontalShiftGrid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     bool valueAt(int, int, bool, float &longShift,
 =======
     bool valueAt(int, int, bool, float &lonShift,
@@ -2250,6 +2331,12 @@ class NTv2Grid : public HorizontalShiftGrid {
 =======
     bool valueAt(int, int, bool, float &longShift,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    bool valueAt(int, int, bool, float &longShift,
+=======
+    bool valueAt(int, int, bool, float &lonShift,
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                  float &latShift) const override;
 
     const std::string &metadataItem(const std::string &, int) const override {
@@ -2272,6 +2359,7 @@ bool NTv2Grid::valueAt(int x, int y, bool compensateNTConvention,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                        float &longShift, float &latShift) const {
 =======
                        float &lonShift, float &latShift) const {
@@ -2282,6 +2370,12 @@ bool NTv2Grid::valueAt(int x, int y, bool compensateNTConvention,
 =======
                        float &longShift, float &latShift) const {
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+                       float &longShift, float &latShift) const {
+=======
+                       float &lonShift, float &latShift) const {
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     assert(x >= 0 && y >= 0 && x < m_width && y < m_height);
 
     const std::vector<float> *pBuffer = m_cache->get(m_gridIdx, y);
@@ -2297,6 +2391,7 @@ bool NTv2Grid::valueAt(int x, int y, bool compensateNTConvention,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         // there are 4 components: lat shift, long shift, lat error, long error
 =======
         // there are 4 components: lat shift, lon shift, lat error, lon error
@@ -2307,6 +2402,12 @@ bool NTv2Grid::valueAt(int x, int y, bool compensateNTConvention,
 =======
         // there are 4 components: lat shift, long shift, lat error, long error
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+        // there are 4 components: lat shift, long shift, lat error, long error
+=======
+        // there are 4 components: lat shift, lon shift, lat error, lon error
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         m_fp->seek(m_offset +
                    nLineSizeInBytes * static_cast<unsigned long long>(y));
         if (m_fp->read(&m_buffer[0], nLineSizeInBytes) != nLineSizeInBytes) {
@@ -2317,6 +2418,7 @@ bool NTv2Grid::valueAt(int x, int y, bool compensateNTConvention,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         // Remove lat and long error
 =======
         // Remove lat and lon error
@@ -2327,6 +2429,12 @@ bool NTv2Grid::valueAt(int x, int y, bool compensateNTConvention,
 =======
         // Remove lat and long error
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+        // Remove lat and long error
+=======
+        // Remove lat and lon error
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         for (int i = 1; i < m_width; ++i) {
             m_buffer[2 * i] = m_buffer[4 * i];
             m_buffer[2 * i + 1] = m_buffer[4 * i + 1];
@@ -2356,6 +2464,7 @@ bool NTv2Grid::valueAt(int x, int y, bool compensateNTConvention,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     longShift =
 =======
     lonShift =
@@ -2366,6 +2475,12 @@ bool NTv2Grid::valueAt(int x, int y, bool compensateNTConvention,
 =======
     longShift =
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    longShift =
+=======
+    lonShift =
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         (compensateNTConvention ? -1 : 1) *
         static_cast<float>(buffer[2 * x + 1] * ((M_PI / 180.0) / 3600.0));
     return true;
@@ -2596,6 +2711,7 @@ class GTiffHGrid : public HorizontalShiftGrid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     uint16_t m_idxLongShift;
 =======
     uint16_t m_idxLonShift;
@@ -2606,6 +2722,12 @@ class GTiffHGrid : public HorizontalShiftGrid {
 =======
     uint16_t m_idxLongShift;
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    uint16_t m_idxLongShift;
+=======
+    uint16_t m_idxLonShift;
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     double m_convFactorToRadian;
     bool m_positiveEast;
 
@@ -2614,6 +2736,7 @@ class GTiffHGrid : public HorizontalShiftGrid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                uint16_t idxLongShift, double convFactorToRadian,
 =======
                uint16_t idxLonShift, double convFactorToRadian,
@@ -2624,6 +2747,12 @@ class GTiffHGrid : public HorizontalShiftGrid {
 =======
                uint16_t idxLongShift, double convFactorToRadian,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+               uint16_t idxLongShift, double convFactorToRadian,
+=======
+               uint16_t idxLonShift, double convFactorToRadian,
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                bool positiveEast);
 
     ~GTiffHGrid() override;
@@ -2631,6 +2760,7 @@ class GTiffHGrid : public HorizontalShiftGrid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     bool valueAt(int x, int y, bool, float &longShift,
 =======
     bool valueAt(int x, int y, bool, float &lonShift,
@@ -2641,6 +2771,12 @@ class GTiffHGrid : public HorizontalShiftGrid {
 =======
     bool valueAt(int x, int y, bool, float &longShift,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    bool valueAt(int x, int y, bool, float &longShift,
+=======
+    bool valueAt(int x, int y, bool, float &lonShift,
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                  float &latShift) const override;
 
     const std::string &metadataItem(const std::string &key,
@@ -2667,6 +2803,7 @@ GTiffHGrid::GTiffHGrid(std::unique_ptr<GTiffGrid> &&grid, uint16_t idxLatShift,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                        uint16_t idxLongShift, double convFactorToRadian,
 =======
                        uint16_t idxLonShift, double convFactorToRadian,
@@ -2677,6 +2814,12 @@ GTiffHGrid::GTiffHGrid(std::unique_ptr<GTiffGrid> &&grid, uint16_t idxLatShift,
 =======
                        uint16_t idxLongShift, double convFactorToRadian,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+                       uint16_t idxLongShift, double convFactorToRadian,
+=======
+                       uint16_t idxLonShift, double convFactorToRadian,
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                        bool positiveEast)
     : HorizontalShiftGrid(grid->name(), grid->width(), grid->height(),
                           grid->extentAndRes()),
@@ -2684,6 +2827,7 @@ GTiffHGrid::GTiffHGrid(std::unique_ptr<GTiffGrid> &&grid, uint16_t idxLatShift,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       m_idxLongShift(idxLongShift), m_convFactorToRadian(convFactorToRadian),
 =======
       m_idxLonShift(idxLonShift), m_convFactorToRadian(convFactorToRadian),
@@ -2694,6 +2838,12 @@ GTiffHGrid::GTiffHGrid(std::unique_ptr<GTiffGrid> &&grid, uint16_t idxLatShift,
 =======
       m_idxLongShift(idxLongShift), m_convFactorToRadian(convFactorToRadian),
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+      m_idxLongShift(idxLongShift), m_convFactorToRadian(convFactorToRadian),
+=======
+      m_idxLonShift(idxLonShift), m_convFactorToRadian(convFactorToRadian),
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
       m_positiveEast(positiveEast) {}
 
 // ---------------------------------------------------------------------------
@@ -2705,17 +2855,24 @@ GTiffHGrid::~GTiffHGrid() = default;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 bool GTiffHGrid::valueAt(int x, int y, bool, float &longShift,
                          float &latShift) const {
     if (!m_grid->valueAt(m_idxLatShift, x, y, latShift) ||
         !m_grid->valueAt(m_idxLongShift, x, y, longShift)) {
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 bool GTiffHGrid::valueAt(int x, int y, bool, float &lonShift,
                          float &latShift) const {
     if (!m_grid->valueAt(m_idxLatShift, x, y, latShift) ||
         !m_grid->valueAt(m_idxLonShift, x, y, lonShift)) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
@@ -2726,6 +2883,9 @@ bool GTiffHGrid::valueAt(int x, int y, bool, float &longShift,
     if (!m_grid->valueAt(m_idxLatShift, x, y, latShift) ||
         !m_grid->valueAt(m_idxLongShift, x, y, longShift)) {
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         return false;
     }
     // From arc-seconds to radians
@@ -2733,6 +2893,9 @@ bool GTiffHGrid::valueAt(int x, int y, bool, float &longShift,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     longShift = static_cast<float>(longShift * m_convFactorToRadian);
     if (!m_positiveEast) {
         longShift = -longShift;
@@ -2740,6 +2903,7 @@ bool GTiffHGrid::valueAt(int x, int y, bool, float &longShift,
     lonShift = static_cast<float>(lonShift * m_convFactorToRadian);
     if (!m_positiveEast) {
         lonShift = -lonShift;
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
     lonShift = static_cast<float>(lonShift * m_convFactorToRadian);
@@ -2751,6 +2915,9 @@ bool GTiffHGrid::valueAt(int x, int y, bool, float &longShift,
     if (!m_positiveEast) {
         longShift = -longShift;
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     }
     return true;
 }
@@ -2795,6 +2962,7 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     uint16_t idxLongShift = 1;
 =======
     uint16_t idxLonShift = 1;
@@ -2805,6 +2973,12 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 =======
     uint16_t idxLongShift = 1;
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    uint16_t idxLongShift = 1;
+=======
+    uint16_t idxLonShift = 1;
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     constexpr double ARC_SECOND_TO_RADIAN = (M_PI / 180.0) / 3600.0;
     double convFactorToRadian = ARC_SECOND_TO_RADIAN;
     bool positiveEast = true;
@@ -2851,6 +3025,7 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         bool foundDescriptionForLongOffset = false;
 =======
         bool foundDescriptionForLonOffset = false;
@@ -2861,6 +3036,12 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 =======
         bool foundDescriptionForLongOffset = false;
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+        bool foundDescriptionForLongOffset = false;
+=======
+        bool foundDescriptionForLonOffset = false;
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         for (int i = 0; i < static_cast<int>(grid->samplesPerPixel()); ++i) {
             const auto &desc = grid->metadataItem("DESCRIPTION", i);
             if (!desc.empty()) {
@@ -2873,11 +3054,15 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                 idxLongShift = static_cast<uint16_t>(i);
                 foundDescriptionForLongOffset = true;
 =======
                 idxLonShift = static_cast<uint16_t>(i);
                 foundDescriptionForLonOffset = true;
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
                 idxLonShift = static_cast<uint16_t>(i);
@@ -2887,6 +3072,9 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
                 idxLongShift = static_cast<uint16_t>(i);
                 foundDescriptionForLongOffset = true;
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
             }
         }
 
@@ -2894,6 +3082,7 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             if (!foundDescriptionForLongOffset &&
 =======
             if (!foundDescriptionForLonOffset &&
@@ -2904,6 +3093,12 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 =======
             if (!foundDescriptionForLongOffset &&
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+            if (!foundDescriptionForLongOffset &&
+=======
+            if (!foundDescriptionForLonOffset &&
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                 !foundDescriptionForLatOffset) {
                 if (ifd > 0) {
                     // Assuming that extra IFD without
@@ -2926,6 +3121,7 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (foundDescriptionForLatOffset && !foundDescriptionForLongOffset) {
 =======
         if (foundDescriptionForLatOffset && !foundDescriptionForLonOffset) {
@@ -2936,6 +3132,12 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 =======
         if (foundDescriptionForLatOffset && !foundDescriptionForLongOffset) {
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+        if (foundDescriptionForLatOffset && !foundDescriptionForLongOffset) {
+=======
+        if (foundDescriptionForLatOffset && !foundDescriptionForLonOffset) {
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
             pj_log(
                 ctx, PJ_LOG_ERROR,
                 _("Found latitude_offset channel, but not longitude_offset"));
@@ -2943,6 +3145,7 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         } else if (foundDescriptionForLongOffset &&
 =======
         } else if (foundDescriptionForLonOffset &&
@@ -2953,6 +3156,12 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 =======
         } else if (foundDescriptionForLongOffset &&
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+        } else if (foundDescriptionForLongOffset &&
+=======
+        } else if (foundDescriptionForLonOffset &&
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                    !foundDescriptionForLatOffset) {
             pj_log(
                 ctx, PJ_LOG_ERROR,
@@ -2964,6 +3173,7 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             idxLongShift >= grid->samplesPerPixel()) {
 =======
             idxLonShift >= grid->samplesPerPixel()) {
@@ -2974,6 +3184,12 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 =======
             idxLongShift >= grid->samplesPerPixel()) {
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+            idxLongShift >= grid->samplesPerPixel()) {
+=======
+            idxLonShift >= grid->samplesPerPixel()) {
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
             pj_log(ctx, PJ_LOG_ERROR, _("Invalid sample index"));
             return nullptr;
         }
@@ -2981,6 +3197,9 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         if (foundDescriptionForLongOffset) {
             const std::string &positiveValue =
                 grid->metadataItem("positive_value", idxLongShift);
@@ -2988,6 +3207,7 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
         if (foundDescriptionForLonOffset) {
             const std::string &positiveValue =
                 grid->metadataItem("positive_value", idxLonShift);
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
         if (foundDescriptionForLonOffset) {
@@ -2999,6 +3219,9 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
             const std::string &positiveValue =
                 grid->metadataItem("positive_value", idxLongShift);
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
             if (!positiveValue.empty()) {
                 if (positiveValue == "west") {
                     positiveEast = false;
@@ -3020,6 +3243,9 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
             const auto &unitLongShift =
                 grid->metadataItem("UNITTYPE", idxLongShift);
             if (unitLatShift != unitLongShift) {
@@ -3027,6 +3253,7 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
             const auto &unitLonShift =
                 grid->metadataItem("UNITTYPE", idxLonShift);
             if (unitLatShift != unitLonShift) {
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
             const auto &unitLonShift =
@@ -3038,6 +3265,9 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
                 grid->metadataItem("UNITTYPE", idxLongShift);
             if (unitLatShift != unitLongShift) {
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                 pj_log(ctx, PJ_LOG_ERROR,
                        _("Different unit for longitude and latitude offset"));
                 return nullptr;
@@ -3065,6 +3295,7 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             std::move(grid), idxLatShift, idxLongShift, convFactorToRadian,
 =======
             std::move(grid), idxLatShift, idxLonShift, convFactorToRadian,
@@ -3075,6 +3306,12 @@ GTiffHGridShiftSet::open(PJ_CONTEXT *ctx, std::unique_ptr<File> fp,
 =======
             std::move(grid), idxLatShift, idxLongShift, convFactorToRadian,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+            std::move(grid), idxLatShift, idxLongShift, convFactorToRadian,
+=======
+            std::move(grid), idxLatShift, idxLonShift, convFactorToRadian,
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
             positiveEast);
 
         insertIntoHierarchy(ctx, std::move(hgrid), gridName, parentName,
@@ -3191,6 +3428,7 @@ bool HorizontalShiftGridSet::reopen(PJ_CONTEXT *ctx) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 const HorizontalShiftGrid *HorizontalShiftGrid::gridAt(double longitude,
 =======
 const HorizontalShiftGrid *HorizontalShiftGrid::gridAt(double lon,
@@ -3201,6 +3439,12 @@ const HorizontalShiftGrid *HorizontalShiftGrid::gridAt(double lon,
 =======
 const HorizontalShiftGrid *HorizontalShiftGrid::gridAt(double longitude,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+const HorizontalShiftGrid *HorizontalShiftGrid::gridAt(double longitude,
+=======
+const HorizontalShiftGrid *HorizontalShiftGrid::gridAt(double lon,
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                                                        double lat) const {
     for (const auto &child : m_children) {
         const auto &extentChild = child->extentAndRes();
@@ -3209,11 +3453,15 @@ const HorizontalShiftGrid *HorizontalShiftGrid::gridAt(double longitude,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         if (isPointInExtent(longitude, lat, extentChild, epsilon)) {
             return child->gridAt(longitude, lat);
 =======
         if (isPointInExtent(lon, lat, extentChild, epsilon)) {
             return child->gridAt(lon, lat);
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
         if (isPointInExtent(lon, lat, extentChild, epsilon)) {
@@ -3223,6 +3471,9 @@ const HorizontalShiftGrid *HorizontalShiftGrid::gridAt(double longitude,
         if (isPointInExtent(longitude, lat, extentChild, epsilon)) {
             return child->gridAt(longitude, lat);
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         }
     }
     return this;
@@ -3232,6 +3483,7 @@ const HorizontalShiftGrid *HorizontalShiftGrid::gridAt(double longitude,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 const HorizontalShiftGrid *HorizontalShiftGridSet::gridAt(double longitude,
 =======
 const HorizontalShiftGrid *HorizontalShiftGridSet::gridAt(double lon,
@@ -3242,6 +3494,12 @@ const HorizontalShiftGrid *HorizontalShiftGridSet::gridAt(double lon,
 =======
 const HorizontalShiftGrid *HorizontalShiftGridSet::gridAt(double longitude,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+const HorizontalShiftGrid *HorizontalShiftGridSet::gridAt(double longitude,
+=======
+const HorizontalShiftGrid *HorizontalShiftGridSet::gridAt(double lon,
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                                                           double lat) const {
     for (const auto &grid : m_grids) {
         if (grid->isNullGrid()) {
@@ -3253,11 +3511,15 @@ const HorizontalShiftGrid *HorizontalShiftGridSet::gridAt(double longitude,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         if (isPointInExtent(longitude, lat, extent, epsilon)) {
             return grid->gridAt(longitude, lat);
 =======
         if (isPointInExtent(lon, lat, extent, epsilon)) {
             return grid->gridAt(lon, lat);
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
         if (isPointInExtent(lon, lat, extent, epsilon)) {
@@ -3267,6 +3529,9 @@ const HorizontalShiftGrid *HorizontalShiftGridSet::gridAt(double longitude,
         if (isPointInExtent(longitude, lat, extent, epsilon)) {
             return grid->gridAt(longitude, lat);
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         }
     }
     return nullptr;
@@ -3844,8 +4109,11 @@ static PJ_LP pj_hgrid_interpolate(PJ_LP t, const HorizontalShiftGrid *grid,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     float f00Long = 0, f00Lat = 0;
     float f10Long = 0, f10Lat = 0;
     float f01Long = 0, f01Lat = 0;
@@ -3860,13 +4128,17 @@ static PJ_LP pj_hgrid_interpolate(PJ_LP t, const HorizontalShiftGrid *grid,
         !grid->valueAt(indx.lam + 1, indx.phi + 1, compensateNTConvention,
                        f11Long, f11Lat)) {
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     float f00Lon = 0, f00Lat = 0;
     float f10Lon = 0, f10Lat = 0;
     float f01Lon = 0, f01Lat = 0;
     float f11Lon = 0, f11Lat = 0;
     if (!grid->valueAt(indx.lam, indx.phi, compensateNTConvention, f00Lon,
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
                        f00Lat) ||
@@ -3884,6 +4156,16 @@ static PJ_LP pj_hgrid_interpolate(PJ_LP t, const HorizontalShiftGrid *grid,
 =======
                        f11Long, f11Lat)) {
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+                       f00Lat) ||
+        !grid->valueAt(indx.lam + 1, indx.phi, compensateNTConvention, f10Lon,
+                       f10Lat) ||
+        !grid->valueAt(indx.lam, indx.phi + 1, compensateNTConvention, f01Lon,
+                       f01Lat) ||
+        !grid->valueAt(indx.lam + 1, indx.phi + 1, compensateNTConvention,
+                       f11Lon, f11Lat)) {
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         return val;
     }
 
@@ -3899,6 +4181,7 @@ static PJ_LP pj_hgrid_interpolate(PJ_LP t, const HorizontalShiftGrid *grid,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     val.lam = m00 * f00Long + m10 * f10Long + m01 * f01Long + m11 * f11Long;
 =======
     val.lam = m00 * f00Lon + m10 * f10Lon + m01 * f01Lon + m11 * f11Lon;
@@ -3909,6 +4192,12 @@ static PJ_LP pj_hgrid_interpolate(PJ_LP t, const HorizontalShiftGrid *grid,
 =======
     val.lam = m00 * f00Long + m10 * f10Long + m01 * f01Long + m11 * f11Long;
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+    val.lam = m00 * f00Long + m10 * f10Long + m01 * f01Long + m11 * f11Long;
+=======
+    val.lam = m00 * f00Lon + m10 * f10Lon + m01 * f01Lon + m11 * f11Lon;
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     val.phi = m00 * f00Lat + m10 * f10Lat + m01 * f01Lat + m11 * f11Lat;
     return val;
 }

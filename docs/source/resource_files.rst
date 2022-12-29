@@ -120,10 +120,15 @@ Its default content is:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 .. literalinclude:: ../../data/proj.ini
 =======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+.. literalinclude:: ../../data/proj.ini
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 ::
 
     [general]
@@ -156,12 +161,16 @@ Its default content is:
     ;   0.1 mm (for an ellipsoid of the size of Earth)
     tmerc_default_algo = poder_engsager
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 .. literalinclude:: ../../data/proj.ini
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 
 
 Transformation grids
@@ -339,6 +348,7 @@ compiler.  For Ubuntu something like the following should work.
 To compile the program do something like the following to produce the binary
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 ``htdp`` from the source code.
 =======
 :program:`htdp` from the source code.
@@ -352,7 +362,13 @@ To compile the program do something like the following to produce the binary
 =======
 ``htdp`` from the source code.
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+:program:`htdp` from the source code.
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 
 ::
 
@@ -400,6 +416,7 @@ region.  The region is defined using the ``-griddef`` switch.  When missing a
 continental US region is used.  The script creates a set of sample points for
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 the grid definition, runs ``htdp`` against it and then parses the
 resulting points and computes a point by point shift to encode into the final
 grid shift file.  By default it is assumed that ``htdp`` is in the
@@ -429,7 +446,19 @@ The :program:`htdp` program supports transformations between many CRSes and for 
 =======
 The ``htdp`` program supports transformations between many CRSes and for each (or
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+the grid definition, runs :program:`htdp` against it and then parses the
+resulting points and computes a point by point shift to encode into the final
+grid shift file.  By default it is assumed that :program:`htdp` is in the
+executable path.  If not, please provide the path to the executable using the
+``-htdp`` switch.
+
+The :program:`htdp` program supports transformations between many CRSes and for each (or
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 most?) of them you need to provide a date at which the CRS is fixed.  The full
 set of CRS Ids available in the HTDP program are:
 

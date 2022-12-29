@@ -80,6 +80,7 @@ Thomas Knudsen, thokn@sdfe.dk, 2016-05-25/2017-10-26
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include <algorithm>
 =======
 <<<<<<< HEAD
@@ -92,7 +93,12 @@ Thomas Knudsen, thokn@sdfe.dk, 2016-05-25/2017-10-26
 =======
 #include <algorithm>
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 #include <fstream> // std::ifstream
 #include <iostream>
 
@@ -253,6 +259,7 @@ int main(int argc, char **argv) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     verbose   = std::min(opt_given (o, "v"), 3); /* log level can't be larger than 3 */
 =======
     verbose   = MIN(opt_given (o, "v"), 3); /* log level can't be larger than 3 */
@@ -266,7 +273,13 @@ int main(int argc, char **argv) {
 =======
     verbose   = std::min(opt_given (o, "v"), 3); /* log level can't be larger than 3 */
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+    verbose   = MIN(opt_given (o, "v"), 3); /* log level can't be larger than 3 */
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     if( verbose > 0 ) {
         proj_log_level (PJ_DEFAULT_CTX, static_cast<PJ_LOG_LEVEL>(verbose));
     }

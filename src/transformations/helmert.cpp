@@ -452,6 +452,7 @@ static void helmert_forward_4d (PJ_COORD &point, PJ *P) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     // Assigning in 2 steps avoids cppcheck warning
@@ -471,7 +472,13 @@ static void helmert_forward_4d (PJ_COORD &point, PJ *P) {
 =======
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+    point.xyz = helmert_forward_3d (point.lpz, P);
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 
@@ -487,6 +494,7 @@ static void helmert_reverse_4d (PJ_COORD& point, PJ *P) {
         build_rot_matrix(P);
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -508,7 +516,13 @@ static void helmert_reverse_4d (PJ_COORD& point, PJ *P) {
 =======
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+    point.lpz = helmert_reverse_3d (point.xyz, P);
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 /* Arcsecond to radians */

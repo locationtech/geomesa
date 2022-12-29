@@ -25,6 +25,7 @@ separate column.
     you can use `GDAL <https://gdal.org/>`_ as a frontend to PROJ and transform your data with the
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     `ogr2ogr <https://gdal.org/programs/ogr2ogr.html>`__ application.
 =======
     :program:`ogr2ogr` application.
@@ -38,7 +39,13 @@ separate column.
 =======
     `ogr2ogr <https://gdal.org/programs/ogr2ogr.html>`__ application.
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+    :program:`ogr2ogr` application.
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Can I transform from *abc* to *xyz*?
 --------------------------------------------------------------------------------
@@ -66,6 +73,7 @@ ETRS89/UTM32N (EPSG:25832) and ETRS89/DKTM1 (EPSG:4093):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 See the :program:`projinfo` documentation for more info on how to use it.
 =======
 See the :program:`projinfo` :ref:`documentation <projinfo>` for more info on
@@ -80,7 +88,14 @@ how to use it.
 =======
 See the :program:`projinfo` documentation for more info on how to use it.
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+See the :program:`projinfo` :ref:`documentation <projinfo>` for more info on
+how to use it.
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Coordinate reference system *xyz* is not in the EPSG registry, what do I do?
 --------------------------------------------------------------------------------

@@ -6,6 +6,7 @@ Gnomonic
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 For a sphere, the gnomonic projection is a projection from the center of
@@ -44,7 +45,18 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 =======
 | **Defined area**    | Within a quarter circumference of the center point       |
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
++---------------------+----------------------------------------------------------+
+| **Classification**  | Pseudocylindrical                                        |
++---------------------+----------------------------------------------------------+
+| **Available forms** | Forward and inverse, spherical projection                |
++---------------------+----------------------------------------------------------+
+| **Defined area**    | Global                                                   |
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 +---------------------+----------------------------------------------------------+
 | **Alias**           | gnom                                                     |
 +---------------------+----------------------------------------------------------+
@@ -63,6 +75,7 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
 =======
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50``
@@ -76,7 +89,13 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 =======
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+   proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50``
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Parameters
 ################################################################################
@@ -89,6 +108,7 @@ Parameters
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 .. include:: ../options/x_0.rst
 
 .. include:: ../options/y_0.rst
@@ -97,14 +117,19 @@ Parameters
 
 .. include:: ../options/R.rst
 =======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 .. include:: ../options/R.rst
 
 .. include:: ../options/x_0.rst
 
 .. include:: ../options/y_0.rst
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -118,4 +143,9 @@ Parameters
 
 .. include:: ../options/R.rst
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)

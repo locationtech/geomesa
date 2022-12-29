@@ -808,6 +808,7 @@ typedef enum
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     PJ_TYPE_COORDINATE_METADATA,
 =======
@@ -818,6 +819,12 @@ typedef enum
 
     PJ_TYPE_COORDINATE_METADATA,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+
+    PJ_TYPE_COORDINATE_METADATA,
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 } PJ_TYPE;
 
 /** Comparison criterion. */
@@ -1531,6 +1538,7 @@ PJ PROJ_DLL *proj_concatoperation_get_step(PJ_CONTEXT *ctx,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 double PROJ_DLL proj_coordinate_metadata_get_epoch(PJ_CONTEXT *ctx, const PJ *obj);
 
 =======
@@ -1541,6 +1549,12 @@ double PROJ_DLL proj_coordinate_metadata_get_epoch(PJ_CONTEXT *ctx, const PJ *ob
 double PROJ_DLL proj_coordinate_metadata_get_epoch(PJ_CONTEXT *ctx, const PJ *obj);
 
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+double PROJ_DLL proj_coordinate_metadata_get_epoch(PJ_CONTEXT *ctx, const PJ *obj);
+
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 /**@}*/
 
 #ifdef __cplusplus

@@ -4,6 +4,7 @@
 #include <math.h>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include <float.h>
 
 #include "geodesic.h"
@@ -28,7 +29,16 @@
 =======
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+
+#include "proj.h"
+#include "proj_internal.h"
+#include <math.h>
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 
 PROJ_HEAD(gnom, "Gnomonic") "\n\tAzi, Sph";
 
@@ -50,6 +60,7 @@ struct pj_opaque {
     enum Mode mode;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     struct geod_geodesic g;
 =======
 <<<<<<< HEAD
@@ -62,7 +73,12 @@ struct pj_opaque {
 =======
     struct geod_geodesic g;
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 } // anonymous namespace
 
@@ -162,6 +178,7 @@ static PJ_LP gnom_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, inverse
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 static PJ_XY gnom_e_forward (PJ_LP lp, PJ *P) { /* Ellipsoidal, forward */
@@ -249,7 +266,12 @@ static PJ_LP gnom_e_inverse (PJ_XY xy, PJ *P) { /* Ellipsoidal, inverse */
 =======
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 
 PJ *PROJECTION(gnom) {
     struct pj_opaque *Q = static_cast<struct pj_opaque*>(calloc (1, sizeof (struct pj_opaque)));
@@ -257,6 +279,7 @@ PJ *PROJECTION(gnom) {
         return pj_default_destructor (P, PROJ_ERR_OTHER /*ENOMEM*/);
     P->opaque = Q;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -282,6 +305,8 @@ PJ *PROJECTION(gnom) {
         P->fwd = gnom_e_forward;
     }
 =======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
     if (fabs(fabs(P->phi0) - M_HALFPI) < EPS10) {
         Q->mode = P->phi0 < 0. ? S_POLE : N_POLE;
     } else if (fabs(P->phi0) < EPS10) {
@@ -295,8 +320,11 @@ PJ *PROJECTION(gnom) {
     P->inv = gnom_s_inverse;
     P->fwd = gnom_s_forward;
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -312,7 +340,12 @@ PJ *PROJECTION(gnom) {
         P->fwd = gnom_e_forward;
     }
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     P->es = 0.;
 
     return P;
