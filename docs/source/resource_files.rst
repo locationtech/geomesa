@@ -475,6 +475,7 @@ To compile the program do something like the following to produce the binary
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -495,10 +496,13 @@ To compile the program do something like the following to produce the binary
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 ``htdp`` from the source code.
 =======
 :program:`htdp` from the source code.
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -672,6 +676,8 @@ To compile the program do something like the following to produce the binary
 =======
 ``htdp`` from the source code.
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 
 ::
 
@@ -741,6 +747,7 @@ continental US region is used.  The script creates a set of sample points for
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -782,6 +789,8 @@ continental US region is used.  The script creates a set of sample points for
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 the grid definition, runs ``htdp`` against it and then parses the
 resulting points and computes a point by point shift to encode into the final
 grid shift file.  By default it is assumed that ``htdp`` is in the
@@ -791,6 +800,7 @@ executable path.  If not, please provide the path to the executable using the
 The ``htdp`` program supports transformations between many CRSes and for each (or
 =======
 the grid definition, runs :program:`htdp` against it and then parses the
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1081,6 +1091,15 @@ The :program:`htdp` program supports transformations between many CRSes and for 
 =======
 The ``htdp`` program supports transformations between many CRSes and for each (or
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+resulting points and computes a point by point shift to encode into the final
+grid shift file.  By default it is assumed that :program:`htdp` is in the
+executable path.  If not, please provide the path to the executable using the
+``-htdp`` switch.
+
+The :program:`htdp` program supports transformations between many CRSes and for each (or
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 most?) of them you need to provide a date at which the CRS is fixed.  The full
 set of CRS Ids available in the HTDP program are:
 
