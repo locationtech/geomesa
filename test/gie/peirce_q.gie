@@ -10,10 +10,18 @@
 # Peirce_q distances include considerable distortion away
 # from axes, a feature of the projection to allow
 <<<<<<< HEAD
+<<<<<<< HEAD
 # tessellation but means that there is no uniform scale
 =======
 # tesselation but means that there is no uniform scale
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+# tesselation but means that there is no uniform scale
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 # across the coordinate space, so tolerance can be high.
 ------------------------------------------------------------
 
