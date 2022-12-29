@@ -10695,10 +10695,17 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
     const auto mappings = getMappingsFromPROJName(step.name);
     const MethodMapping *mapping = mappings.empty() ? nullptr : mappings[0];
 
+<<<<<<< HEAD
     bool foundStrictlyMatchingMapping = false;
     if (mappings.size() >= 2) {
         // To distinguish for example +ortho from +ortho +f=0
         bool allMappingsHaveAuxParam = true;
+=======
+    if (mappings.size() >= 2) {
+        // To distinguish for example +ortho from +ortho +f=0
+        bool allMappingsHaveAuxParam = true;
+        bool foundStrictlyMatchingMapping = false;
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
         for (const auto *mappingIter : mappings) {
             if (mappingIter->proj_name_aux == nullptr) {
                 allMappingsHaveAuxParam = false;
@@ -10725,7 +10732,11 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
         }
     }
 
+<<<<<<< HEAD
     if (mapping && !foundStrictlyMatchingMapping) {
+=======
+    if (mapping) {
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
         mapping = selectSphericalOrEllipsoidal(mapping, geodCRS);
     }
 
