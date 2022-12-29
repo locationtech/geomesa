@@ -622,12 +622,16 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -675,6 +679,10 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
     if (!(P->f >= 0.0 && P->f < 1.0)) {
 =======
     if (P->f == 1.0) {
@@ -699,6 +707,9 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
     if (!(P->f >= 0.0 && P->f < 1.0)) {
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -811,6 +822,7 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
     if (!(P->f >= 0.0 && P->f < 1.0)) {
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -976,6 +988,10 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
         proj_log_error(P, _("Invalid eccentricity"));
         proj_errno_set (P, PROJ_ERR_INVALID_OP_ILLEGAL_ARG_VALUE);
         return PROJ_ERR_INVALID_OP_ILLEGAL_ARG_VALUE;
