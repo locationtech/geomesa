@@ -1,0 +1,424 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "CS2CS" "1" "Sep 1, 2022" "9.1.0" "PROJ"
+.SH NAME
+cs2cs \- Cartographic coordinate system filter
+.SH SYNOPSIS
+.INDENT 0.0
+.INDENT 3.5
+.nf
+\fBcs2cs\fP [\fB\-eEfIlrstvwW\fP [args]]
+.in +2
+[[\-\-area <name_or_code>] | [\-\-bbox <west_long,south_lat,east_long,north_lat>]]
+[\-\-authority <name>] [\-\-no\-ballpark] [\-\-accuracy <accuracy>] [\-\-3d]
+([\fI+opt[=arg]\fP ...] [+to \fI+opt[=arg]\fP ...] | {source_crs} {target_crs})
+file ...
+.in -2
+.fi
+.sp
+.sp
+where {source_crs} or {target_crs} is one of the possibilities accepted
+by \fI\%proj_create()\fP, provided it expresses a CRS
+.INDENT 0.0
+.IP \(bu 2
+a proj\-string,
+.IP \(bu 2
+a WKT string,
+.IP \(bu 2
+an object code (like \(dqEPSG:4326\(dq, \(dqurn:ogc:def:crs:EPSG::4326\(dq,
+\(dqurn:ogc:def:coordinateOperation:EPSG::1671\(dq),
+.IP \(bu 2
+an Object name. e.g \(dqWGS 84\(dq, \(dqWGS 84 / UTM zone 31N\(dq. In that case as
+uniqueness is not guaranteed, heuristics are applied to determine the appropriate best match.
+.IP \(bu 2
+a OGC URN combining references for compound coordinate reference systems
+(e.g \(dq\fI\%urn:ogc:def:crs,crs:EPSG::2393,crs:EPSG::5717\fP\(dq or custom abbreviated
+syntax \(dqEPSG:2393+5717\(dq),
+.IP \(bu 2
+a OGC URN combining references for references for projected or derived CRSs
+e.g. for Projected 3D CRS \(dqUTM zone 31N / WGS 84 (3D)\(dq:
+\(dq\fI\%urn:ogc:def:crs,crs:EPSG::4979,cs:PROJ::ENh,coordinateOperation:EPSG::16031\fP\(dq
+(\fIadded in 6.2\fP)
+.IP \(bu 2
+a OGC URN combining references for concatenated operations
+(e.g. \(dq\fI\%urn:ogc:def:coordinateOperation,coordinateOperation:EPSG::3895,coordinateOperation:EPSG::1618\fP\(dq)
+.IP \(bu 2
+a PROJJSON string. The jsonschema is at \fI\%https://proj.org/schemas/v0.4/projjson.schema.json\fP (\fIadded in 6.2\fP)
+.IP \(bu 2
+a compound CRS made from two object names separated with \(dq + \(dq. e.g. \(dqWGS 84 + EGM96 height\(dq (\fIadded in 7.1\fP)
+.UNINDENT
+.sp
+New in version 6.0.0.
+
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+before 7.0.1, it was needed to add +to between {source_crs} and {target_crs}
+when adding a filename
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SH DESCRIPTION
+.sp
+\fBcs2cs\fP performs transformation between the source and destination
+cartographic coordinate reference system on a set of input points. The coordinate
+reference system transformation can include translation between projected and
+geographic coordinates as well as the application of datum shifts.
+.sp
+The following control parameters can appear in any order:
+.INDENT 0.0
+.TP
+.B \-I
+Method to specify inverse translation, convert from \fI+to\fP coordinate system to
+the primary coordinate system defined.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-t<a>
+Where \fIa\fP specifies a character employed as the first character to denote a control
+line to be passed through without processing. This option applicable to
+ASCII input only. (# is the default value).
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-d <n>
+New in version 5.2.0.
+
+.sp
+Specify the number of decimals in the output.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-e <string>
+Where \fIstring\fP is an arbitrary string to be output if an error is detected during
+data transformations. The default value is a three character string: \fB*\et*\fP\&.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-E
+Causes the input coordinates to be copied to the output line prior to
+printing the converted values.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-l<[=id]>
+List projection identifiers that can be selected with \fI+proj\fP\&. \fBcs2cs \-l=id\fP
+gives expanded description of projection \fIid\fP, e.g. \fBcs2cs \-l=merc\fP\&.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-lp
+List of all projection id that can be used with the \fI+proj\fP parameter.
+Equivalent to \fBcs2cs \-l\fP\&.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-lP
+Expanded description of all projections that can be used with the \fI+proj\fP
+parameter.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-le
+List of all ellipsoids that can be selected with the \fI+ellps\fP parameters.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-lu
+List of all distance units that can be selected with the \fI+units\fP parameter.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-r
+This options reverses the order of the first two expected
+inputs from that specified by the CRS to the opposite
+order.  The third coordinate, typically height, remains
+third.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-s
+This options reverses the order of the first two expected
+outputs from that specified by the CRS to the opposite
+order.  The third coordinate, typically height, remains
+third.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-f <format>
+Where \fIformat\fP is a printf format string to control the form of the output values.
+For inverse projections, the output will be in degrees when this option is
+employed. If a format is specified for inverse projection the output data
+will be in decimal degrees. The default format is \fB\(dq%.2f\(dq\fP for forward
+projection and DMS for inverse.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-w<n>
+Where \fIn\fP is the number of significant fractional digits to employ for seconds
+output (when the option is not specified, \fB\-w3\fP is assumed).
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-W<n>
+Where \fIn\fP is the number of significant fractional digits to employ for seconds
+output. When \fB\-W\fP is employed the fields will be constant width
+with leading zeroes.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-v
+Causes a listing of cartographic control parameters tested for and used by
+the program to be printed prior to input data.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-area <name_or_code>
+New in version 8.0.0.
+
+.sp
+Specify an area of interest to restrict the results when researching
+coordinate operations between 2 CRS. The area of interest can be specified either
+as a name (e.g \(dqDenmark \- onshore\(dq) or a AUTHORITY:CODE (EPSG:3237)
+.sp
+This option is mutually exclusive with \fI\%\-\-bbox\fP\&.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-bbox <west_long,south_lat,east_long,north_lat>
+New in version 8.0.0.
+
+.sp
+Specify an area of interest to restrict the results when researching
+coordinate operations between 2 CRS. The area of interest is specified as a
+bounding box with geographic coordinates, expressed in degrees in a
+unspecified geographic CRS.
+\fIwest_long\fP and \fIeast_long\fP should be in the [\-180,180] range, and
+\fIsouth_lat\fP and \fInorth_lat\fP in the [\-90,90]. \fIwest_long\fP is generally lower than
+\fIeast_long\fP, except in the case where the area of interest crosses the antimeridian.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-no\-ballpark
+New in version 8.0.0.
+
+.sp
+Disallow any coordinate operation that is, or contains, a
+\fI\%Ballpark transformation\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-accuracy <accuracy>
+New in version 8.0.0.
+
+.sp
+Sets the minimum desired accuracy for candidate coordinate operations.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-authority <name>
+New in version 8.0.0.
+
+.sp
+This option can be used to restrict the authority of coordinate operations
+looked up in the database. When not specified, coordinate
+operations from any authority will be searched, with the restrictions set
+in the \fBauthority_to_authority_preference\fP database table related to the authority
+of the source/target CRS themselves.
+If authority is set to \fBany\fP, then coordinate operations from any authority will be searched
+If authority is a non\-empty string different of \fBany\fP, then coordinate operations
+will be searched only in that authority namespace (e.g \fBEPSG\fP).
+.sp
+This option is mutually exclusive with \fI\%\-\-bbox\fP\&.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-3d
+New in version 9.1.
+
+.sp
+\(dqPromote\(dq 2D CRS(s) to their 3D version, where the vertical axis is the
+ellipsoidal height in metres, using the ellipsoid of the base geodetic CRS.
+Depending on PROJ versions and the exact nature of the CRS involved,
+especially before PROJ 9.1, a mix of 2D and 3D CRS could lead to 2D or 3D
+transformations. Starting with PROJ 9.1, both CRS need to be 3D for vertical
+transformation to possibly happen.
+.UNINDENT
+.sp
+The \fI+opt\fP run\-line arguments are associated with cartographic
+parameters.
+.sp
+The \fBcs2cs\fP program requires two coordinate reference system (CRS) definitions. The first (or
+primary is defined based on all projection parameters not appearing after the
+\fI+to\fP argument. All projection parameters appearing after the \fI+to\fP argument
+are considered the definition of the second CRS. If there is no
+second CRS defined, a geographic CRS based on the
+datum and ellipsoid of the source CRS is assumed. Note that the
+source and destination CRS can both of same or different nature (geographic,
+projected, compound CRS), or one of each and may have the same or different datums.
+.sp
+When using a WKT definition or a AUTHORITY:CODE, the axis order of the CRS will
+be enforced. So for example if using EPSG:4326, the first value expected (or
+returned) will be a latitude.
+.sp
+Internally, \fBcs2cs\fP uses the \fI\%proj_create_crs_to_crs()\fP function
+to compute the appropriate coordinate operation, so implementation details of
+this function directly impact the results returned by the program.
+.sp
+The environment parameter \fI\%PROJ_DATA\fP establishes the
+directory for resource files (database, datum shift grids, etc.)
+.sp
+One or more files (processed in left to right order) specify the source of
+data to be transformed. A \fB\-\fP will specify the location of processing standard
+input. If no files are specified, the input is assumed to be from stdin.
+For input data the two data values must be in the first two white space
+separated fields and when both input and output are ASCII all trailing portions
+of the input line are appended to the output line.
+.sp
+Input geographic data (longitude and latitude) must be in DMS or decimal
+degrees format and input cartesian data must be in units consistent with the
+ellipsoid major axis or sphere radius units. Output geographic coordinates will
+normally be in DMS format (use \fB\-f %.12f\fP for decimal degrees with 12 decimal
+places), while projected (cartesian) coordinates will be in linear
+(meter, feet) units.
+.SS Use of remote grids
+.sp
+New in version 7.0.0.
+
+.sp
+If the \fI\%PROJ_NETWORK\fP environment variable is set to \fBON\fP,
+\fBcs2cs\fP will attempt to use remote grids stored on CDN (Content
+Delivery Network) storage, when they are not available locally.
+.sp
+More details are available in the \fI\%Network capabilities\fP section.
+.SH EXAMPLES
+.SS Using PROJ strings
+.sp
+The following script
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+cs2cs +proj=latlong +datum=NAD83 +to +proj=utm +zone=10 +datum=NAD27 \-r <<EOF
+45°15\(aq33.1\(dq 111.5W
+45d15.551666667N \-111d30
++45.25919444444 111d30\(aq000w
+EOF
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+will transform the input NAD83 geographic coordinates into NAD27 coordinates in
+the UTM projection with zone 10 selected. The geographic values of this
+example are equivalent and meant as examples of various forms of DMS input.
+The x\-y output data will appear as three lines of:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+1402293.44  5076292.68 0.00
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Using EPSG CRS codes
+.sp
+Transforming from WGS 84 latitude/longitude (in that order) to UTM Zone 31N/WGS 84
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+cs2cs EPSG:4326 EPSG:32631 <<EOF
+45N 2E
+EOF
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+outputs
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+421184.70   4983436.77 0.00
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Using EPSG CRS names
+.sp
+Transforming from WGS 84 latitude/longitude (in that order) with EGM96 height to
+UTM Zone 31N/WGS 84 with WGS84 ellipsoidal height
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+echo 45 2 0 | cs2cs \(dqWGS 84 + EGM96 height\(dq \(dqWGS 84 / UTM zone 31N\(dq
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+outputs
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+421184.70   4983436.77 50.69
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fBproj(1)\fP, \fBcct(1)\fP, \fBgeod(1)\fP, \fBgie(1)\fP, \fBprojinfo(1)\fP, \fBprojsync(1)\fP
+.SH BUGS
+.sp
+A list of known bugs can be found at \fI\%https://github.com/OSGeo/PROJ/issues\fP
+where new bug reports can be submitted to.
+.SH HOME PAGE
+.sp
+\fI\%https://proj.org/\fP
+.SH AUTHOR
+Frank Warmerdam
+.SH COPYRIGHT
+1983-2022
+.\" Generated by docutils manpage writer.
+.
