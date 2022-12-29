@@ -203,6 +203,7 @@ CoordinateOperation::sourceCoordinateEpoch() const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     return *(d->sourceCoordinateEpoch_);
 =======
     return d->sourceCoordinateEpoch_;
@@ -219,7 +220,16 @@ CoordinateOperation::sourceCoordinateEpoch() const {
 =======
     return *(d->sourceCoordinateEpoch_);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+    return *(d->sourceCoordinateEpoch_);
+=======
+    return d->sourceCoordinateEpoch_;
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -233,6 +243,7 @@ CoordinateOperation::targetCoordinateEpoch() const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     return *(d->targetCoordinateEpoch_);
 =======
     return d->targetCoordinateEpoch_;
@@ -249,7 +260,16 @@ CoordinateOperation::targetCoordinateEpoch() const {
 =======
     return *(d->targetCoordinateEpoch_);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+    return *(d->targetCoordinateEpoch_);
+=======
+    return d->targetCoordinateEpoch_;
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -301,8 +321,11 @@ void CoordinateOperation::setCRSs(const CoordinateOperation *in,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 void CoordinateOperation::setSourceCoordinateEpoch(
     const util::optional<common::DataEpoch> &epoch) {
     d->sourceCoordinateEpoch_ =
@@ -320,6 +343,7 @@ void CoordinateOperation::setTargetCoordinateEpoch(
 // ---------------------------------------------------------------------------
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -332,7 +356,14 @@ void CoordinateOperation::setTargetCoordinateEpoch(
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 void CoordinateOperation::setAccuracies(
     const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies) {
     d->coordinateOperationAccuracies_ = accuracies;
@@ -1966,6 +1997,7 @@ bool Transformation::isGeographic3DToGravityRelatedHeight(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "1118", // Geog3D to Geog2D+GravityRelatedHeight (ISG)
 =======
 <<<<<<< HEAD
@@ -1980,7 +2012,15 @@ bool Transformation::isGeographic3DToGravityRelatedHeight(
 =======
         "1118", // Geog3D to Geog2D+GravityRelatedHeight (ISG)
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+        "1118", // Geog3D to Geog2D+GravityRelatedHeight (ISG)
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
         "9661", // Geographic3D to GravityRelatedHeight (EGM)
         "9662", // Geographic3D to GravityRelatedHeight (Ausgeoid98)
         "9663", // Geographic3D to GravityRelatedHeight (OSGM-GB)
