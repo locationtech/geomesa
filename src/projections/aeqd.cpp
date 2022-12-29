@@ -96,16 +96,27 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
     struct pj_opaque *Q = static_cast<struct pj_opaque*>(P->opaque);
     double  coslam, cosphi, sinphi, rho;
     double azi1, azi2, s12;
+<<<<<<< HEAD
     double lat1, lon1, lat2, lon2;
 
     coslam = cos(lp.lam);
+=======
+    double lam1, phi1, lam2, phi2;
+
+    coslam = cos(lp.lam);
+    cosphi = cos(lp.phi);
+    sinphi = sin(lp.phi);
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
     switch (Q->mode) {
     case N_POLE:
         coslam = - coslam;
         PROJ_FALLTHROUGH;
     case S_POLE:
+<<<<<<< HEAD
         cosphi = cos(lp.phi);
         sinphi = sin(lp.phi);
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
         rho = fabs(Q->Mp - pj_mlfn(lp.phi, sinphi, cosphi, Q->en));
         xy.x = rho * sin(lp.lam);
         xy.y = rho * coslam;
@@ -117,6 +128,7 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
             break;
         }
 
+<<<<<<< HEAD
         lat1 = P->phi0 / DEG_TO_RAD;
         lon1 = 0;
         lat2 = lp.phi / DEG_TO_RAD;
@@ -126,6 +138,17 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
         azi1 *= DEG_TO_RAD;
         xy.x = s12 * sin(azi1);
         xy.y = s12 * cos(azi1);
+=======
+        phi1 = P->phi0 / DEG_TO_RAD;
+        lam1 = P->lam0 / DEG_TO_RAD;
+        phi2 = lp.phi / DEG_TO_RAD;
+        lam2 = (lp.lam+P->lam0) / DEG_TO_RAD;
+
+        geod_inverse(&Q->g, phi1, lam1, phi2, lam2, &s12, &azi1, &azi2);
+        azi1 *= DEG_TO_RAD;
+        xy.x = s12 * sin(azi1) / P->a;
+        xy.y = s12 * cos(azi1) / P->a;
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
         break;
     }
     return xy;
@@ -135,6 +158,7 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward */
     PJ_XY xy = {0.0,0.0};
     struct pj_opaque *Q = static_cast<struct pj_opaque*>(P->opaque);
+<<<<<<< HEAD
 
     if (Q->mode == EQUIT)
     {
@@ -147,12 +171,28 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 
         if (fabs(fabs(xy.y) - 1.) < TOL)
         {
+=======
+    double  coslam, cosphi, sinphi;
+
+    sinphi = sin(lp.phi);
+    cosphi = cos(lp.phi);
+    coslam = cos(lp.lam);
+    switch (Q->mode) {
+    case EQUIT:
+        xy.y = cosphi * coslam;
+        goto oblcon;
+    case OBLIQ:
+        xy.y = Q->sinph0 * sinphi + Q->cosph0 * cosphi * coslam;
+oblcon:
+        if (fabs(fabs(xy.y) - 1.) < TOL)
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
             if (xy.y < 0.) {
                 proj_errno_set(P, PROJ_ERR_COORD_TRANSFM_OUTSIDE_PROJECTION_DOMAIN);
                 return xy;
             }
             else
                 return aeqd_e_forward(lp, P);
+<<<<<<< HEAD
         }
         else
         {
@@ -198,13 +238,34 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
             lp.phi = -lp.phi;
             coslam = -coslam;
         }
+=======
+        else {
+            xy.y = acos(xy.y);
+            xy.y /= sin(xy.y);
+            xy.x = xy.y * cosphi * sin(lp.lam);
+            xy.y *= (Q->mode == EQUIT) ? sinphi :
+                Q->cosph0 * sinphi - Q->sinph0 * cosphi * coslam;
+        }
+        break;
+    case N_POLE:
+        lp.phi = -lp.phi;
+        coslam = -coslam;
+        PROJ_FALLTHROUGH;
+    case S_POLE:
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
         if (fabs(lp.phi - M_HALFPI) < EPS10) {
             proj_errno_set(P, PROJ_ERR_COORD_TRANSFM_OUTSIDE_PROJECTION_DOMAIN);
             return xy;
         }
         xy.y = (M_HALFPI + lp.phi);
+<<<<<<< HEAD
         xy.x = xy.y * sinlam;
         xy.y *= coslam;
+=======
+        xy.x = xy.y * sin(lp.lam);
+        xy.y *= coslam;
+        break;
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
     }
     return xy;
 }
@@ -231,14 +292,22 @@ static PJ_LP e_guam_inv(PJ_XY xy, PJ *P) { /* Guam elliptical */
 static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse */
     PJ_LP lp = {0.0,0.0};
     struct pj_opaque *Q = static_cast<struct pj_opaque*>(P->opaque);
+<<<<<<< HEAD
     double azi1, azi2, s12, lat1, lon1, lat2, lon2;
 
     if ((s12 = hypot(xy.x, xy.y)) < EPS10) {
+=======
+    double c;
+    double azi1, azi2, s12, x2, y2, lat1, lon1, lat2, lon2;
+
+    if ((c = hypot(xy.x, xy.y)) < EPS10) {
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
         lp.phi = P->phi0;
         lp.lam = 0.;
         return (lp);
     }
     if (Q->mode == OBLIQ || Q->mode == EQUIT) {
+<<<<<<< HEAD
         lat1 = P->phi0 / DEG_TO_RAD;
         lon1 = 0;
         azi1 = atan2(xy.x, xy.y) / DEG_TO_RAD; // Clockwise from north
@@ -248,6 +317,21 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
     } else { /* Polar */
         lp.phi = pj_inv_mlfn(Q->mode == N_POLE ? Q->Mp - s12 : Q->Mp + s12,
                              Q->en);
+=======
+
+        x2 = xy.x * P->a;
+        y2 = xy.y * P->a;
+        lat1 = P->phi0 / DEG_TO_RAD;
+        lon1 = P->lam0 / DEG_TO_RAD;
+        azi1 = atan2(x2, y2) / DEG_TO_RAD;
+        s12 = sqrt(x2 * x2 + y2 * y2);
+        geod_direct(&Q->g, lat1, lon1, azi1, s12, &lat2, &lon2, &azi2);
+        lp.phi = lat2 * DEG_TO_RAD;
+        lp.lam = lon2 * DEG_TO_RAD;
+        lp.lam -= P->lam0;
+    } else { /* Polar */
+        lp.phi = pj_inv_mlfn(Q->mode == N_POLE ? Q->Mp - c : Q->Mp + c, Q->en);
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
         lp.lam = atan2(xy.x, Q->mode == N_POLE ? -xy.y : xy.y);
     }
     return lp;
@@ -303,7 +387,11 @@ PJ *PROJECTION(aeqd) {
     P->opaque = Q;
     P->destructor = destructor;
 
+<<<<<<< HEAD
     geod_init(&Q->g, 1, P->f);
+=======
+    geod_init(&Q->g, P->a, P->es / (1 + sqrt(P->one_es)));
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 
     if (fabs(fabs(P->phi0) - M_HALFPI) < EPS10) {
         Q->mode = P->phi0 < 0. ? S_POLE : N_POLE;
