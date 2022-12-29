@@ -586,6 +586,7 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
         P->f  = 1 - cos (P->alpha);   /* = 1 - sqrt (1 - PIN->es); */
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (!(P->f >= 0.0 && P->f < 1.0)) {
 =======
     if (P->f == 1.0) {
@@ -593,6 +594,9 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
 =======
     if (!(P->f >= 0.0 && P->f < 1.0)) {
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    if (P->f == 1.0) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         proj_log_error(P, _("Invalid eccentricity"));
         proj_errno_set (P, PROJ_ERR_INVALID_OP_ILLEGAL_ARG_VALUE);
         return PROJ_ERR_INVALID_OP_ILLEGAL_ARG_VALUE;
