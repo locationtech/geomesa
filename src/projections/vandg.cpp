@@ -120,6 +120,7 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -195,6 +196,9 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
             // This code path is triggered for coordinates generated in the forward path when |lon|>180deg and +over
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            // This code path is triggered for coordinates generated in the forward path when |lon|>180deg and +over
+>>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
             d = M_TWOPI - d;
         }
         // (29-18) but change pi/3 to 4*pi/3 to flip sign of cos
