@@ -2653,6 +2653,7 @@ TEST(crs, projectedCRS_identify_db) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -2678,6 +2679,8 @@ TEST(crs, projectedCRS_identify_db) {
 =======
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -2689,6 +2692,7 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2731,11 +2735,16 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 7a0a2d29d7 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
         EXPECT_EQ(res.size(), 1U);
         EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
         EXPECT_EQ(res.front().second, 70);
 =======
         EXPECT_EQ(res.size(), 0U);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2752,6 +2761,8 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 491ae81179 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
         EXPECT_EQ(res.size(), 1U);
@@ -2849,6 +2860,7 @@ TEST(crs, projectedCRS_identify_db) {
         EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
         EXPECT_EQ(res.front().second, 70);
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3001,6 +3013,11 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
     }
     {
         // Existing code, but not matching content
@@ -3051,6 +3068,7 @@ TEST(crs, projectedCRS_identify_db) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -3076,6 +3094,8 @@ TEST(crs, projectedCRS_identify_db) {
 =======
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -3087,6 +3107,7 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3129,11 +3150,16 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 7a0a2d29d7 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
         EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
         EXPECT_EQ(res.front().second, 70);
 =======
         EXPECT_EQ(res.front().first->getEPSGCode(), 32631);
         EXPECT_EQ(res.front().second, 25);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3150,6 +3176,8 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 491ae81179 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
         EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
@@ -3263,6 +3291,7 @@ TEST(crs, projectedCRS_identify_db) {
         EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
         EXPECT_EQ(res.front().second, 70);
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3404,6 +3433,11 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
     }
     {
         // Identify by exact name
@@ -4058,6 +4092,7 @@ TEST(crs, projectedCRS_identify_db) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4094,6 +4129,8 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -4132,6 +4169,7 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4181,6 +4219,10 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> f36c8520e2 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
     {
         // Identify from a pseudo WKT ESRI with has an AUTHORITY node that
         // points to another object.
@@ -4230,6 +4272,7 @@ TEST(crs, projectedCRS_identify_db) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -4256,6 +4299,8 @@ TEST(crs, projectedCRS_identify_db) {
 >>>>>>> f36c8520e2 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4345,6 +4390,7 @@ TEST(crs, projectedCRS_identify_db) {
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -4491,6 +4537,8 @@ TEST(crs, projectedCRS_identify_db) {
 =======
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
