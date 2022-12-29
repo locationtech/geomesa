@@ -173,10 +173,17 @@ struct CoordinateSystemAxis::Private {
     std::string abbreviation{};
     const AxisDirection *direction = &(AxisDirection::UNSPECIFIED);
     common::UnitOfMeasure unit{};
+<<<<<<< HEAD
     util::optional<RangeMeaning> rangeMeaning = util::optional<RangeMeaning>();
     util::optional<double> minimumValue{};
     util::optional<double> maximumValue{};
     MeridianPtr meridian{};
+=======
+    util::optional<double> minimumValue{};
+    util::optional<double> maximumValue{};
+    MeridianPtr meridian{};
+    // TODO rangeMeaning
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 //! @endcond
 
@@ -273,6 +280,7 @@ CoordinateSystemAxis::maximumValue() PROJ_PURE_DEFN {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Return the range meaning
  *
  * @return the range meaning, or empty.
@@ -285,6 +293,8 @@ CoordinateSystemAxis::rangeMeaning() PROJ_PURE_DEFN {
 
 // ---------------------------------------------------------------------------
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 /** \brief Return the meridian that the axis follows from the pole, for a
  * coordinate
  * reference system centered on a pole.
@@ -324,6 +334,7 @@ CoordinateSystemAxisNNPtr CoordinateSystemAxis::create(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 /** \brief Instantiate a CoordinateSystemAxis.
  *
  * @param properties See \ref general_properties. The name should generally be
@@ -361,6 +372,8 @@ CoordinateSystemAxisNNPtr CoordinateSystemAxis::create(
 
 // ---------------------------------------------------------------------------
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 //! @cond Doxygen_Suppress
 void CoordinateSystemAxis::_exportToWKT(
     // cppcheck-suppress passedByValue
@@ -462,6 +475,7 @@ void CoordinateSystemAxis::_exportToWKT(io::WKTFormatter *formatter, int order,
         unit().type() != common::UnitOfMeasure::Type::NONE) {
         unit()._exportToWKT(formatter);
     }
+<<<<<<< HEAD
     if (isWKT2 && formatter->use2019Keywords()) {
         if (d->minimumValue.has_value()) {
             formatter->startNode(io::WKTConstants::AXISMINVALUE, false);
@@ -480,6 +494,8 @@ void CoordinateSystemAxis::_exportToWKT(io::WKTFormatter *formatter, int order,
             formatter->endNode();
         }
     }
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     if (formatter->outputId()) {
         formatID(formatter);
     }
@@ -523,6 +539,7 @@ void CoordinateSystemAxis::_exportToJSON(
         l_unit._exportToJSON(formatter);
     }
 
+<<<<<<< HEAD
     if (d->minimumValue.has_value()) {
         writer->AddObjKey("minimum_value");
         writer->Add(*(d->minimumValue));
@@ -539,6 +556,8 @@ void CoordinateSystemAxis::_exportToJSON(
         writer->Add(d->rangeMeaning->toString());
     }
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     if (formatter->outputId()) {
         formatID(formatter);
     }
@@ -1356,9 +1375,14 @@ ParametricCS::create(const util::PropertyMap &properties,
 // ---------------------------------------------------------------------------
 
 AxisDirection::AxisDirection(const std::string &nameIn) : CodeList(nameIn) {
+<<<<<<< HEAD
     auto lowerName = tolower(nameIn);
     assert(registry.find(lowerName) == registry.end());
     registry[lowerName] = this;
+=======
+    assert(registry.find(nameIn) == registry.end());
+    registry[nameIn] = this;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -1366,6 +1390,7 @@ AxisDirection::AxisDirection(const std::string &nameIn) : CodeList(nameIn) {
 //! @cond Doxygen_Suppress
 const AxisDirection *
 AxisDirection::valueOf(const std::string &nameIn) noexcept {
+<<<<<<< HEAD
     auto iter = registry.find(tolower(nameIn));
     if (iter == registry.end())
         return nullptr;
@@ -1390,6 +1415,9 @@ RangeMeaning::RangeMeaning() : CodeList(std::string()) {}
 //! @cond Doxygen_Suppress
 const RangeMeaning *RangeMeaning::valueOf(const std::string &nameIn) noexcept {
     auto iter = registry.find(tolower(nameIn));
+=======
+    auto iter = registry.find(nameIn);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     if (iter == registry.end())
         return nullptr;
     return iter->second;
@@ -1401,15 +1429,24 @@ const RangeMeaning *RangeMeaning::valueOf(const std::string &nameIn) noexcept {
 
 AxisDirectionWKT1::AxisDirectionWKT1(const std::string &nameIn)
     : CodeList(nameIn) {
+<<<<<<< HEAD
     auto lowerName = tolower(nameIn);
     assert(registry.find(lowerName) == registry.end());
     registry[lowerName] = this;
+=======
+    assert(registry.find(nameIn) == registry.end());
+    registry[nameIn] = this;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
 
 const AxisDirectionWKT1 *AxisDirectionWKT1::valueOf(const std::string &nameIn) {
+<<<<<<< HEAD
     auto iter = registry.find(tolower(nameIn));
+=======
+    auto iter = registry.find(nameIn);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     if (iter == registry.end())
         return nullptr;
     return iter->second;
