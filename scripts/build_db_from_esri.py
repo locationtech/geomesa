@@ -573,12 +573,15 @@ def import_geogcs():
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -669,6 +672,7 @@ def import_geogcs():
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -719,6 +723,10 @@ def import_geogcs():
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
             if authority == 'EPSG':
 
                 map_geogcs_esri_name_to_auth_code[esri_name] = [
@@ -1441,12 +1449,15 @@ def import_projcs():
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -1537,6 +1548,7 @@ def import_projcs():
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1587,6 +1599,10 @@ def import_projcs():
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
             if authority == 'EPSG':
 
                 map_projcs_esri_name_to_auth_code[esri_name] = [
@@ -1945,12 +1961,15 @@ def import_vertcs():
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -2041,6 +2060,7 @@ def import_vertcs():
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2091,6 +2111,10 @@ def import_vertcs():
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
             if authority == 'EPSG':
 
                 map_vertcs_esri_name_to_auth_code[esri_name] = [
@@ -2202,8 +2226,11 @@ def import_vertcs():
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2307,13 +2334,17 @@ def import_vertcs():
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
                 assert parsed_wkt2['VERTCRS'][1]['AXIS'][:2] == ['Gravity-related height (H)', 'up'], 'Unhandled vertcrs AXIS: {}'.format(parsed_wkt2['VERTCRS'][1]['AXIS'])
 
                 vertical_unit = parsed_wkt2['VERTCRS'][1]['AXIS'][2]['UNIT_NAME']
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
                 assert parsed_wkt2['VERTCRS'][1]['AXIS'][:2] == ['Gravity-related height (H)', 'up'], 'Unhandled vertcrs AXIS: {}'.format(parsed_wkt2['VERTCRS'][1]['AXIS'])
@@ -2363,6 +2394,8 @@ def import_vertcs():
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
                 cs_auth = 'EPSG'
                 if vertical_unit == 'Meter':
                     cs_code = 6499
@@ -2391,6 +2424,7 @@ def import_vertcs():
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2401,6 +2435,8 @@ def import_vertcs():
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
                 if is_ellipsoidal_height or not is_vdatum:
 =======
                 if not is_vdatum:
@@ -2435,6 +2471,7 @@ def import_vertcs():
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2504,6 +2541,11 @@ def import_vertcs():
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+                if not is_vdatum:
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
                     assert cs_code == 6499
                     cs_auth = 'ESRI'
                     cs_code = 'ELLPS_HEIGHT_METRE'
