@@ -13,6 +13,7 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -31,6 +32,8 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
 computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
@@ -38,6 +41,7 @@ stream processing of spatio-temporal data by layering spatial semantics on top o
 GeoMesa facilitates integration with a wide range of existing mapping clients over standard OGC (Open Geospatial
 Consortium) APIs and protocols such as WFS and WMS. GeoMesa supports Apache Spark for custom distributed
 geospatial analytics.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -66,12 +70,16 @@ geospatial analytics.
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 * Help PROJ-users that is less experienced than yourself.
 * Write a bug report
 * Request a new feature
 * Write documentation for your favorite map projection
 * Fix a bug
 * Implement a new feature
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -110,6 +118,9 @@ geospatial analytics.
 =======
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 73e3ca4b45 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
 In the following sections you can find some guidelines on how to contribute.
 As PROJ is managed on GitHub most contributions require that you have a GitHub
