@@ -93,8 +93,12 @@ class PROJ_GCC_DLL VerticalShiftGrid : public Grid {
                                     int heightIn, const ExtentAndRes &extentIn);
     PROJ_FOR_TEST ~VerticalShiftGrid() override;
 
+<<<<<<< HEAD
     PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double longitude,
                                                   double lat) const;
+=======
+    PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double lon, double lat) const;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     PROJ_FOR_TEST virtual bool isNodata(float /*val*/,
                                         double /* multiplier */) const = 0;
@@ -127,8 +131,12 @@ class PROJ_GCC_DLL VerticalShiftGridSet {
     grids() const {
         return m_grids;
     }
+<<<<<<< HEAD
     PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double longitude,
                                                   double lat) const;
+=======
+    PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double lon, double lat) const;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     PROJ_FOR_TEST virtual void reassign_context(PJ_CONTEXT *ctx);
     PROJ_FOR_TEST virtual bool reopen(PJ_CONTEXT *ctx);
@@ -146,13 +154,21 @@ class PROJ_GCC_DLL HorizontalShiftGrid : public Grid {
                                       const ExtentAndRes &extentIn);
     PROJ_FOR_TEST ~HorizontalShiftGrid() override;
 
+<<<<<<< HEAD
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double longitude,
+=======
+    PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double lon,
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                                                     double lat) const;
 
     // x = 0 is western-most column, y = 0 is southern-most line
     PROJ_FOR_TEST virtual bool valueAt(int x, int y,
                                        bool compensateNTConvention,
+<<<<<<< HEAD
                                        float &longShift,
+=======
+                                       float &lonShift,
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                                        float &latShift) const = 0;
 
     PROJ_FOR_TEST virtual void reassign_context(PJ_CONTEXT *ctx) = 0;
@@ -180,7 +196,11 @@ class PROJ_GCC_DLL HorizontalShiftGridSet {
     grids() const {
         return m_grids;
     }
+<<<<<<< HEAD
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double longitude,
+=======
+    PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double lon,
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                                                     double lat) const;
 
     PROJ_FOR_TEST virtual void reassign_context(PJ_CONTEXT *ctx);
