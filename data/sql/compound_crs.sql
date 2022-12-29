@@ -811,8 +811,11 @@ INSERT INTO "usage" VALUES('EPSG','18606','compound_crs','EPSG','10174','EPSG','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -895,6 +898,7 @@ INSERT INTO "usage" VALUES('EPSG','19185','compound_crs','EPSG','10281','EPSG','
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -919,6 +923,10 @@ INSERT INTO "usage" VALUES('EPSG','19185','compound_crs','EPSG','10281','EPSG','
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "compound_crs" VALUES('EPSG','20001','ETRS89 + SVD2006 height',NULL,'EPSG','4258','EPSG','20000',0);
 INSERT INTO "usage" VALUES('EPSG','17956','compound_crs','EPSG','20001','EPSG','4058','EPSG','1026');
 INSERT INTO "compound_crs" VALUES('EPSG','20003','MWC18 Grid + ODN height',NULL,'EPSG','20002','EPSG','5701',0);
