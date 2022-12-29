@@ -101,10 +101,18 @@ double proj_strtod(const char *str, char **endptr) {
     int fraction_is_nonzero = 0;
     int sign = 0;
 <<<<<<< HEAD
+<<<<<<< HEAD
     const char *p = str;
 =======
     char *p = (char *) str;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+    char *p = (char *) str;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
     int n = 0;
     int num_digits_total        = 0;
     int num_digits_after_comma  = 0;
@@ -114,10 +122,18 @@ double proj_strtod(const char *str, char **endptr) {
         errno = EFAULT;
         if (endptr)
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = nullptr;
 =======
             *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+            *endptr = p;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         return HUGE_VAL;
     }
 
@@ -129,10 +145,18 @@ double proj_strtod(const char *str, char **endptr) {
     if (0==*p) {
         if (endptr)
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = const_cast<char*>(str);
 =======
             *endptr = (char *) str;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+            *endptr = (char *) str;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         return 0;
     }
 
@@ -140,10 +164,18 @@ double proj_strtod(const char *str, char **endptr) {
     if (nullptr==strchr("0123456789+-._", *p)) {
         if (endptr)
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = const_cast<char*>(str);
 =======
             *endptr = (char *) str;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+            *endptr = (char *) str;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         return 0;
     }
 
@@ -162,10 +194,18 @@ double proj_strtod(const char *str, char **endptr) {
                 break;
             if (endptr)
 <<<<<<< HEAD
+<<<<<<< HEAD
                 *endptr = const_cast<char*>(str);
 =======
                 *endptr = (char *) str;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+                *endptr = (char *) str;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
             return 0;
     }
 
@@ -173,10 +213,18 @@ double proj_strtod(const char *str, char **endptr) {
     if (0!=sign && (nullptr==strchr ("0123456789._", *p) || 0==*p)) {
         if (endptr)
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = const_cast<char*>(str);
 =======
             *endptr = (char *) str;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+            *endptr = (char *) str;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         return 0;
     }
 
@@ -188,10 +236,18 @@ double proj_strtod(const char *str, char **endptr) {
     if ((0==*p) || nullptr==strchr ("0123456789eE.", *p) || isspace(*p)) {
         if (endptr)
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = const_cast<char*>(p);
 =======
             *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+            *endptr = p;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         return sign==-1? -0: 0;
     }
 
@@ -211,10 +267,18 @@ double proj_strtod(const char *str, char **endptr) {
     if (0==*p) {
         if (endptr)
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = const_cast<char*>(p);
 =======
             *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+            *endptr = p;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         if (sign==-1)
             return -number;
         return number;
@@ -237,10 +301,18 @@ double proj_strtod(const char *str, char **endptr) {
         if (0==*p || nullptr==strchr ("_0123456789eE+-", *p)) {
             if (endptr)
 <<<<<<< HEAD
+<<<<<<< HEAD
                 *endptr = const_cast<char*>(p);
 =======
                 *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+                *endptr = p;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
             if (sign==-1)
                 return -number;
             return number;
@@ -274,10 +346,18 @@ double proj_strtod(const char *str, char **endptr) {
         errno = EINVAL;
         if (endptr)
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = const_cast<char*>(p);
 =======
             *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+            *endptr = p;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         return HUGE_VAL;
     }
 
@@ -306,10 +386,18 @@ double proj_strtod(const char *str, char **endptr) {
             if (!(isdigit(*p) || *p=='_')) {
                 if (endptr)
 <<<<<<< HEAD
+<<<<<<< HEAD
                     *endptr = const_cast<char*>(p);
 =======
                     *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+                    *endptr = p;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
                 return HUGE_VAL;
             }
         }
@@ -336,10 +424,18 @@ double proj_strtod(const char *str, char **endptr) {
 
     if (endptr)
 <<<<<<< HEAD
+<<<<<<< HEAD
         *endptr = const_cast<char*>(p);
 =======
         *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+        *endptr = p;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
     if ((exponent < DBL_MIN_EXP) || (exponent > DBL_MAX_EXP)) {
         errno = ERANGE;
