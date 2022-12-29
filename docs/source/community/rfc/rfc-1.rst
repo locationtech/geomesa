@@ -42,6 +42,7 @@ List of PSC Members
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 (up-to-date as of 2023-01)
 =======
 (up-to-date as of 2018-06)
@@ -71,6 +72,9 @@ List of PSC Members
 =======
 (up-to-date as of 2018-06)
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+(up-to-date as of 2018-06)
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
 * Kristian Evers `@kbevers <https://github.com/kbevers>`_ (DK) **Chair**
 * Howard Butler `@hobu <https://github.com/hobu>`_ (USA)
@@ -83,6 +87,7 @@ List of PSC Members
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 * Alan Snow `@snowman2 <https://github.com/snowman2>`_ (USA)
 =======
 <<<<<<< HEAD
@@ -108,6 +113,8 @@ List of PSC Members
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 * Frank Warmerdam `@warmerdam <https://github.com/warmerdam>`_ (USA) **Emeritus**
 
 Detailed Process
