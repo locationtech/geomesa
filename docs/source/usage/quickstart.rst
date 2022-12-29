@@ -65,6 +65,7 @@ type the input data manually and getting a response presented on screen.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -97,6 +98,8 @@ type the input data manually and getting a response presented on screen.
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 664f11a970 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 pipe data to the utility, for instance by using the ``echo`` command:
 =======
 pipe data to the utility, for instance by using the :program:`echo` command:
@@ -129,6 +132,7 @@ pipe data to the utility, for instance by using the ``echo`` command:
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -145,6 +149,8 @@ pipe data to the utility, for instance by using the ``echo`` command:
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 664f11a970 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 pipe data to the utility, for instance by using the ``echo`` command:
 =======
 pipe data to the utility, for instance by using the :program:`echo` command:
@@ -166,6 +172,7 @@ pipe data to the utility, for instance by using the :program:`echo` command:
 =======
 pipe data to the utility, for instance by using the ``echo`` command:
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -326,9 +333,22 @@ pipe data to the utility, for instance by using the :program:`echo` command:
 =======
 pipe data to the utility, for instance by using the ``echo`` command:
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 664f11a970 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+=======
+=======
+pipe data to the utility, for instance by using the :program:`echo` command:
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 
 ::
 

@@ -134,6 +134,7 @@ Its default content is:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -146,6 +147,8 @@ Its default content is:
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 .. literalinclude:: ../../data/proj.ini
 =======
 =======
@@ -153,12 +156,16 @@ Its default content is:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 .. literalinclude:: ../../data/proj.ini
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -185,6 +192,8 @@ Its default content is:
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 ::
 
     [general]
@@ -227,14 +236,18 @@ Its default content is:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -246,6 +259,8 @@ Its default content is:
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
@@ -268,14 +283,18 @@ Its default content is:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -314,6 +333,8 @@ Its default content is:
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 
 
 Transformation grids
@@ -519,6 +540,7 @@ To compile the program do something like the following to produce the binary
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -551,6 +573,8 @@ To compile the program do something like the following to produce the binary
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 664f11a970 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 ``htdp`` from the source code.
 =======
 :program:`htdp` from the source code.
@@ -583,6 +607,7 @@ To compile the program do something like the following to produce the binary
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -599,6 +624,8 @@ To compile the program do something like the following to produce the binary
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 664f11a970 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 ``htdp`` from the source code.
 =======
 :program:`htdp` from the source code.
@@ -620,6 +647,7 @@ To compile the program do something like the following to produce the binary
 =======
 ``htdp`` from the source code.
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -780,9 +808,22 @@ To compile the program do something like the following to produce the binary
 =======
 ``htdp`` from the source code.
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 664f11a970 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+=======
+=======
+:program:`htdp` from the source code.
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 
 ::
 
@@ -858,6 +899,7 @@ continental US region is used.  The script creates a set of sample points for
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -871,9 +913,12 @@ continental US region is used.  The script creates a set of sample points for
 =======
 >>>>>>> 664f11a970 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -916,6 +961,10 @@ continental US region is used.  The script creates a set of sample points for
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 664f11a970 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 the grid definition, runs ``htdp`` against it and then parses the
 resulting points and computes a point by point shift to encode into the final
 grid shift file.  By default it is assumed that ``htdp`` is in the
@@ -1016,6 +1065,7 @@ The :program:`htdp` program supports transformations between many CRSes and for 
 =======
 The ``htdp`` program supports transformations between many CRSes and for each (or
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1304,9 +1354,28 @@ The :program:`htdp` program supports transformations between many CRSes and for 
 =======
 The ``htdp`` program supports transformations between many CRSes and for each (or
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 664f11a970 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+=======
+=======
+the grid definition, runs :program:`htdp` against it and then parses the
+resulting points and computes a point by point shift to encode into the final
+grid shift file.  By default it is assumed that :program:`htdp` is in the
+executable path.  If not, please provide the path to the executable using the
+``-htdp`` switch.
+
+The :program:`htdp` program supports transformations between many CRSes and for each (or
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 most?) of them you need to provide a date at which the CRS is fixed.  The full
 set of CRS Ids available in the HTDP program are:
 
