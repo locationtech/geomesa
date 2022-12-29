@@ -290,10 +290,14 @@ int main(int argc, char *argv[]) {
 
     if (listFiles) {
 <<<<<<< HEAD
+<<<<<<< HEAD
         std::cout << "filename,area_of_use,source_id,file_size" << std::endl;
 =======
         std::cout << "filename,source_id,area_of_use,file_size" << std::endl;
 >>>>>>> locationtech-main
+=======
+        std::cout << "filename,source_id,area_of_use,file_size" << std::endl;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     }
 
     std::string proj_data_version_str;
@@ -367,10 +371,14 @@ int main(int argc, char *argv[]) {
                                              "with PROJ-data "
                                           << version_added
 <<<<<<< HEAD
+<<<<<<< HEAD
                                           << " and we are targeting "
 =======
                                           << " and we are targetting "
 >>>>>>> locationtech-main
+=======
+                                          << " and we are targetting "
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;
@@ -399,10 +407,14 @@ int main(int argc, char *argv[]) {
                                              "starting with PROJ-data "
                                           << version_removed
 <<<<<<< HEAD
+<<<<<<< HEAD
                                           << " and we are targeting "
 =======
                                           << " and we are targetting "
 >>>>>>> locationtech-main
+=======
+                                          << " and we are targetting "
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;

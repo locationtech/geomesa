@@ -934,6 +934,7 @@ $EXE EPSG:32631 EPSG:4326 -E >> ${OUT} <<EOF
 EOF
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 echo  "##############################################################" >> ${OUT}
 echo  "Check we allow ellipsoids up to a 0.59% relative difference in size" >> ${OUT}
 
@@ -942,6 +943,8 @@ $EXE +proj=longlat +R=3376200 +to IAU_2015:49935 -E >> ${OUT} <<EOF
 EOF
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 echo  "##############################################################" >> ${OUT}
 echo  "Test EPSG:4896 to EPSG:7930" >> ${OUT}
@@ -1092,6 +1095,7 @@ PROJ_DISPLAY_PROGRAM_NAME=NO $EXE -W10 +proj=latlong +datum=WGS84 +to +proj=latl
 EOF
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 echo "##############################################################" >> ${OUT}
 echo "Test cs2cs --only-best (working)" >> ${OUT}
 #
@@ -1162,6 +1166,8 @@ EOF
 
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 # Done!
 # do 'diff' with distribution results

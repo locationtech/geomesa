@@ -228,9 +228,12 @@ DEFINE_WKT_CONSTANT(MERIDIAN);
 DEFINE_WKT_CONSTANT(ORDER);
 DEFINE_WKT_CONSTANT(ANCHOR);
 <<<<<<< HEAD
+<<<<<<< HEAD
 DEFINE_WKT_CONSTANT(ANCHOREPOCH);
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 DEFINE_WKT_CONSTANT(CONVERSION);
 DEFINE_WKT_CONSTANT(METHOD);
 DEFINE_WKT_CONSTANT(REMARK);
@@ -283,6 +286,7 @@ DEFINE_WKT_CONSTANT(BASETIMECRS);
 DEFINE_WKT_CONSTANT(VERSION);
 DEFINE_WKT_CONSTANT(GEOIDMODEL);
 <<<<<<< HEAD
+<<<<<<< HEAD
 DEFINE_WKT_CONSTANT(COORDINATEMETADATA);
 DEFINE_WKT_CONSTANT(EPOCH);
 DEFINE_WKT_CONSTANT(AXISMINVALUE);
@@ -290,6 +294,8 @@ DEFINE_WKT_CONSTANT(AXISMAXVALUE);
 DEFINE_WKT_CONSTANT(RANGEMEANING);
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 DEFINE_WKT_CONSTANT(GEODETICCRS);
 DEFINE_WKT_CONSTANT(GEODETICDATUM);
@@ -537,6 +543,7 @@ const AxisDirection AxisDirection::UNSPECIFIED("unspecified");
 // ---------------------------------------------------------------------------
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 std::map<std::string, const RangeMeaning *> RangeMeaning::registry;
 
 /** any value between and including minimumValue and maximumValue is valid. */
@@ -550,6 +557,8 @@ const RangeMeaning RangeMeaning::WRAPAROUND("wraparound");
 
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 //! @cond Doxygen_Suppress
 
 std::map<std::string, const AxisDirectionWKT1 *> AxisDirectionWKT1::registry;

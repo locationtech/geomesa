@@ -1056,6 +1056,7 @@ TEST(gie, proj_trans_generic) {
         "+step +proj=axisswap +order=2,1");
     double lat = -60;
 <<<<<<< HEAD
+<<<<<<< HEAD
     double longitude = 120;
     proj_trans_generic(P, PJ_FWD, &lat, sizeof(double), 1, &longitude,
                        sizeof(double), 1, nullptr, 0, 0, nullptr, 0, 0);
@@ -1063,13 +1064,18 @@ TEST(gie, proj_trans_generic) {
     EXPECT_NEAR(lat, -60, 1e-9);
     EXPECT_NEAR(longitude, 120, 1e-9);
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     double lon = 120;
     proj_trans_generic(P, PJ_FWD, &lat, sizeof(double), 1, &lon, sizeof(double),
                        1, nullptr, 0, 0, nullptr, 0, 0);
     // Should be a no-op when the time is unknown (or equal to 2020)
     EXPECT_NEAR(lat, -60, 1e-9);
     EXPECT_NEAR(lon, 120, 1e-9);
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     proj_destroy(P);
 }
@@ -1158,6 +1164,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
         auto Pnormalized = proj_normalize_for_visualization(ctx, P);
         ASSERT_TRUE(Pnormalized->over);
 <<<<<<< HEAD
+<<<<<<< HEAD
 
         PJ_COORD input_over_normalized;
         input_over_normalized.xyz.x = -220; // Long in deg
@@ -1169,6 +1176,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
         proj_destroy(Pnormalized);
 
         proj_destroy(P);
@@ -1268,6 +1277,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
             ASSERT_TRUE(op.pj->over);
         }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
         PJ_COORD input_over_normalized;
         input_over_normalized.xyz.x = -220; // Long in deg
@@ -1280,6 +1290,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
         proj_destroy(Pnormalized);
 
         proj_destroy(P);

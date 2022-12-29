@@ -34,10 +34,14 @@
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // windows.h can conflict with Criterion::STRICT
 =======
 // windows.h can confict with Criterion::STRICT
 >>>>>>> locationtech-main
+=======
+// windows.h can confict with Criterion::STRICT
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 #ifdef STRICT
 #undef STRICT
 #endif

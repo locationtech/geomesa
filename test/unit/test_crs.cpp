@@ -2617,9 +2617,13 @@ TEST(crs, projectedCRS_identify_db) {
             sourceCRS->baseCRS(), sourceCRS->derivingConversion(),
             sourceCRS->coordinateSystem());
         auto res = crs->identify(factoryEPSG);
+<<<<<<< HEAD
         EXPECT_EQ(res.size(), 1U);
         EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
         EXPECT_EQ(res.front().second, 70);
+=======
+        EXPECT_EQ(res.size(), 0U);
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     }
     {
         // Existing code, but not matching content
@@ -2634,8 +2638,13 @@ TEST(crs, projectedCRS_identify_db) {
             sourceCRS->coordinateSystem());
         auto res = crs->identify(factoryEPSG);
         ASSERT_EQ(res.size(), 1U);
+<<<<<<< HEAD
         EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
         EXPECT_EQ(res.front().second, 70);
+=======
+        EXPECT_EQ(res.front().first->getEPSGCode(), 32631);
+        EXPECT_EQ(res.front().second, 25);
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     }
     {
         // Identify by exact name
@@ -3254,6 +3263,7 @@ TEST(crs, projectedCRS_identify_db) {
         EXPECT_EQ(res.front().first->getEPSGCode(), 8353);
         EXPECT_EQ(res.front().second, 100);
     }
+<<<<<<< HEAD
     {
         // Identify from a pseudo WKT ESRI with has an AUTHORITY node that
         // points to another object.
@@ -3280,6 +3290,8 @@ TEST(crs, projectedCRS_identify_db) {
         EXPECT_EQ(res.front().first->getEPSGCode(), 25832);
         EXPECT_EQ(res.front().second, 70);
     }
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -7174,6 +7186,7 @@ TEST(crs, projected_is_equivalent_to_with_proj4_extension) {
                                       IComparable::Criterion::EQUIVALENT));
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 // ---------------------------------------------------------------------------
 
@@ -7221,3 +7234,5 @@ TEST(crs, is_dynamic) {
 }
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)

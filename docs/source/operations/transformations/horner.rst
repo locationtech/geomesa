@@ -237,10 +237,14 @@ Optional
     Coordinate of origin for the inverse mapping.
     Without this option iterative polynomial evaluation is used for
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
 >>>>>>> locationtech-main
+=======
+    the inverse tranformation.
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 .. option:: +inv_u=<u_11,u_12,...,u_ij,..,u_mn>
 
@@ -250,10 +254,14 @@ Optional
     as described in :eq:`real_poly`. Only applies for real polynomials.
     Without this option iterative polynomial evaluation is used for
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
 >>>>>>> locationtech-main
+=======
+    the inverse tranformation.
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 .. option:: +inv_v=<v_11,v_12,...,v_ij,..,v_mn>
 
@@ -263,10 +271,14 @@ Optional
     as described in :eq:`real_poly`. Only applies for real polynomials.
     Without this option iterative polynomial evaluation is used for
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
 >>>>>>> locationtech-main
+=======
+    the inverse tranformation.
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 .. option:: +inv_c=<c_1,c_2,...,c_N>
 
@@ -276,10 +288,14 @@ Optional
     as described in :eq:`complex_poly`. Only applies for complex polynomials.
     Without this option iterative polynomial evaluation is used for
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
 >>>>>>> locationtech-main
+=======
+    the inverse tranformation.
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 .. option:: +range=<value>
 

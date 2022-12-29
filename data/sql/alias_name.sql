@@ -687,6 +687,7 @@ INSERT INTO "alias_name" VALUES('vertical_datum','EPSG','1087','Approximate Mean
 INSERT INTO "alias_name" VALUES('vertical_datum','EPSG','1080','Approximate Lowest Astronomical Tide','EPSG');
 INSERT INTO "alias_name" VALUES('vertical_datum','EPSG','5100','Approximate Mean Sea Level','EPSG');
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "alias_name" VALUES('geodetic_datum','EPSG','1336','CNH22-IRF','EPSG');
 INSERT INTO "alias_name" VALUES('geodetic_datum','EPSG','1338','CWS13-IRF','EPSG');
 INSERT INTO "alias_name" VALUES('geodetic_datum','EPSG','1340','GWPBS22-IRF','EPSG');
@@ -701,6 +702,8 @@ INSERT INTO "alias_name" VALUES('geodetic_datum','EPSG','1335','ShAb07-IRF','EPS
 INSERT INTO "alias_name" VALUES('geodetic_datum','EPSG','1351','SMITB20-IRF','EPSG');
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','21100','Genuk / NEIEZ','EPSG');
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','2140','NAD83(CSRS98) / SCoPQ zone 3','EPSG');
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','2141','NAD83(CSRS98) / SCoPQ zone 4','EPSG');
@@ -7322,10 +7325,14 @@ INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','8403','747','EPSG');
 INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','8403','ETRF2014 - LatLonEHt','EPSG');
 INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9069','746','EPSG');
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9069','ETRF2014 - LatLon','EPSG');
 =======
 INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9069','ETRF2014- LatLon','EPSG');
 >>>>>>> locationtech-main
+=======
+INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9069','ETRF2014- LatLon','EPSG');
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9672','CD Norway','EPSG');
 INSERT INTO "alias_name" VALUES('compound_crs','EPSG','9656','PL-ETRF2000 + Kronzstad 86','EPSG');
 INSERT INTO "alias_name" VALUES('compound_crs','EPSG','9657','PL-ETRF2000 + Kronzstad 86','EPSG');
@@ -7349,6 +7356,7 @@ INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','5609','771','EPSG');
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','5609','IGLD (1985) - DHt','EPSG');
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9390','766','EPSG');
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9390','EVRF2019mean - NHt','EPSG');
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9389','765','EPSG');
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9389','EVRF2019 - NHt','EPSG');
@@ -7357,6 +7365,11 @@ INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9390','EVRF2019mean-NHt',
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9389','765','EPSG');
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9389','EVRF2019-NHt','EPSG');
 >>>>>>> locationtech-main
+=======
+INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9390','EVRF2019mean-NHt','EPSG');
+INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9389','765','EPSG');
+INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9389','EVRF2019-NHt','EPSG');
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','9749','NAD83(2011) / AL W (ftUS)','EPSG');
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','9748','NAD83(2011) / AL E (ftUS)','EPSG');
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','20904','GSK-2011 / 6-degree Gauss-Kruger zone 4','EPSG');
@@ -7751,10 +7764,14 @@ INSERT INTO "alias_name" VALUES('compound_crs','EPSG','6649','NAD83(CSRS) + CGVD
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9245','CGVD2013a height','EPSG');
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9245','335','EPSG');
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9245','CGVD2013(CGG2013a) Epoch 2010 - OHt','EPSG');
 =======
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9245','CGVD2013(CGG2013a) - OHt','EPSG');
 >>>>>>> locationtech-main
+=======
+INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9245','CGVD2013(CGG2013a) - OHt','EPSG');
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "alias_name" VALUES('compound_crs','EPSG','20037','NAD83(CSRS) 2002 + CGVD2013(CGG2013a) epoch 2002 height','EPSG');
 INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9988','802','EPSG');
 INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9988','ITRF2020 - XYZ','EPSG');
@@ -7816,6 +7833,7 @@ INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','8050','Approximate MSL he
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','8052','Approximate MSL height (ftUS)','EPSG');
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','8051','Approximate MSL depth (ft)','EPSG');
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','10183','ETRS89 / DoPw22 SnakeGrid','EPSG');
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','10188','ETRS89 / ShAb07 SnakeGrid','EPSG');
 INSERT INTO "alias_name" VALUES('compound_crs','EPSG','10189','ETRS89 / ShAb07 SnakeGrid + Newlyn height','EPSG');
@@ -7848,3 +7866,5 @@ INSERT INTO "alias_name" VALUES('projected_crs','EPSG','10280','ETRS89 / RBEPP12
 INSERT INTO "alias_name" VALUES('compound_crs','EPSG','10281','ETRS89 / RBEPP12 SnakeGrid + Newlyn height','EPSG');
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)

@@ -556,6 +556,7 @@ def import_geogcs():
             esri_name = row[idx_name]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             if code == latestWkid and authority.upper() == 'ESRI':
                 cursor.execute(
                     "SELECT name FROM geodetic_crs WHERE auth_name = 'EPSG' AND code = ?", (latestWkid,))
@@ -569,6 +570,8 @@ def import_geogcs():
 
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
             if authority == 'EPSG':
 
                 map_geogcs_esri_name_to_auth_code[esri_name] = [
@@ -1274,6 +1277,7 @@ def import_projcs():
             esri_name = row[idx_name]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             if code == latestWkid and authority.upper() == 'ESRI':
                 cursor.execute(
                     "SELECT name FROM projected_crs WHERE auth_name = 'EPSG' AND code = ?", (latestWkid,))
@@ -1287,6 +1291,8 @@ def import_projcs():
 
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
             if authority == 'EPSG':
 
                 map_projcs_esri_name_to_auth_code[esri_name] = [
@@ -1628,6 +1634,7 @@ def import_vertcs():
             esri_name = row[idx_name]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             if code == latestWkid and authority.upper() == 'ESRI':
                 cursor.execute(
                     "SELECT name FROM vertical_crs WHERE auth_name = 'EPSG' AND code = ?", (latestWkid,))
@@ -1641,6 +1648,8 @@ def import_vertcs():
 
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
             if authority == 'EPSG':
 
                 map_vertcs_esri_name_to_auth_code[esri_name] = [
@@ -1735,6 +1744,7 @@ def import_vertcs():
                 assert not set(k for k in parsed_wkt2['VERTCRS'][1].keys() if k not in ('CS','AXIS','VDATUM','DATUM')), 'Unhandled parameter in VERTCRS: {}'.format(list(parsed_wkt2['VERTCRS'][1].keys()))
                 assert parsed_wkt2['VERTCRS'][1]['CS'] == ['vertical', '1'], 'Unhandled vertcrs CS: {}'.format(parsed_wkt2['VERTCRS'][1]['CS'])
 <<<<<<< HEAD
+<<<<<<< HEAD
                 axis = parsed_wkt2['VERTCRS'][1]['AXIS']
                 is_ellipsoidal_height = (axis[:2] == ['Ellipsoidal height (h)', 'up'])
                 assert axis[:2] == ['Gravity-related height (H)', 'up'] or is_ellipsoidal_height, 'Unhandled vertcrs AXIS: {}'.format(axis)
@@ -1745,6 +1755,11 @@ def import_vertcs():
 
                 vertical_unit = parsed_wkt2['VERTCRS'][1]['AXIS'][2]['UNIT_NAME']
 >>>>>>> locationtech-main
+=======
+                assert parsed_wkt2['VERTCRS'][1]['AXIS'][:2] == ['Gravity-related height (H)', 'up'], 'Unhandled vertcrs AXIS: {}'.format(parsed_wkt2['VERTCRS'][1]['AXIS'])
+
+                vertical_unit = parsed_wkt2['VERTCRS'][1]['AXIS'][2]['UNIT_NAME']
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
                 cs_auth = 'EPSG'
                 if vertical_unit == 'Meter':
                     cs_code = 6499
@@ -1756,10 +1771,14 @@ def import_vertcs():
                     assert False, ('unknown coordinate system for %s' %
                                    str(row))
 <<<<<<< HEAD
+<<<<<<< HEAD
                 if is_ellipsoidal_height or not is_vdatum:
 =======
                 if not is_vdatum:
 >>>>>>> locationtech-main
+=======
+                if not is_vdatum:
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
                     assert cs_code == 6499
                     cs_auth = 'ESRI'
                     cs_code = 'ELLPS_HEIGHT_METRE'

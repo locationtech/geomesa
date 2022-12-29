@@ -52,6 +52,7 @@ History of the schema
 ---------------------
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 * v0.6:
      - Implemented in PROJ 9.2
      - Additional optional "source_crs" property in "abridged_transformation".
@@ -61,6 +62,9 @@ History of the schema
 =======
 * v0.6: additional optional "source_crs" property in "abridged_transformation". Implemented in PROJ 9.2
 >>>>>>> locationtech-main
+=======
+* v0.6: additional optional "source_crs" property in "abridged_transformation". Implemented in PROJ 9.2
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 * v0.5:
     - Implemented in PROJ 9.1:
         + add "meridian" member in Axis object type.
@@ -91,10 +95,14 @@ a GeographicCRS the ``type`` should be specified, as it can be either a Geodetic
 or a DynamicGeodeticReferenceFrame.
 More formally, the ``type`` should be specified if the JSON schema specifies alternative
 <<<<<<< HEAD
+<<<<<<< HEAD
 types for the value of a member using the oneOf construct and those alternative
 =======
 types for the value of a member using the oneOf constrct and those alternative
 >>>>>>> locationtech-main
+=======
+types for the value of a member using the oneOf constrct and those alternative
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 types have a ``type`` member. Otherwise it may be omitted.
 
 High level objects
@@ -183,10 +191,14 @@ of a "object usage" class. An object usage has the following optional members:
   relative to the international reference meridian.
 - ``remarks``: (optional) value of type string with an informative text that does
 <<<<<<< HEAD
+<<<<<<< HEAD
   not modify the defining parameters of the object. e.g "Use NTv2 file for better accuracy"
 =======
   not modify the definining parameters of the object. e.g "Use NTv2 file for better accuracy"
 >>>>>>> locationtech-main
+=======
+  not modify the definining parameters of the object. e.g "Use NTv2 file for better accuracy"
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 - ``id`` (mutually exclusive with ``ids``): (optional) Identifier of the object, as defined in :ref:`identifiers`
 - ``ids`` (mutually exclusive with ``id``): (optional) Identifiers of the object, as defined in :ref:`identifiers`
 
@@ -497,10 +509,14 @@ of the PROJ software version 9.0.0
 
     PROJ versions prior to PROJ 8.0.0 used versions of the EPSG dataset that
 <<<<<<< HEAD
+<<<<<<< HEAD
     did not have the datum ensemble concept. Consequently they used a ``datum``
 =======
     did not have the datum ensemble concept. Consquently they used a ``datum``
 >>>>>>> locationtech-main
+=======
+    did not have the datum ensemble concept. Consquently they used a ``datum``
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     member instead of a ``datum_ensemble``. The number of elements in the
     datum ensemble may also vary over time when new realizations of WGS 84 are
     added to the ensemble.
@@ -1107,10 +1123,14 @@ PROJJSON extensions
 This specification allows a Bound CRS to be used wherever a CRS object is allowed
 in the OGC Topic 2 abstract specification / ISO-19111:2019. In particular,
 <<<<<<< HEAD
+<<<<<<< HEAD
 the members of a compound CRS can be a Bound CRS in this specification, whereas
 =======
 the members of a coumpound CRS can be a Bound CRS in this specification, whereas
 >>>>>>> locationtech-main
+=======
+the members of a coumpound CRS can be a Bound CRS in this specification, whereas
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 OGC Topic 2 abstract specification restricts it to single CRS. A Bound CRS can
 also be used as the source or target of a coordinate operation.
 
@@ -1118,20 +1138,31 @@ PROJJSON omissions
 ++++++++++++++++++
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 This specification does not define an encoding for triaxial ellipsoid (``TRIAXIAL`` WKT keyword)
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 This specification does not define an encoding for:
 
 - triaxial ellipsoid (``TRIAXIAL`` WKT keyword)
 - coordinate metadata (``COORDINATEMETADATA`` WKT keyword)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Reference implementation
 ------------------------
 
 PROJJSON is available as input and output of the `PROJ <https://proj.org>`_ software since PROJ 6.2.
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 The current version is the PROJJSON schema is 0.4.
 >>>>>>> locationtech-main
+=======
+
+The current version is the PROJJSON schema is 0.4.
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)

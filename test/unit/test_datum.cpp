@@ -249,12 +249,15 @@ TEST(datum, datum_with_ANCHOR) {
         PrimeMeridian::GREENWICH);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     ASSERT_TRUE(datum->anchorDefinition());
     EXPECT_EQ(*datum->anchorDefinition(), "My anchor");
     ASSERT_FALSE(datum->anchorEpoch());
 
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     auto expected = "DATUM[\"WGS_1984 with anchor\",\n"
                     "    ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n"
                     "        LENGTHUNIT[\"metre\",1],\n"
@@ -266,6 +269,7 @@ TEST(datum, datum_with_ANCHOR) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 TEST(datum, datum_with_ANCHOREPOCH) {
     auto datum = GeodeticReferenceFrame::create(
@@ -295,6 +299,8 @@ TEST(datum, datum_with_ANCHOREPOCH) {
 
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 TEST(datum, dynamic_geodetic_reference_frame) {
     auto drf = DynamicGeodeticReferenceFrame::create(
         PropertyMap().set(IdentifiedObject::NAME_KEY, "test"), Ellipsoid::WGS84,

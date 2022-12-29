@@ -201,10 +201,14 @@ const crs::CRSPtr &CoordinateOperation::interpolationCRS() const {
 const util::optional<common::DataEpoch> &
 CoordinateOperation::sourceCoordinateEpoch() const {
 <<<<<<< HEAD
+<<<<<<< HEAD
     return *(d->sourceCoordinateEpoch_);
 =======
     return d->sourceCoordinateEpoch_;
 >>>>>>> locationtech-main
+=======
+    return d->sourceCoordinateEpoch_;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -216,10 +220,14 @@ CoordinateOperation::sourceCoordinateEpoch() const {
 const util::optional<common::DataEpoch> &
 CoordinateOperation::targetCoordinateEpoch() const {
 <<<<<<< HEAD
+<<<<<<< HEAD
     return *(d->targetCoordinateEpoch_);
 =======
     return d->targetCoordinateEpoch_;
 >>>>>>> locationtech-main
+=======
+    return d->targetCoordinateEpoch_;
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -269,6 +277,7 @@ void CoordinateOperation::setCRSs(const CoordinateOperation *in,
 // ---------------------------------------------------------------------------
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void CoordinateOperation::setSourceCoordinateEpoch(
     const util::optional<common::DataEpoch> &epoch) {
     d->sourceCoordinateEpoch_ =
@@ -287,6 +296,8 @@ void CoordinateOperation::setTargetCoordinateEpoch(
 
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 void CoordinateOperation::setAccuracies(
     const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies) {
     d->coordinateOperationAccuracies_ = accuracies;
@@ -1918,9 +1929,12 @@ bool Transformation::isGeographic3DToGravityRelatedHeight(
         "1110", // Geog3D to Geog2D+Depth (Gravsoft)
         "1115", // Geog3D to Geog2D+Depth (txt)
 <<<<<<< HEAD
+<<<<<<< HEAD
         "1118", // Geog3D to Geog2D+GravityRelatedHeight (ISG)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
         "9661", // Geographic3D to GravityRelatedHeight (EGM)
         "9662", // Geographic3D to GravityRelatedHeight (Ausgeoid98)
         "9663", // Geographic3D to GravityRelatedHeight (OSGM-GB)

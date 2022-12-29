@@ -363,6 +363,7 @@ INSERT INTO "usage" VALUES('EPSG','18453','geodetic_datum','EPSG','1327','EPSG',
 INSERT INTO "geodetic_datum" VALUES('EPSG','1333','IGS20',NULL,'EPSG','7019','EPSG','8901','2015-01-01',2015.0,NULL,NULL,0);
 INSERT INTO "usage" VALUES('EPSG','18632','geodetic_datum','EPSG','1333','EPSG','1262','EPSG','1027');
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "geodetic_datum" VALUES('EPSG','1334','DoPw22 Intermediate Reference Frame',NULL,'EPSG','7019','EPSG','8901','2022-01-01',NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('EPSG','18851','geodetic_datum','EPSG','1334','EPSG','4686','EPSG','1141');
 INSERT INTO "geodetic_datum" VALUES('EPSG','1335','ShAb07 Intermediate Reference Frame',NULL,'EPSG','7019','EPSG','8901','2022-01-01',NULL,NULL,NULL,0);
@@ -391,6 +392,8 @@ INSERT INTO "geodetic_datum" VALUES('EPSG','1352','RBEPP12 Intermediate Referenc
 INSERT INTO "usage" VALUES('EPSG','19180','geodetic_datum','EPSG','1352','EPSG','4689','EPSG','1141');
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "geodetic_datum" VALUES('EPSG','6001','Not specified (based on Airy 1830 ellipsoid)',NULL,'EPSG','7001','EPSG','8901',NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('EPSG','13422','geodetic_datum','EPSG','6001','EPSG','1263','EPSG','1213');
 INSERT INTO "geodetic_datum" VALUES('EPSG','6002','Not specified (based on Airy Modified 1849 ellipsoid)',NULL,'EPSG','7002','EPSG','8901',NULL,NULL,NULL,NULL,0);

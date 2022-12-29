@@ -26,6 +26,7 @@ it (neither in current documentation, nor in `historic one <https://web.archive.
 `Deformation model master file <https://github.com/linz/deformation-model-format>`_
 of a Deformation Model <https://github.com/linz/deformation-model-format/blob/master/doc/JsonGeotiffDeformationModelFormat_20200501.pdf>`__
 <<<<<<< HEAD
+<<<<<<< HEAD
     return strcmp(abbrev, "lon") == 0 || strcmp(abbrev, "Lon") == 0;
   projections/som.cpp
 PROJ_HEAD(som, "Space Oblique Mercator")
@@ -115,3 +116,5 @@ NOTE: This is Windows syntax - Unix users use $HEL, etc.
                 "  \"abbreviation\": \"lon\",\n"
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)

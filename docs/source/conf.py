@@ -38,7 +38,10 @@ extensions = [
     'sphinxcontrib.spelling',
     'breathe',
     'redirects',
+<<<<<<< HEAD
     'program_with_link',
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -15,9 +15,12 @@ source:
   url:
   sha256:
 <<<<<<< HEAD
+<<<<<<< HEAD
   patches:
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 build:
   number: 2112

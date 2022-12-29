@@ -111,6 +111,7 @@ class AxisDirection : public util::CodeList {
 // ---------------------------------------------------------------------------
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /** \brief Meaning of the axis value range specified through minimumValue and
  * maximumValue
  *
@@ -141,6 +142,8 @@ class RangeMeaning : public util::CodeList {
 
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 class Meridian;
 /** Shared pointer of Meridian. */
 using MeridianPtr = std::shared_ptr<Meridian>;
@@ -213,9 +216,12 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
     PROJ_DLL const util::optional<double> &minimumValue() PROJ_PURE_DECL;
     PROJ_DLL const util::optional<double> &maximumValue() PROJ_PURE_DECL;
 <<<<<<< HEAD
+<<<<<<< HEAD
     PROJ_DLL const util::optional<RangeMeaning> &rangeMeaning() PROJ_PURE_DECL;
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_DLL const MeridianPtr &meridian() PROJ_PURE_DECL;
 
     // Non-standard
@@ -225,6 +231,7 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
            const common::UnitOfMeasure &unitIn,
            const MeridianPtr &meridianIn = nullptr);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     PROJ_DLL static CoordinateSystemAxisNNPtr
     create(const util::PropertyMap &properties,
@@ -237,6 +244,8 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_PRIVATE :
 
         //! @cond Doxygen_Suppress
