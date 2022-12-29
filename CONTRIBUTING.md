@@ -20,7 +20,11 @@ geospatial analytics.
 * Write documentation for your favorite map projection
 * Fix a bug
 * Implement a new feature
+<<<<<<< HEAD
 >>>>>>> 73e3ca4b45 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 
 In the following sections you can find some guidelines on how to contribute.
 As PROJ is managed on GitHub most contributions require that you have a GitHub
