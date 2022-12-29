@@ -56,6 +56,7 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -267,6 +268,9 @@ whatever ellipsoid is provided. */
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#define PT_O_LAMBDA -2.1144663887911301 /* lon -121.15 and */
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 #define PT_O_PHI 0.59602993955606354 /* lat 34.15 */
 #define ROTATION_ANGLE 0.52359877559829882 /*CalCOFI angle of 30 deg in rad */
 
