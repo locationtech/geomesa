@@ -78,8 +78,12 @@ static const char *oterr = "*\t*"; /* output line for unprojectable input */
 static const char *usage =
     "%s\nusage: %s [-dDeEfIlrstvwW [args]]\n"
     "              [[--area name_or_code] | [--bbox west_long,south_lat,east_long,north_lat]]\n"
+<<<<<<< HEAD
     "              [--authority {name}] [--3d]\n"
     "              [--accuracy {accuracy}] [--only-best[=yes|=no]] [--no-ballpark]\n"
+=======
+    "              [--authority {name}] [--accuracy {accuracy}] [--no-ballpark] [--3d]\n"
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     "              [+opt[=arg] ...] [+to +opt[=arg] ...] [file ...]\n";
 
 static double (*informat)(const char *,
@@ -419,8 +423,11 @@ int main(int argc, char **argv) {
     const char* authority = nullptr;
     double accuracy = -1;
     bool allowBallpark = true;
+<<<<<<< HEAD
     bool onlyBestSet = false;
     bool errorIfBestTransformationNotAvailable = false;
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     bool promoteTo3D = false;
 
     /* process run line arguments */
@@ -487,6 +494,7 @@ int main(int argc, char **argv) {
         else if (strcmp(*argv, "--no-ballpark") == 0 ) {
             allowBallpark = false;
         }
+<<<<<<< HEAD
         else if (strcmp(*argv, "--only-best") == 0 ||
                  strcmp(*argv, "--only-best=yes") == 0 ) {
             onlyBestSet = true;
@@ -496,6 +504,8 @@ int main(int argc, char **argv) {
             onlyBestSet = true;
             errorIfBestTransformationNotAvailable = false;
         }
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         else if (strcmp(*argv, "--3d") == 0 ) {
             promoteTo3D = true;
         }
@@ -905,6 +915,7 @@ int main(int argc, char **argv) {
     if( !allowBallpark ) {
         options.push_back("ALLOW_BALLPARK=NO");
     }
+<<<<<<< HEAD
     if( onlyBestSet ) {
         if( errorIfBestTransformationNotAvailable ) {
             options.push_back("ONLY_BEST=YES");
@@ -913,6 +924,8 @@ int main(int argc, char **argv) {
             options.push_back("ONLY_BEST=NO");
         }
     }
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     options.push_back(nullptr);
     transformation = proj_create_crs_to_crs_from_pj(nullptr, src, dst,
                                                     pj_area, options.data());

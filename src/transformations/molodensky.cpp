@@ -217,6 +217,7 @@ static PJ_XY forward_2d(PJ_LP lp, PJ *P) {
     point.lp = lp;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
     // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
@@ -227,6 +228,8 @@ static PJ_XY forward_2d(PJ_LP lp, PJ *P) {
     // "Overlapping read/write of union is undefined behavior"
     // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     const auto xyz = forward_3d(point.lpz, P);
     point.xyz = xyz;
 
@@ -241,6 +244,7 @@ static PJ_LP reverse_2d(PJ_XY xy, PJ *P) {
     point.xyz.z = 0;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
     // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
@@ -251,6 +255,8 @@ static PJ_LP reverse_2d(PJ_XY xy, PJ *P) {
     // "Overlapping read/write of union is undefined behavior"
     // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     const auto lpz = reverse_3d(point.xyz, P);
     point.lpz = lpz;
 
@@ -287,6 +293,7 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 static void forward_4d(PJ_COORD& obs, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     // Assigning in 2 steps avoids cppcheck warning
@@ -300,6 +307,9 @@ static void forward_4d(PJ_COORD& obs, PJ *P) {
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    obs.xyz = forward_3d(obs.lpz, P);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 
@@ -332,6 +342,7 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 static void reverse_4d(PJ_COORD& obs, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     // Assigning in 2 steps avoids cppcheck warning
@@ -345,6 +356,9 @@ static void reverse_4d(PJ_COORD& obs, PJ *P) {
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    obs.lpz = reverse_3d(obs.xyz, P);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 

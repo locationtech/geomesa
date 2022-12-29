@@ -1804,11 +1804,19 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
                     return;
                 }
                 if (authName == metadata::Identifier::EPSG && code == "6422") {
+<<<<<<< HEAD
                     // preferred coordinate system for geographic lat, long
                     return;
                 }
                 if (authName == metadata::Identifier::EPSG && code == "6423") {
                     // preferred coordinate system for geographic lat, long, h
+=======
+                    // preferred coordinate system for geographic lat, lon
+                    return;
+                }
+                if (authName == metadata::Identifier::EPSG && code == "6423") {
+                    // preferred coordinate system for geographic lat, lon, h
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                     return;
                 }
             }
