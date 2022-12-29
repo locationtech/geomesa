@@ -1820,6 +1820,7 @@ void pj_load_ini(PJ_CONTEXT *ctx) {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Load default value for errorIfBestTransformationNotAvailableDefault
     // from environment first
     const char *proj_only_best_default = getenv("PROJ_ONLY_BEST_DEFAULT");
@@ -1832,7 +1833,13 @@ void pj_load_ini(PJ_CONTEXT *ctx) {
     }
 
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
     ctx->iniFileLoaded = true;
     auto file = std::unique_ptr<NS_PROJ::File>(
         reinterpret_cast<NS_PROJ::File *>(pj_open_lib_internal(
@@ -1893,6 +1900,7 @@ void pj_load_ini(PJ_CONTEXT *ctx) {
             } else if (ca_bundle_path == nullptr && key == "ca_bundle_path") {
                 ctx->ca_bundle_path = value;
 <<<<<<< HEAD
+<<<<<<< HEAD
             } else if (proj_only_best_default == nullptr &&
                        key == "only_best_default") {
                 ctx->warnIfBestTransformationNotAvailableDefault = false;
@@ -1900,7 +1908,13 @@ void pj_load_ini(PJ_CONTEXT *ctx) {
                     ci_equal(value, "ON") || ci_equal(value, "YES") ||
                     ci_equal(value, "TRUE");
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
             }
         }
 
