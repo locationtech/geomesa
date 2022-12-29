@@ -37,6 +37,7 @@ The Equal Area Cylindrical projection is sometimes known under other names when
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 it is instantiated with particular values of the ``lat_ts`` parameter:
 =======
 it is instanciated with particular values of the ``lat_ts`` parameter:
@@ -66,6 +67,9 @@ it is instanciated with particular values of the ``lat_ts`` parameter:
 =======
 it is instanciated with particular values of the ``lat_ts`` parameter:
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+it is instanciated with particular values of the ``lat_ts`` parameter:
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
 +----------------------------------+------------+
 | **Name**                         | **lat_ts** |
