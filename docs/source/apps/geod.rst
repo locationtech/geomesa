@@ -30,6 +30,7 @@ geod
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -46,6 +47,8 @@ geod
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -147,6 +150,7 @@ invgeod
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -293,6 +297,10 @@ invgeod
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 1048b37894 (d)
+=======
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 Synopsis
 ********
 
@@ -431,6 +439,7 @@ specified distance from a geographic point. In both cases an
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -445,6 +454,8 @@ specified distance from a geographic point. In both cases an
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 initial point must be specified with *+lat_1=lat* and *+lon_1=long*
 parameters and either a terminus point *+lat_2=lat* and
 *+lon_2=long* or a distance and azimuth from the initial point
@@ -452,6 +463,7 @@ parameters and either a terminus point *+lat_2=lat* and
 initial point must be specified with *+lat_1=lat* and *+lon_1=lon*
 parameters and either a terminus point *+lat_2=lat* and
 *+lon_2=lon* or a distance and azimuth from the initial point
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -542,6 +554,9 @@ initial point must be specified with *+lat_1=lat* and *+lon_1=long*
 parameters and either a terminus point *+lat_2=lat* and
 *+lon_2=long* or a distance and azimuth from the initial point
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 with *+S=distance* and *+A=azimuth* must be specified.
 
 If points along a geodesic are to be determined then either
