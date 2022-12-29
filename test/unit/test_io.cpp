@@ -33,7 +33,10 @@
 
 #include "proj/common.hpp"
 #include "proj/coordinateoperation.hpp"
+<<<<<<< HEAD
 #include "proj/coordinates.hpp"
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 #include "proj/coordinatesystem.hpp"
 #include "proj/crs.hpp"
 #include "proj/datum.hpp"
@@ -48,7 +51,10 @@
 #include <string>
 
 using namespace osgeo::proj::common;
+<<<<<<< HEAD
 using namespace osgeo::proj::coordinates;
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 using namespace osgeo::proj::crs;
 using namespace osgeo::proj::cs;
 using namespace osgeo::proj::datum;
@@ -188,6 +194,7 @@ TEST(wkt_parse, datum_with_ANCHOR) {
     auto anchor = datum->anchorDefinition();
     EXPECT_TRUE(anchor.has_value());
     EXPECT_EQ(*anchor, "My anchor");
+<<<<<<< HEAD
     EXPECT_FALSE(datum->anchorEpoch().has_value());
 }
 
@@ -228,6 +235,8 @@ TEST(wkt_parse, datum_with_invalid_ANCHOREPOCH_too_many_children) {
                "        ID[\"EPSG\",7030]],\n"
                "    ANCHOREPOCH[2002.5,invalid]]";
     EXPECT_THROW(WKTParser().createFromWKT(wkt), ParsingException);
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -1039,8 +1048,12 @@ TEST(wkt_parse, wkt2_geocentric) {
                "            ID[\"EPSG\",9122]],\n"
                "        ID[\"EPSG\",8901]],\n"
                "    CS[Cartesian,3],\n"
+<<<<<<< HEAD
                // nominal value is 'geocentricX' with g lower case.
                "        AXIS[\"(X)\",GeocentricX,\n"
+=======
+               "        AXIS[\"(X)\",geocentricX,\n"
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                "            ORDER[1],\n"
                "            LENGTHUNIT[\"metre\",1,\n"
                "                ID[\"EPSG\",9001]]],\n"
@@ -1959,7 +1972,11 @@ TEST(wkt_parse, wkt1_hotine_oblique_mercator_with_rectified_grid_angle) {
     auto crs = nn_dynamic_pointer_cast<ProjectedCRS>(obj);
     ASSERT_TRUE(crs != nullptr);
 
+<<<<<<< HEAD
     // Check that we have not overridden rectified_grid_angle
+=======
+    // Check that we have not overriden rectified_grid_angle
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     auto got_wkt = crs->exportToWKT(
         WKTFormatter::create(WKTFormatter::Convention::WKT1_GDAL).get());
     EXPECT_TRUE(got_wkt.find("PARAMETER[\"rectified_grid_angle\",-23]") !=
@@ -1991,7 +2008,11 @@ TEST(wkt_parse,
     auto crs = nn_dynamic_pointer_cast<ProjectedCRS>(obj);
     ASSERT_TRUE(crs != nullptr);
 
+<<<<<<< HEAD
     // Check that we have not overridden rectified_grid_angle
+=======
+    // Check that we have not overriden rectified_grid_angle
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     auto got_wkt = crs->exportToWKT(
         WKTFormatter::create(WKTFormatter::Convention::WKT1_GDAL).get());
     EXPECT_TRUE(got_wkt.find("PARAMETER[\"rectified_grid_angle\",0]") !=
@@ -2447,6 +2468,7 @@ TEST(wkt_parse, cs_with_multiple_ID) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 TEST(wkt_parse, cs_with_AXISMINVAL_AXISMAXVAL_RANGEMEANING) {
     auto wkt = "PROJCRS[\"dummy\",\n"
                "    BASEGEOGCRS[\"WGS 84\",\n"
@@ -2659,6 +2681,8 @@ TEST(wkt_parse, cs_with_invalid_RANGEMEANING_too_many_children) {
 
 // ---------------------------------------------------------------------------
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 TEST(wkt_parse, vertcrs_WKT2) {
     auto wkt = "VERTCRS[\"ODN height\",\n"
                "    VDATUM[\"Ordnance Datum Newlyn\"],\n"
@@ -2961,6 +2985,7 @@ TEST(wkt_parse, vdatum_with_ANCHOR) {
     auto anchor = datum->anchorDefinition();
     EXPECT_TRUE(anchor.has_value());
     EXPECT_EQ(*anchor, "my anchor");
+<<<<<<< HEAD
     EXPECT_FALSE(datum->anchorEpoch().has_value());
 }
 
@@ -2975,6 +3000,8 @@ TEST(wkt_parse, vdatum_with_ANCHOREPOCH) {
     EXPECT_TRUE(anchorEpoch.has_value());
     ASSERT_EQ(anchorEpoch->convertToUnit(UnitOfMeasure::YEAR), 2002.5);
     EXPECT_FALSE(datum->anchorDefinition().has_value());
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -8764,6 +8791,7 @@ TEST(wkt_parse, invalid_DerivedTemporalCRS) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 TEST(wkt_parse, invalid_CoordinateMetadata) {
     EXPECT_THROW(WKTParser().createFromWKT("COORDINATEMETADATA[]"),
                  ParsingException);
@@ -8831,6 +8859,8 @@ TEST(wkt_parse, invalid_CoordinateMetadata) {
 
 // ---------------------------------------------------------------------------
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 TEST(io, projstringformatter) {
 
     {
@@ -10355,6 +10385,7 @@ TEST(io, projparse_aeqd_guam) {
 TEST(io, projparse_cea_spherical) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     const std::string input(
@@ -10368,10 +10399,15 @@ TEST(io, projparse_cea_spherical) {
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    auto obj = PROJStringParser().createFromPROJString(
+        "+proj=cea +R=6371228 +type=crs");
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     auto crs = nn_dynamic_pointer_cast<ProjectedCRS>(obj);
     ASSERT_TRUE(crs != nullptr);
     EXPECT_EQ(crs->derivingConversion()->method()->getEPSGCode(),
               EPSG_CODE_METHOD_LAMBERT_CYLINDRICAL_EQUAL_AREA_SPHERICAL);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -10386,6 +10422,8 @@ TEST(io, projparse_cea_spherical) {
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     auto crs2 = ProjectedCRS::create(
         PropertyMap(), crs->baseCRS(),
@@ -10403,6 +10441,7 @@ TEST(io, projparse_cea_spherical) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 TEST(io, projparse_cea_spherical_on_ellipsoid) {
@@ -10435,6 +10474,8 @@ TEST(io, projparse_cea_spherical_on_ellipsoid) {
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 507a6e7e40 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 TEST(io, projparse_cea_ellipsoidal) {
     auto obj = PROJStringParser().createFromPROJString(
         "+proj=cea +ellps=GRS80 +type=crs");
@@ -11061,6 +11102,7 @@ TEST(io, projparse_laea_ellipsoidal) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 507a6e7e40 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 TEST(io, projparse_laea_spherical_on_ellipsoid) {
@@ -11085,6 +11127,8 @@ TEST(io, projparse_laea_spherical_on_ellipsoid) {
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 507a6e7e40 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 TEST(io, projparse_eqc_spherical) {
     auto obj = PROJStringParser().createFromPROJString(
         "+proj=eqc +R=6371228 +type=crs");
@@ -12418,6 +12462,7 @@ TEST(io, createFromUserInput) {
 
     // Missing space, dash: OK
     EXPECT_NO_THROW(createFromUserInput("WGS84 PseudoMercator", dbContext));
+<<<<<<< HEAD
 
     // Invalid CoordinateMetadata
     EXPECT_THROW(createFromUserInput("@", dbContext), ParsingException);
@@ -12455,6 +12500,8 @@ TEST(io, createFromUserInput) {
         ASSERT_TRUE(coordinateMetadata != nullptr);
         EXPECT_EQ(coordinateMetadata->coordinateEpochAsDecimalYear(), 2025.1);
     }
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 // ---------------------------------------------------------------------------
@@ -12469,6 +12516,7 @@ TEST(io, createFromUserInput_ogc_crs_url) {
         ASSERT_TRUE(crs != nullptr);
     }
 
+<<<<<<< HEAD
     {
         auto obj = createFromUserInput(
             "http://www.opengis.net/def/crs/IAU/2015/49900", dbContext);
@@ -12486,6 +12534,8 @@ TEST(io, createFromUserInput_ogc_crs_url) {
         ASSERT_TRUE(crs != nullptr);
     }
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     EXPECT_THROW(
         createFromUserInput("http://www.opengis.net/def/crs", dbContext),
         ParsingException);
@@ -12498,11 +12548,14 @@ TEST(io, createFromUserInput_ogc_crs_url) {
                      "http://www.opengis.net/def/crs/EPSG/0/XXXX", dbContext),
                  NoSuchAuthorityCodeException);
 
+<<<<<<< HEAD
     EXPECT_THROW(
         createFromUserInput("http://www.opengis.net/def/crs/IAU/2015/invalid",
                             dbContext),
         NoSuchAuthorityCodeException);
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     {
         auto obj = createFromUserInput(
             "http://www.opengis.net/def/crs-compound?1=http://www.opengis.net/"
@@ -12999,6 +13052,7 @@ TEST(json_import, axis_with_meridian_with_unit) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 TEST(json_import, axis_with_minimum_value_maximum_value_range_meaning) {
     auto json = "{\n"
                 "  \"$schema\": \"foo\",\n"
@@ -13080,6 +13134,8 @@ TEST(json_import, axis_with_invalid_range_meaning_number) {
 
 // ---------------------------------------------------------------------------
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 TEST(json_import, prime_meridian) {
     auto json = "{\n"
                 "  \"$schema\": \"foo\",\n"
@@ -13167,6 +13223,7 @@ TEST(json_import, geodetic_reference_frame_with_explicit_prime_meridian) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 TEST(json_import, geodetic_reference_frame_with_anchor_epoch) {
     auto json = "{\n"
                 "  \"$schema\": \"foo\",\n"
@@ -13205,6 +13262,8 @@ TEST(json_import, geodetic_reference_frame_with_invalid_anchor_epoch) {
 
 // ---------------------------------------------------------------------------
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 TEST(json_import,
      dynamic_geodetic_reference_frame_with_implicit_prime_meridian) {
     auto json = "{\n"
@@ -15541,6 +15600,7 @@ TEST(json_import, vertical_crs_with_geoid_model_and_interpolation_crs) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 TEST(json_import, vertical_reference_frame_with_anchor_epoch) {
     auto json = "{\n"
                 "  \"$schema\": \"foo\",\n"
@@ -15558,6 +15618,8 @@ TEST(json_import, vertical_reference_frame_with_anchor_epoch) {
 
 // ---------------------------------------------------------------------------
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 TEST(json_import, parametric_crs) {
     auto json = "{\n"
                 "  \"$schema\": \"foo\",\n"
@@ -16389,6 +16451,7 @@ TEST(json_export, coordinate_system_id) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 TEST(json_import, invalid_CoordinateMetadata) {
     {
         auto json = "{\n"
@@ -16456,6 +16519,8 @@ TEST(json_import, invalid_CoordinateMetadata) {
 
 // ---------------------------------------------------------------------------
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 TEST(io, EXTENSION_PROJ4) {
     // Check that the PROJ string is preserved in the remarks
     auto obj = PROJStringParser().createFromPROJString(

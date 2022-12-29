@@ -45,7 +45,11 @@
 
 /* in radians */
 #define ISEA_STD_LAT 1.01722196792335072101
+<<<<<<< HEAD
 #define ISEA_STD_LONG .19634954084936207740
+=======
+#define ISEA_STD_LON .19634954084936207740
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 namespace { // anonymous namespace
 struct hex {
@@ -165,7 +169,11 @@ struct isea_pt {
 
 namespace { // anonymous namespace
 struct isea_geo {
+<<<<<<< HEAD
     double longitude, lat;
+=======
+    double lon, lat;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 } // anonymous namespace
 
@@ -255,9 +263,15 @@ static double az_adjustment(int triangle)
 
     /* TODO looks like the adjustment is always either 0 or 180 */
     /* at least if you pick your vertex carefully */
+<<<<<<< HEAD
     adj = atan2(cos(v.lat) * sin(v.longitude - c.longitude),
             cos(c.lat) * sin(v.lat)
             - sin(c.lat) * cos(v.lat) * cos(v.longitude - c.longitude));
+=======
+    adj = atan2(cos(v.lat) * sin(v.lon - c.lon),
+            cos(c.lat) * sin(v.lat)
+            - sin(c.lat) * cos(v.lat) * cos(v.lon - c.lon));
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     return adj;
 }
 
@@ -368,13 +382,21 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 
         /* step 1 */
         z = acos(sin(center.lat) * sin(ll->lat)
+<<<<<<< HEAD
              + cos(center.lat) * cos(ll->lat) * cos(ll->longitude - center.longitude));
+=======
+             + cos(center.lat) * cos(ll->lat) * cos(ll->lon - center.lon));
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         /* not on this triangle */
         if (z > g + 0.000005) { /* TODO DBL_EPSILON */
             continue;
         }
 
+<<<<<<< HEAD
         Az = sph_azimuth(center.longitude, center.lat, ll->longitude, ll->lat);
+=======
+        Az = sph_azimuth(center.lon, center.lat, ll->lon, ll->lat);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
         /* step 2 */
 
@@ -478,7 +500,11 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
      */
 
     fprintf(stderr, "impossible transform: %f %f is not on any triangle\n",
+<<<<<<< HEAD
             PJ_TODEG(ll->longitude), PJ_TODEG(ll->lat));
+=======
+            PJ_TODEG(ll->lon), PJ_TODEG(ll->lat));
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     exit(EXIT_FAILURE);
 }
@@ -511,9 +537,15 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
     double          cos_p, sin_a;
 
     phi = pt->lat;
+<<<<<<< HEAD
     lambda = pt->longitude;
     alpha = np->lat;
     beta = np->longitude;
+=======
+    lambda = pt->lon;
+    alpha = np->lat;
+    beta = np->lon;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     lambda0 = beta;
 
     cos_p = cos(phi);
@@ -541,7 +573,11 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
     phip = asin(sin_phip);
 
     npt.lat = phip;
+<<<<<<< HEAD
     npt.longitude = lambdap;
+=======
+    npt.lon = lambdap;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     return npt;
 }
@@ -551,16 +587,25 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 {
     struct isea_geo npt;
 
+<<<<<<< HEAD
     np->longitude += M_PI;
     npt = snyder_ctran(np, pt);
     np->longitude -= M_PI;
 
     npt.longitude -= (M_PI - lon0 + np->longitude);
+=======
+    np->lon += M_PI;
+    npt = snyder_ctran(np, pt);
+    np->lon -= M_PI;
+
+    npt.lon -= (M_PI - lon0 + np->lon);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     /*
      * snyder is down tri 3, isea is along side of tri1 from vertex 0 to
      * vertex 1 these are 180 degrees apart
      */
+<<<<<<< HEAD
     npt.longitude += M_PI;
     /* normalize longitude */
     npt.longitude = fmod(npt.longitude, 2 * M_PI);
@@ -568,6 +613,15 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
         npt.longitude -= 2 * M_PI;
     while (npt.longitude < -M_PI)
         npt.longitude += 2 * M_PI;
+=======
+    npt.lon += M_PI;
+    /* normalize longitude */
+    npt.lon = fmod(npt.lon, 2 * M_PI);
+    while (npt.lon > M_PI)
+        npt.lon -= 2 * M_PI;
+    while (npt.lon < -M_PI)
+        npt.lon += 2 * M_PI;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     return npt;
 }
@@ -581,7 +635,11 @@ static int isea_grid_init(struct isea_dgg * g)
 
     g->polyhedron = 20;
     g->o_lat = ISEA_STD_LAT;
+<<<<<<< HEAD
     g->o_lon = ISEA_STD_LONG;
+=======
+    g->o_lon = ISEA_STD_LON;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     g->o_az = 0.0;
     g->aperture = 4;
     g->resolution = 6;
@@ -596,7 +654,11 @@ static void isea_orient_isea(struct isea_dgg * g)
     if (!g)
         return;
     g->o_lat = ISEA_STD_LAT;
+<<<<<<< HEAD
     g->o_lon = ISEA_STD_LONG;
+=======
+    g->o_lon = ISEA_STD_LON;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     g->o_az = 0.0;
 }
 
@@ -616,7 +678,11 @@ static int isea_transform(struct isea_dgg * g, struct isea_geo * in,
     int             tri;
 
     pole.lat = g->o_lat;
+<<<<<<< HEAD
     pole.longitude = g->o_lon;
+=======
+    pole.lon = g->o_lon;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     i = isea_ctran(&pole, in, g->o_az);
 
@@ -1016,7 +1082,11 @@ static PJ_XY isea_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
     struct isea_pt out;
     struct isea_geo in;
 
+<<<<<<< HEAD
     in.longitude = lp.lam;
+=======
+    in.lon = lp.lam;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     in.lat = lp.phi;
 
     try {
