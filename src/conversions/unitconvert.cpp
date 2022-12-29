@@ -331,6 +331,7 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -405,6 +406,8 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
     const auto xy = forward_2d(point.lp, P);
     point.xy = xy;
 
@@ -431,6 +434,7 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -505,6 +509,8 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
     const auto lp = reverse_2d(point.xy, P);
     point.lp = lp;
 
@@ -522,6 +528,7 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
     struct pj_opaque_unitconvert *Q = (struct pj_opaque_unitconvert *) P->opaque;
 
     /* delegate unit conversion of physical dimensions to the 3D function */
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -610,6 +617,9 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    coo.xyz = forward_3d(coo.lpz, P);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 
     if (Q->t_in_id >= 0)
         coo.xyzt.t = time_units[Q->t_in_id].t_in( coo.xyzt.t );
@@ -626,6 +636,7 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
     struct pj_opaque_unitconvert *Q = (struct pj_opaque_unitconvert *) P->opaque;
 
     /* delegate unit conversion of physical dimensions to the 3D function */
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -714,6 +725,9 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    coo.lpz = reverse_3d(coo.xyz, P);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 
     if (Q->t_out_id >= 0)
         coo.xyzt.t = time_units[Q->t_out_id].t_in( coo.xyzt.t );
