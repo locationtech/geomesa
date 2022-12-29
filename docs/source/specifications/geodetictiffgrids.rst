@@ -248,6 +248,7 @@ is an easy way to inspect such grid files:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -264,6 +265,8 @@ is an easy way to inspect such grid files:
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
       offsetting when the horizontal and vertical grids do not have the same
 =======
       offseting when the horizontal and vertical grids do not have the same
@@ -314,6 +317,7 @@ is an easy way to inspect such grid files:
       offsetting when the horizontal and vertical grids do not have the same
 >>>>>>> 86ade66356 (typo fixes)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
       offsetting when the horizontal and vertical grids do not have the same
@@ -382,6 +386,13 @@ is an easy way to inspect such grid files:
       offsetting when the horizontal and vertical grids do not have the same
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+      offsetting when the horizontal and vertical grids do not have the same
+=======
+      offseting when the horizontal and vertical grids do not have the same
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
       resolution, as found in some NADCON5 grids.
       Added in PROJ 9.2
       Corresponds to PROJ :ref:`gridshift` method.
