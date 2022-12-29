@@ -16,6 +16,7 @@ geod
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -38,12 +39,15 @@ geod
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 .. _invgeod:
 
 ================================================================================
 invgeod
 ================================================================================
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -106,6 +110,10 @@ invgeod
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 Synopsis
 ********
 
