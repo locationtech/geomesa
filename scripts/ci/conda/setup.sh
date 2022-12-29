@@ -21,6 +21,7 @@ source:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   patches:
 =======
 <<<<<<< HEAD
@@ -51,6 +52,11 @@ source:
 =======
   patches:
 >>>>>>> 86ade66356 (typo fixes)
+=======
+  patches:
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 
 build:
   number: 2112

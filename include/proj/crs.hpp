@@ -103,6 +103,7 @@ class PROJ_GCC_DLL CRS : public common::ObjectUsage,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     PROJ_DLL bool isDynamic(bool considerWGS84AsDynamic = false) const;
 =======
 <<<<<<< HEAD
@@ -133,6 +134,11 @@ class PROJ_GCC_DLL CRS : public common::ObjectUsage,
 =======
     PROJ_DLL bool isDynamic(bool considerWGS84AsDynamic = false) const;
 >>>>>>> 86ade66356 (typo fixes)
+=======
+    PROJ_DLL bool isDynamic(bool considerWGS84AsDynamic = false) const;
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_DLL GeodeticCRSPtr extractGeodeticCRS() const;
     PROJ_DLL GeographicCRSPtr extractGeographicCRS() const;
     PROJ_DLL VerticalCRSPtr extractVerticalCRS() const;
