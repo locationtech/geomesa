@@ -100,7 +100,11 @@ double proj_strtod(const char *str, char **endptr) {
     int exponent = 0;
     int fraction_is_nonzero = 0;
     int sign = 0;
+<<<<<<< HEAD
     const char *p = str;
+=======
+    char *p = (char *) str;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     int n = 0;
     int num_digits_total        = 0;
     int num_digits_after_comma  = 0;
@@ -109,7 +113,11 @@ double proj_strtod(const char *str, char **endptr) {
     if (nullptr==str) {
         errno = EFAULT;
         if (endptr)
+<<<<<<< HEAD
             *endptr = nullptr;
+=======
+            *endptr = p;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         return HUGE_VAL;
     }
 
@@ -120,14 +128,22 @@ double proj_strtod(const char *str, char **endptr) {
     /* Empty string? */
     if (0==*p) {
         if (endptr)
+<<<<<<< HEAD
             *endptr = const_cast<char*>(str);
+=======
+            *endptr = (char *) str;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         return 0;
     }
 
     /* non-numeric? */
     if (nullptr==strchr("0123456789+-._", *p)) {
         if (endptr)
+<<<<<<< HEAD
             *endptr = const_cast<char*>(str);
+=======
+            *endptr = (char *) str;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         return 0;
     }
 
@@ -145,14 +161,22 @@ double proj_strtod(const char *str, char **endptr) {
             if (isdigit(*p) || '_'==*p || '.'==*p)
                 break;
             if (endptr)
+<<<<<<< HEAD
                 *endptr = const_cast<char*>(str);
+=======
+                *endptr = (char *) str;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
             return 0;
     }
 
     /* stray sign, as in "+/-"? */
     if (0!=sign && (nullptr==strchr ("0123456789._", *p) || 0==*p)) {
         if (endptr)
+<<<<<<< HEAD
             *endptr = const_cast<char*>(str);
+=======
+            *endptr = (char *) str;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         return 0;
     }
 
@@ -163,7 +187,11 @@ double proj_strtod(const char *str, char **endptr) {
     /* zero? */
     if ((0==*p) || nullptr==strchr ("0123456789eE.", *p) || isspace(*p)) {
         if (endptr)
+<<<<<<< HEAD
             *endptr = const_cast<char*>(p);
+=======
+            *endptr = p;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         return sign==-1? -0: 0;
     }
 
@@ -182,7 +210,11 @@ double proj_strtod(const char *str, char **endptr) {
     /* Done? */
     if (0==*p) {
         if (endptr)
+<<<<<<< HEAD
             *endptr = const_cast<char*>(p);
+=======
+            *endptr = p;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         if (sign==-1)
             return -number;
         return number;
@@ -204,7 +236,11 @@ double proj_strtod(const char *str, char **endptr) {
         /* if the next character is nonnumeric, we have reached the end */
         if (0==*p || nullptr==strchr ("_0123456789eE+-", *p)) {
             if (endptr)
+<<<<<<< HEAD
                 *endptr = const_cast<char*>(p);
+=======
+                *endptr = p;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
             if (sign==-1)
                 return -number;
             return number;
@@ -237,7 +273,11 @@ double proj_strtod(const char *str, char **endptr) {
     if (0==num_digits_total) {
         errno = EINVAL;
         if (endptr)
+<<<<<<< HEAD
             *endptr = const_cast<char*>(p);
+=======
+            *endptr = p;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         return HUGE_VAL;
     }
 
@@ -265,7 +305,11 @@ double proj_strtod(const char *str, char **endptr) {
         if (0==sign) {
             if (!(isdigit(*p) || *p=='_')) {
                 if (endptr)
+<<<<<<< HEAD
                     *endptr = const_cast<char*>(p);
+=======
+                    *endptr = p;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                 return HUGE_VAL;
             }
         }
@@ -291,7 +335,11 @@ double proj_strtod(const char *str, char **endptr) {
     }
 
     if (endptr)
+<<<<<<< HEAD
         *endptr = const_cast<char*>(p);
+=======
+        *endptr = p;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
     if ((exponent < DBL_MIN_EXP) || (exponent > DBL_MAX_EXP)) {
         errno = ERANGE;

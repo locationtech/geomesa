@@ -455,9 +455,12 @@ Test EPSG:4326 to EPSG:32631
 Test EPSG:32631 to EPSG:4326
 400000 5000000 0	45d8'47.014"N	1d43'40.681"E 0.000
 ##############################################################
+<<<<<<< HEAD
 Check we allow ellipsoids up to a 0.59% relative difference in size
 0 -90	0.00	0.00 0.00
 ##############################################################
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 Test EPSG:4896 to EPSG:7930
 3496737.2679    743254.4507  5264462.9620	3496737.7857	743254.0394 5264462.6437 2019.0
 3496737.2679    743254.4507  5264462.9620	3496737.9401	743253.8861 5264462.5497 2029.0
@@ -531,6 +534,7 @@ Test cs2cs -W10
 
 -W argument missing or not in range [0,8]
 program abnormally terminated
+<<<<<<< HEAD
 ##############################################################
 Test cs2cs --only-best (working)
 49 2 0	48d59'59.756"N	1d59'57.4"E 0.000
@@ -568,3 +572,5 @@ Rel. 9.2.0, March 1st, 2023
 cannot initialize transformation
 cause: File not found or invalid
 program abnormally terminated
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
