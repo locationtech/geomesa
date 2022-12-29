@@ -62,6 +62,7 @@ Usage
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -144,11 +145,23 @@ A typical forward CalCOFI projection would be from lon/lat coordinates on the
 A typical forward CalCOFI projection would be from long/lat coordinates on the
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 A typical forward CalCOFI projection would be from long/lat coordinates on the
 =======
 A typical forward CalCOFI projection would be from lon/lat coordinates on the
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+A typical forward CalCOFI projection would be from lon/lat coordinates on the
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 Clark 1866 ellipsoid.
 For example::
 
@@ -175,6 +188,7 @@ Output of the above command::
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -257,11 +271,23 @@ The reverse projection from line/station coordinates to lon/lat would be entered
 The reverse projection from line/station coordinates to long/lat would be entered
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 The reverse projection from line/station coordinates to long/lat would be entered
 =======
 The reverse projection from line/station coordinates to lon/lat would be entered
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+The reverse projection from line/station coordinates to lon/lat would be entered
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 as::
 
     proj +proj=calcofi +ellps=clrk66 -I -E -f "%.2f" <<EOF
