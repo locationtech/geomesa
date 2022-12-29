@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <p align="center">
   <a href="https://geomesa.github.io"><img align="center" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png"></img></a>
 </p>
@@ -13,17 +14,31 @@ geospatial analytics.
 <p align="center">
   <img align="center" height="150px" src="https://www.geomesa.org/img/geomesa-overview-848x250.png"></img>
 </p>
+=======
+# PROJ
 
-#### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](https://projects.eclipse.org/projects/locationtech.geomesa) working group of the Eclipse Foundation.
+[![Travis Status](https://travis-ci.com/OSGeo/PROJ.svg?branch=master)](https://travis-ci.com/OSGeo/PROJ)
+[![AppVeyor Status](https://ci.appveyor.com/api/projects/status/github/OSGeo/PROJ?branch=master&svg=true)](https://ci.appveyor.com/project/OSGeo/PROJ?branch=master)
+[![Docker build Status](https://img.shields.io/docker/cloud/build/osgeo/proj)](https://hub.docker.com/r/osgeo/proj/builds)
+[![Coveralls Status](https://coveralls.io/repos/github/OSGeo/PROJ/badge.svg?branch=master)](https://coveralls.io/github/OSGeo/PROJ?branch=master)
+[![Gitter](https://badges.gitter.im/OSGeo/proj.4.svg)](https://gitter.im/OSGeo/proj.4)
+[![Mailing List](https://img.shields.io/badge/PROJ-mailing%20list-4eb899.svg)](http://lists.osgeo.org/mailman/listinfo/proj)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v1.4%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 
-## Join the Community
+<!-- [![Cirrus Status](https://img.shields.io/cirrus/github/OSGeo/PROJ)](https://cirrus-ci.com/github/OSGeo/PROJ/master) -->
+>>>>>>> 73e3ca4b45 (Merge pull request #3524 from cffk/merid-update-fix)
 
-* <a href="https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" target="_blank"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/locationtech/geomesa"></img></a>
-* GeoMesa [Users](https://accounts.eclipse.org/mailing-list/geomesa-users) and [Dev](https://accounts.eclipse.org/mailing-list/geomesa-dev) mailing lists
-* GeoMesa [JIRA](https://geomesa.atlassian.net/issues/?jql=order+by+created+DESC) for issue tracking
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5884394.svg)](https://doi.org/10.5281/zenodo.5884394)
 
-## Documentation
+PROJ is a generic coordinate transformation software, that transforms
+coordinates from one coordinate reference system (CRS) to another.
+This includes cartographic projections as well as geodetic transformations.
 
+For more information on the PROJ project please see the web page at:
+
+https://proj.org/
+
+<<<<<<< HEAD
 * [Main documentation](https://www.geomesa.org/documentation/)
 * [Upgrade Guide](https://www.geomesa.org/documentation/user/upgrade.html)
 * Quick Starts:
@@ -34,9 +49,13 @@ geospatial analytics.
   [Redis](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-redis.html) |
   [FileSystem](https://www.geomesa.org/documentation/current/tutorials/geomesa-quickstart-fsds.html)
 * [Tutorials](https://www.geomesa.org/tutorials/)
+=======
+The PROJ mailing list can be found at:
+>>>>>>> 73e3ca4b45 (Merge pull request #3524 from cffk/merid-update-fix)
 
-## Downloads
+https://lists.osgeo.org/mailman/listinfo/proj/
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -73,6 +92,8 @@ geospatial analytics.
 >>>>>>> 613f4d4e360 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 57aa4fbafbc (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 8d84cbb0de3 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 **Current release: [5.0.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-5.0.0)**
 
@@ -101,6 +122,8 @@ geospatial analytics.
 >>>>>>> 99ec06d4d48 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 8363956f2e1 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 39b7fb84945 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 **Current release: [4.0.5](https://github.com/locationtech/geomesa/releases/tag/geomesa-4.0.5)**
 
@@ -129,6 +152,8 @@ geospatial analytics.
 >>>>>>> 9d76a942f6c ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> f86d521e3d0 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f3e14aff826 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 **Current release: [4.0.4](https://github.com/locationtech/geomesa/releases/tag/geomesa-4.0.4)**
 
@@ -287,21 +312,42 @@ geospatial analytics.
 =======
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> f86d521e3d0 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 8363956f2e1 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 57aa4fbafbc (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+See the NEWS file for changes between versions.
+>>>>>>> f3e14aff826 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 39b7fb84945 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 8d84cbb0de3 (Merge pull request #3524 from cffk/merid-update-fix)
 
-### Verifying Downloads
+The following command line utilities are included in the PROJ package:
+>>>>>>> 73e3ca4b45 (Merge pull request #3524 from cffk/merid-update-fix)
 
-Downloads hosted on GitHub include SHA-256 hashes and gpg signatures (.asc files). To verify a download using gpg,
-import the appropriate key:
+- `proj`: for cartographic projection of geodetic coordinates.
+- `cs2cs`: for transformation from one CRS to another CRS.
+- `geod`: for geodesic (great circle) computations.
+- `cct`: for generic Coordinate Conversions and Transformations.
+- `gie`: the Geospatial Integrity Investigation Environment.
+- `projinfo`: for geodetic object and coordinate operation queries.
+- `projsync`: for synchronizing PROJ datum and transformation support data.
 
-```bash
-$ gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
-```
+> More information on the utilities can be found on the [PROJ website](https://proj.org/apps).
 
-Then verify the file:
+## Installation
 
+Consult the [Installation](https://proj.org/install.html) page of the official
+documentation.
+For builds on the master branch, [install.rst](https://github.com/OSGeo/PROJ/blob/master/docs/source/install.rst)
+might be more up-to-date.
+
+<<<<<<< HEAD
 ```bash
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -463,20 +509,39 @@ $ gpg2 --verify geomesa-accumulo_2.12-3.4.1-bin.tar.gz.asc geomesa-accumulo_2.12
 >>>>>>> 8363956f2e1 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 57aa4fbafbc (Merge branch 'feature/postgis-fixes')
 ```
+=======
+## Distribution files and format
+>>>>>>> 73e3ca4b45 (Merge pull request #3524 from cffk/merid-update-fix)
 
-The keys currently used for signing are:
+Sources are distributed in one or more files.  The principle elements
+of the system are stored in a compressed tar file named `proj-x.y.z.tar.gz` where
+"x" will indicate the major release number, "y" indicates the minor release
+number, and "z" indicates the patch number of the release.
 
-| Key ID | Name |
-| ------ | ---- |
-| `CD24F317` | Emilio Lahr-Vivaz &lt;elahrvivaz(-at-)ccri.com&gt; |
-| `1E679A56` | James Hughes &lt;jnh5y(-at-)ccri.com&gt; |
+In addition to the PROJ software package, distributions of datum
+conversion grid files and PROJ parameter files are also available.
+The grid package is distributed under the name `proj-data-x.y.zip`,
+where "x" is the major release version and "y" is the minor release
+version numbers. The resource packages can be downloaded from the
+[PROJ website](https://proj.org/download.html).
 
-## Maven Integration
+More info on the contents of the proj-data package can be
+found at the
+[PROJ-data GitHub repository](https://github.com/OSGeo/PROJ-data).
 
-[![Maven](.github/maven-badge.svg)](https://search.maven.org/search?q=g:org.locationtech.geomesa)
+The resource file packages should be extracted to `PROJ_LIB`
+where PROJ will find them after installation. The default location of
+`PROJ_LIB` on UNIX-based systems is `/usr/local/share/proj` but it may
+be changed to a different directory. On Windows you have to define
+`PROJ_LIB` yourself.
 
-GeoMesa is hosted on Maven Central. To include it as a dependency, add the desired modules, for example:
+As an alternative to installing the data package on the local system,
+the resource files can be retrieved on-the-fly from the
+[PROJ CDN](https://cdn.proj.org/). A [network-enabled](https://proj.org/usage/network.html) PROJ build, will
+automatically fetch resource files that are not present locally from the
+CDN.
 
+<<<<<<< HEAD
 ```xml
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
@@ -642,10 +707,12 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 >>>>>>> 57aa4fbafbc (Merge branch 'feature/postgis-fixes')
 </dependency>
 ```
+=======
+>>>>>>> 73e3ca4b45 (Merge pull request #3524 from cffk/merid-update-fix)
 
-GeoMesa depends on several third-party libraries that are only available in separate repositories. To include
-GeoMesa in your project, add the following repositories to your pom:
+## Citing PROJ in publications
 
+<<<<<<< HEAD
 ```xml
 <repositories>
   <!-- geotools -->
@@ -2227,4 +2294,10 @@ To build for a different Scala version (e.g. 2.11), run the following script, th
 
     ./build/change-scala-version.sh 2.11
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> c10b379d14 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+See [CITATION](CITATION)
+>>>>>>> 73e3ca4b45 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c8f560da92 (Merge pull request #3524 from cffk/merid-update-fix)
