@@ -228,10 +228,18 @@ is an easy way to inspect such grid files:
       the ellipsoidal height difference. Generally used in combination with
       another grid of type ``HORIZONTAL_OFFSET`` to perform Geographic 3D
 <<<<<<< HEAD
+<<<<<<< HEAD
       offsetting when the horizontal and vertical grids do not have the same
 =======
       offseting when the horizontal and vertical grids do not have the same
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+      offseting when the horizontal and vertical grids do not have the same
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
       resolution, as found in some NADCON5 grids.
       Added in PROJ 9.2
       Corresponds to PROJ :ref:`gridshift` method.
