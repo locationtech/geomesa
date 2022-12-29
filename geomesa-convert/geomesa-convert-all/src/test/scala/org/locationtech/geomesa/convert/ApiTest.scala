@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.TestConverterFactory.TestField
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicOptions}
-import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicConfigConvert, BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert, PrimitiveConvert}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicConfigConvert, BasicOptionsConvert, FieldConvert, OptionConvert, PrimitiveConvert}
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{Expression, TransformerFunction, TransformerFunctionFactory}
 import org.locationtech.geomesa.convert2.{AbstractConverter, AbstractConverterFactory, Field}
@@ -35,12 +35,8 @@ class TestConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Seq[Tes
       ec: EvaluationContext): CloseableIterator[Array[Any]] = parsed.map(Array[Any](_))
 }
 
-class TestConverterFactory extends AbstractConverterFactory[TestConverter, BasicConfig, TestField, BasicOptions] {
-  override protected val typeToProcess: String = "test"
-  override protected implicit val configConvert: ConverterConfigConvert[BasicConfig] = BasicConfigConvert
-  override protected implicit val fieldConvert: FieldConvert[TestField] = TestConverterFactory.TestFieldConvert
-  override protected implicit val optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
-}
+class TestConverterFactory extends AbstractConverterFactory[TestConverter, BasicConfig, TestField, BasicOptions](
+  "test", BasicConfigConvert, TestConverterFactory.TestFieldConvert, BasicOptionsConvert)
 
 object TestConverterFactory {
 

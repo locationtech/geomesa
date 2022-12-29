@@ -22,15 +22,10 @@ import java.io.InputStream
 import scala.util.control.NonFatal
 
 class ShapefileConverterFactory
-  extends AbstractConverterFactory[ShapefileConverter, BasicConfig, BasicField, BasicOptions] {
+  extends AbstractConverterFactory[ShapefileConverter, BasicConfig, BasicField, BasicOptions](
+    ShapefileConverterFactory.TypeToProcess, BasicConfigConvert, BasicFieldConvert, BasicOptionsConvert) {
 
   import scala.collection.JavaConverters._
-
-  override protected val typeToProcess: String = ShapefileConverterFactory.TypeToProcess
-
-  override protected implicit def configConvert: ConverterConfigConvert[BasicConfig] = BasicConfigConvert
-  override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
-  override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
 
   override def infer(
       is: InputStream,

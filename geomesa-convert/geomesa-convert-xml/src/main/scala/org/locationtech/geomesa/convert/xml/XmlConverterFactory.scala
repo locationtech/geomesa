@@ -21,14 +21,8 @@ import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
 import java.nio.charset.Charset
 
-class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConfig, XmlField, XmlOptions] {
-
-  override protected val typeToProcess: String = XmlConverterFactory.TypeToProcess
-
-  override protected implicit def configConvert: ConverterConfigConvert[XmlConfig] = XmlConfigConvert
-  override protected implicit def fieldConvert: FieldConvert[XmlField] = XmlFieldConvert
-  override protected implicit def optsConvert: ConverterOptionsConvert[XmlOptions] = XmlOptionsConvert
-
+class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConfig, XmlField, XmlOptions](
+  XmlConverterFactory.TypeToProcess, XmlConfigConvert, XmlFieldConvert, XmlOptionsConvert) {
   override protected def withDefaults(conf: Config): Config =
     super.withDefaults(conf).withFallback(ConfigFactory.load("xml-converter-defaults"))
 }

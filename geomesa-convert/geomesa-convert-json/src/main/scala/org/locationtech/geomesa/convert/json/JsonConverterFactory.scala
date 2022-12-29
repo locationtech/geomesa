@@ -15,7 +15,7 @@ import org.locationtech.geomesa.convert.json.GeoJsonParsing.GeoJsonFeature
 import org.locationtech.geomesa.convert.json.JsonConverter.{JsonField, _}
 import org.locationtech.geomesa.convert.json.JsonConverterFactory.{JsonConfigConvert, JsonFieldConvert}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
-import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsConvert, ConverterConfigConvert, FieldConvert, OptionConvert}
 import org.locationtech.geomesa.convert2.TypeInference.{IdentityTransform, InferredType}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
@@ -31,13 +31,8 @@ import java.util.Locale
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.control.NonFatal
 
-class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonConfig, JsonField, BasicOptions] {
-
-  override protected val typeToProcess: String = JsonConverterFactory.TypeToProcess
-
-  override protected implicit def configConvert: ConverterConfigConvert[JsonConfig] = JsonConfigConvert
-  override protected implicit def fieldConvert: FieldConvert[JsonField] = JsonFieldConvert
-  override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
+class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonConfig, JsonField, BasicOptions](
+  JsonConverterFactory.TypeToProcess, JsonConfigConvert, JsonFieldConvert, BasicOptionsConvert) {
 
   override def infer(
       is: InputStream,

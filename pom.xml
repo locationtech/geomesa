@@ -256,6 +256,28 @@
             </distributionManagement>
         </profile>
 
+        <profile>
+            <id>bloop</id>
+            <properties>
+                <scala.maven.plugin.version>4.8.0</scala.maven.plugin.version>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>jdk.tools</groupId>
+                    <artifactId>jdk.tools</artifactId>
+                    <version>1.8</version>
+                    <scope>system</scope>
+                    <systemPath>${java.home}/../lib/tools.jar</systemPath>
+                </dependency>
+            </dependencies>
+            <repositories>
+                <!-- secondary repo used by confluent -->
+                <repository>
+                    <id>jitpack.io</id>
+                    <url>https://jitpack.io</url>
+                </repository>
+            </repositories>
+        </profile>
     </profiles>
 
     <dependencies>
@@ -2863,8 +2885,8 @@
                     <groupId>net.alchim31.maven</groupId>
                     <artifactId>scala-maven-plugin</artifactId>
                     <!-- we use an older version that still supports using zinc compile server-->
-                    <version>3.4.4</version><!-- published 2018-11-01 -->
-                    <!--<version>4.7.2</version>&lt;!&ndash; published 2022-09-28 &ndash;&gt;-->
+                    <version>3.4.4</version> <!-- published 2018-11-01 -->
+                    <!--<version>4.8.0</version>&lt;!&ndash; published 2022-11-29 &ndash;&gt;-->
                     <configuration>
                         <dependencies>
                             <dependency>

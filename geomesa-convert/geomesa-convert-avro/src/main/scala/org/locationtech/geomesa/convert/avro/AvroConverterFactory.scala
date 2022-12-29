@@ -15,7 +15,7 @@ import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.locationtech.geomesa.convert.avro.AvroConverter._
 import org.locationtech.geomesa.convert.avro.AvroConverterFactory.AvroConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
-import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, BasicOptionsConvert, ConverterConfigConvert, OptionConvert}
 import org.locationtech.geomesa.convert2.TypeInference.{FunctionTransform, InferredType}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
@@ -32,17 +32,12 @@ import pureconfig.error.{ConfigReaderFailures, FailureReason}
 import java.io.InputStream
 import scala.util.control.NonFatal
 
-class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroConfig, BasicField, BasicOptions] {
+class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroConfig, BasicField, BasicOptions](
+  "avro", AvroConfigConvert, BasicFieldConvert, BasicOptionsConvert) {
 
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
   import scala.collection.JavaConverters._
-
-  override protected val typeToProcess: String = "avro"
-
-  override protected implicit def configConvert: ConverterConfigConvert[AvroConfig] = AvroConfigConvert
-  override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
-  override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
 
   /**
     * Note: only works on Avro files with embedded schemas

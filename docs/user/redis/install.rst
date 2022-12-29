@@ -36,13 +36,11 @@ Download and extract it somewhere convenient:
 Building from Source
 --------------------
 
-GeoMesa Redis may also be built from source. For more information refer to :ref:`building_from_source`
-in the developer manual, or to the ``README.md`` file in the the source distribution.
+GeoMesa Redis may also be built from source. For more information, refer to the instructions on
+`GitHub <https://github.com/locationtech/geomesa#building-from-source>`__.
 The remainder of the instructions in this chapter assume the use of the binary GeoMesa Redis
 distribution. If you have built from source, the distribution is created in the ``target`` directory of
 ``geomesa-redis/geomesa-redis-dist``.
-
-More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
 
 .. _setting_up_redis_commandline:
 

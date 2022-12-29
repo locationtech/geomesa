@@ -15,7 +15,7 @@ import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter._
 import org.locationtech.geomesa.convert.text.DelimitedTextConverterFactory.{DelimitedTextConfigConvert, DelimitedTextOptionsConvert}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
-import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, PrimitiveConvert}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, ConverterConfigConvert, ConverterOptionsConvert, PrimitiveConvert}
 import org.locationtech.geomesa.convert2.TypeInference.FunctionTransform
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.transforms.Expression.{LiteralNull, TryExpression}
@@ -32,15 +32,10 @@ import java.nio.charset.{Charset, StandardCharsets}
 import scala.util.Try
 
 class DelimitedTextConverterFactory
-    extends AbstractConverterFactory[DelimitedTextConverter, DelimitedTextConfig, BasicField, DelimitedTextOptions] {
+    extends AbstractConverterFactory[DelimitedTextConverter, DelimitedTextConfig, BasicField, DelimitedTextOptions](
+      DelimitedTextConverterFactory.TypeToProcess, DelimitedTextConfigConvert, BasicFieldConvert, DelimitedTextOptionsConvert) {
 
   import scala.collection.JavaConverters._
-
-  override protected val typeToProcess: String = DelimitedTextConverterFactory.TypeToProcess
-
-  override protected implicit def configConvert: ConverterConfigConvert[DelimitedTextConfig] = DelimitedTextConfigConvert
-  override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
-  override protected implicit def optsConvert: ConverterOptionsConvert[DelimitedTextOptions] = DelimitedTextOptionsConvert
 
   override def infer(
       is: InputStream,
