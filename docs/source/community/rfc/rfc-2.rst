@@ -158,10 +158,18 @@ sourceCRS and targetCRS members, whereas DerivedCRS point to a Conversion
 instance (which derives from CoordinateOperation). This issue was detected in
 the ISO-19111 standard. The solution adopted here is to use std::weak_ptr
 <<<<<<< HEAD
+<<<<<<< HEAD
 in the CoordinateOperation class to avoid the cycle. This design artifact is
 =======
 in the CoordinateOperation class to avoid the cycle. This design artefact is
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+in the CoordinateOperation class to avoid the cycle. This design artefact is
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 transparent to users.
 
 Another important design point is that all ISO19111 objects are immutable after
@@ -641,10 +649,18 @@ Impacted files
 
 New files (excluding makefile.am, CMakeLists.txt and other build infrastructure
 <<<<<<< HEAD
+<<<<<<< HEAD
 artifacts):
 =======
 artefacts):
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+artefacts):
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
     * include/proj/: Public installed C++ headers
         - `common.hpp`_: declarations of osgeo::proj::common namespace.

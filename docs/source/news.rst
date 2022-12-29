@@ -36,10 +36,18 @@ Bug fixes
 * Implement ``Geographic/Vertical Offset`` conversions (`#3413 <https://github.com/OSGeo/PROJ/issues/3413>`_)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 * ``vandg`` projection: handle ``+over`` to extend the validity domain outside of ``|long|>180deg`` (`#3427 <https://github.com/OSGeo/PROJ/issues/3427>`_)
 =======
 * ``vandg`` projection: handle ``+over`` to extend the validity domain outside of ``|lon|>180deg`` (`#3427 <https://github.com/OSGeo/PROJ/issues/3427>`_)
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+* ``vandg`` projection: handle ``+over`` to extend the validity domain outside of ``|lon|>180deg`` (`#3427 <https://github.com/OSGeo/PROJ/issues/3427>`_)
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
 * ``eqdc`` projection: avoid floating point division by zero in non-nominal case (`#3415 <https://github.com/OSGeo/PROJ/issues/3415>`_)
 
@@ -198,10 +206,18 @@ Bug fixes
 * ``unitconvert``: round to nearest date when converting to yyyymmdd (`#3111 <https://github.com/OSGeo/PROJ/issues/3111>`_)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 * Fix comparison of GeodeticReferenceFrame vs DynamicGeodeticReferenceFrame (`#3120 <https://github.com/OSGeo/PROJ/issues/3120>`_)
 =======
 * Fix comparison of GeodeticRefrenceFrame vs DynamicGeodeticReferenceFrame (`#3120 <https://github.com/OSGeo/PROJ/issues/3120>`_)
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+* Fix comparison of GeodeticRefrenceFrame vs DynamicGeodeticReferenceFrame (`#3120 <https://github.com/OSGeo/PROJ/issues/3120>`_)
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
 * :cpp:func:`createOperations`: fix transformation involving CompoundCRS, ToWGS84
   and PROJ4_GRIDS (`#3124 <https://github.com/OSGeo/PROJ/issues/3124>`_)
@@ -421,10 +437,18 @@ Bug fixes
 * Detect ESRI WKT better in certain circumstances (`#2823 <https://github.com/OSGEO/PROJ/issues/2823>`_)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 * Fix performance issue on pipeline instantiation of huge (broken)
 =======
 * Fix performance issue on pipeline instanciation of huge (broken)
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+* Fix performance issue on pipeline instanciation of huge (broken)
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
   pipelines (`#2824 <https://github.com/OSGEO/PROJ/issues/2824>`_)
 
 * Make sure to re-order projection parameters according to their canonical
@@ -436,10 +460,18 @@ Bug fixes
   that cause convergence to sometimes fail (`#2853 <https://github.com/OSGEO/PROJ/issues/2853>`_)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 * Fix handling of edge-case coordinates in inverse ortho ellipsoidal
 =======
 * Fix handling of edge-case coordinates in invers ortho ellipsoidal
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+* Fix handling of edge-case coordinates in invers ortho ellipsoidal
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
   oblique (`#2855 <https://github.com/OSGEO/PROJ/issues/2855>`_)
 
 * :c:func:`proj_normalize_for_visualization()`: set input and output units when there
@@ -502,10 +534,18 @@ Bug Fixes
 
 * :cpp:func:`createOperations`: fix missing deg<-->rad conversion when transforming with a
 <<<<<<< HEAD
+<<<<<<< HEAD
   CRS that has a fallback-to-PROJ4-string behavior and is a BoundCRS of a
 =======
   CRS that has a fallback-to-PROJ4-string behaviour and is a BoundCRS of a
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+  CRS that has a fallback-to-PROJ4-string behaviour and is a BoundCRS of a
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
   GeographicCRS (`#2808 <https://github.com/OSGeo/PROJ/issues/2808>`_)
 
 * WKT2 import/export: preserve PROJ.4 CRS extension string in REMARKS[] (`#2812 <https://github.com/OSGeo/PROJ/issues/2812>`_)
@@ -616,10 +656,18 @@ Bug fixes
 
 * :cpp:func:`createOperation()`: make sure no to discard deprecated operations if the
 <<<<<<< HEAD
+<<<<<<< HEAD
   replacement uses an unknown grid (`#2623 <https://github.com/OSGeo/PROJ/issues/2623>`_)
 =======
   replacement uses an unknow grid (`#2623 <https://github.com/OSGeo/PROJ/issues/2623>`_)
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+  replacement uses an unknow grid (`#2623 <https://github.com/OSGeo/PROJ/issues/2623>`_)
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
 * Fix build on Solaris 11.4 (`#2621 <https://github.com/OSGeo/PROJ/issues/2621>`_)
 
