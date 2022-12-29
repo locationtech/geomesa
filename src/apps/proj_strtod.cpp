@@ -126,6 +126,9 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -279,6 +282,7 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> locationtech-main
 =======
     char *p = (char *) str;
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -331,6 +335,9 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
     int n = 0;
     int num_digits_total        = 0;
     int num_digits_after_comma  = 0;
@@ -365,6 +372,9 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -518,6 +528,7 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> locationtech-main
 =======
             *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -570,6 +581,9 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
         return HUGE_VAL;
     }
 
@@ -606,6 +620,9 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -759,6 +776,7 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> locationtech-main
 =======
             *endptr = (char *) str;
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -811,6 +829,9 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
         return 0;
     }
 
@@ -843,6 +864,9 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -996,6 +1020,7 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> locationtech-main
 =======
             *endptr = (char *) str;
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1048,6 +1073,9 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
         return 0;
     }
 
@@ -1091,6 +1119,9 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1244,6 +1275,7 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> locationtech-main
 =======
                 *endptr = (char *) str;
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1296,6 +1328,9 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
             return 0;
     }
 
@@ -1328,6 +1363,9 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1481,6 +1519,7 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> locationtech-main
 =======
             *endptr = (char *) str;
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1533,6 +1572,9 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
         return 0;
     }
 
@@ -1569,6 +1611,9 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1722,6 +1767,7 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> locationtech-main
 =======
             *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1774,6 +1820,9 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
         return sign==-1? -0: 0;
     }
 
@@ -1818,6 +1867,9 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1971,6 +2023,7 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> locationtech-main
 =======
             *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2023,6 +2076,9 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
         if (sign==-1)
             return -number;
         return number;
@@ -2070,6 +2126,9 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2223,6 +2282,7 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> locationtech-main
 =======
                 *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2275,6 +2335,9 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
             if (sign==-1)
                 return -number;
             return number;
@@ -2333,6 +2396,9 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2486,6 +2552,7 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> locationtech-main
 =======
             *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2538,6 +2605,9 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
         return HUGE_VAL;
     }
 
@@ -2591,6 +2661,9 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2744,6 +2817,7 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> locationtech-main
 =======
                     *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2796,6 +2870,9 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
                 return HUGE_VAL;
             }
         }
@@ -2847,6 +2924,9 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3000,6 +3080,7 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> locationtech-main
 =======
         *endptr = p;
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3052,6 +3133,9 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 
     if ((exponent < DBL_MIN_EXP) || (exponent > DBL_MAX_EXP)) {
         errno = ERANGE;
