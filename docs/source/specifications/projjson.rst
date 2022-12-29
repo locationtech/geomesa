@@ -69,12 +69,15 @@ History of the schema
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -163,6 +166,7 @@ History of the schema
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 * v0.6: additional optional "source_crs" property in "abridged_transformation". Implemented in PROJ 9.2
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -221,6 +225,11 @@ History of the schema
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+* v0.6: additional optional "source_crs" property in "abridged_transformation". Implemented in PROJ 9.2
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 * v0.5:
     - Implemented in PROJ 9.1:
         + add "meridian" member in Axis object type.
@@ -268,6 +277,7 @@ More formally, the ``type`` should be specified if the JSON schema specifies alt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -278,6 +288,8 @@ More formally, the ``type`` should be specified if the JSON schema specifies alt
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 types for the value of a member using the oneOf construct and those alternative
 =======
 types for the value of a member using the oneOf constrct and those alternative
@@ -312,6 +324,7 @@ types for the value of a member using the oneOf constrct and those alternative
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -381,6 +394,11 @@ types for the value of a member using the oneOf constrct and those alternative
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+types for the value of a member using the oneOf constrct and those alternative
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 types have a ``type`` member. Otherwise it may be omitted.
 
 High level objects
@@ -486,6 +504,7 @@ of a "object usage" class. An object usage has the following optional members:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -496,6 +515,8 @@ of a "object usage" class. An object usage has the following optional members:
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
   not modify the defining parameters of the object. e.g "Use NTv2 file for better accuracy"
 =======
   not modify the definining parameters of the object. e.g "Use NTv2 file for better accuracy"
@@ -530,6 +551,7 @@ of a "object usage" class. An object usage has the following optional members:
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -599,6 +621,11 @@ of a "object usage" class. An object usage has the following optional members:
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+  not modify the definining parameters of the object. e.g "Use NTv2 file for better accuracy"
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 - ``id`` (mutually exclusive with ``ids``): (optional) Identifier of the object, as defined in :ref:`identifiers`
 - ``ids`` (mutually exclusive with ``id``): (optional) Identifiers of the object, as defined in :ref:`identifiers`
 
@@ -926,6 +953,7 @@ of the PROJ software version 9.0.0
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -936,6 +964,8 @@ of the PROJ software version 9.0.0
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
     did not have the datum ensemble concept. Consequently they used a ``datum``
 =======
     did not have the datum ensemble concept. Consquently they used a ``datum``
@@ -970,6 +1000,7 @@ of the PROJ software version 9.0.0
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1039,6 +1070,11 @@ of the PROJ software version 9.0.0
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    did not have the datum ensemble concept. Consquently they used a ``datum``
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
     member instead of a ``datum_ensemble``. The number of elements in the
     datum ensemble may also vary over time when new realizations of WGS 84 are
     added to the ensemble.
@@ -1662,6 +1698,7 @@ in the OGC Topic 2 abstract specification / ISO-19111:2019. In particular,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1672,6 +1709,8 @@ in the OGC Topic 2 abstract specification / ISO-19111:2019. In particular,
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 the members of a compound CRS can be a Bound CRS in this specification, whereas
 =======
 the members of a coumpound CRS can be a Bound CRS in this specification, whereas
@@ -1706,6 +1745,7 @@ the members of a coumpound CRS can be a Bound CRS in this specification, whereas
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1775,6 +1815,11 @@ the members of a coumpound CRS can be a Bound CRS in this specification, whereas
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+the members of a coumpound CRS can be a Bound CRS in this specification, whereas
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 OGC Topic 2 abstract specification restricts it to single CRS. A Bound CRS can
 also be used as the source or target of a coordinate operation.
 
@@ -1799,6 +1844,7 @@ PROJJSON omissions
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1813,6 +1859,8 @@ PROJJSON omissions
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 This specification does not define an encoding for triaxial ellipsoid (``TRIAXIAL`` WKT keyword)
 =======
 =======
@@ -1829,6 +1877,7 @@ This specification does not define an encoding for triaxial ellipsoid (``TRIAXIA
 This specification does not define an encoding for triaxial ellipsoid (``TRIAXIAL`` WKT keyword)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1858,10 +1907,15 @@ This specification does not define an encoding for triaxial ellipsoid (``TRIAXIA
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 This specification does not define an encoding for:
 
 - triaxial ellipsoid (``TRIAXIAL`` WKT keyword)
 - coordinate metadata (``COORDINATEMETADATA`` WKT keyword)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1880,6 +1934,8 @@ This specification does not define an encoding for:
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -1934,6 +1990,7 @@ This specification does not define an encoding for triaxial ellipsoid (``TRIAXIA
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1972,6 +2029,10 @@ This specification does not define an encoding for triaxial ellipsoid (``TRIAXIA
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 
 Reference implementation
 ------------------------
@@ -1995,6 +2056,7 @@ PROJJSON is available as input and output of the `PROJ <https://proj.org>`_ soft
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2005,6 +2067,8 @@ PROJJSON is available as input and output of the `PROJ <https://proj.org>`_ soft
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 
 The current version is the PROJJSON schema is 0.4.
@@ -2042,12 +2106,16 @@ The current version is the PROJJSON schema is 0.4.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 
 The current version is the PROJJSON schema is 0.4.
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 
@@ -2111,3 +2179,5 @@ The current version is the PROJJSON schema is 0.4.
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
