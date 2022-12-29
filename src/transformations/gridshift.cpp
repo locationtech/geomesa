@@ -4543,6 +4543,7 @@ static PJ_LP normalizeLongitude(const GenericShiftGrid *grid, const PJ_LPZ in,
                                 const osgeo::proj::ExtentAndRes *&extentOut) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4702,10 +4703,24 @@ static PJ_LP normalizeLongitude(const GenericShiftGrid *grid, const PJ_LPZ in,
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+=======
+>>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 9172626758 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
     PJ_LP normalized;
     normalized.lam = in.lam;
     normalized.phi = in.phi;
@@ -5011,6 +5026,7 @@ PJ_LPZ gridshiftData::grid_apply_internal(
     const osgeo::proj::ExtentAndRes *extent;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5170,10 +5186,24 @@ PJ_LPZ gridshiftData::grid_apply_internal(
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+=======
+>>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 9172626758 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
     PJ_LP normalized_in = normalizeLongitude(grid, in, extent);
 
     PJ_LPZ shift = grid_interpolate(ctx, type, normalized_in, grid);
