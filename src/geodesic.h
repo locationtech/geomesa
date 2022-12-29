@@ -31,7 +31,11 @@
  * The minor version of the geodesic library.  (This tracks the version of
  * GeographicLib.)
  **********************************************************************/
+<<<<<<< HEAD
 #define GEODESIC_VERSION_MINOR 1
+=======
+#define GEODESIC_VERSION_MINOR 0
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 /**
  * The patch level of the geodesic library.  (This tracks the version of
  * GeographicLib.)
