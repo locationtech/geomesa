@@ -65,7 +65,10 @@
 #define proj_context_use_proj4_init_rules internal_proj_context_use_proj4_init_rules
 #define proj_convert_conversion_to_other_method internal_proj_convert_conversion_to_other_method
 #define proj_coord internal_proj_coord
+<<<<<<< HEAD
 #define proj_coordinate_metadata_get_epoch internal_proj_coordinate_metadata_get_epoch
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_coordoperation_create_inverse internal_proj_coordoperation_create_inverse
 #define proj_coordoperation_get_accuracy internal_proj_coordoperation_get_accuracy
 #define proj_coordoperation_get_grid_used internal_proj_coordoperation_get_grid_used
@@ -139,7 +142,10 @@
 #define proj_create_conversion_transverse_mercator internal_proj_create_conversion_transverse_mercator
 #define proj_create_conversion_transverse_mercator_south_oriented internal_proj_create_conversion_transverse_mercator_south_oriented
 #define proj_create_conversion_tunisia_mapping_grid internal_proj_create_conversion_tunisia_mapping_grid
+<<<<<<< HEAD
 #define proj_create_conversion_tunisia_mining_grid internal_proj_create_conversion_tunisia_mining_grid
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_create_conversion_two_point_equidistant internal_proj_create_conversion_two_point_equidistant
 #define proj_create_conversion_utm internal_proj_create_conversion_utm
 #define proj_create_conversion_van_der_grinten internal_proj_create_conversion_van_der_grinten

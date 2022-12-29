@@ -161,7 +161,10 @@ test_projjson -s EPSG:3111 -t GDA2020
 test_projjson EPSG:9057
 # Dynamic vertical CRS "RH2000 height"
 test_projjson EPSG:5613
+<<<<<<< HEAD
 test_projjson "ITRF2014@2025.0"
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
 validate_json $TRAVIS_BUILD_DIR/schemas/v0.5/examples/point_motion_operation.json
 
