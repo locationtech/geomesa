@@ -691,6 +691,7 @@ INSERT INTO "alias_name" VALUES('vertical_datum','EPSG','5100','Approximate Mean
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -731,6 +732,8 @@ INSERT INTO "alias_name" VALUES('geodetic_datum','EPSG','1351','SMITB20-IRF','EP
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','21100','Genuk / NEIEZ','EPSG');
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','2140','NAD83(CSRS98) / SCoPQ zone 3','EPSG');
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','2141','NAD83(CSRS98) / SCoPQ zone 4','EPSG');
@@ -7356,6 +7359,7 @@ INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9069','746','EPSG');
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9069','ETRF2014 - LatLon','EPSG');
 =======
 INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9069','ETRF2014- LatLon','EPSG');
@@ -7385,6 +7389,9 @@ INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9069','ETRF2014- LatLon',
 =======
 INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9069','ETRF2014- LatLon','EPSG');
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9069','ETRF2014- LatLon','EPSG');
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9672','CD Norway','EPSG');
 INSERT INTO "alias_name" VALUES('compound_crs','EPSG','9656','PL-ETRF2000 + Kronzstad 86','EPSG');
 INSERT INTO "alias_name" VALUES('compound_crs','EPSG','9657','PL-ETRF2000 + Kronzstad 86','EPSG');
@@ -7412,6 +7419,7 @@ INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9390','766','EPSG');
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9390','EVRF2019mean - NHt','EPSG');
@@ -7453,6 +7461,11 @@ INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9390','EVRF2019mean-NHt',
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9389','765','EPSG');
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9389','EVRF2019-NHt','EPSG');
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9390','EVRF2019mean-NHt','EPSG');
+INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9389','765','EPSG');
+INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9389','EVRF2019-NHt','EPSG');
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','9749','NAD83(2011) / AL W (ftUS)','EPSG');
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','9748','NAD83(2011) / AL E (ftUS)','EPSG');
 INSERT INTO "alias_name" VALUES('projected_crs','EPSG','20904','GSK-2011 / 6-degree Gauss-Kruger zone 4','EPSG');
@@ -7851,6 +7864,7 @@ INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9245','335','EPSG');
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9245','CGVD2013(CGG2013a) Epoch 2010 - OHt','EPSG');
 =======
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9245','CGVD2013(CGG2013a) - OHt','EPSG');
@@ -7880,6 +7894,9 @@ INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9245','CGVD2013(CGG2013a)
 =======
 INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9245','CGVD2013(CGG2013a) - OHt','EPSG');
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','9245','CGVD2013(CGG2013a) - OHt','EPSG');
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "alias_name" VALUES('compound_crs','EPSG','20037','NAD83(CSRS) 2002 + CGVD2013(CGG2013a) epoch 2002 height','EPSG');
 INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9988','802','EPSG');
 INSERT INTO "alias_name" VALUES('geodetic_crs','EPSG','9988','ITRF2020 - XYZ','EPSG');
@@ -7945,6 +7962,7 @@ INSERT INTO "alias_name" VALUES('vertical_crs','EPSG','8051','Approximate MSL de
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -8003,3 +8021,5 @@ INSERT INTO "alias_name" VALUES('compound_crs','EPSG','10281','ETRS89 / RBEPP12 
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
