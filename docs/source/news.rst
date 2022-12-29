@@ -49,6 +49,7 @@ Bug fixes
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -130,6 +131,12 @@ Bug fixes
 =======
 * ``vandg`` projection: handle ``+over`` to extend the validity domain outside of ``|long|>180deg`` (`#3427 <https://github.com/OSGeo/PROJ/issues/3427>`_)
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+* ``vandg`` projection: handle ``+over`` to extend the validity domain outside of ``|long|>180deg`` (`#3427 <https://github.com/OSGeo/PROJ/issues/3427>`_)
+=======
+* ``vandg`` projection: handle ``+over`` to extend the validity domain outside of ``|lon|>180deg`` (`#3427 <https://github.com/OSGeo/PROJ/issues/3427>`_)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 
 * ``eqdc`` projection: avoid floating point division by zero in non-nominal case (`#3415 <https://github.com/OSGeo/PROJ/issues/3415>`_)
 
@@ -301,6 +308,7 @@ Bug fixes
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -382,6 +390,12 @@ Bug fixes
 =======
 * Fix comparison of GeodeticReferenceFrame vs DynamicGeodeticReferenceFrame (`#3120 <https://github.com/OSGeo/PROJ/issues/3120>`_)
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+* Fix comparison of GeodeticReferenceFrame vs DynamicGeodeticReferenceFrame (`#3120 <https://github.com/OSGeo/PROJ/issues/3120>`_)
+=======
+* Fix comparison of GeodeticRefrenceFrame vs DynamicGeodeticReferenceFrame (`#3120 <https://github.com/OSGeo/PROJ/issues/3120>`_)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 
 * :cpp:func:`createOperations`: fix transformation involving CompoundCRS, ToWGS84
   and PROJ4_GRIDS (`#3124 <https://github.com/OSGeo/PROJ/issues/3124>`_)
@@ -614,6 +628,7 @@ Bug fixes
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -695,6 +710,12 @@ Bug fixes
 =======
 * Fix performance issue on pipeline instantiation of huge (broken)
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+* Fix performance issue on pipeline instantiation of huge (broken)
+=======
+* Fix performance issue on pipeline instanciation of huge (broken)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
   pipelines (`#2824 <https://github.com/OSGEO/PROJ/issues/2824>`_)
 
 * Make sure to re-order projection parameters according to their canonical
@@ -719,6 +740,7 @@ Bug fixes
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -800,6 +822,12 @@ Bug fixes
 =======
 * Fix handling of edge-case coordinates in inverse ortho ellipsoidal
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+* Fix handling of edge-case coordinates in inverse ortho ellipsoidal
+=======
+* Fix handling of edge-case coordinates in invers ortho ellipsoidal
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
   oblique (`#2855 <https://github.com/OSGEO/PROJ/issues/2855>`_)
 
 * :c:func:`proj_normalize_for_visualization()`: set input and output units when there
@@ -875,6 +903,7 @@ Bug Fixes
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -956,6 +985,12 @@ Bug Fixes
 =======
   CRS that has a fallback-to-PROJ4-string behavior and is a BoundCRS of a
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+  CRS that has a fallback-to-PROJ4-string behavior and is a BoundCRS of a
+=======
+  CRS that has a fallback-to-PROJ4-string behaviour and is a BoundCRS of a
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
   GeographicCRS (`#2808 <https://github.com/OSGeo/PROJ/issues/2808>`_)
 
 * WKT2 import/export: preserve PROJ.4 CRS extension string in REMARKS[] (`#2812 <https://github.com/OSGeo/PROJ/issues/2812>`_)
@@ -1079,6 +1114,7 @@ Bug fixes
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1160,6 +1196,12 @@ Bug fixes
 =======
   replacement uses an unknown grid (`#2623 <https://github.com/OSGeo/PROJ/issues/2623>`_)
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+  replacement uses an unknown grid (`#2623 <https://github.com/OSGeo/PROJ/issues/2623>`_)
+=======
+  replacement uses an unknow grid (`#2623 <https://github.com/OSGeo/PROJ/issues/2623>`_)
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 
 * Fix build on Solaris 11.4 (`#2621 <https://github.com/OSGeo/PROJ/issues/2621>`_)
 

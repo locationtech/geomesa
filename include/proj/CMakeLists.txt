@@ -13,6 +13,7 @@ install(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -91,6 +92,12 @@ install(
 =======
   FILES util.hpp metadata.hpp common.hpp coordinates.hpp crs.hpp datum.hpp
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+  FILES util.hpp metadata.hpp common.hpp coordinates.hpp crs.hpp datum.hpp
+=======
+  FILES util.hpp metadata.hpp common.hpp crs.hpp datum.hpp
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
     coordinatesystem.hpp coordinateoperation.hpp io.hpp nn.hpp
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/proj
 )
