@@ -57,6 +57,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -69,6 +70,8 @@
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 static const struct PJ_DATUMS pj_datums[] = {
 =======
 C_NAMESPACE_VAR const struct PJ_DATUMS pj_datums[] = {
@@ -113,6 +116,7 @@ C_NAMESPACE_VAR const struct PJ_DATUMS pj_datums[] = {
 =======
 C_NAMESPACE_VAR const struct PJ_DATUMS pj_datums[] = {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 static const struct PJ_DATUMS pj_datums[] = {
 >>>>>>> 86ade66356 (typo fixes)
@@ -178,6 +182,8 @@ C_NAMESPACE_VAR const struct PJ_DATUMS pj_datums[] = {
 C_NAMESPACE_VAR const struct PJ_DATUMS pj_datums[] = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 /* id       definition                               ellipse  comments */
 /* --       ----------                               -------  -------- */
 {"WGS84",   "towgs84=0,0,0",                         "WGS84", ""},
@@ -226,10 +232,13 @@ C_NAMESPACE_VAR const struct PJ_DATUMS pj_datums[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -341,11 +350,15 @@ struct PJ_DATUMS *pj_get_datums_ref()
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 struct PJ_DATUMS *pj_get_datums_ref()
 {
     return (struct PJ_DATUMS *)pj_datums;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 const struct PJ_DATUMS *pj_get_datums_ref()
 {
@@ -387,6 +400,8 @@ const struct PJ_DATUMS *pj_get_datums_ref()
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 static const struct PJ_PRIME_MERIDIANS pj_prime_meridians[] = {
