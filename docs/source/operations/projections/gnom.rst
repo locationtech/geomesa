@@ -30,6 +30,7 @@ Gnomonic
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -46,6 +47,8 @@ Gnomonic
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -184,6 +187,7 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 +---------------------+----------------------------------------------------------+
@@ -452,6 +456,15 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 | **Defined area**    | Within a quarter circumference of the center point       |
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 1048b37894 (d)
+=======
++---------------------+----------------------------------------------------------+
+| **Classification**  | Pseudocylindrical                                        |
++---------------------+----------------------------------------------------------+
+| **Available forms** | Forward and inverse, spherical projection                |
++---------------------+----------------------------------------------------------+
+| **Defined area**    | Global                                                   |
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 +---------------------+----------------------------------------------------------+
 | **Alias**           | gnom                                                     |
 +---------------------+----------------------------------------------------------+
@@ -494,6 +507,7 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -518,6 +532,8 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 1048b37894 (d)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
 =======
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50``
@@ -532,6 +548,7 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 =======
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50``
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -704,6 +721,8 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 1048b37894 (d)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Parameters
 ################################################################################
@@ -740,6 +759,7 @@ Parameters
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -785,6 +805,8 @@ Parameters
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 1048b37894 (d)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 .. include:: ../options/x_0.rst
 
 .. include:: ../options/y_0.rst
@@ -793,6 +815,7 @@ Parameters
 
 .. include:: ../options/R.rst
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -840,11 +863,16 @@ Parameters
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 .. include:: ../options/R.rst
 
 .. include:: ../options/x_0.rst
 
 .. include:: ../options/y_0.rst
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -869,6 +897,8 @@ Parameters
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 .. include:: ../options/x_0.rst
@@ -926,6 +956,7 @@ Parameters
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1086,3 +1117,5 @@ Parameters
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 1048b37894 (d)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
