@@ -128,6 +128,7 @@ Fedora
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -152,6 +153,8 @@ Fedora
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 1048b37894 (d)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 On Fedora the ``dnf`` package manager is used::
 =======
 On Fedora the :program:`dnf` package manager is used::
@@ -166,6 +169,7 @@ On Fedora the ``dnf`` package manager is used::
 =======
 On Fedora the :program:`dnf` package manager is used::
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -338,6 +342,8 @@ On Fedora the ``dnf`` package manager is used::
 On Fedora the ``dnf`` package manager is used::
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 1048b37894 (d)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 
     sudo dnf install proj
 
@@ -370,6 +376,7 @@ Red Hat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -394,6 +401,8 @@ Red Hat
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 1048b37894 (d)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 On Red Hat based system packages are installed with ``yum``::
 =======
 On Red Hat based system packages are installed with :program:`yum`::
@@ -408,6 +417,7 @@ On Red Hat based system packages are installed with ``yum``::
 =======
 On Red Hat based system packages are installed with :program:`yum`::
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -580,6 +590,8 @@ On Red Hat based system packages are installed with ``yum``::
 On Red Hat based system packages are installed with ``yum``::
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 1048b37894 (d)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 
     sudo yum install proj
 
@@ -702,6 +714,7 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -747,6 +760,8 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8d733d2079 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
     package can be downloaded and its content decompressed into one of the
     directories where PROJ looks for :ref:`resources <resource_files>`
 =======
@@ -770,12 +785,16 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
     package can be downloaded and added to the :envvar:`PROJ_DATA` directory
     (called ``PROJ_LIB`` before PROJ 9.1)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -927,6 +946,8 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8d733d2079 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Starting with PROJ 9.2, a ``uninstall`` target is available to remove files
 installed by the ``install`` target::

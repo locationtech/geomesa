@@ -476,6 +476,7 @@ static void helmert_forward_4d (PJ_COORD &point, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -492,6 +493,8 @@ static void helmert_forward_4d (PJ_COORD &point, PJ *P) {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -596,6 +599,7 @@ static void helmert_forward_4d (PJ_COORD &point, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     point.xyz = helmert_forward_3d (point.lpz, P);
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -753,6 +757,11 @@ static void helmert_forward_4d (PJ_COORD &point, PJ *P) {
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 1048b37894 (d)
+=======
+=======
+    point.xyz = helmert_forward_3d (point.lpz, P);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 
@@ -768,6 +777,7 @@ static void helmert_reverse_4d (PJ_COORD& point, PJ *P) {
         build_rot_matrix(P);
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -810,6 +820,8 @@ static void helmert_reverse_4d (PJ_COORD& point, PJ *P) {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -914,6 +926,7 @@ static void helmert_reverse_4d (PJ_COORD& point, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     point.lpz = helmert_reverse_3d (point.xyz, P);
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1071,6 +1084,11 @@ static void helmert_reverse_4d (PJ_COORD& point, PJ *P) {
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 1048b37894 (d)
+=======
+=======
+    point.lpz = helmert_reverse_3d (point.xyz, P);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 /* Arcsecond to radians */

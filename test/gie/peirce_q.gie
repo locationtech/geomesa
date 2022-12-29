@@ -23,6 +23,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -104,6 +105,12 @@
 =======
 # tessellation but means that there is no uniform scale
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+# tessellation but means that there is no uniform scale
+=======
+# tesselation but means that there is no uniform scale
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 # across the coordinate space, so tolerance can be high.
 ------------------------------------------------------------
 
