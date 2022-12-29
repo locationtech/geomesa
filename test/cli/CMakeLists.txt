@@ -1,0 +1,22 @@
+#
+# test
+#
+set(CS2CS_BIN "cs2cs")
+set(PROJ_BIN "proj")
+set(INVPROJ_BIN "invproj")
+set(PROJINFO_BIN "projinfo")
+set(CCT_BIN "cct")
+set(PROJSYNC_BIN "projsync")
+proj_add_test_script_sh("test27" PROJ_BIN)
+proj_add_test_script_sh("test83" PROJ_BIN)
+proj_add_test_script_sh("testproj" PROJ_BIN)
+proj_add_test_script_sh("testinvproj" INVPROJ_BIN)
+proj_add_test_script_sh("testvarious" CS2CS_BIN)
+proj_add_test_script_sh("testdatumfile" CS2CS_BIN)
+proj_add_test_script_sh("testIGNF" CS2CS_BIN)
+proj_add_test_script_sh("testntv2" CS2CS_BIN)
+proj_add_test_script_sh("testprojinfo" PROJINFO_BIN)
+proj_add_test_script_sh("testcct" CCT_BIN)
+if(BUILD_PROJSYNC_DATA)
+proj_add_test_script_sh("test_projsync" PROJSYNC_BIN)
+endif()
