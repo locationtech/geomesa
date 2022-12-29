@@ -173,7 +173,10 @@ set(SRC_LIBPROJ_ISO19111
   iso19111/util.cpp
   iso19111/metadata.cpp
   iso19111/common.cpp
+<<<<<<< HEAD
   iso19111/coordinates.cpp
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
   iso19111/crs.cpp
   iso19111/datum.cpp
   iso19111/coordinatesystem.cpp
@@ -327,7 +330,11 @@ add_custom_target(check_wkt2_grammar_md5 ALL
                   COMMAND ${CMAKE_COMMAND}
                       "-DIN_FILE=wkt2_grammar.y"
                       "-DTARGET=generate_wkt2_parser"
+<<<<<<< HEAD
                       "-DEXPECTED_MD5SUM=289572eebe9dab3c7225bd48c445c287"
+=======
+                      "-DEXPECTED_MD5SUM=f9ee543089ae55a895ae6e16cd0a68b2"
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                       -P "${CMAKE_CURRENT_SOURCE_DIR}/check_md5sum.cmake"
                   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/wkt2_grammar.y"

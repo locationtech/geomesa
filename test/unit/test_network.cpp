@@ -167,11 +167,19 @@ TEST(networking, basic) {
         proj_context_destroy(ctx);
         return;
     }
+<<<<<<< HEAD
     double longitude = 2;
     double lat = 49;
     proj_trans_generic(P, PJ_FWD, &longitude, sizeof(double), 1, &lat,
                        sizeof(double), 1, nullptr, 0, 0, nullptr, 0, 0);
     EXPECT_NEAR(longitude, 1.9992776848, 1e-10);
+=======
+    double lon = 2;
+    double lat = 49;
+    proj_trans_generic(P, PJ_FWD, &lon, sizeof(double), 1, &lat, sizeof(double),
+                       1, nullptr, 0, 0, nullptr, 0, 0);
+    EXPECT_NEAR(lon, 1.9992776848, 1e-10);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     EXPECT_NEAR(lat, 48.9999322600, 1e-10);
 
     proj_destroy(P);
@@ -541,12 +549,21 @@ TEST(networking, custom) {
         exchange.events.emplace_back(std::move(event));
     }
     {
+<<<<<<< HEAD
         double longitude = 2 / 180. * M_PI;
         double lat = 49 / 180. * M_PI;
         double z = 0;
         ASSERT_EQ(proj_trans_generic(P, PJ_FWD, &longitude, sizeof(double), 1,
                                      &lat, sizeof(double), 1, &z,
                                      sizeof(double), 1, nullptr, 0, 0),
+=======
+        double lon = 2 / 180. * M_PI;
+        double lat = 49 / 180. * M_PI;
+        double z = 0;
+        ASSERT_EQ(proj_trans_generic(P, PJ_FWD, &lon, sizeof(double), 1, &lat,
+                                     sizeof(double), 1, &z, sizeof(double), 1,
+                                     nullptr, 0, 0),
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                   1U);
         EXPECT_EQ(z, 1.25);
     }
@@ -595,12 +612,21 @@ TEST(networking, custom) {
     }
 
     {
+<<<<<<< HEAD
         double longitude = 2 / 180. * M_PI;
         double lat = -49 / 180. * M_PI;
         double z = 0;
         ASSERT_EQ(proj_trans_generic(P, PJ_FWD, &longitude, sizeof(double), 1,
                                      &lat, sizeof(double), 1, &z,
                                      sizeof(double), 1, nullptr, 0, 0),
+=======
+        double lon = 2 / 180. * M_PI;
+        double lat = -49 / 180. * M_PI;
+        double z = 0;
+        ASSERT_EQ(proj_trans_generic(P, PJ_FWD, &lon, sizeof(double), 1, &lat,
+                                     sizeof(double), 1, &z, sizeof(double), 1,
+                                     nullptr, 0, 0),
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                   1U);
         EXPECT_EQ(z, 2.25);
     }
@@ -621,12 +647,21 @@ TEST(networking, custom) {
     ASSERT_NE(P, nullptr);
 
     {
+<<<<<<< HEAD
         double longitude = 2 / 180. * M_PI;
         double lat = 49 / 180. * M_PI;
         double z = 0;
         ASSERT_EQ(proj_trans_generic(P, PJ_FWD, &longitude, sizeof(double), 1,
                                      &lat, sizeof(double), 1, &z,
                                      sizeof(double), 1, nullptr, 0, 0),
+=======
+        double lon = 2 / 180. * M_PI;
+        double lat = 49 / 180. * M_PI;
+        double z = 0;
+        ASSERT_EQ(proj_trans_generic(P, PJ_FWD, &lon, sizeof(double), 1, &lat,
+                                     sizeof(double), 1, &z, sizeof(double), 1,
+                                     nullptr, 0, 0),
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                   1U);
         EXPECT_EQ(z, 1.25);
     }
@@ -865,12 +900,21 @@ TEST(networking, simul_read_range_error) {
     }
 
     {
+<<<<<<< HEAD
         double longitude = 2 / 180. * M_PI;
         double lat = 49 / 180. * M_PI;
         double z = 0;
         ASSERT_EQ(proj_trans_generic(P, PJ_FWD, &longitude, sizeof(double), 1,
                                      &lat, sizeof(double), 1, &z,
                                      sizeof(double), 1, nullptr, 0, 0),
+=======
+        double lon = 2 / 180. * M_PI;
+        double lat = 49 / 180. * M_PI;
+        double z = 0;
+        ASSERT_EQ(proj_trans_generic(P, PJ_FWD, &lon, sizeof(double), 1, &lat,
+                                     sizeof(double), 1, &z, sizeof(double), 1,
+                                     nullptr, 0, 0),
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                   1U);
         EXPECT_EQ(z, 1.25);
     }
@@ -888,6 +932,7 @@ TEST(networking, simul_read_range_error) {
     }
 
     {
+<<<<<<< HEAD
         double longitude = 2 / 180. * M_PI;
         double lat = -49 / 180. * M_PI;
         double z = 0;
@@ -895,6 +940,15 @@ TEST(networking, simul_read_range_error) {
         ASSERT_EQ(proj_trans_generic(P, PJ_FWD, &longitude, sizeof(double), 1,
                                      &lat, sizeof(double), 1, &z,
                                      sizeof(double), 1, nullptr, 0, 0),
+=======
+        double lon = 2 / 180. * M_PI;
+        double lat = -49 / 180. * M_PI;
+        double z = 0;
+        proj_log_func(ctx, nullptr, silent_logger);
+        ASSERT_EQ(proj_trans_generic(P, PJ_FWD, &lon, sizeof(double), 1, &lat,
+                                     sizeof(double), 1, &z, sizeof(double), 1,
+                                     nullptr, 0, 0),
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                   1U);
         EXPECT_EQ(z, HUGE_VAL);
     }
@@ -1071,12 +1125,21 @@ TEST(networking, simul_file_change_while_opened) {
     }
 
     {
+<<<<<<< HEAD
         double longitude = 2 / 180. * M_PI;
         double lat = 49 / 180. * M_PI;
         double z = 0;
         ASSERT_EQ(proj_trans_generic(P, PJ_FWD, &longitude, sizeof(double), 1,
                                      &lat, sizeof(double), 1, &z,
                                      sizeof(double), 1, nullptr, 0, 0),
+=======
+        double lon = 2 / 180. * M_PI;
+        double lat = 49 / 180. * M_PI;
+        double z = 0;
+        ASSERT_EQ(proj_trans_generic(P, PJ_FWD, &lon, sizeof(double), 1, &lat,
+                                     sizeof(double), 1, &z, sizeof(double), 1,
+                                     nullptr, 0, 0),
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                   1U);
         EXPECT_EQ(z, 1.25);
     }
@@ -1115,7 +1178,11 @@ TEST(networking, curl_hgridshift) {
 
     PJ_COORD c;
     c.xyz.x = 49; // lat
+<<<<<<< HEAD
     c.xyz.y = 2;  // long
+=======
+    c.xyz.y = 2;  // lon
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     c.xyz.z = 0;
     c = proj_trans(P, PJ_FWD, c);
 
@@ -1151,7 +1218,11 @@ TEST(networking, curl_vgridshift) {
 
     PJ_COORD c;
     c.xyz.x = -30; // lat
+<<<<<<< HEAD
     c.xyz.y = 150; // long
+=======
+    c.xyz.y = 150; // lon
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     c.xyz.z = 0;
     c = proj_trans(P, PJ_FWD, c);
 
@@ -1187,7 +1258,11 @@ TEST(networking, curl_vgridshift_vertcon) {
 
     PJ_COORD c;
     c.xyz.x = 40;  // lat
+<<<<<<< HEAD
     c.xyz.y = -80; // long
+=======
+    c.xyz.y = -80; // lon
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     c.xyz.z = 0;
     c = proj_trans(P, PJ_FWD, c);
 
@@ -1217,7 +1292,11 @@ TEST(networking, network_endpoint_env_variable) {
 
     PJ_COORD c;
     c.xyz.x = 40;  // lat
+<<<<<<< HEAD
     c.xyz.y = -80; // long
+=======
+    c.xyz.y = -80; // lon
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     c.xyz.z = 0;
     c = proj_trans(P, PJ_FWD, c);
     putenv(const_cast<char *>("PROJ_NETWORK_ENDPOINT="));
@@ -1246,7 +1325,11 @@ TEST(networking, network_endpoint_api) {
 
     PJ_COORD c;
     c.xyz.x = 40;  // lat
+<<<<<<< HEAD
     c.xyz.y = -80; // long
+=======
+    c.xyz.y = -80; // lon
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     c.xyz.z = 0;
     c = proj_trans(P, PJ_FWD, c);
 
@@ -1421,11 +1504,19 @@ TEST(networking, cache_saturation) {
     auto P = proj_create(ctx, pipeline);
     ASSERT_NE(P, nullptr);
 
+<<<<<<< HEAD
     double longitude = 2;
     double lat = 49;
     proj_trans_generic(P, PJ_FWD, &longitude, sizeof(double), 1, &lat,
                        sizeof(double), 1, nullptr, 0, 0, nullptr, 0, 0);
     EXPECT_NEAR(longitude, 1.9992776848, 1e-10);
+=======
+    double lon = 2;
+    double lat = 49;
+    proj_trans_generic(P, PJ_FWD, &lon, sizeof(double), 1, &lat, sizeof(double),
+                       1, nullptr, 0, 0, nullptr, 0, 0);
+    EXPECT_NEAR(lon, 1.9992776848, 1e-10);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     EXPECT_NEAR(lat, 48.9999322600, 1e-10);
 
     proj_destroy(P);
@@ -1479,11 +1570,19 @@ TEST(networking, cache_ttl) {
     auto P = proj_create(ctx, pipeline);
     ASSERT_NE(P, nullptr);
 
+<<<<<<< HEAD
     double longitude = 2;
     double lat = 49;
     proj_trans_generic(P, PJ_FWD, &longitude, sizeof(double), 1, &lat,
                        sizeof(double), 1, nullptr, 0, 0, nullptr, 0, 0);
     EXPECT_NEAR(longitude, 1.9992776848, 1e-10);
+=======
+    double lon = 2;
+    double lat = 49;
+    proj_trans_generic(P, PJ_FWD, &lon, sizeof(double), 1, &lat, sizeof(double),
+                       1, nullptr, 0, 0, nullptr, 0, 0);
+    EXPECT_NEAR(lon, 1.9992776848, 1e-10);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     EXPECT_NEAR(lat, 48.9999322600, 1e-10);
 
     proj_destroy(P);
@@ -1583,11 +1682,19 @@ TEST(networking, cache_lock) {
     auto P = proj_create(ctx, pipeline);
     ASSERT_NE(P, nullptr);
 
+<<<<<<< HEAD
     double longitude = 2;
     double lat = 49;
     proj_trans_generic(P, PJ_FWD, &longitude, sizeof(double), 1, &lat,
                        sizeof(double), 1, nullptr, 0, 0, nullptr, 0, 0);
     EXPECT_NEAR(longitude, 1.9992776848, 1e-10);
+=======
+    double lon = 2;
+    double lat = 49;
+    proj_trans_generic(P, PJ_FWD, &lon, sizeof(double), 1, &lat, sizeof(double),
+                       1, nullptr, 0, 0, nullptr, 0, 0);
+    EXPECT_NEAR(lon, 1.9992776848, 1e-10);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     EXPECT_NEAR(lat, 48.9999322600, 1e-10);
 
     proj_destroy(P);
@@ -1672,11 +1779,19 @@ TEST(networking, download_whole_files) {
     auto P = proj_create(ctx, pipeline);
     ASSERT_NE(P, nullptr);
 
+<<<<<<< HEAD
     double longitude = 12;
     double lat = 56;
     double z = 0;
     proj_trans_generic(P, PJ_FWD, &longitude, sizeof(double), 1, &lat,
                        sizeof(double), 1, &z, sizeof(double), 1, nullptr, 0, 0);
+=======
+    double lon = 12;
+    double lat = 56;
+    double z = 0;
+    proj_trans_generic(P, PJ_FWD, &lon, sizeof(double), 1, &lat, sizeof(double),
+                       1, &z, sizeof(double), 1, nullptr, 0, 0);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     EXPECT_NEAR(z, 36.5909996032715, 1e-10);
     proj_destroy(P);
 
@@ -1903,11 +2018,19 @@ TEST(networking, file_api) {
     auto P = proj_create(ctx, pipeline);
     ASSERT_NE(P, nullptr);
 
+<<<<<<< HEAD
     double longitude = 12;
     double lat = 56;
     double z = 0;
     proj_trans_generic(P, PJ_FWD, &longitude, sizeof(double), 1, &lat,
                        sizeof(double), 1, &z, sizeof(double), 1, nullptr, 0, 0);
+=======
+    double lon = 12;
+    double lat = 56;
+    double z = 0;
+    proj_trans_generic(P, PJ_FWD, &lon, sizeof(double), 1, &lat, sizeof(double),
+                       1, &z, sizeof(double), 1, nullptr, 0, 0);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     EXPECT_NEAR(z, 36.5909996032715, 1e-10);
 
     proj_destroy(P);
