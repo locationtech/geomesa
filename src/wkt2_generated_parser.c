@@ -172,6 +172,7 @@ extern int pj_wkt2_debug;
     T_ORDER = 277,
     T_ANCHOR = 278,
 <<<<<<< HEAD
+<<<<<<< HEAD
     T_ANCHOREPOCH = 279,
     T_CONVERSION = 280,
     T_METHOD = 281,
@@ -304,6 +305,8 @@ extern int pj_wkt2_debug;
     T_STRING = 408,
     T_UNSIGNED_INTEGER_DIFFERENT_ONE_TWO_THREE = 409
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     T_CONVERSION = 279,
     T_METHOD = 280,
     T_REMARK = 281,
@@ -429,7 +432,14 @@ extern int pj_wkt2_debug;
     T_UNSPECIFIED = 401,
     T_STRING = 402,
     T_UNSIGNED_INTEGER_DIFFERENT_ONE_TWO_THREE = 403
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
   };
 #endif
 
@@ -751,6 +761,7 @@ union yyalloc
 #define YYFINAL  106
 /* YYLAST -- Last index in YYTABLE.  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define YYLAST   3343
 
 /* YYNTOKENS -- Number of terminals.  */
@@ -765,6 +776,8 @@ union yyalloc
 #define YYUNDEFTOK  2
 #define YYMAXUTOK   409
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 #define YYLAST   2990
 
 /* YYNTOKENS -- Number of terminals.  */
@@ -778,7 +791,14 @@ union yyalloc
 
 #define YYUNDEFTOK  2
 #define YYMAXUTOK   403
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -795,6 +815,7 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
 <<<<<<< HEAD
+<<<<<<< HEAD
      166,   168,     2,   160,   169,   161,   155,     2,     2,   157,
      158,   159,     2,     2,     2,     2,     2,     2,   162,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,   156,
@@ -802,13 +823,22 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,   163,     2,     2,     2,     2,     2,
      164,   165,     2,   167,     2,     2,     2,     2,     2,     2,
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
      160,   162,     2,   154,   163,   155,   149,     2,     2,   151,
      152,   153,     2,     2,     2,     2,     2,     2,   156,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,   150,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,   157,     2,     2,     2,     2,     2,
      158,   159,     2,   161,     2,     2,     2,     2,     2,     2,
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -840,16 +870,25 @@ static const yytype_uint8 yytranslate[] =
      125,   126,   127,   128,   129,   130,   131,   132,   133,   134,
      135,   136,   137,   138,   139,   140,   141,   142,   143,   144,
 <<<<<<< HEAD
+<<<<<<< HEAD
      145,   146,   147,   148,   149,   150,   151,   152,   153,   154
 =======
      145,   146,   147,   148
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+     145,   146,   147,   148
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
        0,   213,   213,   213,   213,   213,   213,   213,   214,   214,
      214,   215,   218,   218,   219,   219,   219,   220,   222,   222,
@@ -926,6 +965,8 @@ static const yytype_int16 yyrline[] =
     1637,  1642,  1648,  1650,  1655,  1656,  1659,  1667,  1668,  1669,
     1670,  1672,  1674
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
        0,   207,   207,   207,   207,   207,   207,   207,   208,   208,
      208,   209,   212,   212,   213,   213,   213,   214,   216,   216,
      220,   224,   224,   226,   228,   230,   230,   232,   232,   234,
@@ -996,7 +1037,14 @@ static const yytype_int16 yyrline[] =
     1558,  1559,  1560,  1562,  1567,  1572,  1573,  1576,  1582,  1582,
     1582,  1582,  1584,  1585,  1586,  1587,  1589,  1591,  1596,  1602,
     1604,  1609,  1610,  1613,  1621,  1622,  1623,  1624,  1626,  1628
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 #endif
 
@@ -1010,6 +1058,7 @@ static const char *const yytname[] =
   "\"PARAMETER\"", "\"GEODCRS\"", "\"LENGTHUNIT\"", "\"ANGLEUNIT\"",
   "\"SCALEUNIT\"", "\"TIMEUNIT\"", "\"ELLIPSOID\"", "\"CS\"", "\"ID\"",
   "\"PROJCRS\"", "\"BASEGEODCRS\"", "\"MERIDIAN\"", "\"BEARING\"",
+<<<<<<< HEAD
 <<<<<<< HEAD
   "\"ORDER\"", "\"ANCHOR\"", "\"ANCHOREPOCH\"", "\"CONVERSION\"",
   "\"METHOD\"", "\"REMARK\"", "\"GEOGCRS\"", "\"BASEGEOGCRS\"",
@@ -1030,6 +1079,8 @@ static const char *const yytname[] =
   "\"AXISMINVALUE\"", "\"AXISMAXVALUE\"", "\"RANGEMEANING\"", "\"exact\"",
   "\"wraparound\"", "\"GEODETICCRS\"", "\"GEODETICDATUM\"",
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
   "\"ORDER\"", "\"ANCHOR\"", "\"CONVERSION\"", "\"METHOD\"", "\"REMARK\"",
   "\"GEOGCRS\"", "\"BASEGEOGCRS\"", "\"SCOPE\"", "\"AREA\"", "\"BBOX\"",
   "\"CITATION\"", "\"URI\"", "\"VERTCRS\"", "\"VDATUM\"", "\"GEOIDMODEL\"",
@@ -1046,7 +1097,14 @@ static const char *const yytname[] =
   "\"BASEENGCRS\"", "\"BASEPARAMCRS\"", "\"BASETIMECRS\"", "\"EPOCH\"",
   "\"COORDEPOCH\"", "\"COORDINATEMETADATA\"", "\"POINTMOTIONOPERATION\"",
   "\"VERSION\"", "\"GEODETICCRS\"", "\"GEODETICDATUM\"",
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
   "\"PROJECTEDCRS\"", "\"PRIMEMERIDIAN\"", "\"GEOGRAPHICCRS\"", "\"TRF\"",
   "\"VERTICALCRS\"", "\"VERTICALDATUM\"", "\"VRF\"", "\"TIMEDATUM\"",
   "\"TEMPORALQUANTITY\"", "\"ENGINEERINGDATUM\"", "\"ENGINEERINGCRS\"",
@@ -1132,6 +1190,7 @@ static const char *const yytname[] =
   "axis_direction_except_n_s_cw_ccw", "meridian", "meridian_keyword",
   "bearing", "bearing_keyword", "axis_order", "axis_order_keyword",
 <<<<<<< HEAD
+<<<<<<< HEAD
   "axis_range_opt_separator_identifier_list",
   "opt_separator_axis_range_opt_separator_identifier_list",
   "axis_minimum_value", "axis_minimum_value_keyword", "axis_maximum_value",
@@ -1140,7 +1199,14 @@ static const char *const yytname[] =
   "datum_ensemble", "geodetic_datum_ensemble_without_pm",
 =======
   "cs_unit", "datum_ensemble", "geodetic_datum_ensemble_without_pm",
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+  "cs_unit", "datum_ensemble", "geodetic_datum_ensemble_without_pm",
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
   "datum_ensemble_member_list_ellipsoid_accuracy_identifier_list",
   "opt_separator_datum_ensemble_identifier_list",
   "vertical_datum_ensemble",
@@ -1168,6 +1234,7 @@ static const char *const yytname[] =
   "geodetic_reference_frame_without_pm",
   "geodetic_reference_frame_keyword", "datum_name",
 <<<<<<< HEAD
+<<<<<<< HEAD
   "opt_separator_datum_anchor_anchor_epoch_identifier_list",
   "datum_anchor", "datum_anchor_keyword", "datum_anchor_description",
   "datum_anchor_epoch", "datum_anchor_epoch_keyword", "anchor_epoch",
@@ -1177,7 +1244,16 @@ static const char *const yytname[] =
   "opt_separator_datum_anchor_identifier_list", "datum_anchor",
   "datum_anchor_keyword", "datum_anchor_description", "projected_crs",
   "projected_crs_keyword", "base_geodetic_crs", "base_static_geodetic_crs",
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+  "opt_separator_datum_anchor_identifier_list", "datum_anchor",
+  "datum_anchor_keyword", "datum_anchor_description", "projected_crs",
+  "projected_crs_keyword", "base_geodetic_crs", "base_static_geodetic_crs",
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
   "opt_separator_pm_ellipsoidal_cs_unit_opt_separator_identifier_list",
   "base_dynamic_geodetic_crs", "base_static_geographic_crs",
   "base_dynamic_geographic_crs", "base_geodetic_crs_keyword",
@@ -1198,6 +1274,7 @@ static const char *const yytname[] =
   "vertical_reference_frame_keyword", "engineering_crs",
   "engineering_crs_keyword", "engineering_datum",
 <<<<<<< HEAD
+<<<<<<< HEAD
   "engineering_datum_keyword",
   "opt_separator_datum_anchor_identifier_list", "parametric_crs",
   "parametric_crs_keyword", "parametric_datum", "parametric_datum_keyword",
@@ -1206,7 +1283,16 @@ static const char *const yytname[] =
   "engineering_datum_keyword", "parametric_crs", "parametric_crs_keyword",
   "parametric_datum", "parametric_datum_keyword", "temporal_crs",
   "temporal_crs_keyword", "temporal_datum",
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+  "engineering_datum_keyword", "parametric_crs", "parametric_crs_keyword",
+  "parametric_datum", "parametric_datum_keyword", "temporal_crs",
+  "temporal_crs_keyword", "temporal_datum",
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
   "opt_separator_temporal_datum_end", "temporal_datum_keyword",
   "temporal_origin", "temporal_origin_keyword",
   "temporal_origin_description", "calendar", "calendar_keyword",
@@ -1283,6 +1369,7 @@ static const yytype_int16 yytoknum[] =
      375,   376,   377,   378,   379,   380,   381,   382,   383,   384,
      385,   386,   387,   388,   389,   390,   391,   392,   393,   394,
 <<<<<<< HEAD
+<<<<<<< HEAD
      395,   396,   397,   398,   399,   400,   401,   402,   403,   404,
      405,   406,   407,   408,   409,    46,    69,    49,    50,    51,
       43,    45,    58,    84,    90,    91,    40,    93,    41,    44
@@ -1291,6 +1378,8 @@ static const yytype_int16 yytoknum[] =
 
 #define YYPACT_NINF (-1255)
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
      395,   396,   397,   398,   399,   400,   401,   402,   403,    46,
       69,    49,    50,    51,    43,    45,    58,    84,    90,    91,
       40,    93,    41,    44
@@ -1298,16 +1387,31 @@ static const yytype_int16 yytoknum[] =
 # endif
 
 #define YYPACT_NINF (-1231)
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define YYTABLE_NINF (-673)
 =======
 #define YYTABLE_NINF (-640)
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+#define YYTABLE_NINF (-640)
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -1316,6 +1420,7 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
     2583, -1255, -1255, -1255, -1255, -1255, -1255, -1255, -1255, -1255,
    -1255, -1255, -1255, -1255, -1255, -1255, -1255, -1255, -1255, -1255,
@@ -1468,6 +1573,8 @@ static const yytype_int16 yypact[] =
      -59,   403,   -59,    94, -1255, -1255,   670, -1255, -1255, -1255,
      -59, -1255, -1255,   403, -1255, -1255
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     2659, -1231, -1231, -1231, -1231, -1231, -1231, -1231, -1231, -1231,
    -1231, -1231, -1231, -1231, -1231, -1231, -1231, -1231, -1231, -1231,
    -1231, -1231, -1231, -1231, -1231, -1231, -1231, -1231, -1231, -1231,
@@ -1612,7 +1719,14 @@ static const yytype_int16 yypact[] =
    -1231, -1231, -1231, -1231,   686, -1231,   395, -1231, -1231,   686,
    -1231, -1231, -1231, -1231, -1231, -1231,    17,   317,    17, -1231,
    -1231, -1231
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -1620,6 +1734,7 @@ static const yytype_int16 yypact[] =
      means the default is an error.  */
 static const yytype_int16 yydefact[] =
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
        0,   439,   426,   415,   425,   161,   460,   483,   417,   515,
      518,   640,   684,   719,   722,   544,   537,   376,   599,   525,
@@ -1772,6 +1887,8 @@ static const yytype_int16 yydefact[] =
      190,     0,   190,     0,   355,   351,     0,   256,   342,   264,
      190,   363,   364,     0,   356,   361
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
        0,   419,   406,   395,   405,   161,   431,   454,   397,   486,
      489,   607,   651,   686,   689,   511,   504,   356,   566,   496,
      493,   501,   499,   618,   673,   396,   421,   432,   398,   420,
@@ -1916,12 +2033,20 @@ static const yytype_int16 yydefact[] =
      683,   301,   343,   257,     0,   255,     0,   259,   265,     0,
      263,   341,   267,   274,   286,   290,   190,     0,   190,   256,
      339,   264
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
    -1255, -1255, -1255,  -223,  -237,  -172, -1255,   244,  -193,   297,
    -1255, -1255, -1255, -1255, -1255, -1255,   -94,  -336,  -652,   -87,
@@ -1961,6 +2086,8 @@ static const yytype_int16 yypgoto[] =
       35,   902, -1255, -1255,   563, -1087,  -524, -1255,  -999,   910,
    -1255, -1255, -1255,   -41,  -286, -1255, -1255
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
    -1231, -1231, -1231,  -221,  -223,  -191, -1231,   299,  -194,   335,
    -1231, -1231, -1231, -1231, -1231, -1231,  -232,  -333,  -653,   -11,
     -776,  -637, -1231, -1231, -1231, -1231, -1231, -1231, -1231,  -550,
@@ -1997,12 +2124,20 @@ static const yytype_int16 yypgoto[] =
    -1231, -1231,  -810, -1231, -1231, -1231,   522,   -67,   852, -1231,
    -1231,   525, -1090,  -530, -1231,  -999,   867, -1231, -1231, -1231,
      -69,  -386, -1231, -1231
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int16 yydefgoto[] =
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
       -1,    37,    38,    39,   236,   640,   238,   903,   239,   480,
      240,   241,   429,   430,   242,   354,   243,   244,   917,   609,
@@ -2042,6 +2177,8 @@ static const yytype_int16 yydefgoto[] =
      625,   962,   102,   225,   226,   963,  1248,   103,   770,   334,
      105,   538,   871,   872,  1025,   539,  1085
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
       -1,    37,    38,    39,   235,   620,   237,   880,   238,   470,
      239,   240,   419,   420,   241,   348,   242,   243,   894,   589,
      503,   590,   504,   695,   890,   591,   809,   969,   592,   810,
@@ -2078,7 +2215,14 @@ static const yytype_int16 yydefgoto[] =
      927,   928,   742,   743,   100,   221,   222,   605,   939,   102,
      224,   225,   940,  1225,   103,   748,   328,   105,   523,   848,
      849,  1002,   524,  1062
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -2086,6 +2230,7 @@ static const yytype_int16 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
      110,   692,    61,   271,   292,   350,   353,   111,   112,   865,
      113,   187,   188,   116,   547,   117,   431,   118,   146,    57,
@@ -2423,6 +2568,8 @@ static const yytype_int16 yytable[] =
      892,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,  1308
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
      115,   236,   270,   345,   672,    61,   344,   337,   532,   479,
      339,   187,   188,   421,   291,   312,   146,   531,   307,   347,
      302,   267,   970,   613,   871,   943,   929,  1018,   906,   326,
@@ -2723,11 +2870,19 @@ static const yytype_int16 yytable[] =
     1247,  1248,  1249,  1250,  1251,  1252,  1253,  1254,  1255,  1256,
     1257,  1258,  1259,  1260,     0,     0,  1261,  1262,  1263,  1264,
     1265
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 
 static const yytype_int16 yycheck[] =
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
       45,   573,     0,   196,   201,   228,   243,    52,    53,   764,
       55,   131,   132,    58,   444,    60,   352,    62,   115,     0,
@@ -3065,6 +3220,8 @@ static const yytype_int16 yycheck[] =
     1229,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
       -1,    -1,    -1,  1242
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
       57,   192,   196,   235,   558,     0,   227,   220,   434,   374,
      223,   131,   132,   346,   201,   208,   115,   434,   206,   242,
      204,   195,   893,   528,   783,   853,   836,   955,   821,   212,
@@ -3365,13 +3522,21 @@ static const yytype_int16 yycheck[] =
      126,   127,   128,   129,   130,   131,   132,   133,   134,   135,
      136,   137,   138,   139,    -1,    -1,   142,   143,   144,   145,
      146
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_int16 yystos[] =
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
        0,     4,     5,    10,    15,    17,    18,    25,    28,    35,
       36,    38,    40,    45,    47,    50,    53,    61,    64,    66,
@@ -3524,6 +3689,8 @@ static const yytype_int16 yystos[] =
      259,   264,   259,   210,   265,   265,   208,   265,   209,   265,
      317,    83,    84,   319,   265,   209
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
        0,     4,     5,    10,    15,    17,    18,    24,    27,    34,
       35,    37,    39,    44,    46,    49,    52,    60,    63,    65,
       66,    67,    68,    76,    77,    79,    80,    81,    83,    84,
@@ -3668,12 +3835,20 @@ static const yytype_int16 yystos[] =
      507,   259,   203,   259,   204,   259,   204,   259,   259,   204,
      259,   203,   259,   259,   259,   259,   253,   258,   253,   259,
      203,   259
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int16 yyr1[] =
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
        0,   170,   171,   171,   171,   171,   171,   171,   171,   171,
      171,   171,   172,   172,   172,   172,   172,   172,   173,   173,
@@ -3750,6 +3925,8 @@ static const yytype_int16 yyr1[] =
      528,   529,   530,   531,   532,   532,   533,   534,   534,   534,
      534,   535,   536
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
        0,   164,   165,   165,   165,   165,   165,   165,   165,   165,
      165,   165,   166,   166,   166,   166,   166,   166,   167,   167,
      168,   169,   169,   170,   171,   172,   172,   173,   173,   174,
@@ -3820,7 +3997,14 @@ static const yytype_int16 yyr1[] =
      501,   501,   501,   502,   503,   504,   504,   505,   506,   506,
      506,   506,   507,   507,   507,   507,   508,   509,   510,   511,
      512,   513,   513,   514,   515,   515,   515,   515,   516,   517
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
@@ -3854,6 +4038,7 @@ static const yytype_int8 yyr2[] =
        1,     3,     1,     3,     2,     4,     6,     4,     2,     4,
        2,     2,     2,     4,     6,     4,     2,     4,     2,     2,
 <<<<<<< HEAD
+<<<<<<< HEAD
        1,     3,     2,     1,     2,     4,     2,     1,     1,     3,
        1,     3,     1,     3,     1,     3,     2,     4,     2,     2,
        2,     4,     2,     2,     1,     3,     2,     2,     1,     0,
@@ -3865,6 +4050,8 @@ static const yytype_int8 yyr2[] =
        4,     6,     0,     3,     3,     5,     7,     4,     1,     4,
        1,     4,     1,     1,     1,     1,     1,     1,     7,     5,
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
        1,     3,     2,     2,     4,     2,     1,     1,     3,     1,
        3,     1,     3,     1,     3,     2,     4,     2,     2,     2,
        4,     2,     2,     1,     3,     2,     2,     0,     2,     2,
@@ -3873,7 +4060,14 @@ static const yytype_int8 yyr2[] =
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     6,
        1,     4,     1,     4,     1,     1,     1,     1,     7,     5,
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
        3,     0,     3,     7,     3,     3,     1,     1,     5,     0,
        3,     1,     1,     1,     4,     1,     1,     1,     5,     1,
        4,     1,     1,     2,     3,     0,     2,     5,     0,     2,
@@ -3881,6 +4075,7 @@ static const yytype_int8 yyr2[] =
        8,    10,     3,     1,     1,     1,     1,     1,     1,     1,
        1,     9,     0,     3,     3,     1,     1,     1,     1,     1,
        6,     1,     1,     1,     4,     2,     1,     3,     7,     1,
+<<<<<<< HEAD
 <<<<<<< HEAD
        1,     1,     1,     0,     2,     2,     4,     3,     5,     5,
        7,     4,     1,     1,     4,     1,     1,     2,     3,    10,
@@ -3913,6 +4108,8 @@ static const yytype_int8 yyr2[] =
        1,     9,     1,     4,     3,     1,     4,     0,     3,     3,
        2,     1,     7
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
        1,     1,     1,     0,     2,     3,     5,     4,     1,     1,
       10,     1,     1,     1,     1,     1,     1,     7,     0,     3,
        5,     3,     3,     9,     7,     9,     1,     1,     1,     1,
@@ -3941,7 +4138,14 @@ static const yytype_int8 yyr2[] =
        3,     3,     2,     1,     4,     3,     1,    16,     1,     1,
        1,     1,     0,     6,     3,     2,     1,     1,     9,     1,
        4,     3,     1,     4,     0,     3,     3,     2,     1,     7
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 };
 
 
