@@ -54,6 +54,7 @@ typedef double T;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -124,6 +125,8 @@ typedef double T;
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 55d75903c7 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 #if !defined(OLD_BUGGY_REMQUO)
 /*
  * glibc prior to version 2.22 had a bug in remquo.  This was reported in 2014
@@ -137,6 +140,7 @@ typedef double T;
 #define OLD_BUGGY_REMQUO 0
 #endif
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -307,6 +311,10 @@ typedef double T;
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 55d75903c7 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 static const T wgs84_a = 6378137, wgs84_f = 1/298.257223563; /* WGS84 */
 
 static int equiv(T x, T y) {
@@ -424,6 +432,7 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -465,11 +474,14 @@ int main() {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 #if !OLD_BUGGY_REMQUO
   checksincosd(-810.0, -1.0, +0.0);
 #endif
 =======
   checksincosd(-810.0, -1.0, +0.0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -638,6 +650,9 @@ int main() {
   checksincosd(-810.0, -1.0, +0.0);
 #endif
 >>>>>>> 55d75903c7 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
   checksincosd(-720.0, -0.0, +1.0);
   checksincosd(-630.0, +1.0, +0.0);
   checksincosd(-540.0, -0.0, -1.0);
@@ -680,6 +695,7 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -721,6 +737,8 @@ int main() {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 #if !OLD_BUGGY_REMQUO
   checksincosd(+810.0, +1.0, +0.0);
 #endif
@@ -729,6 +747,7 @@ int main() {
 
 #if !OLD_BUGGY_REMQUO
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -988,6 +1007,13 @@ int main() {
 =======
 #if !OLD_BUGGY_REMQUO
 >>>>>>> 55d75903c7 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+  checksincosd(+810.0, +1.0, +0.0);
+  checksincosd(+  inf,  nan,  nan);
+  checksincosd(   nan,  nan,  nan);
+
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
   {
     T s1, c1, s2, c2, s3, c3;
     geod_sincosd(         9.0, &s1, &c1);
@@ -1022,6 +1048,7 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2f268a5476 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -1205,6 +1232,11 @@ int main() {
 =======
 #endif
 >>>>>>> 55d75903c7 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+#endif
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 
   check( geod_atan2d(+0.0 , -0.0 ), +180 );
   check( geod_atan2d(-0.0 , -0.0 ), -180 );
