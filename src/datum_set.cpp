@@ -85,6 +85,7 @@ int pj_datum_set(PJ_CONTEXT *ctx, paralist *pl, PJ *projdef)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -95,6 +96,8 @@ int pj_datum_set(PJ_CONTEXT *ctx, paralist *pl, PJ *projdef)
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
         const struct PJ_DATUMS * pj_datums = pj_get_datums_ref();
 =======
 <<<<<<< HEAD
@@ -126,6 +129,7 @@ int pj_datum_set(PJ_CONTEXT *ctx, paralist *pl, PJ *projdef)
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -187,6 +191,10 @@ int pj_datum_set(PJ_CONTEXT *ctx, paralist *pl, PJ *projdef)
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
         for (i = 0; (s = pj_datums[i].id) && strcmp(name, s) ; ++i) {}
 
         if (!s) {
