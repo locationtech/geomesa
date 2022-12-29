@@ -83,6 +83,7 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -162,10 +163,14 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+        coo.xyz = forward_3d (coo.lpz, P);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
         return;
     }
 
     /* Time restricted - only apply transform if within time bracket */
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -259,6 +264,10 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    if (coo.lpzt.t < Q->t_epoch && Q->t_final > Q->t_epoch)
+        coo.xyz = forward_3d (coo.lpz, P);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 static void reverse_4d(PJ_COORD& coo, PJ *P) {
@@ -274,6 +283,7 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -353,10 +363,14 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+        coo.lpz = reverse_3d (coo.xyz, P);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
         return;
     }
 
     /* Time restricted - only apply transform if within time bracket */
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -450,6 +464,10 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    if (coo.lpzt.t < Q->t_epoch && Q->t_final > Q->t_epoch)
+        coo.lpz = reverse_3d (coo.xyz, P);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 static PJ *destructor (PJ *P, int errlev) {

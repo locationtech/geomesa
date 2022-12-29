@@ -38,6 +38,7 @@ expect      1506742.2481    6535299.3398
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   this exercise we will model the behavior of the UTM projection using the
 =======
   this exercise we will model the behaviour of the UTM projection using the
@@ -64,6 +65,9 @@ expect      1506742.2481    6535299.3398
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  this exercise we will model the behaviour of the UTM projection using the
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
   Transverse Mercator.
 
 
@@ -120,6 +124,7 @@ For all the exercises below the aim is to find the lowest tolerance for each
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 roundtrip test. You can of course make all tests pass by setting a tolerance of
 =======
 roundtrip test. You can of course make alle tests pass by setting a tolerance of
@@ -146,6 +151,9 @@ roundtrip test. You can of course make alle tests pass by setting a tolerance of
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+roundtrip test. You can of course make alle tests pass by setting a tolerance of
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 1000 km - that's not the point: How low can you go?
 
 After you have answered all ex. 3 questions below, based on your findings
