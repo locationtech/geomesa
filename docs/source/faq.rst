@@ -27,6 +27,7 @@ separate column.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     `ogr2ogr <https://gdal.org/programs/ogr2ogr.html>`__ application.
 =======
     :program:`ogr2ogr` application.
@@ -40,6 +41,12 @@ separate column.
 =======
     `ogr2ogr <https://gdal.org/programs/ogr2ogr.html>`__ application.
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    `ogr2ogr <https://gdal.org/programs/ogr2ogr.html>`__ application.
+=======
+    :program:`ogr2ogr` application.
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Can I transform from *abc* to *xyz*?
 --------------------------------------------------------------------------------
@@ -69,10 +76,14 @@ ETRS89/UTM32N (EPSG:25832) and ETRS89/DKTM1 (EPSG:4093):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 See the :program:`projinfo` documentation for more info on how to use it.
 =======
 See the :program:`projinfo` :ref:`documentation <projinfo>` for more info on
 how to use it.
+<<<<<<< HEAD
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 See the :program:`projinfo` documentation for more info on how to use it.
@@ -84,6 +95,9 @@ how to use it.
 =======
 See the :program:`projinfo` documentation for more info on how to use it.
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Coordinate reference system *xyz* is not in the EPSG registry, what do I do?
 --------------------------------------------------------------------------------
