@@ -87,6 +87,7 @@ static const wkt2_tokens tokens[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     PAIR(ANCHOREPOCH),
 =======
 <<<<<<< HEAD
@@ -101,7 +102,15 @@ static const wkt2_tokens tokens[] = {
 =======
     PAIR(ANCHOREPOCH),
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+    PAIR(ANCHOREPOCH),
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
     PAIR(CONVERSION), PAIR(METHOD), PAIR(REMARK), PAIR(GEOGCRS),
     PAIR(BASEGEOGCRS), PAIR(SCOPE), PAIR(AREA), PAIR(BBOX), PAIR(CITATION),
     PAIR(URI), PAIR(VERTCRS), PAIR(VDATUM), PAIR(GEOIDMODEL), PAIR(COMPOUNDCRS),
@@ -123,6 +132,7 @@ static const wkt2_tokens tokens[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     PAIR(AXISMINVALUE), PAIR(AXISMAXVALUE), PAIR(RANGEMEANING),
     PAIR(exact), PAIR(wraparound),
 =======
@@ -139,7 +149,16 @@ static const wkt2_tokens tokens[] = {
     PAIR(AXISMINVALUE), PAIR(AXISMAXVALUE), PAIR(RANGEMEANING),
     PAIR(exact), PAIR(wraparound),
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+    PAIR(AXISMINVALUE), PAIR(AXISMAXVALUE), PAIR(RANGEMEANING),
+    PAIR(exact), PAIR(wraparound),
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 
     // CS types
     PAIR(AFFINE), PAIR(CARTESIAN), PAIR(CYLINDRICAL), PAIR(ELLIPSOIDAL),
