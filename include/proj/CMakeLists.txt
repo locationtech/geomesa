@@ -25,6 +25,9 @@ install(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
 =======
@@ -190,6 +193,7 @@ install(
 >>>>>>> locationtech-main
 =======
   FILES util.hpp metadata.hpp common.hpp crs.hpp datum.hpp
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -233,6 +237,9 @@ install(
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
     coordinatesystem.hpp coordinateoperation.hpp io.hpp nn.hpp
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/proj
 )
