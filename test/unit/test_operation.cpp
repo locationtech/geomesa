@@ -1669,7 +1669,11 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
     EXPECT_TRUE(conv->validateParameters().empty());
 
     EXPECT_EQ(conv->exportToPROJString(PROJStringFormatter::create().get()),
+<<<<<<< HEAD
               "+proj=cea +R_A +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
+=======
+              "+proj=cea +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 
     EXPECT_EQ(conv->exportToWKT(WKTFormatter::create().get()),
               "CONVERSION[\"Lambert Cylindrical Equal Area (Spherical)\",\n"
