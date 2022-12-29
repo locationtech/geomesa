@@ -47,6 +47,7 @@ separate column.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -67,10 +68,13 @@ separate column.
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
     `ogr2ogr <https://gdal.org/programs/ogr2ogr.html>`__ application.
 =======
     :program:`ogr2ogr` application.
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -244,6 +248,8 @@ separate column.
 =======
     `ogr2ogr <https://gdal.org/programs/ogr2ogr.html>`__ application.
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 
 Can I transform from *abc* to *xyz*?
 --------------------------------------------------------------------------------
@@ -293,6 +299,7 @@ ETRS89/UTM32N (EPSG:25832) and ETRS89/DKTM1 (EPSG:4093):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -334,10 +341,13 @@ ETRS89/UTM32N (EPSG:25832) and ETRS89/DKTM1 (EPSG:4093):
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 See the :program:`projinfo` documentation for more info on how to use it.
 =======
 See the :program:`projinfo` :ref:`documentation <projinfo>` for more info on
 how to use it.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -497,6 +507,9 @@ how to use it.
 =======
 See the :program:`projinfo` documentation for more info on how to use it.
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 
 Coordinate reference system *xyz* is not in the EPSG registry, what do I do?
 --------------------------------------------------------------------------------

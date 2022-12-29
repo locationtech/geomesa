@@ -608,6 +608,7 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -628,10 +629,13 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
     if (!(P->f >= 0.0 && P->f < 1.0)) {
 =======
     if (P->f == 1.0) {
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -805,6 +809,8 @@ int pj_calc_ellipsoid_params (PJ *P, double a, double es) {
 =======
     if (!(P->f >= 0.0 && P->f < 1.0)) {
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
         proj_log_error(P, _("Invalid eccentricity"));
         proj_errno_set (P, PROJ_ERR_INVALID_OP_ILLEGAL_ARG_VALUE);
         return PROJ_ERR_INVALID_OP_ILLEGAL_ARG_VALUE;
