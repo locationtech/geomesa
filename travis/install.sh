@@ -182,6 +182,7 @@ test_projjson EPSG:5613
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -198,6 +199,8 @@ test_projjson EPSG:5613
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 test_projjson "ITRF2014@2025.0"
 =======
 <<<<<<< HEAD
@@ -243,6 +246,7 @@ test_projjson "ITRF2014@2025.0"
 test_projjson "ITRF2014@2025.0"
 >>>>>>> 86ade66356 (typo fixes)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 test_projjson "ITRF2014@2025.0"
@@ -304,6 +308,12 @@ test_projjson "ITRF2014@2025.0"
 test_projjson "ITRF2014@2025.0"
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+test_projjson "ITRF2014@2025.0"
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 
 validate_json $TRAVIS_BUILD_DIR/schemas/v0.5/examples/point_motion_operation.json
 
