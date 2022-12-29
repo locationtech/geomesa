@@ -305,12 +305,16 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -334,6 +338,10 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
     double lat;
 =======
     double lat, lon;
@@ -381,8 +389,11 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
     double lat, lon;
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -426,6 +437,7 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
     double lat, lon;
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     double lat, lon;
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -497,6 +509,8 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 
     /* Convert the geodetic latitude to a geocentric latitude.
      * This corresponds to the shift from the ellipsoid to the sphere
@@ -531,6 +545,7 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -547,6 +562,10 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -704,12 +723,17 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
     lon = lp.lam;
 
@@ -718,8 +742,11 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
     lon = lp.lam;
 
@@ -748,6 +775,7 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -791,6 +819,10 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
     double x, y, z;
     double sinlat, coslat;
     double sinlon, coslon;
@@ -822,6 +854,7 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -838,6 +871,10 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -993,6 +1030,7 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1000,14 +1038,21 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
     sinlon = sin(lon);
     coslon = cos(lon);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
     sinlon = sin(lon);
     coslon = cos(lon);
@@ -1035,6 +1080,7 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1077,6 +1123,10 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
     x = coslat * coslon;
     y = coslat * sinlon;
     z = sinlat;

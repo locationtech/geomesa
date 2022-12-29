@@ -111,12 +111,16 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -140,6 +144,10 @@ class WKTConstants {
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
     static const std::string ANCHOREPOCH; // WKT2-2019
 =======
 <<<<<<< HEAD
@@ -184,8 +192,11 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -224,6 +235,7 @@ class WKTConstants {
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -289,6 +301,8 @@ class WKTConstants {
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
     static const std::string CONVERSION;
     static const std::string METHOD;
     static const std::string REMARK;
@@ -364,11 +378,15 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -387,6 +405,8 @@ class WKTConstants {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -525,8 +545,11 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
     static const std::string GEOIDMODEL; // WKT2-2019
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -566,6 +589,7 @@ class WKTConstants {
     static const std::string GEOIDMODEL; // WKT2-2019
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     static const std::string GEOIDMODEL; // WKT2-2019
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -626,6 +650,8 @@ class WKTConstants {
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 
     // WKT2 alternate (longer or shorter)
     static const std::string GEODETICCRS;
