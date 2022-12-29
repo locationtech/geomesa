@@ -66,6 +66,7 @@ static PJ_XY geos_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     ** position on earth surface (long,lat).*/
 =======
     ** position on earth surface (lon,lat).*/
@@ -102,11 +103,23 @@ static PJ_XY geos_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
     ** position on earth surface (long,lat).*/
 >>>>>>> 86ade66356 (typo fixes)
 =======
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
     ** position on earth surface (long,lat).*/
 =======
     ** position on earth surface (lon,lat).*/
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+    ** position on earth surface (lon,lat).*/
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
     tmp = cos(lp.phi);
     Vx = cos (lp.lam) * tmp;
     Vy = sin (lp.lam) * tmp;
@@ -147,6 +160,7 @@ static PJ_XY geos_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     ** position on earth surface (long,lat).*/
 =======
     ** position on earth surface (lon,lat).*/
@@ -183,11 +197,23 @@ static PJ_XY geos_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
     ** position on earth surface (long,lat).*/
 >>>>>>> 86ade66356 (typo fixes)
 =======
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
     ** position on earth surface (long,lat).*/
 =======
     ** position on earth surface (lon,lat).*/
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+    ** position on earth surface (lon,lat).*/
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
     r = (Q->radius_p) / hypot(Q->radius_p * cos (lp.phi), sin (lp.phi));
     Vx = r * cos (lp.lam) * cos (lp.phi);
     Vy = r * sin (lp.lam) * cos (lp.phi);
