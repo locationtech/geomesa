@@ -68,8 +68,15 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 | **Available forms** | Forward and inverse, spherical projection                |
 +---------------------+----------------------------------------------------------+
 | **Defined area**    | Global                                                   |
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 +---------------------+----------------------------------------------------------+
 | **Alias**           | gnom                                                     |
 +---------------------+----------------------------------------------------------+
@@ -108,8 +115,15 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
 =======
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50``
+<<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 
 Parameters
 ################################################################################
@@ -147,6 +161,7 @@ Parameters
 .. include:: ../options/y_0.rst
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 .. include:: ../options/x_0.rst
@@ -170,3 +185,9 @@ Parameters
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
