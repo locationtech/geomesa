@@ -33,7 +33,11 @@
 #error Must have C++11 or newer.
 #endif
 
+<<<<<<< HEAD
 // windows.h can conflict with Criterion::STRICT
+=======
+// windows.h can confict with Criterion::STRICT
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 #ifdef STRICT
 #undef STRICT
 #endif

@@ -47,10 +47,15 @@ struct CoordinateOperation::Private {
     std::weak_ptr<crs::CRS> sourceCRSWeak_{};
     std::weak_ptr<crs::CRS> targetCRSWeak_{};
     crs::CRSPtr interpolationCRS_{};
+<<<<<<< HEAD
     std::shared_ptr<util::optional<common::DataEpoch>> sourceCoordinateEpoch_{
         std::make_shared<util::optional<common::DataEpoch>>()};
     std::shared_ptr<util::optional<common::DataEpoch>> targetCoordinateEpoch_{
         std::make_shared<util::optional<common::DataEpoch>>()};
+=======
+    util::optional<common::DataEpoch> sourceCoordinateEpoch_{};
+    util::optional<common::DataEpoch> targetCoordinateEpoch_{};
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     bool hasBallparkTransformation_ = false;
 
     // do not set this for a ProjectedCRS.definingConversion
