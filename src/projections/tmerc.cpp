@@ -582,6 +582,7 @@ static PJ_LP auto_e_inv (PJ_XY xy, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // For k = 1 and long = 3 (from central meridian),
 =======
     // For k = 1 and lon = 3 (from central meridian),
@@ -617,6 +618,12 @@ static PJ_LP auto_e_inv (PJ_XY xy, PJ *P) {
 =======
     // For k = 1 and long = 3 (from central meridian),
 >>>>>>> 86ade66356 (typo fixes)
+=======
+    // For k = 1 and long = 3 (from central meridian),
+=======
+    // For k = 1 and lon = 3 (from central meridian),
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
     // At lat = 0, we get x ~= 0.052, y = 0
     // At lat = 90, we get x = 0, y ~= 1.57
     // And the shape of this x=f(y) frontier curve is very very roughly a
