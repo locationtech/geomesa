@@ -132,10 +132,14 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -156,6 +160,8 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 =======
 >>>>>>> 74eac2217b (typo fixes)
 >>>>>>> 48ae38528d (typo fixes)
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
             // This code path is triggered for coordinates generated in the forward path when |long|>180deg and +over
 =======
             // This code path is triggered for coordinates generated in the forward path when |lon|>180deg and +over
@@ -178,12 +184,17 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -197,6 +208,9 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
             // This code path is triggered for coordinates generated in the forward path when |lon|>180deg and +over
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -231,6 +245,7 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
@@ -306,6 +321,10 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
             d = M_TWOPI - d;
         }
         // (29-18) but change pi/3 to 4*pi/3 to flip sign of cos
