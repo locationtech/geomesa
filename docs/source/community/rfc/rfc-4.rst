@@ -637,6 +637,7 @@ Weak points:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -848,6 +849,9 @@ Weak points:
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  to write explicit lon and lat variables with all values taken by the grid.
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
   GDAL has for many years supported a simpler syntax, using a GeoTransform
   attribute.
 

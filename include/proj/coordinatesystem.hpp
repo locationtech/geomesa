@@ -137,6 +137,7 @@ class AxisDirection : public util::CodeList {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -425,6 +426,8 @@ class RangeMeaning : public util::CodeList {
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 class Meridian;
 /** Shared pointer of Meridian. */
 using MeridianPtr = std::shared_ptr<Meridian>;
@@ -496,6 +499,7 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
     PROJ_DLL const common::UnitOfMeasure &unit() PROJ_PURE_DECL;
     PROJ_DLL const util::optional<double> &minimumValue() PROJ_PURE_DECL;
     PROJ_DLL const util::optional<double> &maximumValue() PROJ_PURE_DECL;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -721,6 +725,8 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_DLL const MeridianPtr &meridian() PROJ_PURE_DECL;
 
     // Non-standard
@@ -730,6 +736,7 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
            const common::UnitOfMeasure &unitIn,
            const MeridianPtr &meridianIn = nullptr);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1026,6 +1033,8 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_PRIVATE :
 
         //! @cond Doxygen_Suppress
