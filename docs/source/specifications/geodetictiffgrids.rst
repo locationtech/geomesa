@@ -239,6 +239,7 @@ is an easy way to inspect such grid files:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -314,6 +315,9 @@ is an easy way to inspect such grid files:
       offseting when the horizontal and vertical grids do not have the same
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+      offseting when the horizontal and vertical grids do not have the same
+>>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
       resolution, as found in some NADCON5 grids.
       Added in PROJ 9.2
       Corresponds to PROJ :ref:`gridshift` method.
