@@ -81,13 +81,19 @@ static const char *usage =
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     "              [--authority {name}] [--3d]\n"
     "              [--accuracy {accuracy}] [--only-best[=yes|=no]] [--no-ballpark]\n"
 =======
     "              [--authority {name}] [--accuracy {accuracy}] [--no-ballpark] [--3d]\n"
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
 =======
     "              [--authority {name}] [--accuracy {accuracy}] [--no-ballpark] [--3d]\n"
@@ -99,7 +105,13 @@ static const char *usage =
     "              [--authority {name}] [--3d]\n"
     "              [--accuracy {accuracy}] [--only-best[=yes|=no]] [--no-ballpark]\n"
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
     "              [+opt[=arg] ...] [+to +opt[=arg] ...] [file ...]\n";
 
 static double (*informat)(const char *,
@@ -442,6 +454,7 @@ int main(int argc, char **argv) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     bool onlyBestSet = false;
     bool errorIfBestTransformationNotAvailable = false;
 =======
@@ -458,7 +471,16 @@ int main(int argc, char **argv) {
     bool onlyBestSet = false;
     bool errorIfBestTransformationNotAvailable = false;
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+    bool onlyBestSet = false;
+    bool errorIfBestTransformationNotAvailable = false;
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
     bool promoteTo3D = false;
 
     /* process run line arguments */
@@ -528,8 +550,11 @@ int main(int argc, char **argv) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         else if (strcmp(*argv, "--only-best") == 0 ||
                  strcmp(*argv, "--only-best=yes") == 0 ) {
             onlyBestSet = true;
@@ -539,6 +564,7 @@ int main(int argc, char **argv) {
             onlyBestSet = true;
             errorIfBestTransformationNotAvailable = false;
         }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -552,7 +578,14 @@ int main(int argc, char **argv) {
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
         else if (strcmp(*argv, "--3d") == 0 ) {
             promoteTo3D = true;
         }
@@ -965,8 +998,11 @@ int main(int argc, char **argv) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     if( onlyBestSet ) {
         if( errorIfBestTransformationNotAvailable ) {
             options.push_back("ONLY_BEST=YES");
@@ -975,6 +1011,7 @@ int main(int argc, char **argv) {
             options.push_back("ONLY_BEST=NO");
         }
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -988,7 +1025,14 @@ int main(int argc, char **argv) {
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
     options.push_back(nullptr);
     transformation = proj_create_crs_to_crs_from_pj(nullptr, src, dst,
                                                     pj_area, options.data());
