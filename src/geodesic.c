@@ -77,7 +77,11 @@ static void Init(void) {
     tol1 = 200 * tol0;
     tol2 = sqrt(tol0);
     /* Check on bisection interval */
+<<<<<<< HEAD
     tolb = tol0;
+=======
+    tolb = tol0 * tol2;
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
     xthresh = 1000 * tol2;
     degree = pi/hd;
     NaN = nan("0");
@@ -111,7 +115,11 @@ static double sumx(double u, double v, double* t) {
   return s;
 }
 
+<<<<<<< HEAD
 static double polyvalx(int N, const double p[], double x) {
+=======
+static double polyval(int N, const double p[], double x) {
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
   double y = N < 0 ? 0 : *p++;
   while (--N >= 0) y = y * x + *p++;
   return y;
@@ -879,7 +887,11 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
       double salp1a = tiny, calp1a = 1, salp1b = tiny, calp1b = -1;
       boolx tripn = FALSE;
       boolx tripb = FALSE;
+<<<<<<< HEAD
       for (;; ++numit) {
+=======
+      for (; numit < maxit2; ++numit) {
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
         /* the WGS84 test set: mean = 1.47, sd = 1.25, max = 16
          * WGS84 and random input: mean = 2.85, sd = 0.60 */
         double dv = 0,
@@ -887,12 +899,17 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
                         slam12, clam12,
                         &salp2, &calp2, &sig12, &ssig1, &csig1, &ssig2, &csig2,
                         &eps, &domg12, numit < maxit1, &dv, Ca);
+<<<<<<< HEAD
         if (tripb ||
             /* Reversed test to allow escape with NaNs */
             !(fabs(v) >= (tripn ? 8 : 1) * tol0) ||
             /* Enough bisections to get accurate result */
             numit == maxit2)
           break;
+=======
+        /* Reversed test to allow escape with NaNs */
+        if (tripb || !(fabs(v) >= (tripn ? 8 : 1) * tol0)) break;
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
         /* Update bracketing values */
         if (v > 0 && (numit > maxit1 || calp1/salp1 > calp1b/salp1b))
           { salp1b = salp1; calp1b = calp1; }
@@ -901,6 +918,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
         if (numit < maxit1 && dv > 0) {
           double
             dalp1 = -v/dv;
+<<<<<<< HEAD
           if (fabs(dalp1) < pi) {
             double
               sdalp1 = sin(dalp1), cdalp1 = cos(dalp1),
@@ -915,6 +933,20 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
               tripn = fabs(v) <= 16 * tol0;
               continue;
             }
+=======
+          double
+            sdalp1 = sin(dalp1), cdalp1 = cos(dalp1),
+            nsalp1 = salp1 * cdalp1 + calp1 * sdalp1;
+          if (nsalp1 > 0 && fabs(dalp1) < pi) {
+            calp1 = calp1 * cdalp1 - salp1 * sdalp1;
+            salp1 = nsalp1;
+            norm2(&salp1, &calp1);
+            /* In some regimes we don't get quadratic convergence because
+             * slope -> 0.  So use convergence conditions based on epsilon
+             * instead of sqrt(epsilon). */
+            tripn = fabs(v) <= 16 * tol0;
+            continue;
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
           }
         }
         /* Either dv was not positive or updated value was outside legal
@@ -1486,7 +1518,11 @@ double Lambda12(const struct geod_geodesic* g,
 
 double A3f(const struct geod_geodesic* g, double eps) {
   /* Evaluate A3 */
+<<<<<<< HEAD
   return polyvalx(nA3 - 1, g->A3x, eps);
+=======
+  return polyval(nA3 - 1, g->A3x, eps);
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 void C3f(const struct geod_geodesic* g, double eps, double c[]) {
@@ -1497,7 +1533,11 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
   for (l = 1; l < nC3; ++l) {   /* l is index of C3[l] */
     int m = nC3 - l - 1;        /* order of polynomial in eps */
     mult *= eps;
+<<<<<<< HEAD
     c[l] = mult * polyvalx(m, g->C3x + o, eps);
+=======
+    c[l] = mult * polyval(m, g->C3x + o, eps);
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
     o += m + 1;
   }
 }
@@ -1509,7 +1549,11 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
   int o = 0, l;
   for (l = 0; l < nC4; ++l) {   /* l is index of C4[l] */
     int m = nC4 - l - 1;        /* order of polynomial in eps */
+<<<<<<< HEAD
     c[l] = mult * polyvalx(m, g->C4x + o, eps);
+=======
+    c[l] = mult * polyval(m, g->C4x + o, eps);
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
     o += m + 1;
     mult *= eps;
   }
@@ -1522,7 +1566,11 @@ double A1m1f(double eps)  {
     1, 4, 64, 0, 256,
   };
   int m = nA1/2;
+<<<<<<< HEAD
   double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
+=======
+  double t = polyval(m, coeff, sq(eps)) / coeff[m + 1];
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
   return (t + eps) / (1 - eps);
 }
 
@@ -1548,7 +1596,11 @@ void C1f(double eps, double c[])  {
   int o = 0, l;
   for (l = 1; l <= nC1; ++l) {  /* l is index of C1p[l] */
     int m = (nC1 - l) / 2;      /* order of polynomial in eps^2 */
+<<<<<<< HEAD
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
+=======
+    c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
     o += m + 2;
     d *= eps;
   }
@@ -1576,7 +1628,11 @@ void C1pf(double eps, double c[])  {
   int o = 0, l;
   for (l = 1; l <= nC1p; ++l) { /* l is index of C1p[l] */
     int m = (nC1p - l) / 2;     /* order of polynomial in eps^2 */
+<<<<<<< HEAD
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
+=======
+    c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
     o += m + 2;
     d *= eps;
   }
@@ -1589,7 +1645,11 @@ double A2m1f(double eps)  {
     -11, -28, -192, 0, 256,
   };
   int m = nA2/2;
+<<<<<<< HEAD
   double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
+=======
+  double t = polyval(m, coeff, sq(eps)) / coeff[m + 1];
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
   return (t - eps) / (1 + eps);
 }
 
@@ -1615,7 +1675,11 @@ void C2f(double eps, double c[])  {
   int o = 0, l;
   for (l = 1; l <= nC2; ++l) { /* l is index of C2[l] */
     int m = (nC2 - l) / 2;     /* order of polynomial in eps^2 */
+<<<<<<< HEAD
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
+=======
+    c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
     o += m + 2;
     d *= eps;
   }
@@ -1640,7 +1704,11 @@ void A3coeff(struct geod_geodesic* g) {
   int o = 0, k = 0, j;
   for (j = nA3 - 1; j >= 0; --j) {             /* coeff of eps^j */
     int m = nA3 - j - 1 < j ? nA3 - j - 1 : j; /* order of polynomial in n */
+<<<<<<< HEAD
     g->A3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
+=======
+    g->A3x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
     o += m + 2;
   }
 }
@@ -1683,7 +1751,11 @@ void C3coeff(struct geod_geodesic* g) {
   for (l = 1; l < nC3; ++l) {                    /* l is index of C3[l] */
     for (j = nC3 - 1; j >= l; --j) {             /* coeff of eps^j */
       int m = nC3 - j - 1 < j ? nC3 - j - 1 : j; /* order of polynomial in n */
+<<<<<<< HEAD
       g->C3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
+=======
+      g->C3x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
       o += m + 2;
     }
   }
@@ -1739,7 +1811,11 @@ void C4coeff(struct geod_geodesic* g) {
   for (l = 0; l < nC4; ++l) {        /* l is index of C4[l] */
     for (j = nC4 - 1; j >= l; --j) { /* coeff of eps^j */
       int m = nC4 - j - 1;           /* order of polynomial in n */
+<<<<<<< HEAD
       g->C4x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
+=======
+      g->C4x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
       o += m + 2;
     }
   }

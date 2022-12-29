@@ -215,9 +215,12 @@ static PJ_XY forward_2d(PJ_LP lp, PJ *P) {
     PJ_COORD point = {{0,0,0,0}};
 
     point.lp = lp;
+<<<<<<< HEAD
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
     // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
     const auto xyz = forward_3d(point.lpz, P);
     point.xyz = xyz;
 
@@ -230,9 +233,12 @@ static PJ_LP reverse_2d(PJ_XY xy, PJ *P) {
 
     point.xy = xy;
     point.xyz.z = 0;
+<<<<<<< HEAD
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
     // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
     const auto lpz = reverse_3d(point.xyz, P);
     point.lpz = lpz;
 
@@ -267,11 +273,15 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 
 
 static void forward_4d(PJ_COORD& obs, PJ *P) {
+<<<<<<< HEAD
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
     // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
     const auto xyz = forward_3d(obs.lpz, P);
     obs.xyz = xyz;
+=======
+    obs.xyz = forward_3d(obs.lpz, P);
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 
@@ -302,11 +312,15 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 
 
 static void reverse_4d(PJ_COORD& obs, PJ *P) {
+<<<<<<< HEAD
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
     // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
     const auto lpz = reverse_3d(obs.xyz, P);
     obs.lpz = lpz;
+=======
+    obs.lpz = reverse_3d(obs.xyz, P);
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 
