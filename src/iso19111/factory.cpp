@@ -1829,6 +1829,7 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1845,6 +1846,10 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1921,8 +1926,11 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1943,6 +1951,7 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1969,6 +1978,8 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
                     // preferred coordinate system for geographic lat, lon
                     return;
                 }
@@ -1991,10 +2002,14 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2009,6 +2024,8 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -2092,8 +2109,11 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2125,10 +2145,14 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2171,6 +2195,8 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 >>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
                     return;
                 }
             }

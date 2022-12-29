@@ -1811,10 +1811,13 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -1826,6 +1829,7 @@ expect  -0.001790493 -0.000895247
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 664f11a970 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1862,6 +1866,8 @@ expect  -0.001790493 -0.000895247
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -2030,8 +2036,11 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2051,10 +2060,14 @@ expect  -0.001790493 -0.000895247
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2085,6 +2098,8 @@ expect  -0.001790493 -0.000895247
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 # 	Azi, Sph.
 ===============================================================================
 
@@ -2115,12 +2130,15 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2131,6 +2149,7 @@ expect  -0.001790493 -0.000895247
 >>>>>>> 9172626758 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2160,6 +2179,10 @@ expect  -0.001790493 -0.000895247
 >>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 # 	Azi, Sph*Ell
@@ -2280,10 +2303,13 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> f36c8520e2 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 # 	Azi, Sph*Ell
 ===============================================================================
@@ -2393,6 +2419,7 @@ expect  -0.001790493 -0.000895247
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -2562,6 +2589,8 @@ expect  -0.001790493 -0.000895247
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 # Tests the equatorial aspect of the projection.
 -------------------------------------------------------------------------------
 operation +proj=gnom +R=1
@@ -2649,6 +2678,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -2659,6 +2689,8 @@ expect      0   90
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2676,6 +2708,7 @@ expect      0   90
 =======
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2723,6 +2756,10 @@ expect      0   90
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -3085,6 +3122,9 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -3168,6 +3208,7 @@ expect      0   90
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -3328,6 +3369,8 @@ expect      0   90
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 
 -------------------------------------------------------------------------------
 # Test the northern polar aspect of the gnonomic projection
@@ -3391,6 +3434,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -3401,6 +3445,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3418,6 +3464,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3465,6 +3512,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -3804,6 +3855,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -3887,6 +3941,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -4047,6 +4102,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 # Test the southern polar aspect of the gnonomic projection
 -------------------------------------------------------------------------------
 operation +proj=gnom +R=1 +lat_0=-90
@@ -4108,6 +4165,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -4118,6 +4176,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4135,6 +4195,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4182,6 +4243,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -4521,6 +4586,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -4604,6 +4672,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -4764,6 +4833,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 # Test the oblique aspect of the gnonomic projection
 -------------------------------------------------------------------------------
 operation +proj=gnom +R=1 +lat_0=45
@@ -4825,6 +4896,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -4835,6 +4907,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4852,6 +4926,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4899,6 +4974,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -5235,6 +5314,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -5318,6 +5400,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -5478,6 +5561,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 ===============================================================================
 # Goode Homolosine
 # 	PCyl, Sph.
