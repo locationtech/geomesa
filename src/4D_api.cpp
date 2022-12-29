@@ -293,6 +293,7 @@ int pj_get_suggested_operation(PJ_CONTEXT*,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -301,6 +302,8 @@ int pj_get_suggested_operation(PJ_CONTEXT*,
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -421,6 +424,7 @@ static void warnAboutMissingGrid(PJ* P)
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -471,6 +475,8 @@ static void warnAboutMissingGrid(PJ* P)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 PJ_COORD proj_trans (PJ *P, PJ_DIRECTION direction, PJ_COORD coord) {
 /***************************************************************************************
 Apply the transformation P to the coordinate coord, preferring the 4D interfaces if
@@ -518,6 +524,7 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -530,6 +537,8 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
         // long=-111.5 lat=45.26 falls into the bounding box of the Canadian
 =======
         // lon=-111.5 lat=45.26 falls into the bounding box of the Canadian
@@ -574,6 +583,7 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 =======
         // lon=-111.5 lat=45.26 falls into the bounding box of the Canadian
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         // long=-111.5 lat=45.26 falls into the bounding box of the Canadian
 >>>>>>> 86ade66356 (typo fixes)
@@ -639,6 +649,8 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
         // lon=-111.5 lat=45.26 falls into the bounding box of the Canadian
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
         // ntv2_0.gsb grid, except that it is not in any of the subgrids, being
         // in the US. We thus need another retry that will select the conus
         // grid.
@@ -693,6 +705,7 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -705,6 +718,8 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
             if( alt.pj->hasCoordinateEpoch )
                 coord.xyzt.t = alt.pj->coordinateEpoch;
 =======
@@ -747,6 +762,7 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
             if( alt.pj->hasCoordinateEpoch )
                 coord.xyzt.t = alt.pj->coordinateEpoch;
@@ -809,6 +825,8 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
             if( direction == PJ_FWD )
                 pj_fwd4d( res, alt.pj );
             else
@@ -838,6 +856,7 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -846,6 +865,8 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -936,6 +957,7 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -986,6 +1008,8 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
             if( iRetry == N_MAX_RETRY ) {
                 break;
             }
@@ -1054,6 +1078,7 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1066,6 +1091,8 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     if( P->hasCoordinateEpoch )
         coord.xyzt.t = P->coordinateEpoch;
 =======
@@ -1108,6 +1135,7 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     if( P->hasCoordinateEpoch )
         coord.xyzt.t = P->coordinateEpoch;
@@ -1170,6 +1198,8 @@ similarly, but prefers the 2D resp. 3D interfaces if available.
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     if (direction == PJ_FWD)
         pj_fwd4d (coord, P);
     else
@@ -1199,6 +1229,7 @@ PJ* proj_trans_get_last_used_operation(PJ* P)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1211,6 +1242,8 @@ PJ* proj_trans_get_last_used_operation(PJ* P)
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     Return the operation used during the last invocation of proj_trans().
 =======
     Return the operation used during the last invokation of proj_trans().
@@ -1255,6 +1288,7 @@ PJ* proj_trans_get_last_used_operation(PJ* P)
 =======
     Return the operation used during the last invokation of proj_trans().
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     Return the operation used during the last invocation of proj_trans().
 >>>>>>> 86ade66356 (typo fixes)
@@ -1320,6 +1354,8 @@ PJ* proj_trans_get_last_used_operation(PJ* P)
     Return the operation used during the last invokation of proj_trans().
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     This is especially useful when P has been created with proj_create_crs_to_crs()
     and has several alternative operations.
     The returned object must be freed with proj_destroy().
@@ -1810,6 +1846,7 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1822,6 +1859,8 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
     PJ *P;
     const char *c;
@@ -1870,10 +1909,14 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
     PJ *P;
     const char *c;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -1934,6 +1977,8 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 
     if (nullptr==ctx)
         ctx = pj_get_default_ctx ();
@@ -1962,6 +2007,7 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1974,6 +2020,8 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     char *c = pj_make_args (argc, argv);
 =======
     c = pj_make_args (argc, argv);
@@ -2018,6 +2066,7 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
 =======
     c = pj_make_args (argc, argv);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     char *c = pj_make_args (argc, argv);
 >>>>>>> 86ade66356 (typo fixes)
@@ -2083,6 +2132,8 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
     c = pj_make_args (argc, argv);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     if (nullptr==c) {
         proj_context_errno_set(ctx, PROJ_ERR_INVALID_OP /* ENOMEM */);
         return nullptr;
@@ -2107,6 +2158,7 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2119,6 +2171,8 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     PJ *P = proj_create (ctx, c);
 =======
     P = proj_create (ctx, c);
@@ -2163,6 +2217,7 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
 =======
     P = proj_create (ctx, c);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     PJ *P = proj_create (ctx, c);
 >>>>>>> 86ade66356 (typo fixes)
@@ -2228,6 +2283,8 @@ indicator, as in {"+proj=utm", "+zone=32"}, or leave it out, as in {"proj=utm",
     P = proj_create (ctx, c);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 
     free ((char *) c);
     return P;
@@ -3001,6 +3058,7 @@ static PJ* add_coord_op_to_list(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3009,6 +3067,8 @@ static PJ* add_coord_op_to_list(
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -3173,11 +3233,15 @@ static PJ* create_operation_to_geog_crs(PJ_CONTEXT* ctx, const PJ* crs) {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 /*****************************************************************************/
 static PJ* create_operation_to_geog_crs(PJ_CONTEXT* ctx, const PJ* crs) {
 /*****************************************************************************/
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -3213,6 +3277,8 @@ static PJ* create_operation_to_geog_crs(PJ_CONTEXT* ctx, const PJ* crs) {
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     // Create a geographic 2D long-lat degrees CRS that is related to the
     // CRS
     auto geodetic_crs = proj_crs_get_geodetic_crs(ctx, crs);
@@ -3472,6 +3538,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3484,6 +3551,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     pj_load_ini(ctx); // to set ctx->errorIfBestTransformationNotAvailableDefault
 =======
 <<<<<<< HEAD
@@ -3523,6 +3592,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     pj_load_ini(ctx); // to set ctx->errorIfBestTransformationNotAvailableDefault
 >>>>>>> 86ade66356 (typo fixes)
@@ -3581,6 +3651,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 
     const char* authority = nullptr;
     double accuracy = -1;
@@ -3605,6 +3677,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3617,6 +3690,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     bool warnIfBestTransformationNotAvailable = ctx->warnIfBestTransformationNotAvailableDefault;
     bool errorIfBestTransformationNotAvailable = ctx->errorIfBestTransformationNotAvailableDefault;
 =======
@@ -3659,6 +3734,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     bool warnIfBestTransformationNotAvailable = ctx->warnIfBestTransformationNotAvailableDefault;
     bool errorIfBestTransformationNotAvailable = ctx->errorIfBestTransformationNotAvailableDefault;
@@ -3721,6 +3797,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     for (auto iter = options; iter && iter[0]; ++iter) {
         const char *value;
         if ((value = getOptionValue(*iter, "AUTHORITY="))) {
@@ -3756,6 +3834,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3764,6 +3843,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -3859,6 +3940,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -3909,6 +3991,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
         }
         else if ((value = getOptionValue(*iter, "FORCE_OVER="))) {
             if (ci_equal(value, "yes")) {
@@ -3976,10 +4060,13 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4082,6 +4169,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 =======
         proj_context_is_network_enabled(ctx) ?
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         (errorIfBestTransformationNotAvailable ||
          warnIfBestTransformationNotAvailable ||
@@ -4127,6 +4215,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
         proj_context_is_network_enabled(ctx) ?
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
             PROJ_GRID_AVAILABILITY_KNOWN_AVAILABLE:
             PROJ_GRID_AVAILABILITY_DISCARD_OPERATION_IF_MISSING_GRID);
 
@@ -4166,10 +4256,13 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4410,12 +4503,21 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
     assert(P);
 
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    PJ* P = proj_list_get(ctx, op_list, 0);
+    assert(P);
+
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     if( P == nullptr || op_count == 1 ||
         proj_get_type(source_crs) == PJ_TYPE_GEOCENTRIC_CRS ||
         proj_get_type(target_crs) == PJ_TYPE_GEOCENTRIC_CRS ) {
         proj_list_destroy(op_list);
         ctx->forceOver = false;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4443,6 +4545,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -4559,6 +4663,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
         return P;
@@ -4695,11 +4800,14 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
         return P;
     }
 
     auto preparedOpList = pj_create_prepared_operations(ctx, source_crs, target_crs,
                                                    op_list);
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4709,7 +4817,12 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 
     ctx->forceOver = false;
     proj_list_destroy(op_list);
@@ -4739,6 +4852,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4747,6 +4861,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -4837,6 +4953,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -4887,6 +5004,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     // If there's finally juste a single result, return it directly
     if( preparedOpList.size() == 1 )
     {
@@ -4918,6 +5037,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -4930,6 +5050,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     P->over = forceOver;
 =======
 <<<<<<< HEAD
@@ -4969,6 +5091,7 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     P->over = forceOver;
 >>>>>>> 86ade66356 (typo fixes)
@@ -5027,6 +5150,8 @@ PJ  *proj_create_crs_to_crs_from_pj (PJ_CONTEXT *ctx, const PJ *source_crs, cons
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     P->iso_obj = nullptr;
     P->fwd = nullptr;
     P->inv = nullptr;
@@ -5259,10 +5384,13 @@ PJ_INFO proj_info (void) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5363,6 +5491,7 @@ PJ_INFO proj_info (void) {
 =======
     free(const_cast<char*>(info.searchpath));
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     if (info.searchpath != empty)
         free(const_cast<char*>(info.searchpath));
@@ -5406,6 +5535,8 @@ PJ_INFO proj_info (void) {
     free(const_cast<char*>(info.searchpath));
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     info.searchpath = buf ? buf : empty;
 
     info.paths = ctx->c_compat_paths;
@@ -5469,10 +5600,13 @@ PJ_PROJ_INFO proj_pj_info(PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5525,6 +5659,7 @@ PJ_PROJ_INFO proj_pj_info(PJ *P) {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5551,10 +5686,13 @@ PJ_PROJ_INFO proj_pj_info(PJ *P) {
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     if( P->iso_obj ) {
         pjinfo.description = P->iso_obj->nameStr().c_str();
     } else {
         pjinfo.description = P->descr;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5576,6 +5714,8 @@ PJ_PROJ_INFO proj_pj_info(PJ *P) {
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -5646,6 +5786,7 @@ PJ_PROJ_INFO proj_pj_info(PJ *P) {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5696,6 +5837,10 @@ PJ_PROJ_INFO proj_pj_info(PJ *P) {
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     }
 
     // accuracy
