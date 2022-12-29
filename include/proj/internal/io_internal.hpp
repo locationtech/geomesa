@@ -93,6 +93,7 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     static const std::string ANCHOREPOCH; // WKT2-2019
 =======
 <<<<<<< HEAD
@@ -123,6 +124,11 @@ class WKTConstants {
 =======
     static const std::string ANCHOREPOCH; // WKT2-2019
 >>>>>>> 86ade66356 (typo fixes)
+=======
+    static const std::string ANCHOREPOCH; // WKT2-2019
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
     static const std::string CONVERSION;
     static const std::string METHOD;
     static const std::string REMARK;
@@ -180,18 +186,22 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 86ade66356 (typo fixes)
+=======
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
     static const std::string GEOIDMODEL;         // WKT2-2019
     static const std::string COORDINATEMETADATA; // WKT2-2019
     static const std::string EPOCH;              // WKT2-2019
     static const std::string AXISMINVALUE;       // WKT2-2019
     static const std::string AXISMAXVALUE;       // WKT2-2019
     static const std::string RANGEMEANING;       // WKT2-2019
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -226,6 +236,11 @@ class WKTConstants {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 86ade66356 (typo fixes)
+=======
+=======
+    static const std::string GEOIDMODEL; // WKT2-2019
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 
     // WKT2 alternate (longer or shorter)
     static const std::string GEODETICCRS;
