@@ -1070,6 +1070,7 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1086,6 +1087,8 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     double longitude = 120;
     proj_trans_generic(P, PJ_FWD, &lat, sizeof(double), 1, &longitude,
                        sizeof(double), 1, nullptr, 0, 0, nullptr, 0, 0);
@@ -1093,6 +1096,7 @@ TEST(gie, proj_trans_generic) {
     EXPECT_NEAR(lat, -60, 1e-9);
     EXPECT_NEAR(longitude, 120, 1e-9);
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1126,12 +1130,17 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     double lon = 120;
     proj_trans_generic(P, PJ_FWD, &lat, sizeof(double), 1, &lon, sizeof(double),
                        1, nullptr, 0, 0, nullptr, 0, 0);
     // Should be a no-op when the time is unknown (or equal to 2020)
     EXPECT_NEAR(lat, -60, 1e-9);
     EXPECT_NEAR(lon, 120, 1e-9);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1157,10 +1166,15 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1229,6 +1243,9 @@ TEST(gie, proj_trans_generic) {
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     proj_destroy(P);
 }
@@ -1331,6 +1348,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1356,6 +1374,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 
         PJ_COORD input_over_normalized;
         input_over_normalized.xyz.x = -220; // Long in deg
@@ -1437,8 +1457,17 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
         proj_destroy(Pnormalized);
 
         proj_destroy(P);
@@ -1552,6 +1581,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1577,6 +1607,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 
         PJ_COORD input_over_normalized;
         input_over_normalized.xyz.x = -220; // Long in deg
@@ -1659,8 +1691,17 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
         proj_destroy(Pnormalized);
 
         proj_destroy(P);

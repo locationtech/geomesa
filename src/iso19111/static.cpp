@@ -242,6 +242,7 @@ DEFINE_WKT_CONSTANT(ANCHOR);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -315,10 +316,21 @@ DEFINE_WKT_CONSTANT(ANCHOREPOCH);
 DEFINE_WKT_CONSTANT(ANCHOREPOCH);
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 DEFINE_WKT_CONSTANT(ANCHOREPOCH);
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 DEFINE_WKT_CONSTANT(CONVERSION);
 DEFINE_WKT_CONSTANT(METHOD);
 DEFINE_WKT_CONSTANT(REMARK);
@@ -385,6 +397,7 @@ DEFINE_WKT_CONSTANT(GEOIDMODEL);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -410,6 +423,8 @@ DEFINE_WKT_CONSTANT(GEOIDMODEL);
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 DEFINE_WKT_CONSTANT(COORDINATEMETADATA);
 DEFINE_WKT_CONSTANT(EPOCH);
 DEFINE_WKT_CONSTANT(AXISMINVALUE);
@@ -487,8 +502,17 @@ DEFINE_WKT_CONSTANT(RANGEMEANING);
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 
 DEFINE_WKT_CONSTANT(GEODETICCRS);
 DEFINE_WKT_CONSTANT(GEODETICDATUM);
@@ -750,6 +774,7 @@ const AxisDirection AxisDirection::UNSPECIFIED("unspecified");
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -775,6 +800,8 @@ const AxisDirection AxisDirection::UNSPECIFIED("unspecified");
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 std::map<std::string, const RangeMeaning *> RangeMeaning::registry;
 
 /** any value between and including minimumValue and maximumValue is valid. */
@@ -858,8 +885,17 @@ const RangeMeaning RangeMeaning::WRAPAROUND("wraparound");
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 //! @cond Doxygen_Suppress
 
 std::map<std::string, const AxisDirectionWKT1 *> AxisDirectionWKT1::registry;

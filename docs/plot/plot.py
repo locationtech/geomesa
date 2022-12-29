@@ -199,6 +199,7 @@ def project_xy(x, y, proj_string):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -281,11 +282,23 @@ def meridian(lon, lat_min, lat_max):
 def meridian(longitude, lat_min, lat_max):
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 def meridian(longitude, lat_min, lat_max):
 =======
 def meridian(lon, lat_min, lat_max):
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+def meridian(lon, lat_min, lat_max):
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     '''
     Calculate meridian coordinates.
     '''
@@ -305,6 +318,7 @@ def meridian(lon, lat_min, lat_max):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -387,11 +401,23 @@ def meridian(lon, lat_min, lat_max):
     coords[:, 0] = longitude
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     coords[:, 0] = longitude
 =======
     coords[:, 0] = lon
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+    coords[:, 0] = lon
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     coords[:, 1] = np.linspace(lat_min, lat_max, N_POINTS)
     return coords
 
@@ -432,6 +458,7 @@ def build_graticule(lonmin=-180, lonmax=180, latmin=-85, latmax=85):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -448,11 +475,14 @@ def build_graticule(lonmin=-180, lonmax=180, latmin=-85, latmax=85):
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     for longitude in range(lonmin, lonmax+1, GRATICULE_WIDTH):
         graticule.append(meridian(longitude, latmin, latmax))
 =======
     for lon in range(lonmin, lonmax+1, GRATICULE_WIDTH):
         graticule.append(meridian(lon, latmin, latmax))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -472,11 +502,16 @@ def build_graticule(lonmin=-180, lonmax=180, latmin=-85, latmax=85):
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
 =======
     for lon in range(lonmin, lonmax+1, GRATICULE_WIDTH):
         graticule.append(meridian(lon, latmin, latmax))
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -540,6 +575,9 @@ def build_graticule(lonmin=-180, lonmax=180, latmin=-85, latmax=85):
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     for lat in range(latmin, latmax+1, GRATICULE_WIDTH):
         graticule.append(parallel(lat, lonmin, lonmax))
@@ -668,6 +706,7 @@ def plotproj(plotdef, data, outdir):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -684,6 +723,8 @@ def plotproj(plotdef, data, outdir):
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
         for longitude in plotdef['top_interrupted_lons']:
             for delta in [-0.0001, 0.0001]:
                 merid = meridian(longitude + delta, 0.0, plotdef['latmax'])
@@ -694,6 +735,7 @@ def plotproj(plotdef, data, outdir):
             for delta in [-0.0001, 0.0001]:
                 merid = meridian(longitude + delta, plotdef['latmin'], 0)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -840,6 +882,10 @@ def plotproj(plotdef, data, outdir):
                 merid = meridian(longitude + delta, plotdef['latmin'], 0)
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
+=======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
         for lon in plotdef['top_interrupted_lons']:
             for delta in [-0.0001, 0.0001]:
                 merid = meridian(lon + delta, 0.0, plotdef['latmax'])
@@ -849,8 +895,18 @@ def plotproj(plotdef, data, outdir):
         for lon in plotdef['bottom_interrupted_lons']:
             for delta in [-0.0001, 0.0001]:
                 merid = meridian(lon + delta, plotdef['latmin'], 0)
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
                 interrupted_lines.append(project(merid, plotdef['projstring']))
 
     for line in interrupted_lines:
