@@ -5156,6 +5156,7 @@ auto input_adapter(T (&array)[N]) -> decltype(input_adapter(array, array + N))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -5237,6 +5238,12 @@ auto input_adapter(T (&array)[N]) -> decltype(input_adapter(array, array + N))
 =======
 // It's required so that expressions like {ptr, len} can be implicitly casted
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+// It's required so that expressions like {ptr, len} can be implicitly casted
+=======
+// It's required so that expressions like {ptr, len} can be implicitely casted
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 // to the correct adapter.
 class span_input_adapter
 {
@@ -10024,6 +10031,7 @@ class binary_reader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -10105,6 +10113,12 @@ class binary_reader
 =======
     @note This function needs to respect the system's endianness, because
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+    @note This function needs to respect the system's endianness, because
+=======
+    @note This function needs to respect the system's endianess, because
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
           bytes in CBOR, MessagePack, and UBJSON are stored in network order
           (big endian) and therefore need reordering on little endian systems.
     */
@@ -10290,6 +10304,7 @@ class binary_reader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -10371,6 +10386,12 @@ class binary_reader
 =======
     /// whether we can assume little endianness
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+    /// whether we can assume little endianness
+=======
+    /// whether we can assume little endianess
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
     const bool is_little_endian = little_endianess();
 
     /// the SAX parser
@@ -14523,6 +14544,7 @@ class binary_writer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -14604,6 +14626,12 @@ class binary_writer
 =======
     @note This function needs to respect the system's endianness, because bytes
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+    @note This function needs to respect the system's endianness, because bytes
+=======
+    @note This function needs to respect the system's endianess, because bytes
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
           in CBOR, MessagePack, and UBJSON are stored in network order (big
           endian) and therefore need reordering on little endian systems.
     */
@@ -14700,6 +14728,7 @@ class binary_writer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -14781,6 +14810,12 @@ class binary_writer
 =======
     /// whether we can assume little endianness
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+    /// whether we can assume little endianness
+=======
+    /// whether we can assume little endianess
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
     const bool is_little_endian = little_endianess();
 
     /// the output
@@ -17869,6 +17904,7 @@ class basic_json
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -17950,6 +17986,12 @@ class basic_json
 =======
          The subtype is then added as signed 8-bit integer.
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+         The subtype is then added as signed 8-bit integer.
+=======
+         The subtype is then added as singed 8-bit integer.
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
        - If no subtype is given, the bin family (bin8, bin16, bin32) is used.
     - BSON
        - If a subtype is given, it is used and added as unsigned 8-bit integer.
@@ -21915,6 +21957,7 @@ class basic_json
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -21996,6 +22039,12 @@ class basic_json
 =======
              object's lifetime exceeds the iteration. See
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+             object's lifetime exceeds the iteration. See
+=======
+             object's lifetime exeeds the iteration. See
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
              <https://github.com/nlohmann/json/issues/2040> for more
              information.
 
