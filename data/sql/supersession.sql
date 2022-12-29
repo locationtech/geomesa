@@ -273,6 +273,7 @@ INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','9025','helmer
 INSERT INTO "supersession" VALUES('grid_transformation','EPSG','9305','grid_transformation','EPSG','10144','EPSG',0);
 INSERT INTO "supersession" VALUES('grid_transformation','EPSG','9629','grid_transformation','EPSG','10145','EPSG',0);
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','1622','helmert_transformation','EPSG','5226','EPSG',0);
 INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15882','grid_transformation','EPSG','9329','EPSG',1);
 INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15888','grid_transformation','EPSG','9330','EPSG',1);
@@ -280,4 +281,10 @@ INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15887','grid_
 INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15890','helmert_transformation','EPSG','15883','EPSG',1);
 INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15891','helmert_transformation','EPSG','15884','EPSG',1);
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
