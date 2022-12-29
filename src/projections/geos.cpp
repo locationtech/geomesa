@@ -63,6 +63,7 @@ static PJ_XY geos_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     ** position on earth surface (long,lat).*/
 =======
     ** position on earth surface (lon,lat).*/
@@ -92,6 +93,9 @@ static PJ_XY geos_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 =======
     ** position on earth surface (lon,lat).*/
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    ** position on earth surface (lon,lat).*/
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     tmp = cos(lp.phi);
     Vx = cos (lp.lam) * tmp;
     Vy = sin (lp.lam) * tmp;
@@ -129,6 +133,7 @@ static PJ_XY geos_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     ** position on earth surface (long,lat).*/
 =======
     ** position on earth surface (lon,lat).*/
@@ -158,6 +163,9 @@ static PJ_XY geos_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 =======
     ** position on earth surface (lon,lat).*/
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    ** position on earth surface (lon,lat).*/
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     r = (Q->radius_p) / hypot(Q->radius_p * cos (lp.phi), sin (lp.phi));
     Vx = r * cos (lp.lam) * cos (lp.phi);
     Vy = r * sin (lp.lam) * cos (lp.phi);
