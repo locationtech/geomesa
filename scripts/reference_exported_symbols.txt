@@ -103,8 +103,11 @@ osgeo::proj::common::UnitOfMeasure::UnitOfMeasure(std::string const&, double, os
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -163,6 +166,7 @@ osgeo::proj::coordinates::CoordinateMetadata::crs() const
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -187,6 +191,10 @@ osgeo::proj::coordinates::CoordinateMetadata::crs() const
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::crs::BoundCRS::baseCRS() const
 osgeo::proj::crs::BoundCRS::baseCRSWithCanonicalBoundCRS() const
 osgeo::proj::crs::BoundCRS::~BoundCRS()
@@ -224,10 +232,13 @@ osgeo::proj::crs::CRS::identify(std::shared_ptr<osgeo::proj::io::AuthorityFactor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::crs::CRS::isDynamic(bool) const
 =======
 <<<<<<< HEAD
@@ -255,6 +266,7 @@ osgeo::proj::crs::CRS::isDynamic(bool) const
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -284,6 +296,10 @@ osgeo::proj::crs::CRS::isDynamic(bool) const
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::crs::CRS::normalizeForVisualization() const
 osgeo::proj::crs::CRS::promoteTo3D(std::string const&, std::shared_ptr<osgeo::proj::io::DatabaseContext> const&) const
 osgeo::proj::crs::CRS::shallowClone() const
@@ -380,10 +396,13 @@ osgeo::proj::cs::CoordinateSystemAxis::~CoordinateSystemAxis()
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::cs::CoordinateSystemAxis::create(osgeo::proj::util::PropertyMap const&, std::string const&, osgeo::proj::cs::AxisDirection const&, osgeo::proj::common::UnitOfMeasure const&, osgeo::proj::util::optional<double> const&, osgeo::proj::util::optional<double> const&, osgeo::proj::util::optional<osgeo::proj::cs::RangeMeaning> const&, std::shared_ptr<osgeo::proj::cs::Meridian> const&)
 =======
 <<<<<<< HEAD
@@ -411,6 +430,7 @@ osgeo::proj::cs::CoordinateSystemAxis::create(osgeo::proj::util::PropertyMap con
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -440,6 +460,10 @@ osgeo::proj::cs::CoordinateSystemAxis::create(osgeo::proj::util::PropertyMap con
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::cs::CoordinateSystemAxis::create(osgeo::proj::util::PropertyMap const&, std::string const&, osgeo::proj::cs::AxisDirection const&, osgeo::proj::common::UnitOfMeasure const&, std::shared_ptr<osgeo::proj::cs::Meridian> const&)
 osgeo::proj::cs::CoordinateSystemAxis::direction() const
 osgeo::proj::cs::CoordinateSystem::axisList() const
@@ -457,10 +481,13 @@ osgeo::proj::cs::CoordinateSystemAxis::minimumValue() const
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::cs::CoordinateSystemAxis::rangeMeaning() const
 =======
 <<<<<<< HEAD
@@ -488,6 +515,7 @@ osgeo::proj::cs::CoordinateSystemAxis::rangeMeaning() const
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -517,6 +545,10 @@ osgeo::proj::cs::CoordinateSystemAxis::rangeMeaning() const
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::cs::CoordinateSystemAxis::unit() const
 osgeo::proj::cs::CoordinateSystem::~CoordinateSystem()
 osgeo::proj::cs::DateTimeTemporalCS::create(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&)
@@ -546,10 +578,13 @@ osgeo::proj::cs::ParametricCS::~ParametricCS()
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::cs::RangeMeaning::valueOf(std::string const&)
 =======
 <<<<<<< HEAD
@@ -577,6 +612,7 @@ osgeo::proj::cs::RangeMeaning::valueOf(std::string const&)
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -606,6 +642,10 @@ osgeo::proj::cs::RangeMeaning::valueOf(std::string const&)
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::cs::SphericalCS::create(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&)
 osgeo::proj::cs::SphericalCS::create(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::cs::CoordinateSystemAxis> > const&)
 osgeo::proj::cs::SphericalCS::~SphericalCS()
@@ -629,10 +669,13 @@ osgeo::proj::datum::Datum::anchorDefinition() const
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::datum::Datum::anchorEpoch() const
 =======
 <<<<<<< HEAD
@@ -660,6 +703,7 @@ osgeo::proj::datum::Datum::anchorEpoch() const
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -689,6 +733,10 @@ osgeo::proj::datum::Datum::anchorEpoch() const
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::datum::Datum::conventionalRS() const
 osgeo::proj::datum::Datum::~Datum()
 osgeo::proj::datum::DatumEnsemble::asDatum(std::shared_ptr<osgeo::proj::io::DatabaseContext> const&) const
@@ -733,10 +781,13 @@ osgeo::proj::datum::GeodeticReferenceFrame::create(osgeo::proj::util::PropertyMa
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::datum::GeodeticReferenceFrame::create(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::datum::Ellipsoid> > const&, osgeo::proj::util::optional<std::string> const&, osgeo::proj::util::optional<osgeo::proj::common::Measure> const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::datum::PrimeMeridian> > const&)
 =======
 <<<<<<< HEAD
@@ -764,6 +815,7 @@ osgeo::proj::datum::GeodeticReferenceFrame::create(osgeo::proj::util::PropertyMa
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -793,6 +845,10 @@ osgeo::proj::datum::GeodeticReferenceFrame::create(osgeo::proj::util::PropertyMa
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::datum::GeodeticReferenceFrame::ellipsoid() const
 osgeo::proj::datum::GeodeticReferenceFrame::~GeodeticReferenceFrame()
 osgeo::proj::datum::GeodeticReferenceFrame::hasEquivalentNameToUsingAlias(osgeo::proj::common::IdentifiedObject const*, std::shared_ptr<osgeo::proj::io::DatabaseContext> const&) const
@@ -819,10 +875,13 @@ osgeo::proj::datum::TemporalDatum::temporalOrigin() const
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::datum::VerticalReferenceFrame::create(osgeo::proj::util::PropertyMap const&, osgeo::proj::util::optional<std::string> const&, osgeo::proj::util::optional<osgeo::proj::common::Measure> const&, osgeo::proj::util::optional<osgeo::proj::datum::RealizationMethod> const&)
 =======
 <<<<<<< HEAD
@@ -850,6 +909,7 @@ osgeo::proj::datum::VerticalReferenceFrame::create(osgeo::proj::util::PropertyMa
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -879,6 +939,10 @@ osgeo::proj::datum::VerticalReferenceFrame::create(osgeo::proj::util::PropertyMa
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::datum::VerticalReferenceFrame::create(osgeo::proj::util::PropertyMap const&, osgeo::proj::util::optional<std::string> const&, osgeo::proj::util::optional<osgeo::proj::datum::RealizationMethod> const&)
 osgeo::proj::datum::VerticalReferenceFrame::realizationMethod() const
 osgeo::proj::datum::VerticalReferenceFrame::~VerticalReferenceFrame()
@@ -1196,10 +1260,13 @@ osgeo::proj::operation::Conversion::createTunisiaMappingGrid(osgeo::proj::util::
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::Conversion::createTunisiaMiningGrid(osgeo::proj::util::PropertyMap const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Length const&, osgeo::proj::common::Length const&)
 =======
 <<<<<<< HEAD
@@ -1227,6 +1294,7 @@ osgeo::proj::operation::Conversion::createTunisiaMiningGrid(osgeo::proj::util::P
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1256,6 +1324,10 @@ osgeo::proj::operation::Conversion::createTunisiaMiningGrid(osgeo::proj::util::P
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::Conversion::createTwoPointEquidistant(osgeo::proj::util::PropertyMap const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Length const&, osgeo::proj::common::Length const&)
 osgeo::proj::operation::Conversion::createUTM(osgeo::proj::util::PropertyMap const&, int, bool)
 osgeo::proj::operation::Conversion::createVanDerGrinten(osgeo::proj::util::PropertyMap const&, osgeo::proj::common::Angle const&, osgeo::proj::common::Length const&, osgeo::proj::common::Length const&)
@@ -1282,10 +1354,13 @@ osgeo::proj::operation::Conversion::isUTM(int&, bool&) const
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::CoordinateOperationContext::clone() const
 =======
 <<<<<<< HEAD
@@ -1313,6 +1388,7 @@ osgeo::proj::operation::CoordinateOperationContext::clone() const
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1342,6 +1418,10 @@ osgeo::proj::operation::CoordinateOperationContext::clone() const
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::CoordinateOperationContext::~CoordinateOperationContext()
 osgeo::proj::operation::CoordinateOperationContext::create(std::shared_ptr<osgeo::proj::io::AuthorityFactory> const&, std::shared_ptr<osgeo::proj::metadata::Extent> const&, double)
 osgeo::proj::operation::CoordinateOperationContext::getAllowBallparkTransformations() const
@@ -1364,6 +1444,9 @@ osgeo::proj::operation::CoordinateOperationContext::getSourceAndTargetCRSExtentU
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1427,6 +1510,7 @@ osgeo::proj::operation::CoordinateOperationContext::getTargetCoordinateEpoch() c
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 osgeo::proj::operation::CoordinateOperationContext::getSpatialCriterion() const
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1449,6 +1533,11 @@ osgeo::proj::operation::CoordinateOperationContext::getTargetCoordinateEpoch() c
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+osgeo::proj::operation::CoordinateOperationContext::getSpatialCriterion() const
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::CoordinateOperationContext::getUsePROJAlternativeGridNames() const
 osgeo::proj::operation::CoordinateOperationContext::setAllowBallparkTransformations(bool)
 osgeo::proj::operation::CoordinateOperationContext::setAllowUseIntermediateCRS(osgeo::proj::operation::CoordinateOperationContext::IntermediateCRSUse)
@@ -1469,6 +1558,9 @@ osgeo::proj::operation::CoordinateOperationContext::setSourceAndTargetCRSExtentU
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1532,6 +1624,7 @@ osgeo::proj::operation::CoordinateOperationContext::setTargetCoordinateEpoch(osg
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 osgeo::proj::operation::CoordinateOperationContext::setSpatialCriterion(osgeo::proj::operation::CoordinateOperationContext::SpatialCriterion)
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1554,6 +1647,11 @@ osgeo::proj::operation::CoordinateOperationContext::setTargetCoordinateEpoch(osg
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+osgeo::proj::operation::CoordinateOperationContext::setSpatialCriterion(osgeo::proj::operation::CoordinateOperationContext::SpatialCriterion)
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::CoordinateOperationContext::setUsePROJAlternativeGridNames(bool)
 osgeo::proj::operation::CoordinateOperation::~CoordinateOperation()
 osgeo::proj::operation::CoordinateOperation::coordinateOperationAccuracies() const
@@ -1571,10 +1669,13 @@ osgeo::proj::operation::CoordinateOperationFactory::createOperation(dropbox::oxy
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::CoordinateOperationFactory::createOperations(dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::coordinates::CoordinateMetadata> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, dropbox::oxygen::nn<std::unique_ptr<osgeo::proj::operation::CoordinateOperationContext, std::default_delete<osgeo::proj::operation::CoordinateOperationContext> > > const&) const
 osgeo::proj::operation::CoordinateOperationFactory::createOperations(dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::coordinates::CoordinateMetadata> > const&, dropbox::oxygen::nn<std::unique_ptr<osgeo::proj::operation::CoordinateOperationContext, std::default_delete<osgeo::proj::operation::CoordinateOperationContext> > > const&) const
 =======
@@ -1606,6 +1707,7 @@ osgeo::proj::operation::CoordinateOperationFactory::createOperations(dropbox::ox
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1636,6 +1738,10 @@ osgeo::proj::operation::CoordinateOperationFactory::createOperations(dropbox::ox
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 osgeo::proj::operation::CoordinateOperationFactory::createOperations(dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, dropbox::oxygen::nn<std::unique_ptr<osgeo::proj::operation::CoordinateOperationContext, std::default_delete<osgeo::proj::operation::CoordinateOperationContext> > > const&) const
 osgeo::proj::operation::CoordinateOperation::hasBallparkTransformation() const
 osgeo::proj::operation::CoordinateOperation::interpolationCRS() const
@@ -1848,10 +1954,13 @@ proj_coord_error()
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 proj_coordinate_metadata_get_epoch
 =======
 <<<<<<< HEAD
@@ -1879,6 +1988,7 @@ proj_coordinate_metadata_get_epoch
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1908,6 +2018,10 @@ proj_coordinate_metadata_get_epoch
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 proj_coordoperation_create_inverse
 proj_coordoperation_get_accuracy
 proj_coordoperation_get_grid_used
@@ -1992,10 +2106,13 @@ proj_create_conversion_tunisia_mapping_grid
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 proj_create_conversion_tunisia_mining_grid
 =======
 <<<<<<< HEAD
@@ -2023,6 +2140,7 @@ proj_create_conversion_tunisia_mining_grid
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2052,6 +2170,10 @@ proj_create_conversion_tunisia_mining_grid
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 proj_create_conversion_two_point_equidistant
 proj_create_conversion_utm
 proj_create_conversion_van_der_grinten
