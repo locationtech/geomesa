@@ -33,6 +33,7 @@ INSERT INTO "metadata" VALUES('DATABASE.LAYOUT.VERSION.MINOR', 2);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -48,6 +49,8 @@ INSERT INTO "metadata" VALUES('DATABASE.LAYOUT.VERSION.MINOR', 2);
 =======
 >>>>>>> 48ae38528d (typo fixes)
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -58,10 +61,14 @@ INSERT INTO "metadata" VALUES('DATABASE.LAYOUT.VERSION.MINOR', 2);
 =======
 >>>>>>> 74eac2217b (typo fixes)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -80,11 +87,14 @@ INSERT INTO "metadata" VALUES('DATABASE.LAYOUT.VERSION.MINOR', 2);
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "metadata" VALUES('EPSG.VERSION', 'v10.081');
 INSERT INTO "metadata" VALUES('EPSG.DATE', '2023-01-19');
 =======
 INSERT INTO "metadata" VALUES('EPSG.VERSION', 'v10.078');
 INSERT INTO "metadata" VALUES('EPSG.DATE', '2022-12-13');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -103,6 +113,10 @@ INSERT INTO "metadata" VALUES('EPSG.DATE', '2022-12-13');
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -110,12 +124,16 @@ INSERT INTO "metadata" VALUES('EPSG.DATE', '2022-12-13');
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
@@ -127,6 +145,10 @@ INSERT INTO "metadata" VALUES('EPSG.DATE', '2022-12-13');
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
 =======
 INSERT INTO "metadata" VALUES('EPSG.VERSION', 'v10.078');
@@ -161,12 +183,17 @@ INSERT INTO "metadata" VALUES('EPSG.DATE', '2023-01-19');
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -177,10 +204,13 @@ INSERT INTO "metadata" VALUES('EPSG.DATE', '2023-01-19');
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 INSERT INTO "metadata" VALUES('EPSG.VERSION', 'v10.078');
 INSERT INTO "metadata" VALUES('EPSG.DATE', '2022-12-13');
@@ -217,6 +247,7 @@ INSERT INTO "metadata" VALUES('EPSG.DATE', '2023-01-19');
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -256,6 +287,8 @@ INSERT INTO "metadata" VALUES('EPSG.DATE', '2023-01-19');
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
 >>>>>>> 48ae38528d (typo fixes)
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 
 -- The value of ${PROJ_VERSION} is substituted at build time by the actual
 -- value.
