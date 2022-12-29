@@ -116,10 +116,13 @@ Fedora
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 On Fedora the ``dnf`` package manager is used::
 =======
 On Fedora the :program:`dnf` package manager is used::
@@ -132,6 +135,7 @@ On Fedora the ``dnf`` package manager is used::
 =======
 On Fedora the :program:`dnf` package manager is used::
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 On Fedora the ``dnf`` package manager is used::
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -200,6 +204,8 @@ On Fedora the ``dnf`` package manager is used::
 On Fedora the ``dnf`` package manager is used::
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 
     sudo dnf install proj
 
@@ -220,10 +226,13 @@ Red Hat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 On Red Hat based system packages are installed with ``yum``::
 =======
 On Red Hat based system packages are installed with :program:`yum`::
@@ -236,6 +245,7 @@ On Red Hat based system packages are installed with ``yum``::
 =======
 On Red Hat based system packages are installed with :program:`yum`::
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 On Red Hat based system packages are installed with ``yum``::
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -304,6 +314,8 @@ On Red Hat based system packages are installed with ``yum``::
 On Red Hat based system packages are installed with ``yum``::
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 
     sudo yum install proj
 
@@ -414,6 +426,7 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -426,6 +439,8 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 2f268a5476 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
     package can be downloaded and its content decompressed into one of the
     directories where PROJ looks for :ref:`resources <resource_files>`
 =======
@@ -440,10 +455,14 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
     directories where PROJ looks for :ref:`resources <resource_files>`
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
     package can be downloaded and added to the :envvar:`PROJ_DATA` directory
     (called ``PROJ_LIB`` before PROJ 9.1)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     package can be downloaded and its content decompressed into one of the
     directories where PROJ looks for :ref:`resources <resource_files>`
@@ -508,6 +527,8 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 2f268a5476 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 
 Starting with PROJ 9.2, a ``uninstall`` target is available to remove files
 installed by the ``install`` target::
