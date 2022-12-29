@@ -1456,10 +1456,18 @@ TEST(operation, tped_export) {
 
 TEST(operation, tmg_export) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     auto conv = Conversion::createTunisiaMiningGrid(
 =======
     auto conv = Conversion::createTunisiaMappingGrid(
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+    auto conv = Conversion::createTunisiaMappingGrid(
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         PropertyMap(), Angle(1), Angle(2), Length(3), Length(4));
     EXPECT_TRUE(conv->validateParameters().empty());
 
@@ -1468,12 +1476,21 @@ TEST(operation, tmg_export) {
 
     EXPECT_EQ(conv->exportToWKT(WKTFormatter::create().get()),
 <<<<<<< HEAD
+<<<<<<< HEAD
               "CONVERSION[\"Tunisia Mining Grid\",\n"
               "    METHOD[\"Tunisia Mining Grid\",\n"
 =======
               "CONVERSION[\"Tunisia Mapping Grid\",\n"
               "    METHOD[\"Tunisia Mapping Grid\",\n"
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+              "CONVERSION[\"Tunisia Mapping Grid\",\n"
+              "    METHOD[\"Tunisia Mapping Grid\",\n"
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
               "        ID[\"EPSG\",9816]],\n"
               "    PARAMETER[\"Latitude of false origin\",1,\n"
               "        ANGLEUNIT[\"degree\",0.0174532925199433],\n"
@@ -1492,10 +1509,18 @@ TEST(operation, tmg_export) {
         conv->exportToWKT(
             WKTFormatter::create(WKTFormatter::Convention::WKT1_GDAL).get()),
 <<<<<<< HEAD
+<<<<<<< HEAD
         "PROJECTION[\"Tunisia_Mining_Grid\"],\n"
 =======
         "PROJECTION[\"Tunisia_Mapping_Grid\"],\n"
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+        "PROJECTION[\"Tunisia_Mapping_Grid\"],\n"
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         "PARAMETER[\"latitude_of_origin\",1],\n"
         "PARAMETER[\"central_meridian\",2],\n"
         "PARAMETER[\"false_easting\",3],\n"
@@ -1686,6 +1711,7 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
               "+proj=cea +R_A +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
 =======
               "+proj=cea +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
@@ -1699,6 +1725,12 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 =======
               "+proj=cea +R_A +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
 >>>>>>> 31034f9449 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+              "+proj=cea +R_A +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
+=======
+              "+proj=cea +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
     EXPECT_EQ(conv->exportToWKT(WKTFormatter::create().get()),
               "CONVERSION[\"Lambert Cylindrical Equal Area (Spherical)\",\n"
