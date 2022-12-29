@@ -159,6 +159,7 @@ Preliminary step: install clang. For example:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -199,6 +200,8 @@ Preliminary step: install clang. For example:
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f36c8520e2 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 Configure PROJ with the `scan-build <https://clang-analyzer.llvm.org/scan-build.html>`__ utility of clang:
 =======
 Configure PROJ with the :program:`scan-build` utility of clang:
@@ -313,6 +316,7 @@ Configure PROJ with the `scan-build <https://clang-analyzer.llvm.org/scan-build.
 =======
 Configure PROJ with the :program:`scan-build` utility of clang:
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 Configure PROJ with the `scan-build <https://clang-analyzer.llvm.org/scan-build.html>`__ utility of clang:
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -476,6 +480,8 @@ Configure PROJ with the `scan-build <https://clang-analyzer.llvm.org/scan-build.
 Configure PROJ with the `scan-build <https://clang-analyzer.llvm.org/scan-build.html>`__ utility of clang:
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> f36c8520e2 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 
 ::
     mkdir csa_build
@@ -516,6 +522,7 @@ Configure PROJ with the `scan-build <https://clang-analyzer.llvm.org/scan-build.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -556,6 +563,8 @@ Configure PROJ with the `scan-build <https://clang-analyzer.llvm.org/scan-build.
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f36c8520e2 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 Build using ``scan-build``:
 =======
 Build using :program:`scan-build`:
@@ -670,6 +679,7 @@ Build using ``scan-build``:
 =======
 Build using :program:`scan-build`:
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 Build using ``scan-build``:
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -833,6 +843,8 @@ Build using ``scan-build``:
 Build using ``scan-build``:
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> f36c8520e2 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 
 ::
 
@@ -873,6 +885,7 @@ If CSA finds errors, they will be emitted during the build. And in which case,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -913,6 +926,8 @@ If CSA finds errors, they will be emitted during the build. And in which case,
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f36c8520e2 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 at the end of the build process, ``scan-build`` will emit a warning message
 =======
 at the end of the build process, :program:`scan-build` will emit a warning message
@@ -1027,6 +1042,7 @@ at the end of the build process, ``scan-build`` will emit a warning message
 =======
 at the end of the build process, :program:`scan-build` will emit a warning message
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 at the end of the build process, ``scan-build`` will emit a warning message
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1190,6 +1206,8 @@ at the end of the build process, ``scan-build`` will emit a warning message
 at the end of the build process, ``scan-build`` will emit a warning message
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> f36c8520e2 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 indicating errors have been found and how to display the error report. This
 is with something like
 

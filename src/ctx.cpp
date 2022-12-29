@@ -169,6 +169,7 @@ pj_ctx::pj_ctx(const pj_ctx& other) :
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -181,6 +182,8 @@ pj_ctx::pj_ctx(const pj_ctx& other) :
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     errorIfBestTransformationNotAvailableDefault(other.errorIfBestTransformationNotAvailableDefault),
     warnIfBestTransformationNotAvailableDefault(other.warnIfBestTransformationNotAvailableDefault),
 =======
@@ -223,6 +226,7 @@ pj_ctx::pj_ctx(const pj_ctx& other) :
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     errorIfBestTransformationNotAvailableDefault(other.errorIfBestTransformationNotAvailableDefault),
     warnIfBestTransformationNotAvailableDefault(other.warnIfBestTransformationNotAvailableDefault),
@@ -285,6 +289,8 @@ pj_ctx::pj_ctx(const pj_ctx& other) :
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
     logger(other.logger),
     logger_app_data(other.logger_app_data),
     cpp_context(other.cpp_context ? other.cpp_context->clone(this) : nullptr),
