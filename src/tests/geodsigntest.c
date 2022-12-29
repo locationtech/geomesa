@@ -30,6 +30,7 @@ typedef double T;
 #define nullptr 0
 #endif
 
+<<<<<<< HEAD
 #if !defined(OLD_BUGGY_REMQUO)
 /*
  * glibc prior to version 2.22 had a bug in remquo.  This was reported in 2014
@@ -43,6 +44,8 @@ typedef double T;
 #define OLD_BUGGY_REMQUO 0
 #endif
 
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 static const T wgs84_a = 6378137, wgs84_f = 1/298.257223563; /* WGS84 */
 
 static int equiv(T x, T y) {
@@ -136,9 +139,13 @@ int main() {
   check( geod_AngRound( 90.0       ),  90         );
 
   checksincosd(-  inf,  nan,  nan);
+<<<<<<< HEAD
 #if !OLD_BUGGY_REMQUO
   checksincosd(-810.0, -1.0, +0.0);
 #endif
+=======
+  checksincosd(-810.0, -1.0, +0.0);
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
   checksincosd(-720.0, -0.0, +1.0);
   checksincosd(-630.0, +1.0, +0.0);
   checksincosd(-540.0, -0.0, -1.0);
@@ -157,6 +164,7 @@ int main() {
   checksincosd(+540.0, +0.0, -1.0);
   checksincosd(+630.0, -1.0, +0.0);
   checksincosd(+720.0, +0.0, +1.0);
+<<<<<<< HEAD
 #if !OLD_BUGGY_REMQUO
   checksincosd(+810.0, +1.0, +0.0);
 #endif
@@ -164,6 +172,12 @@ int main() {
   checksincosd(   nan,  nan,  nan);
 
 #if !OLD_BUGGY_REMQUO
+=======
+  checksincosd(+810.0, +1.0, +0.0);
+  checksincosd(+  inf,  nan,  nan);
+  checksincosd(   nan,  nan,  nan);
+
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
   {
     T s1, c1, s2, c2, s3, c3;
     geod_sincosd(         9.0, &s1, &c1);
@@ -174,7 +188,10 @@ int main() {
       ++n;
     }
   }
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 
   check( geod_atan2d(+0.0 , -0.0 ), +180 );
   check( geod_atan2d(-0.0 , -0.0 ), -180 );
