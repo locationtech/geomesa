@@ -477,6 +477,7 @@ Return the properly scaled numeric
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -491,6 +492,8 @@ Return the properly scaled numeric
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
     const double GRS80_DEG = 111319.4908; /* deg-to-m at equator of GRS80 */
 
     char *endp;
@@ -518,6 +521,7 @@ Return the properly scaled numeric
         s = GRS80_DEG * proj_todeg (s);
     else if (0==strcmp(units, "deg"))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -731,6 +735,35 @@ Return the properly scaled numeric
 =======
     else if (0==strcmp(units, "deg"))
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+    double s;
+    const double GRS80_DEG = 111319.4908; /* deg-to-m at equator of GRS80 */
+    const char *endp = args;
+    s = proj_strtod (args, (char **) &endp);
+    if (args==endp)
+        return HUGE_VAL;
+
+    endp = column (args, 2);
+
+    if (0==strcmp(endp, "km"))
+        s *= 1000;
+    else if (0==strcmp(endp, "m"))
+        s *= 1;
+    else if (0==strcmp(endp, "dm"))
+        s /= 10;
+    else if (0==strcmp(endp, "cm"))
+        s /= 100;
+    else if (0==strcmp(endp, "mm"))
+        s /= 1000;
+    else if (0==strcmp(endp, "um"))
+        s /= 1e6;
+    else if (0==strcmp(endp, "nm"))
+        s /= 1e9;
+    else if (0==strcmp(endp, "rad"))
+        s = GRS80_DEG * proj_todeg (s);
+    else if (0==strcmp(endp, "deg"))
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
         s = GRS80_DEG * s;
     else
         s *= default_scale;
@@ -828,6 +861,7 @@ static void finish_previous_operation (const char *args) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -909,6 +943,12 @@ static int operation (char *args) {
 =======
 static int operation (const char *args) {
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+static int operation (const char *args) {
+=======
+static int operation (char *args) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 /*****************************************************************************
 Define the operation to apply to the input data (in ISO 19100 lingo,
 an operation is the general term describing something that can be
@@ -1059,6 +1099,7 @@ Attempt to interpret args as a PJ_COORD.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1073,11 +1114,14 @@ Attempt to interpret args as a PJ_COORD.
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
     char *endp;
     char *dmsendp;
 =======
     const char *endp;
     const char *dmsendp;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1161,6 +1205,9 @@ Attempt to interpret args as a PJ_COORD.
     char *endp;
     char *dmsendp;
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
     const char *prev = args;
     PJ_COORD a = proj_coord (0,0,0,0);
 
@@ -1193,6 +1240,7 @@ Attempt to interpret args as a PJ_COORD.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1207,11 +1255,14 @@ Attempt to interpret args as a PJ_COORD.
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
         double d = proj_strtod(prev, &endp);
         if( *endp != '\0' && !isspace(*endp) )
         {
             double dms = PJ_TODEG(proj_dmstor (prev, &dmsendp));
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1242,10 +1293,13 @@ Attempt to interpret args as a PJ_COORD.
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
         double d = proj_strtod(prev,  (char **) &endp);
         if( *endp != '\0' && !isspace(*endp) )
         {
             double dms = PJ_TODEG(proj_dmstor (prev, (char **) &dmsendp));
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1333,6 +1387,9 @@ Attempt to interpret args as a PJ_COORD.
         {
             double dms = PJ_TODEG(proj_dmstor (prev, &dmsendp));
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
             /* TODO: When projects.h is removed, call proj_dmstor() in all cases */
             if (d != dms && fabs(d) < fabs(dms) && fabs(dms) < fabs(d) + 1) {
                 d = dms;
@@ -1698,6 +1755,7 @@ static int dispatch (const char *cmnd, const char *args) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1779,6 +1837,12 @@ static int dispatch (const char *cmnd, const char *args) {
 =======
     if  (0==strcmp (cmnd, "operation")) return  operation (args);
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+    if  (0==strcmp (cmnd, "operation")) return  operation (args);
+=======
+    if  (0==strcmp (cmnd, "operation")) return  operation ((char *) args);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
     if  (0==strcmp (cmnd, "crs_src"))   return  crs_src   (args);
     if  (0==strcmp (cmnd, "crs_dst"))   return  crs_dst   (args);
     if (T.skip_test)
