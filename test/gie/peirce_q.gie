@@ -9,7 +9,11 @@
 # based on the from the original libproj test. Note that
 # Peirce_q distances include considerable distortion away
 # from axes, a feature of the projection to allow
+<<<<<<< HEAD
 # tessellation but means that there is no uniform scale
+=======
+# tesselation but means that there is no uniform scale
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 # across the coordinate space, so tolerance can be high.
 ------------------------------------------------------------
 
