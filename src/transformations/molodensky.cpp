@@ -222,6 +222,7 @@ static PJ_XY forward_2d(PJ_LP lp, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -514,6 +515,8 @@ static PJ_XY forward_2d(PJ_LP lp, PJ *P) {
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
     const auto xyz = forward_3d(point.lpz, P);
     point.xyz = xyz;
 
@@ -533,6 +536,7 @@ static PJ_LP reverse_2d(PJ_XY xy, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -825,6 +829,8 @@ static PJ_LP reverse_2d(PJ_XY xy, PJ *P) {
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
     const auto lpz = reverse_3d(point.xyz, P);
     point.lpz = lpz;
 
@@ -859,6 +865,7 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 
 
 static void forward_4d(PJ_COORD& obs, PJ *P) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1232,6 +1239,9 @@ static void forward_4d(PJ_COORD& obs, PJ *P) {
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+    obs.xyz = forward_3d(obs.lpz, P);
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 
@@ -1262,6 +1272,7 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 
 
 static void reverse_4d(PJ_COORD& obs, PJ *P) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1635,6 +1646,9 @@ static void reverse_4d(PJ_COORD& obs, PJ *P) {
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+    obs.lpz = reverse_3d(obs.xyz, P);
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 }
 
 

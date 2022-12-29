@@ -1003,6 +1003,7 @@ bool Evaluator<Grid, GridSet, EvaluatorIface>::forward(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1089,10 +1090,13 @@ bool Evaluator<Grid, GridSet, EvaluatorIface>::forward(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
                 if (!grid->getLonLatOffset(ix0, iy0, dx00, dy00) ||
                     !grid->getLonLatOffset(ix1, iy0, dx10, dy10) ||
                     !grid->getLonLatOffset(ix0, iy1, dx01, dy01) ||
                     !grid->getLonLatOffset(ix1, iy1, dx11, dy11)) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1192,6 +1196,8 @@ bool Evaluator<Grid, GridSet, EvaluatorIface>::forward(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
                     return false;
                 }
             } else /* if (compEx->displacementType == DisplacementType::THREE_D)
@@ -1201,6 +1207,7 @@ bool Evaluator<Grid, GridSet, EvaluatorIface>::forward(
                 double dz01 = 0;
                 double dz10 = 0;
                 double dz11 = 0;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1293,10 +1300,13 @@ bool Evaluator<Grid, GridSet, EvaluatorIface>::forward(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
                 if (!grid->getLonLatZOffset(ix0, iy0, dx00, dy00, dz00) ||
                     !grid->getLonLatZOffset(ix1, iy0, dx10, dy10, dz10) ||
                     !grid->getLonLatZOffset(ix0, iy1, dx01, dy01, dz01) ||
                     !grid->getLonLatZOffset(ix1, iy1, dx11, dy11, dz11)) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1396,6 +1406,8 @@ bool Evaluator<Grid, GridSet, EvaluatorIface>::forward(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
                     return false;
                 }
                 const double dzInterp =

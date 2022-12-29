@@ -407,6 +407,7 @@ PJ PROJ_DLL *proj_create_conversion_tunisia_mapping_grid(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -540,6 +541,8 @@ PJ PROJ_DLL *proj_create_conversion_tunisia_mining_grid(
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 PJ PROJ_DLL *proj_create_conversion_albers_equal_area(
     PJ_CONTEXT *ctx,
     double latitude_false_origin,

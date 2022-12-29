@@ -11,6 +11,7 @@ geod
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -361,6 +362,8 @@ invgeod
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 Synopsis
 ********
 
@@ -485,6 +488,7 @@ as program :program:`proj` by using *+ellps=*, *+a=*, *+es=*, etc.
 :program:`geod` may also be used to determine intermediate points along
 either a geodesic line between two points or along an arc of
 specified distance from a geographic point. In both cases an
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -640,6 +644,11 @@ parameters and either a terminus point *+lat_2=lat* and
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
+=======
+initial point must be specified with *+lat_1=lat* and *+lon_1=lon*
+parameters and either a terminus point *+lat_2=lat* and
+*+lon_2=lon* or a distance and azimuth from the initial point
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 with *+S=distance* and *+A=azimuth* must be specified.
 
 If points along a geodesic are to be determined then either
