@@ -108,6 +108,7 @@ struct Grid : public GridPrototype {
         return true;
     }
 
+<<<<<<< HEAD
     bool getLongLatOffset(int ix, int iy, double &longOffsetRadian,
                           double &latOffsetRadian) const {
         if (!checkHorizontal(STR_DEGREE)) {
@@ -120,6 +121,20 @@ struct Grid : public GridPrototype {
             return false;
         }
         longOffsetRadian = longOffsetDeg * DEG_TO_RAD;
+=======
+    bool getLonLatOffset(int ix, int iy, double &lonOffsetRadian,
+                         double &latOffsetRadian) const {
+        if (!checkHorizontal(STR_DEGREE)) {
+            return false;
+        }
+        float lonOffsetDeg;
+        float latOffsetDeg;
+        if (!realGrid->valueAt(ix, iy, sampleX, lonOffsetDeg) ||
+            !realGrid->valueAt(ix, iy, sampleY, latOffsetDeg)) {
+            return false;
+        }
+        lonOffsetRadian = lonOffsetDeg * DEG_TO_RAD;
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         latOffsetRadian = latOffsetDeg * DEG_TO_RAD;
         return true;
     }
@@ -184,9 +199,15 @@ struct Grid : public GridPrototype {
         return ret;
     }
 
+<<<<<<< HEAD
     bool getLongLatZOffset(int ix, int iy, double &longOffsetRadian,
                            double &latOffsetRadian, double &zOffset) const {
         return getLongLatOffset(ix, iy, longOffsetRadian, latOffsetRadian) &&
+=======
+    bool getLonLatZOffset(int ix, int iy, double &lonOffsetRadian,
+                          double &latOffsetRadian, double &zOffset) const {
+        return getLonLatOffset(ix, iy, lonOffsetRadian, latOffsetRadian) &&
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                getZOffset(ix, iy, zOffset);
     }
 
