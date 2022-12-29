@@ -1767,12 +1767,20 @@ expect  -0.001790493 -0.000895247
 
 ===============================================================================
 # Gnomonic
+<<<<<<< HEAD
 # 	Azi, Sph*Ell
 ===============================================================================
 
 -------------------------------------------------------------------------------
 # Test material from Snyder p. 168, table 26.  Repeat tests with ellispoid of
 # flattening 1/200.
+=======
+# 	Azi, Sph.
+===============================================================================
+
+-------------------------------------------------------------------------------
+# Test material from Snyder p. 168, table 26.
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 # Tests the equatorial aspect of the projection.
 -------------------------------------------------------------------------------
 operation +proj=gnom +R=1
@@ -1816,6 +1824,7 @@ direction   inverse
 accept      0   1e8
 expect      0   90
 
+<<<<<<< HEAD
 -------------------------------------------------------------------------------
 operation +proj=gnom +a=1 +rf=200
 -------------------------------------------------------------------------------
@@ -1860,6 +1869,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 direction   inverse
 accept      0   1e8
 expect      0   90
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 
 -------------------------------------------------------------------------------
 # Test the northern polar aspect of the gnonomic projection
@@ -1879,6 +1890,7 @@ accept  90      0
 expect  failure errno coord_transfm_outside_projection_domain
 
 -------------------------------------------------------------------------------
+<<<<<<< HEAD
 operation +proj=gnom +a=1 +rf=200 +lat_0=90
 -------------------------------------------------------------------------------
 tolerance 0.1 mm
@@ -1900,6 +1912,8 @@ accept  90      -0.5
 expect  failure errno coord_transfm_outside_projection_domain
 
 -------------------------------------------------------------------------------
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 # Test the southern polar aspect of the gnonomic projection
 -------------------------------------------------------------------------------
 operation +proj=gnom +R=1 +lat_0=-90
@@ -1917,6 +1931,7 @@ accept  90      0
 expect  failure errno coord_transfm_outside_projection_domain
 
 -------------------------------------------------------------------------------
+<<<<<<< HEAD
 operation +proj=gnom +a=1 +rf=200 +lat_0=-90
 -------------------------------------------------------------------------------
 tolerance 0.1 mm
@@ -1938,6 +1953,8 @@ accept  90      0.5
 expect  failure errno coord_transfm_outside_projection_domain
 
 -------------------------------------------------------------------------------
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 # Test the oblique aspect of the gnonomic projection
 -------------------------------------------------------------------------------
 operation +proj=gnom +R=1 +lat_0=45
@@ -1955,6 +1972,7 @@ roundtrip   100
 accept  0       -45
 expect  failure errno coord_transfm_outside_projection_domain
 
+<<<<<<< HEAD
 -------------------------------------------------------------------------------
 operation +proj=gnom +a=1 +rf=200 +lat_0=45
 -------------------------------------------------------------------------------
@@ -1973,6 +1991,8 @@ expect  0       -154.8623
 roundtrip   100
 accept  0       -45.5
 expect  failure errno coord_transfm_outside_projection_domain
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 ===============================================================================
 # Goode Homolosine
 # 	PCyl, Sph.
