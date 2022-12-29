@@ -45,6 +45,7 @@ The backbone of the UTM projection is a Transverse Mercator projection. In
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -57,6 +58,8 @@ The backbone of the UTM projection is a Transverse Mercator projection. In
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 this exercise we will model the behavior of the UTM projection using the
 =======
 this exercise we will model the behaviour of the UTM projection using the
@@ -101,6 +104,7 @@ this exercise we will model the behaviour of the UTM projection using the
 =======
 this exercise we will model the behaviour of the UTM projection using the
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 this exercise we will model the behavior of the UTM projection using the
 >>>>>>> 86ade66356 (typo fixes)
@@ -166,6 +170,8 @@ this exercise we will model the behaviour of the UTM projection using the
 this exercise we will model the behaviour of the UTM projection using the
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 Transverse Mercator.
 
 
@@ -225,6 +231,7 @@ For all the exercises below the aim is to find the lowest tolerance for each
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -237,6 +244,8 @@ For all the exercises below the aim is to find the lowest tolerance for each
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 roundtrip test. You can of course make all tests pass by setting a tolerance of
 =======
 roundtrip test. You can of course make alle tests pass by setting a tolerance of
@@ -281,6 +290,7 @@ roundtrip test. You can of course make alle tests pass by setting a tolerance of
 =======
 roundtrip test. You can of course make alle tests pass by setting a tolerance of
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 roundtrip test. You can of course make all tests pass by setting a tolerance of
 >>>>>>> 86ade66356 (typo fixes)
@@ -346,6 +356,8 @@ roundtrip test. You can of course make alle tests pass by setting a tolerance of
 roundtrip test. You can of course make alle tests pass by setting a tolerance of
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 1000 km - that's not the point: How low can you go?
 
 After you have answered all exercise 3 questions below, based on your findings
