@@ -172,10 +172,18 @@ fallback_strategy
   Possible values are ``none``, ``nearest_side`` and ``nearest_centroid``. The
   default is ``none`` and signifies, that points that fall outside the
 <<<<<<< HEAD
+<<<<<<< HEAD
   specified triangles are not transformed. This is also the behavior for
 =======
   specified triangles are not transformed. This is also the behaviour for
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+  specified triangles are not transformed. This is also the behaviour for
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
   ``format_version`` before 1.1. If ``fallback_strategy`` is set to
   ``nearest_side``, then points that do not fall into any triangle are 
   transformed according to the triangle closest to them by euclidean distance.

@@ -162,9 +162,16 @@ test_projjson EPSG:9057
 # Dynamic vertical CRS "RH2000 height"
 test_projjson EPSG:5613
 <<<<<<< HEAD
+<<<<<<< HEAD
 test_projjson "ITRF2014@2025.0"
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 
 validate_json $TRAVIS_BUILD_DIR/schemas/v0.5/examples/point_motion_operation.json
 

@@ -12,11 +12,19 @@
     { "$ref": "#/definitions/prime_meridian" },
     { "$ref": "#/definitions/single_operation" },
 <<<<<<< HEAD
+<<<<<<< HEAD
     { "$ref": "#/definitions/concatenated_operation" },
     { "$ref": "#/definitions/coordinate_metadata" }
 =======
     { "$ref": "#/definitions/concatenated_operation" }
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+    { "$ref": "#/definitions/concatenated_operation" }
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
   ],
 
   "definitions": {
@@ -97,11 +105,18 @@
         "meridian": { "$ref": "#/definitions/meridian" },
         "unit": { "$ref": "#/definitions/unit" },
 <<<<<<< HEAD
+<<<<<<< HEAD
         "minimum_value": { "type": "number" },
         "maximum_value": { "type": "number" },
         "range_meaning": { "type": "string", "enum": [ "exact", "wraparound"] },
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         "id": { "$ref": "#/definitions/id" },
         "ids": { "$ref": "#/definitions/ids" }
       },
@@ -220,6 +235,7 @@
     },
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     "coordinate_metadata": {
       "type": "object",
       "properties": {
@@ -233,7 +249,13 @@
     },
 
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
     "coordinate_system": {
       "type": "object",
       "properties": {
@@ -493,9 +515,16 @@
         "name": {},
         "anchor": {},
 <<<<<<< HEAD
+<<<<<<< HEAD
         "anchor_epoch": {},
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         "ellipsoid": {},
         "prime_meridian": {},
         "frame_reference_epoch": { "type": "number" },
@@ -521,9 +550,16 @@
         "name": {},
         "anchor": {},
 <<<<<<< HEAD
+<<<<<<< HEAD
         "anchor_epoch": {},
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         "frame_reference_epoch": { "type": "number" },
         "$schema" : {},
         "scope": {},
@@ -673,9 +709,16 @@
         "name": { "type": "string" },
         "anchor": { "type": "string" },
 <<<<<<< HEAD
+<<<<<<< HEAD
         "anchor_epoch": { "type": "number" },
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         "ellipsoid": { "$ref": "#/definitions/ellipsoid" },
         "prime_meridian": { "$ref": "#/definitions/prime_meridian" },
         "$schema" : {},
@@ -1173,9 +1216,16 @@
         "name": { "type": "string" },
         "anchor": { "type": "string" },
 <<<<<<< HEAD
+<<<<<<< HEAD
         "anchor_epoch": { "type": "number" },
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
         "$schema" : {},
         "scope": {},
         "area": {},
