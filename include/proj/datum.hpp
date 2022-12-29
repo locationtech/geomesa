@@ -86,6 +86,7 @@ class PROJ_GCC_DLL Datum : public common::ObjectUsage,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -94,6 +95,8 @@ class PROJ_GCC_DLL Datum : public common::ObjectUsage,
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_DLL const util::optional<common::Measure> &anchorEpoch() const;
 =======
 <<<<<<< HEAD
@@ -112,8 +115,11 @@ class PROJ_GCC_DLL Datum : public common::ObjectUsage,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -122,6 +128,7 @@ class PROJ_GCC_DLL Datum : public common::ObjectUsage,
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -180,6 +187,8 @@ class PROJ_GCC_DLL Datum : public common::ObjectUsage,
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_DLL const util::optional<common::DateTime> &publicationDate() const;
     PROJ_DLL const common::IdentifiedObjectPtr &conventionalRS() const;
 
@@ -219,6 +228,7 @@ class PROJ_GCC_DLL Datum : public common::ObjectUsage,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -227,6 +237,8 @@ class PROJ_GCC_DLL Datum : public common::ObjectUsage,
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_INTERNAL void
     setAnchorEpoch(const util::optional<common::Measure> &anchorEpoch);
 =======
@@ -247,8 +259,11 @@ class PROJ_GCC_DLL Datum : public common::ObjectUsage,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -258,6 +273,7 @@ class PROJ_GCC_DLL Datum : public common::ObjectUsage,
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -320,6 +336,8 @@ class PROJ_GCC_DLL Datum : public common::ObjectUsage,
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 
     PROJ_INTERNAL void
     setProperties(const util::PropertyMap
@@ -660,14 +678,18 @@ class PROJ_GCC_DLL GeodeticReferenceFrame : public Datum {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
@@ -691,12 +713,15 @@ class PROJ_GCC_DLL GeodeticReferenceFrame : public Datum {
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_DLL static GeodeticReferenceFrameNNPtr
     create(const util::PropertyMap &properties, const EllipsoidNNPtr &ellipsoid,
            const util::optional<std::string> &anchor,
            const util::optional<common::Measure> &anchorEpoch,
            const PrimeMeridianNNPtr &primeMeridian);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -713,6 +738,8 @@ class PROJ_GCC_DLL GeodeticReferenceFrame : public Datum {
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -728,8 +755,11 @@ class PROJ_GCC_DLL GeodeticReferenceFrame : public Datum {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -737,6 +767,7 @@ class PROJ_GCC_DLL GeodeticReferenceFrame : public Datum {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -787,6 +818,8 @@ class PROJ_GCC_DLL GeodeticReferenceFrame : public Datum {
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_DLL static const GeodeticReferenceFrameNNPtr
         EPSG_6267; // North American Datum 1927
     PROJ_DLL static const GeodeticReferenceFrameNNPtr
@@ -974,14 +1007,18 @@ class PROJ_GCC_DLL VerticalReferenceFrame : public Datum {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
@@ -1005,6 +1042,8 @@ class PROJ_GCC_DLL VerticalReferenceFrame : public Datum {
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_DLL static VerticalReferenceFrameNNPtr
     create(const util::PropertyMap &properties,
            const util::optional<std::string> &anchor,
@@ -1021,12 +1060,15 @@ class PROJ_GCC_DLL VerticalReferenceFrame : public Datum {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1043,8 +1085,11 @@ class PROJ_GCC_DLL VerticalReferenceFrame : public Datum {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -1052,6 +1097,7 @@ class PROJ_GCC_DLL VerticalReferenceFrame : public Datum {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1102,6 +1148,8 @@ class PROJ_GCC_DLL VerticalReferenceFrame : public Datum {
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
     //! @cond Doxygen_Suppress
     PROJ_INTERNAL bool _isEquivalentTo(
         const util::IComparable *other,
