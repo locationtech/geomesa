@@ -2,11 +2,18 @@
 
 #include <errno.h>
 #include <math.h>
+<<<<<<< HEAD
 #include <float.h>
 
 #include "geodesic.h"
 #include "proj.h"
 #include "proj_internal.h"
+=======
+
+#include "proj.h"
+#include "proj_internal.h"
+#include <math.h>
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 
 PROJ_HEAD(gnom, "Gnomonic") "\n\tAzi, Sph";
 
@@ -26,7 +33,10 @@ struct pj_opaque {
     double  sinph0;
     double  cosph0;
     enum Mode mode;
+<<<<<<< HEAD
     struct geod_geodesic g;
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 };
 } // anonymous namespace
 
@@ -124,6 +134,7 @@ static PJ_LP gnom_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, inverse
     return lp;
 }
 
+<<<<<<< HEAD
 static PJ_XY gnom_e_forward (PJ_LP lp, PJ *P) { /* Ellipsoidal, forward */
     PJ_XY xy = {0.0,0.0};
     struct pj_opaque *Q = static_cast<struct pj_opaque*>(P->opaque);
@@ -198,6 +209,8 @@ static PJ_LP gnom_e_inverse (PJ_XY xy, PJ *P) { /* Ellipsoidal, inverse */
     return lp;
 }
 
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 
 PJ *PROJECTION(gnom) {
     struct pj_opaque *Q = static_cast<struct pj_opaque*>(calloc (1, sizeof (struct pj_opaque)));
@@ -205,6 +218,7 @@ PJ *PROJECTION(gnom) {
         return pj_default_destructor (P, PROJ_ERR_OTHER /*ENOMEM*/);
     P->opaque = Q;
 
+<<<<<<< HEAD
     if (P->es == 0) {
         if (fabs(fabs(P->phi0) - M_HALFPI) < EPS10) {
             Q->mode = P->phi0 < 0. ? S_POLE : N_POLE;
@@ -224,6 +238,20 @@ PJ *PROJECTION(gnom) {
         P->inv = gnom_e_inverse;
         P->fwd = gnom_e_forward;
     }
+=======
+    if (fabs(fabs(P->phi0) - M_HALFPI) < EPS10) {
+        Q->mode = P->phi0 < 0. ? S_POLE : N_POLE;
+    } else if (fabs(P->phi0) < EPS10) {
+        Q->mode = EQUIT;
+    } else {
+        Q->mode = OBLIQ;
+        Q->sinph0 = sin(P->phi0);
+        Q->cosph0 = cos(P->phi0);
+    }
+
+    P->inv = gnom_s_inverse;
+    P->fwd = gnom_s_forward;
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
     P->es = 0.;
 
     return P;
