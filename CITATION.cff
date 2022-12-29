@@ -61,9 +61,16 @@ authors:
   - given-names: Javier
     family-names: Jimenez Shaw
 <<<<<<< HEAD
+<<<<<<< HEAD
     orcid: https://orcid.org/0000-0002-7227-9173
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 keywords:
   - PROJ
   - geodesy
