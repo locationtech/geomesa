@@ -253,6 +253,7 @@ TEST(datum, datum_with_ANCHOR) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -285,6 +286,8 @@ TEST(datum, datum_with_ANCHOR) {
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     auto expected = "DATUM[\"WGS_1984 with anchor\",\n"
                     "    ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n"
                     "        LENGTHUNIT[\"metre\",1],\n"
@@ -296,6 +299,7 @@ TEST(datum, datum_with_ANCHOR) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -355,6 +359,8 @@ TEST(datum, datum_with_ANCHOREPOCH) {
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 TEST(datum, dynamic_geodetic_reference_frame) {
     auto drf = DynamicGeodeticReferenceFrame::create(
         PropertyMap().set(IdentifiedObject::NAME_KEY, "test"), Ellipsoid::WGS84,
