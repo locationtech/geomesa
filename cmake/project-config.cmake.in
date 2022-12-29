@@ -1,0 +1,63 @@
+# Configure @PROJECT_NAME@
+#
+# Set
+#  @PROJECT_VARIANT_NAME@_FOUND = 1
+#  @PROJECT_VARIANT_NAME@_INCLUDE_DIRS = /usr/local/include
+#  @PROJECT_VARIANT_NAME@_LIBRARIES = @PROJECT_VARIANT_NAME@::proj
+#  @PROJECT_VARIANT_NAME@_LIBRARY_DIRS = /usr/local/lib
+#  @PROJECT_VARIANT_NAME@_BINARY_DIRS = /usr/local/bin
+#  @PROJECT_VARIANT_NAME@_VERSION = 4.9.1 (for example)
+if(@PROJECT_VARIANT_NAME@ STREQUAL "PROJ4")
+  message(DEPRECATION "find_package(PROJ4) is deprecated and will be retired soon. Please use find_package(PROJ) instead.")
+endif()
+
+include(CMakeFindDependencyMacro)
+
+cmake_policy(PUSH)
+cmake_policy(SET CMP0012 NEW)
+if("@ENABLE_TIFF@")
+    find_dependency(TIFF)
+endif()
+if("@CURL_ENABLED@")
+  # Chainload CURL usage requirements
+  find_dependency(CURL)
+  # Target CURL::libcurl only defined since CMake 3.12
+  if(NOT TARGET CURL::libcurl)
+      add_library(CURL::libcurl INTERFACE IMPORTED)
+      set_target_properties(CURL::libcurl PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${CURL_INCLUDE_DIRS}"
+        INTERFACE_LINK_LIBRARIES      "${CURL_LIBRARIES}"
+      )
+  endif()
+endif()
+cmake_policy(POP)
+
+function(set_variable_from_rel_or_absolute_path var root rel_or_abs_path)
+  if(IS_ABSOLUTE "${rel_or_abs_path}")
+    set(${var} "${rel_or_abs_path}" PARENT_SCOPE)
+  else()
+    set(${var} "${root}/${rel_or_abs_path}" PARENT_SCOPE)
+  endif()
+endfunction()
+
+# Tell the user project where to find our headers and libraries
+get_filename_component (_DIR ${CMAKE_CURRENT_LIST_FILE} PATH)
+get_filename_component (_ROOT "${_DIR}/@PROJECT_ROOT_DIR@" ABSOLUTE)
+# Use _ROOT as prefix here for the possibility of relocation after installation.
+set_variable_from_rel_or_absolute_path("@PROJECT_VARIANT_NAME@_INCLUDE_DIRS" "${_ROOT}" "@CMAKE_INSTALL_INCLUDEDIR@")
+set_variable_from_rel_or_absolute_path("@PROJECT_VARIANT_NAME@_LIBRARY_DIRS" "${_ROOT}" "@CMAKE_INSTALL_LIBDIR@")
+set_variable_from_rel_or_absolute_path("@PROJECT_VARIANT_NAME@_BINARY_DIRS" "${_ROOT}" "@CMAKE_INSTALL_BINDIR@")
+
+set (@PROJECT_VARIANT_NAME@_LIBRARIES @PROJECT_VARIANT_NAME@::proj)
+# Read in the exported definition of the library
+include ("${_DIR}/@PROJECT_NAME_LOWER@-targets.cmake")
+include ("${_DIR}/@PROJECT_LEGACY_LOWER@-targets.cmake")
+
+unset (_ROOT)
+unset (_DIR)
+
+if ("@PROJECT_VARIANT_NAME@" STREQUAL "PROJ4")
+  # For backward compatibility with old releases of libgeotiff
+  set (@PROJECT_VARIANT_NAME@_INCLUDE_DIR
+    ${@PROJECT_VARIANT_NAME@_INCLUDE_DIRS})
+endif ()
