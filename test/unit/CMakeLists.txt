@@ -134,6 +134,7 @@ add_executable(proj_test_cpp_api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   test_coordinates.cpp
 =======
 <<<<<<< HEAD
@@ -159,6 +160,8 @@ add_executable(proj_test_cpp_api
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
   test_crs.cpp
   test_metadata.cpp
   test_io.cpp
