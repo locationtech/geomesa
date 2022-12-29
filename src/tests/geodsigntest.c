@@ -66,6 +66,7 @@ typedef double T;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -102,6 +103,8 @@ typedef double T;
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b0069dbd8d (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -140,6 +143,7 @@ typedef double T;
 >>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -189,6 +193,10 @@ typedef double T;
 >>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b0069dbd8d (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 #if !defined(OLD_BUGGY_REMQUO)
 /*
  * glibc prior to version 2.22 had a bug in remquo.  This was reported in 2014
@@ -202,6 +210,7 @@ typedef double T;
 #define OLD_BUGGY_REMQUO 0
 #endif
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -251,6 +260,8 @@ typedef double T;
 >>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b0069dbd8d (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -340,6 +351,7 @@ typedef double T;
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 2f268a5476 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -486,6 +498,8 @@ typedef double T;
 =======
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> b0069dbd8d (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 static const T wgs84_a = 6378137, wgs84_f = 1/298.257223563; /* WGS84 */
 
 static int equiv(T x, T y) {
@@ -615,6 +629,7 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -640,6 +655,8 @@ int main() {
 =======
 >>>>>>> b0069dbd8d (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -651,6 +668,7 @@ int main() {
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -693,11 +711,16 @@ int main() {
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 #if !OLD_BUGGY_REMQUO
   checksincosd(-810.0, -1.0, +0.0);
 #endif
 =======
   checksincosd(-810.0, -1.0, +0.0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -714,6 +737,8 @@ int main() {
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 491ae81179 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 #if !OLD_BUGGY_REMQUO
@@ -811,6 +836,7 @@ int main() {
   checksincosd(-810.0, -1.0, +0.0);
 #endif
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
@@ -963,6 +989,11 @@ int main() {
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b0069dbd8d (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
   checksincosd(-720.0, -0.0, +1.0);
   checksincosd(-630.0, +1.0, +0.0);
   checksincosd(-540.0, -0.0, -1.0);
@@ -1017,6 +1048,7 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -1042,6 +1074,8 @@ int main() {
 =======
 >>>>>>> b0069dbd8d (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -1053,6 +1087,7 @@ int main() {
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1095,6 +1130,10 @@ int main() {
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 #if !OLD_BUGGY_REMQUO
   checksincosd(+810.0, +1.0, +0.0);
 #endif
@@ -1113,6 +1152,7 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1121,6 +1161,8 @@ int main() {
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 1e14acb1ea (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 #if !OLD_BUGGY_REMQUO
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -1257,6 +1299,7 @@ int main() {
 #if !OLD_BUGGY_REMQUO
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
+<<<<<<< HEAD
 =======
 =======
 #if !OLD_BUGGY_REMQUO
@@ -1517,6 +1560,14 @@ int main() {
 #if !OLD_BUGGY_REMQUO
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> b0069dbd8d (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+  checksincosd(+810.0, +1.0, +0.0);
+  checksincosd(+  inf,  nan,  nan);
+  checksincosd(   nan,  nan,  nan);
+
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
   {
     T s1, c1, s2, c2, s3, c3;
     geod_sincosd(         9.0, &s1, &c1);
@@ -1563,6 +1614,7 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2f268a5476 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -1603,6 +1655,8 @@ int main() {
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b0069dbd8d (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 #endif
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1715,6 +1769,7 @@ int main() {
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 2f268a5476 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -1872,6 +1927,8 @@ int main() {
 #endif
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> b0069dbd8d (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 
   check( geod_atan2d(+0.0 , -0.0 ), +180 );
   check( geod_atan2d(-0.0 , -0.0 ), -180 );
