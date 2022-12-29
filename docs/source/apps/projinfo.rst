@@ -68,6 +68,7 @@ Synopsis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -86,6 +87,8 @@ Synopsis
 >>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
     - a CRS name and a coordinate epoch, separated with '@'. For example "ITRF2014@2025.0". (*added in 9.2*)
 =======
 <<<<<<< HEAD
@@ -131,6 +134,7 @@ Synopsis
     - a CRS name and a coordinate epoch, separated with '@'. For example "ITRF2014@2025.0". (*added in 9.2*)
 >>>>>>> 86ade66356 (typo fixes)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -194,11 +198,27 @@ Synopsis
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> d8e8090c80 (typo fixes)
 =======
+=======
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
     - a CRS name and a coordinate epoch, separated with '@'. For example "ITRF2014@2025.0". (*added in 9.2*)
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
     - a OGC URN combining references for compound coordinate reference systems
       (e.g "urn:ogc:def:crs,crs:EPSG::2393,crs:EPSG::5717" or custom abbreviated
       syntax "EPSG:2393+5717"),
@@ -265,12 +285,15 @@ It can also be used to query coordinate operations available between two CRS.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -281,6 +304,7 @@ It can also be used to query coordinate operations available between two CRS.
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -330,6 +354,10 @@ It can also be used to query coordinate operations available between two CRS.
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.org/programs/gdalsrsinfo.html>`__ utility that offers
 =======
 The program is named with some reference to the GDAL :program:`gdalsrsinfo` that offers
@@ -368,6 +396,9 @@ The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -482,10 +513,14 @@ The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.org/programs/gdalsrsinfo.html>`__ utility that offers
 =======
 The program is named with some reference to the GDAL :program:`gdalsrsinfo` that offers
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -645,6 +680,11 @@ The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 partly similar services.
 
 
