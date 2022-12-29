@@ -282,10 +282,14 @@ INSERT INTO "supersession" VALUES('grid_transformation','EPSG','9629','grid_tran
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -296,6 +300,8 @@ INSERT INTO "supersession" VALUES('grid_transformation','EPSG','9629','grid_tran
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','1622','helmert_transformation','EPSG','5226','EPSG',0);
 INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15882','grid_transformation','EPSG','9329','EPSG',1);
 INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15888','grid_transformation','EPSG','9330','EPSG',1);
@@ -307,8 +313,11 @@ INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15891','helme
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -323,6 +332,9 @@ INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15891','helme
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -330,6 +342,7 @@ INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15891','helme
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -352,3 +365,5 @@ INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15891','helme
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
