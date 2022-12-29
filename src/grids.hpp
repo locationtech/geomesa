@@ -108,6 +108,7 @@ class PROJ_GCC_DLL VerticalShiftGrid : public Grid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -124,10 +125,13 @@ class PROJ_GCC_DLL VerticalShiftGrid : public Grid {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double longitude,
                                                   double lat) const;
 =======
     PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double lon, double lat) const;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -147,10 +151,15 @@ class PROJ_GCC_DLL VerticalShiftGrid : public Grid {
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
 =======
     PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double lon, double lat) const;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -211,6 +220,9 @@ class PROJ_GCC_DLL VerticalShiftGrid : public Grid {
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     PROJ_FOR_TEST virtual bool isNodata(float /*val*/,
                                         double /* multiplier */) const = 0;
@@ -258,6 +270,7 @@ class PROJ_GCC_DLL VerticalShiftGridSet {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -274,10 +287,13 @@ class PROJ_GCC_DLL VerticalShiftGridSet {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double longitude,
                                                   double lat) const;
 =======
     PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double lon, double lat) const;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -297,10 +313,15 @@ class PROJ_GCC_DLL VerticalShiftGridSet {
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
 =======
     PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double lon, double lat) const;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -361,6 +382,9 @@ class PROJ_GCC_DLL VerticalShiftGridSet {
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 
     PROJ_FOR_TEST virtual void reassign_context(PJ_CONTEXT *ctx);
     PROJ_FOR_TEST virtual bool reopen(PJ_CONTEXT *ctx);
@@ -393,6 +417,7 @@ class PROJ_GCC_DLL HorizontalShiftGrid : public Grid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -475,11 +500,23 @@ class PROJ_GCC_DLL HorizontalShiftGrid : public Grid {
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double longitude,
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double longitude,
 =======
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double lon,
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+    PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double lon,
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
                                                     double lat) const;
 
     // x = 0 is western-most column, y = 0 is southern-most line
@@ -500,6 +537,7 @@ class PROJ_GCC_DLL HorizontalShiftGrid : public Grid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -582,11 +620,23 @@ class PROJ_GCC_DLL HorizontalShiftGrid : public Grid {
                                        float &longShift,
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
                                        float &longShift,
 =======
                                        float &lonShift,
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+                                       float &lonShift,
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
                                        float &latShift) const = 0;
 
     PROJ_FOR_TEST virtual void reassign_context(PJ_CONTEXT *ctx) = 0;
@@ -629,6 +679,7 @@ class PROJ_GCC_DLL HorizontalShiftGridSet {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -711,11 +762,23 @@ class PROJ_GCC_DLL HorizontalShiftGridSet {
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double longitude,
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
+=======
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double longitude,
 =======
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double lon,
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+    PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double lon,
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
                                                     double lat) const;
 
     PROJ_FOR_TEST virtual void reassign_context(PJ_CONTEXT *ctx);
