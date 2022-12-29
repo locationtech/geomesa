@@ -86,6 +86,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -102,6 +103,8 @@
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_coordinate_metadata_get_epoch internal_proj_coordinate_metadata_get_epoch
 =======
 <<<<<<< HEAD
@@ -147,6 +150,7 @@
 #define proj_coordinate_metadata_get_epoch internal_proj_coordinate_metadata_get_epoch
 >>>>>>> 86ade66356 (typo fixes)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_coordinate_metadata_get_epoch internal_proj_coordinate_metadata_get_epoch
@@ -208,6 +212,12 @@
 #define proj_coordinate_metadata_get_epoch internal_proj_coordinate_metadata_get_epoch
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+#define proj_coordinate_metadata_get_epoch internal_proj_coordinate_metadata_get_epoch
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_coordoperation_create_inverse internal_proj_coordoperation_create_inverse
 #define proj_coordoperation_get_accuracy internal_proj_coordoperation_get_accuracy
 #define proj_coordoperation_get_grid_used internal_proj_coordoperation_get_grid_used
@@ -302,6 +312,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -318,6 +329,8 @@
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_create_conversion_tunisia_mining_grid internal_proj_create_conversion_tunisia_mining_grid
 =======
 <<<<<<< HEAD
@@ -363,6 +376,7 @@
 #define proj_create_conversion_tunisia_mining_grid internal_proj_create_conversion_tunisia_mining_grid
 >>>>>>> 86ade66356 (typo fixes)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_create_conversion_tunisia_mining_grid internal_proj_create_conversion_tunisia_mining_grid
@@ -424,6 +438,12 @@
 #define proj_create_conversion_tunisia_mining_grid internal_proj_create_conversion_tunisia_mining_grid
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+#define proj_create_conversion_tunisia_mining_grid internal_proj_create_conversion_tunisia_mining_grid
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_create_conversion_two_point_equidistant internal_proj_create_conversion_two_point_equidistant
 #define proj_create_conversion_utm internal_proj_create_conversion_utm
 #define proj_create_conversion_van_der_grinten internal_proj_create_conversion_van_der_grinten
