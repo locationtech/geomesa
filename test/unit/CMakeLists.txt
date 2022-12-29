@@ -139,8 +139,11 @@ add_executable(proj_test_cpp_api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
   test_coordinates.cpp
 =======
 <<<<<<< HEAD
@@ -157,6 +160,9 @@ add_executable(proj_test_cpp_api
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -165,6 +171,7 @@ add_executable(proj_test_cpp_api
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -191,6 +198,8 @@ add_executable(proj_test_cpp_api
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
   test_crs.cpp
   test_metadata.cpp
   test_io.cpp
