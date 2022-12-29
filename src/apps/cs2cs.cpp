@@ -89,6 +89,9 @@ static const char *usage =
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -150,6 +153,7 @@ static const char *usage =
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     "              [--authority {name}] [--accuracy {accuracy}] [--no-ballpark] [--3d]\n"
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -171,6 +175,11 @@ static const char *usage =
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    "              [--authority {name}] [--accuracy {accuracy}] [--no-ballpark] [--3d]\n"
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
     "              [+opt[=arg] ...] [+to +opt[=arg] ...] [file ...]\n";
 
 static double (*informat)(const char *,
@@ -521,10 +530,13 @@ int main(int argc, char **argv) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
     bool onlyBestSet = false;
     bool errorIfBestTransformationNotAvailable = false;
 =======
@@ -556,6 +568,7 @@ int main(int argc, char **argv) {
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -586,6 +599,10 @@ int main(int argc, char **argv) {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
     bool promoteTo3D = false;
 
     /* process run line arguments */
@@ -663,8 +680,11 @@ int main(int argc, char **argv) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -726,6 +746,7 @@ int main(int argc, char **argv) {
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -750,6 +771,10 @@ int main(int argc, char **argv) {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
         else if (strcmp(*argv, "--3d") == 0 ) {
             promoteTo3D = true;
         }
@@ -1170,8 +1195,11 @@ int main(int argc, char **argv) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -1232,6 +1260,7 @@ int main(int argc, char **argv) {
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1256,6 +1285,10 @@ int main(int argc, char **argv) {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
     options.push_back(nullptr);
     transformation = proj_create_crs_to_crs_from_pj(nullptr, src, dst,
                                                     pj_area, options.data());
