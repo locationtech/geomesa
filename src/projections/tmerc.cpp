@@ -592,6 +592,7 @@ static PJ_LP auto_e_inv (PJ_XY xy, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -600,6 +601,8 @@ static PJ_LP auto_e_inv (PJ_XY xy, PJ *P) {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
     // For k = 1 and long = 3 (from central meridian),
 =======
     // For k = 1 and lon = 3 (from central meridian),
@@ -620,8 +623,11 @@ static PJ_LP auto_e_inv (PJ_XY xy, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -631,6 +637,7 @@ static PJ_LP auto_e_inv (PJ_XY xy, PJ *P) {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -697,6 +704,8 @@ static PJ_LP auto_e_inv (PJ_XY xy, PJ *P) {
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
     // At lat = 0, we get x ~= 0.052, y = 0
     // At lat = 90, we get x = 0, y ~= 1.57
     // And the shape of this x=f(y) frontier curve is very very roughly a
