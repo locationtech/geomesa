@@ -316,6 +316,7 @@ int main(int argc, char *argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -527,6 +528,9 @@ int main(int argc, char *argv[]) {
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        std::cout << "filename,source_id,area_of_use,file_size" << std::endl;
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
     }
 
     std::string proj_data_version_str;
@@ -626,6 +630,7 @@ int main(int argc, char *argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -837,6 +842,9 @@ int main(int argc, char *argv[]) {
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                          << " and we are targetting "
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;
@@ -891,6 +899,7 @@ int main(int argc, char *argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1102,6 +1111,9 @@ int main(int argc, char *argv[]) {
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                          << " and we are targetting "
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;

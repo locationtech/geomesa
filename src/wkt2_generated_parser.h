@@ -98,6 +98,7 @@ extern int pj_wkt2_debug;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -422,6 +423,8 @@ extern int pj_wkt2_debug;
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
     T_CONVERSION = 279,
     T_METHOD = 280,
     T_REMARK = 281,
@@ -547,6 +550,7 @@ extern int pj_wkt2_debug;
     T_UNSPECIFIED = 401,
     T_STRING = 402,
     T_UNSIGNED_INTEGER_DIFFERENT_ONE_TWO_THREE = 403
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -761,6 +765,8 @@ extern int pj_wkt2_debug;
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
   };
 #endif
 

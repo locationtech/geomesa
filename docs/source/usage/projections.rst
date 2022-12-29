@@ -96,6 +96,7 @@ radians are interpreted to be decimal degrees by convention.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -307,6 +308,9 @@ Explict specification of input units can be accomplished by adding the appropria
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+Explict specification of input units can be accomplished by adding the appropriate
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 suffix to input values.
 
 
@@ -351,6 +355,7 @@ suffix to input values.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -562,6 +567,9 @@ Example of use.  The longitude of the central meridian ``+lon_0=90``, can also b
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explictly
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 with units of decimal degrees as ``+lon_0=90d`` or in radian
 units as ``+lon_0=1.570796r`` (approximately).
 

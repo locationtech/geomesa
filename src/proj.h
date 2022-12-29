@@ -832,6 +832,7 @@ typedef enum
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1035,6 +1036,8 @@ typedef enum
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 } PJ_TYPE;
 
 /** Comparison criterion. */
@@ -1772,6 +1775,7 @@ PJ PROJ_DLL *proj_concatoperation_get_step(PJ_CONTEXT *ctx,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1975,6 +1979,8 @@ double PROJ_DLL proj_coordinate_metadata_get_epoch(PJ_CONTEXT *ctx, const PJ *ob
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 /**@}*/
 
 #ifdef __cplusplus
