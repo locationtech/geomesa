@@ -120,10 +120,14 @@ class AxisDirection : public util::CodeList {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -134,6 +138,8 @@ class AxisDirection : public util::CodeList {
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 /** \brief Meaning of the axis value range specified through minimumValue and
  * maximumValue
  *
@@ -167,8 +173,11 @@ class RangeMeaning : public util::CodeList {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -183,6 +192,9 @@ class RangeMeaning : public util::CodeList {
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -190,6 +202,7 @@ class RangeMeaning : public util::CodeList {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -212,6 +225,8 @@ class RangeMeaning : public util::CodeList {
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 class Meridian;
 /** Shared pointer of Meridian. */
 using MeridianPtr = std::shared_ptr<Meridian>;
@@ -293,8 +308,11 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_DLL const util::optional<RangeMeaning> &rangeMeaning() PROJ_PURE_DECL;
 =======
 <<<<<<< HEAD
@@ -311,6 +329,9 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -319,6 +340,7 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -345,6 +367,8 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_DLL const MeridianPtr &meridian() PROJ_PURE_DECL;
 
     // Non-standard
@@ -364,10 +388,14 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -378,6 +406,8 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_DLL static CoordinateSystemAxisNNPtr
     create(const util::PropertyMap &properties,
            const std::string &abbreviationIn, const AxisDirection &directionIn,
@@ -392,8 +422,11 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -408,6 +441,9 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -415,6 +451,7 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -437,6 +474,8 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
     PROJ_PRIVATE :
 
         //! @cond Doxygen_Suppress
