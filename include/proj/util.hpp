@@ -43,8 +43,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 // windows.h can conflict with Criterion::STRICT
 =======
 // windows.h can confict with Criterion::STRICT
@@ -63,6 +66,9 @@
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -72,6 +78,7 @@
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 // windows.h can confict with Criterion::STRICT
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -102,6 +109,8 @@
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 #ifdef STRICT
 #undef STRICT
 #endif

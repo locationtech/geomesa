@@ -49,6 +49,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -61,6 +62,8 @@
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 #define GEODESIC_VERSION_MINOR 1
 =======
 #define GEODESIC_VERSION_MINOR 0
@@ -85,12 +88,15 @@
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 =======
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 #define GEODESIC_VERSION_MINOR 1
 =======
 #define GEODESIC_VERSION_MINOR 0
@@ -111,6 +117,7 @@
 =======
 #define GEODESIC_VERSION_MINOR 1
 >>>>>>> 8cbe5e736 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
@@ -184,9 +191,22 @@
 =======
 #define GEODESIC_VERSION_MINOR 1
 >>>>>>> 8cbe5e736 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+=======
+=======
+#define GEODESIC_VERSION_MINOR 0
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 /**
  * The patch level of the geodesic library.  (This tracks the version of
  * GeographicLib.)
