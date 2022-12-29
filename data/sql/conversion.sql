@@ -152,6 +152,7 @@ INSERT INTO "usage" VALUES('EPSG','9089','conversion','EPSG','4454','EPSG','2235
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -162,6 +163,8 @@ INSERT INTO "usage" VALUES('EPSG','9089','conversion','EPSG','4454','EPSG','2235
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "conversion" VALUES('EPSG','4460','Australian Centre for Remote Sensing Lambert Conformal Projection','Created by AUSLIG prior to incorporation into Geoscience Australia. See also GALCC (proj code 17362).','EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',-27.0,'EPSG','9102','EPSG','8822','Longitude of false origin',132.0,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',-18.0,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',-36.0,'EPSG','9102','EPSG','8826','Easting at false origin',0.0,'EPSG','9001','EPSG','8827','Northing at false origin',0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,0);
 =======
 INSERT INTO "conversion" VALUES('EPSG','4460','Australian Centre for Remote Sensing Lambert Conformal Projection','Created by AUSLIG prior to incorporation into Geoscience Australia. See also GALCC (proj  code 17362).','EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',-27.0,'EPSG','9102','EPSG','8822','Longitude of false origin',132.0,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',-18.0,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',-36.0,'EPSG','9102','EPSG','8826','Easting at false origin',0.0,'EPSG','9001','EPSG','8827','Northing at false origin',0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -196,6 +199,7 @@ INSERT INTO "conversion" VALUES('EPSG','4460','Australian Centre for Remote Sens
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -265,6 +269,11 @@ INSERT INTO "conversion" VALUES('EPSG','4460','Australian Centre for Remote Sens
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "conversion" VALUES('EPSG','4460','Australian Centre for Remote Sensing Lambert Conformal Projection','Created by AUSLIG prior to incorporation into Geoscience Australia. See also GALCC (proj  code 17362).','EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',-27.0,'EPSG','9102','EPSG','8822','Longitude of false origin',132.0,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',-18.0,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',-36.0,'EPSG','9102','EPSG','8826','Easting at false origin',0.0,'EPSG','9001','EPSG','8827','Northing at false origin',0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,0);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','9091','conversion','EPSG','4460','EPSG','2575','EPSG','1047');
 INSERT INTO "conversion" VALUES('EPSG','4648','UTM zone 32N with prefix','Variant of UTM zone 32N (code 16032) with zone number prefixed to easting.','EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',0.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',9.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.9996,'EPSG','9201','EPSG','8806','False easting',32500000.0,'EPSG','9001','EPSG','8807','False northing',0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('EPSG','9115','conversion','EPSG','4648','EPSG','2861','EPSG','1142');
@@ -428,6 +437,7 @@ INSERT INTO "usage" VALUES('EPSG','9301','conversion','EPSG','5219','EPSG','1079
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -438,6 +448,8 @@ INSERT INTO "usage" VALUES('EPSG','9301','conversion','EPSG','5219','EPSG','1079
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "conversion" VALUES('EPSG','5220','Modified Krovak East North','Longitude is referenced to the Ferro meridian. Replaces Modified Krovak south-orientated projection (code 5219) for GIS purposes.','EPSG','1043','Krovak Modified (North Orientated)','EPSG','8811','Latitude of projection centre',49.3,'EPSG','9110','EPSG','8833','Longitude of origin',42.3,'EPSG','9110','EPSG','1036','Co-latitude of cone axis',30.1717303,'EPSG','9110','EPSG','8818','Latitude of pseudo standard parallel',78.3,'EPSG','9110','EPSG','8819','Scale factor on pseudo standard parallel',0.9999,'EPSG','9201','EPSG','8806','False easting',5000000.0,'EPSG','9001','EPSG','8807','False northing',5000000.0,'EPSG','9001',0);
 =======
 INSERT INTO "conversion" VALUES('EPSG','5220','Modified Krovak East North','Longitude is referenced to the Ferro meridian.  Replaces Modified Krovak south-orientated projection (code 5219) for GIS purposes.','EPSG','1043','Krovak Modified (North Orientated)','EPSG','8811','Latitude of projection centre',49.3,'EPSG','9110','EPSG','8833','Longitude of origin',42.3,'EPSG','9110','EPSG','1036','Co-latitude of cone axis',30.1717303,'EPSG','9110','EPSG','8818','Latitude of pseudo standard parallel',78.3,'EPSG','9110','EPSG','8819','Scale factor on pseudo standard parallel',0.9999,'EPSG','9201','EPSG','8806','False easting',5000000.0,'EPSG','9001','EPSG','8807','False northing',5000000.0,'EPSG','9001',0);
@@ -472,6 +484,7 @@ INSERT INTO "conversion" VALUES('EPSG','5220','Modified Krovak East North','Long
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -541,6 +554,11 @@ INSERT INTO "conversion" VALUES('EPSG','5220','Modified Krovak East North','Long
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "conversion" VALUES('EPSG','5220','Modified Krovak East North','Longitude is referenced to the Ferro meridian.  Replaces Modified Krovak south-orientated projection (code 5219) for GIS purposes.','EPSG','1043','Krovak Modified (North Orientated)','EPSG','8811','Latitude of projection centre',49.3,'EPSG','9110','EPSG','8833','Longitude of origin',42.3,'EPSG','9110','EPSG','1036','Co-latitude of cone axis',30.1717303,'EPSG','9110','EPSG','8818','Latitude of pseudo standard parallel',78.3,'EPSG','9110','EPSG','8819','Scale factor on pseudo standard parallel',0.9999,'EPSG','9201','EPSG','8806','False easting',5000000.0,'EPSG','9001','EPSG','8807','False northing',5000000.0,'EPSG','9001',0);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','9302','conversion','EPSG','5220','EPSG','1079','EPSG','1189');
 INSERT INTO "conversion" VALUES('EPSG','5222','Gabon Transverse Mercator','For topographic mapping and survey applications see projection code 5522.','EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',0.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',12.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.9996,'EPSG','9201','EPSG','8806','False easting',500000.0,'EPSG','9001','EPSG','8807','False northing',500000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('EPSG','9303','conversion','EPSG','5222','EPSG','3249','EPSG','1165');
@@ -2118,12 +2136,15 @@ INSERT INTO "usage" VALUES('EPSG','18487','conversion','EPSG','10148','EPSG','46
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -2211,6 +2232,7 @@ INSERT INTO "usage" VALUES('EPSG','18704','conversion','EPSG','10198','EPSG','46
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2261,6 +2283,10 @@ INSERT INTO "usage" VALUES('EPSG','18704','conversion','EPSG','10198','EPSG','46
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "conversion" VALUES('EPSG','10201','Arizona Coordinate System East zone','','EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',31.0,'EPSG','9110','EPSG','8802','Longitude of natural origin',-110.1,'EPSG','9110','EPSG','8805','Scale factor at natural origin',0.9999,'EPSG','9201','EPSG','8806','False easting',500000.0,'EPSG','9003','EPSG','8807','False northing',0.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('EPSG','11105','conversion','EPSG','10201','EPSG','2167','EPSG','1142');
 INSERT INTO "conversion" VALUES('EPSG','10202','Arizona Coordinate System Central zone','','EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',31.0,'EPSG','9110','EPSG','8802','Longitude of natural origin',-111.55,'EPSG','9110','EPSG','8805','Scale factor at natural origin',0.9999,'EPSG','9201','EPSG','8806','False easting',500000.0,'EPSG','9003','EPSG','8807','False northing',0.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -2285,12 +2311,15 @@ INSERT INTO "usage" VALUES('EPSG','11107','conversion','EPSG','10203','EPSG','21
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -2376,6 +2405,7 @@ INSERT INTO "usage" VALUES('EPSG','18743','conversion','EPSG','10226','EPSG','46
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2426,6 +2456,10 @@ INSERT INTO "usage" VALUES('EPSG','18743','conversion','EPSG','10226','EPSG','46
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "conversion" VALUES('EPSG','10231','SPCS83 Arizona East zone (meters)','State law defines origin in International feet. FE = 700000ft. See code 15304 for equivalent non-metric definition.','EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',31.0,'EPSG','9110','EPSG','8802','Longitude of natural origin',-110.1,'EPSG','9110','EPSG','8805','Scale factor at natural origin',0.9999,'EPSG','9201','EPSG','8806','False easting',213360.0,'EPSG','9001','EPSG','8807','False northing',0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('EPSG','11108','conversion','EPSG','10231','EPSG','2167','EPSG','1142');
 INSERT INTO "conversion" VALUES('EPSG','10232','SPCS83 Arizona Central zone (meters)','State law defines origin in International feet. FE = 700000ft. See code 15305 for equivalent non-metric definition.','EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',31.0,'EPSG','9110','EPSG','8802','Longitude of natural origin',-111.55,'EPSG','9110','EPSG','8805','Scale factor at natural origin',0.9999,'EPSG','9201','EPSG','8806','False easting',213360.0,'EPSG','9001','EPSG','8807','False northing',0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -2450,12 +2484,15 @@ INSERT INTO "usage" VALUES('EPSG','11110','conversion','EPSG','10233','EPSG','21
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -2543,6 +2580,7 @@ INSERT INTO "usage" VALUES('EPSG','19186','conversion','EPSG','10279','EPSG','46
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2593,6 +2631,10 @@ INSERT INTO "usage" VALUES('EPSG','19186','conversion','EPSG','10279','EPSG','46
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "conversion" VALUES('EPSG','10301','Arkansas CS27 North','','EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',34.2,'EPSG','9110','EPSG','8822','Longitude of false origin',-92.0,'EPSG','9110','EPSG','8823','Latitude of 1st standard parallel',36.14,'EPSG','9110','EPSG','8824','Latitude of 2nd standard parallel',34.56,'EPSG','9110','EPSG','8826','Easting at false origin',2000000.0,'EPSG','9003','EPSG','8827','Northing at false origin',0.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('EPSG','11111','conversion','EPSG','10301','EPSG','2169','EPSG','1142');
 INSERT INTO "conversion" VALUES('EPSG','10302','Arkansas CS27 South','','EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',32.4,'EPSG','9110','EPSG','8822','Longitude of false origin',-92.0,'EPSG','9110','EPSG','8823','Latitude of 1st standard parallel',34.46,'EPSG','9110','EPSG','8824','Latitude of 2nd standard parallel',33.18,'EPSG','9110','EPSG','8826','Easting at false origin',2000000.0,'EPSG','9003','EPSG','8827','Northing at false origin',0.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -5871,6 +5913,7 @@ INSERT INTO "usage" VALUES('EPSG','13034','conversion','EPSG','19956','EPSG','13
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -5881,6 +5924,8 @@ INSERT INTO "usage" VALUES('EPSG','13034','conversion','EPSG','19956','EPSG','13
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "conversion" VALUES('EPSG','19957','Rectified Skew Orthomorphic Borneo Grid (feet)','See 19956 and 19958 for chains and metres versions. If using Hotine Oblique Mercator (variant A) method (code 9812) FE = FN = 0 ftSe. Being replaced by metric version (code 19958).','EPSG','9815','Hotine Oblique Mercator (variant B)','EPSG','8811','Latitude of projection centre',4.0,'EPSG','9110','EPSG','8812','Longitude of projection centre',115.0,'EPSG','9110','EPSG','8813','Azimuth of initial line',53.18569537,'EPSG','9110','EPSG','8814','Angle from Rectified to Skew Grid',53.07483685,'EPSG','9110','EPSG','8815','Scale factor on initial line',0.99984,'EPSG','9201','EPSG','8816','Easting at projection centre',1937263.44,'EPSG','9041','EPSG','8817','Northing at projection centre',1452947.58,'EPSG','9041',0);
 =======
 INSERT INTO "conversion" VALUES('EPSG','19957','Rectified Skew Orthomorphic Borneo Grid (feet)','See 19956 and 19958 for chains and metres versions. If using Hotine Oblique Mercator (variant A) method (code 9812) FE = FN = 0 ftSe.  Being replaced by metric version (code 19958).','EPSG','9815','Hotine Oblique Mercator (variant B)','EPSG','8811','Latitude of projection centre',4.0,'EPSG','9110','EPSG','8812','Longitude of projection centre',115.0,'EPSG','9110','EPSG','8813','Azimuth of initial line',53.18569537,'EPSG','9110','EPSG','8814','Angle from Rectified to Skew Grid',53.07483685,'EPSG','9110','EPSG','8815','Scale factor on initial line',0.99984,'EPSG','9201','EPSG','8816','Easting at projection centre',1937263.44,'EPSG','9041','EPSG','8817','Northing at projection centre',1452947.58,'EPSG','9041',0);
@@ -5915,6 +5960,7 @@ INSERT INTO "conversion" VALUES('EPSG','19957','Rectified Skew Orthomorphic Born
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5984,6 +6030,11 @@ INSERT INTO "conversion" VALUES('EPSG','19957','Rectified Skew Orthomorphic Born
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "conversion" VALUES('EPSG','19957','Rectified Skew Orthomorphic Borneo Grid (feet)','See 19956 and 19958 for chains and metres versions. If using Hotine Oblique Mercator (variant A) method (code 9812) FE = FN = 0 ftSe.  Being replaced by metric version (code 19958).','EPSG','9815','Hotine Oblique Mercator (variant B)','EPSG','8811','Latitude of projection centre',4.0,'EPSG','9110','EPSG','8812','Longitude of projection centre',115.0,'EPSG','9110','EPSG','8813','Azimuth of initial line',53.18569537,'EPSG','9110','EPSG','8814','Angle from Rectified to Skew Grid',53.07483685,'EPSG','9110','EPSG','8815','Scale factor on initial line',0.99984,'EPSG','9201','EPSG','8816','Easting at projection centre',1937263.44,'EPSG','9041','EPSG','8817','Northing at projection centre',1452947.58,'EPSG','9041',0);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','13035','conversion','EPSG','19957','EPSG','3977','EPSG','1142');
 INSERT INTO "conversion" VALUES('EPSG','19958','Rectified Skew Orthomorphic Borneo Grid (metres)','See 19956 and 19957 for chains and feet versions. Uses Sear''s 1922 British yard-metre ratio as given by Bomford as 39.370147 inches per metre. If using Hotine Oblique Mercator (variant A) method (code 9812) FE = FN = 0 m.','EPSG','9815','Hotine Oblique Mercator (variant B)','EPSG','8811','Latitude of projection centre',4.0,'EPSG','9110','EPSG','8812','Longitude of projection centre',115.0,'EPSG','9110','EPSG','8813','Azimuth of initial line',53.18569537,'EPSG','9110','EPSG','8814','Angle from Rectified to Skew Grid',53.07483685,'EPSG','9110','EPSG','8815','Scale factor on initial line',0.99984,'EPSG','9201','EPSG','8816','Easting at projection centre',590476.87,'EPSG','9001','EPSG','8817','Northing at projection centre',442857.65,'EPSG','9001',0);
 INSERT INTO "usage" VALUES('EPSG','13036','conversion','EPSG','19958','EPSG','1362','EPSG','1142');
@@ -6007,6 +6058,7 @@ INSERT INTO "usage" VALUES('EPSG','13037','conversion','EPSG','19959','EPSG','11
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -6017,6 +6069,8 @@ INSERT INTO "usage" VALUES('EPSG','13037','conversion','EPSG','19959','EPSG','11
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "conversion" VALUES('EPSG','19960','Prince Edward Isl. Stereographic (NAD83)','False Easting and False Northing changed from values used with ATS77 (which were FE=700000m; FN=400000m) to these new values when used with NAD83 (CSRS). New values are FE=400000m; FN=800000m; adopted in 2000.','EPSG','9809','Oblique Stereographic','EPSG','8801','Latitude of natural origin',47.15,'EPSG','9110','EPSG','8802','Longitude of natural origin',-63.0,'EPSG','9110','EPSG','8805','Scale factor at natural origin',0.999912,'EPSG','9201','EPSG','8806','False easting',400000.0,'EPSG','9001','EPSG','8807','False northing',800000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 =======
 INSERT INTO "conversion" VALUES('EPSG','19960','Prince Edward Isl. Stereographic (NAD83)','False Easting and False Northing changed from values used with ATS77 (which were FE=700000m; FN=400000m) to these new values when used with NAD83 (CSRS).  New values are FE=400000m; FN=800000m; adopted in 2000.','EPSG','9809','Oblique Stereographic','EPSG','8801','Latitude of natural origin',47.15,'EPSG','9110','EPSG','8802','Longitude of natural origin',-63.0,'EPSG','9110','EPSG','8805','Scale factor at natural origin',0.999912,'EPSG','9201','EPSG','8806','False easting',400000.0,'EPSG','9001','EPSG','8807','False northing',800000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -6051,6 +6105,7 @@ INSERT INTO "conversion" VALUES('EPSG','19960','Prince Edward Isl. Stereographic
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6120,6 +6175,11 @@ INSERT INTO "conversion" VALUES('EPSG','19960','Prince Edward Isl. Stereographic
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "conversion" VALUES('EPSG','19960','Prince Edward Isl. Stereographic (NAD83)','False Easting and False Northing changed from values used with ATS77 (which were FE=700000m; FN=400000m) to these new values when used with NAD83 (CSRS).  New values are FE=400000m; FN=800000m; adopted in 2000.','EPSG','9809','Oblique Stereographic','EPSG','8801','Latitude of natural origin',47.15,'EPSG','9110','EPSG','8802','Longitude of natural origin',-63.0,'EPSG','9110','EPSG','8805','Scale factor at natural origin',0.999912,'EPSG','9201','EPSG','8806','False easting',400000.0,'EPSG','9001','EPSG','8807','False northing',800000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','13038','conversion','EPSG','19960','EPSG','1533','EPSG','1142');
 INSERT INTO "conversion" VALUES('EPSG','19961','Belgian Lambert 72','Introduced in 2000. Equivalent to Belge Lambert 72 (code 19902). 
 If software cannot handle latitude of false origin of 90°N, use latitude of false origin = 50°47''57.704"N with northing at false origin = 165 372.956 m.','EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',90.0,'EPSG','9110','EPSG','8822','Longitude of false origin',4.2202952,'EPSG','9110','EPSG','8823','Latitude of 1st standard parallel',51.100000204,'EPSG','9110','EPSG','8824','Latitude of 2nd standard parallel',49.500000204,'EPSG','9110','EPSG','8826','Easting at false origin',150000.013,'EPSG','9001','EPSG','8827','Northing at false origin',5400088.438,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,0);
