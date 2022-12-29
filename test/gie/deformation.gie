@@ -24,6 +24,7 @@ and for testing purposes it doesn't really matter all that much...
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -36,6 +37,8 @@ and for testing purposes it doesn't really matter all that much...
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 The input coordinate is located at long=60, lam=-160 - somewhere in Alaska.
 =======
 The input coordinate is located at lon=60, lam=-160 - somewhere in Alaska.
@@ -80,6 +83,7 @@ The input coordinate is located at lon=60, lam=-160 - somewhere in Alaska.
 =======
 The input coordinate is located at lon=60, lam=-160 - somewhere in Alaska.
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 The input coordinate is located at long=60, lam=-160 - somewhere in Alaska.
 >>>>>>> 86ade66356 (typo fixes)
@@ -145,6 +149,8 @@ The input coordinate is located at lon=60, lam=-160 - somewhere in Alaska.
 The input coordinate is located at lon=60, lam=-160 - somewhere in Alaska.
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 
 ===============================================================================
 
