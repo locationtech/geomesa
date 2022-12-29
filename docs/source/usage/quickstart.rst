@@ -41,6 +41,7 @@ type the input data manually and getting a response presented on screen.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 pipe data to the utility, for instance by using the ``echo`` command:
 =======
 pipe data to the utility, for instance by using the :program:`echo` command:
@@ -57,6 +58,8 @@ pipe data to the utility, for instance by using the ``echo`` command:
 =======
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 pipe data to the utility, for instance by using the ``echo`` command:
 =======
 pipe data to the utility, for instance by using the :program:`echo` command:
@@ -76,8 +79,17 @@ pipe data to the utility, for instance by using the :program:`echo` command:
 =======
 pipe data to the utility, for instance by using the ``echo`` command:
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+=======
+pipe data to the utility, for instance by using the :program:`echo` command:
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 
 ::
 
