@@ -87,6 +87,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -105,6 +106,8 @@
 >>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_coordinate_metadata_get_epoch internal_proj_coordinate_metadata_get_epoch
 =======
 <<<<<<< HEAD
@@ -150,6 +153,7 @@
 #define proj_coordinate_metadata_get_epoch internal_proj_coordinate_metadata_get_epoch
 >>>>>>> 86ade66356 (typo fixes)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -213,11 +217,27 @@
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> d8e8090c80 (typo fixes)
 =======
+=======
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_coordinate_metadata_get_epoch internal_proj_coordinate_metadata_get_epoch
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_coordoperation_create_inverse internal_proj_coordoperation_create_inverse
 #define proj_coordoperation_get_accuracy internal_proj_coordoperation_get_accuracy
 #define proj_coordoperation_get_grid_used internal_proj_coordoperation_get_grid_used
@@ -313,6 +333,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -331,6 +352,8 @@
 >>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_create_conversion_tunisia_mining_grid internal_proj_create_conversion_tunisia_mining_grid
 =======
 <<<<<<< HEAD
@@ -376,6 +399,7 @@
 #define proj_create_conversion_tunisia_mining_grid internal_proj_create_conversion_tunisia_mining_grid
 >>>>>>> 86ade66356 (typo fixes)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -439,11 +463,27 @@
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> d8e8090c80 (typo fixes)
 =======
+=======
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_create_conversion_tunisia_mining_grid internal_proj_create_conversion_tunisia_mining_grid
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 #define proj_create_conversion_two_point_equidistant internal_proj_create_conversion_two_point_equidistant
 #define proj_create_conversion_utm internal_proj_create_conversion_utm
 #define proj_create_conversion_van_der_grinten internal_proj_create_conversion_van_der_grinten

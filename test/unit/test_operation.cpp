@@ -1477,6 +1477,7 @@ TEST(operation, tmg_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1495,6 +1496,8 @@ TEST(operation, tmg_export) {
 >>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
     auto conv = Conversion::createTunisiaMiningGrid(
 =======
     auto conv = Conversion::createTunisiaMappingGrid(
@@ -1545,6 +1548,7 @@ TEST(operation, tmg_export) {
     auto conv = Conversion::createTunisiaMiningGrid(
 >>>>>>> 86ade66356 (typo fixes)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1615,12 +1619,29 @@ TEST(operation, tmg_export) {
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> d8e8090c80 (typo fixes)
 =======
+=======
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
     auto conv = Conversion::createTunisiaMiningGrid(
 =======
     auto conv = Conversion::createTunisiaMappingGrid(
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+>>>>>>> locationtech-main
+=======
+    auto conv = Conversion::createTunisiaMappingGrid(
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
         PropertyMap(), Angle(1), Angle(2), Length(3), Length(4));
     EXPECT_TRUE(conv->validateParameters().empty());
 
@@ -1650,6 +1671,7 @@ TEST(operation, tmg_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1661,9 +1683,12 @@ TEST(operation, tmg_export) {
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1685,11 +1710,16 @@ TEST(operation, tmg_export) {
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
               "CONVERSION[\"Tunisia Mining Grid\",\n"
               "    METHOD[\"Tunisia Mining Grid\",\n"
 =======
               "CONVERSION[\"Tunisia Mapping Grid\",\n"
               "    METHOD[\"Tunisia Mapping Grid\",\n"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1705,16 +1735,22 @@ TEST(operation, tmg_export) {
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1723,6 +1759,8 @@ TEST(operation, tmg_export) {
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
 =======
               "CONVERSION[\"Tunisia Mapping Grid\",\n"
@@ -1733,10 +1771,13 @@ TEST(operation, tmg_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -1795,6 +1836,7 @@ TEST(operation, tmg_export) {
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
@@ -1832,6 +1874,8 @@ TEST(operation, tmg_export) {
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
               "        ID[\"EPSG\",9816]],\n"
               "    PARAMETER[\"Latitude of false origin\",1,\n"
               "        ANGLEUNIT[\"degree\",0.0174532925199433],\n"
@@ -1871,6 +1915,7 @@ TEST(operation, tmg_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1889,6 +1934,8 @@ TEST(operation, tmg_export) {
 >>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
         "PROJECTION[\"Tunisia_Mining_Grid\"],\n"
 =======
         "PROJECTION[\"Tunisia_Mapping_Grid\"],\n"
@@ -1939,6 +1986,7 @@ TEST(operation, tmg_export) {
         "PROJECTION[\"Tunisia_Mining_Grid\"],\n"
 >>>>>>> 86ade66356 (typo fixes)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2009,12 +2057,29 @@ TEST(operation, tmg_export) {
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> d8e8090c80 (typo fixes)
 =======
+=======
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
         "PROJECTION[\"Tunisia_Mining_Grid\"],\n"
 =======
         "PROJECTION[\"Tunisia_Mapping_Grid\"],\n"
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+>>>>>>> locationtech-main
+=======
+        "PROJECTION[\"Tunisia_Mapping_Grid\"],\n"
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
         "PARAMETER[\"latitude_of_origin\",1],\n"
         "PARAMETER[\"central_meridian\",2],\n"
         "PARAMETER[\"false_easting\",3],\n"
@@ -2241,12 +2306,15 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a090fbbbd6 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 0890f076c7 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2257,6 +2325,7 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a85578ed78 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2306,6 +2375,10 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 0890f076c7 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
               "+proj=cea +R_A +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
 =======
               "+proj=cea +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
@@ -2344,6 +2417,9 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d171e29916 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
@@ -2458,10 +2534,14 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 >>>>>>> 31034f9449 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 >>>>>>> a85578ed78 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
               "+proj=cea +R_A +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
 =======
               "+proj=cea +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -2621,6 +2701,11 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 0890f076c7 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 
     EXPECT_EQ(conv->exportToWKT(WKTFormatter::create().get()),
               "CONVERSION[\"Lambert Cylindrical Equal Area (Spherical)\",\n"

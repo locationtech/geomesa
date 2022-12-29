@@ -1826,6 +1826,7 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1837,9 +1838,12 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1861,6 +1865,10 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
                     // preferred coordinate system for geographic lat, long
                     return;
                 }
@@ -1875,12 +1883,15 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1901,6 +1912,7 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1927,11 +1939,14 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
                     // preferred coordinate system for geographic lat, lon
                     return;
                 }
                 if (authName == metadata::Identifier::EPSG && code == "6423") {
                     // preferred coordinate system for geographic lat, lon, h
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1959,10 +1974,16 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1986,10 +2007,13 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -2041,6 +2065,7 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
@@ -2083,6 +2108,8 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
                     return;
                 }
             }
