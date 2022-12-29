@@ -32,6 +32,7 @@ typedef double T;
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
 #if !defined(OLD_BUGGY_REMQUO)
@@ -52,6 +53,8 @@ typedef double T;
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 static const T wgs84_a = 6378137, wgs84_f = 1/298.257223563; /* WGS84 */
 
 static int equiv(T x, T y) {
@@ -147,6 +150,7 @@ int main() {
   checksincosd(-  inf,  nan,  nan);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !OLD_BUGGY_REMQUO
   checksincosd(-810.0, -1.0, +0.0);
 #endif
@@ -158,6 +162,9 @@ int main() {
   checksincosd(-810.0, -1.0, +0.0);
 #endif
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+  checksincosd(-810.0, -1.0, +0.0);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
   checksincosd(-720.0, -0.0, +1.0);
   checksincosd(-630.0, +1.0, +0.0);
   checksincosd(-540.0, -0.0, -1.0);
@@ -178,6 +185,7 @@ int main() {
   checksincosd(+720.0, +0.0, +1.0);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !OLD_BUGGY_REMQUO
   checksincosd(+810.0, +1.0, +0.0);
 #endif
@@ -199,6 +207,12 @@ int main() {
 =======
 #if !OLD_BUGGY_REMQUO
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+  checksincosd(+810.0, +1.0, +0.0);
+  checksincosd(+  inf,  nan,  nan);
+  checksincosd(   nan,  nan,  nan);
+
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
   {
     T s1, c1, s2, c2, s3, c3;
     geod_sincosd(         9.0, &s1, &c1);
@@ -211,12 +225,15 @@ int main() {
   }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #endif
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 #endif
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 
   check( geod_atan2d(+0.0 , -0.0 ), +180 );
   check( geod_atan2d(-0.0 , -0.0 ), -180 );

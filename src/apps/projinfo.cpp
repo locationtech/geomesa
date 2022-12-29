@@ -41,7 +41,10 @@
 
 #include <proj/common.hpp>
 #include <proj/coordinateoperation.hpp>
+<<<<<<< HEAD
 #include <proj/coordinates.hpp>
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 #include <proj/crs.hpp>
 #include <proj/io.hpp>
 #include <proj/metadata.hpp>
@@ -50,7 +53,10 @@
 #include "proj/internal/internal.hpp" // for split
 
 using namespace NS_PROJ::common;
+<<<<<<< HEAD
 using namespace NS_PROJ::coordinates;
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 using namespace NS_PROJ::crs;
 using namespace NS_PROJ::io;
 using namespace NS_PROJ::metadata;
@@ -837,6 +843,7 @@ static void outputOperations(
                     CoordinateOperationContext::IntermediateCRSUse::NEVER,
                     promoteTo3D, normalizeAxisOrder, outputOpt.quiet);
     auto sourceCRS = nn_dynamic_pointer_cast<CRS>(sourceObj);
+<<<<<<< HEAD
     CoordinateMetadataPtr sourceCoordinateMetadata;
     if (!sourceCRS) {
         sourceCoordinateMetadata =
@@ -851,6 +858,11 @@ static void outputOperations(
             sourceCRS = sourceCoordinateMetadata->crs().as_nullable();
             sourceCoordinateMetadata.reset();
         }
+=======
+    if (!sourceCRS) {
+        std::cerr << "source CRS string is not a CRS" << std::endl;
+        std::exit(1);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     }
 
     auto targetObj =
@@ -858,6 +870,7 @@ static void outputOperations(
                     CoordinateOperationContext::IntermediateCRSUse::NEVER,
                     promoteTo3D, normalizeAxisOrder, outputOpt.quiet);
     auto targetCRS = nn_dynamic_pointer_cast<CRS>(targetObj);
+<<<<<<< HEAD
     CoordinateMetadataPtr targetCoordinateMetadata;
     if (!targetCRS) {
         targetCoordinateMetadata =
@@ -884,6 +897,14 @@ static void outputOperations(
 
     // TODO: handle promotion of CoordinateMetadata
     if (sourceCRS && targetCRS && dbContext && !promoteTo3D) {
+=======
+    if (!targetCRS) {
+        std::cerr << "target CRS string is not a CRS" << std::endl;
+        std::exit(1);
+    }
+
+    if (dbContext && !promoteTo3D) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         // Auto-promote source/target CRS if it is specified by its name,
         // if it has a known 3D version of it and that the other CRS is 3D.
         // e.g projinfo -s "WGS 84 + EGM96 height" -t "WGS 84"
@@ -908,6 +929,11 @@ static void outputOperations(
         }
     }
 
+<<<<<<< HEAD
+=======
+    auto nnSourceCRS = NN_NO_CHECK(sourceCRS);
+    auto nnTargetCRS = NN_NO_CHECK(targetCRS);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
     std::vector<CoordinateOperationNNPtr> list;
     size_t spatialCriterionPartialIntersectionResultCount = 0;
     bool spatialCriterionPartialIntersectionMoreRelevant = false;
@@ -919,6 +945,7 @@ static void outputOperations(
                 : nullptr;
         auto ctxt =
             CoordinateOperationContext::create(authFactory, bboxFilter, 0);
+<<<<<<< HEAD
 
         const auto createOperations = [&]() {
             if (sourceCoordinateMetadata) {
@@ -935,6 +962,8 @@ static void outputOperations(
             }
         };
 
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         ctxt->setSpatialCriterion(spatialCriterion);
         ctxt->setSourceAndTargetCRSExtentUse(crsExtentUse);
         ctxt->setGridAvailabilityUse(gridAvailabilityUse);
@@ -946,7 +975,12 @@ static void outputOperations(
         if (minimumAccuracy >= 0) {
             ctxt->setDesiredAccuracy(minimumAccuracy);
         }
+<<<<<<< HEAD
         list = createOperations();
+=======
+        list = CoordinateOperationFactory::create()->createOperations(
+            nnSourceCRS, nnTargetCRS, ctxt);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
         if (!spatialCriterionExplicitlySpecified &&
             spatialCriterion == CoordinateOperationContext::SpatialCriterion::
                                     STRICT_CONTAINMENT) {
@@ -954,7 +988,13 @@ static void outputOperations(
                 ctxt->setSpatialCriterion(
                     CoordinateOperationContext::SpatialCriterion::
                         PARTIAL_INTERSECTION);
+<<<<<<< HEAD
                 auto list2 = createOperations();
+=======
+                auto list2 =
+                    CoordinateOperationFactory::create()->createOperations(
+                        nnSourceCRS, nnTargetCRS, ctxt);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
                 spatialCriterionPartialIntersectionResultCount = list2.size();
                 if (spatialCriterionPartialIntersectionResultCount == 1 &&
                     list.size() == 1 &&
