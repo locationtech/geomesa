@@ -140,11 +140,18 @@ paragraph for more details.
           a CRS
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     Starting with PROJ 9.2, source_crs or target_crs can be a CoordinateMetadata
     with an associated coordinate epoch (but only one of them, not both).
 
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
     An "area of use" can be specified in area. When it is supplied, the more
     accurate transformation between two given systems can be chosen.
 
@@ -171,6 +178,7 @@ paragraph for more details.
     :param ctx: Threading context.
     :type ctx: :c:type:`PJ_CONTEXT` *
 <<<<<<< HEAD
+<<<<<<< HEAD
     :param `source_crs`: Source CRS or CoordinateMetadata.
     :type `source_crs`: `const char*`
     :param `target_crs`: Destination SRS or CoordinateMetadata
@@ -178,7 +186,16 @@ paragraph for more details.
     :param `source_crs`: Source CRS.
     :type `source_crs`: `const char*`
     :param `target_crs`: Destination SRS.
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+    :param `source_crs`: Source CRS.
+    :type `source_crs`: `const char*`
+    :param `target_crs`: Destination SRS.
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
     :type `target_crs`: `const char*`
     :param `area`: Descriptor of the desired area for the transformation.
     :type `area`: :c:type:`PJ_AREA` *
@@ -195,11 +212,18 @@ paragraph for more details.
     target CRS are passed as PJ* objects which must be of the CRS variety.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     Starting with PROJ 9.2, source_crs or target_crs can be a CoordinateMetadata
     with an associated coordinate epoch (but only one of them, not both).
 
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
     :param `options`: a list of NUL terminated options, or NULL.
 
     The list of supported options is:
@@ -220,6 +244,7 @@ paragraph for more details.
       :term:`Ballpark transformation` in the candidate coordinate operations.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     - ONLY_BEST=YES/NO: (PROJ >= 9.2)
       Can be set to YES to cause PROJ to error out if the best
       transformation, known of PROJ, and usable by PROJ if all grids known and
@@ -233,7 +258,13 @@ paragraph for more details.
       when specified overrides such default value).
 
 =======
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
     - FORCE_OVER=YES/NO: can be set to YES to force the ``+over`` flag on the transformation
       returned by this function. See :ref:`longitude_wrapping`
 
@@ -312,10 +343,18 @@ Coordinate transformation
     .. versionadded:: 9.1.0
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     Return the operation used during the last invocation of proj_trans().
 =======
     Return the operation used during the last invokation of proj_trans().
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+    Return the operation used during the last invokation of proj_trans().
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
     This is especially useful when P has been created with proj_create_crs_to_crs()
     and has several alternative operations.
     The returned object must be freed with proj_destroy().

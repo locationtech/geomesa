@@ -477,6 +477,7 @@ struct GridPrototype {
 
     // cppcheck-suppress functionStatic
 <<<<<<< HEAD
+<<<<<<< HEAD
     bool getLongLatOffset(int /*ix*/, int /*iy*/, double & /*longOffsetRadian*/,
                           double & /*latOffsetRadian*/) const {
         throw UnimplementedException("getLongLatOffset unimplemented");
@@ -484,7 +485,16 @@ struct GridPrototype {
     bool getLonLatOffset(int /*ix*/, int /*iy*/, double & /*lonOffsetRadian*/,
                          double & /*latOffsetRadian*/) const {
         throw UnimplementedException("getLonLatOffset unimplemented");
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+    bool getLonLatOffset(int /*ix*/, int /*iy*/, double & /*lonOffsetRadian*/,
+                         double & /*latOffsetRadian*/) const {
+        throw UnimplementedException("getLonLatOffset unimplemented");
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
     }
 
     // cppcheck-suppress functionStatic
@@ -501,6 +511,7 @@ struct GridPrototype {
 
     // cppcheck-suppress functionStatic
 <<<<<<< HEAD
+<<<<<<< HEAD
     bool getLongLatZOffset(int /*ix*/, int /*iy*/,
                            double & /*longOffsetRadian*/,
                            double & /*latOffsetRadian*/,
@@ -509,13 +520,22 @@ struct GridPrototype {
 #if 0
         return getLongLatOffset(ix, iy, longOffsetRadian, latOffsetRadian) &&
 =======
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
     bool getLonLatZOffset(int /*ix*/, int /*iy*/, double & /*lonOffsetRadian*/,
                           double & /*latOffsetRadian*/,
                           double & /*zOffset*/) const {
         throw UnimplementedException("getLonLatZOffset unimplemented");
 #if 0
         return getLonLatOffset(ix, iy, lonOffsetRadian, latOffsetRadian) &&
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
                getZOffset(ix, iy, zOffset);
 #endif
     }
