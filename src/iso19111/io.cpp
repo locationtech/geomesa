@@ -10696,6 +10696,7 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
     const MethodMapping *mapping = mappings.empty() ? nullptr : mappings[0];
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     bool foundStrictlyMatchingMapping = false;
     if (mappings.size() >= 2) {
         // To distinguish for example +ortho from +ortho +f=0
@@ -10706,6 +10707,12 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
         bool allMappingsHaveAuxParam = true;
         bool foundStrictlyMatchingMapping = false;
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    bool foundStrictlyMatchingMapping = false;
+    if (mappings.size() >= 2) {
+        // To distinguish for example +ortho from +ortho +f=0
+        bool allMappingsHaveAuxParam = true;
+>>>>>>> 507a6e7e40 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
         for (const auto *mappingIter : mappings) {
             if (mappingIter->proj_name_aux == nullptr) {
                 allMappingsHaveAuxParam = false;
@@ -10733,10 +10740,14 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (mapping && !foundStrictlyMatchingMapping) {
 =======
     if (mapping) {
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    if (mapping && !foundStrictlyMatchingMapping) {
+>>>>>>> 507a6e7e40 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
         mapping = selectSphericalOrEllipsoidal(mapping, geodCRS);
     }
 
