@@ -642,6 +642,7 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -656,6 +657,8 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 >>>>>>> 38f36f9ffc (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a85578ed78 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 
     if (Q->mode == EQUIT)
     {
@@ -840,26 +843,35 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 =======
 =======
     double  coslam, cosphi, sinphi;
+=======
+>>>>>>> 31034f9449 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 
-    sinphi = sin(lp.phi);
-    cosphi = cos(lp.phi);
-    coslam = cos(lp.lam);
-    switch (Q->mode) {
-    case EQUIT:
+    if (Q->mode == EQUIT)
+    {
+        const double cosphi = cos(lp.phi);
+        const double sinphi = sin(lp.phi);
+        const double coslam = cos(lp.lam);
+        const double sinlam = sin(lp.lam);
+
         xy.y = cosphi * coslam;
-        goto oblcon;
-    case OBLIQ:
-        xy.y = Q->sinph0 * sinphi + Q->cosph0 * cosphi * coslam;
-oblcon:
+
         if (fabs(fabs(xy.y) - 1.) < TOL)
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        {
+>>>>>>> 31034f9449 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> a85578ed78 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
             if (xy.y < 0.) {
                 proj_errno_set(P, PROJ_ERR_COORD_TRANSFM_OUTSIDE_PROJECTION_DOMAIN);
                 return xy;
             }
             else
                 return aeqd_e_forward(lp, P);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -889,6 +901,8 @@ oblcon:
 >>>>>>> 38f36f9ffc (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a85578ed78 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
         }
         else
         {
@@ -998,11 +1012,15 @@ oblcon:
         else {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a85578ed78 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
         }
         else
         {
 >>>>>>> 31034f9449 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+<<<<<<< HEAD
             xy.y = acos(xy.y);
             xy.y /= sin(xy.y);
             xy.x = xy.y * cosphi * sinlam;
@@ -1307,12 +1325,51 @@ oblcon:
 <<<<<<< HEAD
 >>>>>>> 38f36f9ffc (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
+=======
+>>>>>>> a85578ed78 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
             xy.y = acos(xy.y);
             xy.y /= sin(xy.y);
-            xy.x = xy.y * cosphi * sin(lp.lam);
-            xy.y *= (Q->mode == EQUIT) ? sinphi :
-                Q->cosph0 * sinphi - Q->sinph0 * cosphi * coslam;
+            xy.x = xy.y * cosphi * sinlam;
+            xy.y *= sinphi;
         }
+    }
+    else if (Q->mode == OBLIQ)
+    {
+        const double cosphi = cos(lp.phi);
+        const double sinphi = sin(lp.phi);
+        const double coslam = cos(lp.lam);
+        const double sinlam = sin(lp.lam);
+        const double cosphi_x_coslam = cosphi * coslam;
+
+        xy.y = Q->sinph0 * sinphi + Q->cosph0 * cosphi_x_coslam;
+
+        if (fabs(fabs(xy.y) - 1.) < TOL)
+        {
+            if (xy.y < 0.) {
+                proj_errno_set(P, PROJ_ERR_COORD_TRANSFM_OUTSIDE_PROJECTION_DOMAIN);
+                return xy;
+            }
+            else
+                return aeqd_e_forward(lp, P);
+        }
+        else
+        {
+            xy.y = acos(xy.y);
+            xy.y /= sin(xy.y);
+            xy.x = xy.y * cosphi * sinlam;
+            xy.y *= Q->cosph0 * sinphi - Q->sinph0 * cosphi_x_coslam;
+        }
+    }
+    else
+    {
+        double coslam = cos(lp.lam);
+        double sinlam = sin(lp.lam);
+        if (Q->mode == N_POLE)
+        {
+            lp.phi = -lp.phi;
+            coslam = -coslam;
+        }
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
         break;
@@ -1393,12 +1450,18 @@ oblcon:
 >>>>>>> 507a6e7e40 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 31034f9449 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> a85578ed78 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
         if (fabs(lp.phi - M_HALFPI) < EPS10) {
             proj_errno_set(P, PROJ_ERR_COORD_TRANSFM_OUTSIDE_PROJECTION_DOMAIN);
             return xy;
         }
         xy.y = (M_HALFPI + lp.phi);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1428,6 +1491,8 @@ oblcon:
 >>>>>>> 38f36f9ffc (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a85578ed78 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
         xy.x = xy.y * sinlam;
         xy.y *= coslam;
 =======
@@ -1452,10 +1517,14 @@ oblcon:
         break;
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a85578ed78 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
         xy.x = xy.y * sinlam;
         xy.y *= coslam;
 >>>>>>> 31034f9449 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+<<<<<<< HEAD
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1521,6 +1590,8 @@ oblcon:
 >>>>>>> 38f36f9ffc (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a85578ed78 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
     }
     return xy;
 }
