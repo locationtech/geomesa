@@ -2509,6 +2509,7 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3065,6 +3066,9 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 =======
               "+proj=cea +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+              "+proj=cea +R_A +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
+>>>>>>> e827708321 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 
     EXPECT_EQ(conv->exportToWKT(WKTFormatter::create().get()),
               "CONVERSION[\"Lambert Cylindrical Equal Area (Spherical)\",\n"
