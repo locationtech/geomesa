@@ -14679,6 +14679,7 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9495cd99e8 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
@@ -14694,6 +14695,8 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 8a2c6adf88 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d171e29916 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
@@ -14705,6 +14708,7 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9ea8deed76 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -14744,6 +14748,8 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a2c6adf88 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
     bool foundStrictlyMatchingMapping = false;
     if (mappings.size() >= 2) {
         // To distinguish for example +ortho from +ortho +f=0
@@ -14922,6 +14928,7 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -15081,9 +15088,25 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
 =======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a2c6adf88 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+=======
+    bool foundStrictlyMatchingMapping = false;
+    if (mappings.size() >= 2) {
+        // To distinguish for example +ortho from +ortho +f=0
+        bool allMappingsHaveAuxParam = true;
+>>>>>>> 31034f944 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> fac79eb83f (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> 9ea8deed76 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> 8a2c6adf88 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
         for (const auto *mappingIter : mappings) {
             if (mappingIter->proj_name_aux == nullptr) {
                 allMappingsHaveAuxParam = false;
@@ -15141,6 +15164,7 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -15175,6 +15199,8 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
 >>>>>>> b0532c04fa (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a2c6adf88 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
     if (mapping && !foundStrictlyMatchingMapping) {
 =======
     if (mapping) {
@@ -15208,6 +15234,7 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9ea8deed76 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
@@ -15226,6 +15253,10 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
 >>>>>>> b0532c04fa (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 9ea8deed76 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> 8a2c6adf88 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
     if (mapping && !foundStrictlyMatchingMapping) {
 =======
     if (mapping) {
@@ -15258,6 +15289,7 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
 =======
     if (mapping) {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -15421,9 +15453,22 @@ PROJStringParser::Private::buildProjectedCRS(int iStep,
 =======
     if (mapping) {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8a2c6adf88 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+=======
+    if (mapping && !foundStrictlyMatchingMapping) {
+>>>>>>> 31034f944 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> fac79eb83f (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> 9ea8deed76 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> 8a2c6adf88 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
         mapping = selectSphericalOrEllipsoidal(mapping, geodCRS);
     }
 
