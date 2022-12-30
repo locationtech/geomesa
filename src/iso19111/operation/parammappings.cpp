@@ -1447,6 +1447,7 @@ static const MethodMapping projectionMethodMappings[] = {
      nullptr, paramsLonNatOrigin},
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     {EPSG_NAME_METHOD_LAMBERT_CYLINDRICAL_EQUAL_AREA_SPHERICAL,
      EPSG_CODE_METHOD_LAMBERT_CYLINDRICAL_EQUAL_AREA_SPHERICAL,
      "Cylindrical_Equal_Area", "cea", nullptr, paramsCEA},
@@ -1523,10 +1524,13 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> efa88b5285 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 5046cb9f38 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
     {EPSG_NAME_METHOD_LAMBERT_CYLINDRICAL_EQUAL_AREA,
      EPSG_CODE_METHOD_LAMBERT_CYLINDRICAL_EQUAL_AREA, "Cylindrical_Equal_Area",
      "cea", nullptr, paramsCEA},
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1558,10 +1562,13 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 9ea8deed76 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> efa88b5285 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> 5046cb9f38 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
     {EPSG_NAME_METHOD_LAMBERT_CYLINDRICAL_EQUAL_AREA_SPHERICAL,
      EPSG_CODE_METHOD_LAMBERT_CYLINDRICAL_EQUAL_AREA_SPHERICAL,
      "Cylindrical_Equal_Area", "cea", "R_A", paramsCEA},
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1621,6 +1628,8 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> efa88b5285 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 5046cb9f38 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
     {EPSG_NAME_METHOD_CASSINI_SOLDNER, EPSG_CODE_METHOD_CASSINI_SOLDNER,
      "Cassini_Soldner", "cass", nullptr, paramsNatOrigin},
 
@@ -1876,6 +1885,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
      "Lambert_Azimuthal_Equal_Area", "laea", "R_A", paramsLaea},
 =======
      "Lambert_Azimuthal_Equal_Area", "laea", nullptr, paramsLaea},
@@ -1944,6 +1954,9 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      "Lambert_Azimuthal_Equal_Area", "laea", nullptr, paramsLaea},
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+     "Lambert_Azimuthal_Equal_Area", "laea", "R_A", paramsLaea},
+>>>>>>> 5046cb9f38 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 
     {PROJ_WKT2_NAME_METHOD_MILLER_CYLINDRICAL, 0, "Miller_Cylindrical", "mill",
      "R_A", paramsMiller},
