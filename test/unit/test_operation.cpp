@@ -2059,6 +2059,7 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2089,6 +2090,8 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 >>>>>>> 37ff369add (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b0532c04fa (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
               "+proj=cea +R_A +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
 =======
               "+proj=cea +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
@@ -2114,6 +2117,7 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d171e29916 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
@@ -2132,6 +2136,10 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 =======
 >>>>>>> 9ea8deed76 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 >>>>>>> a30c7d3fa7 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+=======
+>>>>>>> d171e29916 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> b0532c04fa (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
               "+proj=cea +R_A +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
 =======
               "+proj=cea +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
@@ -2142,6 +2150,7 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 =======
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2299,9 +2308,22 @@ TEST(operation, lambert_cylindrical_equal_area_spherical_export) {
 =======
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b0532c04fa (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 491ae81179 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+=======
+              "+proj=cea +R_A +lat_ts=1 +lon_0=2 +x_0=3 +y_0=4");
+>>>>>>> 507a6e7e4 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> 35e8d6b2f6 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> d171e29916 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> b0532c04fa (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 
     EXPECT_EQ(conv->exportToWKT(WKTFormatter::create().get()),
               "CONVERSION[\"Lambert Cylindrical Equal Area (Spherical)\",\n"
