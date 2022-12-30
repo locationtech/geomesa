@@ -11821,6 +11821,7 @@ TEST(io, projparse_cea_spherical) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9495cd99e8 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
@@ -11864,10 +11865,13 @@ TEST(io, projparse_cea_spherical) {
 >>>>>>> a30c7d3fa7 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 751897fbe9 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 TEST(io, projparse_cea_spherical_on_ellipsoid) {
     std::string input("+proj=cea +R_A +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 "
 =======
 TEST(io, projparse_cea_spherical_on_ellipsoid) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12006,6 +12010,10 @@ TEST(io, projparse_cea_spherical_on_ellipsoid) {
 =======
     std::string input("+proj=cea +R_A +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 "
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    std::string input("+proj=cea +R_A +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 "
+>>>>>>> 507a6e7e40 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> 751897fbe9 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
                       "+ellps=WGS84 +units=m +no_defs +type=crs");
     auto obj = PROJStringParser().createFromPROJString(input);
     auto crs = nn_dynamic_pointer_cast<ProjectedCRS>(obj);
@@ -12037,6 +12045,7 @@ TEST(io, projparse_cea_spherical_on_ellipsoid) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 38f36f9ffc (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
@@ -12050,9 +12059,12 @@ TEST(io, projparse_cea_spherical_on_ellipsoid) {
 =======
 >>>>>>> 57d7b62058 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
+>>>>>>> 751897fbe9 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 507a6e7e40 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -12196,6 +12208,8 @@ TEST(io, projparse_cea_spherical_on_ellipsoid) {
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 751897fbe9 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 TEST(io, projparse_cea_ellipsoidal) {
     auto obj = PROJStringParser().createFromPROJString(
         "+proj=cea +ellps=GRS80 +type=crs");
@@ -12845,6 +12859,7 @@ TEST(io, projparse_laea_ellipsoidal) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -12917,6 +12932,10 @@ TEST(io, projparse_laea_ellipsoidal) {
 >>>>>>> 14f7081728 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 507a6e7e40 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+>>>>>>> 751897fbe9 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 TEST(io, projparse_laea_spherical_on_ellipsoid) {
     std::string input("+proj=laea +R_A +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 "
                       "+ellps=WGS84 +units=m +no_defs +type=crs");
@@ -12950,6 +12969,7 @@ TEST(io, projparse_laea_spherical_on_ellipsoid) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 38f36f9ffc (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
@@ -12963,9 +12983,12 @@ TEST(io, projparse_laea_spherical_on_ellipsoid) {
 =======
 >>>>>>> 57d7b62058 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
+>>>>>>> 751897fbe9 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 507a6e7e40 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -13109,6 +13132,8 @@ TEST(io, projparse_laea_spherical_on_ellipsoid) {
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 751897fbe9 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 TEST(io, projparse_eqc_spherical) {
     auto obj = PROJStringParser().createFromPROJString(
         "+proj=eqc +R=6371228 +type=crs");
