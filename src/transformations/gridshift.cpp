@@ -5315,6 +5315,7 @@ static PJ_LP normalizeLongitude(const GenericShiftGrid *grid, const PJ_LPZ in,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -5331,6 +5332,8 @@ static PJ_LP normalizeLongitude(const GenericShiftGrid *grid, const PJ_LPZ in,
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5359,6 +5362,7 @@ static PJ_LP normalizeLongitude(const GenericShiftGrid *grid, const PJ_LPZ in,
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5411,6 +5415,8 @@ static PJ_LP normalizeLongitude(const GenericShiftGrid *grid, const PJ_LPZ in,
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
                                 const NS_PROJ::ExtentAndRes *&extentOut) {
 =======
                                 const osgeo::proj::ExtentAndRes *&extentOut) {
@@ -5564,8 +5570,11 @@ static PJ_LP normalizeLongitude(const GenericShiftGrid *grid, const PJ_LPZ in,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
                                 const NS_PROJ::ExtentAndRes *&extentOut) {
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -5665,11 +5674,15 @@ static PJ_LP normalizeLongitude(const GenericShiftGrid *grid, const PJ_LPZ in,
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 =======
                                 const NS_PROJ::ExtentAndRes *&extentOut) {
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
                                 const osgeo::proj::ExtentAndRes *&extentOut) {
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5839,6 +5852,8 @@ static PJ_LP normalizeLongitude(const GenericShiftGrid *grid, const PJ_LPZ in,
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     PJ_LP normalized;
     normalized.lam = in.lam;
     normalized.phi = in.phi;
@@ -5912,6 +5927,7 @@ PJ_LPZ gridshiftData::grid_apply_internal(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -5928,6 +5944,8 @@ PJ_LPZ gridshiftData::grid_apply_internal(
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5956,6 +5974,7 @@ PJ_LPZ gridshiftData::grid_apply_internal(
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6008,6 +6027,8 @@ PJ_LPZ gridshiftData::grid_apply_internal(
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     const NS_PROJ::ExtentAndRes *extent;
 =======
     const osgeo::proj::ExtentAndRes *extent;
@@ -6161,8 +6182,11 @@ PJ_LPZ gridshiftData::grid_apply_internal(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
     const NS_PROJ::ExtentAndRes *extent;
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -6262,11 +6286,15 @@ PJ_LPZ gridshiftData::grid_apply_internal(
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 =======
     const NS_PROJ::ExtentAndRes *extent;
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
     const osgeo::proj::ExtentAndRes *extent;
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6436,6 +6464,8 @@ PJ_LPZ gridshiftData::grid_apply_internal(
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     PJ_LP normalized_in = normalizeLongitude(grid, in, extent);
 
     PJ_LPZ shift = grid_interpolate(ctx, type, normalized_in, grid);
