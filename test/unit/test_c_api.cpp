@@ -6957,6 +6957,7 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6995,6 +6996,8 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -7041,6 +7044,7 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -7087,6 +7091,8 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     // Before the ellipsoidal version of the gnomonic projection was
     // implemented the WGS84 ellipsoid was treated as a sphere of radius
     // 6378137m and the equator was the "horizon" for the projection with the
@@ -7269,6 +7275,9 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
     // now lat = -90+4.15*ndiv = -2.85d, long = 180d for which y = -116576598.5.
 >>>>>>> e771dc363a (typo fixes)
@@ -7306,6 +7315,7 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 >>>>>>> e771dc363 (typo fixes)
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -7354,6 +7364,10 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 >>>>>>> 664f11a970 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+=======
+>>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     int success =
         proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
                           &out_left, &out_bottom, &out_right, &out_top, 21);
@@ -7361,6 +7375,7 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
     EXPECT_NEAR(out_left, 0, 1);
     EXPECT_NEAR(out_bottom, -116576598.5, 1);
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7382,6 +7397,8 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 >>>>>>> 664f11a970 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     int success =
@@ -7523,10 +7540,14 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
     int success =
         proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
                           &out_left, &out_bottom, &out_right, &out_top, 21);
@@ -7819,15 +7840,27 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 >>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     int success =
-        proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 0.0,
+        proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
                           &out_left, &out_bottom, &out_right, &out_top, 21);
     EXPECT_TRUE(success == 1);
     EXPECT_NEAR(out_left, 0, 1);
+<<<<<<< HEAD
     EXPECT_NEAR(out_bottom, -89178008, 1);
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+    EXPECT_NEAR(out_bottom, -116576598.5, 1);
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     EXPECT_NEAR(out_right, 0, 1);
     EXPECT_NEAR(out_top, 0, 1);
 }
