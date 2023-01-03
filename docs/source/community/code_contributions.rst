@@ -136,6 +136,7 @@ Preliminary step: install clang. For example:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Configure PROJ with the `scan-build <https://clang-analyzer.llvm.org/scan-build.html>`__ utility of clang:
 =======
 Configure PROJ with the :program:`scan-build` utility of clang:
@@ -204,6 +205,9 @@ Configure PROJ with the `scan-build <https://clang-analyzer.llvm.org/scan-build.
 =======
 Configure PROJ with the :program:`scan-build` utility of clang:
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+Configure PROJ with the `scan-build <https://clang-analyzer.llvm.org/scan-build.html>`__ utility of clang:
+>>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
 ::
     mkdir csa_build
@@ -221,6 +225,7 @@ Configure PROJ with the :program:`scan-build` utility of clang:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Build using ``scan-build``:
 =======
 Build using :program:`scan-build`:
@@ -289,6 +294,9 @@ Build using ``scan-build``:
 =======
 Build using :program:`scan-build`:
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+Build using ``scan-build``:
+>>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
 ::
 
@@ -306,6 +314,7 @@ If CSA finds errors, they will be emitted during the build. And in which case,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 at the end of the build process, ``scan-build`` will emit a warning message
 =======
 at the end of the build process, :program:`scan-build` will emit a warning message
@@ -374,6 +383,9 @@ at the end of the build process, ``scan-build`` will emit a warning message
 =======
 at the end of the build process, :program:`scan-build` will emit a warning message
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+at the end of the build process, ``scan-build`` will emit a warning message
+>>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 indicating errors have been found and how to display the error report. This
 is with something like
 
