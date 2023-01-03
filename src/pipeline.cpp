@@ -387,6 +387,7 @@ static void set_ellipsoid(PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -471,6 +472,10 @@ static void set_ellipsoid(PJ *P) {
 
     geod_init(P->geod, P->a,  P->es / (1 + sqrt(P->one_es)));
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    if( pj_calc_ellipsoid_params (P, P->a, P->es) == 0 )
+        geod_init(P->geod, P->a,  P->f);
+>>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     /* Re-attach the dangling list */
     /* Note: cur will always be non 0 given argv_sentinel presence, */
