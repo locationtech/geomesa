@@ -36,6 +36,7 @@ If called as above :program:`proj` will be in interactive mode, letting you
 type the input data manually and getting a response presented on screen.
 :program:`proj` works as any UNIX filter though, which means that you can also
 <<<<<<< HEAD
+<<<<<<< HEAD
 pipe data to the utility, for instance by using the ``echo`` command:
 =======
 pipe data to the utility, for instance by using the :program:`echo` command:
@@ -43,7 +44,13 @@ pipe data to the utility, for instance by using the :program:`echo` command:
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+pipe data to the utility, for instance by using the ``echo`` command:
+>>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
 ::
 
