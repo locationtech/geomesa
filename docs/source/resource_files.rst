@@ -756,6 +756,7 @@ To compile the program do something like the following to produce the binary
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1312,6 +1313,9 @@ To compile the program do something like the following to produce the binary
 =======
 :program:`htdp` from the source code.
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+``htdp`` from the source code.
+>>>>>>> 9df6fd0323 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
 ::
 
@@ -1400,6 +1404,7 @@ continental US region is used.  The script creates a set of sample points for
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
@@ -2265,17 +2270,24 @@ The ``htdp`` program supports transformations between many CRSes and for each (o
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 the grid definition, runs :program:`htdp` against it and then parses the
+=======
+the grid definition, runs ``htdp`` against it and then parses the
+>>>>>>> 9df6fd0323 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 resulting points and computes a point by point shift to encode into the final
-grid shift file.  By default it is assumed that :program:`htdp` is in the
+grid shift file.  By default it is assumed that ``htdp`` is in the
 executable path.  If not, please provide the path to the executable using the
 ``-htdp`` switch.
 
+<<<<<<< HEAD
 The :program:`htdp` program supports transformations between many CRSes and for each (or
 <<<<<<< HEAD
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+The ``htdp`` program supports transformations between many CRSes and for each (or
+>>>>>>> 9df6fd0323 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 most?) of them you need to provide a date at which the CRS is fixed.  The full
 set of CRS Ids available in the HTDP program are:
 
