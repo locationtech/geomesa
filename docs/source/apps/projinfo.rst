@@ -92,6 +92,7 @@ It can also be used to query coordinate operations available between two CRS.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.org/programs/gdalsrsinfo.html>`__ utility that offers
 =======
 The program is named with some reference to the GDAL :program:`gdalsrsinfo` that offers
@@ -111,7 +112,13 @@ The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.
 =======
 The program is named with some reference to the GDAL :program:`gdalsrsinfo` that offers
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.org/programs/gdalsrsinfo.html>`__ utility that offers
+>>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 partly similar services.
 
 
