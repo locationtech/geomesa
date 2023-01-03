@@ -362,11 +362,15 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -407,6 +411,8 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -414,6 +420,9 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -452,6 +461,7 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -501,6 +511,10 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
@@ -530,11 +544,15 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -563,6 +581,8 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -584,6 +604,9 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -665,6 +688,7 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -814,6 +838,10 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     const auto xy = forward_2d(point.lp, P);
     point.xy = xy;
 
@@ -871,11 +899,15 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -916,6 +948,8 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -923,6 +957,9 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -961,6 +998,7 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1010,6 +1048,10 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
@@ -1039,11 +1081,15 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1072,6 +1118,8 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1093,6 +1141,9 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1174,6 +1225,7 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1323,6 +1375,10 @@ static PJ_LPZ reverse_3d(PJ_XYZ xyz, PJ *P) {
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     const auto lp = reverse_2d(point.xy, P);
     point.lp = lp;
 
@@ -1379,11 +1435,15 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1424,6 +1484,8 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1431,6 +1493,9 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1469,6 +1534,7 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1518,6 +1584,10 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
@@ -1549,11 +1619,15 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1582,6 +1656,8 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     coo.xyz = forward_3d(coo.lpz, P);
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1605,6 +1681,9 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1698,6 +1777,7 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
     coo.xyz = forward_3d(coo.lpz, P);
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1854,6 +1934,10 @@ static void forward_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     if (Q->t_in_id >= 0)
         coo.xyzt.t = time_units[Q->t_in_id].t_in( coo.xyzt.t );
@@ -1909,11 +1993,15 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1954,6 +2042,8 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1961,6 +2051,9 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1999,6 +2092,7 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -2048,6 +2142,10 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
@@ -2079,11 +2177,15 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -2112,6 +2214,8 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     coo.lpz = reverse_3d(coo.xyz, P);
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2135,6 +2239,9 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -2228,6 +2335,7 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
     coo.lpz = reverse_3d(coo.xyz, P);
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -2384,6 +2492,10 @@ static void reverse_4d(PJ_COORD& coo, PJ *P) {
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ae7cc523 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     if (Q->t_out_id >= 0)
         coo.xyzt.t = time_units[Q->t_out_id].t_in( coo.xyzt.t );
