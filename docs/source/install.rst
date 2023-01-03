@@ -103,10 +103,14 @@ Fedora
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 On Fedora the ``dnf`` package manager is used::
 =======
 On Fedora the :program:`dnf` package manager is used::
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+On Fedora the ``dnf`` package manager is used::
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     sudo dnf install proj
 
@@ -114,10 +118,14 @@ Red Hat
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 On Red Hat based system packages are installed with ``yum``::
 =======
 On Red Hat based system packages are installed with :program:`yum`::
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+On Red Hat based system packages are installed with ``yum``::
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     sudo yum install proj
 
