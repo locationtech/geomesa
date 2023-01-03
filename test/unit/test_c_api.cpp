@@ -6647,6 +6647,7 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6719,6 +6720,10 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 1048b37894 (d)
     // Before the ellipsoidal version of the gnomonic projection was
     // implemented the WGS84 ellipsoid was treated as a sphere of radius
     // 6378137m and the equator was the "horizon" for the projection with the
@@ -6837,6 +6842,7 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     // now lat = -90+4.15*ndiv = -2.85d, long = 180d for which y = -116576598.5.
 >>>>>>> e771dc363a (typo fixes)
@@ -6890,6 +6896,8 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> 1048b37894 (d)
     int success =
         proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
                           &out_left, &out_bottom, &out_right, &out_top, 21);
@@ -6897,6 +6905,7 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
     EXPECT_NEAR(out_left, 0, 1);
     EXPECT_NEAR(out_bottom, -116576598.5, 1);
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7180,14 +7189,25 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
     EXPECT_NEAR(out_bottom, -116576598.5, 1);
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+=======
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 1048b37894 (d)
     int success =
-        proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 0.0,
+        proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
                           &out_left, &out_bottom, &out_right, &out_top, 21);
     EXPECT_TRUE(success == 1);
     EXPECT_NEAR(out_left, 0, 1);
+<<<<<<< HEAD
     EXPECT_NEAR(out_bottom, -89178008, 1);
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    EXPECT_NEAR(out_bottom, -116576598.5, 1);
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 1048b37894 (d)
     EXPECT_NEAR(out_right, 0, 1);
     EXPECT_NEAR(out_top, 0, 1);
 }
