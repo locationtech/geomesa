@@ -241,6 +241,7 @@ It can also be used to query coordinate operations available between two CRS.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -283,6 +284,8 @@ It can also be used to query coordinate operations available between two CRS.
 >>>>>>> f36c8520e2 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.org/programs/gdalsrsinfo.html>`__ utility that offers
 =======
 The program is named with some reference to the GDAL :program:`gdalsrsinfo` that offers
@@ -397,6 +400,7 @@ The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.
 =======
 The program is named with some reference to the GDAL :program:`gdalsrsinfo` that offers
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.org/programs/gdalsrsinfo.html>`__ utility that offers
@@ -563,6 +567,11 @@ The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.
 >>>>>>> f36c8520e2 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+The program is named with some reference to the GDAL `gdalsrsinfo <https://gdal.org/programs/gdalsrsinfo.html>`__ utility that offers
+>>>>>>> 0676d39969 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 partly similar services.
 
 
