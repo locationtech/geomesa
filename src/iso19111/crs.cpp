@@ -6138,6 +6138,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -6165,6 +6166,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -6183,6 +6186,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6223,6 +6227,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     const auto addCRS = [&](const ProjectedCRSNNPtr &crs, const bool eqName,
                             bool hasNonMatchingId) {
 =======
@@ -6255,6 +6261,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
     const auto addCRS = [&](const ProjectedCRSNNPtr &crs, const bool eqName) {
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6344,6 +6353,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 =======
     const auto addCRS = [&](const ProjectedCRSNNPtr &crs, const bool eqName) {
@@ -6490,6 +6500,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
         const auto &l_unit = cs->axisList()[0]->unit();
         if (_isEquivalentTo(crs.get(),
                             util::IComparable::Criterion::
@@ -6546,10 +6558,14 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6594,6 +6610,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
                 res.emplace_back(crs, hasNonMatchingId ? 70 : 100);
 =======
                 res.emplace_back(crs, 100);
@@ -6603,8 +6621,11 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
                 res.emplace_back(crs, hasNonMatchingId ? 70 : 100);
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -6719,11 +6740,15 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 =======
                 res.emplace_back(crs, hasNonMatchingId ? 70 : 100);
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6886,6 +6911,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
             } else {
                 res.emplace_back(crs, eqName ? 90 : 70);
             }
@@ -6963,6 +6990,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -7005,6 +7033,10 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
         bool hasNonMatchingId = false;
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7015,6 +7047,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7117,6 +7152,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -7277,6 +7313,10 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
         if (hasCodeCompatibleOfAuthorityFactory(this, authorityFactory)) {
             // If the CRS has already an id, check in the database for the
             // official object, and verify that they are equivalent.
@@ -7330,6 +7370,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -7357,6 +7398,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -7375,6 +7418,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7415,6 +7459,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
                         if (match) {
                             return res;
                         }
@@ -7449,6 +7495,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
                         return res;
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7543,6 +7592,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 =======
                         return res;
@@ -7694,6 +7744,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
                     } catch (const std::exception &) {
                     }
                 }
@@ -7735,6 +7787,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -7777,6 +7830,10 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
             hasNonMatchingId = true;
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7787,6 +7844,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7889,6 +7949,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -8049,6 +8110,10 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
         } else if (!insignificantName) {
             for (int ipass = 0; ipass < 2; ipass++) {
                 const bool approximateMatch = ipass == 1;
@@ -8101,10 +8166,14 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8149,6 +8218,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
                     if (addCRS(crsNN, eqName, false).second == 100) {
 =======
                     if (addCRS(crsNN, eqName).second == 100) {
@@ -8158,8 +8229,11 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
                     if (addCRS(crsNN, eqName, false).second == 100) {
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -8274,11 +8348,15 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 =======
                     if (addCRS(crsNN, eqName, false).second == 100) {
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8441,6 +8519,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
                         return res;
                     }
                 }
@@ -8513,6 +8593,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -8540,6 +8621,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -8558,6 +8641,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8598,6 +8682,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
         if (!foundEquivalentName && (res.empty() || res.front().second < 50)) {
 =======
         if (!hasCodeCompatibleOfAuthorityFactory(this, authorityFactory) &&
@@ -8629,10 +8715,13 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
         if (!hasCodeCompatibleOfAuthorityFactory(this, authorityFactory) &&
             !foundEquivalentName && (res.empty() || res.front().second < 50)) {
@@ -8720,6 +8809,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -8864,6 +8954,10 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
             std::set<std::pair<std::string, std::string>> alreadyKnown;
             for (const auto &pair : res) {
                 const auto &ids = pair.first->identifiers();
@@ -8922,10 +9016,14 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8970,6 +9068,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
                 addCRS(crs, insignificantName, hasNonMatchingId);
 =======
                 addCRS(crs, insignificantName);
@@ -8979,8 +9079,11 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
                 addCRS(crs, insignificantName, hasNonMatchingId);
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -9095,11 +9198,15 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 =======
                 addCRS(crs, insignificantName, hasNonMatchingId);
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -9262,6 +9369,8 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 >>>>>>> 12260fc11b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
             }
 
             res.sort(lambdaSort);
