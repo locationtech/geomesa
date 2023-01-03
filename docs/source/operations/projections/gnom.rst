@@ -5,6 +5,9 @@ Gnomonic
 ********************************************************************************
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 For a sphere, the gnomonic projection is a projection from the center of
 the sphere onto a plane tangent to the center point of the projection.
 This projects great circles to straight lines.  For an ellipsoid, it is
@@ -14,6 +17,7 @@ center point.  In this case, geodesics project to approximately straight
 lines (these are exactly straight if the geodesic includes the center
 point).  For details, see Section 8 of :cite:`Karney2013`.
 
+<<<<<<< HEAD
 +---------------------+----------------------------------------------------------+
 | **Classification**  | Azimuthal                                                |
 +---------------------+----------------------------------------------------------+
@@ -21,13 +25,19 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 +---------------------+----------------------------------------------------------+
 | **Defined area**    | Within a quarter circumference of the center point       |
 =======
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 +---------------------+----------------------------------------------------------+
-| **Classification**  | Pseudocylindrical                                        |
+| **Classification**  | Azimuthal                                                |
 +---------------------+----------------------------------------------------------+
-| **Available forms** | Forward and inverse, spherical projection                |
+| **Available forms** | Forward and inverse, spherical and ellipsoidal           |
 +---------------------+----------------------------------------------------------+
+<<<<<<< HEAD
 | **Defined area**    | Global                                                   |
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+| **Defined area**    | Within a quarter circumference of the center point       |
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 +---------------------+----------------------------------------------------------+
 | **Alias**           | gnom                                                     |
 +---------------------+----------------------------------------------------------+
@@ -45,10 +55,14 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
    :alt:   Gnomonic
 
 <<<<<<< HEAD
+<<<<<<< HEAD
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
 =======
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50``
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+   proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
 Parameters
 ################################################################################
@@ -59,6 +73,7 @@ Parameters
 
 .. include:: ../options/lat_0.rst
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 .. include:: ../options/x_0.rst
 
@@ -74,3 +89,12 @@ Parameters
 
 .. include:: ../options/y_0.rst
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+.. include:: ../options/x_0.rst
+
+.. include:: ../options/y_0.rst
+
+.. include:: ../options/ellps.rst
+
+.. include:: ../options/R.rst
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
