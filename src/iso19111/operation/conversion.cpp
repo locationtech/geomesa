@@ -14495,6 +14495,7 @@ void Conversion::_exportToPROJString(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -14563,10 +14564,13 @@ void Conversion::_exportToPROJString(
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
                 // No need to add explicit f=0 or R_A if the ellipsoid is a
                 // sphere
                 if (strcmp(mapping->proj_name_aux, "f=0") == 0 ||
                     strcmp(mapping->proj_name_aux, "R_A") == 0) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14756,6 +14760,8 @@ void Conversion::_exportToPROJString(
                 // No need to add explicit f=0 if the ellipsoid is a sphere
                 if (strcmp(mapping->proj_name_aux, "f=0") == 0) {
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
                     crs::CRS *horiz = l_sourceCRS.get();
                     const auto compound =
                         dynamic_cast<const crs::CompoundCRS *>(horiz);
