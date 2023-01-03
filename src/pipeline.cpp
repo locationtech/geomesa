@@ -381,8 +381,11 @@ static void set_ellipsoid(PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     if( pj_calc_ellipsoid_params (P, P->a, P->es) == 0 )
         geod_init(P->geod, P->a,  P->f);
 =======
@@ -412,8 +415,18 @@ static void set_ellipsoid(PJ *P) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+    if( pj_calc_ellipsoid_params (P, P->a, P->es) == 0 )
+        geod_init(P->geod, P->a,  P->f);
+>>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     /* Re-attach the dangling list */
     /* Note: cur will always be non 0 given argv_sentinel presence, */
