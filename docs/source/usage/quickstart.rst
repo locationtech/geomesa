@@ -58,6 +58,7 @@ type the input data manually and getting a response presented on screen.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -252,6 +253,9 @@ pipe data to the utility, for instance by using the ``echo`` command:
 =======
 pipe data to the utility, for instance by using the :program:`echo` command:
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+pipe data to the utility, for instance by using the ``echo`` command:
+>>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
 ::
 
