@@ -99,6 +99,7 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     double lat1, lon1, lat2, lon2;
 
     coslam = cos(lp.lam);
@@ -119,11 +120,17 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    double lat1, lon1, lat2, lon2;
+
+    coslam = cos(lp.lam);
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     switch (Q->mode) {
     case N_POLE:
         coslam = - coslam;
         PROJ_FALLTHROUGH;
     case S_POLE:
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -137,6 +144,10 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        cosphi = cos(lp.phi);
+        sinphi = sin(lp.phi);
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
         rho = fabs(Q->Mp - pj_mlfn(lp.phi, sinphi, cosphi, Q->en));
         xy.x = rho * sin(lp.lam);
         xy.y = rho * coslam;
@@ -151,12 +162,16 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
         lat1 = P->phi0 / DEG_TO_RAD;
         lon1 = 0;
         lat2 = lp.phi / DEG_TO_RAD;
         lon2 = lp.lam / DEG_TO_RAD;
+<<<<<<< HEAD
 <<<<<<< HEAD
 
         geod_inverse(&Q->g, lat1, lon1, lat2, lon2, &s12, &azi1, &azi2);
@@ -185,12 +200,19 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
         xy.y = s12 * cos(azi1);
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+=======
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
-        geod_inverse(&Q->g, phi1, lam1, phi2, lam2, &s12, &azi1, &azi2);
+        geod_inverse(&Q->g, lat1, lon1, lat2, lon2, &s12, &azi1, &azi2);
         azi1 *= DEG_TO_RAD;
+<<<<<<< HEAD
         xy.x = s12 * sin(azi1) / P->a;
         xy.y = s12 * cos(azi1) / P->a;
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        xy.x = s12 * sin(azi1);
+        xy.y = s12 * cos(azi1);
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
         break;
     }
     return xy;
@@ -484,6 +506,7 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     double azi1, azi2, s12, lat1, lon1, lat2, lon2;
 
     if ((s12 = hypot(xy.x, xy.y)) < EPS10) {
@@ -503,11 +526,17 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    double azi1, azi2, s12, lat1, lon1, lat2, lon2;
+
+    if ((s12 = hypot(xy.x, xy.y)) < EPS10) {
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
         lp.phi = P->phi0;
         lp.lam = 0.;
         return (lp);
     }
     if (Q->mode == OBLIQ || Q->mode == EQUIT) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -544,17 +573,22 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
 
         x2 = xy.x * P->a;
         y2 = xy.y * P->a;
+=======
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
         lat1 = P->phi0 / DEG_TO_RAD;
-        lon1 = P->lam0 / DEG_TO_RAD;
-        azi1 = atan2(x2, y2) / DEG_TO_RAD;
-        s12 = sqrt(x2 * x2 + y2 * y2);
+        lon1 = 0;
+        azi1 = atan2(xy.x, xy.y) / DEG_TO_RAD; // Clockwise from north
         geod_direct(&Q->g, lat1, lon1, azi1, s12, &lat2, &lon2, &azi2);
         lp.phi = lat2 * DEG_TO_RAD;
         lp.lam = lon2 * DEG_TO_RAD;
-        lp.lam -= P->lam0;
     } else { /* Polar */
+<<<<<<< HEAD
         lp.phi = pj_inv_mlfn(Q->mode == N_POLE ? Q->Mp - c : Q->Mp + c, Q->en);
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        lp.phi = pj_inv_mlfn(Q->mode == N_POLE ? Q->Mp - s12 : Q->Mp + s12,
+                             Q->en);
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
         lp.lam = atan2(xy.x, Q->mode == N_POLE ? -xy.y : xy.y);
     }
     return lp;
@@ -613,6 +647,7 @@ PJ *PROJECTION(aeqd) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     geod_init(&Q->g, 1, P->f);
 =======
     geod_init(&Q->g, P->a, P->es / (1 + sqrt(P->one_es)));
@@ -623,6 +658,9 @@ PJ *PROJECTION(aeqd) {
 =======
     geod_init(&Q->g, P->a, P->es / (1 + sqrt(P->one_es)));
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    geod_init(&Q->g, 1, P->f);
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     if (fabs(fabs(P->phi0) - M_HALFPI) < EPS10) {
         Q->mode = P->phi0 < 0. ? S_POLE : N_POLE;
