@@ -11224,6 +11224,7 @@ TEST(io, projparse_cea_spherical) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -11296,10 +11297,15 @@ TEST(io, projparse_cea_spherical) {
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 1048b37894 (d)
     const std::string input(
         "+proj=cea +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +R=6371228 +units=m "
         "+no_defs +type=crs");
     auto obj = PROJStringParser().createFromPROJString(input);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11333,9 +11339,12 @@ TEST(io, projparse_cea_spherical) {
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 1048b37894 (d)
+=======
     auto obj = PROJStringParser().createFromPROJString(
         "+proj=cea +R=6371228 +type=crs");
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11498,6 +11507,10 @@ TEST(io, projparse_cea_spherical) {
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 1048b37894 (d)
     auto crs = nn_dynamic_pointer_cast<ProjectedCRS>(obj);
     ASSERT_TRUE(crs != nullptr);
     EXPECT_EQ(crs->derivingConversion()->method()->getEPSGCode(),
@@ -11527,6 +11540,7 @@ TEST(io, projparse_cea_spherical) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -11599,11 +11613,16 @@ TEST(io, projparse_cea_spherical) {
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 1048b37894 (d)
     EXPECT_EQ(
         crs->exportToPROJString(
             PROJStringFormatter::create(PROJStringFormatter::Convention::PROJ_4)
                 .get()),
         input);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11633,9 +11652,12 @@ TEST(io, projparse_cea_spherical) {
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+>>>>>>> 1048b37894 (d)
+=======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -11779,6 +11801,8 @@ TEST(io, projparse_cea_spherical) {
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1048b37894 (d)
 
     auto crs2 = ProjectedCRS::create(
         PropertyMap(), crs->baseCRS(),
@@ -11879,17 +11903,21 @@ TEST(io, projparse_cea_spherical_on_ellipsoid) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 9495cd99e8 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 1048b37894 (d)
     std::string input("+proj=cea +R_A +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 "
 >>>>>>> 507a6e7e40 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 =======
     std::string input("+proj=cea +R_A +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 "
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -12014,6 +12042,8 @@ TEST(io, projparse_cea_spherical_on_ellipsoid) {
     std::string input("+proj=cea +R_A +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 "
 >>>>>>> 507a6e7e40 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 >>>>>>> 751897fbe9 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> 1048b37894 (d)
                       "+ellps=WGS84 +units=m +no_defs +type=crs");
     auto obj = PROJStringParser().createFromPROJString(input);
     auto crs = nn_dynamic_pointer_cast<ProjectedCRS>(obj);
