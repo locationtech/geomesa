@@ -2618,12 +2618,18 @@ TEST(crs, projectedCRS_identify_db) {
             sourceCRS->coordinateSystem());
         auto res = crs->identify(factoryEPSG);
 <<<<<<< HEAD
+<<<<<<< HEAD
         EXPECT_EQ(res.size(), 1U);
         EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
         EXPECT_EQ(res.front().second, 70);
 =======
         EXPECT_EQ(res.size(), 0U);
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        EXPECT_EQ(res.size(), 1U);
+        EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
+        EXPECT_EQ(res.front().second, 70);
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     }
     {
         // Existing code, but not matching content
@@ -2639,12 +2645,17 @@ TEST(crs, projectedCRS_identify_db) {
         auto res = crs->identify(factoryEPSG);
         ASSERT_EQ(res.size(), 1U);
 <<<<<<< HEAD
+<<<<<<< HEAD
         EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
         EXPECT_EQ(res.front().second, 70);
 =======
         EXPECT_EQ(res.front().first->getEPSGCode(), 32631);
         EXPECT_EQ(res.front().second, 25);
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
+        EXPECT_EQ(res.front().second, 70);
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     }
     {
         // Identify by exact name
@@ -3264,6 +3275,9 @@ TEST(crs, projectedCRS_identify_db) {
         EXPECT_EQ(res.front().second, 100);
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     {
         // Identify from a pseudo WKT ESRI with has an AUTHORITY node that
         // points to another object.
@@ -3290,8 +3304,11 @@ TEST(crs, projectedCRS_identify_db) {
         EXPECT_EQ(res.front().first->getEPSGCode(), 25832);
         EXPECT_EQ(res.front().second, 70);
     }
+<<<<<<< HEAD
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 }
 
 // ---------------------------------------------------------------------------
