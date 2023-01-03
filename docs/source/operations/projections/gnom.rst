@@ -29,6 +29,7 @@ Gnomonic
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -101,6 +102,10 @@ Gnomonic
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 1048b37894 (d)
 For a sphere, the gnomonic projection is a projection from the center of
 the sphere onto a plane tangent to the center point of the projection.
 This projects great circles to straight lines.  For an ellipsoid, it is
@@ -110,6 +115,7 @@ center point.  In this case, geodesics project to approximately straight
 lines (these are exactly straight if the geodesic includes the center
 point).  For details, see Section 8 of :cite:`Karney2013`.
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -141,6 +147,8 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 1048b37894 (d)
 +---------------------+----------------------------------------------------------+
 | **Classification**  | Azimuthal                                                |
 +---------------------+----------------------------------------------------------+
@@ -148,6 +156,7 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 +---------------------+----------------------------------------------------------+
 | **Defined area**    | Within a quarter circumference of the center point       |
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -424,14 +433,25 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 | **Defined area**    | Within a quarter circumference of the center point       |
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
+=======
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 1048b37894 (d)
 +---------------------+----------------------------------------------------------+
-| **Classification**  | Pseudocylindrical                                        |
+| **Classification**  | Azimuthal                                                |
 +---------------------+----------------------------------------------------------+
-| **Available forms** | Forward and inverse, spherical projection                |
+| **Available forms** | Forward and inverse, spherical and ellipsoidal           |
 +---------------------+----------------------------------------------------------+
+<<<<<<< HEAD
 | **Defined area**    | Global                                                   |
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+| **Defined area**    | Within a quarter circumference of the center point       |
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 1048b37894 (d)
 +---------------------+----------------------------------------------------------+
 | **Alias**           | gnom                                                     |
 +---------------------+----------------------------------------------------------+
@@ -473,6 +493,7 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -495,10 +516,13 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1048b37894 (d)
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
 =======
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50``
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -675,6 +699,11 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+   proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 1048b37894 (d)
 
 Parameters
 ################################################################################
@@ -710,6 +739,7 @@ Parameters
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -753,6 +783,8 @@ Parameters
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1048b37894 (d)
 .. include:: ../options/x_0.rst
 
 .. include:: ../options/y_0.rst
@@ -842,6 +874,7 @@ Parameters
 .. include:: ../options/x_0.rst
 
 .. include:: ../options/y_0.rst
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1003,10 +1036,13 @@ Parameters
 .. include:: ../options/x_0.rst
 
 .. include:: ../options/y_0.rst
+=======
+>>>>>>> 1048b37894 (d)
 
 .. include:: ../options/ellps.rst
 
 .. include:: ../options/R.rst
+<<<<<<< HEAD
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1047,3 +1083,6 @@ Parameters
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 1048b37894 (d)
