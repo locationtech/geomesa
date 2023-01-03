@@ -147,6 +147,7 @@ Fedora
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -163,6 +164,8 @@ Fedora
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -191,6 +194,7 @@ Fedora
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -243,6 +247,8 @@ Fedora
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 On Fedora the ``dnf`` package manager is used::
 =======
 On Fedora the :program:`dnf` package manager is used::
@@ -396,8 +402,11 @@ On Fedora the :program:`dnf` package manager is used::
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 On Fedora the ``dnf`` package manager is used::
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -497,11 +506,15 @@ On Fedora the ``dnf`` package manager is used::
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 =======
 On Fedora the ``dnf`` package manager is used::
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 On Fedora the :program:`dnf` package manager is used::
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -671,6 +684,8 @@ On Fedora the ``dnf`` package manager is used::
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     sudo dnf install proj
 
@@ -722,6 +737,7 @@ Red Hat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -738,6 +754,8 @@ Red Hat
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -766,6 +784,7 @@ Red Hat
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -818,6 +837,8 @@ Red Hat
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 On Red Hat based system packages are installed with ``yum``::
 =======
 On Red Hat based system packages are installed with :program:`yum`::
@@ -971,8 +992,11 @@ On Red Hat based system packages are installed with :program:`yum`::
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 On Red Hat based system packages are installed with ``yum``::
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -1072,11 +1096,15 @@ On Red Hat based system packages are installed with ``yum``::
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 =======
 On Red Hat based system packages are installed with ``yum``::
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 On Red Hat based system packages are installed with :program:`yum`::
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1246,6 +1274,8 @@ On Red Hat based system packages are installed with ``yum``::
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
     sudo yum install proj
 
