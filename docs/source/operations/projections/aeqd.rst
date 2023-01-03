@@ -33,6 +33,7 @@ Azimuthal Equidistant
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -55,6 +56,8 @@ Azimuthal Equidistant
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1048b37894 (d)
 | **Defined area**    | Global                                                   |
 +---------------------+----------------------------------------------------------+
 =======
@@ -62,12 +65,16 @@ Azimuthal Equidistant
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 1048b37894 (d)
 =======
 | **Defined area**    | Global                                                   |
 +---------------------+----------------------------------------------------------+
 >>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -236,6 +243,8 @@ Azimuthal Equidistant
 >>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1048b37894 (d)
 | **Alias**           | aeqd                                                     |
 +---------------------+----------------------------------------------------------+
 | **Domain**          | 2D                                                       |
