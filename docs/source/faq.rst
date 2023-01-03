@@ -44,6 +44,7 @@ separate column.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -62,6 +63,8 @@ separate column.
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     `ogr2ogr <https://gdal.org/programs/ogr2ogr.html>`__ application.
 =======
     :program:`ogr2ogr` application.
@@ -146,6 +149,7 @@ separate column.
     :program:`ogr2ogr` application.
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     `ogr2ogr <https://gdal.org/programs/ogr2ogr.html>`__ application.
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -227,6 +231,11 @@ separate column.
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    `ogr2ogr <https://gdal.org/programs/ogr2ogr.html>`__ application.
+>>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
 Can I transform from *abc* to *xyz*?
 --------------------------------------------------------------------------------
@@ -273,6 +282,7 @@ ETRS89/UTM32N (EPSG:25832) and ETRS89/DKTM1 (EPSG:4093):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -281,6 +291,8 @@ ETRS89/UTM32N (EPSG:25832) and ETRS89/DKTM1 (EPSG:4093):
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -392,6 +404,7 @@ See the :program:`projinfo` :ref:`documentation <projinfo>` for more info on
 how to use it.
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 See the :program:`projinfo` documentation for more info on how to use it.
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -462,6 +475,11 @@ See the :program:`projinfo` documentation for more info on how to use it.
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+See the :program:`projinfo` documentation for more info on how to use it.
+>>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
 Coordinate reference system *xyz* is not in the EPSG registry, what do I do?
 --------------------------------------------------------------------------------
