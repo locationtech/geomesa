@@ -587,6 +587,7 @@ static PJ_LP normalizeLongitude(const GenericShiftGrid *grid, const PJ_LPZ in,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                                 const NS_PROJ::ExtentAndRes *&extentOut) {
 =======
                                 const osgeo::proj::ExtentAndRes *&extentOut) {
@@ -597,6 +598,9 @@ static PJ_LP normalizeLongitude(const GenericShiftGrid *grid, const PJ_LPZ in,
 =======
                                 const osgeo::proj::ExtentAndRes *&extentOut) {
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                const NS_PROJ::ExtentAndRes *&extentOut) {
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     PJ_LP normalized;
     normalized.lam = in.lam;
     normalized.phi = in.phi;
@@ -628,6 +632,7 @@ PJ_LPZ gridshiftData::grid_apply_internal(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const NS_PROJ::ExtentAndRes *extent;
 =======
     const osgeo::proj::ExtentAndRes *extent;
@@ -638,6 +643,9 @@ PJ_LPZ gridshiftData::grid_apply_internal(
 =======
     const osgeo::proj::ExtentAndRes *extent;
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    const NS_PROJ::ExtentAndRes *extent;
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
     PJ_LP normalized_in = normalizeLongitude(grid, in, extent);
 
     PJ_LPZ shift = grid_interpolate(ctx, type, normalized_in, grid);
