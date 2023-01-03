@@ -1790,6 +1790,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6a0b9804ba (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -2089,6 +2090,14 @@ expect  -0.001790493 -0.000895247
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+# 	Azi, Sph*Ell
+===============================================================================
+
+-------------------------------------------------------------------------------
+# Test material from Snyder p. 168, table 26.  Repeat tests with ellispoid of
+# flattening 1/200.
+>>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 # Tests the equatorial aspect of the projection.
 -------------------------------------------------------------------------------
 operation +proj=gnom +R=1
@@ -2155,6 +2164,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2223,6 +2233,8 @@ expect      0   90
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 -------------------------------------------------------------------------------
 operation +proj=gnom +a=1 +rf=200
 -------------------------------------------------------------------------------
@@ -2281,6 +2293,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
@@ -2434,6 +2447,8 @@ expect      0   90
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 
 -------------------------------------------------------------------------------
 # Test the northern polar aspect of the gnonomic projection
@@ -2476,6 +2491,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2544,6 +2560,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 operation +proj=gnom +a=1 +rf=200 +lat_0=90
 -------------------------------------------------------------------------------
 tolerance 0.1 mm
@@ -2565,6 +2583,7 @@ accept  90      -0.5
 expect  failure errno coord_transfm_outside_projection_domain
 
 -------------------------------------------------------------------------------
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2732,6 +2751,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 # Test the southern polar aspect of the gnonomic projection
 -------------------------------------------------------------------------------
 operation +proj=gnom +R=1 +lat_0=-90
@@ -2772,6 +2793,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2840,6 +2862,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 operation +proj=gnom +a=1 +rf=200 +lat_0=-90
 -------------------------------------------------------------------------------
 tolerance 0.1 mm
@@ -2861,6 +2885,7 @@ accept  90      0.5
 expect  failure errno coord_transfm_outside_projection_domain
 
 -------------------------------------------------------------------------------
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3028,6 +3053,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 # Test the oblique aspect of the gnonomic projection
 -------------------------------------------------------------------------------
 operation +proj=gnom +R=1 +lat_0=45
@@ -3068,6 +3095,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3136,6 +3164,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 -------------------------------------------------------------------------------
 operation +proj=gnom +a=1 +rf=200 +lat_0=45
 -------------------------------------------------------------------------------
@@ -3154,6 +3184,7 @@ expect  0       -154.8623
 roundtrip   100
 accept  0       -45.5
 expect  failure errno coord_transfm_outside_projection_domain
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3321,6 +3352,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6302ff2adf (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 ===============================================================================
 # Goode Homolosine
 # 	PCyl, Sph.
