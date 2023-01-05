@@ -33,8 +33,11 @@ typedef double T;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
 #if !defined(OLD_BUGGY_REMQUO)
 /*
  * glibc prior to version 2.22 had a bug in remquo.  This was reported in 2014
@@ -49,12 +52,15 @@ typedef double T;
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
 static const T wgs84_a = 6378137, wgs84_f = 1/298.257223563; /* WGS84 */
 
 static int equiv(T x, T y) {
@@ -151,6 +157,7 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !OLD_BUGGY_REMQUO
   checksincosd(-810.0, -1.0, +0.0);
 #endif
@@ -165,6 +172,11 @@ int main() {
 =======
   checksincosd(-810.0, -1.0, +0.0);
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#if !OLD_BUGGY_REMQUO
+  checksincosd(-810.0, -1.0, +0.0);
+#endif
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
   checksincosd(-720.0, -0.0, +1.0);
   checksincosd(-630.0, +1.0, +0.0);
   checksincosd(-540.0, -0.0, -1.0);
@@ -186,6 +198,7 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if !OLD_BUGGY_REMQUO
   checksincosd(+810.0, +1.0, +0.0);
 #endif
@@ -208,11 +221,19 @@ int main() {
 #if !OLD_BUGGY_REMQUO
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
+=======
+#if !OLD_BUGGY_REMQUO
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
   checksincosd(+810.0, +1.0, +0.0);
+#endif
   checksincosd(+  inf,  nan,  nan);
   checksincosd(   nan,  nan,  nan);
 
+<<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#if !OLD_BUGGY_REMQUO
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
   {
     T s1, c1, s2, c2, s3, c3;
     geod_sincosd(         9.0, &s1, &c1);
@@ -226,6 +247,7 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #endif
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
@@ -234,6 +256,9 @@ int main() {
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#endif
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
 
   check( geod_atan2d(+0.0 , -0.0 ), +180 );
   check( geod_atan2d(-0.0 , -0.0 ), -180 );
