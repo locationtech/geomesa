@@ -52,6 +52,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -70,6 +71,8 @@
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 #define GEODESIC_VERSION_MINOR 1
 =======
 #define GEODESIC_VERSION_MINOR 0
@@ -154,6 +157,7 @@
 #define GEODESIC_VERSION_MINOR 0
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #define GEODESIC_VERSION_MINOR 1
 >>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -235,6 +239,11 @@
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+#define GEODESIC_VERSION_MINOR 1
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 /**
  * The patch level of the geodesic library.  (This tracks the version of
  * GeographicLib.)
