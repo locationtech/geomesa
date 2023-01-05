@@ -34,6 +34,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define GEODESIC_VERSION_MINOR 1
 =======
 #define GEODESIC_VERSION_MINOR 0
@@ -44,6 +45,9 @@
 =======
 #define GEODESIC_VERSION_MINOR 0
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#define GEODESIC_VERSION_MINOR 1
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
 /**
  * The patch level of the geodesic library.  (This tracks the version of
  * GeographicLib.)
