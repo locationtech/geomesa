@@ -817,6 +817,7 @@ pj_init_ctx_with_allow_init_epsg(PJ_CONTEXT *ctx, int argc, char **argv, int all
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -833,6 +834,8 @@ pj_init_ctx_with_allow_init_epsg(PJ_CONTEXT *ctx, int argc, char **argv, int all
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -861,6 +864,7 @@ pj_init_ctx_with_allow_init_epsg(PJ_CONTEXT *ctx, int argc, char **argv, int all
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -913,6 +917,8 @@ pj_init_ctx_with_allow_init_epsg(PJ_CONTEXT *ctx, int argc, char **argv, int all
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
     geod_init(PIN->geod, PIN->a,  PIN->f);
 =======
     geod_init(PIN->geod, PIN->a,  PIN->es / (1 + sqrt (PIN->one_es)));
@@ -1066,8 +1072,11 @@ pj_init_ctx_with_allow_init_epsg(PJ_CONTEXT *ctx, int argc, char **argv, int all
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
     geod_init(PIN->geod, PIN->a,  PIN->f);
 >>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -1167,11 +1176,15 @@ pj_init_ctx_with_allow_init_epsg(PJ_CONTEXT *ctx, int argc, char **argv, int all
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 =======
     geod_init(PIN->geod, PIN->a,  PIN->f);
 >>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 =======
     geod_init(PIN->geod, PIN->a,  PIN->es / (1 + sqrt (PIN->one_es)));
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1341,6 +1354,8 @@ pj_init_ctx_with_allow_init_epsg(PJ_CONTEXT *ctx, int argc, char **argv, int all
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 
     /* Projection specific initialization */
     err = proj_errno_reset (PIN);
