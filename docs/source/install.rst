@@ -733,6 +733,7 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -780,6 +781,8 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 >>>>>>> 8d733d2079 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ef1ca97594 (install.rst: improve instructions regarding proj-data (fixes #3539))
     package can be downloaded and its content decompressed into one of the
     directories where PROJ looks for :ref:`resources <resource_files>`
 =======
@@ -815,12 +818,16 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> ef1ca97594 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
     package can be downloaded and its content decompressed into one of the
     directories where PROJ looks for :ref:`resources <resource_files>`
 >>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -966,6 +973,8 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 >>>>>>> 8d733d2079 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> ef1ca97594 (install.rst: improve instructions regarding proj-data (fixes #3539))
 
 Starting with PROJ 9.2, a ``uninstall`` target is available to remove files
 installed by the ``install`` target::
