@@ -60,6 +60,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -90,6 +91,8 @@
 >>>>>>> ef1ca97594 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1e14acb1ea (install.rst: improve instructions regarding proj-data (fixes #3539))
 #define GEODESIC_VERSION_MINOR 1
 =======
 #define GEODESIC_VERSION_MINOR 0
@@ -115,6 +118,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -133,6 +137,10 @@
 =======
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+>>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1e14acb1ea (install.rst: improve instructions regarding proj-data (fixes #3539))
 #define GEODESIC_VERSION_MINOR 1
 =======
 #define GEODESIC_VERSION_MINOR 0
@@ -143,6 +151,7 @@
 =======
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -300,9 +309,22 @@
 =======
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1e14acb1ea (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 491ae81179 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+=======
+#define GEODESIC_VERSION_MINOR 1
+>>>>>>> 8cbe5e736 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1e14acb1ea (install.rst: improve instructions regarding proj-data (fixes #3539))
 /**
  * The patch level of the geodesic library.  (This tracks the version of
  * GeographicLib.)
