@@ -68,10 +68,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 2f268a5476 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -116,6 +120,8 @@
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 #define GEODESIC_VERSION_MINOR 1
 =======
 #define GEODESIC_VERSION_MINOR 0
@@ -125,8 +131,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 #define GEODESIC_VERSION_MINOR 1
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -241,11 +250,15 @@
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 =======
 #define GEODESIC_VERSION_MINOR 1
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 2f268a5476 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -408,6 +421,8 @@
 >>>>>>> b0069dbd8d (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 /**
  * The patch level of the geodesic library.  (This tracks the version of
  * GeographicLib.)
