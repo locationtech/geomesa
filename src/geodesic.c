@@ -110,6 +110,7 @@ static void Init(void) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -148,6 +149,8 @@ static void Init(void) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     tolb = tol0;
 =======
     tolb = tol0 * tol2;
@@ -252,6 +255,7 @@ static void Init(void) {
 =======
     tolb = tol0 * tol2;
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -419,6 +423,11 @@ static void Init(void) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    tolb = tol0;
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     xthresh = 1000 * tol2;
     degree = pi/hd;
     NaN = nan("0");
@@ -485,6 +494,7 @@ static double sumx(double u, double v, double* t) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -523,6 +533,8 @@ static double sumx(double u, double v, double* t) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
 static double polyvalx(int N, const double p[], double x) {
 =======
 static double polyval(int N, const double p[], double x) {
@@ -627,6 +639,7 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 static double polyval(int N, const double p[], double x) {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -794,6 +807,11 @@ static double polyvalx(int N, const double p[], double x) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+static double polyvalx(int N, const double p[], double x) {
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
   double y = N < 0 ? 0 : *p++;
   while (--N >= 0) y = y * x + *p++;
   return y;
@@ -1594,6 +1612,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1632,6 +1651,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
       for (;; ++numit) {
 =======
       for (; numit < maxit2; ++numit) {
@@ -1736,6 +1757,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
       for (; numit < maxit2; ++numit) {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1903,6 +1925,11 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+      for (;; ++numit) {
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
         /* the WGS84 test set: mean = 1.47, sd = 1.25, max = 16
          * WGS84 and random input: mean = 2.85, sd = 0.60 */
         double dv = 0,
@@ -1943,6 +1970,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1974,6 +2002,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -2003,6 +2033,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> eabb22d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2052,12 +2083,17 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 1e14acb1ea (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
         if (tripb ||
             /* Reversed test to allow escape with NaNs */
             !(fabs(v) >= (tripn ? 8 : 1) * tol0) ||
             /* Enough bisections to get accurate result */
             numit == maxit2)
           break;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2105,6 +2141,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 1e14acb1ea (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
         /* Reversed test to allow escape with NaNs */
         if (tripb || !(fabs(v) >= (tripn ? 8 : 1) * tol0)) break;
@@ -2196,6 +2234,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
         /* Reversed test to allow escape with NaNs */
         if (tripb || !(fabs(v) >= (tripn ? 8 : 1) * tol0)) break;
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2353,6 +2392,10 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
         /* Update bracketing values */
         if (v > 0 && (numit > maxit1 || calp1/salp1 > calp1b/salp1b))
           { salp1b = salp1; calp1b = calp1; }
@@ -2394,6 +2437,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2425,6 +2469,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -2454,6 +2500,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> eabb22d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2503,6 +2550,10 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 1e14acb1ea (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
           if (fabs(dalp1) < pi) {
             double
               sdalp1 = sin(dalp1), cdalp1 = cos(dalp1),
@@ -2538,6 +2589,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 8d733d2079 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -2550,6 +2602,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -2741,6 +2795,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -2893,6 +2948,10 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
           }
         }
         /* Either dv was not positive or updated value was outside legal
@@ -3497,6 +3556,7 @@ double A3f(const struct geod_geodesic* g, double eps) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3535,6 +3595,8 @@ double A3f(const struct geod_geodesic* g, double eps) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
   return polyvalx(nA3 - 1, g->A3x, eps);
 =======
   return polyval(nA3 - 1, g->A3x, eps);
@@ -3639,6 +3701,7 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
   return polyval(nA3 - 1, g->A3x, eps);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3806,6 +3869,11 @@ double A3f(const struct geod_geodesic* g, double eps) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+  return polyvalx(nA3 - 1, g->A3x, eps);
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
 }
 
 void C3f(const struct geod_geodesic* g, double eps, double c[]) {
@@ -3849,6 +3917,7 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3887,6 +3956,8 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     c[l] = mult * polyvalx(m, g->C3x + o, eps);
 =======
     c[l] = mult * polyval(m, g->C3x + o, eps);
@@ -3991,6 +4062,7 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
     c[l] = mult * polyval(m, g->C3x + o, eps);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4158,6 +4230,11 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    c[l] = mult * polyvalx(m, g->C3x + o, eps);
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     o += m + 1;
   }
 }
@@ -4202,6 +4279,7 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4240,6 +4318,8 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     c[l] = mult * polyvalx(m, g->C4x + o, eps);
 =======
     c[l] = mult * polyval(m, g->C4x + o, eps);
@@ -4344,6 +4424,7 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
     c[l] = mult * polyval(m, g->C4x + o, eps);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4511,6 +4592,11 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    c[l] = mult * polyvalx(m, g->C4x + o, eps);
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     o += m + 1;
     mult *= eps;
   }
@@ -4556,6 +4642,7 @@ double A1m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4594,6 +4681,8 @@ double A1m1f(double eps)  {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
   double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
 =======
   double t = polyval(m, coeff, sq(eps)) / coeff[m + 1];
@@ -4698,6 +4787,7 @@ double A1m1f(double eps)  {
 =======
   double t = polyval(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4865,6 +4955,11 @@ double A1m1f(double eps)  {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+  double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
   return (t + eps) / (1 - eps);
 }
 
@@ -4923,6 +5018,7 @@ void C1f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4961,6 +5057,8 @@ void C1f(double eps, double c[])  {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 =======
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
@@ -5065,6 +5163,7 @@ void C1f(double eps, double c[])  {
 =======
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5232,6 +5331,11 @@ void C1f(double eps, double c[])  {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     o += m + 2;
     d *= eps;
   }
@@ -5292,6 +5396,7 @@ void C1pf(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5330,6 +5435,8 @@ void C1pf(double eps, double c[])  {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 =======
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
@@ -5434,6 +5541,7 @@ void C1pf(double eps, double c[])  {
 =======
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5601,6 +5709,11 @@ void C1pf(double eps, double c[])  {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     o += m + 2;
     d *= eps;
   }
@@ -5646,6 +5759,7 @@ double A2m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5684,6 +5798,8 @@ double A2m1f(double eps)  {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
   double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
 =======
   double t = polyval(m, coeff, sq(eps)) / coeff[m + 1];
@@ -5788,6 +5904,7 @@ double A2m1f(double eps)  {
 =======
   double t = polyval(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5955,6 +6072,11 @@ double A2m1f(double eps)  {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+  double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
   return (t - eps) / (1 + eps);
 }
 
@@ -6013,6 +6135,7 @@ void C2f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6051,6 +6174,8 @@ void C2f(double eps, double c[])  {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 =======
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
@@ -6155,6 +6280,7 @@ void C2f(double eps, double c[])  {
 =======
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6322,6 +6448,11 @@ void C2f(double eps, double c[])  {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     o += m + 2;
     d *= eps;
   }
@@ -6379,6 +6510,7 @@ void A3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6417,6 +6549,8 @@ void A3coeff(struct geod_geodesic* g) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     g->A3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 =======
     g->A3x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
@@ -6521,6 +6655,7 @@ void A3coeff(struct geod_geodesic* g) {
 =======
     g->A3x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6688,6 +6823,11 @@ void A3coeff(struct geod_geodesic* g) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    g->A3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
     o += m + 2;
   }
 }
@@ -6763,6 +6903,7 @@ void C3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6801,6 +6942,8 @@ void C3coeff(struct geod_geodesic* g) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
       g->C3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 =======
       g->C3x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
@@ -6905,6 +7048,7 @@ void C3coeff(struct geod_geodesic* g) {
 =======
       g->C3x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7072,6 +7216,11 @@ void C3coeff(struct geod_geodesic* g) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+      g->C3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
       o += m + 2;
     }
   }
@@ -7160,6 +7309,7 @@ void C4coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7198,6 +7348,8 @@ void C4coeff(struct geod_geodesic* g) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
       g->C4x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 =======
       g->C4x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
@@ -7302,6 +7454,7 @@ void C4coeff(struct geod_geodesic* g) {
 =======
       g->C4x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7469,6 +7622,11 @@ void C4coeff(struct geod_geodesic* g) {
 >>>>>>> 23631d51c3 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+      g->C4x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> 1439439ca4 (install.rst: improve instructions regarding proj-data (fixes #3539))
       o += m + 2;
     }
   }
