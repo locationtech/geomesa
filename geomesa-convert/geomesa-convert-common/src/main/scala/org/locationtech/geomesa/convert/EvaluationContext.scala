@@ -11,7 +11,10 @@ package org.locationtech.geomesa.convert
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.EvaluationContext.{EvaluationError, FieldAccessor}
+<<<<<<< HEAD
+=======
 import org.locationtech.geomesa.convert2.AbstractConverter.AbstractApiError
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.convert2.Field
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 
@@ -66,6 +69,16 @@ trait EvaluationContext {
    * @return
    */
   def accessor(name: String): FieldAccessor
+<<<<<<< HEAD
+
+  /**
+   * Evaluate all values using the given arguments. The returned array may be mutated on subsequent calls to
+   * `evaluate`, so shouldn't be kept long-term
+   *
+   * @param args single row of input
+   */
+  def evaluate(args: Array[AnyRef]): Either[EvaluationError, Array[AnyRef]]
+=======
 
   /**
    * Evaluate all values using the given arguments. The returned array may be mutated on subsequent calls to
@@ -107,6 +120,7 @@ trait EvaluationContext {
     */
   @deprecated("Evaluation contexts should not be mutated")
   def clear(): Unit
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 }
 
 object EvaluationContext extends LazyLogging {
@@ -125,13 +139,29 @@ object EvaluationContext extends LazyLogging {
     new StatefulEvaluationContext(Array.empty, Map.empty, Map.empty, metrics, success, failures)
   }
 
+<<<<<<< HEAD
+  /**
+   * Creates a new evaluation context with the given state
+   *
+   * @param fields converter fields, in topological dependency order
+   * @param globalValues global values
+   * @param caches enrichment caches
+   * @param metrics metrics
+   * @param success success counter
+   * @param failure failure counter
+   * @return
+   */
+=======
   @deprecated("Replaced with `apply(fields)`")
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
   def apply(
-      localNames: Seq[String],
-      globalValues: Map[String, Any] = Map.empty,
-      caches: Map[String, EnrichmentCache] = Map.empty,
-      metrics: ConverterMetrics = ConverterMetrics.empty): EvaluationContext = {
-    new EvaluationContextImpl(localNames, globalValues, caches, metrics)
+      fields: Seq[Field],
+      globalValues: Map[String, _ <: AnyRef],
+      caches: Map[String, EnrichmentCache],
+      metrics: ConverterMetrics,
+      success: Counter,
+      failure: Counter): EvaluationContext = {
+    new StatefulEvaluationContext(fields.toArray, globalValues, caches, metrics, success, failure)
   }
 
   /**
@@ -216,12 +246,15 @@ object EvaluationContext extends LazyLogging {
     */
   implicit class RichEvaluationContext(val ec: EvaluationContext) extends AnyVal {
     def getInputFilePath: Option[String] = Option(ec.accessor(InputFilePathKey).apply().asInstanceOf[String])
+<<<<<<< HEAD
+=======
     // noinspection ScalaDeprecation
     @deprecated("Evaluation contexts should not be mutated")
     def setInputFilePath(path: String): Unit = ec.indexOf(InputFilePathKey) match {
       case -1 => throw new IllegalArgumentException(s"$InputFilePathKey is not present in execution context")
       case i  => ec.set(i, path)
     }
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
   }
 
   /**
@@ -235,6 +268,12 @@ object EvaluationContext extends LazyLogging {
   class StatefulEvaluationContext(
       fields: Array[Field],
       globalValues: Map[String, _ <: AnyRef],
+<<<<<<< HEAD
+      val cache: Map[String, EnrichmentCache],
+      val metrics: ConverterMetrics,
+      val success: Counter,
+      val failure: Counter
+=======
       val cache: Map[String, EnrichmentCache],
       val metrics: ConverterMetrics,
       val success: Counter,
@@ -250,7 +289,7 @@ object EvaluationContext extends LazyLogging {
     private val transforms = fields.map(_.transforms.map(_.withContext(this)))
 
     // to support the deprecated `get` and `set` methods
-    private lazy val sortedGlobalValues: Array[(String, _ <: AnyRef)] = globalValues.toArray.sortBy(_._1).map(f => (f._1, f._2))
+    private lazy val sortedGlobalValues = globalValues.toArray.sortBy(_._1)
 
     override def accessor(name: String): FieldAccessor = {
       val i = fields.indexWhere(_.name == name)
@@ -336,28 +375,49 @@ object EvaluationContext extends LazyLogging {
       globalValues: Map[String, Any],
       val cache: Map[String, EnrichmentCache],
       val metrics: ConverterMetrics
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
     ) extends EvaluationContext {
 
-    private val localCount = localNames.length
-    // inject the input file path as a global key so there's always a spot for it in the array
-    private val names = localNames ++ (globalValues.keys.toSeq :+ EvaluationContext.InputFilePathKey).distinct
-    private val values = Array.tabulate[Any](names.length)(i => globalValues.get(names(i)).orNull)
+    // holder for results from evaluating each row
+    private val values = Array.ofDim[AnyRef](fields.length)
+    // temp array for holding the arguments for a field
+    private val fieldArray = Array.ofDim[AnyRef](1)
+    // copy the transforms and tie them to the context
+    // note: the class isn't fully instantiated yet, but this statement is last in the initialization
+    private val transforms = fields.map(_.transforms.map(_.withContext(this)))
 
-    override val success: com.codahale.metrics.Counter = metrics.counter("success")
-    override val failure: com.codahale.metrics.Counter = metrics.counter("failure")
-
-    override def indexOf(name: String): Int = names.indexOf(name)
-
-    override def get(i: Int): Any = values(i)
-    override def set(i: Int, value: Any): Unit = values(i) = value
-
-    override def clear(): Unit = {
-      var i = 0
-      while (i < localCount) {
-        values(i) = null
-        i += 1
+    override def accessor(name: String): FieldAccessor = {
+      val i = fields.indexWhere(_.name == name)
+      if (i >= 0) { new FieldValueAccessor(values, i) } else {
+        globalValues.get(name) match {
+          case Some(value) => new GlobalFieldAccessor(value)
+          case None => NullFieldAccessor
+        }
       }
     }
+<<<<<<< HEAD
+
+    override def evaluate(args: Array[AnyRef]): Either[EvaluationError, Array[AnyRef]] = {
+      var i = 0
+      // note: since fields are in topological order we don't need to clear them
+      while (i < values.length) {
+        values(i) = try {
+          val fieldArgs = fields(i).fieldArg match {
+            case None => args
+            case Some(f) => fieldArray(0) = f.apply(args); fieldArray
+          }
+          transforms(i) match {
+            case Some(t) => t.apply(fieldArgs)
+            case None    => fieldArgs(0)
+          }
+        } catch {
+          case NonFatal(e) => return Left(EvaluationError(fields(i).name, line, e))
+        }
+        i += 1
+      }
+      Right(values)
+    }
+=======
 
     override def accessor(name: String): FieldAccessor =
       new FieldValueAccessor(values.asInstanceOf[Array[AnyRef]], indexOf(name))
@@ -387,5 +447,6 @@ object EvaluationContext extends LazyLogging {
     override def set(i: Int, value: Any): Unit = delegate.set(i, value)
     override def indexOf(name: String): Int = delegate.indexOf(name)
     override def clear(): Unit = delegate.clear()
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
   }
 }

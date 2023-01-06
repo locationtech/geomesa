@@ -11,6 +11,7 @@ package org.locationtech.geomesa.features.avro
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -49,8 +50,8 @@ trait AbstractAvroSimpleFeatureTest {
       sf.setAttribute("f4", r.nextBoolean().asInstanceOf[Object])
       sf.setAttribute("f5", UUID.fromString("12345678-1234-1234-1234-123456789012"))
       sf.setAttribute("f6", new SimpleDateFormat("yyyyMMdd").parse("20140102"))
-      sf.setAttribute("f7", GeohashUtils.wkt2geom("POINT(45.0 49.0)").asInstanceOf[Point])
-      sf.setAttribute("f8", GeohashUtils.wkt2geom("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
+      sf.setAttribute("f7", WKTUtils.read("POINT(45.0 49.0)").asInstanceOf[Point])
+      sf.setAttribute("f8", WKTUtils.read("POLYGON((-80 30,-80 23,-70 30,-70 40,-80 40,-80 30))").asInstanceOf[Polygon])
       sf.setAttribute("f9", r.nextLong().asInstanceOf[Object])
 
       // test nulls on a few data types
@@ -68,15 +69,8 @@ trait AbstractAvroSimpleFeatureTest {
 
   val simpleSft = SimpleFeatureTypes.createType("AvroSimpleFeatureWriterTest", "name:String,*geom:Point,dtg:Date")
 
-  def createSimpleFeature: SimpleFeature = {
-    val builder = AvroSimpleFeatureFactory.featureBuilder(simpleSft)
-    builder.reset()
-    builder.set("name", "test_feature")
-    builder.set("geom", WKTUtils.read("POINT(-110 30)"))
-    builder.set("dtg", "2012-01-02T05:06:07.000Z")
-
-    builder.buildFeature("fid")
-  }
+  def createSimpleFeature: SimpleFeature =
+    ScalaSimpleFeature.create(simpleSft, "fid", "test_feature", WKTUtils.read("POINT(-110 30)"), "2012-01-02T05:06:07.000Z")
 
   def getFeatures(f: File): List[SimpleFeature] = {
     // verify file can be read as generic records

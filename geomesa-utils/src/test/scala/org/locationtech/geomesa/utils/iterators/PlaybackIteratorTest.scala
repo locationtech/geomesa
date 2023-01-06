@@ -27,10 +27,10 @@ class PlaybackIteratorTest extends Specification with LazyLogging {
   val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
   val builder = new SimpleFeatureBuilder(sft)
   val features = Seq.tabulate(10) { i =>
-    builder.addAll(Array[AnyRef](s"name$i", s"2018-01-01T00:00:0${9 - i}.000Z", s"POINT (4$i 55)"))
+    builder.addAll(s"name$i", s"2018-01-01T00:00:0${9 - i}.000Z", s"POINT (4$i 55)")
     builder.buildFeature(s"$i")
   }
-  val ds = new MemoryDataStore(features.toArray)
+  val ds = new MemoryDataStore(features: _*)
 
   val dtg = Some("dtg")
   val interval: (Date, Date) = {

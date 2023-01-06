@@ -142,26 +142,6 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
   }
 
   "ArrowBatchIterator" should {
-    "return arrow encoded data" in {
-      dataStores.foreach { ds =>
-        sfts.foreach { case (sft, features) =>
-          filters.foreach { filter =>
-            val query = new Query(sft.getTypeName, filter)
-            query.getHints.put(QueryHints.ARROW_ENCODE, true)
-            query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-            query.getHints.put(QueryHints.ARROW_DOUBLE_PASS, true)
-            val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-            val out = new ByteArrayOutputStream
-            results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            def in() = new ByteArrayInputStream(out.toByteArray)
-            WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-              compare(reader.features(), features)
-            }
-          }
-        }
-      }
-      ok
-    }
     "return arrow dictionary encoded data" in {
       dataStores.foreach { ds =>
         sfts.foreach { case (sft, features) =>
@@ -201,27 +181,6 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
       }
       ok
     }
-    "return arrow dictionary encoded data with cached data" in {
-      dataStores.foreach { ds =>
-        sfts.foreach { case (sft, features) =>
-          val filter = ECQL.toFilter("name = 'name0'")
-          val query = new Query(sft.getTypeName, filter)
-          query.getHints.put(QueryHints.ARROW_ENCODE, true)
-          query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-          query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-          val out = new ByteArrayOutputStream
-          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-          def in() = new ByteArrayInputStream(out.toByteArray)
-          WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-            compare(reader.features(), features.filter(filter.evaluate))
-            // verify all cached values were used for the dictionary
-            reader.dictionaries.map { case (k, v) => (k, v.iterator.toSeq) } mustEqual Map("name" -> Seq("name0", "name1"))
-          }
-        }
-      }
-      ok
-    }
     "return arrow dictionary encoded data without caching" in {
       dataStores.foreach { ds =>
         sfts.foreach { case (sft, features) =>
@@ -229,7 +188,6 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
           val query = new Query(sft.getTypeName, filter)
           query.getHints.put(QueryHints.ARROW_ENCODE, true)
           query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-          query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, java.lang.Boolean.FALSE)
           query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
           val out = new ByteArrayOutputStream
@@ -250,7 +208,6 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
         val query = new Query(pointSft.getTypeName, filter)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-        query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, java.lang.Boolean.FALSE)
         foreach(ds.getQueryPlan(query)) { plan =>
           val expected = if (ds.config.remote.arrow) {
             Seq(classOf[Z3Iterator], classOf[ArrowIterator])
@@ -269,40 +226,12 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
       }
       ok
     }
-    "return arrow dictionary encoded data with provided dictionaries" in {
-      dataStores.foreach { ds =>
-        sfts.foreach { case (sft, features) =>
-          filters.foreach { filter =>
-            val query = new Query(sft.getTypeName, filter)
-            query.getHints.put(QueryHints.ARROW_ENCODE, true)
-            query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-            query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, "name,name0")
-            query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-            val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-            val out = new ByteArrayOutputStream
-            results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            def in() = new ByteArrayInputStream(out.toByteArray)
-            WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-              val expected = features.map {
-                case f if f.getAttribute(0) != "name1" => f
-                case f =>
-                  val e = ScalaSimpleFeature.copy(sft, f)
-                  e.setAttribute(0, "[other]")
-                  e
-              }
-              compare(reader.features(), expected)
-            }
-          }
-        }
-      }
-      ok
-    }
     "return arrow encoded projections" in {
       dataStores.foreach { ds =>
         sfts.foreach { case (sft, features) =>
           foreach(filters.take(1)) { filter =>
             foreach(Seq(Array("dtg", "geom")/*, Array("name", "geom")*/)) { transform =>
-              val query = new Query(sft.getTypeName, filter, transform)
+              val query = new Query(sft.getTypeName, filter, transform: _*)
               query.getHints.put(QueryHints.ARROW_ENCODE, true)
               query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
               val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
@@ -346,7 +275,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
             val query = new Query(sft.getTypeName, filter)
             query.getHints.put(QueryHints.ARROW_ENCODE, true)
             query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
-            query.setSortBy(Array(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.ASCENDING)))
+            query.setSortBy(org.locationtech.geomesa.filter.ff.sort("dtg", SortOrder.ASCENDING))
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
             results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
@@ -385,7 +314,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
         sfts.foreach { case (sft, features) =>
           filters.foreach { filter =>
             val transform = Array("team", "weight", "dtg", "geom")
-            val query = new Query(sft.getTypeName, filter, transform)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
             query.getHints.put(QueryHints.ARROW_ENCODE, true)
             query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "team,weight")
             query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
@@ -408,7 +337,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
       dataStores.foreach { ds =>
         filters.dropRight(1).foreach { filter =>
           val transform = Array("names", "dtg", "geom")
-          val query = new Query(listSft.getTypeName, filter, transform)
+          val query = new Query(listSft.getTypeName, filter, transform: _*)
           query.getHints.put(QueryHints.ARROW_ENCODE, true)
           query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "names")
           query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
@@ -437,7 +366,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
       dataStores.foreach { ds =>
         sfts.foreach { case (sft, features) =>
           foreach(transforms) { transform =>
-            val query = new Query(sft.getTypeName, filter, transform)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
             query.getHints.put(QueryHints.ARROW_ENCODE, true)
             val dictionaries = Option(transform.toSeq.filter(t => t != "dtg" && t != "geom")).filter(_.nonEmpty)
             dictionaries.foreach(d => query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, d.mkString(",")))
@@ -461,7 +390,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
         sfts.foreach { case (sft, features) =>
           filters.foreach { filter =>
             val transform = Array("team", "weight", "dtg", "geom")
-            val query = new Query(sft.getTypeName, filter, transform)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
             query.getHints.put(QueryHints.ARROW_ENCODE, true)
             query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "team,weight,dtg")
             query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
@@ -489,7 +418,6 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
             query.getHints.put(QueryHints.ARROW_ENCODE, true)
             query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
             query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-            query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, "name,name0,name1,name2,foo,bar,baz")
             query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream

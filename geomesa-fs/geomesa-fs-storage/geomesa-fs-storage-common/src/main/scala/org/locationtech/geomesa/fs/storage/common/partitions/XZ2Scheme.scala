@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.fs.storage.common.partitions.SpatialScheme.SpatialPartitionSchemeFactory
 import org.locationtech.jts.geom.Geometry
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 

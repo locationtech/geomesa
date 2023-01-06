@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.data
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.DataAccessFactory.Param
@@ -32,7 +32,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
   import FileSystemDataStoreFactory.FileSystemDataStoreParams._
   import FileSystemDataStoreFactory.fileContextCache
 
-  override def createDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): DataStore = {
 
     val xml = ConfigsParam.lookupOpt(params)
     val resources = ConfigPathsParam.lookupOpt(params).toSeq.flatMap(_.split(',')).map(_.trim).filterNot(_.isEmpty)
@@ -66,19 +66,19 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
     new FileSystemDataStore(fc, conf, path, readThreads, writeTimeout, encoding, namespace)
   }
 
-  override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore =
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore =
     createDataStore(params)
 
   override def isAvailable: Boolean = true
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     FileSystemDataStoreFactory.canProcess(params)
 
   override def getDisplayName: String = FileSystemDataStoreFactory.DisplayName
 
   override def getDescription: String = FileSystemDataStoreFactory.Description
 
-  override def getParametersInfo: Array[Param] = FileSystemDataStoreFactory.ParameterInfo :+ NamespaceParam
+  override def getParametersInfo: Array[Param] = Array(FileSystemDataStoreFactory.ParameterInfo :+ NamespaceParam: _*)
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = Collections.emptyMap()
 }
@@ -100,12 +100,12 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       FileSystemDataStoreParams.ConfigsParam
     )
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     FileSystemDataStoreParams.PathParam.exists(params)
 
   private val configuration = new Configuration()
 
-  private val fileContextCache = Caffeine.newBuilder().build(
+  private val fileContextCache: LoadingCache[Configuration, FileContext] = Caffeine.newBuilder().build(
     new CacheLoader[Configuration, FileContext]() {
       override def load(conf: Configuration): FileContext = FileContext.getFileContext(conf)
     }
@@ -113,7 +113,7 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
 
   object FileSystemDataStoreParams extends NamespaceParams {
 
-    val WriterFileTimeout = SystemProperty("geomesa.fs.writer.partition.timeout", "60s")
+    val WriterFileTimeout: SystemProperty = SystemProperty("geomesa.fs.writer.partition.timeout", "60s")
 
     val DeprecatedConfParam = new ConvertedParam[String, String]("fs.config", convertPropsToXml)
 

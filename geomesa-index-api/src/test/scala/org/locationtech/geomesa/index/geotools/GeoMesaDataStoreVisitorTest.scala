@@ -52,7 +52,7 @@ class GeoMesaDataStoreVisitorTest extends Specification {
 
   step {
     features.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
-    ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features.toArray[SimpleFeature]))
+    ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features: _*))
   }
 
   "GeoMesaDataStore" should {

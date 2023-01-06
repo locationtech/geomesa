@@ -8,6 +8,14 @@
 
 package org.locationtech.geomesa.index.api
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+import java.nio.charset.StandardCharsets
+import java.util.UUID
+>>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex.IdFromRow
@@ -22,7 +30,6 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
-import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -30,6 +37,12 @@ import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{ExcludeFilter, Filter}
+<<<<<<< HEAD
+
+import java.nio.charset.StandardCharsets
+import java.util.UUID
+=======
+>>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 
 import java.nio.charset.StandardCharsets
 import java.util.UUID
@@ -233,17 +246,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     * @param transform attribute transforms
     * @return a filter strategy which can satisfy the query, if available
     */
-  def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy] = {
-    // TODO remove default impl in next major release
-    // noinspection ScalaDeprecation
-    getFilterStrategy(filter, transform, None)
-  }
-
-  @deprecated("replaced with getFilterStrategy(Filter,Option[SimpleFeatureType])")
-  def getFilterStrategy(
-      filter: Filter,
-      transform: Option[SimpleFeatureType],
-      stats: Option[GeoMesaStats]): Option[FilterStrategy] = throw new NotImplementedError()
+  def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy]
 
   /**
     * Plans the query
@@ -271,6 +274,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
           // check that full table scans are allowed
           if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
             // check that full table scans are allowed
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
             lazy val filterString =
               org.locationtech.geomesa.filter.filterToString(filter.filter.getOrElse(Filter.INCLUDE))
             val block =
@@ -283,6 +290,12 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
             } else {
               logger.warn(s"Running full table scan for schema '${sft.getTypeName}' with filter: $filterString")
             }
+<<<<<<< HEAD
+=======
+            QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+>>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
           }
           val keyRanges = Seq(UnboundedRange(null))
           val byteRanges = Seq(BoundedByteRange(sharing, ByteArrays.rowFollowingPrefix(sharing)))
@@ -302,7 +315,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 
         if (tier == null) {
           QueryStrategy(filter, bytes, keyRanges, Seq.empty, ecql, hints, indexValues)
+<<<<<<< HEAD
         } else if (secondary == null || tiers.exists(_.isInstanceOf[UnboundedByteRange])) {
+=======
+        } else if (secondary == null) {
+>>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
           val byteRanges = keySpace.getRangeBytes(keyRanges.iterator, tier = true).map {
             case BoundedByteRange(lo, hi)      => BoundedByteRange(lo, ByteArrays.concat(hi, ByteRange.UnboundedUpperRange))
             case SingleRowByteRange(row)       => BoundedByteRange(row, ByteArrays.concat(row, ByteRange.UnboundedUpperRange))
@@ -322,6 +339,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
           val byteRanges = bytes.flatMap {
             case SingleRowByteRange(row) =>
               // single row - we can use all the tiered ranges appended to the end
+<<<<<<< HEAD
               tiers.map {
                 case BoundedByteRange(lo, hi) => BoundedByteRange(ByteArrays.concat(row, lo), ByteArrays.concat(row, hi))
                 case SingleRowByteRange(trow) => SingleRowByteRange(ByteArrays.concat(row, trow))
@@ -343,6 +361,33 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
               // we can't use either side of the tiers
               Iterator.single(BoundedByteRange(lo, hi))
 
+=======
+              if (tiers.isEmpty) {
+                Iterator.single(BoundedByteRange(row, ByteArrays.concat(row, ByteRange.UnboundedUpperRange)))
+              } else {
+                tiers.map {
+                  case BoundedByteRange(lo, hi) => BoundedByteRange(ByteArrays.concat(row, lo), ByteArrays.concat(row, hi))
+                  case SingleRowByteRange(trow) => SingleRowByteRange(ByteArrays.concat(row, trow))
+                }
+              }
+
+            case BoundedByteRange(lo, hi) =>
+              // bounded ranges - we can use the min/max tier on the endpoints
+              Iterator.single(BoundedByteRange(ByteArrays.concat(lo, minTier), ByteArrays.concat(hi, maxTier)))
+
+            case LowerBoundedByteRange(lo, hi) =>
+              // we can't use the upper tier
+              Iterator.single(BoundedByteRange(ByteArrays.concat(lo, minTier), hi))
+
+            case UpperBoundedByteRange(lo, hi) =>
+              // we can't use the lower tier
+              Iterator.single(BoundedByteRange(lo, ByteArrays.concat(hi, maxTier)))
+
+            case UnboundedByteRange(lo, hi) =>
+              // we can't use either side of the tiers
+              Iterator.single(BoundedByteRange(lo, hi))
+
+>>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
             case r =>
               throw new IllegalArgumentException(s"Unexpected range type $r")
           }

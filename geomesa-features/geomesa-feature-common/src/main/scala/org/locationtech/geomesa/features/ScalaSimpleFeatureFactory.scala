@@ -35,11 +35,9 @@ object ScalaSimpleFeatureFactory {
   private val hints = new Hints(Hints.FEATURE_FACTORY, classOf[ScalaSimpleFeatureFactory])
   private val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
 
-  def init(): Unit = Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[ScalaSimpleFeatureFactory])
-
   def buildFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String): SimpleFeature = {
     val builder = featureBuilder(sft)
-    builder.addAll(attrs.asJava)
+    builder.addAll(attrs: _*)
     builder.buildFeature(id)
   }
 

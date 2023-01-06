@@ -54,7 +54,7 @@ class QueryProcessTest extends Specification {
       val filter = ECQL.toFilter("track = 't-1'")
       val transforms = Seq(Seq("track", "geom"), Seq("geom"))
       foreach(transforms) { transform =>
-        val retype = DataUtilities.createSubType(sft, transform.toArray)
+        val retype = DataUtilities.createSubType(sft, transform: _*)
         val result = SelfClosingIterator(process.execute(fc, filter, transform.asJava).features).toSeq
         result mustEqual SelfClosingIterator(new ReTypingFeatureCollection(fc.subCollection(filter), retype).features()).toSeq
       }

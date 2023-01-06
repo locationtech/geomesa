@@ -3,15 +3,15 @@ User Manual
 
 .. toctree::
    :caption: Table of Contents
-   :maxdepth: 3
+   :maxdepth: 2
    :numbered:
 
    introduction
+   getting_started
    download
    install
-   getting_started
-   geotools
    architecture
+   geotools
    datastores/index
    cli/index
    convert/index
@@ -22,16 +22,12 @@ User Manual
    hbase/index
    accumulo/index
    cassandra/index
-   bigtable/index
    kafka/index
    redis/index
    filesystem/index
-   kudu/index
    postgis/index
    lambda/index
    ds_views
-   geojson
-   stream
    upgrade
 
 Appendix
@@ -43,4 +39,3 @@ Appendix
    appendix/utils
    appendix/memory
    appendix/metrics
-   appendix/web_data

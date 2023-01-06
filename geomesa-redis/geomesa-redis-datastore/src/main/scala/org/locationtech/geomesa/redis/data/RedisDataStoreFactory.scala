@@ -19,11 +19,10 @@ import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import redis.clients.jedis.JedisPool
 import redis.clients.jedis.util.JedisURIHelper
+import redis.clients.jedis.{Jedis, JedisPool}
 
 import java.awt.RenderingHints
-import java.io.Serializable
 import java.net.URI
 import scala.util.Try
 
@@ -31,9 +30,9 @@ class RedisDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   import org.locationtech.geomesa.redis.data.RedisDataStoreParams._
 
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = createDataStore(params)
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): DataStore = {
     val connection = RedisDataStoreFactory.buildConnection(params)
     val config = RedisDataStoreFactory.buildConfig(params)
     val ds = new RedisDataStore(connection, config)
@@ -48,9 +47,9 @@ class RedisDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   override def getDescription: String = RedisDataStoreFactory.Description
 
-  override def getParametersInfo: Array[Param] = RedisDataStoreFactory.ParameterInfo :+ NamespaceParam
+  override def getParametersInfo: Array[Param] = Array(RedisDataStoreFactory.ParameterInfo :+ NamespaceParam: _*)
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     RedisDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
@@ -76,12 +75,11 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       AuditQueriesParam,
       LooseBBoxParam,
       PartitionParallelScansParam,
-      CachingParam,
       AuthsParam,
       ForceEmptyAuthsParam
     )
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     RedisCatalogParam.exists(params)
 
   /**
@@ -90,10 +88,10 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     * @param params params
     * @return
     */
-  def buildConnection(params: java.util.Map[String, Serializable]): JedisPool = {
+  def buildConnection(params: java.util.Map[String, _]): JedisPool = {
     ConnectionPoolParam.lookupOpt(params).getOrElse {
       val url = RedisUrlParam.lookup(params)
-      val config = new GenericObjectPoolConfig()
+      val config = new GenericObjectPoolConfig[Jedis]()
       PoolSizeParam.lookupOpt(params).foreach(s => config.setMaxTotal(s.intValue()))
       config.setTestOnBorrow(TestConnectionParam.lookup(params))
       // if there is no protocol/port, or the url is a valid redis url, use as is
@@ -115,7 +113,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     * @param params params
     * @return
     */
-  def buildConfig(params: java.util.Map[String, Serializable]): RedisDataStoreConfig = {
+  def buildConfig(params: java.util.Map[String, _]): RedisDataStoreConfig = {
     val catalog = RedisCatalogParam.lookup(params)
     val generateStats = GenerateStatsParam.lookup(params)
     val pipeline = PipelineParam.lookup(params)
@@ -131,7 +129,6 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       threads = QueryThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params).booleanValue(),
-      caching = CachingParam.lookup(params),
       parallelPartitionScans = PartitionParallelScansParam.lookup(params)
     )
 
@@ -156,7 +153,6 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       threads: Int,
       timeout: Option[Long],
       looseBBox: Boolean,
-      caching: Boolean,
       parallelPartitionScans: Boolean
     ) extends DataStoreQueryConfig
 }

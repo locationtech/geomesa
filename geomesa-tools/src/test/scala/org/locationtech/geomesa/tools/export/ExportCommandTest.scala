@@ -30,7 +30,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
-import org.locationtech.geomesa.parquet.ParquetPathReader
+import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
 import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.export.formats.ExportFormat
@@ -92,7 +92,7 @@ class ExportCommandTest extends Specification {
     }
     ds.createSchema(sft)
     ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
-        .addFeatures(new ListFeatureCollection(sft, features.map(ScalaSimpleFeature.copy).toArray[SimpleFeature]))
+        .addFeatures(new ListFeatureCollection(sft, features.map(ScalaSimpleFeature.copy): _*))
     ds.getEntry(sft.getName).asInstanceOf[MemoryEntry].getMemory.asScala.foreach { case (_, feature) =>
       feature.getUserData.clear() // clear out the 'original feature' which causes serialization issues...
     }
@@ -240,7 +240,7 @@ class ExportCommandTest extends Specification {
         case "dtg"  => dtg
         case "name" => f1.getAttribute("name")
       }
-      ScalaSimpleFeature.create(sft, f1.getID, attributes: _*)
+      ScalaSimpleFeature.create(sft, f1.getID, attributes.toSeq: _*)
     }
   }
 
@@ -307,7 +307,7 @@ class ExportCommandTest extends Specification {
           case "dtg"  => dtg
           case "name" => f.getAttribute("name")
         }
-        ScalaSimpleFeature.create(sft, f1.getID, attributes: _*)
+        ScalaSimpleFeature.create(sft, f1.getID, attributes.toSeq: _*)
       }
     }
   }

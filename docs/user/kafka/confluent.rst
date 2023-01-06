@@ -3,10 +3,6 @@
 Confluent Integration
 =====================
 
-.. warning::
-
-  Confluent integration is currently experimental.
-
 The Kafka Data Store can integrate with Confluent Kafka topics and the Confluent Schema Registry. The schema
 registry is a centralized store of versioned Avro schemas, each associated with a particular Kafka topic. The
 Confluent Kafka Data Store converts Avro schemas into ``SimpleFeatureTypes`` and deserializes records into

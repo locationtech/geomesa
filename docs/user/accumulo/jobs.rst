@@ -11,7 +11,7 @@ If you wish to build ``geomesa-accumulo-jobs`` separately, you can with Maven:
 
 .. code-block:: shell
 
-    geomesa-accumulo$ mvn clean install -pl geomesa-accumulo-jobs
+    $ mvn clean install -pl geomesa-accumulo/geomesa-accumulo-jobs -am
 
 GeoMesa Input and Output Formats
 --------------------------------
@@ -21,17 +21,20 @@ map/reduce jobs. The input/output formats can be used directly in Scala,
 or there are Java interfaces under the ``interop`` package.
 
 There are sample jobs provided that can be used as templates for more
-complex operations. These are:
+complex operations. These are::
 
-::
+    org.locationtech.geomesa.accumulo.jobs.mapreduce.interop.FeatureCountJob
+    org.locationtech.geomesa.accumulo.jobs.mapreduce.interop.FeatureWriterJob
 
+<<<<<<< HEAD
+GeoMesaAccumuloInputFormat
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+=======
     org.locationtech.geomesa.jobs.interop.mapreduce.FeatureCountJob
     org.locationtech.geomesa.jobs.interop.mapreduce.FeatureWriterJob
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
-GeoMesaInputFormat
-^^^^^^^^^^^^^^^^^^
-
-The ``GeoMesaInputFormat`` can be used to get ``SimpleFeature``\ s into
+The ``GeoMesaAccumuloInputFormat`` can be used to get ``SimpleFeature``\ s into
 your jobs directly from GeoMesa.
 
 Use the static ``configure`` method to set up your job. You need to
@@ -49,17 +52,15 @@ GeoMesaOutputFormat
 The ``GeoMesaOutputFormat`` can be used to write ``SimpleFeature``\ s
 back into GeoMesa.
 
-Use the static ``configure`` method to set up your job. You need to
+Use the static ``setOutput`` method to set up your job. You need to
 provide it with a map of connection parameters, which will be used to
-retrieve the GeoTools ``DataStore``. Optionally, you can also configure
-the BatchWriter configuration used to write data to Accumulo.
+retrieve the GeoTools ``DataStore``.
 
 The key you output does not matter, and will be ignored. The value
 should be a ``SimpleFeature`` that you wish to write. If the
 ``SimpleFeatureType`` associated with the ``SimpleFeature`` does not yet
 exist in GeoMesa, it will be created for you. You may write different
-``SimpleFeatureType``\ s, but note that they will all share a common
-catalog table.
+``SimpleFeatureType``\ s, in a single job, if desired.
 
 Map/Reduce Jobs
 ---------------
@@ -89,7 +90,11 @@ The job can be invoked through Yarn as follows:
 .. code-block:: shell
 
     geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_${VERSION}.jar \
+<<<<<<< HEAD
+        org.locationtech.geomesa.accumulo.jobs.index.AttributeIndexJob \
+=======
         org.locationtech.geomesa.jobs.index.AttributeIndexJob \
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         --geomesa.input.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \
         --geomesa.input.user <user> \
@@ -122,7 +127,11 @@ slightly):
 .. code-block:: shell
 
     geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_${VERSION}.jar \
+<<<<<<< HEAD
+        org.locationtech.geomesa.accumulo.jobs.index.SchemaCopyJob \
+=======
         org.locationtech.geomesa.jobs.index.SchemaCopyJob \
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         --geomesa.input.instanceId <instance> \
         --geomesa.output.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \

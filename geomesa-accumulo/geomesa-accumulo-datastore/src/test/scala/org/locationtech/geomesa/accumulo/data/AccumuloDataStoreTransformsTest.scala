@@ -61,7 +61,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
       "with derived values" >> {
         val query = new Query(sftName, Filter.INCLUDE,
-          Array("name", "derived=strConcat('hello',name)", "geom"))
+          "name", "derived=strConcat('hello',name)", "geom")
 
         // Let's read out what we wrote.
         val results = ds.getFeatureSource(sftName).getFeatures(query)
@@ -79,7 +79,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       }
 
       "with dtg and geom" in {
-        val query = new Query(sftName, Filter.INCLUDE, List("dtg", "geom").toArray)
+        val query = new Query(sftName, Filter.INCLUDE, "dtg", "geom")
         val results = SelfClosingIterator(CloseableIterator(ds.getFeatureSource(sftName).getFeatures(query).features())).toList
         results must haveSize(1)
         results.head.getID mustEqual "fid-1"
@@ -91,7 +91,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       "with setPropertyNames" in {
         val filter = ff.bbox(ff.property("geom"), new ReferencedEnvelope(44.0, 46.0, 48.0, 50.0, CRS_EPSG_4326))
         val query = new Query(sftName, filter)
-        query.setPropertyNames(Array("geom"))
+        query.setPropertyNames("geom")
 
         val features = ds.getFeatureSource(sftName).getFeatures(query).features
 
@@ -109,7 +109,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       }
 
       "with renaming projections" in {
-        val query = new Query(sftName, Filter.INCLUDE, Array("trans=name", "geom"))
+        val query = new Query(sftName, Filter.INCLUDE, "trans=name", "geom")
 
         val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
 
@@ -128,7 +128,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
       "across multiple fields" >> {
         val query = new Query(sftName, Filter.INCLUDE,
-          Array("name", "derived=strConcat(attr,name)", "geom"))
+          "name", "derived=strConcat(attr,name)", "geom")
 
         // Let's read out what we wrote.
         val results = ds.getFeatureSource(sftName).getFeatures(query)
@@ -145,7 +145,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       }
 
       "to subtypes" >> {
-        val query = new Query(sftName, Filter.INCLUDE, Array("name", "geom"))
+        val query = new Query(sftName, Filter.INCLUDE, "name", "geom")
 
         // Let's read out what we wrote.
         val results = ds.getFeatureSource(sftName).getFeatures(query)
@@ -164,7 +164,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       "with filters on other attributes" >> {
         val filter = CQL.toFilter("bbox(geom,45,45,55,55) AND " +
             "dtg BETWEEN '2011-12-31T00:00:00.000Z' AND '2012-01-02T00:00:00.000Z'")
-        val query = new Query(sftName, filter, Array("geom"))
+        val query = new Query(sftName, filter, "geom")
 
         // Let's read out what we wrote.
         val features = ds.getFeatureSource(sftName).getFeatures(query).features
@@ -191,7 +191,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
         "IN ('fid-1')"
       )
       foreach(filters) { filter =>
-        val query = new Query(sft.getTypeName, ECQL.toFilter(filter), Array.empty[String])
+        val query = new Query(sft.getTypeName, ECQL.toFilter(filter), Array.empty[String]: _*)
         val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
         features must haveLength(1)
         features.head.getID mustEqual "fid-1"
@@ -221,7 +221,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       })
 
       "with out of order attributes" >> {
-        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), Array("geom", "dtg", "label"))
+        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg", "label")
         val features =
           SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
@@ -236,7 +236,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       }
 
       "with only date and geom" >> {
-        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), Array("geom", "dtg"))
+        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg")
         val features =
           SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
@@ -251,7 +251,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
       "with all attributes" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"),
-          Array("geom", "dtg", "label", "score", "trackId"))
+          "geom", "dtg", "label", "score", "trackId")
         val features =
           SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
@@ -283,7 +283,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
       "with derived values" >> {
         val query = new Query(sftName, Filter.INCLUDE,
-          Array("name", "geom", "total=men+women+children"))
+          "name", "geom", "total=men+women+children")
 
         // Let's read out what we wrote.
         val results: SimpleFeatureCollection = ds.getFeatureSource(sftName).getFeatures(query)

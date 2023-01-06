@@ -12,11 +12,11 @@ import com.beust.jcommander.Parameters
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils
+import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.accumulo.tools.AccumuloDataStoreCommand.AccumuloDistributedCommand
 import org.locationtech.geomesa.accumulo.tools.AccumuloDataStoreParams
 import org.locationtech.geomesa.accumulo.tools.export.AccumuloExportCommand.AccumuloExportParams
-import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
-import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.tools.export.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.{OptionalIndexParam, RequiredTypeNameParam}
@@ -28,7 +28,7 @@ class AccumuloExportCommand extends ExportCommand[AccumuloDataStore] with Accumu
   override val params = new AccumuloExportParams
 
   override protected def configure(job: Job, ds: AccumuloDataStore, query: Query): Unit =
-    GeoMesaAccumuloInputFormat.configure(job, connection.asJava, AccumuloJobUtils.getSingleQueryPlan(ds, query))
+    GeoMesaAccumuloInputFormat.configure(job.getConfiguration, connection.asJava, AccumuloJobUtils.getSingleQueryPlan(ds, query))
 }
 
 object AccumuloExportCommand {

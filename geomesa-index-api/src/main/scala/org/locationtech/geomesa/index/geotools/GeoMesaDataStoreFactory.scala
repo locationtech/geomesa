@@ -15,7 +15,6 @@ import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam._
 
-import java.io.Serializable
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 
@@ -79,15 +78,6 @@ object GeoMesaDataStoreFactory {
       readWrite = ReadWriteFlag.ReadUpdate
     )
 
-  val CachingParam =
-    new GeoMesaParam[java.lang.Boolean](
-      "geomesa.query.caching",
-      "Cache the results of queries for faster repeated searches. Warning: large result sets can swamp memory",
-      default = false,
-      deprecatedKeys = Seq("caching"),
-      readWrite = ReadWriteFlag.ReadOnly
-    )
-
   val GenerateStatsParam =
     new GeoMesaParam[java.lang.Boolean](
       "geomesa.stats.enable",
@@ -125,7 +115,6 @@ object GeoMesaDataStoreFactory {
     def threads: Int
     def timeout: Option[Long]
     def looseBBox: Boolean
-    def caching: Boolean
     def parallelPartitionScans: Boolean
   }
 
@@ -143,7 +132,6 @@ object GeoMesaDataStoreFactory {
     val GenerateStatsParam = GeoMesaDataStoreFactory.GenerateStatsParam
     val QueryThreadsParam  = GeoMesaDataStoreFactory.QueryThreadsParam
     val QueryTimeoutParam  = GeoMesaDataStoreFactory.QueryTimeoutParam
-    val CachingParam       = GeoMesaDataStoreFactory.CachingParam
     val PartitionParallelScansParam = GeoMesaDataStoreFactory.PartitionParallelScansParam
 
     val LooseBBoxParam =
@@ -154,6 +142,6 @@ object GeoMesaDataStoreFactory {
     def DisplayName: String
     def Description: String
     def ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]]
-    def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean
+    def canProcess(params: java.util.Map[String, _]): Boolean
   }
 }

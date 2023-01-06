@@ -3,7 +3,7 @@
 </p>
 
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
-computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase, Google Bigtable and
+computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
 stream processing of spatio-temporal data by layering spatial semantics on top of Apache Kafka. Through GeoServer,
 GeoMesa facilitates integration with a wide range of existing mapping clients over standard OGC (Open Geospatial
@@ -46,7 +46,6 @@ geospatial analytics.
   [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-kafka_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-redis_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-fs_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
-  [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-bigtable_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz)
 
 ### Verifying Downloads
 
@@ -183,19 +182,40 @@ The project is built using Maven. To build, run:
 
     mvn clean install
 
-The full build takes quite a while. To speed it up, you may skip tests and use multiple threads. GeoMesa also
-provides the script `build/mvn`, which is a wrapper around Maven that downloads and runs
-[Zinc](https://github.com/typesafehub/zinc), a fast incremental compiler:
+The full build takes quite a while. To speed it up, you may skip tests and use multiple threads.
+
+### Build with Bloop Compile Server
+
+GeoMesa also provides experimental support for the [Bloop](https://scalacenter.github.io/bloop/) compile server,
+which provides fast incremental compilation. To export the GeoMesa build to Bloop, run:
+
+    ./build/bloop-export.sh
+
+For more information on using Bloop, refer to the
+[Bloop documentation](https://scalacenter.github.io/bloop/docs/build-tools/maven).
+
+### Build with Zinc Compile Server
+
+GeoMesa also provides experimental support for the [Zinc](https://github.com/typesafehub/zinc) compile server,
+which provides fast incremental compilation. However, please note that Zinc is no longer actively maintained.
+To use an existing Zinc server, run maven with `-Pzinc`. GeoMesa provides a helper script at `build/mvn`, which
+is a wrapper around Maven that downloads and runs Zinc automatically:
 
     build/mvn clean install -T8 -DskipTests
 
 If the Zinc build fails with an error finding "javac", try setting the JAVA_HOME
-environment variable to point to the root of your JDK.  Example from a Mac:
+environment variable to point to the root of your JDK. Example from a Mac:
 
     JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_51.jdk/Contents/Home" build/mvn clean install
 
 ### Scala Cross Build
 
+<<<<<<< HEAD
+To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
+
+    ./build/change-scala-version.sh 2.13
+=======
 To build for a different Scala version (e.g. 2.11), run the following script, then build as normal:
 
     ./build/change-scala-version.sh 2.11
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))

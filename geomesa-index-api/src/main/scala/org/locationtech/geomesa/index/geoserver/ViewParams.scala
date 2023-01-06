@@ -85,10 +85,18 @@ object ViewParams extends LazyLogging {
     * @param query query
     * @return
     */
-  def getReadableHints(query: Query): String = {
+  def getReadableHints(query: Query): String = getReadableHints(query.getHints)
+
+  /**
+   * Maps query hints to readable strings
+   *
+   * @param hints hints
+   * @return
+   */
+  def getReadableHints(hints: Hints): String = {
     val readable = Seq.newBuilder[String]
-    readable.sizeHint(query.getHints.size())
-    query.getHints.asScala.foreach { case (k: Hints.Key, v) =>
+    readable.sizeHint(hints.size())
+    hints.asScala.foreach { case (k: Hints.Key, v) =>
       val key = hintToString(k)
       val value = v match {
         case null => "null"

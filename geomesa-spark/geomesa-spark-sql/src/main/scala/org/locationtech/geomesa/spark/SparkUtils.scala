@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,6 +7,9 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.spark
+
+import java.sql.Timestamp
+import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.Row
@@ -17,15 +20,14 @@ import org.apache.spark.sql.types._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.{ListAttributeSpec, MapAttributeSpec}
+import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.uuid.TimeSortedUuidGenerator
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.FilterFactory2
 
-import java.sql.Timestamp
-import java.util.Date
+import scala.util.Try
 
 object SparkUtils extends LazyLogging {
 
@@ -74,7 +76,7 @@ object SparkUtils extends LazyLogging {
             sf: SimpleFeature => {
               val attr = sf.getAttribute(index)
               if (attr == null) { null } else {
-                val map = attr.asInstanceOf[java.util.Map[Any, Any]].asScala.toMap
+                val map = attr.asInstanceOf[java.util.Map[_, _]].asScala.toMap
                 if (keyType != TimestampType && valueType != TimestampType) { map } else {
                   map.map {
                     case (key, value) =>

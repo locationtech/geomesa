@@ -68,7 +68,7 @@ Integration with Other Systems
 The Kafka data store is easy to integrate with by consuming the Kafka topic. The messages are a change log of
 updates. Message keys consist of the simple feature ID, as UTF-8 bytes. Message bodies are serialized simple
 features, or null to indicate deletion. The internal serialization version is set as a message header under the
-key ``"v"``, when using Kafka 0.11.x or newer.
+key ``"v"``.
 
 By default, message bodies are serialized with a custom Kryo serializer. For Java/Scala clients, the
 ``org.locationtech.geomesa.features.kryo.KryoFeatureSerializer`` class may be used to decode messages, available

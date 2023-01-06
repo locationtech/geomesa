@@ -13,7 +13,7 @@ import org.locationtech.geomesa.convert.osm.OsmNodesConverter.OsmNodesConfig
 import org.locationtech.geomesa.convert.osm.OsmNodesConverterFactory.OsmNodesConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
-import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsConvert, ConverterConfigConvert, OptionConvert}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
@@ -22,14 +22,8 @@ import java.util.Locale
 import scala.util.control.NonFatal
 
 class OsmNodesConverterFactory
-    extends AbstractConverterFactory[OsmNodesConverter, OsmNodesConfig, OsmField, BasicOptions] {
-
-  override protected val typeToProcess = "osm-nodes"
-
-  override protected implicit def configConvert: ConverterConfigConvert[OsmNodesConfig] = OsmNodesConfigConvert
-  override protected implicit def fieldConvert: FieldConvert[OsmField] = OsmFieldConvert
-  override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
-}
+    extends AbstractConverterFactory[OsmNodesConverter, OsmNodesConfig, OsmField, BasicOptions](
+      "osm-nodes", OsmNodesConfigConvert, OsmFieldConvert, BasicOptionsConvert)
 
 object OsmNodesConverterFactory {
 

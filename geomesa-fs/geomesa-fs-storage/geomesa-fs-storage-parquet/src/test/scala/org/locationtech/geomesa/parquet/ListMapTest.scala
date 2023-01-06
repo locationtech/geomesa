@@ -17,7 +17,8 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport
+import org.locationtech.geomesa.fs.storage.parquet.SimpleFeatureParquetWriter
+import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.{Coordinate, Point}
 import org.opengis.feature.simple.SimpleFeature

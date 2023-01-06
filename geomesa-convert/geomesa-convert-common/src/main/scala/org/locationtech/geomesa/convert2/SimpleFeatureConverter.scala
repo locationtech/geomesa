@@ -8,6 +8,11 @@
 
 package org.locationtech.geomesa.convert2
 
+<<<<<<< HEAD
+=======
+import java.io.{Closeable, InputStream}
+
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
@@ -63,9 +68,13 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
    * @param failure counter for tracking failed conversions
    * @return
    */
+<<<<<<< HEAD
+  def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext
+=======
   def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext =
     // TODO remove default impl in next major release
     new DelegatingEvaluationContext(createEvaluationContext(globalParams))(success, failure)
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 
   /**
    * Java API for `createEvaluationContext`

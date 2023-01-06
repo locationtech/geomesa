@@ -31,13 +31,13 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 
   import scala.collection.JavaConverters._
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     MergedDataStoreViewFactory.canProcess(params)
 
-  override def createDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore =
+  override def createDataStore(params: java.util.Map[String, _]): DataStore =
     createNewDataStore(params)
 
-  override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = {
     val configs: Seq[Config] = {
       val explicit = Option(ConfigParam.lookup(params)).map(c => ConfigFactory.parseString(c).resolve())
       val loaded = ConfigLoaderParam.flatMap(_.lookupOpt(params)).flatMap { name =>
@@ -90,7 +90,7 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 
   override def getDescription: String = Description
 
-  override def getParametersInfo: Array[Param] = ParameterInfo :+ NamespaceParam
+  override def getParametersInfo: Array[Param] = Array(ParameterInfo :+ NamespaceParam: _*)
 
   override def isAvailable: Boolean = true
 
@@ -134,7 +134,20 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
       default = java.lang.Boolean.FALSE,
       readWrite = ReadWriteFlag.ReadOnly
     )
+<<<<<<< HEAD
+=======
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
+    ConfigLoaderParam.toArray ++ Array(ConfigParam, DeduplicateParam)
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+
+=======
+>>>>>>> f8f49130b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
   val ParallelScanParam =
     new GeoMesaParam[java.lang.Boolean](
       "geomesa.merged.scan.parallel",
@@ -146,6 +159,6 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     ConfigLoaderParam.toArray ++ Array[GeoMesaParam[_ <: AnyRef]](ConfigParam, DeduplicateParam, ParallelScanParam)
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     params.containsKey(ConfigParam.key) || ConfigLoaderParam.exists(p => params.containsKey(p.key))
 }

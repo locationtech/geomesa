@@ -28,7 +28,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
-import org.locationtech.geomesa.parquet.ParquetPathReader
+import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
 import org.locationtech.geomesa.tools.export.formats.ExportFormat
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -186,7 +186,7 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
         case "dtg"  => dtg
         case "name" => f1.getAttribute("name")
       }
-      ScalaSimpleFeature.create(sft, f1.getID, attributes: _*)
+      ScalaSimpleFeature.create(sft, f1.getID, attributes.toSeq: _*)
     }
   }
 
@@ -252,7 +252,7 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
           case "dtg"  => dtg
           case "name" => f.getAttribute("name")
         }
-        ScalaSimpleFeature.create(sft, f1.getID, attributes: _*)
+        ScalaSimpleFeature.create(sft, f1.getID, attributes.toSeq: _*)
       }
     }
   }

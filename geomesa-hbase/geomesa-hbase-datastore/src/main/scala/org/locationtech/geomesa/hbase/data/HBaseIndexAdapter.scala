@@ -150,11 +150,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
   override def deleteTables(tables: Seq[String]): Unit = {
     WithClose(ds.connection.getAdmin) { admin =>
-      tables.par.foreach { name =>
+      def deleteOne(name: String): Unit = {
         val table = TableName.valueOf(name)
         if (admin.tableExists(table)) {
           HBaseVersions.disableTableAsync(admin, table)
-          val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
+          val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite)
           logger.debug(s"Waiting for table '$table' to be disabled with " +
               s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
           val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
@@ -165,11 +165,12 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
           admin.deleteTable(table)
         }
       }
+      tables.toList.map(t => CachedThreadPool.submit(() => deleteOne(t))).foreach(_.get)
     }
   }
 
   override def clearTables(tables: Seq[String], prefix: Option[Array[Byte]]): Unit = {
-    tables.par.foreach { name =>
+    def clearOne(name: String): Unit = {
       val tableName = TableName.valueOf(name)
       WithClose(ds.connection.getTable(tableName)) { table =>
         val scan = new Scan().setFilter(new KeyOnlyFilter)
@@ -185,6 +186,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         }
       }
     }
+    tables.toList.map(t => CachedThreadPool.submit(() => clearOne(t))).foreach(_.get)
   }
 
   override def createQueryPlan(strategy: QueryStrategy): HBaseQueryPlan = {
@@ -541,7 +543,7 @@ object HBaseIndexAdapter extends LazyLogging {
    */
   def waitForTable(admin: Admin, table: TableName): Unit = {
     if (!admin.isTableAvailable(table)) {
-      val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
+      val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite)
       logger.debug(s"Waiting for table '$table' to become available with " +
           s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
       val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
@@ -586,6 +588,7 @@ object HBaseIndexAdapter extends LazyLogging {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     private val batchSize = HBaseSystemProperties.WriteBatchSize.toLong
+<<<<<<< HEAD
     private val flushTimeout = HBaseSystemProperties.WriteFlushTimeout.toLong
     private val deleteVis = HBaseSystemProperties.DeleteVis.option.map(new CellVisibility(_))
 
@@ -594,6 +597,9 @@ object HBaseIndexAdapter extends LazyLogging {
       val maxThreads = math.max(1, ds.connection.getConfiguration.getInt("hbase.htable.threads.max", Int.MaxValue))
       Array.fill(indices.length)(new CachedThreadPool(maxThreads))
     }
+=======
+    private val deleteVis = HBaseSystemProperties.DeleteVis.option.map(new CellVisibility(_))
+>>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
     private val mutators = indices.toArray.map { index =>
       val table = index.getTableNames(partition) match {

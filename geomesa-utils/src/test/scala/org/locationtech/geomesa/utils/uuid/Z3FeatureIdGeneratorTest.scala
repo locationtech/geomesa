@@ -8,6 +8,11 @@
 
 package org.locationtech.geomesa.utils.uuid
 
+<<<<<<< HEAD
+=======
+import java.util.Date
+
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod}
@@ -39,7 +44,7 @@ class Z3FeatureIdGeneratorTest extends Specification {
 
   def makeFeature(sft: SimpleFeatureType, geom: Geometry, dtg: Date, name: String): SimpleFeature = {
     val builder = new SimpleFeatureBuilder(sft)
-    builder.addAll(Array[Object](geom, dtg.asInstanceOf[Object], name))
+    builder.addAll(geom, dtg, name)
     builder.buildFeature("id1")
   }
 

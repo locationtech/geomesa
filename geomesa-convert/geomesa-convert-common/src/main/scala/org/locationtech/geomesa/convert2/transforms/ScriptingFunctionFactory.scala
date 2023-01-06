@@ -19,7 +19,16 @@ import java.net.URI
 import java.nio.file.FileSystems
 import java.util.Collections
 import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
+<<<<<<< HEAD
 import scala.collection.JavaConverters._
+=======
+import org.apache.commons.io.filefilter.TrueFileFilter
+import org.apache.commons.io.{FileUtils, FilenameUtils, IOUtils}
+import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+
+import scala.collection.JavaConversions._
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 
 /**
   * Provides TransformerFunctions that execute javax.scripts compatible functions defined
@@ -55,12 +64,8 @@ class ScriptingFunctionFactory extends TransformerFunctionFactory with LazyLoggi
     }
   }
 
-  // TODO try with no catch and logging...evaluate whats happening here
   def evalScriptFile(loader: ClassLoader, e: ScriptEngine, f: URI): AnyRef =
-    try {
-      val lines = IOUtils.toString(f, "UTF-8")
-      e.eval(lines)
-    }
+    e.eval(IOUtils.toString(f, "UTF-8"))
 }
 
 object ScriptingFunctionFactory extends LazyLogging {

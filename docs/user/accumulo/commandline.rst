@@ -29,8 +29,8 @@ prompted case for later. To use Kerberos authentication instead of a password, u
 Kerberos keytab file containing an entry for the specified user. Since a keytab file allows authentication
 without any further constraints, it should be protected appropriately.
 
-Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties`` (for Accumulo
-2) or ``client.conf`` (for Accumulo 1) may be added to the classpath. See the
+Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties``
+may be added to the classpath. See the
 `Accumulo documentation <https://accumulo.apache.org/docs/2.x/getting-started/clients#creating-an-accumulo-client>`_
 for information on the necessary configuration keys. Any explicit command-line arguments will take precedence over
 the configuration file.
@@ -95,10 +95,13 @@ The bulk ingest command will ingest directly to Accumulo RFiles and then import 
 the normal write path. See `Bulk Ingest <https://accumulo.apache.org/docs/2.x/development/high_speed_ingest#bulk-ingest>`__
 in the Accumulo documentation for additional details.
 
+<<<<<<< HEAD
+=======
 .. note::
 
   Bulk ingest is currently only implemented for Accumulo 2.0.
 
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 The data to be ingested must be in the same distributed file system that Accumulo is using, and the ingest
 must run in ``distributed`` mode as a map/reduce job.
 

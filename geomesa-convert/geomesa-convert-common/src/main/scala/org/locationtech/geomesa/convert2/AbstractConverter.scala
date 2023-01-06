@@ -8,6 +8,13 @@
 
 package org.locationtech.geomesa.convert2
 
+<<<<<<< HEAD
+=======
+import java.io.{IOException, InputStream}
+import java.nio.charset.{Charset, StandardCharsets}
+import java.util.Date
+
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -15,6 +22,7 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert.EvaluationContext.EvaluationError
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
+import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, addDependencies, topologicalOrder}
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics.SimpleGauge
 import org.locationtech.geomesa.convert2.transforms.Expression
@@ -51,6 +59,83 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     extends SimpleFeatureConverter with ParsingConverter[T] with LazyLogging {
 
   import AbstractConverter.{IdFieldName, UserDataFieldPrefix}
+<<<<<<< HEAD
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  import scala.collection.JavaConverters._
+
+  if (fields.exists(f => f.name == IdFieldName || f.name.startsWith(UserDataFieldPrefix))) {
+    throw new IllegalArgumentException(
+      s"Field name(s) conflict with reserved values $IdFieldName and/or $UserDataFieldPrefix")
+  }
+
+  private val requiredFields: Array[Field] = {
+    val fieldNameMap = fields.map(f => f.name -> f.asInstanceOf[Field]).toMap
+    val dag = scala.collection.mutable.Map.empty[Field, Set[Field]]
+
+    // compute only the input fields that we need to deal with to populate the simple feature
+    sft.getAttributeDescriptors.asScala.foreach { ad =>
+      fieldNameMap.get(ad.getLocalName).foreach(addDependencies(_, fieldNameMap, dag))
+    }
+
+    // add id field and user data
+    config.idField.foreach { expression =>
+      addDependencies(BasicField(IdFieldName, Some(expression)), fieldNameMap, dag)
+    }
+    config.userData.foreach { case (key, expression) =>
+      addDependencies(BasicField(UserDataFieldPrefix + key, Some(expression)), fieldNameMap, dag)
+    }
+
+    // use a topological ordering to ensure that dependencies are evaluated before the fields that require them
+    val ordered = topologicalOrder(dag)
+
+    // log warnings for missing/unused fields
+    val used = ordered.map(_.name)
+    val undefined = sft.getAttributeDescriptors.asScala.map(_.getLocalName).diff(used)
+    if (undefined.nonEmpty) {
+      logger.warn(
+        s"'${sft.getTypeName}' converter did not define fields for some attributes: ${undefined.mkString(", ")}")
+    }
+    val unused = fields.map(_.name).diff(used)
+    if (unused.nonEmpty) {
+      logger.warn(s"'${sft.getTypeName}' converter defined unused fields: ${unused.mkString(", ")}")
+    }
+
+    ordered
+  }
+
+  private val attributeIndices: Array[(Int, Int)] = {
+    val builder = Array.newBuilder[(Int, Int)]
+    builder.sizeHint(sft.getAttributeCount)
+    var i = 0
+    while (i < sft.getAttributeCount) {
+      val d = sft.getDescriptor(i)
+      // note: missing fields are already checked and logged in requiredFields
+      val j = requiredFields.indexWhere(_.name == d.getLocalName)
+      if (j != -1) {
+        builder += i -> j
+      }
+      i += 1
+    }
+    builder.result()
+  }
+
+
+  private val idIndex: Int = requiredFields.indexWhere(_.name == IdFieldName)
+
+  private val userDataIndices: Array[(String, Int)] = {
+    val builder = Array.newBuilder[(String, Int)]
+    builder.sizeHint(requiredFields.count(_.name.startsWith(UserDataFieldPrefix)))
+    var i = 0
+    while (i < requiredFields.length) {
+      if (requiredFields(i).name.startsWith(UserDataFieldPrefix)) {
+        builder += requiredFields(i).name.substring(UserDataFieldPrefix.length) -> i
+      }
+      i += 1
+    }
+    builder.result
+  }
+=======
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -81,6 +166,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
         Seq.empty
       }
     }
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 
   private val metrics = ConverterMetrics(sft, options.reporters)
 
@@ -105,7 +191,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec.failure, hist), ec)
     options.parseMode match {
       case ParseMode.Incremental => converted
-      case ParseMode.Batch => CloseableIterator(((new ListBuffer()) ++= converted).iterator, converted.close())
+      case ParseMode.Batch => CloseableIterator((new ListBuffer() ++= converted).iterator, converted.close())
     }
   }
 
@@ -239,8 +325,6 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 
 object AbstractConverter {
 
-  import scala.collection.JavaConverters._
-
   type Dag = scala.collection.mutable.Map[Field, Set[Field]]
 
   private val IdFieldName         = "__AbstractConverter_id_field"
@@ -303,6 +387,11 @@ object AbstractConverter {
    * @param message message
    */
   class AbstractApiError(message: String) extends Exception(message, null, false, false)
+<<<<<<< HEAD
+
+  object FieldApiError extends AbstractApiError("Field")
+  object TransformerFunctionApiError extends AbstractApiError("TransformerFunction")
+=======
 
   object FieldApiError extends AbstractApiError("Field")
   object TransformerFunctionApiError extends AbstractApiError("TransformerFunction")
@@ -344,6 +433,7 @@ object AbstractConverter {
 
     ordered
   }
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 
   /**
     * Add the dependencies of a field to a graph
@@ -352,7 +442,7 @@ object AbstractConverter {
     * @param fieldMap field lookup map
     * @param dag graph
     */
-  private def addDependencies(field: Field, fieldMap: Map[String, Field], dag: Dag): Unit = {
+  private def addDependencies[F <: Field](field: Field, fieldMap: Map[String, F], dag: Dag): Unit = {
     if (!dag.contains(field)) {
       val deps = field.transforms.toSeq.flatMap(_.dependencies(Set(field), fieldMap)).toSet
       dag.put(field, deps)
@@ -370,7 +460,7 @@ object AbstractConverter {
     */
   private def topologicalOrder(dag: Dag): Array[Field] = {
     val res = ArrayBuffer.empty[Field]
-    val remaining = (new scala.collection.mutable.Queue[Field]) ++ dag.keys
+    val remaining = new scala.collection.mutable.Queue[Field]() ++ dag.keys
     while (remaining.nonEmpty) {
       val next = remaining.dequeue()
       if (dag(next).forall(res.contains)) {
@@ -380,30 +470,5 @@ object AbstractConverter {
       }
     }
     res.toArray
-  }
-
-  /**
-    * Checks for missing/unused fields and logs warnings
-    *
-    * @param converter converter
-    * @param used fields used in the conversion
-    * @tparam T intermediate parsed values binding
-    * @tparam C config binding
-    * @tparam F field binding
-    * @tparam O options binding
-    */
-  private def checkMissingFields[T, C <: ConverterConfig, F <: Field, O <: ConverterOptions](
-      converter: AbstractConverter[T, C, F, O],
-      used: Seq[String]): Unit = {
-    val undefined = converter.sft.getAttributeDescriptors.asScala.map(_.getLocalName).diff(used)
-    if (undefined.nonEmpty) {
-      converter.logger.warn(s"'${converter.sft.getTypeName}' converter did not define fields for some attributes: " +
-          undefined.mkString(", "))
-    }
-    val unused = converter.fields.map(_.name).diff(used)
-    if (unused.nonEmpty) {
-      converter.logger.warn(s"'${converter.sft.getTypeName}' converter defined unused fields: " +
-          unused.mkString(", "))
-    }
   }
 }

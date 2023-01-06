@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.kafka.utils
 
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
-import org.locationtech.geomesa.kafka.RecordVersions
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
+import org.locationtech.geomesa.kafka.versions.RecordVersions
 
 import java.time.Duration
 import scala.util.control.NonFatal

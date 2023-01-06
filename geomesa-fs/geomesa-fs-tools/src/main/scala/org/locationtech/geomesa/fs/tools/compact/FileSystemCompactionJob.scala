@@ -25,7 +25,7 @@ import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
 import org.locationtech.geomesa.jobs.mapreduce.JobWithLibJars
 import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
-import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
+import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.utils.{JobRunner, StorageJobUtils}
 import org.locationtech.geomesa.utils.text.TextTools

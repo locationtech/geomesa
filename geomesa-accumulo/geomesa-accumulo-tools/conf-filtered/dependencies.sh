@@ -16,7 +16,7 @@ hadoop_install_version="%%hadoop.version.recommended%%"
 zookeeper_install_version="%%zookeeper.version.recommended%%"
 thrift_install_version="%%thrift.version%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
-guava_install_version="%%guava.version%%"
+guava_install_version="%%accumulo.guava.version%%"
 
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
@@ -64,7 +64,11 @@ function dependencies() {
     )
   else
     gavs+=(
+<<<<<<< HEAD
+      "org.apache.commons:commons-collections4:4.4:jar"
+=======
       "org.apache.commons:commons-collections4:4.3:jar"
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
       "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
     )
   fi

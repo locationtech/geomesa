@@ -68,7 +68,7 @@ public class SecurityUtilsTest {
     private SimpleFeature buildFeature() {
         SimpleFeatureType sft = SimpleFeatureTypes.createType("test", "name:String,geom:Point:srid=4326");
         SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sft);
-        builder.addAll(new Object[]{"foo"});
+        builder.addAll("foo");
         return builder.buildFeature("1");
     }
 }

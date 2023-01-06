@@ -72,8 +72,10 @@ class GmlExporter private (stream: ExportStream, configuration: WFSConfiguration
         if (System.getProperty(GmlExporter.TransformerProperty) != null) { encode() } else {
           // explicitly set the default java transformer, to avoid picking up saxon (which causes errors)
           // the default class is hard-coded in javax.xml.transform.TransformerFactory.newInstance() ...
+
+          // TODO this may fail in java 9?
           System.setProperty(GmlExporter.TransformerProperty,
-            classOf[com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl].getName)
+            "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl")
           try { encode() } finally {
             System.clearProperty(GmlExporter.TransformerProperty)
           }

@@ -8,8 +8,140 @@
 
 package org.locationtech.geomesa.convert.shp
 
+<<<<<<< HEAD
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
+=======
+import java.io.InputStream
+import java.util.Collections
+import java.nio.charset.Charset
+import java.nio.file.{Files, Paths}
+
+import com.codahale.metrics.Counter
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+=======
+>>>>>>> 91dbd747c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> ddc2cffa3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+=======
+>>>>>>> 91dbd747c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5ba418ba6 (GEOMESA-3071 Move all converter state into evaluation context)
+import com.typesafe.scalalogging.LazyLogging
+=======
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+import com.typesafe.scalalogging.LazyLogging
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
+=======
+import com.typesafe.scalalogging.LazyLogging
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 628900700 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+import com.typesafe.scalalogging.LazyLogging
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 91dbd747c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+=======
+>>>>>>> 628900700 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+import com.typesafe.scalalogging.LazyLogging
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+import com.typesafe.scalalogging.LazyLogging
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> f3a49e082 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+import com.typesafe.scalalogging.LazyLogging
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 626b1ac8c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 628900700 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 91dbd747c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
+>>>>>>> ddc2cffa3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+=======
+>>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 5ba418ba6 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+import com.typesafe.scalalogging.LazyLogging
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+import com.typesafe.scalalogging.LazyLogging
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> 0e693a1ea (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -25,17 +157,21 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 import java.util.Collections
+import scala.collection.mutable.ArrayBuffer
 
 class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Seq[BasicField], options: BasicOptions)
     extends AbstractConverter[SimpleFeature, BasicConfig, BasicField, BasicOptions](sft, config, fields, options)  {
 
   import org.locationtech.geomesa.convert.shp.ShapefileFunctionFactory.{InputSchemaKey, InputValuesKey}
 
-  override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext = {
+  override def createEvaluationContext(
+      globalParams: Map[String, Any],
+      success: Counter,
+      failure: Counter): EvaluationContext = {
     // inject placeholders for shapefile attributes into the evaluation context
     // used for accessing shapefile properties by name in ShapefileFunctionFactory
-    val shpParams = Map(InputSchemaKey -> Array.empty[String], InputValuesKey -> Array.empty[Any])
-    super.createEvaluationContext(globalParams ++ shpParams)
+    val shpParams = Map(InputSchemaKey -> ArrayBuffer.empty[String], InputValuesKey -> ArrayBuffer.empty[AnyRef])
+    super.createEvaluationContext(globalParams ++ shpParams, success, failure)
   }
 
   override def createEvaluationContext(
@@ -57,18 +193,16 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
     }
     val ds = ShapefileConverter.getDataStore(path)
     val schema = ds.getSchema()
-    val names = Array.tabulate(schema.getAttributeCount)(i => schema.getDescriptor(i).getLocalName)
-    val array = Array.ofDim[Any](schema.getAttributeCount + 1)
 
-    val i = ec.indexOf(InputSchemaKey)
-    val j = ec.indexOf(InputValuesKey)
-
-    if (i == -1 || j == -1) {
-      logger.warn("Input schema not found in evaluation context, shapefile functions " +
-          s"${TextTools.wordList(new ShapefileFunctionFactory().functions.map(_.names.head))} will not be available")
-    } else {
-      ec.set(i, names)
-      ec.set(j, array)
+    (ec.accessor(InputSchemaKey).apply(), ec.accessor(InputValuesKey).apply()) match {
+      case (n: ArrayBuffer[String], v: ArrayBuffer[AnyRef]) =>
+        n.clear()
+        n ++= Array.tabulate(schema.getAttributeCount)(i => schema.getDescriptor(i).getLocalName)
+        v.clear()
+        v ++= Array.fill[AnyRef](n.length + 1)(null)
+      case _ =>
+        logger.warn("Input schema not found in evaluation context, shapefile functions " +
+            s"${TextTools.wordList(new ShapefileFunctionFactory().functions.map(_.names.head))} will not be available")
     }
 
     val q = new Query
@@ -86,39 +220,34 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
 
   override protected def values(parsed: CloseableIterator[SimpleFeature],
                                 ec: EvaluationContext): CloseableIterator[Array[Any]] = {
-    val i = ec.indexOf(InputValuesKey)
-    val j = ec.indexOf(InputSchemaKey)
+    (ec.accessor(InputSchemaKey).apply(), ec.accessor(InputValuesKey).apply()) match {
+      case (_: ArrayBuffer[String], v: ArrayBuffer[AnyRef]) =>
+        parsed.map { feature =>
+          var i = 1
+          while (i < v.length) {
+            v(i) = feature.getAttribute(i - 1)
+            i += 1
+          }
+          v(0) = feature.getID
+          v.toArray
+        }
 
-    if (i == -1 || j == -1) {
-      logger.warn("Input schema not found in evaluation context, shapefile functions " +
-          s"${TextTools.wordList(new ShapefileFunctionFactory().functions.map(_.names.head))} will not be available")
-    }
-
-    if (i == -1) {
-      var array: Array[Any] = null
-      parsed.map { feature =>
-        if (array == null) {
-          array = Array.ofDim(feature.getAttributeCount + 1)
+      case _ =>
+        logger.warn("Input schema not found in evaluation context, shapefile functions " +
+            s"${TextTools.wordList(new ShapefileFunctionFactory().functions.map(_.names.head))} will not be available")
+        var array: Array[Any] = null
+        parsed.map { feature =>
+          if (array == null) {
+            array = Array.ofDim(feature.getAttributeCount + 1)
+          }
+          var i = 1
+          while (i < array.length) {
+            array(i) = feature.getAttribute(i - 1)
+            i += 1
+          }
+          array(0) = feature.getID
+          array
         }
-        var i = 1
-        while (i < array.length) {
-          array(i) = feature.getAttribute(i - 1)
-          i += 1
-        }
-        array(0) = feature.getID
-        array
-      }
-    } else {
-      val array = ec.get(i).asInstanceOf[Array[Any]]
-      parsed.map { feature =>
-        var i = 1
-        while (i < array.length) {
-          array(i) = feature.getAttribute(i - 1)
-          i += 1
-        }
-        array(0) = feature.getID
-        array
-      }
     }
   }
 }
@@ -150,17 +279,30 @@ object ShapefileConverter extends LazyLogging {
     val (baseName, _) = PathUtils.getBaseNameAndExtension(path)
     val cpgPath = shpDirPath.resolve(baseName + ".cpg")
     if (!Files.isRegularFile(cpgPath)) None else {
+<<<<<<< HEAD
+      val source = scala.io.Source.fromFile(cpgPath.toFile)
+=======
       val source = io.Source.fromFile(cpgPath.toFile)
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
       try {
         source.getLines.take(1).toList match {
           case Nil => None
           case charsetName :: _ => Some(Charset.forName(charsetName.trim))
         }
       } catch {
+<<<<<<< HEAD
+        case _: Exception =>
+          logger.warn("Can't figure out charset from cpg file, will use default charset")
+          None
+      } finally {
+        source.close()
+      }
+=======
         case e: Exception =>
           logger.warn("Can't figure out charset from cpg file, will use default charset")
           None
       } finally source.close()
+>>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
     }
   }
 }

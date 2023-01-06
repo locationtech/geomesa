@@ -9,7 +9,7 @@
 
 package org.locationtech.geomesa.convert.redis
 
-import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.{EnrichmentCache, EnrichmentCacheFactory}
 import redis.clients.jedis.util.JedisURIHelper
@@ -31,12 +31,12 @@ class RedisEnrichmentCache(jedisPool: RedisConnectionBuilder,
 
   private val builder =
     if (expiration > 0) {
-      CacheBuilder.newBuilder().expireAfterWrite(expiration, TimeUnit.MILLISECONDS)
+      Caffeine.newBuilder().expireAfterWrite(expiration, TimeUnit.MILLISECONDS)
     } else {
       if (!localCache) {
-        CacheBuilder.newBuilder().expireAfterWrite(0, TimeUnit.MILLISECONDS).maximumSize(0)
+        Caffeine.newBuilder().expireAfterWrite(0, TimeUnit.MILLISECONDS).maximumSize(0)
       } else {
-        CacheBuilder.newBuilder()
+        Caffeine.newBuilder()
       }
     }
 

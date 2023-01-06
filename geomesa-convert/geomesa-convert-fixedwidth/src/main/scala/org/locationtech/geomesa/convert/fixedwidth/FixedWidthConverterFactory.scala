@@ -12,20 +12,14 @@ import org.locationtech.geomesa.convert.fixedwidth.FixedWidthConverter._
 import org.locationtech.geomesa.convert.fixedwidth.FixedWidthConverterFactory.FixedWidthFieldConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
-import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicConfigConvert, BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert, PrimitiveConvert}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicConfigConvert, BasicOptionsConvert, FieldConvert, OptionConvert, PrimitiveConvert}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.ConfigReaderFailures
 
 class FixedWidthConverterFactory
-    extends AbstractConverterFactory[FixedWidthConverter, BasicConfig, FixedWidthField, BasicOptions] {
-
-  override protected val typeToProcess: String = "fixed-width"
-
-  override protected implicit def configConvert: ConverterConfigConvert[BasicConfig] = BasicConfigConvert
-  override protected implicit def fieldConvert: FieldConvert[FixedWidthField] = FixedWidthFieldConvert
-  override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
-}
+    extends AbstractConverterFactory[FixedWidthConverter, BasicConfig, FixedWidthField, BasicOptions](
+      "fixed-width", BasicConfigConvert, FixedWidthFieldConvert, BasicOptionsConvert)
 
 object FixedWidthConverterFactory {
 

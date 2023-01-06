@@ -157,7 +157,24 @@ object ConfluentFeatureSerializer {
       val conversionToFeature = conversion.map(_.getFieldReader(schema, field.name()))
       val conversionToAvro = conversion.map(_.getFieldWriter(schema, field.name()))
 
+<<<<<<< HEAD
       FieldMapping(sft.indexOf(d.getLocalName), field.pos(), defaultValue(field), conversionToFeature, conversionToAvro)
+=======
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
+    val record = kafkaAvroDeserializers.get.deserialize("", bytes).asInstanceOf[GenericRecord]
+
+    val feature = featureReaders.get.read(id, record)
+
+    // set the feature visibility if it exists
+    sft.getUserData.get(GeoMesaAvroVisibilityField.KEY) match {
+      case null => // no-op
+      case fieldName =>
+        record.get(fieldName.toString) match {
+          case null => // no-op
+          case vis => SecurityUtils.setFeatureVisibility(feature, vis.toString)
+        }
+
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
     }
 
     // visibility field index in the avro schema
@@ -165,10 +182,28 @@ object ConfluentFeatureSerializer {
       case f if Option(f.getProp(GeoMesaAvroVisibilityField.KEY)).exists(_.toBoolean) => f.pos()
     }
 
+<<<<<<< HEAD
     // avro fields with default values that aren't part of the feature type
     private val defaultFields = schema.getFields.asScala.flatMap(f => defaultValue(f).map(v => f.pos() -> v)).filter {
       case (pos, _) => !fieldMappings.exists(_.schemaIndex == pos) && !visibilityField.contains(pos)
     }
+=======
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize("", bytes)
+
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    deserialize("", bytes, offset, length)
+
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
+    val buf = if (offset == 0 && length == bytes.length) { bytes } else {
+      val buf = Array.ofDim[Byte](length)
+      System.arraycopy(bytes, offset, buf, 0, length)
+      buf
+    }
+    deserialize(id, buf)
+  }
+
+  // implement the following if we need them
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 
     /**
      * Checks for required fields in the avro schema that are not part of the feature type
@@ -183,6 +218,7 @@ object ConfluentFeatureSerializer {
       }.toSeq
     }
 
+<<<<<<< HEAD
     /**
      * Serialize a feature as Avro
      *
@@ -194,6 +230,65 @@ object ConfluentFeatureSerializer {
       defaultFields.foreach { case (i, v) => record.put(i, v) }
       visibilityField.foreach { pos => record.put(pos, SecurityUtils.getVisibility(feature)) }
       fieldMappings.foreach { m =>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
+    val record = kafkaAvroDeserializers.get.deserialize("", bytes).asInstanceOf[GenericRecord]
+
+    val feature = featureReaders.get.read(id, record)
+
+    // set the feature visibility if it exists
+    sft.getUserData.get(GeoMesaAvroVisibilityField.KEY) match {
+      case null => // no-op
+      case fieldName =>
+        record.get(fieldName.toString) match {
+          case null => // no-op
+          case vis => SecurityUtils.setFeatureVisibility(feature, vis.toString)
+        }
+
+    }
+
+    feature
+  }
+
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize("", bytes)
+
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    deserialize("", bytes, offset, length)
+
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
+    val buf = if (offset == 0 && length == bytes.length) { bytes } else {
+      val buf = Array.ofDim[Byte](length)
+      System.arraycopy(bytes, offset, buf, 0, length)
+      buf
+    }
+    deserialize(id, buf)
+  }
+
+  // implement the following if we need them
+
+  override def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError()
+
+>>>>>>> d657014c8 (GEOMESA-3198 Kafka streams integration (#2854))
+  override def deserialize(id: String, in: InputStream): SimpleFeature =
+    throw new NotImplementedError()
+
+  override def serialize(feature: SimpleFeature): Array[Byte] =
+    throw new NotImplementedError("ConfluentSerializer is read-only")
+
+  override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
+    throw new NotImplementedError("ConfluentSerializer is read-only")
+
+  // precompute the deserializer for each field in the SFT to simplify the actual deserialization
+  private class ConfluentFeatureReader(sft: SimpleFeatureType, schema: Schema) {
+
+    def read(id: String, record: GenericRecord): SimpleFeature = {
+      val attributes = fieldReaders.map { fieldReader =>
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
         try {
           feature.getAttribute(m.sftIndex) match {
             case null => m.default.foreach(d => record.put(m.schemaIndex, d))

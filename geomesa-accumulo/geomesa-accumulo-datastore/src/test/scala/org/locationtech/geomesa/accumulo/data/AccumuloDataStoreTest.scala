@@ -22,7 +22,6 @@ import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.CachingFeatureCollection
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
@@ -412,32 +411,6 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       updated.getAttribute("name") mustEqual "2-updated"
     }
 
-    "allow caching to be configured" in {
-      DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> false)).asJava)
-          .asInstanceOf[AccumuloDataStore].config.queries.caching must beFalse
-      DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> true)).asJava)
-          .asInstanceOf[AccumuloDataStore].config.queries.caching must beTrue
-    }
-
-    "support caching for improved WFS performance due to count/getFeatures" in {
-      val ds = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> true)).asJava).asInstanceOf[AccumuloDataStore]
-
-      "typeOf feature source must be CachingAccumuloFeatureCollection" >> {
-        val fc = ds.getFeatureSource(defaultTypeName).getFeatures(Filter.INCLUDE)
-        fc must beAnInstanceOf[CachingFeatureCollection]
-      }
-
-      "support getCount" >> {
-        val query = new Query(defaultTypeName, Filter.INCLUDE)
-        val fs = ds.getFeatureSource(defaultTypeName)
-        val count = fs.getCount(query)
-        count mustEqual 2
-        val features = SelfClosingIterator(fs.getFeatures(query).features()).toList
-        features must haveSize(2)
-        features.map(_.getID) must containAllOf(Seq("f1", "f2"))
-      }
-    }
-
     "Project to date/geom" in {
       val sft = createNewSchema("name:String,dtg:Date,*geom:Point:srid=4326,attr2:String")
       val sftName = sft.getTypeName
@@ -451,7 +424,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       val baseTime = features(0).getAttribute("dtg").asInstanceOf[Date].getTime
 
-      val query = new Query(sftName, ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 50.0)"), Array("geom", "dtg"))
+      val query = new Query(sftName, ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 50.0)"), "geom", "dtg")
       val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
 
       val read = SelfClosingIterator(reader).toList
@@ -483,7 +456,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "create key plan that does not use STII when given something larger than the Whole World bbox" in {
-      val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom, -190, -100, 190, 100)"), Array("geom"))
+      val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom, -190, -100, 190, 100)"), "geom")
       val plan = ds.getQueryPlan(query)
       plan must haveLength(1)
       plan.head.filter.index.name mustEqual Z3Index.name
@@ -519,7 +492,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       })
 
       "with out of order attributes" >> {
-        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), Array("geom", "dtg", "label"))
+        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg", "label")
         val features =
           SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
@@ -534,7 +507,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
 
       "with only date and geom" >> {
-        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), Array("geom", "dtg"))
+        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg")
         val features =
           SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
@@ -549,7 +522,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       "with all attributes" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"),
-          Array("geom", "dtg", "label", "score", "trackId"))
+          "geom", "dtg", "label", "score", "trackId")
         val features =
           SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)

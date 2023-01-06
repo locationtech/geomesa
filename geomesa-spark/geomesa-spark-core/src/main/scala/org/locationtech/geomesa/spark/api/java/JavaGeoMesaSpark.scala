@@ -88,8 +88,5 @@ class JavaSpatialRDD(val srdd: SpatialRDD) extends JavaRDD[SimpleFeature](srdd) 
   def asKeyValueArrayList:  JavaRDD[util.List[Array[AnyRef]]]                  = toKeyValueArrayList(srdd)
   def asKeyValueMap:        JavaRDD[util.Map[String, Object]]                  = toKeyValueJavaMap(srdd)
   def asGeoJSONString:      JavaRDD[String]                                    = toGeoJSONString(srdd)
-
-  @deprecated
-  def asKeyValueList = asKeyValueEntryList
 }
 

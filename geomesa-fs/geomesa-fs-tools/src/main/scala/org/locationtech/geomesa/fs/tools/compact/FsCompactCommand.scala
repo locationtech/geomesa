@@ -13,18 +13,22 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.{OrcCompactionJob, ParquetCompactionJob}
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand.CompactCommand
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
-import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.Command.CommandException
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.utils.ParameterConverters.BytesConverter
 import org.locationtech.geomesa.tools.utils.TerminalCallback.PrintProgress
+<<<<<<< HEAD
+=======
+import org.locationtech.geomesa.tools._
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
 
@@ -118,7 +122,11 @@ object FsCompactCommand {
             throw new ParameterException(s"Compaction is not supported for encoding '$encoding'")
           }
           val tempDir = Option(params.tempPath).map(t => new Path(t))
+<<<<<<< HEAD
           job.run(storage, toCompact.toSeq, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
+=======
+          job.run(storage, toCompact, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
             case JobSuccess(message, counts) =>
               Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
               val success = counts(FileSystemCompactionJob.MappedCounter)
