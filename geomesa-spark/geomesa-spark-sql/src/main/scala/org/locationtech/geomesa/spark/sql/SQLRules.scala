@@ -1,5 +1,13 @@
 /***********************************************************************
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1463162d60 (GEOMESA-3254 Add Bloop build support)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,9 +22,18 @@ import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
+<<<<<<< HEAD
 import org.apache.spark.sql.sedona_sql.UDT.{GeometryUDT => Sedona_GeometryUDT}
 import org.apache.spark.sql.sedona_sql.expressions.{ST_Contains => Sedona_ST_Contains, ST_Crosses => Sedona_ST_Crosses, ST_Equals => Sedona_ST_Equals, ST_Intersects => Sedona_ST_Intersects, ST_Overlaps => Sedona_ST_Overlaps, ST_Predicate => Sedona_ST_Predicate, ST_Touches => Sedona_ST_Touches, ST_Within => Sedona_ST_Within}
 import org.apache.spark.sql.types.DataTypes
+=======
+<<<<<<< HEAD
+import org.apache.spark.sql.sedona_sql.expressions.{ST_Contains => Sedona_ST_Contains, ST_Crosses => Sedona_ST_Crosses, ST_Equals => Sedona_ST_Equals, ST_Intersects => Sedona_ST_Intersects, ST_Overlaps => Sedona_ST_Overlaps, ST_Predicate => Sedona_ST_Predicate, ST_Touches => Sedona_ST_Touches, ST_Within => Sedona_ST_Within}
+import org.apache.spark.sql.sedona_sql.UDT.{GeometryUDT => Sedona_GeometryUDT}
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+import org.apache.spark.sql.types.{DataTypes, StructType}
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 import org.apache.spark.sql.{SQLContext, Strategy}
 import org.geotools.api.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
 import org.geotools.api.filter.{FilterFactory, Filter => GTFilter}
@@ -25,6 +42,13 @@ import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.spark.haveSedona
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+import org.locationtech.geomesa.spark.haveSedona
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.spark.sql.GeoMesaRelation.PartitionedIndexedRDD
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.jts.geom.{Envelope, Geometry}
@@ -74,6 +98,7 @@ object SQLRules extends LazyLogging {
     }
   }
 
+<<<<<<< HEAD
   def sedonaExprToGTFilter(pred: Sedona_ST_Predicate): Option[GTFilter] = {
     val left = pred.children.head
     val right = pred.children.last
@@ -92,6 +117,8 @@ object SQLRules extends LazyLogging {
     }
   }
 
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   def sparkFilterToGTFilter(expr: Expression): Option[GTFilter] = {
     expr match {
       case udf: ScalaUDF => scalaUDFtoGTFilter(udf)
@@ -123,12 +150,17 @@ object SQLRules extends LazyLogging {
           }
         }
       case _ =>
+<<<<<<< HEAD
         if (haveSedona && expr.isInstanceOf[Sedona_ST_Predicate]) {
           sedonaExprToGTFilter(expr.asInstanceOf[Sedona_ST_Predicate])
         } else {
           logger.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
           None
         }
+=======
+        logger.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
+        None
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     }
   }
 
@@ -157,9 +189,12 @@ object SQLRules extends LazyLogging {
       // timestamps are defined as microseconds
       Some(ff.literal(new Date(lit.value.asInstanceOf[Long] / 1000)))
 
+<<<<<<< HEAD
     case lit: Literal if haveSedona && lit.dataType.isInstanceOf[Sedona_GeometryUDT] =>
       Some(ff.literal(lit.dataType.asInstanceOf[Sedona_GeometryUDT].deserialize(lit.value)))
 
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     case lit: Literal =>
       Some(ff.literal(lit.value))
 
@@ -182,6 +217,15 @@ object SQLRules extends LazyLogging {
                               e: org.apache.spark.sql.catalyst.expressions.Expression): Option[List[Int]] =
       extractGeometry(e).map(RelationUtils.gridIdMapper(_, envelopes))
 
+<<<<<<< HEAD
+=======
+    // Converts a pair of GeoMesaRelations into one GeoMesaJoinRelation
+    private def alterRelation(left: GeoMesaRelation, right: GeoMesaRelation, cond: Expression): GeoMesaJoinRelation = {
+      val joinedSchema = StructType(left.schema.fields ++ right.schema.fields)
+      GeoMesaJoinRelation(left.sqlContext, left, right, joinedSchema, cond)
+    }
+
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     // Replace the relation in a join with a GeoMesaJoin Relation
     private def alterJoin(join: Join): LogicalPlan = {
       val isSpatialUDF = join.condition.exists {
@@ -205,7 +249,11 @@ object SQLRules extends LazyLogging {
           }
 
         case (leftProject @ Project(leftProjectList, left: LogicalRelation),
+<<<<<<< HEAD
             Project(rightProjectList, right: LogicalRelation)) if isSpatialUDF =>
+=======
+            rightProject @ Project(rightProjectList, right: LogicalRelation)) if isSpatialUDF =>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
           (left.relation, right.relation) match {
             case (leftRel: GeoMesaRelation, rightRel: GeoMesaRelation) =>
               leftRel.join(rightRel, join.condition.get) match {

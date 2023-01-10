@@ -7,8 +7,11 @@ additional details.
 Commands
 --------
 
+<<<<<<< HEAD
 .. _postgis_partition_upgrade:
 
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 ``partition-upgrade``
 ^^^^^^^^^^^^^^^^^^^^^
 

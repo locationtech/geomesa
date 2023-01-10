@@ -19,11 +19,24 @@ import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, Ker
 import org.apache.accumulo.core.client.{Accumulo, AccumuloClient}
 import org.apache.accumulo.core.conf.ClientProperty
 import org.apache.hadoop.security.UserGroupInformation
+<<<<<<< HEAD
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStoreFactorySpi, Parameter}
+=======
+import org.geotools.data.DataAccessFactory.Param
+import org.geotools.data.{DataStoreFactorySpi, Parameter}
+<<<<<<< HEAD
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
+<<<<<<< HEAD
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditWriter, ParamsAuditProvider}
 import org.locationtech.geomesa.index.audit.AuditWriter
+=======
+=======
+import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterProperties
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
+>>>>>>> 941b7ceb65c (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
@@ -252,7 +265,11 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     val masterAuths = securityOps.getUserAuthorizations(connector.whoami).asScala.toSeq.map(b => new String(b))
 
     // get the auth params passed in as a comma-delimited string
+<<<<<<< HEAD
     val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filterNot(_.isEmpty).toSeq
+=======
+    val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filterNot(_.isEmpty)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
     // verify that the configured auths are valid for the connector we are using (fail-fast)
     val invalidAuths = configuredAuths.filterNot(masterAuths.contains)

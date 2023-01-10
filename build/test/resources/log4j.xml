@@ -114,6 +114,7 @@
         <priority value="fatal"/>
     </category>
 
+<<<<<<< HEAD
     <!-- suppress logs from Apache Sedona kryo serializer registrator -->
     <category name="org.apache.sedona.core.serde">
         <priority value="warn"/>
@@ -122,6 +123,8 @@
         <priority value="warn"/>
     </category>
 
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     <!-- uncomment the following line to enable verbose log messages from the index query-planner -->
     <!--
     <category name="org.locationtech.geomesa.index.utils.Explainer">
