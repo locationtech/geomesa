@@ -281,8 +281,8 @@ class ConfluentFeatureSerializer(
       val conversionToFeature = conversion.map(_.getFieldReader(schema, field.name()))
       val conversionToAvro = conversion.map(_.getFieldWriter(schema, field.name()))
 
-<<<<<<< HEAD
       FieldMapping(sft.indexOf(d.getLocalName), field.pos(), defaultValue(field), conversionToFeature, conversionToAvro)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -309,6 +309,8 @@ class ConfluentFeatureSerializer(
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
     }
 
     // visibility field index in the avro schema
@@ -316,28 +318,10 @@ class ConfluentFeatureSerializer(
       case f if Option(f.getProp(GeoMesaAvroVisibilityField.KEY)).exists(_.toBoolean) => f.pos()
     }
 
-<<<<<<< HEAD
     // avro fields with default values that aren't part of the feature type
     private val defaultFields = schema.getFields.asScala.flatMap(f => defaultValue(f).map(v => f.pos() -> v)).filter {
       case (pos, _) => !fieldMappings.exists(_.schemaIndex == pos) && !visibilityField.contains(pos)
     }
-=======
-  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize("", bytes)
-
-  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-    deserialize("", bytes, offset, length)
-
-  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
-    val buf = if (offset == 0 && length == bytes.length) { bytes } else {
-      val buf = Array.ofDim[Byte](length)
-      System.arraycopy(bytes, offset, buf, 0, length)
-      buf
-    }
-    deserialize(id, buf)
-  }
-
-  // implement the following if we need them
->>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 
     /**
      * Checks for required fields in the avro schema that are not part of the feature type
@@ -352,7 +336,6 @@ class ConfluentFeatureSerializer(
       }.toSeq
     }
 
-<<<<<<< HEAD
     /**
      * Serialize a feature as Avro
      *
@@ -369,11 +352,14 @@ class ConfluentFeatureSerializer(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 30fda14bf2 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
@@ -472,7 +458,12 @@ class ConfluentFeatureSerializer(
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
         try {
           feature.getAttribute(m.sftIndex) match {
             case null => m.default.foreach(d => record.put(m.schemaIndex, d))
