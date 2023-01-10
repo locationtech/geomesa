@@ -92,7 +92,6 @@ object AvroConverter {
         updated
 
       case Schema.Type.UNION =>
-<<<<<<< HEAD
         Schema.createUnion(schema.getTypes.asScala.map(s => addBytes(s)).toSeq: _*)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -101,6 +100,9 @@ object AvroConverter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
         Schema.createUnion(schema.getTypes.asScala.map(addBytes): _*)
 <<<<<<< HEAD
@@ -110,6 +112,7 @@ object AvroConverter {
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -141,6 +144,8 @@ object AvroConverter {
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 810876750d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 
       case _ =>
         throw new NotImplementedError(
