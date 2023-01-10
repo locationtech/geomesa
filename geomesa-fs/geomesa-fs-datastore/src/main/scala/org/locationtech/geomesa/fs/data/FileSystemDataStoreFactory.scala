@@ -19,7 +19,7 @@ import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, ReadWriteFlag, SystemPropertyDurationParam}
-import org.locationtech.geomesa.utils.io.HadoopUtils
+import org.locationtech.geomesa.utils.hadoop.HadoopUtils
 
 import java.awt.RenderingHints
 import java.io.{ByteArrayInputStream, StringReader, StringWriter}

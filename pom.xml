@@ -42,9 +42,8 @@
         <module>geomesa-security</module>
         <module>geomesa-spark</module>
         <module>geomesa-tools</module>
-        <module>geomesa-utils</module>
+        <module>geomesa-utils-parent</module>
         <module>geomesa-z3</module>
-        <module>geomesa-zk-utils</module>
         <module>docs</module>
     </modules>
 
@@ -731,6 +730,11 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-hadoop-utils_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-z3_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1391,25 +1395,11 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!--gt-http-27.2.jar
-            gt-http-commons-27.2.jar
-            gt-image-27.2.jar
-            gt-process-raster-27.2.jar
-            gt-property-27.2.jar
-            gt-svg-27.2.jar
-            gt-tile-client-27.2.jar
-            gt-wfs-ng-27.2.jar
-            gt-wms-27.2.jar
-            gt-wmts-27.2.jar
-            gt-xsd-sld-27.2.jar
-            gt-xsd-wcs-27.2.jar
-            gt-xsd-wmts-27.2.jar-->
-
 
             <!--
                 `org.eclipse.emf` is a transitive dependency of gt-xsd-wfs, however the version number is
-                specified as `[2.15.0,3.0.0)`, which seems to intermittently trigger a maven bug. As of
-                06/17/19 the latest version is 2.15.0
+                specified as `[2.15.0,3.0.0)`, which seems to intermittently trigger a maven bug.
+                geotools 28 uses 2.15.0, so we peg to that version here.
             -->
             <dependency>
                 <groupId>org.eclipse.emf</groupId>
