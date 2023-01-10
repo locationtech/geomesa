@@ -68,8 +68,8 @@ To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quick
    layer_views
    confluent
    streams
-<<<<<<< HEAD
    zookeeper
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -118,6 +118,10 @@ To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quick
 =======
 >>>>>>> 2686de8d09 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 <<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -129,6 +133,9 @@ To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quick
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -173,6 +180,7 @@ To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quick
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -230,3 +238,5 @@ To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quick
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> cebe144269 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)

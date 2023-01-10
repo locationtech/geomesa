@@ -199,8 +199,8 @@ object FilterHelper {
     filter match {
       case o: Or =>
         val union = FilterValues.or[Bounds[T]](Bounds.union[T]) _
-<<<<<<< HEAD
         o.getChildren.asScala.map(f =>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -249,6 +249,10 @@ object FilterHelper {
 =======
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
         o.getChildren.map(f =>
 <<<<<<< HEAD
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -261,6 +265,9 @@ object FilterHelper {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -309,6 +316,7 @@ object FilterHelper {
 >>>>>>> b51333ce3c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -368,6 +376,8 @@ object FilterHelper {
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> b51333ce3c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> e5abfb88a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
           extractAttributeBounds(f, attribute, binding)
         ).reduceLeft[FilterValues[Bounds[T]]]((acc, child) => {
           if (acc.isEmpty || child.isEmpty) {
@@ -702,8 +712,8 @@ object FilterHelper {
             // the duplicated filters are an entire clause, so we can ignore the rest of the clauses
             andFilters(duplicates)
           } else {
-<<<<<<< HEAD
             andFilters(orOption(simplified.toSeq).toSeq ++ duplicates)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -752,6 +762,10 @@ object FilterHelper {
 =======
 >>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
             andFilters(orOption(simplified).toSeq ++ duplicates)
 <<<<<<< HEAD
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -764,6 +778,9 @@ object FilterHelper {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -812,6 +829,7 @@ object FilterHelper {
 >>>>>>> 810876750d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -871,6 +889,8 @@ object FilterHelper {
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 810876750d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 5a55bf9756 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
           }
         }
 
