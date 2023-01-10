@@ -29,6 +29,7 @@ import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFea
 import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortedMergeIterator}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import org.locationtech.geomesa.utils.stats._
 <<<<<<< HEAD
@@ -38,6 +39,8 @@ import org.locationtech.geomesa.utils.stats._
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -88,6 +91,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
   override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
 
   override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryResult = {
+<<<<<<< HEAD
     // TODO deduplicate arrow, bin, density queries...
     // get view params and threaded query hints
 <<<<<<< HEAD
@@ -106,6 +110,10 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+    // TODO deduplicate arrow, bin, density queries...
+    // get view params and threaded query hints
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     val query = configureQuery(sft, original)
     val hints = query.getHints
     val maxFeatures = if (query.isMaxFeaturesUnlimited) { None } else { Option(query.getMaxFeatures) }
@@ -123,6 +131,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         // make sure to coy the hints so they aren't shared
         store.getFeatureReader(mergeFilter(sft, new Query(query), filter), Transaction.AUTO_COMMIT)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         q.setHints(new Hints(hints))
         store.getFeatureReader(mergeFilter(sft, q, filter), Transaction.AUTO_COMMIT)
@@ -133,6 +142,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       }
 
       if (hints.isDensityQuery) {
@@ -160,6 +171,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
             case None => SelfClosingIterator(iters.iterator).flatMap(i => i)
             // the delegate stores should sort their results, so we can sort merge them
             case Some(sort) => new SortedMergeIterator(iters)(SimpleFeatureOrdering(resultSft, sort))
+<<<<<<< HEAD
           }
 
           maxFeatures match {
@@ -369,6 +381,16 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         }
         QueryResult(resultSft, hints, run)
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+          }
+
+          maxFeatures match {
+            case None => results
+            case Some(m) => results.take(m)
+          }
+        }
+        QueryResult(resultSft, hints, run)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       }
     }
   }
@@ -421,6 +443,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
       // copy the query so hints aren't shared
       store.getFeatureReader(mergeFilter(sft, new Query(query), filter), Transaction.AUTO_COMMIT)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       val q = new Query(query)
       q.setHints(new Hints(hints))
@@ -432,6 +455,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     }
 
     def getSingle(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): CloseableIterator[SimpleFeature] = {

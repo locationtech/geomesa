@@ -3,7 +3,11 @@ Installing GeoMesa Kafka
 
 .. note::
 
+<<<<<<< HEAD
     GeoMesa currently supports Kafka |kafka_supported_versions|.
+=======
+    GeoMesa currently supports Kafka version |kafka_version|, and has been tested up to |kafka_tested_version|.
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 .. note::
 
@@ -965,6 +969,7 @@ Installing the GeoMesa Kafka Data Store
 To install the GeoMesa data store, extract the contents of the
 ``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/gs-plugins/``
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 ``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/geoserver/``
 <<<<<<< HEAD
@@ -974,6 +979,8 @@ To install the GeoMesa data store, extract the contents of the
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 in the binary distribution or ``geomesa-kafka/geomesa-kafka-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
@@ -997,6 +1004,7 @@ to match the target environment, and then run the script:
 .. warning::
 
     Ensure that the Scala version of both GeoMesa and Kafka match to avoid compatibility errors.
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     Ensure that the Scala version (either ``_2.11`` or ``_2.12``) of both GeoMesa and Kafka match to avoid
@@ -1038,5 +1046,7 @@ The specific JARs needed for some common configurations are listed below:
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 Restart GeoServer after the JARs are installed.

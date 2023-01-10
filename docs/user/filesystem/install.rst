@@ -10,6 +10,7 @@ Installing GeoMesa FileSystem
         $ export TAG="|release_version|"
         $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         # note: |scala_binary_version| is the Scala build version
         $ export VERSION="|scala_binary_version|-${TAG}"
@@ -20,6 +21,8 @@ Installing GeoMesa FileSystem
 >>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -850,6 +853,7 @@ To install the GeoMesa data store, extract the contents of the
 in the binary distribution or ``geomesa-fs/geomesa-fs-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 The FileSystem GeoServer plugin is bundled by default in the GeoMesa FS binary distribution. To install, extract
 ``$GEOMESA_FS_HOME/dist/gs-plugins/geomesa-fs-gs-plugin_${VERSION}-install.tar.gz`` into GeoServer's
@@ -863,6 +867,8 @@ project from scratch with Maven.
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 .. code-block:: bash
 
