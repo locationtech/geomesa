@@ -101,6 +101,7 @@ package object osm {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -124,6 +125,8 @@ package object osm {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
     private def values(args: Array[AnyRef]): AnyRef = args(lookup)
   }
 

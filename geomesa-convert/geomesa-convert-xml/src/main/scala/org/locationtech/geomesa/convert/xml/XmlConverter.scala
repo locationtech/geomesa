@@ -65,6 +65,7 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     val array = Array.ofDim[Any](2)
 =======
     val array = Array.ofDim[Any](1)
@@ -103,6 +104,8 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 =======
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
@@ -117,6 +120,8 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 >>>>>>> 45feada390 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -194,8 +199,17 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
     val array = Array.ofDim[Any](2)
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+    val array = Array.ofDim[Any](2)
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 
     helper.get.rootPath match {
       case None =>
@@ -296,7 +310,6 @@ object XmlConverter extends StrictLogging {
 
     private var helper: ThreadLocal[XmlHelper] = _
 
-<<<<<<< HEAD
     private val expression = new ThreadLocal[XPathExpression]() {
       override def initialValue(): XPathExpression = helper.get.xpath.compile(path)
     }
@@ -305,6 +318,7 @@ object XmlConverter extends StrictLogging {
 
     override def compile(helper: ThreadLocal[XmlHelper]): Unit = this.helper = helper
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -347,6 +361,8 @@ object XmlConverter extends StrictLogging {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
     private def values(args: Array[AnyRef]): AnyRef = expression.get.evaluate(args(0))
   }
 
