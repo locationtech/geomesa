@@ -54,6 +54,7 @@ object MiscFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -67,6 +68,8 @@ object MiscFunctionFactory {
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
     // noinspection ScalaDeprecation
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = ec.line
 <<<<<<< HEAD
@@ -76,6 +79,7 @@ object MiscFunctionFactory {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -149,6 +153,8 @@ object MiscFunctionFactory {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
   }
 }
 
