@@ -32,13 +32,21 @@ The data used is a simulated drive between Charlottesville and Richmond Virginia
 Background
 ----------
 
+<<<<<<< HEAD
 `Apache Kafka <https://kafka.apache.org/>`__ is "publish-subscribe
+=======
+`Apache Kafka <http://kafka.apache.org/>`__ is "publish-subscribe
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 messaging rethought as a distributed commit log."
 
 In the context of GeoMesa, Kafka is a useful tool for working with
 streams of geospatial data. Interaction with Kafka in GeoMesa occurs
 through the KafkaDataStore which implements the GeoTools
+<<<<<<< HEAD
 `DataStore <https://docs.geotools.org/latest/userguide/library/data/datastore.html>`__
+=======
+`DataStore <http://docs.geotools.org/latest/userguide/library/data/datastore.html>`__
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 interface.
 
 Additionally, GeoMesa configures a Kafka Streams topology to read, process
@@ -50,6 +58,7 @@ Prerequisites
 
 Before you begin, you must have the following installed and configured:
 
+<<<<<<< HEAD
 -  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
 -  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
@@ -57,6 +66,15 @@ Before you begin, you must have the following installed and configured:
 
 Ensure your Kafka and Zookeeper instances are running. You can use
 Kafka's `quickstart <https://kafka.apache.org/documentation.html#quickstart>`__
+=======
+-  `Java <http://java.oracle.com/>`__ JDK 1.8
+-  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  a GitHub client
+-  a Kafka instance version |kafka_version|
+
+Ensure your Kafka and Zookeeper instances are running. You can use
+Kafka's `quickstart <http://kafka.apache.org/documentation.html#quickstart>`__
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 to get Kafka/Zookeeper instances up and running quickly.
 
 Configure GeoServer (optional)

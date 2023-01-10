@@ -30,6 +30,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -380,6 +381,9 @@
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -413,8 +417,13 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-jupyter-leaflet_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-spark-jupyter-leaflet_${scala.binary.version}</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-cqengine-datastore_${scala.binary.version}</artifactId>
         </dependency>
 
         <dependency>
@@ -424,17 +433,23 @@
         </dependency>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
         <!-- bring in guava and relocate it -->
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-hadoop-mapreduce</artifactId>
             <scope>compile</scope>
         </dependency>
+<<<<<<< HEAD
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
         <!-- bring in guava and relocate it -->
         <dependency>
@@ -443,22 +458,19 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- provided dependencies -->
+
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.binary.version}</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.binary.version}</artifactId>
-            <version>${spark.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-cqengine-datastore_${scala.binary.version}</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
         </dependency>
 
         <!--Mark dependency as provided to avoid Spark 2.2.x conflicts-->
@@ -509,25 +521,16 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>org.locationtech.geomesa:geomesa-*-runtime*</exclude>
                                     <exclude>io.netty:*</exclude>
-                                    <exclude>org.slf4j:*</exclude>
-                                    <exclude>org.geotools:gt-render:*</exclude>
-                                    <exclude>org.geotools:gt-coverage:*</exclude>
-                                    <exclude>it.geosolutions.jaiext.*</exclude>
                                     <exclude>com.esotericsoftware.kryo:*</exclude>
                                     <exclude>org.ow2.asm:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
                                 </excludes>
                             </artifactSet>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
                                     <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
                                         <exclude>org/objectweb/asm/**</exclude>
                                     </excludes>
                                 </filter>
@@ -564,6 +567,7 @@
                                 <!-- we need parquet 1.9.0 in order to do dictionary filtering = 30% speed increase -->
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                                 <!-- TODO remove this when spark supports parquet 1.9.0 out of the box -->
 =======
 <<<<<<< HEAD
@@ -573,6 +577,8 @@
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
                                 <relocation>
                                     <pattern>org.apache.parquet</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.org.apache.parquet</shadedPattern>
@@ -597,9 +603,6 @@
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
                                 </relocation>
                             </relocations>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                            </transformers>
                         </configuration>
                     </execution>
                 </executions>
