@@ -12,6 +12,7 @@ package org.locationtech.geomesa.lambda.data
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -32,6 +33,8 @@ import java.time.Clock
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStoreParams}
@@ -39,9 +42,9 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaD
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
-<<<<<<< HEAD
 import java.awt.RenderingHints.Key
 import java.time.Clock
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -59,14 +62,16 @@ import java.time.Clock
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 import scala.reflect.ClassTag
 
 class LambdaDataStoreFactory extends DataStoreFactorySpi {
 
   import LambdaDataStoreParams.{ClockParam, NamespaceParam}
 
-<<<<<<< HEAD
   override def createDataStore(params: java.util.Map[String, _]): DataStore = {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -86,6 +91,8 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
   override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
     // TODO GEOMESA-1891 attribute level vis
     val persistence = new AccumuloDataStoreFactory().createDataStore(LambdaDataStoreFactory.filter(params))
     val config = LambdaDataStoreParams.parse(params, persistence.config.catalog)
@@ -165,6 +172,7 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -202,6 +210,8 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
   }
 
   private def copy[T <: AnyRef](p: GeoMesaParam[T])(implicit ct: ClassTag[T]): GeoMesaParam[T] = {
@@ -215,8 +225,8 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
     import scala.collection.JavaConverters._
     Map[String, Any](params.asScala.toSeq: _ *)
         .map { case (k, v) => (if (k.startsWith("lambda.")) { k.substring(7) } else { k }, v) }
-<<<<<<< HEAD
         .asJava
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -236,5 +246,7 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
         .asJava.asInstanceOf[java.util.Map[String, Serializable]]
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
   }
 }

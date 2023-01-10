@@ -15,6 +15,7 @@ import org.locationtech.geomesa.convert.EvaluationContext.{EvaluationError, Fiel
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import org.locationtech.geomesa.convert2.AbstractConverter.AbstractApiError
 <<<<<<< HEAD
@@ -31,6 +32,8 @@ import org.locationtech.geomesa.convert2.AbstractConverter.AbstractApiError
 import org.locationtech.geomesa.convert2.AbstractConverter.AbstractApiError
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert2.Field
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 
@@ -85,7 +88,6 @@ trait EvaluationContext {
    * @return
    */
   def accessor(name: String): FieldAccessor
-<<<<<<< HEAD
 
   /**
    * Evaluate all values using the given arguments. The returned array may be mutated on subsequent calls to
@@ -94,6 +96,7 @@ trait EvaluationContext {
    * @param args single row of input
    */
   def evaluate(args: Array[AnyRef]): Either[EvaluationError, Array[AnyRef]]
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -154,6 +157,8 @@ trait EvaluationContext {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 }
 
 object EvaluationContext extends LazyLogging {
@@ -172,6 +177,7 @@ object EvaluationContext extends LazyLogging {
     new StatefulEvaluationContext(Array.empty, Map.empty, Map.empty, metrics, success, failures)
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -217,6 +223,8 @@ object EvaluationContext extends LazyLogging {
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
   /**
    * Creates a new evaluation context with the given state
    *
@@ -303,6 +311,7 @@ object EvaluationContext extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -325,6 +334,8 @@ object EvaluationContext extends LazyLogging {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
   }
 
   /**
@@ -338,11 +349,11 @@ object EvaluationContext extends LazyLogging {
   class StatefulEvaluationContext(
       fields: Array[Field],
       globalValues: Map[String, _ <: AnyRef],
-<<<<<<< HEAD
       val cache: Map[String, EnrichmentCache],
       val metrics: ConverterMetrics,
       val success: Counter,
       val failure: Counter
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -453,6 +464,8 @@ object EvaluationContext extends LazyLogging {
       val metrics: ConverterMetrics
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
     ) extends EvaluationContext {
 
     // holder for results from evaluating each row
@@ -472,7 +485,6 @@ object EvaluationContext extends LazyLogging {
         }
       }
     }
-<<<<<<< HEAD
 
     override def evaluate(args: Array[AnyRef]): Either[EvaluationError, Array[AnyRef]] = {
       var i = 0
@@ -494,6 +506,7 @@ object EvaluationContext extends LazyLogging {
       }
       Right(values)
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 
@@ -635,5 +648,7 @@ object EvaluationContext extends LazyLogging {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
   }
 }
