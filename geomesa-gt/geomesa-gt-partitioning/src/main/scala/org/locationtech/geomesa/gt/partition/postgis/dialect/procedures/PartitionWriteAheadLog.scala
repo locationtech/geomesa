@@ -63,6 +63,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |          WHERE inhparent = ${writeAhead.name.asRegclass}
        |          AND relname != write_partition
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
        |          AND relname != ${WriteAheadTable.writesPartition(info).asLiteral}
 <<<<<<< HEAD
@@ -72,6 +73,8 @@ object PartitionWriteAheadLog extends SqlProcedure {
 >>>>>>> 203dda21b9 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
        |          ORDER BY name
        |      LOOP
        |

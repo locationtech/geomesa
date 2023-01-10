@@ -46,6 +46,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
@@ -682,6 +683,9 @@
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -729,6 +733,7 @@
             <artifactId>hadoop-client</artifactId>
         </dependency>
 
+<<<<<<< HEAD
         <!-- Spark SQL support powered by Apache Sedona -->
         <dependency>
             <groupId>org.apache.sedona</groupId>
@@ -739,6 +744,8 @@
             <artifactId>sedona-sql-${sedona.spark.version}_${scala.binary.version}</artifactId>
         </dependency>
 
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         <!-- test -->
         <dependency>
             <groupId>org.specs2</groupId>

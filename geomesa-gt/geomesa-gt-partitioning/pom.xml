@@ -5,6 +5,7 @@
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-gt_2.12</artifactId>
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>4.0.0-SNAPSHOT</version>
@@ -21,6 +22,9 @@
 >>>>>>> f9c85b7d56 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -61,10 +65,13 @@
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
+<<<<<<< HEAD
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
         </dependency>
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     </dependencies>
 
 </project>
