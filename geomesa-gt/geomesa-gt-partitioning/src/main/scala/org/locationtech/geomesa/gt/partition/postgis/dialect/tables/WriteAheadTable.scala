@@ -19,6 +19,7 @@ object WriteAheadTable extends SqlStatements {
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     val table = info.tables.writeAhead
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     val partition = writesPartition(info).qualified
     val seq = s"CREATE SEQUENCE IF NOT EXISTS ${escape(table.name.raw, "seq")} AS smallint MINVALUE 1 MAXVALUE 999 CYCLE;"
@@ -44,6 +45,8 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> cdf6c5eb97 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
     val (tableTs, indexTs) = table.tablespace match {
       case None => ("", "")
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
