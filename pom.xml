@@ -52,6 +52,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>4.1.0-SNAPSHOT</version>
 =======
     <version>3.3.0-SNAPSHOT</version>
@@ -685,6 +686,9 @@
     <version>3.5.0-SNAPSHOT</version>
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+    <version>4.0.0-SNAPSHOT</version>
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
     <licenses>
         <license>
@@ -813,10 +817,10 @@
         <!-- *** maven build configuration *** -->
 
         <!-- testing properties -->
-<<<<<<< HEAD
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
         <maven.test.debug>-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.debug>
         <maven.test.jvmargs>${maven.test.memory}</maven.test.jvmargs> <!--for java 11+: &#45;&#45;add-opens=java.base/java.nio=ALL-UNNAMED-->
+<<<<<<< HEAD
 =======
         <maven.test.jvmargs>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.jvmargs>
 <<<<<<< HEAD
@@ -824,6 +828,8 @@
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
         <test.fork.count>4</test.fork.count>
         <test.fork.reuse>true</test.fork.reuse>
         <!-- arrow tests become extremely slow with assertions enabled-->
@@ -837,6 +843,7 @@
         <!-- *** documentation *** -->
 
         <!-- bump version right before performing releases for the README and the documentation -->
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1359,121 +1366,12 @@
 >>>>>>> 78d1db9c25 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
         <geomesa.release.version>3.5.0</geomesa.release.version>
         <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
-=======
-<<<<<<< HEAD
-        <geomesa.release.version>3.3.0</geomesa.release.version>
-        <geomesa.devel.version>3.4.0-SNAPSHOT</geomesa.devel.version>
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
->>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 7e68948ac (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
-<<<<<<< HEAD
->>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
-=======
-=======
-        <geomesa.release.version>3.3.0</geomesa.release.version>
-        <geomesa.devel.version>3.4.0-SNAPSHOT</geomesa.devel.version>
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-        <geomesa.release.version>3.4.0</geomesa.release.version>
-=======
-=======
->>>>>>> 8d2851846 ([maven-release-plugin] prepare for next development iteration)
-=======
->>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 04c5bd425 ([maven-release-plugin] prepare for next development iteration)
-=======
->>>>>>> d6616d893 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 8a73cc043 ([maven-release-plugin] prepare for next development iteration)
-=======
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> f3dd0ac67 ([maven-release-plugin] prepare for next development iteration)
-        <geomesa.release.version>3.4.1</geomesa.release.version>
-=======
-=======
->>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
-=======
-        <geomesa.release.version>3.3.0</geomesa.release.version>
-        <geomesa.devel.version>3.4.0-SNAPSHOT</geomesa.devel.version>
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 61d746ac2 ([maven-release-plugin] prepare for next development iteration)
-=======
-=======
->>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 7e68948ac (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
-<<<<<<< HEAD
->>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
-=======
-=======
-        <geomesa.release.version>3.3.0</geomesa.release.version>
-        <geomesa.devel.version>3.4.0-SNAPSHOT</geomesa.devel.version>
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b1c506839 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-        <geomesa.release.version>3.4.0</geomesa.release.version>
->>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 4073c9b17 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
->>>>>>> a0515b751 ([maven-release-plugin] prepare for next development iteration)
-        <geomesa.release.version>3.4.1</geomesa.release.version>
-=======
-=======
->>>>>>> fb47f5073 ([maven-release-plugin] prepare for next development iteration)
-        <geomesa.release.version>3.4.0</geomesa.release.version>
->>>>>>> a9f01eaaf (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 314e6ef1a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-        <geomesa.release.version>3.4.1</geomesa.release.version>
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
-        <geomesa.devel.version>3.5.0-SNAPSHOT</geomesa.devel.version>
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <copyright.year>2022</copyright.year>
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
         <geomesa.release.version>3.2.0</geomesa.release.version>
@@ -1740,7 +1638,12 @@
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> b368bb796e (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c8d2cfae9c (GEOMESA-3254 Add Bloop build support)
 
         <!-- recommended installation versions -->
         <accumulo.version.recommended>2.1.1</accumulo.version.recommended>
@@ -3606,7 +3509,6 @@
                 <artifactId>accumulo-hadoop-mapreduce</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
-<<<<<<< HEAD
                 <exclusions>
                     <!-- exclude hadoop 3 artifacts -->
                     <exclusion>
@@ -3618,12 +3520,15 @@
                         <artifactId>hadoop-client-runtime</artifactId>
                     </exclusion>
                 </exclusions>
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
             </dependency>
             <dependency>
                 <groupId>org.apache.thrift</groupId>

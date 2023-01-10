@@ -219,10 +219,10 @@ environment variable to point to the root of your JDK. Example from a Mac:
 
 ### Scala Cross Build
 
-<<<<<<< HEAD
 To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
 
     ./build/change-scala-version.sh 2.13
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 ### Building on OS X
@@ -233,6 +233,8 @@ When building on OS X and using Docker Desktop in a non-default configuration, y
 docker.client.strategy=org.testcontainers.dockerclient.UnixSocketClientProviderStrategy
 ```
 =======
+=======
+>>>>>>> ab96a917ea (GEOMESA-3254 Add Bloop build support)
 =======
 To build for a different Scala version (e.g. 2.11), run the following script, then build as normal:
 
@@ -245,4 +247,9 @@ To build for a different Scala version (e.g. 2.11), run the following script, th
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> fb63eb1822 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> ab96a917ea (GEOMESA-3254 Add Bloop build support)
