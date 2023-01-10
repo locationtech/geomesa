@@ -20,7 +20,6 @@ import java.net.URI
 import java.nio.file.FileSystems
 import java.util.Collections
 import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
-<<<<<<< HEAD
 import scala.collection.JavaConverters._
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -28,6 +27,9 @@ import scala.collection.JavaConverters._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -61,6 +63,7 @@ import scala.collection.JavaConversions._
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 import java.io.File
 import java.net.URI
@@ -94,6 +97,8 @@ import scala.collection.JavaConversions._
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 
 /**
   * Provides TransformerFunctions that execute javax.scripts compatible functions defined
