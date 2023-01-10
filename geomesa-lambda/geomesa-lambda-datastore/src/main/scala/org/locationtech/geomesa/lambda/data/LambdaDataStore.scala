@@ -17,14 +17,16 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.data._
 import org.geotools.feature.FeatureTypes
-<<<<<<< HEAD
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureReader, GeoMesaFeatureStore}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, NoopStats}
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
@@ -42,8 +44,8 @@ import java.util.{Collections, Properties}
 import scala.concurrent.duration.Duration
 
 class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit clock: Clock = Clock.systemUTC())
-<<<<<<< HEAD
     extends DataStore with HasGeoMesaStats with HasGeoMesaFeatureReader with LazyLogging {
+<<<<<<< HEAD
 =======
     extends DataStore with HasGeoMesaStats with LazyLogging {
 <<<<<<< HEAD
@@ -51,6 +53,8 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -62,6 +66,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
     case _ => None
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -451,12 +456,15 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
   private [lambda] val transients = Caffeine.newBuilder().build[String, TransientStore](
     new CacheLoader[String, TransientStore] {
       override def load(key: String): TransientStore =
         new KafkaStore(persistence, persistence.getSchema(key), authProvider, config)
     }
   )
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1129,6 +1137,8 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
   override val stats: GeoMesaStats = persistence match {
     case p: HasGeoMesaStats => new LambdaStats(p.stats, transients)

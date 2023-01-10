@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.tools
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import java.util
 import java.util.regex.Pattern
@@ -18,6 +19,8 @@ import java.util.regex.Pattern
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.geotools.api.filter.Filter
