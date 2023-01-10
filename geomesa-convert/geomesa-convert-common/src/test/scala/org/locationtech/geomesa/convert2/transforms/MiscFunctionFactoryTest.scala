@@ -50,6 +50,7 @@ class MiscFunctionFactoryTest extends Specification {
         MiscFunctionFactory.withDefault(Array(null, null, null, "d")) mustEqual "d"
         MiscFunctionFactory.withDefault(Array(null, null, null, null)) must beNull
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -58,6 +59,8 @@ class MiscFunctionFactoryTest extends Specification {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       }
     }
 

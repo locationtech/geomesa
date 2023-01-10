@@ -95,12 +95,28 @@ class AccumuloPartitioningTest extends Specification with TestWithFeatureType {
   }
 
   def testQuery(filter: String, transforms: Array[String], results: Seq[SimpleFeature]): Unit = {
+<<<<<<< HEAD
     foreach(Seq(ds, parallelDs)) { ds =>
       val query = new Query(sftName, ECQL.toFilter(filter), transforms: _*)
       val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
       val features = SelfClosingIterator(fr).toList
       if (features.length != results.length) {
         ds.getQueryPlan(query, explainer = new ExplainPrintln)
+=======
+    val query = new Query(sftName, ECQL.toFilter(filter), transforms: _*)
+    val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+    val features = SelfClosingIterator(fr).toList
+    if (features.length != results.length) {
+      ds.getQueryPlan(query, explainer = new ExplainPrintln)
+    }
+    val attributes = Option(transforms).getOrElse(ds.getSchema(sftName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
+    features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
+    forall(features) { feature =>
+      feature.getAttributes must haveLength(attributes.length)
+      forall(attributes.zipWithIndex) { case (attribute, i) =>
+        feature.getAttribute(attribute) mustEqual feature.getAttribute(i)
+        feature.getAttribute(attribute) mustEqual results.find(_.getID == feature.getID).get.getAttribute(attribute)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       }
       val attributes = Option(transforms).getOrElse(ds.getSchema(sftName).getAttributeDescriptors.asScala.map(_
           .getLocalName).toArray)

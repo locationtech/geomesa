@@ -10,6 +10,7 @@ Installing GeoMesa Lambda
         $ export TAG="|release_version|"
         $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         # note: |scala_binary_version| is the Scala build version
         $ export VERSION="|scala_binary_version|-${TAG}"
@@ -20,6 +21,8 @@ Installing GeoMesa Lambda
 >>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -904,6 +907,7 @@ Installing the GeoMesa Lambda Data Store
 To install the GeoMesa data store, extract the contents of the
 ``geomesa-lambda-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-lambda_${VERSION}/dist/gs-plugins/``
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 ``geomesa-lambda-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-lambda_${VERSION}/dist/geoserver/``
 <<<<<<< HEAD
@@ -913,6 +917,8 @@ To install the GeoMesa data store, extract the contents of the
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 in the binary distribution or ``geomesa-lambda/geomesa-lambda-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
@@ -933,6 +939,7 @@ to match the target environment, and then run the script:
 
     $ ./bin/install-dependencies.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -990,6 +997,8 @@ Kafka 0.9.0.1
 >>>>>>> b1c30e3f26 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 Restart GeoServer after the JARs are installed.
 
 .. _install_geomesa_process_lambda:
