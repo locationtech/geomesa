@@ -12,9 +12,19 @@
 # Update the versions as required to match the target environment.
 
 hadoop_install_version="%%hadoop.version.recommended%%"
+<<<<<<< HEAD
 aws_sdk_v1_install_version="1.12.735" # latest version as of 2024/06
 aws_sdk_v2_install_version="2.25.64" # latest version as of 2024/06
 aws_crt_install_version="0.29.18"
+=======
+<<<<<<< HEAD
+aws_sdk_install_version="1.12.385" # latest version as of 2023/01
+=======
+# required for hadoop - make sure it corresponds to the hadoop installed version
+guava_install_version="%%hadoop.guava.version%%"
+aws_sdk_install_version="1.10.6"
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> eca30cb68af (GEOMESA-3254 Add Bloop build support)
 # this should match the parquet desired version
 snappy_install_version="1.1.1.6"
 

@@ -99,7 +99,11 @@ class ConfluentFeatureSerializer(
 
 object ConfluentFeatureSerializer {
 
+<<<<<<< HEAD
   import SchemaParser.{GeoMesaAvroDateFormat, GeoMesaAvroVisibilityField}
+=======
+  import SchemaParser.{GeoMesaAvroDateFormat, GeoMesaAvroDeserializableEnumProperty, GeoMesaAvroGeomFormat, GeoMesaAvroVisibilityField}
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
   def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL, schemaOverride: Option[Schema] = None): Builder =
     new Builder(sft, schemaRegistryUrl, schemaOverride)
