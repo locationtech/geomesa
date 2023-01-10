@@ -11,7 +11,11 @@ package org.locationtech.geomesa.security;
 <<<<<<< HEAD
 =======
 import java.util.ArrayList;
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 import java.util.List;
 import java.util.Map;
 
@@ -106,6 +110,10 @@ public interface AuthorizationsProvider {
         provider.configure(modifiedParams);
 
         return provider;
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
     }
 }
