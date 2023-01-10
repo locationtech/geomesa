@@ -2966,6 +2966,7 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
         exp.apply(Array(decoded)) mustEqual " foo "
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -3543,7 +3544,12 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
         exp.apply(Array(decoded)) mustEqual " foo "
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
       }
 
       "handle compound expressions" >> {
@@ -5543,6 +5549,7 @@ class AvroTransformersTest extends Specification with AvroUtils {
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
         exp.apply(Array(decoded)) mustEqual "foo"
+<<<<<<< HEAD
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -5574,6 +5581,9 @@ class AvroTransformersTest extends Specification with AvroUtils {
         exp.eval(Array(decoded)) mustEqual "foo"
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
       }
 
       "handle null values" >> {
@@ -12040,6 +12050,8 @@ class AvroTransformersTest extends Specification with AvroUtils {
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
         exp.eval(Array(decoded)) mustEqual "foo"
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       }
 
       "handle null values" >> {
@@ -12464,10 +12476,9 @@ class AvroTransformersTest extends Specification with AvroUtils {
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
         Expression("avroBinaryList(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
-        Expression("avroBinaryList(avroPath($0, '/content$type=TObj/foo'))").eval(Array(decoded)) must beNull
         Expression("avroBinaryMap(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
-        Expression("avroBinaryMap(avroPath($0, '/content$type=TObj/foo'))").eval(Array(decoded)) must beNull
         Expression("avroBinaryUuid(avroPath($0, '/content$type=TObj/foo'))").apply(Array(decoded)) must beNull
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13221,7 +13232,12 @@ class AvroTransformersTest extends Specification with AvroUtils {
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
       }
     }
   }

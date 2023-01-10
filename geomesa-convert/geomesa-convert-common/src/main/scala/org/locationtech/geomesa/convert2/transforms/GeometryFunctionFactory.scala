@@ -17,8 +17,11 @@ package org.locationtech.geomesa.convert2.transforms
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 import java.util.concurrent.ConcurrentHashMap
 
@@ -29,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -67,6 +71,10 @@ import java.util.concurrent.ConcurrentHashMap
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction

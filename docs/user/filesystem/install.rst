@@ -17,8 +17,11 @@ Installing GeoMesa FileSystem
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
         # note: |scala_binary_version| is the Scala build version
         $ export VERSION="|scala_binary_version|-${TAG}"
@@ -29,6 +32,7 @@ Installing GeoMesa FileSystem
 >>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -65,6 +69,10 @@ Installing GeoMesa FileSystem
 >>>>>>> 419e2b9752 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -6348,6 +6356,7 @@ distribution into your GeoServer's ``lib`` directory:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -6358,6 +6367,8 @@ distribution into your GeoServer's ``lib`` directory:
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 The FileSystem GeoServer plugin is bundled by default in the GeoMesa FS binary distribution. To install, extract
 ``$GEOMESA_FS_HOME/dist/gs-plugins/geomesa-fs-gs-plugin_${VERSION}-install.tar.gz`` into GeoServer's
@@ -6382,6 +6393,7 @@ project from scratch with Maven.
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -6402,6 +6414,8 @@ project from scratch with Maven.
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 
 .. code-block:: bash
 
