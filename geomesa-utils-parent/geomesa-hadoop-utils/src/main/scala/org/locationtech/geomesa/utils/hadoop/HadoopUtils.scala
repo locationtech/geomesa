@@ -10,7 +10,11 @@
 package org.locationtech.geomesa.utils.hadoop
 =======
 package org.locationtech.geomesa.utils.io
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/HadoopUtils.scala
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/HadoopUtils.scala
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
