@@ -707,6 +707,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -719,6 +720,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
@@ -10045,12 +10048,21 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 993ffbfa6e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
   }
 
   private val murmur3_32: TransformerFunction = new NamedTransformerFunction(Seq("murmur3_32"), pure = true) {
-    private val hasher = Hashing.murmur3_32()
-    override def apply(args: Array[AnyRef]): AnyRef =
-      hasher.hashString(args(0).toString, StandardCharsets.UTF_8)
+    override def apply(args: Array[AnyRef]): AnyRef = {
+      val bytes = args(0) match {
+        case s: String => s.getBytes(StandardCharsets.UTF_8)
+        case b: Array[Byte] => b
+        case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
+      }
+      Int.box(MurmurHash3.hash32x86(bytes, 0, bytes.length, 0))
+    }
   }
 
 <<<<<<< HEAD
@@ -15932,21 +15944,22 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
   // bits of a 128 bit hash. the full 128-bit hash is now called murmurHash3 to avoid name conflicts
   private val murmur3_64 =
     TransformerFunction.pure("murmur3_128", "murmur3_64") { args =>
-      val hash = args(0) match {
-        case s: String => murmur3_128Hashing.hashBytes(s.getBytes(StandardCharsets.UTF_8))
-        case b: Array[Byte] => murmur3_128Hashing.hashBytes(b)
+      val bytes = args(0) match {
+        case s: String => s.getBytes(StandardCharsets.UTF_8)
+        case b: Array[Byte] => b
         case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
       }
-      Long.box(hash.asLong()) // asLong gets only the first 64 bits even though the hash has 128
+      Long.box(MurmurHash3.hash128x64(bytes, 0, bytes.length, 0).head)
     }
 
   private val murmur3_128 =
     TransformerFunction.pure("murmurHash3") { args =>
-      args(0) match {
-        case s: String => murmur3_128Hashing.hashBytes(s.getBytes(StandardCharsets.UTF_8)).toString // toString results in hex
-        case b: Array[Byte] => murmur3_128Hashing.hashBytes(b).toString // toString results in hex
+      val bytes = args(0) match {
+        case s: String => s.getBytes(StandardCharsets.UTF_8)
+        case b: Array[Byte] => b
         case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16125,6 +16138,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> e7b61a536 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 0df4f16d9 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -16232,6 +16247,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 7b395bc2b7 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> dbc712b84 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -18376,8 +18393,29 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+      // mimic guava little-endian output
+      val sb = new StringBuilder(32)
+      MurmurHash3.hash128x64(bytes, 0, bytes.length, 0).foreach { hash =>
+        var i = 0
+        while (i < 64) {
+          sb.append(ByteArrays.toHex(((hash >> i) & 0xff).asInstanceOf[Byte]))
+          i += 8
+        }
+      }
+      sb.toString
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
     }
 }
