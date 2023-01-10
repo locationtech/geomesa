@@ -31,6 +31,9 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -99,6 +102,7 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
@@ -143,6 +147,10 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> 478b92b696 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> 27b2ae4d07 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
     val (tableTs, indexTs) = table.tablespace match {
       case None => ("", "")
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")

@@ -23,6 +23,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -39,6 +40,8 @@
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -165,6 +168,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -259,6 +263,11 @@
 >>>>>>> 16bdf7af39 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
