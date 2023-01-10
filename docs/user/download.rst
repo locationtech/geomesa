@@ -33,6 +33,7 @@ Versions and Downloads
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     The current recommended version of GeoMesa is |release_version_literal|.
 =======
     The current recommended version of GeoMesa is |release_version|.
@@ -404,6 +405,9 @@ Versions and Downloads
     The current recommended version of GeoMesa is |release_version_literal|.
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+    The current recommended version of GeoMesa is |release_version_literal|.
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
 GeoMesa requires `Java`__ to run. GeoMesa supports Java LTS versions |java_supported_versions|.
 
@@ -418,6 +422,7 @@ downloaded from `GitHub`__.
 __ https://github.com/locationtech/geomesa/releases
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 Older versions can be downloaded from the `Eclipse Maven repository`__.
 
@@ -428,6 +433,8 @@ __ https://repo.eclipse.org/content/repositories/geomesa-releases/org/locationte
 =======
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 Maven Integration
 -----------------
 
@@ -456,8 +463,8 @@ and then include the desired ``geomesa-*`` dependencies:
 
     <properties>
       <geomesa.version>\ |release_version|\ </geomesa.version>
-<<<<<<< HEAD
       <scala.binary.version>\ |scala_binary_version|\ </scala.binary.version>
+<<<<<<< HEAD
 =======
       <scala.abi.version>\ |scala_binary_version|\ </scala.abi.version>
 <<<<<<< HEAD
@@ -465,6 +472,8 @@ and then include the desired ``geomesa-*`` dependencies:
 =======
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
     </properties>
 
 .. code-block:: xml
@@ -499,6 +508,7 @@ and then include the desired ``geomesa-*`` dependencies:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -871,6 +881,10 @@ and then include the desired ``geomesa-*`` dependencies:
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+      <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
+      <version>${geomesa.version}</version>
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
     </dependency>
 
 For cutting-edge development, nightly snapshots are available from Eclipse:
