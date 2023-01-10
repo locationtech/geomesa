@@ -66,6 +66,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -203,6 +204,8 @@
 >>>>>>> c97da929c7 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> e2aff21ea9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -413,7 +416,12 @@
 =======
 =======
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -574,6 +582,8 @@
 >>>>>>> 67b319bb27 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -770,6 +780,7 @@
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 10d15a6a47 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -783,6 +794,8 @@
 >>>>>>> 43b3328091 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
@@ -843,6 +856,7 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
@@ -1342,10 +1356,26 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
