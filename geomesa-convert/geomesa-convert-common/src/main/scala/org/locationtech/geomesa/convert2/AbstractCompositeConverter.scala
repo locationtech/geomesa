@@ -90,6 +90,7 @@ abstract class AbstractCompositeConverter[T <: AnyRef](
 
 object AbstractCompositeConverter {
 
+<<<<<<< HEAD
   case class CompositeEvaluationContext(contexts: Seq[EvaluationContext], success: Counter, failure: Counter)
       extends EvaluationContext {
 <<<<<<< HEAD
@@ -244,6 +245,9 @@ object AbstractCompositeConverter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -275,6 +279,7 @@ object AbstractCompositeConverter {
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -326,6 +331,10 @@ object AbstractCompositeConverter {
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
     override def cache: Map[String, EnrichmentCache] = throw new NotImplementedError()
     override def metrics: ConverterMetrics = throw new NotImplementedError()
     override def accessor(name: String): FieldAccessor = throw new NotImplementedError()
