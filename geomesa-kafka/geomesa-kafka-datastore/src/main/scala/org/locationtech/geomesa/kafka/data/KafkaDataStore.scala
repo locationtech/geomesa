@@ -15722,11 +15722,15 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -15753,6 +15757,8 @@ class KafkaDataStore(
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
   ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
 <<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -15766,8 +15772,11 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -15817,10 +15826,14 @@ class KafkaDataStore(
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -15878,6 +15891,8 @@ class KafkaDataStore(
 >>>>>>> cebe144269 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 
   import KafkaDataStore.TopicKey
   import org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG
@@ -29153,6 +29168,7 @@ class KafkaDataStore(
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> cd74249075 (GEOMESA-3100 Kafka layer views (#2784))
@@ -29174,6 +29190,8 @@ class KafkaDataStore(
 >>>>>>> 5f3c172ab0 (GEOMESA-3100 Kafka layer views (#2784))
 
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
   // migrate old schemas, if any
   if (!metadata.read("migration", "check").exists(_.toBoolean)) {
     new MetadataMigration(this, config.catalog, config.zookeepers).run()
@@ -29595,6 +29613,7 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 66bdd8fd8d (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -29725,6 +29744,8 @@ class KafkaDataStore(
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
   override private[geomesa] def getFeatureReader(
 =======
 <<<<<<< HEAD
@@ -30425,6 +30446,7 @@ class KafkaDataStore(
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -31188,6 +31210,10 @@ class KafkaDataStore(
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
   override private[geomesa] def getFeatureReader(
 =======
 <<<<<<< HEAD
@@ -31201,6 +31227,9 @@ class KafkaDataStore(
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
   private[geomesa] def getFeatureReader(
 >>>>>>> f7038468b7 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+  override private[geomesa] def getFeatureReader(
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       sft: SimpleFeatureType,
       transaction: Transaction,
       query: Query): GeoMesaFeatureReader = {

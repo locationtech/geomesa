@@ -43,6 +43,7 @@ object DropAgedOffPartitions extends SqlProcedure {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9bd39d5310 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
@@ -51,6 +52,8 @@ object DropAgedOffPartitions extends SqlProcedure {
 >>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
        |          AND type_name = ${literal(info.typeName)}
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -72,11 +75,15 @@ object DropAgedOffPartitions extends SqlProcedure {
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
        |          AND type_name = ${literal(info.typeName)}
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 9bd39d5310 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
@@ -90,6 +97,8 @@ object DropAgedOffPartitions extends SqlProcedure {
 >>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
        |        INTO num_partitions;
        |      IF FOUND THEN
        |        main_cutoff := truncate_to_partition(cur_time, $hours) - INTERVAL '$hours HOURS';
