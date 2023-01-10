@@ -290,7 +290,11 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
   override protected def setupParameters(parameters: java.util.Map[String, AnyRef]): Unit = {
     super.setupParameters(parameters)
 <<<<<<< HEAD
+<<<<<<< HEAD
     Seq(DbType, IdleInTransactionTimeout, PreparedStatements)
+=======
+    Seq(DbType, IdleInTransactionTimeout)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
         .foreach(p => parameters.put(p.key, p))
   }
 
@@ -315,6 +319,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
     source
   }
 
+<<<<<<< HEAD
   override protected def createDataStoreInternal(store: JDBCDataStore, baseParams: java.util.Map[String, _]): JDBCDataStore = {
     val params = new java.util.HashMap[String, Any](baseParams)
     // default to using prepared statements, if not specified
@@ -328,6 +333,16 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
       // also set in the params for consistency, although it's not used anywhere
       params.put(PostgisNGDataStoreFactory.SCHEMA.key, "public")
     }
+=======
+=======
+    // override postgis dbkey
+    parameters.put(DbType.key, DbType)
+  }
+
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+  override protected def createDataStoreInternal(store: JDBCDataStore, params: java.util.Map[String, _]): JDBCDataStore = {
+
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
     val ds = super.createDataStoreInternal(store, params)
     val dialect = new PartitionedPostgisDialect(ds)
 
