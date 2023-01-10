@@ -54,6 +54,7 @@ class ScriptingFunctionFactoryTest extends Specification {
         val sff = new ScriptingFunctionFactory
         val hello = sff.functions.find(_.names.contains("js:hello")).head
         hello.apply(Array("geomesa")) mustEqual "hello: geomesa"
+<<<<<<< HEAD
         val gbye = sff.functions.find(_.names.contains("js:gbye")).head
         gbye.apply(Array("geomesa")) mustEqual "goodbye: geomesa"
         val whatsup = sff.functions.find(_.names.contains("js:whatsup")).head
@@ -95,11 +96,13 @@ class ScriptingFunctionFactoryTest extends Specification {
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
         hello.eval(Array("geomesa")) mustEqual "hello: geomesa"
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         val gbye = sff.functions.find(_.names.contains("js:gbye")).head
         gbye.apply(Array("geomesa")) mustEqual "goodbye: geomesa"
-        gbye.eval(Array("geomesa")) mustEqual "goodbye: geomesa"
         val whatsup = sff.functions.find(_.names.contains("js:whatsup")).head
         whatsup.apply(Array("geomesa")) mustEqual "whatsup: geomesa"
+<<<<<<< HEAD
         whatsup.eval(Array("geomesa")) mustEqual "whatsup: geomesa"
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -126,7 +129,12 @@ class ScriptingFunctionFactoryTest extends Specification {
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
       } finally {
         ScriptingFunctionFactory.ConvertScriptsPath.threadLocalValue.remove()
       }
