@@ -18,6 +18,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.EvaluationContext.EvaluationError
 =======
@@ -35,6 +36,8 @@ import org.locationtech.geomesa.convert.EvaluationContext.EvaluationError
 >>>>>>> 31e57b8ac92 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> a34438bf2f4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58ccfe6c18d (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -44,6 +47,9 @@ import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -91,6 +97,7 @@ import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -113,6 +120,8 @@ import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
@@ -168,7 +177,6 @@ package object convert2 {
      *
      * @return an optional function to use instead of the args
      */
-<<<<<<< HEAD
     def fieldArg: Option[Array[AnyRef] => AnyRef]
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -180,6 +188,9 @@ package object convert2 {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -232,6 +243,7 @@ package object convert2 {
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -254,6 +266,8 @@ package object convert2 {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
   }
 
   trait ConverterOptions {
