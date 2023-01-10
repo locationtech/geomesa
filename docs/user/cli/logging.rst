@@ -21,5 +21,9 @@ Note that if no SLF4J implementation is installed logging will not work, and you
 In this case you may download SLF4J `here <https://www.slf4j.org/download.html>`__. Extract
 =======
 In this case you may download SLF4J `here <http://www.slf4j.org/download.html>`__. Extract
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 ``slf4j-reload4j-1.7.36.jar`` and place it in the ``lib`` directory of the binary distribution.
