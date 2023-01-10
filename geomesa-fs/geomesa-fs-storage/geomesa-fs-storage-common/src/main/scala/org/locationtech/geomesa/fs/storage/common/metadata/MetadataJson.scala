@@ -100,9 +100,9 @@ object MetadataJson extends MethodProfiling {
     }
     val toCache = if (data == interpolated) { metadata } else {
       // reload through ConfigFactory to resolve substitutions
-<<<<<<< HEAD
       ConfigSource.fromConfig(ConfigFactory.load(ConfigFactory.parseString(interpolated, ParseOptions)))
           .loadOrThrow[NamedOptions]
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -130,6 +130,8 @@ object MetadataJson extends MethodProfiling {
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
       pureconfig.loadConfigOrThrow[NamedOptions](
         ConfigFactory.load(ConfigFactory.parseString(interpolated, ParseOptions)))
 <<<<<<< HEAD
@@ -139,6 +141,7 @@ object MetadataJson extends MethodProfiling {
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -219,6 +222,8 @@ object MetadataJson extends MethodProfiling {
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d498bef1ce (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
     }
     cache.put(context.root.toUri.toString, toCache)
     PathCache.register(context.fc, file)
