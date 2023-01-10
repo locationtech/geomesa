@@ -29,7 +29,11 @@ import scala.collection.JavaConverters._
 <<<<<<< HEAD
 import scala.util.Try
 =======
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 import scala.util.hashing.MurmurHash3
 
 class GeoMesaSparkKryoRegistrator extends KryoRegistrator with LazyLogging {
@@ -78,7 +82,11 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator with LazyLogging {
     val sedonaRegistrator = registratorClass.newInstance().asInstanceOf[KryoRegistrator]
     sedonaRegistrator.registerClasses(kryo)
 =======
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
   }
 }
 
