@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.{Collections, Date}
@@ -22,6 +23,8 @@ import org.apache.accumulo.core.client.Connector
 >>>>>>> 0cdc5f0484 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
@@ -117,6 +120,7 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
   private def scanDirect(expected: Int) = {
     val conn = MiniCluster.cluster.createAccumuloClient(MiniCluster.Users.root.name, new PasswordToken(MiniCluster.Users.root.password))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     val conn: Connector = MiniCluster.cluster.getConnector(MiniCluster.Users.root.name, MiniCluster.Users.root.password)
 <<<<<<< HEAD
@@ -126,6 +130,8 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 >>>>>>> 0cdc5f0484 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     conn.tableOperations().list().asScala.filter(t => t.contains("DtgAgeOffTest_DtgAgeOffTest")).forall { tableName =>
       val scanner = conn.createScanner(tableName, MiniCluster.Users.root.auths)
       val count = scanner.asScala.size
@@ -133,6 +139,7 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
       count mustEqual expected
     }
     conn.close()
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -142,5 +149,7 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 >>>>>>> 0cdc5f0484 (GEOMESA-3062 DtgAgeOff Filter does not work properly with join indexes (#2756))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
 }
