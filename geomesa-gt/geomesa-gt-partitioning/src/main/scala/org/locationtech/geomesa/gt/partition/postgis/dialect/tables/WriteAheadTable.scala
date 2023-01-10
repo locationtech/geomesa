@@ -40,6 +40,7 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 7d3c180a16 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
@@ -64,6 +65,10 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 2b1154ca34 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7d3c180a16 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
@@ -197,6 +202,9 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> 1ba7d8749d (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
@@ -220,6 +228,7 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> 7d3c180a16 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> eab5f5c2d7 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -265,6 +274,10 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 2b1154ca34 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
     val (tableTs, indexTs) = table.tablespace match {
       case None => ("", "")
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
