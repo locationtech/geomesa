@@ -15,13 +15,13 @@ object SerializationOption extends Enumeration {
 
   type SerializationOption = Value
 
-<<<<<<< HEAD
   val WithUserData      :Value = Value
   val WithoutFidHints   :Value = Value
   val WithoutId         :Value = Value
   val Immutable         :Value = Value
   val Lazy              :Value = Value
   val NativeCollections :Value = Value
+<<<<<<< HEAD
 =======
   val WithUserData    :Value = Value
   val WithoutFidHints :Value = Value
@@ -33,6 +33,8 @@ object SerializationOption extends Enumeration {
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
   implicit class SerializationOptions(val options: Set[SerializationOption]) extends AnyVal {
 

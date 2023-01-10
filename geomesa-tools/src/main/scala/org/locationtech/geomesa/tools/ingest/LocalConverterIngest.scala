@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.tools.ingest
 
-<<<<<<< HEAD
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
+<<<<<<< HEAD
 =======
 import java.io.Flushable
 import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
@@ -24,6 +24,8 @@ import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities, FeatureWrit
 =======
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 5ad2f6a7b2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
@@ -36,6 +38,7 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -753,6 +756,9 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
