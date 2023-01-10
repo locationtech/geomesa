@@ -92,6 +92,7 @@ Compatibility Matrix
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Version 4.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -118,6 +119,8 @@ supported through prepared statements.
 
 =======
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -266,12 +269,15 @@ Dependency Updates
 * org.slf4j:slf4j-api: ``1.7.25`` -> ``1.7.36``
 * com.google.code.gson:gson: ``2.8.1`` -> ``2.8.9``
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
