@@ -7,6 +7,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -23,6 +24,8 @@
 >>>>>>> af4a557187 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> b368bb796e (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c8d2cfae9c (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
@@ -86,7 +89,13 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> b368bb796e (Merge branch 'feature/postgis-fixes')
+=======
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c8d2cfae9c (GEOMESA-3254 Add Bloop build support)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -95,7 +104,6 @@
 
 package org.locationtech.geomesa.convert
 
-<<<<<<< HEAD
 import org.apache.commons.io.IOUtils
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.TestConverterFactory.TestField
@@ -109,6 +117,7 @@ import pureconfig.ConfigObjectCursor
 import pureconfig.error.ConfigReaderFailures
 
 import java.io.InputStream
+<<<<<<< HEAD
 =======
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
@@ -173,6 +182,8 @@ class ApiTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
 class TestConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Seq[TestField], options: BasicOptions)
     extends AbstractConverter[String, BasicConfig, TestField, BasicOptions](sft, config, fields, options) {
@@ -187,9 +198,9 @@ class TestConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Seq[Tes
       ec: EvaluationContext): CloseableIterator[Array[Any]] = parsed.map(Array[Any](_))
 }
 
-<<<<<<< HEAD
 class TestConverterFactory extends AbstractConverterFactory[TestConverter, BasicConfig, TestField, BasicOptions](
   "test", BasicConfigConvert, TestConverterFactory.TestFieldConvert, BasicOptionsConvert)
+<<<<<<< HEAD
 =======
 class TestConverterFactory extends AbstractConverterFactory[TestConverter, BasicConfig, TestField, BasicOptions] {
   override protected val typeToProcess: String = "test"
@@ -202,6 +213,8 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
 object TestConverterFactory {
 
@@ -228,7 +241,6 @@ object TestConverterFactory {
 
   trait TestField extends Field
 
-<<<<<<< HEAD
   case class TestDerivedField(name: String, transforms: Option[Expression]) extends TestField {
     override def fieldArg: Option[Array[AnyRef] => AnyRef] = None
   }
@@ -236,6 +248,7 @@ object TestConverterFactory {
   case class TestSplitField(name: String, transforms: Option[Expression]) extends TestField {
     override def fieldArg: Option[Array[AnyRef] => AnyRef] =
       Some(args => Array[Any](args(0)) ++ args(0).asInstanceOf[String].split(","))
+<<<<<<< HEAD
 =======
   case class TestDerivedField(name: String, transforms: Option[Expression]) extends TestField
 
@@ -247,6 +260,8 @@ object TestConverterFactory {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
   }
 }
 
@@ -255,8 +270,8 @@ class TestFunctionFactory extends TransformerFunctionFactory {
   override def functions: Seq[TransformerFunction] = Seq(foo, bar)
 
   private val foo = new NamedTransformerFunction(Seq("foo")) {
-<<<<<<< HEAD
     override def apply(args: Array[AnyRef]): AnyRef = "foo " + args(0)
+<<<<<<< HEAD
 =======
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = "foo " + args(0)
 <<<<<<< HEAD
@@ -264,13 +279,15 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
   }
 
   private val bar = new TransformerFunction {
     override def names: Seq[String] = Seq("bar")
-<<<<<<< HEAD
     override def apply(args: Array[AnyRef]): AnyRef = "bar " + args(0)
     override def withContext(ec: EvaluationContext): TransformerFunction = this
+<<<<<<< HEAD
 =======
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = "bar " + args(0)
 <<<<<<< HEAD
@@ -278,5 +295,7 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
   }
 }

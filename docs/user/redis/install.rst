@@ -12,12 +12,7 @@ Installing GeoMesa Redis
     .. parsed-literal::
 
         $ export TAG="|release_version|"
-<<<<<<< HEAD
         $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
-=======
-        # note: |scala_binary_version| is the Scala build version
-        $ export VERSION="|scala_binary_version|-${TAG}"
->>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 .. note::
 
@@ -37,6 +32,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -441,6 +437,9 @@ Download and extract it somewhere convenient:
 Download and extract it somewhere convenient:
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+Download and extract it somewhere convenient:
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
 .. code-block:: bash
 
@@ -448,6 +447,7 @@ Download and extract it somewhere convenient:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-redis_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-redis_${VERSION}-bin.tar.gz
     $ cd geomesa-redis_${VERSION}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -789,6 +789,8 @@ Download and extract it somewhere convenient:
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
 .. _redis_install_source:
 
