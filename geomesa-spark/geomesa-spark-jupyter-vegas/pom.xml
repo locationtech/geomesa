@@ -3,8 +3,8 @@
     <parent>
         <artifactId>geomesa-spark_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-<<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-vegas/pom.xml
         <version>4.0.0-SNAPSHOT</version>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -32,6 +32,8 @@
 =======
 >>>>>>> c107a1f0ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
         <version>3.3.0-SNAPSHOT</version>
 <<<<<<< HEAD
 >>>>>>> 1108247cc5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-jupyter/geomesa-jupyter-vegas/pom.xml
@@ -40,6 +42,7 @@
 >>>>>>> ff5c21d0c5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -108,6 +111,8 @@
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-jupyter/geomesa-jupyter-vegas/pom.xml
 >>>>>>> ff5c21d0c5 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> fcad78bf5f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

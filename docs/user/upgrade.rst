@@ -106,6 +106,7 @@ Compatibility Matrix
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3a8f16e50e (Add note on NiFi scala version to upgrade guide)
 =======
@@ -124,6 +125,8 @@ Compatibility Matrix
 >>>>>>> 6eee7c559a (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> b3209273eb (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 Version 4.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -156,6 +159,7 @@ supported through prepared statements.
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2dd5db0392 (Add note on NiFi scala version to upgrade guide)
 =======
@@ -184,6 +188,8 @@ supported through prepared statements.
 =======
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
 >>>>>>> b3209273eb (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -633,6 +639,7 @@ Dependency Updates
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -644,6 +651,8 @@ Dependency Updates
 =======
 >>>>>>> d381f46e90 (Add note on NiFi scala version to upgrade guide)
 =======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
 <<<<<<< HEAD
 >>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
 =======
@@ -651,6 +660,7 @@ Dependency Updates
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -704,6 +714,8 @@ Dependency Updates
 >>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
 >>>>>>> b3209273eb (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

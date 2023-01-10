@@ -351,6 +351,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 67c850bb2f ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -843,6 +844,8 @@
 >>>>>>> 2fbf24a307 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.4.0-SNAPSHOT</version>
@@ -4112,6 +4115,7 @@
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -9713,6 +9717,8 @@
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -9744,6 +9750,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -9954,6 +9963,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
@@ -10004,4 +10014,8 @@
 >>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 7258020868 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 </project>
