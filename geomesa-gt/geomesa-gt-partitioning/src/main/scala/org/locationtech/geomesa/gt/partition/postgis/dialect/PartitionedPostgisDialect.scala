@@ -19,6 +19,7 @@ import org.geotools.referencing.CRS
 import org.geotools.util.factory.Hints
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
 =======
 =======
@@ -27,6 +28,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterV
 >>>>>>> 5e000da485 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunctionVisitor
 >>>>>>> dcd872c1ac (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.{LogCleaner, TruncateToPartition, TruncateToTenMinutes}
@@ -40,6 +43,7 @@ import org.locationtech.jts.geom._
 =======
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import org.opengis.feature.`type`.AttributeDescriptor
 <<<<<<< HEAD
@@ -49,12 +53,15 @@ import org.opengis.feature.`type`.AttributeDescriptor
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 >>>>>>> a8e0698bf72 (GEOMESA-3215 Postgis - support List-type attributes)
 
 import java.sql.{Connection, DatabaseMetaData, ResultSet, Types}
 import scala.util.Try
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -64,6 +71,8 @@ import scala.util.Try
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(store) with StrictLogging {
 
@@ -102,8 +111,11 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   def upgrade(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit =
     postCreateTable(schemaName, sft, cx)
 
+<<<<<<< HEAD
   override def getDesiredTablesType: Array[String] = Array("VIEW", "TABLE")
 
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   // filter out the partition tables from exposed feature types
   override def includeTable(schemaName: String, tableName: String, cx: Connection): Boolean = {
     super.includeTable(schemaName, tableName, cx) && {
@@ -116,6 +128,9 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
       }
     }
   }
+
+  override def encodeCreateTable(sql: StringBuffer): Unit =
+    sql.append("CREATE TABLE IF NOT EXISTS ")
 
   override def encodeCreateTable(sql: StringBuffer): Unit =
     sql.append("CREATE TABLE IF NOT EXISTS ")
@@ -144,6 +159,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
     } else {
       // rename to the write ahead table
       sql.insert(i + tableName.length, WriteAheadTableSuffix.raw)
+<<<<<<< HEAD
     }
   }
 
@@ -199,6 +215,20 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
           logger.warn(s"Found a list-type attribute but database type was not an array for ${att.getLocalName}")
         }
       }
+=======
+    }
+  }
+
+  override def postCreateTable(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit = {
+    // note: we skip the call to `super`, which creates a spatial index (that we don't want), and which
+    // alters the geometry column types (which we handle in the create statement)
+    val info = TypeInfo(schemaName, sft)
+    implicit val ex: ExecutionContext = new ExecutionContext(cx)
+    try {
+      PartitionedPostgisDialect.Commands.foreach(_.create(info))
+    } finally {
+      ex.close()
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     }
   }
 
@@ -426,23 +456,51 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   }
 
   override def encodePostColumnCreateTable(att: AttributeDescriptor, sql: StringBuffer): Unit = {
-    super.encodePostColumnCreateTable(att, sql)
-    if (att.isJson()) {
-      // replace 'VARCHAR' with jsonb
-      val i = sql.lastIndexOf(" VARCHAR")
-      if (i == sql.length() - 8) {
-        sql.replace(i + 1, i + 8, "JSONB")
-      } else {
-        logger.warn(s"Found JSON-type attribute but no CHARACTER VARYING column binding: $sql")
-      }
-    } else if (att.isList) {
-      // go back and encode the array type in the CQL create statement
-      val i = sql.lastIndexOf(" ARRAY")
-      if (i == sql.length() - 6) {
-        sql.insert(i, " " + getListTypeMapping(att.getListType()))
-      } else {
-        logger.warn(s"Found list-type attribute but no ARRAY column binding: $sql")
-      }
+    att match {
+      case gd: GeometryDescriptor =>
+        val nullable = gd.getMinOccurs <= 0 || gd.isNillable
+        val i = sql.lastIndexOf("geometry")
+        // expect `geometry NOT NULL` or `geometry` depending on nullable flag
+        if (i == -1 || (nullable && i != sql.length() - 8) || (!nullable && i != sql.length() - 17)) {
+          logger.warn(s"Found geometry-type attribute but no geometry column binding: $sql")
+        } else {
+          val srid =
+            Option(gd.getUserData.get(JDBCDataStore.JDBC_NATIVE_SRID).asInstanceOf[Integer])
+                .orElse(Option(gd.getCoordinateReferenceSystem).flatMap(crs => Try(CRS.lookupEpsgCode(crs, true)).filter(_ != null).toOption))
+                .map(_.intValue())
+                .getOrElse(-1)
+          val geomType = PartitionedPostgisDialect.GeometryMappings.getOrElse(gd.getType.getBinding, "GEOMETRY")
+          val geomTypeWithDims =
+            Option(gd.getUserData.get(Hints.COORDINATE_DIMENSION).asInstanceOf[Integer]).map(_.intValue) match {
+              case None | Some(2) => geomType
+              case Some(3) => s"${geomType}Z"
+              case Some(4) => s"${geomType}ZM"
+              case Some(d) =>
+                throw new IllegalArgumentException(
+                  s"PostGIS only supports geometries with 2, 3 and 4 dimensions, but found: $d")
+            }
+          sql.insert(i + 8, s" ($geomTypeWithDims, $srid)")
+        }
+
+      case _ if att.isJson() =>
+        // replace 'VARCHAR' with jsonb
+        val i = sql.lastIndexOf(" VARCHAR")
+        if (i == sql.length() - 8) {
+          sql.replace(i + 1, i + 8, "JSONB")
+        } else {
+          logger.warn(s"Found JSON-type attribute but no CHARACTER VARYING column binding: $sql")
+        }
+
+      case _ if att.isList =>
+        // go back and encode the array type in the CQL create statement
+        val i = sql.lastIndexOf(" ARRAY")
+        if (i == sql.length() - 6) {
+          sql.insert(i, " " + getListTypeMapping(att.getListType()))
+        } else {
+          logger.warn(s"Found list-type attribute but no ARRAY column binding: $sql")
+        }
+
+      case _ => // no-op
     }
   }
 
@@ -569,6 +627,7 @@ object PartitionedPostgisDialect {
       def getMainTableSpace: Option[String] = Option(sft.getUserData.get(MainTableSpace).asInstanceOf[String])
       def getCronMinute: Option[Int] = Option(sft.getUserData.get(CronMinute).asInstanceOf[String]).map(int)
       def getPagesPerRange: Int = Option(sft.getUserData.get(PagesPerRange).asInstanceOf[String]).map(int).getOrElse(128)
+<<<<<<< HEAD
       def isFilterWholeWorld: Boolean = Option(sft.getUserData.get(FilterWholeWorld).asInstanceOf[String]).forall(_.toBoolean)
     }
 
@@ -580,6 +639,8 @@ object PartitionedPostgisDialect {
                   .flatMap(crs => Try(CRS.lookupEpsgCode(crs, true)).filter(_ != null).toOption.map(_.intValue())))
       def getCoordinateDimensions: Option[Int] =
         Option(d.getUserData.get(Hints.COORDINATE_DIMENSION)).map(int)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     }
   }
 }
