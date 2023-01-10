@@ -22,10 +22,14 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 =======
 ``geomesa-accumulo-spark-runtime-accumulo2`` module.
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 
 This provider can read from and write to a GeoMesa ``AccumuloDataStore``. The configuration parameters
 are the same as those passed to ``DataStoreFinder.getDataStore()``. See :ref:`accumulo_parameters` for details.
