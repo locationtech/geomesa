@@ -9,8 +9,11 @@
 package org.locationtech.geomesa.accumulo.data
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import com.typesafe.scalalogging.LazyLogging
 =======
+=======
+>>>>>>> 75b443b44fa (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 import java.nio.charset.StandardCharsets
@@ -22,6 +25,8 @@ import java.util.Map.Entry
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 import org.apache.accumulo.core.conf.Property
 >>>>>>> 3b1d8cccf25 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import org.apache.accumulo.core.data.{Key, Range, Value}
