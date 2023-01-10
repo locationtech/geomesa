@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.tools.ingest
 
-<<<<<<< HEAD
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data._
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -53,6 +53,8 @@ import org.geotools.data._
 =======
 >>>>>>> 8e665b32ac (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 7ae88ee16e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 56698b9664 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -65,6 +67,7 @@ import org.geotools.data._
 =======
 >>>>>>> e2aff21ea9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -89,6 +92,10 @@ import org.geotools.data._
 >>>>>>> 025b2c463d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 8e665b32ac (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 import java.io.Flushable
 import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
 import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Executors}
@@ -142,8 +149,11 @@ import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities, FeatureWrit
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4c428126e4 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
@@ -179,10 +189,14 @@ import org.geotools.data._
 =======
 >>>>>>> ae468ad6f1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -231,6 +245,8 @@ import org.geotools.data._
 >>>>>>> 8e665b32ac (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 4c428126e4 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
@@ -245,6 +261,7 @@ import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 <<<<<<< HEAD
 =======
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1791,6 +1808,8 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 >>>>>>> c91eaec024e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 48b35e5fb70 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 37636fb3b99 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> 8e665b32ac (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -1875,6 +1894,8 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 >>>>>>> 9233b0b6ee (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -2201,10 +2222,13 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 709d36fab5e (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 48b35e5fb70 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 37636fb3b99 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -3664,7 +3688,14 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 =======
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 48b35e5fb70 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 37636fb3b99 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 =======
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
@@ -19318,11 +19349,15 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 =======
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
@@ -21552,6 +21587,9 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, Closea
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.text.TextTools
 
 import java.io.Flushable

@@ -97,6 +97,7 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       "org.apache.thrift:libthrift:0.12.0:jar"
 =======
 =======
@@ -137,6 +138,8 @@ function dependencies() {
 >>>>>>> bde70962716 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 1079b681475 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 37636fb3b99 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -153,6 +156,8 @@ function dependencies() {
 >>>>>>> ce026b5c8a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -177,6 +182,7 @@ function dependencies() {
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
@@ -210,6 +216,10 @@ function dependencies() {
 >>>>>>> ce026b5c8a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
       "org.apache.thrift:libthrift:%%thrift.version%%:jar"
 =======
 <<<<<<< HEAD
@@ -391,6 +401,9 @@ function dependencies() {
       "org.apache.commons:commons-collections4:4.3:jar"
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+      "org.apache.commons:commons-collections4:4.4:jar"
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
       "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
     )
   fi
