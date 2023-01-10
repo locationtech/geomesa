@@ -11,8 +11,8 @@ package org.locationtech.geomesa
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-<<<<<<< HEAD
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -27,6 +27,8 @@ import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
@@ -43,6 +45,7 @@ import org.locationtech.geomesa.convert2.AbstractConverter.FieldApiError
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -65,6 +68,10 @@ import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
@@ -119,8 +126,8 @@ package object convert2 {
      *
      * @return an optional function to use instead of the args
      */
-<<<<<<< HEAD
     def fieldArg: Option[Array[AnyRef] => AnyRef]
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -136,6 +143,8 @@ package object convert2 {
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
     // TODO remove default impl in next major release
     // this will be caught and handled by the evaluation context
@@ -157,6 +166,7 @@ package object convert2 {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
@@ -177,6 +187,10 @@ package object convert2 {
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
   }
 
   trait ConverterOptions {
