@@ -505,6 +505,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -1510,6 +1511,8 @@
 >>>>>>> 5c1657ac255 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> c1ef4c5a127 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 40423f41e64 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> 67c850bb2f ([maven-release-plugin] prepare for next development iteration)
@@ -1668,6 +1671,8 @@
 >>>>>>> b064c3ce25 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3a2e956065 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -2191,8 +2196,11 @@
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 83363fd6e61 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> 40423f41e64 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -3765,7 +3773,12 @@
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> c1ef4c5a127 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 40423f41e64 (GEOMESA-3254 Add Bloop build support)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.4.0-SNAPSHOT</version>
@@ -9348,6 +9361,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -9358,6 +9372,10 @@
 >>>>>>> a84b894f501 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d174f455090 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 40423f41e64 (GEOMESA-3254 Add Bloop build support)
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -15176,10 +15194,13 @@
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cf5ca5d0ded (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> c1ef4c5a127 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 40423f41e64 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -19702,7 +19723,14 @@
 =======
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> c1ef4c5a127 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 40423f41e64 (GEOMESA-3254 Add Bloop build support)
     </parent>
 
     <artifactId>geomesa-lambda-datastore_2.12</artifactId>
