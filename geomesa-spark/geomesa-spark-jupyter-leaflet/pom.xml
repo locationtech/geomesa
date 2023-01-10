@@ -76,6 +76,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.2.0-SNAPSHOT</version>
 =======
 =======
@@ -222,6 +223,8 @@
 >>>>>>> cb5b9b20396 (Merge branch 'a0x8o' into stag0)
 =======
 >>>>>>> da23e1069a7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 5428b919bcd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
@@ -369,6 +372,8 @@
 >>>>>>> 353ffd9e903 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 8933ed878f0 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> c3493f342ed (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
@@ -518,6 +523,8 @@
 =======
 >>>>>>> ecef64ad59d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> 40423f41e64 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 3d7a937eae (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 38c08fa969c (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -562,6 +569,8 @@
 >>>>>>> 733d59f917 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 2e85650763 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> b081210161 ([maven-release-plugin] prepare for next development iteration)
@@ -740,8 +749,11 @@
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 83363fd6e61 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> 40423f41e64 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -942,7 +954,12 @@
 =======
 >>>>>>> 38680acf4b (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 2e85650763 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> ecef64ad59d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 40423f41e64 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
@@ -4053,6 +4070,9 @@
 >>>>>>> 6113b1721c ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 32315ad654 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> eeeac254388 ([maven-release-plugin] prepare for next development iteration)
@@ -4067,6 +4087,7 @@
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
@@ -6234,9 +6255,21 @@
 >>>>>>> 6113b1721c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 32315ad654 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> e8d9b12d53 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> b0b4564d15e ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> d4553d3932b ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> d3362bf13e6 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 40423f41e64 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c3493f342ed (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 5428b919bcd (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

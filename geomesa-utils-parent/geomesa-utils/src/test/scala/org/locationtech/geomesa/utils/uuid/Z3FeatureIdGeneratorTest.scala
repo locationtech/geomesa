@@ -91,6 +91,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
 =======
 import java.util.Date
 
@@ -535,9 +536,20 @@ import java.util.Date
 =======
 =======
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777)):geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
+<<<<<<< HEAD
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 >>>>>>> 1079b681475 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/uuid/Z3FeatureIdGeneratorTest.scala
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 37636fb3b99 (GEOMESA-3254 Add Bloop build support)
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod}
