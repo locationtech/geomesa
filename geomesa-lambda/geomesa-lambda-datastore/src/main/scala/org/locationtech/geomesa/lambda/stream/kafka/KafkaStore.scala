@@ -93,6 +93,7 @@ class KafkaStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 =======
   private val producer = KafkaStore.producer(config.producerConfig)
@@ -768,6 +769,9 @@ class KafkaStore(
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+  private val producer = KafkaStore.producer(sft, config.producerConfig)
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
   private val topic = KafkaStore.topic(config.zkNamespace, sft)
 

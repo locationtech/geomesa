@@ -27,6 +27,7 @@ object EnrichmentCacheFunctionFactory {
       val cache = ec.cache(args(0).asInstanceOf[String])
       cache.get(Array(args(1).asInstanceOf[String], args(2).asInstanceOf[String])).asInstanceOf[AnyRef]
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     }
 
@@ -38,6 +39,8 @@ object EnrichmentCacheFunctionFactory {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
     }
 
     override def withContext(ec: EvaluationContext): TransformerFunction = new CacheLookup(ec)
