@@ -15,13 +15,13 @@ object SerializationOption extends Enumeration {
 
   type SerializationOption = Value
 
-<<<<<<< HEAD
   val WithUserData      :Value = Value
   val WithoutFidHints   :Value = Value
   val WithoutId         :Value = Value
   val Immutable         :Value = Value
   val Lazy              :Value = Value
   val NativeCollections :Value = Value
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -74,6 +74,10 @@ object SerializationOption extends Enumeration {
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> aaf3337eb7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -213,6 +217,9 @@ object SerializationOption extends Enumeration {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> d36d85cd8e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -244,6 +251,7 @@ object SerializationOption extends Enumeration {
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 5d19c5d68e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -294,6 +302,10 @@ object SerializationOption extends Enumeration {
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> aaf3337eb7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 
   implicit class SerializationOptions(val options: Set[SerializationOption]) extends AnyVal {
 

@@ -274,6 +274,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b2177e9015 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -330,6 +331,8 @@
 >>>>>>> 72962fe615 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5dcf23da52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -419,6 +422,7 @@
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> bc73cc4d41 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -695,6 +699,8 @@
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 947a867d1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> e6e1f4bdd5 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -899,8 +905,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1139,6 +1148,7 @@
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -1497,6 +1507,8 @@
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -3619,8 +3631,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -3823,6 +3838,7 @@
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -3896,6 +3912,8 @@
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -7710,6 +7728,7 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -9688,10 +9707,26 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9725,6 +9760,7 @@ package org.locationtech.geomesa.fs.storage.common.metadata
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -9753,6 +9789,10 @@ package org.locationtech.geomesa.fs.storage.common.metadata
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -9891,6 +9931,9 @@ import java.nio.file.Files
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 12e3a588fc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -9922,6 +9965,7 @@ import java.nio.file.Files
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -9972,6 +10016,10 @@ import java.nio.file.Files
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
@@ -9982,11 +10030,11 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-<<<<<<< HEAD
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10016,11 +10064,15 @@ import java.nio.file.Files
 =======
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -10079,8 +10131,11 @@ import java.nio.file.Files
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -10131,6 +10186,7 @@ import java.nio.file.Files
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -10186,6 +10242,8 @@ import java.nio.file.Files
 =======
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 @RunWith(classOf[JUnitRunner])
 class MetadataJsonTest extends Specification {
 
@@ -10848,6 +10906,7 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 009a284072 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -10978,6 +11037,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 2fe05f057a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9d1506029d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -11175,6 +11236,7 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -11829,6 +11891,10 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 23c0241798 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 <<<<<<< HEAD
@@ -12575,6 +12641,8 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
 =======
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 69d749947 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -13064,6 +13132,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> cdc7c0fe7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> b6c4628db (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -43972,12 +44042,21 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 
   "MetadataJson" should {
     "persist and replace system properties (and environment variables)" in {
       skipped("fails in github actions")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -44097,6 +44176,8 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 45ad5d11f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b009fd23f4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -44128,6 +44209,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 76618c8da (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 947761ec9b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -53224,6 +53307,7 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -59367,10 +59451,25 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+=======
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
       withPath { context =>
         val prop = "MetadataJsonTest.foo"
         val interpolated = "${" + prop + "}"
