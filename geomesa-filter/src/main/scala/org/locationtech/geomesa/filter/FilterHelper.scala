@@ -201,6 +201,7 @@ object FilterHelper {
         val union = FilterValues.or[Bounds[T]](Bounds.union[T]) _
         o.getChildren.asScala.map(f =>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         o.getChildren.map(f =>
 <<<<<<< HEAD
@@ -210,6 +211,8 @@ object FilterHelper {
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
           extractAttributeBounds(f, attribute, binding)
         ).reduceLeft[FilterValues[Bounds[T]]]((acc, child) => {
           if (acc.isEmpty || child.isEmpty) {
@@ -546,6 +549,7 @@ object FilterHelper {
           } else {
             andFilters(orOption(simplified.toSeq).toSeq ++ duplicates)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
             andFilters(orOption(simplified).toSeq ++ duplicates)
 <<<<<<< HEAD
@@ -555,6 +559,8 @@ object FilterHelper {
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
           }
         }
 
