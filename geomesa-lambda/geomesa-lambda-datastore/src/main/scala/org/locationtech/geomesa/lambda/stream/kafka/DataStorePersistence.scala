@@ -12,6 +12,7 @@ package org.locationtech.geomesa.lambda.stream.kafka
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -31,6 +32,8 @@ import java.util.concurrent.{Executors, TimeUnit}
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.{DataStore, Transaction}
 import org.geotools.api.feature.simple.SimpleFeatureType
