@@ -19,6 +19,7 @@ import com.typesafe.config.ConfigFactory
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -27,6 +28,8 @@ import com.typesafe.config.ConfigFactory
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -36,13 +39,17 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -74,6 +81,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -88,6 +97,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -100,6 +110,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.io.WithClose
 =======
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
@@ -114,6 +126,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -122,10 +135,13 @@ import org.locationtech.geomesa.utils.io.WithClose
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.io.WithClose
 =======
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -157,6 +173,9 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.io.WithClose
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -219,6 +238,11 @@ import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 import java.sql.{Connection, DriverManager}
 import java.util.Date
+
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.sql.{Connection, DriverManager}
 
 @RunWith(classOf[JUnitRunner])
 class JdbcConverterTest extends Specification with BeforeAfterAll with LazyLogging {
