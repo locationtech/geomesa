@@ -16,12 +16,15 @@ package org.locationtech.geomesa.lambda.stream.kafka
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -30,13 +33,17 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -54,6 +61,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.geotools.api.data.{Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -82,6 +91,7 @@ import java.util.{Collections, Properties}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -96,6 +106,10 @@ import java.util.{Collections, Properties}
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 @RunWith(classOf[JUnitRunner])
 class KafkaStoreTest extends LambdaContainerTest {
 =======
@@ -104,13 +118,17 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 @RunWith(classOf[JUnitRunner])
 class KafkaStoreTest extends LambdaContainerTest {
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -132,6 +150,11 @@ class KafkaStoreTest extends LambdaContainerTest {
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 
   import scala.concurrent.duration._
 
