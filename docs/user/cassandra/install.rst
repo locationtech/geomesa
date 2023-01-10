@@ -12,8 +12,8 @@ Installing GeoMesa Cassandra
     .. parsed-literal::
 
         $ export TAG="|release_version|"
-<<<<<<< HEAD
         $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -41,6 +41,8 @@ Installing GeoMesa Cassandra
 =======
 >>>>>>> 1f19a648d1 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
         # note: |scala_binary_version| is the Scala build version
         $ export VERSION="|scala_binary_version|-${TAG}"
 <<<<<<< HEAD
@@ -50,6 +52,7 @@ Installing GeoMesa Cassandra
 >>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -130,6 +133,8 @@ Installing GeoMesa Cassandra
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> 2aa923cc97 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> f1fe65810a (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 
 Connecting to Cassandra
 -----------------------
@@ -172,6 +177,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -684,6 +690,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> 4599715c51 (d)
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f71fa3c0e1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -7602,6 +7610,7 @@ Download and extract it somewhere convenient:
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -8273,6 +8282,11 @@ Download and extract it somewhere convenient:
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+Download and extract it somewhere convenient:
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 
 .. code-block:: bash
 
@@ -8508,6 +8522,7 @@ Download and extract it somewhere convenient:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -8764,6 +8779,8 @@ Download and extract it somewhere convenient:
 >>>>>>> 4599715c51 (d)
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
@@ -14284,7 +14301,12 @@ Download and extract it somewhere convenient:
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 
 .. _cassandra_install_source:
 
