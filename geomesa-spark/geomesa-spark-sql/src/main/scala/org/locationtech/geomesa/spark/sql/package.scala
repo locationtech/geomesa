@@ -1,5 +1,9 @@
 /***********************************************************************
+<<<<<<< HEAD
  * Copyright (c) 2019-2023 The MITRE Corporation
+=======
+ * Copyright (c) 2019-2022 The MITRE Corporation
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
  * This program and the accompanying materials are made available under
  * the Apache License, Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0.

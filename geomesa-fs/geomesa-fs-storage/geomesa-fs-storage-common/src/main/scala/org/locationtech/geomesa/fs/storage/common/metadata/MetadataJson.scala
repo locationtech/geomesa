@@ -103,6 +103,7 @@ object MetadataJson extends MethodProfiling {
       ConfigSource.fromConfig(ConfigFactory.load(ConfigFactory.parseString(interpolated, ParseOptions)))
           .loadOrThrow[NamedOptions]
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       pureconfig.loadConfigOrThrow[NamedOptions](
         ConfigFactory.load(ConfigFactory.parseString(interpolated, ParseOptions)))
@@ -113,6 +114,8 @@ object MetadataJson extends MethodProfiling {
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     }
     cache.put(context.root.toUri.toString, toCache)
     PathCache.register(context.fc, file)
