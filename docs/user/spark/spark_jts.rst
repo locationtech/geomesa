@@ -26,6 +26,7 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
       <artifactId>geomesa-spark-jts_${scala.binary.version}</artifactId>
       <version>${geomesa.version}</version>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       <artifactId>geomesa-spark-jts_2.12</artifactId>
       // version, etc.
@@ -36,6 +37,8 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     </dependency>
 
 Example

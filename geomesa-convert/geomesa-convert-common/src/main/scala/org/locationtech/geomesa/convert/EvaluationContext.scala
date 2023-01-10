@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.EvaluationContext.{EvaluationError, FieldAccessor}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import org.locationtech.geomesa.convert2.AbstractConverter.AbstractApiError
 <<<<<<< HEAD
@@ -22,6 +23,8 @@ import org.locationtech.geomesa.convert2.AbstractConverter.AbstractApiError
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert2.Field
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 
@@ -85,6 +88,7 @@ trait EvaluationContext {
    */
   def evaluate(args: Array[AnyRef]): Either[EvaluationError, Array[AnyRef]]
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
   /**
@@ -134,6 +138,8 @@ trait EvaluationContext {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 }
 
 object EvaluationContext extends LazyLogging {
@@ -152,6 +158,7 @@ object EvaluationContext extends LazyLogging {
     new StatefulEvaluationContext(Array.empty, Map.empty, Map.empty, metrics, success, failures)
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   /**
@@ -184,6 +191,8 @@ object EvaluationContext extends LazyLogging {
 
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   /**
    * Creates a new evaluation context with the given state
    *
@@ -268,6 +277,7 @@ object EvaluationContext extends LazyLogging {
     def getInputFilePath: Option[String] = Option(ec.accessor(InputFilePathKey).apply().asInstanceOf[String])
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     // noinspection ScalaDeprecation
     @deprecated("Evaluation contexts should not be mutated")
@@ -282,6 +292,8 @@ object EvaluationContext extends LazyLogging {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
 
   /**
@@ -315,9 +327,6 @@ object EvaluationContext extends LazyLogging {
     // note: the class isn't fully instantiated yet, but this statement is last in the initialization
     private val transforms = fields.map(_.transforms.map(_.withContext(this)))
 
-    // to support the deprecated `get` and `set` methods
-    private lazy val sortedGlobalValues = globalValues.toArray.sortBy(_._1)
-
     override def accessor(name: String): FieldAccessor = {
       val i = fields.indexWhere(_.name == name)
       if (i >= 0) { new FieldValueAccessor(values, i) } else {
@@ -332,23 +341,15 @@ object EvaluationContext extends LazyLogging {
       var i = 0
       // note: since fields are in topological order we don't need to clear them
       while (i < values.length) {
-        try {
-          val value = try {
-            val fieldArgs = fields(i).fieldArg match {
-              case None => args
-              case Some(f) => fieldArray(0) = f.apply(args); fieldArray
-            }
-            transforms(i) match {
-              case Some(t) => t.apply(fieldArgs)
-              case None    => fieldArgs(0)
-            }
-          } catch {
-            case _: AbstractApiError =>
-              // back-compatible shim for fields that haven't been updated
-              // noinspection ScalaDeprecation
-              fields(i).eval(args.asInstanceOf[Array[Any]])(this).asInstanceOf[AnyRef]
+        values(i) = try {
+          val fieldArgs = fields(i).fieldArg match {
+            case None => args
+            case Some(f) => fieldArray(0) = f.apply(args); fieldArray
           }
-          values(i) = value
+          transforms(i) match {
+            case Some(t) => t.apply(fieldArgs)
+            case None    => fieldArgs(0)
+          }
         } catch {
           case NonFatal(e) => return Left(EvaluationError(fields(i).name, line, e))
         }
@@ -356,6 +357,7 @@ object EvaluationContext extends LazyLogging {
       }
       Right(values)
     }
+<<<<<<< HEAD
 
     // noinspection ScalaDeprecation
     override def get(i: Int): Any = {
@@ -487,5 +489,7 @@ object EvaluationContext extends LazyLogging {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
 }

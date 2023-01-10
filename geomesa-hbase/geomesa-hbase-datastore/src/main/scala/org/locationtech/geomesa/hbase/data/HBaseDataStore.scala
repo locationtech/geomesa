@@ -178,6 +178,7 @@ object HBaseDataStore {
     override def getAuthorizations: java.util.List[String] = null
     override def configure(params: java.util.Map[String, _]): Unit = {}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
 <<<<<<< HEAD
@@ -187,5 +188,7 @@ object HBaseDataStore {
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
 }
