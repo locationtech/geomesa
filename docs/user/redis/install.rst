@@ -62,11 +62,15 @@ Installing GeoMesa Redis
 
         $ export TAG="|release_version|"
 <<<<<<< HEAD
+<<<<<<< HEAD
         $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 =======
         # note: |scala_binary_version| is the Scala build version
         $ export VERSION="|scala_binary_version|-${TAG}"
 >>>>>>> 71c56e6b77 (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 
 Installing the Binary Distribution
 ----------------------------------

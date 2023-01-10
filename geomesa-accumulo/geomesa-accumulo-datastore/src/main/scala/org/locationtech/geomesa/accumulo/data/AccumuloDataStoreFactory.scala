@@ -26,10 +26,13 @@ import org.geotools.data.{DataStoreFactorySpi, Parameter}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 53f64a9fef (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
 =======
 import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterProperties
@@ -45,6 +48,7 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperti
 import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterProperties
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -52,6 +56,8 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterPropertie
 import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
 >>>>>>> 585c5638c0 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 >>>>>>> 53f64a9fef (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
@@ -288,13 +294,19 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filterNot(_.isEmpty)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 
     // verify that the configured auths are valid for the connector we are using (fail-fast)
     val invalidAuths = configuredAuths.filterNot(masterAuths.contains)
