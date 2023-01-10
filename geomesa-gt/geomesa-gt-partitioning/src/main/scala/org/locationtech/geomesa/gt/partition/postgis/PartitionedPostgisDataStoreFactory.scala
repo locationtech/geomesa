@@ -48,6 +48,7 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -76,6 +77,8 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 >>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5e000da485 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
@@ -561,6 +564,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dcd872c1ac (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> df43e72c50 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -603,6 +607,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 
 class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with LazyLogging {
 =======
@@ -748,6 +754,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -802,6 +809,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 =======
 =======
@@ -1696,6 +1705,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -1898,6 +1908,11 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+        ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
     }
