@@ -12,8 +12,7 @@ Installing GeoMesa Accumulo
     .. parsed-literal::
 
         $ export TAG="|release_version|"
-        # note: |scala_binary_version| is the Scala build version
-        $ export VERSION="|scala_binary_version|-${TAG}"
+        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -38,13 +37,11 @@ Download and extract it somewhere convenient:
 Building from Source
 --------------------
 
-GeoMesa Accumulo may also be built from source. For more information refer to :ref:`building_from_source`
-in the developer manual, or to the ``README.md`` file in the the source distribution.
+GeoMesa Accumulo may also be built from source. For more information, refer to the instructions on
+`GitHub <https://github.com/locationtech/geomesa#building-from-source>`__.
 The remainder of the instructions in this chapter assume the use of the binary GeoMesa Accumulo
 distribution. If you have built from source, the distribution is created in the ``target`` directory of
 ``geomesa-accumulo/geomesa-accumulo-dist``.
-
-More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
 
 .. _install_accumulo_runtime:
 
@@ -55,11 +52,6 @@ The ``geomesa-accumulo_$VERSION/dist/accumulo/`` directory contains the distribu
 runtime JAR that contains server-side code for Accumulo that must be made
 available on each of the Accumulo tablet servers in the cluster. This JAR
 contains GeoMesa code and the Accumulo iterators required for querying GeoMesa data.
-
-.. warning::
-
-    GeoMesa requires commons-vfs2.jar 2.1 or later. This JAR ships with Accumulo 1.7.2+, but for older
-    installations the JAR needs to be updated in ``$ACCUMULO_HOME/lib`` on all Accumulo servers.
 
 The version of the distributed runtime JAR must match the version of the GeoMesa
 data store client JAR (usually installed in GeoServer; see below). If not,
@@ -243,7 +235,7 @@ distribution into your GeoServer's ``lib`` directory:
 
 Next, install the JARs for Accumulo and Hadoop. By default, JARs will be downloaded from Maven central. You may
 override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do no have an internet connection
-you can download the JARs manually via http://search.maven.org/.
+you can download the JARs manually.
 
 Edit the file ``geomesa-accumulo_${VERSION}/conf/dependencies.sh`` to set the versions of Accumulo and Hadoop
 to match the target environment, and then run the script:
@@ -251,71 +243,6 @@ to match the target environment, and then run the script:
 .. code-block:: bash
 
     $ ./bin/install-dependencies.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
-
-.. warning::
-
-   Due to a classpath conflict with GeoServer, the version of Accumulo client JARs installed must be 1.9.2 or later.
-   Note that newer Accumulo clients can talk to older Accumulo instances, so it is only necessary to upgrade the
-   client JARs in GeoServer, but not the entire Accumulo cluster.
-
-.. warning::
-
-    GeoServer ships with an older version of commons-text, 1.4. The ``install-dependencies.sh`` script will
-    remove it, but if you don't use the script you will need to delete it manually.
-
-The specific JARs needed for some common configurations are listed below:
-
-.. tabs::
-
-    .. tab:: Accumulo 2.0
-
-        * accumulo-core-2.0.0.jar
-        * accumulo-server-base-2.0.0.jar
-        * accumulo-start-2.0.0.jar
-        * commons-configuration-1.6.jar
-        * commons-configuration2-2.5.jar
-        * commons-logging-1.1.3.jar
-        * commons-text-1.6.jar
-        * commons-vfs2-2.3.jar
-        * hadoop-auth-2.8.5.jar
-        * hadoop-common-2.8.5.jar
-        * hadoop-hdfs-2.8.5.jar
-        * htrace-core-3.1.0-incubating.jar
-        * htrace-core4-4.1.0-incubating.jar
-        * libthrift-0.12.0.jar
-        * zookeeper-3.4.14.jar
-
-    .. tab:: Accumulo 1.9
-
-        * accumulo-core-1.9.3.jar
-        * accumulo-fate-1.9.3.jar
-        * accumulo-server-base-1.9.3.jar
-        * accumulo-start-1.9.3.jar
-        * accumulo-trace-1.9.3.jar
-        * commons-configuration-1.6.jar
-        * commons-vfs2-2.1.jar
-        * hadoop-auth-2.8.5.jar
-        * hadoop-common-2.8.5.jar
-        * hadoop-hdfs-2.8.5.jar
-        * htrace-core-3.1.0-incubating.jar
-        * libthrift-0.9.3.jar
-        * zookeeper-3.4.14.jar
-
-    .. tab:: Accumulo 1.7
-
-        * accumulo-core-1.7.4.jar
-        * accumulo-fate-1.7.4.jar
-        * accumulo-server-base-1.7.4.jar
-        * accumulo-start-1.7.4.jar
-        * accumulo-trace-1.7.4.jar
-        * commons-configuration-1.6.jar
-        * commons-vfs2-2.1.jar
-        * hadoop-auth-2.8.5.jar
-        * hadoop-common-2.8.5.jar
-        * hadoop-hdfs-2.8.5.jar
-        * htrace-core-3.1.0-incubating.jar
-        * libthrift-0.9.1.jar
-        * zookeeper-3.4.14.jar
 
 Restart GeoServer after the JARs are installed.
 

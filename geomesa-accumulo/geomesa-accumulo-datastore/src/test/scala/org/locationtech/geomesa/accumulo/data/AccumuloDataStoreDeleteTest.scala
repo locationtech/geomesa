@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
-import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
@@ -39,9 +38,8 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
     val sft = createNewSchema(schema)
 
     // create a feature
-    val builder = new SimpleFeatureBuilder(sft)
-    builder.addAll(java.util.Arrays.asList[AnyRef]("1", WKTUtils.read("POINT(45.0 45.0)"), "2012-01-02T05:06:07.000Z"))
-    val liveFeature = builder.buildFeature("fid-1")
+    val liveFeature =
+      ScalaSimpleFeature.create(sft, "fid-1", "1", WKTUtils.read("POINT(45.0 45.0)"), "2012-01-02T05:06:07.000Z")
 
     addFeature(liveFeature)
     sft

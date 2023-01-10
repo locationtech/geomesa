@@ -14,7 +14,6 @@
 kafka_install_version="%%kafka.version%%"
 zkclient_install_version="%%zkclient.version%%"
 zookeeper_install_version="%%zookeeper.version.recommended%%"
-guava_install_version="%%guava.version%%"
 jopt_install_version="%%kafka.jopt.version%%"
 
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
@@ -39,7 +38,6 @@ function dependencies() {
     "com.101tec:zkclient:${zkclient_version}:jar"
     "net.sf.jopt-simple:jopt-simple:${jopt_install_version}:jar"
     "com.yammer.metrics:metrics-core:2.2.0:jar"
-    "com.google.guava:guava:${guava_install_version}:jar"
   )
 
   # compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)

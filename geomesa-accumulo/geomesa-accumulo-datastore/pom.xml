@@ -98,10 +98,6 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
 
         <!-- test dependencies -->
         <dependency>
@@ -136,8 +132,8 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.geotools.jdbc</groupId>
-            <artifactId>gt-jdbc-h2</artifactId>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-shapefile</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

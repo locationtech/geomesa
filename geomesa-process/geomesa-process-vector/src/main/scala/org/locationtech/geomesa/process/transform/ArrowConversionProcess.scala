@@ -60,16 +60,12 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
               formatVersion: String,
               @DescribeParameter(name = "dictionaryFields", description = "Attributes to dictionary encode", min = 0, max = 128, collectionType = classOf[String])
               dictionaryFields: java.util.List[String],
-              @DescribeParameter(name = "useCachedDictionaries", description = "Use cached top-k stats (if available), or run a dynamic stats query to build dictionaries", min = 0)
-              useCachedDictionaries: java.lang.Boolean,
               @DescribeParameter(name = "sortField", description = "Attribute to sort by", min = 0)
               sortField: String,
               @DescribeParameter(name = "sortReverse", description = "Reverse the default sort order", min = 0)
               sortReverse: java.lang.Boolean,
               @DescribeParameter(name = "batchSize", description = "Number of features to include in each record batch", min = 0)
-              batchSize: java.lang.Integer,
-              @DescribeParameter(name = "doublePass", description = "Build dictionaries first, then query results in a separate scan", min = 0)
-              doublePass: java.lang.Boolean
+              batchSize: java.lang.Integer
              ): java.util.Iterator[Array[Byte]] = {
 
     import scala.collection.JavaConverters._
@@ -85,16 +81,14 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
         throw new IllegalArgumentException(s"Attribute $attribute doesn't exist in $sft")
       }
     }
-    val cacheDictionaries = Option(useCachedDictionaries).map(_.booleanValue())
 
     val encoding = SimpleFeatureEncoding.min(includeFids == null || includeFids, proxyFids != null && proxyFids)
     val ipcVersion = Option(formatVersion).getOrElse(FormatVersion.ArrowFormatVersion.get)
     val reverse = Option(sortReverse).map(_.booleanValue())
     val batch = Option(batchSize).map(_.intValue).getOrElse(ArrowProperties.BatchSize.get.toInt)
-    val double = Option(doublePass).exists(_.booleanValue())
 
     val visitor =
-      new ArrowVisitor(sft, encoding, ipcVersion, toEncode, cacheDictionaries, Option(sortField), reverse, false, batch, double)
+      new ArrowVisitor(sft, encoding, ipcVersion, toEncode, Option(sortField), reverse, false, batch)
     GeoMesaFeatureCollection.visit(features, visitor)
     visitor.getResult.results
   }
@@ -107,12 +101,10 @@ object ArrowConversionProcess {
       encoding: SimpleFeatureEncoding,
       ipcVersion: String,
       dictionaryFields: Seq[String],
-      cacheDictionaries: Option[Boolean],
       sortField: Option[String],
       sortReverse: Option[Boolean],
       preSorted: Boolean,
-      batchSize: Int,
-      doublePass: Boolean
+      batchSize: Int
     ) extends GeoMesaProcessVisitor with LazyLogging {
 
     import scala.collection.JavaConverters._
@@ -155,9 +147,7 @@ object ArrowConversionProcess {
       query.getHints.put(QueryHints.ARROW_INCLUDE_FID, encoding.fids.isDefined)
       query.getHints.put(QueryHints.ARROW_PROXY_FID, encoding.fids.contains(Encoding.Min))
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
-      query.getHints.put(QueryHints.ARROW_DOUBLE_PASS, doublePass)
       query.getHints.put(QueryHints.ARROW_FORMAT_VERSION, ipcVersion)
-      cacheDictionaries.foreach(query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, _))
       sortField.foreach(query.getHints.put(QueryHints.ARROW_SORT_FIELD, _))
       sortReverse.foreach(query.getHints.put(QueryHints.ARROW_SORT_REVERSE, _))
 
@@ -195,7 +185,7 @@ object ArrowConversionProcess {
       SimpleFeatureArrowFileWriter(out, sft, Map.empty[String, ArrowDictionary], encoding, ipcOpts, sort)
 
     override def visit(feature: SimpleFeature): Unit = {
-      writer.add(feature.asInstanceOf[SimpleFeature])
+      writer.add(feature)
       count += 1
       if (count % batchSize == 0) {
         writer.flush()

@@ -176,6 +176,6 @@ object HBaseDataStore {
 
   object NoAuthsProvider extends AuthorizationsProvider {
     override def getAuthorizations: java.util.List[String] = null
-    override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
+    override def configure(params: java.util.Map[String, _]): Unit = {}
   }
 }

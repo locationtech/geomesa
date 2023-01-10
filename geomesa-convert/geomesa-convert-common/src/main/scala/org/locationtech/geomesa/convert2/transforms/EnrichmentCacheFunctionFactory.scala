@@ -28,11 +28,6 @@ object EnrichmentCacheFunctionFactory {
       cache.get(Array(args(1).asInstanceOf[String], args(2).asInstanceOf[String])).asInstanceOf[AnyRef]
     }
 
-    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-      val cache = ec.cache(args(0).asInstanceOf[String])
-      cache.get(Array(args(1).asInstanceOf[String], args(2).asInstanceOf[String]))
-    }
-
     override def withContext(ec: EvaluationContext): TransformerFunction = new CacheLookup(ec)
   }
 }

@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.utils.audit
 
-import java.io.Serializable
 import java.util.Collections
 
 object NoOpAuditProvider extends AuditProvider {
@@ -17,5 +16,5 @@ object NoOpAuditProvider extends AuditProvider {
 
   override val getCurrentUserDetails: java.util.Map[AnyRef, AnyRef] = Collections.emptyMap()
 
-  override def configure(params: java.util.Map[String, _ <: Serializable]): Unit = {}
+  override def configure(params: java.util.Map[String, _]): Unit = {}
 }

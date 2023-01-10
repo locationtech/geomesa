@@ -12,8 +12,7 @@ Installing GeoMesa HBase
     .. parsed-literal::
 
         $ export TAG="|release_version|"
-        # note: |scala_binary_version| is the Scala build version
-        $ export VERSION="|scala_binary_version|-${TAG}"
+        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 
 GeoMesa supports traditional HBase installations as well as HBase running on `Amazon's EMR <https://aws.amazon.com/emr/>`_
 , `Hortonworks' Data Platform (HDP) <https://hortonworks.com/products/data-center/hdp/>`_, and the
@@ -43,13 +42,11 @@ Download and extract it somewhere convenient:
 Building from Source
 --------------------
 
-GeoMesa HBase may also be built from source. For more information refer to :ref:`building_from_source`
-in the developer manual, or to the ``README.md`` file in the the source distribution.
+GeoMesa HBase may also be built from source. For more information, refer to the instructions on
+`GitHub <https://github.com/locationtech/geomesa#building-from-source>`__.
 The remainder of the instructions in this chapter assume the use of the binary GeoMesa HBase
 distribution. If you have built from source, the distribution is created in the ``target`` directory of
 ``geomesa-hbase/geomesa-hbase-dist``.
-
-More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
 
 .. _hbase_deploy_distributed_runtime:
 
@@ -282,61 +279,6 @@ running, set the version numbers in ``conf/dependencies.sh`` to match your targe
 The HBase data store requires the configuration file ``hbase-site.xml`` to be on the classpath. This can
 be accomplished by placing the file in ``geoserver/WEB-INF/classes`` (you should make the directory if it
 doesn't exist).
-
-The specific JARs needed for some common configurations are listed below:
-
-.. tabs::
-
-    .. tab:: HBase 2.2
-
-        * commons-cli-1.2.jar
-        * commons-configuration-1.6.jar
-        * commons-io-2.5.jar
-        * commons-logging-1.1.3.jar
-        * hadoop-auth-2.8.5.jar
-        * hadoop-common-2.8.5.jar
-        * hadoop-hdfs-2.8.5.jar
-        * hadoop-hdfs-client-2.8.5.jar
-        * hadoop-mapreduce-client-core-2.8.5.jar
-        * hbase-client-2.2.3.jar
-        * hbase-common-2.2.3.jar
-        * hbase-hadoop-compat-2.2.3.jar
-        * hbase-mapreduce-2.2.3.jar
-        * hbase-protocol-2.2.3.jar
-        * hbase-protocol-shaded-2.2.3.jar
-        * hbase-shaded-miscellaneous-2.2.1.jar
-        * hbase-shaded-netty-2.2.1.jar
-        * hbase-shaded-protobuf-2.2.1.jar
-        * htrace-core4-4.1.0-incubating.jar
-        * metrics-core-2.2.0.jar
-        * metrics-core-3.2.6.jar
-        * netty-3.6.2.Final.jar
-        * netty-all-4.1.48.Final.jar
-        * protobuf-java-2.5.0.jar
-        * zookeeper-3.4.14.jar
-
-    .. tab:: HBase 1.4
-
-        * commons-cli-1.2.jar
-        * commons-configuration-1.6.jar
-        * commons-io-2.5.jar
-        * commons-logging-1.1.3.jar
-        * hadoop-auth-2.8.5.jar
-        * hadoop-common-2.8.5.jar
-        * hadoop-hdfs-2.8.5.jar
-        * hadoop-hdfs-client-2.8.5.jar
-        * hadoop-mapreduce-client-core-2.8.5.jar
-        * hbase-client-1.4.13.jar
-        * hbase-common-1.4.13.jar
-        * hbase-hadoop-compat-1.4.13.jar
-        * hbase-protocol-1.4.13.jar
-        * htrace-core-3.1.0-incubating.jar
-        * htrace-core4-4.1.0-incubating.jar
-        * metrics-core-2.2.0.jar
-        * netty-3.6.2.Final.jar
-        * netty-all-4.1.48.Final.jar
-        * protobuf-java-2.5.0.jar
-        * zookeeper-3.4.14.jar
 
 Restart GeoServer after the JARs are installed.
 

@@ -116,9 +116,6 @@ class JdbcMetadata(
     }
   }
 
-  // noinspection ScalaDeprecation
-  override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
-
   override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit = {
     // TODO execute as a transaction
     WithClose(pool.getConnection()) { connection =>
@@ -160,15 +157,15 @@ object JdbcMetadata extends LazyLogging {
     val TestWhileIdlKey = "jdbc.pool.test-while-idle"
   }
 
-  private val RootCol = "root"
-  private val NameCol = "name"
-  private val IdCol   = "id"
+  private val RootCol = "\"root\""
+  private val NameCol = "\"name\""
+  private val IdCol   = "\"id\""
 
   private object MetadataTable {
 
     val TableName = "storage_meta"
 
-    private val ValueCol = "value"
+    private val ValueCol = "\"value\""
 
     private val CreateStatement: String =
       s"create table if not exists $TableName (" +
@@ -234,15 +231,15 @@ object JdbcMetadata extends LazyLogging {
 
     val TableName = "storage_partitions"
 
-    private val ActionCol     = "action"
-    private val CountCol      = "features"
-    private val BoundsXMinCol = "bounds_xmin"
-    private val BoundsXMaxCol = "bounds_xmax"
-    private val BoundsYMinCol = "bounds_ymin"
-    private val BoundsYMaxCol = "bounds_ymax"
+    private val ActionCol     = "\"action\""
+    private val CountCol      = "\"features\""
+    private val BoundsXMinCol = "\"bounds_xmin\""
+    private val BoundsXMaxCol = "\"bounds_xmax\""
+    private val BoundsYMinCol = "\"bounds_ymin\""
+    private val BoundsYMaxCol = "\"bounds_ymax\""
 
-    private val CreateSequence: String = s"create sequence if not exists ${TableName}_${IdCol}_seq"
-    private val NextIdStatement: String = s"select nextval('${TableName}_${IdCol}_seq')"
+    private val CreateSequence: String = s"create sequence if not exists ${TableName}_${IdCol.replace("\"", "")}_seq"
+    private val NextIdStatement: String = s"select nextval('${TableName}_${IdCol.replace("\"", "")}_seq')"
 
     private val CreateStatement: String =
       s"create table if not exists $TableName (" +

@@ -80,18 +80,18 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithFea
 
     "actually handle transforms properly and chose correct strategies for attribute indexing" in {
       // transform to only return the attribute geom - dropping dtg, age, and name
-      val query = new Query(sftName, ECQL.toFilter("name = 'b'"), Array("geom"))
+      val query = new Query(sftName, ECQL.toFilter("name = 'b'"), "geom")
       checkStrategies(query, JoinIndex)
 
       // full table scan
-      val leftWildCard = new Query(sftName, ff.like(ff.property("name"), "%b"), Array("geom"))
+      val leftWildCard = new Query(sftName, ff.like(ff.property("name"), "%b"), "geom")
       checkStrategies(leftWildCard, Z3Index)
 
       // full table scan
-      val doubleWildCard = new Query(sftName, ff.like(ff.property("name"), "%b%"), Array("geom"))
+      val doubleWildCard = new Query(sftName, ff.like(ff.property("name"), "%b%"), "geom")
       checkStrategies(doubleWildCard, Z3Index)
 
-      val rightWildcard = new Query(sftName, ff.like(ff.property("name"), "b%"), Array("geom"))
+      val rightWildcard = new Query(sftName, ff.like(ff.property("name"), "b%"), "geom")
       checkStrategies(rightWildcard, JoinIndex)
 
       forall(List(query, leftWildCard, doubleWildCard, rightWildcard)) { query =>
@@ -104,7 +104,7 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithFea
 
     "handle corner case with attr idx, bbox, and no temporal filter" in {
       val filter = ff.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
-      val query = new Query(sftName, filter, Array("geom"))
+      val query = new Query(sftName, filter, "geom")
       ds.getQueryPlan(query).head.filter.index.name mustEqual JoinIndex.name
 
       val features = SelfClosingIterator(fs.getFeatures(query)).toList

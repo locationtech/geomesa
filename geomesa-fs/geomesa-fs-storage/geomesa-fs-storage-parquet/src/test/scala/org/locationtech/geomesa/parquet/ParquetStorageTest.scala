@@ -21,6 +21,7 @@ import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWrite
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -329,7 +330,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       }
 
       // note: this is somewhat of a magic number, in that it works the first time through with no remainder
-      val targetSize = 1700L
+      val targetSize = 2100L
 
       withTestDir { dir =>
         val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
@@ -392,7 +393,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
           transforms: Array[String],
           results: Seq[SimpleFeature]): MatchResult[Any] = {
 
-    val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms)
+    val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms: _*)
     val features = {
       val iter = SelfClosingIterator(storage.getReader(query))
       // note: need to copy features in iterator as same object is re-used

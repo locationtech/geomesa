@@ -155,8 +155,6 @@ object XmlConverter extends StrictLogging {
 
     private var helper: ThreadLocal[XmlHelper] = _
 
-    private val mutableArray = Array.ofDim[Any](1)
-
     private val expression = new ThreadLocal[XPathExpression]() {
       override def initialValue(): XPathExpression = helper.get.xpath.compile(path)
     }
@@ -164,11 +162,6 @@ object XmlConverter extends StrictLogging {
     override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
 
     override def compile(helper: ThreadLocal[XmlHelper]): Unit = this.helper = helper
-
-    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-      mutableArray(0) = expression.get.evaluate(args(0))
-      super.eval(mutableArray)
-    }
 
     private def values(args: Array[AnyRef]): AnyRef = expression.get.evaluate(args(0))
   }

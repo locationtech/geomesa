@@ -39,7 +39,7 @@ class Z3FeatureIdGeneratorTest extends Specification {
 
   def makeFeature(sft: SimpleFeatureType, geom: Geometry, dtg: Date, name: String): SimpleFeature = {
     val builder = new SimpleFeatureBuilder(sft)
-    builder.addAll(Array[Object](geom, dtg.asInstanceOf[Object], name))
+    builder.addAll(geom, dtg, name)
     builder.buildFeature("id1")
   }
 

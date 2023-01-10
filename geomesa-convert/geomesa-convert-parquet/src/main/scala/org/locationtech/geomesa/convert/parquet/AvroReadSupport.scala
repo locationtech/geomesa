@@ -19,7 +19,7 @@ import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema._
 import org.locationtech.geomesa.convert.parquet.AvroReadSupport.AvroRecordMaterializer
 import org.locationtech.geomesa.curve.BinnedTime
-import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport.{BooleanConverter, BytesConverter, DateConverter, DoubleConverter, FloatConverter, IntConverter, LongConverter, Settable, StringConverter}
+import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport.{BooleanConverter, BytesConverter, DateConverter, DoubleConverter, FloatConverter, IntConverter, LongConverter, Settable, StringConverter}
 
 import java.util.{Collections, Date}
 import scala.collection.mutable.ArrayBuffer
@@ -176,7 +176,7 @@ object AvroReadSupport {
     */
   class GenericListConverter(elements: Type, index: Int, callback: Settable) extends GroupConverter {
 
-    import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport.valueToSettable
+    import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport.valueToSettable
 
     private var list: java.util.List[AnyRef] = _
 
@@ -206,7 +206,7 @@ object AvroReadSupport {
     */
   class GenericMapConverter(keys: Type, values: Type, index: Int, callback: Settable) extends GroupConverter {
 
-    import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport.valueToSettable
+    import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport.valueToSettable
 
     private var map: java.util.Map[AnyRef, AnyRef] = _
 

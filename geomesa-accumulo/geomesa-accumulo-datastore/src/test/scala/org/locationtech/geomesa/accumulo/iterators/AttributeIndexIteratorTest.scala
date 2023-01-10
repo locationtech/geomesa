@@ -17,7 +17,9 @@ import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.index.conf.QueryHints.QUERY_INDEX
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -57,10 +59,10 @@ class AttributeIndexIteratorTest extends Specification with TestWithFeatureType 
 
   lazy val queryPlanner = ds.queryPlanner
 
-  def query(filter: String, attributes: Array[String] = Array.empty, explain: Explainer = ExplainNull) = {
-    val query = new Query(sftName, ECQL.toFilter(filter), if (attributes.length == 0) null else attributes)
+  def query(filter: String, attributes: Array[String] = Array.empty, explain: Explainer = ExplainNull): List[SimpleFeature] = {
+    val query = new Query(sftName, ECQL.toFilter(filter), attributes: _*)
     query.getHints.put(QUERY_INDEX, JoinIndex.name)
-    queryPlanner.runQuery(sft, query, explain).toList
+    WithClose(queryPlanner.runQuery(sft, query, explain).iterator())(_.toList)
   }
 
   "AttributeIndexIterator" should {

@@ -189,7 +189,7 @@ class GroupByTest extends Specification with StatTestHelper {
             }
             i += 1
           }
-          groupBy.groups.mapValues(_.toJson) mustEqual Map("foo" -> """{"count":4}""", "bar" -> """{"count":3}""")
+          groupBy.groups.map { case (k, v) => k -> v.toJson } mustEqual Map("foo" -> """{"count":4}""", "bar" -> """{"count":3}""")
         }
 
         "serialize to json" >> {

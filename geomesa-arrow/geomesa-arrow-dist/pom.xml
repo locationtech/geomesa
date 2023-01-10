@@ -27,31 +27,10 @@
             <artifactId>geomesa-arrow-tools_${scala.binary.version}</artifactId>
         </dependency>
 
-        <!-- GeoServer plugin - needed as a dependency for reactor ordering, but don't bring in transitive deps -->
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-arrow-gs-plugin_${scala.binary.version}</artifactId>
-            <type>pom</type>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!-- additional deps to manage in for deploying to lib dir-->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-arrow-datastore_${scala.binary.version}</artifactId>
-        </dependency>
-        <!-- Here we include Guava since it is the only dependency needed for the GM converter library and
-             we know that it will not conflict. -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 

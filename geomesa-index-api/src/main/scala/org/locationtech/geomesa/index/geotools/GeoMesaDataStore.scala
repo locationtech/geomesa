@@ -21,6 +21,7 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.conf.SemanticVersion.MinorOrdering
 import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, IndexId, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -260,17 +261,20 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
   // delete the index tables
   override protected def onSchemaDeleted(sft: SimpleFeatureType): Unit = {
+    def deleteFull(index: GeoMesaFeatureIndex[_, _]): Unit =
+      adapter.deleteTables(index.deleteTableNames(None))
+    def deleteShared(index: GeoMesaFeatureIndex[_, _]): Unit = {
+      if (index.keySpace.sharing.isEmpty) { deleteFull(index) } else {
+        adapter.clearTables(index.deleteTableNames(None), Some(index.keySpace.sharing))
+      }
+    }
+
+    val indices = manager.indices(sft).toList
     // noinspection ScalaDeprecation
     if (sft.isTableSharing && getTypeNames.exists(t => t != sft.getTypeName && getSchema(t).isTableSharing)) {
-      manager.indices(sft).par.foreach { index =>
-        if (index.keySpace.sharing.isEmpty) {
-          adapter.deleteTables(index.deleteTableNames(None))
-        } else {
-          adapter.clearTables(index.deleteTableNames(None), Some(index.keySpace.sharing))
-        }
-      }
+      indices.map(i => CachedThreadPool.submit(() => deleteShared(i))).foreach(_.get)
     } else {
-      manager.indices(sft).par.foreach(index => adapter.deleteTables(index.deleteTableNames(None)))
+      indices.map(i => CachedThreadPool.submit(() => deleteFull(i))).foreach(_.get)
     }
     if (sft.statsEnabled) {
       stats.writer.clear(sft)
@@ -344,11 +348,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    if (config.queries.caching) {
-      new GeoMesaFeatureStore(this, sft, queryPlanner) with GeoMesaFeatureSource.CachingFeatureSource
-    } else {
-      new GeoMesaFeatureStore(this, sft, queryPlanner)
-    }
+    new GeoMesaFeatureStore(this, sft)
   }
 
   override private[geomesa] def getFeatureReader(
@@ -358,7 +358,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (transaction != Transaction.AUTO_COMMIT) {
       logger.warn("Ignoring transaction - not supported")
     }
-    GeoMesaFeatureReader(sft, query, queryPlanner, config.queries.timeout, config.audit)
+    GeoMesaFeatureReader(sft, query, queryPlanner, config.audit)
   }
 
   /**

@@ -114,7 +114,7 @@ query issues, and can inform decisions to speed up execution time, such as when 
 or when query hints may be helpful.
 
 In order to show explain logging, configure your logging system to set
-``org.locationtech.geomesa.index.utils.Explainer`` to ``trace`` level. For example, in log4j use:
+``org.locationtech.geomesa.index.utils.Explainer`` to ``trace`` level. For example, in ``reload4j`` use:
 
 .. code-block:: bash
 

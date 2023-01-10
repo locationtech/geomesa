@@ -20,7 +20,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
-import org.locationtech.geomesa.parquet.ParquetFileSystemStorageFactory
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -58,7 +58,7 @@ class ExportToFsTest extends Specification {
       }
       ds.createSchema(sft)
       ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
-          .addFeatures(new ListFeatureCollection(sft, features.toArray[SimpleFeature]))
+          .addFeatures(new ListFeatureCollection(sft, features: _*))
 
       val storage = {
         val context = FileSystemContext(FileContext.getFileContext, new Configuration(), new Path(out.toUri))

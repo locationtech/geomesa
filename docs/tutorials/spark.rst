@@ -82,12 +82,12 @@ to match the configuration of your cluster:
 .. code-block:: scala
 
     val params = Map(
-      "instanceId" -> "instance",
-      "zookeepers" -> "zoo1,zoo2,zoo3",
-      "user"       -> "user",
-      "password"   -> "*****",
-      "auths"      -> "USER,ADMIN",
-      "tableName"  -> "geomesa.catalog")
+      "accumulo.instance.name" -> "instance",
+      "accumulo.zookeepers"    -> "zoo1,zoo2,zoo3",
+      "accumulo.user"          -> "user",
+      "accumulo.password"      -> "*****",
+      "accumulo.catalog"       -> "geomesa.catalog",
+      "geomesa.security.auths" -> "USER,ADMIN")
 
 We also define an ECQL filter used to select a subset of GDELT data from
 the GeoMesa Accumulo data store. The value of ``during`` should also be edited

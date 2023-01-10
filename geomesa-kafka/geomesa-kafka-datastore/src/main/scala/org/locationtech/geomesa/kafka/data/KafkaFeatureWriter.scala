@@ -17,8 +17,8 @@ import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
-import org.locationtech.geomesa.kafka.RecordVersions
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
+import org.locationtech.geomesa.kafka.versions.RecordVersions
 import org.locationtech.geomesa.security.VisibilityChecker
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{Filter, Id}

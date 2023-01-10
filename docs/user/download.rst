@@ -7,21 +7,21 @@ Versions and Downloads
 
     The current recommended version of GeoMesa is |release_version_literal|.
 
-GeoMesa requires `Java JRE or JDK 8`__ to run.
+GeoMesa requires a minimum `Java`__ version of 8 to run.
 
 __ http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
+.. note::
+
+    GeoMesa is tested against Java 8 and 11. Support for other versions should be considered experimental.
 
 Release Distributions
 ---------------------
 
-GeoMesa release distributions contain pre-built artifacts for using GeoMesa. They can be
+GeoMesa release distributions contain binary artifacts for using GeoMesa. They can be
 downloaded from `GitHub`__.
 
 __ https://github.com/locationtech/geomesa/releases
-
-Older versions can be downloaded from the `Eclipse Maven repository`__.
-
-__ https://repo.eclipse.org/content/repositories/geomesa-releases/org/locationtech/geomesa
 
 Maven Integration
 -----------------
@@ -51,18 +51,18 @@ and then include the desired ``geomesa-*`` dependencies:
 
     <properties>
       <geomesa.version>\ |release_version|\ </geomesa.version>
-      <scala.abi.version>\ |scala_binary_version|\ </scala.abi.version>
+      <scala.binary.version>\ |scala_binary_version|\ </scala.binary.version>
     </properties>
 
 .. code-block:: xml
 
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
-      <artifactId>geomesa-utils_${scala.abi.version}</artifactId>
+      <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
       <version>${geomesa.version}</version>
     </dependency>
 
-Nightly snapshots are available from Eclipse:
+For cutting-edge development, nightly snapshots are available from Eclipse:
 
 .. code-block:: xml
 
@@ -106,4 +106,4 @@ provides the script ``build/mvn``, which is a wrapper around Maven that download
 Upgrading
 ---------
 
-For details on changes between versions, see :ref:`upgrade_guide`.
+For details on changes between versions, see the :ref:`upgrade_guide`.

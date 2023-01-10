@@ -11,7 +11,6 @@ package org.locationtech.geomesa.kafka.confluent
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.kafka.confluent.ConfluentMetadata._
 import org.locationtech.geomesa.kafka.data.KafkaDataStore

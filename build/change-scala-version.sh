@@ -19,8 +19,8 @@
 
 set -e
 
-VALID_VERSIONS=("2.11" "2.12" "2.13")
-FULL_VERSIONS=("2.11.7" "2.12.13" "2.13.8")
+VALID_VERSIONS=("2.12" "2.13")
+FULL_VERSIONS=("2.12.13" "2.13.10")
 
 usage() {
   echo "Usage: $(basename $0) [-h|--help] <version>
@@ -62,12 +62,12 @@ export -f sed_i
 find "$BASEDIR" -name 'pom.xml' -not -path '*target*' -print \
   -exec bash -c "sed_i 's/\(artifactId.*\)_'$FROM_VERSION'/\1_'$TO_VERSION'/g' {}" \;
 
-# Also update <scala.binary.version> in parent POM
-# Match any scala binary version to ensure idempotency
+# update <scala.binary.version> in parent POM
+# match any scala binary version to ensure idempotency
 sed_i '1,/<scala\.binary\.version>[0-9]\.[0-9][0-9]*</s/<scala\.binary\.version>[0-9]\.[0-9][0-9]*</<scala.binary.version>'$TO_VERSION'</' \
   "$BASEDIR/pom.xml"
 
-# Also update <scala.version> in parent POM
+# update <scala.version> in parent POM
 sed_i '1,/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</s/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</<scala.version>'$FULL_VERSION'</' \
   "$BASEDIR/pom.xml"
 

@@ -88,7 +88,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       val ids = features.map(_.getID)
       foreach(filters) { filter =>
         foreach(transforms) { transform =>
-          val query = new Query(sftName, filter, transform)
+          val query = new Query(sftName, filter, transform: _*)
           val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           result must not(beEmpty)
           foreach(result)(f => ids.contains(f.getID) must beTrue)
@@ -110,7 +110,6 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       query.getHints.put(QueryHints.ARROW_PROXY_FID, true)
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, false)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
 
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
@@ -135,7 +134,6 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       query.getHints.put(QueryHints.ARROW_PROXY_FID, true)
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, false)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
 
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))

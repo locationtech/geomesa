@@ -50,7 +50,7 @@ class GeoMesaDataStoreTest extends Specification {
 
   step {
     features.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
-    ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features.toArray[SimpleFeature]))
+    ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features: _*))
   }
 
   "GeoMesaDataStore" should {
@@ -102,7 +102,7 @@ class GeoMesaDataStoreTest extends Specification {
       val ds = new TestGeoMesaDataStore(true)
       ds.createSchema(sft)
 
-      ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features.toArray[SimpleFeature]))
+      ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features: _*))
 
       // INCLUDE should be re-written to EXCLUDE
       forall(ds.getQueryPlan(new Query(sft.getTypeName)).map(_.filter.index))(_.getClass mustEqual classOf[EmptyIndex])

@@ -49,7 +49,7 @@ class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito with LazyL
     "return projections" in {
       val filter =
         ECQL.toFilter("bbox(geom, 38, 59, 42, 70) and dtg DURING 2017-02-03T00:00:00.000Z/2017-02-03T01:00:00.000Z")
-      val query = new Query(sft.getTypeName, filter, Array("name", "x=getX(geom)", "y=getY(geom)", "dtg", "geom"))
+      val query = new Query(sft.getTypeName, filter, "name", "x=getX(geom)", "y=getY(geom)", "dtg", "geom")
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
@@ -71,7 +71,7 @@ class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito with LazyL
     "return projections into json fields" in {
       val filter =
         ECQL.toFilter("bbox(geom, 38, 59, 42, 70) and dtg DURING 2017-02-03T00:00:00.000Z/2017-02-03T01:00:00.000Z")
-      val query = new Query(sft.getTypeName, filter, Array("team", "color=\"$.props.color\"", "dtg", "geom"))
+      val query = new Query(sft.getTypeName, filter, "team", "color=\"$.props.color\"", "dtg", "geom")
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "team,color")

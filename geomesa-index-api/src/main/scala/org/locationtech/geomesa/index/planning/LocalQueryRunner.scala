@@ -12,16 +12,15 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
-import org.locationtech.geomesa.arrow.io.{DeltaWriter, DictionaryBuildingWriter, FormatVersion}
+import org.locationtech.geomesa.arrow.io.{DeltaWriter, FormatVersion}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.index.api.QueryPlan.FeatureReducer
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
+import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, FeatureSampler, Reprojection, SortingSimpleFeatureIterator}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils, VisibilityEvaluator}
@@ -31,7 +30,7 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, RenderingGrid, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.stats.{Stat, TopK}
+import org.locationtech.geomesa.utils.stats.Stat
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -63,9 +62,12 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
     */
   protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature]
 
-  override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): CloseableIterator[SimpleFeature] = {
+  override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryResult = {
     val query = configureQuery(sft, original)
+    QueryResult(query.getHints.getReturnSft, query.getHints, run(sft, query, explain))
+  }
 
+  private def run(sft: SimpleFeatureType, query: Query, explain: Explainer)(): CloseableIterator[SimpleFeature] = {
     explain.pushLevel(s"$name query: '${sft.getTypeName}' ${org.locationtech.geomesa.filter.filterToString(query.getFilter)}")
     explain(s"bin[${query.getHints.isBinQuery}] arrow[${query.getHints.isArrowQuery}] " +
         s"density[${query.getHints.isDensityQuery}] stats[${query.getHints.isStatsQuery}] " +
@@ -172,14 +174,6 @@ object LocalQueryRunner extends LazyLogging {
     override def state: Map[String, String] = {
       if (visibility.isDefined) {
         throw new NotImplementedError("Visibility filtering is not serializable")
-      } else if (hints.isArrowQuery) {
-        // check for conditions which require a dictionary lookup using the arrow hook, which is not serializable
-        val dictionaries = hints.getArrowDictionaryFields
-        lazy val provided = hints.getArrowDictionaryEncodedValues(sft)
-        if (dictionaries.nonEmpty && !dictionaries.forall(provided.contains) &&
-            (hints.isArrowDoublePass || hints.isArrowCachedDictionaries)) {
-          throw new NotImplementedError("Arrow dictionary lookup is not serializable")
-        }
       }
       Map(
         "name" -> sft.getTypeName,
@@ -295,94 +289,27 @@ object LocalQueryRunner extends LazyLogging {
     }
 
     val dictionaryFields = hints.getArrowDictionaryFields
-    val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
-    val cachedDictionaries: Map[String, TopK[AnyRef]] = if (!hints.isArrowCachedDictionaries) { Map.empty } else {
-      val toLookup = dictionaryFields.filterNot(providedDictionaries.contains)
-      toLookup.flatMap(stats.getTopK[AnyRef](sft, _)).map(k => k.property -> k).toMap
+    val writer = new DeltaWriter(arrowSft, dictionaryFields, encoding, ipcOpts, None, batchSize)
+    val array = Array.ofDim[SimpleFeature](batchSize)
+
+    val sf = ArrowScan.resultFeature()
+
+    val arrows = new CloseableIterator[SimpleFeature] {
+      override def hasNext: Boolean = features.hasNext
+      override def next(): SimpleFeature = {
+        var index = 0
+        while (index < batchSize && features.hasNext) {
+          array(index) = features.next
+          index += 1
+        }
+        sf.setAttribute(0, writer.encode(array, index))
+        sf
+      }
+      override def close(): Unit = CloseWithLogging(Seq(features, writer))
     }
-
-    if (hints.isArrowDoublePass ||
-        dictionaryFields.forall(f => providedDictionaries.contains(f) || cachedDictionaries.contains(f))) {
-      // we have all the dictionary values, or we will run a query to determine them up front
-      // note: only invoke createDictionaries if needed, so we only get the arrow hook if needed
-      val dictionaries: Map[String, ArrowDictionary] =
-        if (dictionaryFields.isEmpty) { Map.empty } else {
-          logger.warn("Running deprecated Arrow double pass scan - switch to delta scans instead")
-          ArrowScan.createDictionaries(stats, sft, filter, dictionaryFields, providedDictionaries, cachedDictionaries)
-        }
-
-      val vector = SimpleFeatureVector.create(arrowSft, dictionaries, encoding)
-      val batchWriter = new RecordBatchUnloader(vector, ipcOpts)
-
-      val sf = ArrowScan.resultFeature()
-
-      val arrows = new CloseableIterator[SimpleFeature] {
-        override def hasNext: Boolean = features.hasNext
-        override def next(): SimpleFeature = {
-          var index = 0
-          vector.clear()
-          while (index < batchSize && features.hasNext) {
-            vector.writer.set(index, features.next)
-            index += 1
-          }
-          sf.setAttribute(0, batchWriter.unload(index))
-          sf
-        }
-        override def close(): Unit = CloseWithLogging(Seq(features, vector))
-      }
-
-      if (hints.isSkipReduce) { arrows } else {
-        new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, ipcOpts, batchSize, sort.map(_.head), sorted = true)(arrows)
-      }
-    } else if (hints.isArrowMultiFile) {
-      logger.warn("Running deprecated Arrow multi file scan - switch to delta scans instead")
-      val writer = new DictionaryBuildingWriter(arrowSft, dictionaryFields, encoding, ipcOpts)
-      val os = new ByteArrayOutputStream()
-
-      val sf = ArrowScan.resultFeature()
-
-      val arrows = new CloseableIterator[SimpleFeature] {
-        override def hasNext: Boolean = features.hasNext
-        override def next(): SimpleFeature = {
-          writer.clear()
-          os.reset()
-          var index = 0
-          while (index < batchSize && features.hasNext) {
-            writer.add(features.next)
-            index += 1
-          }
-          writer.encode(os)
-          sf.setAttribute(0, os.toByteArray)
-          sf
-        }
-        override def close(): Unit = CloseWithLogging(Seq(features, writer))
-      }
-      if (hints.isSkipReduce) { arrows } else {
-        new ArrowScan.FileReducer(arrowSft, dictionaryFields, encoding, ipcOpts, sort.map(_.head))(arrows)
-      }
-    } else {
-      val writer = new DeltaWriter(arrowSft, dictionaryFields, encoding, ipcOpts, None, batchSize)
-      val array = Array.ofDim[SimpleFeature](batchSize)
-
-      val sf = ArrowScan.resultFeature()
-
-      val arrows = new CloseableIterator[SimpleFeature] {
-        override def hasNext: Boolean = features.hasNext
-        override def next(): SimpleFeature = {
-          var index = 0
-          while (index < batchSize && features.hasNext) {
-            array(index) = features.next
-            index += 1
-          }
-          sf.setAttribute(0, writer.encode(array, index))
-          sf
-        }
-        override def close(): Unit = CloseWithLogging(Seq(features, writer))
-      }
-      if (hints.isSkipReduce) { arrows } else {
-        val process = hints.isArrowProcessDeltas
-        new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort.map(_.head), sorted = true, process)(arrows)
-      }
+    if (hints.isSkipReduce) { arrows } else {
+      val process = hints.isArrowProcessDeltas
+      new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort.map(_.head), sorted = true, process)(arrows)
     }
   }
 

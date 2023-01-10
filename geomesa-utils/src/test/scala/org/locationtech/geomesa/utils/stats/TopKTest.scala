@@ -28,30 +28,30 @@ class TopKTest extends Specification {
 
   val features1 = (0 until 100).map { i =>
     if (i < 10) {
-      builder.addAll(Array[AnyRef]("name10", "10", "10.0", "2010-01-01T00:00:00.000Z", "POINT(10 0)"))
+      builder.addAll("name10", "10", "10.0", "2010-01-01T00:00:00.000Z", "POINT(10 0)")
     } else if (i < 15) {
-      builder.addAll(Array[AnyRef]("name15", "15", "15.0", "2015-01-01T00:00:00.000Z", "POINT(15 0)"))
+      builder.addAll("name15", "15", "15.0", "2015-01-01T00:00:00.000Z", "POINT(15 0)")
     } else if (i < 30) {
-      builder.addAll(Array[AnyRef]("name30", "30", "30.0", "2030-01-01T00:00:00.000Z", "POINT(30 0)"))
+      builder.addAll("name30", "30", "30.0", "2030-01-01T00:00:00.000Z", "POINT(30 0)")
     } else if (i < 50) {
-      builder.addAll(Array[AnyRef]("name50", "50", "50.0", "2050-01-01T00:00:00.000Z", "POINT(50 0)"))
+      builder.addAll("name50", "50", "50.0", "2050-01-01T00:00:00.000Z", "POINT(50 0)")
     } else {
-      builder.addAll(Array[AnyRef]("name100", "100", "100.0", "2100-01-01T00:00:00.000Z", "POINT(100 0)"))
+      builder.addAll("name100", "100", "100.0", "2100-01-01T00:00:00.000Z", "POINT(100 0)")
     }
     builder.buildFeature(i.toString)
   }
 
   val features2 = (0 until 100).map { i =>
     if (i < 10) {
-      builder.addAll(Array[AnyRef]("name10-2", "210", "10.2", "2010-01-01T02:00:00.000Z", "POINT(10 2)"))
+      builder.addAll("name10-2", "210", "10.2", "2010-01-01T02:00:00.000Z", "POINT(10 2)")
     } else if (i < 15) {
-      builder.addAll(Array[AnyRef]("name15-2", "215", "15.2", "2015-01-01T02:00:00.000Z", "POINT(15 2)"))
+      builder.addAll("name15-2", "215", "15.2", "2015-01-01T02:00:00.000Z", "POINT(15 2)")
     } else if (i < 30) {
-      builder.addAll(Array[AnyRef]("name30-2", "230", "30.2", "2030-01-01T02:00:00.000Z", "POINT(30 2)"))
+      builder.addAll("name30-2", "230", "30.2", "2030-01-01T02:00:00.000Z", "POINT(30 2)")
     } else if (i < 50) {
-      builder.addAll(Array[AnyRef]("name50-2", "250", "50.2", "2050-01-01T02:00:00.000Z", "POINT(50 2)"))
+      builder.addAll("name50-2", "250", "50.2", "2050-01-01T02:00:00.000Z", "POINT(50 2)")
     } else {
-      builder.addAll(Array[AnyRef]("name100-2", "2100", "100.2", "2100-01-01T02:00:00.000Z", "POINT(100 2)"))
+      builder.addAll("name100-2", "2100", "100.2", "2100-01-01T02:00:00.000Z", "POINT(100 2)")
     }
     builder.buildFeature(i.toString)
   }

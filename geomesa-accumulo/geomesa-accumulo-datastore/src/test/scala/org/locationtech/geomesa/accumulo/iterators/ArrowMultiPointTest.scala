@@ -44,7 +44,7 @@ class ArrowMultiPointTest extends TestWithFeatureType with Mockito with LazyLogg
 
   "Arrow delta scans" should {
     "query multipoints" in {
-      val query = new Query(sft.getTypeName, Filter.INCLUDE, Array("name", "dtg", "geom"))
+      val query = new Query(sft.getTypeName, Filter.INCLUDE, "name", "dtg", "geom")
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")

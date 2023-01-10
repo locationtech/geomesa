@@ -92,7 +92,7 @@ class AccumuloPartitioningTest extends Specification with TestWithFeatureType {
   }
 
   def testQuery(filter: String, transforms: Array[String], results: Seq[SimpleFeature]): Unit = {
-    val query = new Query(sftName, ECQL.toFilter(filter), transforms)
+    val query = new Query(sftName, ECQL.toFilter(filter), transforms: _*)
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
     val features = SelfClosingIterator(fr).toList
     if (features.length != results.length) {

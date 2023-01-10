@@ -11,6 +11,10 @@
     <name>GeoMesa Accumulo</name>
     <packaging>pom</packaging>
 
+    <properties>
+        <guava.version>${accumulo.guava.version}</guava.version>
+    </properties>
+
     <modules>
         <module>geomesa-accumulo-datastore</module>
         <module>geomesa-accumulo-dist</module>
@@ -18,7 +22,6 @@
         <module>geomesa-accumulo-gs-plugin</module>
         <module>geomesa-accumulo-jobs</module>
         <module>geomesa-accumulo-spark</module>
-        <module>geomesa-accumulo-spark-runtime-accumulo1</module>
         <module>geomesa-accumulo-spark-runtime-accumulo2</module>
         <module>geomesa-accumulo-tools</module>
     </modules>

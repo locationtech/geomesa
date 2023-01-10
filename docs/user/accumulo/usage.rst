@@ -12,15 +12,15 @@ that the GeoMesa code is on the classpath:
     import org.geotools.data.*;
 
     Map<String, String> parameters = new HashMap<>;
-    parameters.put("accumulo.instance.id", "myInstance");
+    parameters.put("accumulo.instance.name", "myInstance");
     parameters.put("accumulo.zookeepers", "myZoo1,myZoo2,myZoo3");
     parameters.put("accumulo.user", "myUser");
     parameters.put("accumulo.password", "myPassword");
     parameters.put("accumulo.catalog", "myNamespace.myTable");
     DataStore dataStore = DataStoreFinder.getDataStore(parameters);
 
-Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties`` (for Accumulo
-2) or ``client.conf`` (for Accumulo 1) may be added to the classpath. See the
+Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties`` may be added
+to the classpath. See the
 `Accumulo documentation <https://accumulo.apache.org/docs/2.x/getting-started/clients#creating-an-accumulo-client>`_
 for information on the necessary configuration keys. Any explicit data store parameters will take precedence over
 the configuration file.
@@ -39,7 +39,7 @@ Parameter                              Type    Description
 ====================================== ======= ==========================================================================
 ``accumulo.catalog *``                 String  The name of the GeoMesa catalog table, including the Accumulo namespace
                                                (e.g. "myNamespace.myCatalog")
-``accumulo.instance.id``               String  The ID of the Accumulo instance
+``accumulo.instance.name``             String  The name of the Accumulo instance
 ``accumulo.zookeepers``                String  A comma separated list of zookeeper servers (e.g. "zoo1,zoo2,zoo3"
                                                or "localhost:2181")
 ``accumulo.user``                      String  The username used to connect to Accumulo
@@ -68,7 +68,6 @@ Parameter                              Type    Description
 ``accumulo.remote.stats.enable``       Boolean Process statistical calculations in Accumulo tablets servers as a
                                                distributed call
 ``geomesa.partition.scan.parallel``    Boolean For partitioned schemas, execute scans in parallel instead of sequentially
-``geomesa.query.caching``              Boolean Toggle caching of results
 ====================================== ======= ==========================================================================
 
 Note: it is an error to specify both ``accumulo.password`` and ``accumulo.keytab.path``.

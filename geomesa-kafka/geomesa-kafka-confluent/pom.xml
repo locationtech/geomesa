@@ -15,6 +15,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <avro.version>${confluent.avro.version}</avro.version>
+        <kafka.scala.version>${scala.binary.version}</kafka.scala.version> <!-- try to override the confluent pom -->
     </properties>
 
     <dependencies>
@@ -101,7 +102,7 @@
                 </exclusion>
                 <exclusion>
                     <groupId>com.kjetland</groupId>
-                    <artifactId>mbknor-jackson-jsonschema_2.12</artifactId>
+                    <artifactId>*</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>log4j</groupId>
@@ -127,7 +128,7 @@
                 </exclusion>
                 <exclusion>
                     <groupId>com.kjetland</groupId>
-                    <artifactId>mbknor-jackson-jsonschema_2.12</artifactId>
+                    <artifactId>*</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>log4j</groupId>

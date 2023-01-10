@@ -11,9 +11,9 @@ package org.locationtech.geomesa.index.geotools
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.feature._
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.partition.TablePartition
-import org.locationtech.geomesa.index.planning.QueryRunner
-import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
@@ -24,8 +24,8 @@ import org.opengis.filter.identity.FeatureId
 import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 
-class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeatureType, runner: QueryRunner)
-    extends GeoMesaFeatureSource(ds, sft, runner) with SimpleFeatureStore {
+class GeoMesaFeatureStore(ds: GeoMeasBaseStore, sft: SimpleFeatureType)
+    extends GeoMesaFeatureSource(ds, sft) with SimpleFeatureStore {
 
   private var transaction: Transaction = Transaction.AUTO_COMMIT
 
@@ -107,13 +107,17 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
   override def removeFeatures(filter: Filter): Unit = {
     ds match {
       case gm: GeoMesaDataStore[_] if filter == Filter.INCLUDE =>
+        val indices = gm.manager.indices(sft).toList
         if (TablePartition.partitioned(sft)) {
-          gm.manager.indices(sft).par.foreach(index => gm.adapter.deleteTables(index.deleteTableNames(None)))
+          def deleteOne(index: GeoMesaFeatureIndex[_, _]): Unit =
+            gm.adapter.deleteTables(index.deleteTableNames(None))
+          indices.map(i => CachedThreadPool.submit(() => deleteOne(i))).foreach(_.get)
         } else {
-          gm.manager.indices(sft).par.foreach { index =>
+          def deleteOne(index: GeoMesaFeatureIndex[_, _]): Unit = {
             val prefix = Some(index.keySpace.sharing).filterNot(_.isEmpty)
             gm.adapter.clearTables(index.getTableNames(None), prefix)
           }
+          indices.map(i => CachedThreadPool.submit(() => deleteOne(i))).foreach(_.get)
         }
         gm.stats.writer.clear(sft)
 

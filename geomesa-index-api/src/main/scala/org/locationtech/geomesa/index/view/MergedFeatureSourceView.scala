@@ -12,11 +12,10 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection.GeoMesaFeatureVisitingCollection
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.DelegatingResourceInfo
-import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCapabilities
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -24,7 +23,7 @@ import org.opengis.filter.sort.SortBy
 
 import java.awt.RenderingHints.Key
 import java.util.Collections
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
   * Feature source for merged data store view
@@ -41,6 +40,8 @@ class MergedFeatureSourceView(
     sft: SimpleFeatureType
   ) extends SimpleFeatureSource with LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   lazy private val hints = Collections.unmodifiableSet(Collections.emptySet[Key])
 
   lazy private val capabilities = new MergedQueryCapabilities(sources.map(_._1.getQueryCapabilities))
@@ -50,8 +51,13 @@ class MergedFeatureSourceView(
   override def getCount(query: Query): Int = {
     val total =
       if (parallel) {
-        val counts = sources.par.map { case (source, f) => source.getCount(mergeFilter(sft, query, f)) }
-        counts.foldLeft(0)((sum, count) => if (sum < 0 || count < 0) { -1 } else { sum + count })
+        def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Int = {
+          val (source, filter) = sourceAndFilter
+          source.getCount(mergeFilter(sft, query, filter))
+        }
+        val results = new CopyOnWriteArrayList[Int]()
+        sources.toList.map(s => CachedThreadPool.submit(() => results.add(getSingle(s)))).foreach(_.get)
+        results.asScala.foldLeft(0)((sum, count) => if (sum < 0 || count < 0) { -1 } else { sum + count })
       } else {
         // if one of our sources can't get a count (i.e. is negative), give up and return -1
         sources.foldLeft(0) { case (sum, (source, filter)) =>
@@ -74,7 +80,13 @@ class MergedFeatureSourceView(
       }
     }
 
-    val sourceBounds = if (parallel) { sources.par.flatMap(getSingle).seq } else { sources.flatMap(getSingle) }
+    val sourceBounds = if (parallel) {
+      val results = new CopyOnWriteArrayList[ReferencedEnvelope]()
+      sources.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+      results.asScala
+    } else {
+      sources.flatMap(getSingle)
+    }
 
     val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
     sourceBounds.foreach(bounds.expandToInclude)
@@ -85,7 +97,13 @@ class MergedFeatureSourceView(
     def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Option[ReferencedEnvelope] =
       Option(sourceAndFilter._1.getBounds(mergeFilter(sft, query, sourceAndFilter._2)))
 
-    val sourceBounds = if (parallel) { sources.par.flatMap(getSingle).seq } else { sources.flatMap(getSingle) }
+    val sourceBounds = if (parallel) {
+      val results = new CopyOnWriteArrayList[ReferencedEnvelope]()
+      sources.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+      results.asScala
+    } else {
+      sources.flatMap(getSingle)
+    }
 
     val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
     sourceBounds.foreach(bounds.expandToInclude)
@@ -120,29 +138,11 @@ class MergedFeatureSourceView(
   class MergedFeatureCollection(query: Query)
       extends GeoMesaFeatureVisitingCollection(MergedFeatureSourceView.this, ds.stats, query) {
 
-    private val open = new AtomicBoolean(false)
+    private lazy val featureReader = ds.getFeatureReader(sft, Transaction.AUTO_COMMIT, query)
 
-    override def getSchema: SimpleFeatureType = {
-      if (!open.get) {
-        // once opened the query will already be configured by the query planner,
-        // otherwise we have to compute it here
-        ds.runner.configureQuery(sft, query)
-      }
-      // copy the query so that we don't set any hints for transforms, etc
-      val copy = new Query(query)
-      copy.setHints(new Hints(query.getHints))
-      QueryPlanner.setQueryTransforms(sft, copy)
-      ds.runner.getReturnSft(sft, copy.getHints)
-    }
+    override def getSchema: SimpleFeatureType = featureReader.schema
 
-    override protected def openIterator(): java.util.Iterator[SimpleFeature] = {
-      val iter = super.openIterator()
-      open.set(true)
-      iter
-    }
-
-    override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] =
-      ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+    override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = featureReader.reader()
 
     override def getBounds: ReferencedEnvelope = MergedFeatureSourceView.this.getBounds(query)
 
@@ -165,8 +165,8 @@ object MergedFeatureSourceView {
     */
   class MergedQueryCapabilities(capabilities: Seq[QueryCapabilities]) extends QueryCapabilities {
     override def isOffsetSupported: Boolean = capabilities.forall(_.isOffsetSupported)
-    override def supportsSorting(sortAttributes: Array[SortBy]): Boolean =
-      capabilities.forall(_.supportsSorting(sortAttributes))
+    override def supportsSorting(sortAttributes: SortBy*): Boolean =
+      capabilities.forall(_.supportsSorting(sortAttributes: _*))
     override def isReliableFIDSupported: Boolean = capabilities.forall(_.isReliableFIDSupported)
     override def isUseProvidedFIDSupported: Boolean = capabilities.forall(_.isUseProvidedFIDSupported)
     override def isJoiningSupported: Boolean = capabilities.forall(_.isJoiningSupported)
