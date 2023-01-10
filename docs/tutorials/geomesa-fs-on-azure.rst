@@ -398,6 +398,7 @@ Back inside the Apache Spark container on your master node run the following:
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -446,6 +447,8 @@ Back inside the Apache Spark container on your master node run the following:
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 
 If you have increased the size of your cluster, you should also increase ``--num-executors`` accordingly. You can also
 set other executor and driver options by editing the ``spark_opts`` contents.

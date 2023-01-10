@@ -24,6 +24,7 @@ In this case you may download SLF4J `here <http://www.slf4j.org/download.html>`_
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -36,4 +37,7 @@ In this case you may download SLF4J `here <http://www.slf4j.org/download.html>`_
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 ``slf4j-reload4j-1.7.36.jar`` and place it in the ``lib`` directory of the binary distribution.
