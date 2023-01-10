@@ -47,6 +47,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -131,6 +132,8 @@
 >>>>>>> ef93a5f92d1 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 12a626bb844 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
 =======
@@ -888,7 +891,13 @@
         <version>3.5.0-SNAPSHOT</version>
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 12a626bb844 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
         <relativePath>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/pom.xml</relativePath>
     </parent>
 
