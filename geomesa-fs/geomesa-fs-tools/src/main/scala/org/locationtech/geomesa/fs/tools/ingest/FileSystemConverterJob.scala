@@ -54,8 +54,11 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
@@ -74,10 +77,13 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0884e75348d (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 7c6dac7c346 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -126,7 +132,14 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 7c6dac7c346 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters

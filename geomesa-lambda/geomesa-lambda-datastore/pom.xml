@@ -200,6 +200,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -595,6 +596,8 @@
 >>>>>>> cf5ca5d0ded (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 83363fd6e61 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> 3a2e956065 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -890,7 +893,12 @@
 =======
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 83363fd6e61 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.4.0-SNAPSHOT</version>
@@ -2842,10 +2850,13 @@
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 83363fd6e61 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -5665,7 +5676,15 @@
 =======
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 83363fd6e61 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
     </parent>
 
     <artifactId>geomesa-lambda-datastore_2.12</artifactId>
@@ -5790,10 +5809,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-kafka-datastore_${scala.binary.version}</artifactId>
@@ -5810,6 +5832,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <dependency>
             <groupId>org.geomesa.testcontainers</groupId>
             <artifactId>testcontainers-accumulo</artifactId>
@@ -5822,6 +5845,8 @@
 =======
 >>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -5832,7 +5857,14 @@
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
     </dependencies>
 
 </project>
