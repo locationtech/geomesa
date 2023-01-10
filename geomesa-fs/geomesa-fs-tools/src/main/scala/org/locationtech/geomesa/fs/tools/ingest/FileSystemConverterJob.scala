@@ -90,11 +90,15 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> 8d12a2c148 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -117,6 +121,8 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 <<<<<<< HEAD
@@ -138,6 +144,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0884e75348d (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -150,8 +157,12 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 >>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+>>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 37636fb3b99 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -208,17 +219,25 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 7c6dac7c346 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 37636fb3b99 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 0222d5f61c (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
@@ -333,7 +352,12 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 37636fb3b99 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters

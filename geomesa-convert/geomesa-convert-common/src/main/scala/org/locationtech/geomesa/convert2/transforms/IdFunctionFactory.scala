@@ -31,11 +31,15 @@ package org.locationtech.geomesa.convert2.transforms
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> ef927e4467 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -62,6 +66,8 @@ package org.locationtech.geomesa.convert2.transforms
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 import com.google.common.hash.Hashing
 <<<<<<< HEAD
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -234,8 +240,11 @@ import org.apache.commons.codec.digest.MurmurHash3
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
@@ -290,10 +299,14 @@ import org.apache.commons.codec.digest.MurmurHash3
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
+<<<<<<< HEAD
 <<<<<<< HEAD
 import org.apache.commons.codec.digest.MurmurHash3
 <<<<<<< HEAD
@@ -363,6 +376,11 @@ import org.apache.commons.codec.digest.MurmurHash3
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+import org.apache.commons.codec.digest.MurmurHash3
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -393,11 +411,15 @@ import java.security.MessageDigest
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> ef927e4467 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -424,6 +446,8 @@ import java.security.MessageDigest
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -436,8 +460,11 @@ import java.security.MessageDigest
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -483,10 +510,14 @@ import java.security.MessageDigest
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> ef927e4467 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
@@ -542,6 +573,8 @@ import java.security.MessageDigest
 >>>>>>> 098dce9ec6 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 import java.util.{Date, UUID}
 import scala.util.control.NonFatal
 
@@ -612,6 +645,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   private val murmur3_128Hashing = Hashing.murmur3_128()
 <<<<<<< HEAD
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -624,6 +658,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> c79a342576 (GEOMESA-3109 Json array to object converter function (#2788))
 
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
   private val murmur3_128Hashing = Hashing.murmur3_128()
 <<<<<<< HEAD
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
@@ -929,6 +965,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2ae5d0a688 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -949,6 +986,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
@@ -2350,10 +2389,14 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2943,12 +2986,19 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
   }
 
   private val murmur3_32: TransformerFunction = new NamedTransformerFunction(Seq("murmur3_32"), pure = true) {
-    private val hasher = Hashing.murmur3_32()
-    override def apply(args: Array[AnyRef]): AnyRef =
-      hasher.hashString(args(0).toString, StandardCharsets.UTF_8)
+    override def apply(args: Array[AnyRef]): AnyRef = {
+      val bytes = args(0) match {
+        case s: String => s.getBytes(StandardCharsets.UTF_8)
+        case b: Array[Byte] => b
+        case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
+      }
+      Int.box(MurmurHash3.hash32x86(bytes, 0, bytes.length, 0))
+    }
   }
 
 <<<<<<< HEAD
@@ -21564,21 +21614,22 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
   // bits of a 128 bit hash. the full 128-bit hash is now called murmurHash3 to avoid name conflicts
   private val murmur3_64 =
     TransformerFunction.pure("murmur3_128", "murmur3_64") { args =>
-      val hash = args(0) match {
-        case s: String => murmur3_128Hashing.hashBytes(s.getBytes(StandardCharsets.UTF_8))
-        case b: Array[Byte] => murmur3_128Hashing.hashBytes(b)
+      val bytes = args(0) match {
+        case s: String => s.getBytes(StandardCharsets.UTF_8)
+        case b: Array[Byte] => b
         case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
       }
-      Long.box(hash.asLong()) // asLong gets only the first 64 bits even though the hash has 128
+      Long.box(MurmurHash3.hash128x64(bytes, 0, bytes.length, 0).head)
     }
 
   private val murmur3_128 =
     TransformerFunction.pure("murmurHash3") { args =>
-      args(0) match {
-        case s: String => murmur3_128Hashing.hashBytes(s.getBytes(StandardCharsets.UTF_8)).toString // toString results in hex
-        case b: Array[Byte] => murmur3_128Hashing.hashBytes(b).toString // toString results in hex
+      val bytes = args(0) match {
+        case s: String => s.getBytes(StandardCharsets.UTF_8)
+        case b: Array[Byte] => b
         case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -22545,7 +22596,25 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+      // mimic guava little-endian output
+      val sb = new StringBuilder(32)
+      MurmurHash3.hash128x64(bytes, 0, bytes.length, 0).foreach { hash =>
+        var i = 0
+        while (i < 64) {
+          sb.append(ByteArrays.toHex(((hash >> i) & 0xff).asInstanceOf[Byte]))
+          i += 8
+        }
+      }
+      sb.toString
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
     }
 }
