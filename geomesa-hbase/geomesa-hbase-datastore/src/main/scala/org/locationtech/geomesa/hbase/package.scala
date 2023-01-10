@@ -55,9 +55,13 @@ package object hbase {
     val CoprocessorMaxThreads    : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.maximize.threads", "true")
     val WriteBatchSize           : SystemProperty = SystemProperty("geomesa.hbase.write.batch")
 <<<<<<< HEAD
+<<<<<<< HEAD
     val WriteFlushTimeout        : SystemProperty = SystemProperty("geomesa.hbase.write.flush.timeout.millis")
 =======
 >>>>>>> 8effb11c46 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+    val WriteFlushTimeout        : SystemProperty = SystemProperty("geomesa.hbase.write.flush.timeout.millis")
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
     val WalDurability            : SystemProperty = SystemProperty("geomesa.hbase.wal.durability")
     val ScannerCaching           : SystemProperty = SystemProperty("geomesa.hbase.client.scanner.caching.size")
     val ScannerBlockCaching      : SystemProperty = SystemProperty("geomesa.hbase.query.block.caching.enabled", "true")
