@@ -28,6 +28,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         pred.eval(Array("", "1", "2")) must beFalse
         pred.eval(Array("", "1", "1")) must beTrue
@@ -46,6 +47,8 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "1", "1")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare string not equals" >> {
@@ -56,6 +59,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       pred.eval(Array("", "1", "2")) must beTrue
       pred.eval(Array("", "1", "1")) must beFalse
@@ -74,6 +78,8 @@ class PredicateTest extends Specification {
       pred.eval(Array("", "1", "1")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
     }
     "compare int equals" >> {
       foreach(Seq("intEq($1::int, $2::int)", "$1::int == $2::int")) { s =>
@@ -84,6 +90,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         pred.eval(Array("", "1", "2")) must beFalse
         pred.eval(Array("", "1", "1")) must beTrue
@@ -102,6 +109,8 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "1", "1")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare integer equals" >> {
@@ -113,6 +122,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         pred.eval(Array("", "1", "2")) must beFalse
         pred.eval(Array("", "1", "1")) must beTrue
@@ -131,6 +141,8 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "1", "1")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare nested int equals" >> {
@@ -142,6 +154,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         pred.eval(Array("", "3", "foo")) must beTrue
         pred.eval(Array("", "4", "foo")) must beFalse
@@ -160,6 +173,8 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "4", "foo")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare int lteq" >> {
@@ -168,6 +183,7 @@ class PredicateTest extends Specification {
         pred.apply(Array("", "1", "2")) must beTrue
         pred.apply(Array("", "1", "1")) must beTrue
         pred.apply(Array("", "1", "0")) must beFalse
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -191,6 +207,8 @@ class PredicateTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare int lt" >> {
@@ -198,6 +216,7 @@ class PredicateTest extends Specification {
         val pred = Predicate(s)
         pred.apply(Array("", "1", "2")) must beTrue
         pred.apply(Array("", "1", "1")) must beFalse
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -220,6 +239,8 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "1", "1")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare int gteq" >> {
@@ -228,6 +249,7 @@ class PredicateTest extends Specification {
         pred.apply(Array("", "1", "2")) must beFalse
         pred.apply(Array("", "1", "1")) must beTrue
         pred.apply(Array("", "2", "1")) must beTrue
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -251,6 +273,8 @@ class PredicateTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare int gt" >> {
@@ -259,6 +283,7 @@ class PredicateTest extends Specification {
         pred.apply(Array("", "1", "2")) must beFalse
         pred.apply(Array("", "1", "1")) must beFalse
         pred.apply(Array("", "2", "1")) must beTrue
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -282,6 +307,8 @@ class PredicateTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare double equals" >> {
@@ -289,6 +316,7 @@ class PredicateTest extends Specification {
         val pred = Predicate(s)
         pred.apply(Array("", "1.0", "2.0")) must beFalse
         pred.apply(Array("", "1.0", "1.0")) must beTrue
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -311,6 +339,8 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "1.0", "1.0")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare double lteq" >> {
@@ -319,6 +349,7 @@ class PredicateTest extends Specification {
         pred.apply(Array("", "1.0", "2.0")) must beTrue
         pred.apply(Array("", "1.0", "1.0")) must beTrue
         pred.apply(Array("", "1.0", "0.0")) must beFalse
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -342,6 +373,8 @@ class PredicateTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare double lt" >> {
@@ -349,6 +382,7 @@ class PredicateTest extends Specification {
         val pred = Predicate(s)
         pred.apply(Array("", "1.0", "2.0")) must beTrue
         pred.apply(Array("", "1.0", "1.0")) must beFalse
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -371,6 +405,8 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "1.0", "1.0")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare double gteq" >> {
@@ -379,6 +415,7 @@ class PredicateTest extends Specification {
         pred.apply(Array("", "1.0", "2.0")) must beFalse
         pred.apply(Array("", "1.0", "1.0")) must beTrue
         pred.apply(Array("", "2.0", "1.0")) must beTrue
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -402,6 +439,8 @@ class PredicateTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare double gt" >> {
@@ -410,6 +449,7 @@ class PredicateTest extends Specification {
         pred.apply(Array("", "1.0", "2.0")) must beFalse
         pred.apply(Array("", "1.0", "1.0")) must beFalse
         pred.apply(Array("", "2.0", "1.0")) must beTrue
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -433,6 +473,8 @@ class PredicateTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare not predicates" >> {
@@ -443,6 +485,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         pred.eval(Array("", "1", "1")) must beFalse
 <<<<<<< HEAD
@@ -459,6 +502,8 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "1", "1")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare and predicates" >> {
@@ -469,6 +514,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         pred.eval(Array("", "foo", "foo", "f", "oo")) must beTrue
 <<<<<<< HEAD
@@ -485,6 +531,8 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "foo", "foo", "f", "oo")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare or predicates" >> {
@@ -495,6 +543,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         pred.eval(Array("", "foo", "foo", "f", "oo")) must beTrue
 <<<<<<< HEAD
@@ -511,6 +560,8 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "foo", "foo", "f", "oo")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "compare grouped predicates" >> {
@@ -524,6 +575,7 @@ class PredicateTest extends Specification {
         pred.apply(Array("", "foo", "foo", "f", "foo")) must beTrue
         pred.apply(Array("", "foo", "foo", "f", "oo")) must beFalse
         pred.apply(Array("", "foo", "fo", "f", "foo")) must beFalse
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -547,6 +599,8 @@ class PredicateTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
     }
   }
