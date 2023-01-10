@@ -13,12 +13,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 36a7119501 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 import org.geotools.data._
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
@@ -272,11 +275,19 @@ import org.geotools.data.{DataStoreFinder, DefaultTransaction, Query, Transactio
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
 =======
+<<<<<<< HEAD
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 =======
 import org.geotools.data._
 import org.geotools.data.postgis.PostGISPSDialect
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+import org.geotools.data._
+import org.geotools.data.postgis.PostGISPSDialect
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 import org.geotools.filter.identity.FeatureIdImpl
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 47f8de1bb (GEOMESA-3215 Postgis - support List-type attributes)
@@ -1130,6 +1141,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 69a6e5986e (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -1159,6 +1171,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
       recreate = false,
 >>>>>>> 36a7119501 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+      upgrade = false,
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
       write = false,
       update = false,
       query = false,
@@ -1445,6 +1460,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1456,11 +1472,14 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
       skipped("requires postgis instance")
 =======
       if (!methods.any) {
         skipped("requires postgis instance")
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1494,6 +1513,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
       skipped("requires postgis instance")
 >>>>>>> 4d7cc37021 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
       val params =
         Map(
           "dbtype"   -> PartitionedPostgisDataStoreParams.DbType.sample,
@@ -1572,6 +1594,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         val sftNames: Seq[String] = Seq("test", "test-abcdefghijklmnopqrstuvwxyz")
 
         foreach(sftNames) { name =>
@@ -1601,6 +1624,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 =======
 >>>>>>> c206c9d8073 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 427980bdc78 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -1656,12 +1681,18 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> c206c9d8073 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 427980bdc78 (GEOMESA-3254 Add Bloop build support)
         foreach(Seq("test", "test-dash")) { name =>
 >>>>>>> 7844c8d8dfd (GEOMESA-3254 Add Bloop build support)
           val sft = SimpleFeatureTypes.renameSft(this.sft, name)
           ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
           ds.createSchema(sft)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1680,6 +1711,34 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
         logger.info(s"Existing type names: ${ds.getTypeNames.mkString(", ")}")
+=======
+=======
+        logger.info(s"Existing type names: ${ds.getTypeNames.mkString(", ")}")
+
+        if (methods.create) {
+          if (ds.getTypeNames.contains(sft.getTypeName)) {
+            logger.warn("Schema already exists, skipping create")
+          } else {
+            ds.createSchema(sft)
+          }
+        }
+        if (methods.upgrade) {
+          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            val dialect = ds.asInstanceOf[JDBCDataStore].dialect match {
+              case p: PartitionedPostgisDialect => p
+              case p: PostGISPSDialect =>
+                @tailrec
+                def unwrap(c: Class[_]): Class[_] =
+                  if (c == classOf[PostGISPSDialect]) { c } else { unwrap(c.getSuperclass) }
+                val m = unwrap(p.getClass).getDeclaredMethod("getDelegate")
+                m.setAccessible(true)
+                m.invoke(p).asInstanceOf[PartitionedPostgisDialect]
+            }
+            dialect.upgrade("public", sft, cx)
+          }
+        }
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2212,6 +2271,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
               logger.info(reader.next.toString)
 =======
 <<<<<<< HEAD
@@ -2254,6 +2314,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
               logger.info(reader.next.toString)
 =======
 <<<<<<< HEAD
@@ -2265,6 +2327,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
               logger.info(DataUtilities.encodeFeature(reader.next))
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+              logger.info(DataUtilities.encodeFeature(reader.next))
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
             }
           }
         }
@@ -4416,6 +4481,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       create: Boolean,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       upgrade: Boolean,
 =======
       recreate: Boolean,
@@ -4635,6 +4701,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
       recreate: Boolean,
 =======
 <<<<<<< HEAD
@@ -4648,6 +4717,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       upgrade: Boolean,
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -4658,11 +4728,17 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       upgrade: Boolean,
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+      upgrade: Boolean,
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
       write: Boolean,
       update: Boolean,
       query: Boolean,
       delete: Boolean,
       remove: Boolean
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4678,6 +4754,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
     )
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -4732,6 +4810,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     def any: Boolean = create || upgrade || write || update || query || delete || remove
   }
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -4904,4 +4983,6 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> a207fd51c3 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 }
