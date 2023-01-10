@@ -25,8 +25,11 @@ import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 import java.util.concurrent.ScheduledExecutorService
 import java.util.{Locale, Properties}
 <<<<<<< HEAD
@@ -70,6 +73,7 @@ import scala.concurrent.duration.Duration
 
 object KafkaDataStoreParams extends NamespaceParams {
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 17f13b3a7a (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -85,10 +89,17 @@ import java.util.concurrent.ScheduledExecutorService
 import scala.concurrent.duration.Duration
 
 <<<<<<< HEAD
+=======
+import java.util.concurrent.ScheduledExecutorService
+import java.util.{Locale, Properties}
+import scala.concurrent.duration.Duration
+
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 object KafkaDataStoreParams extends KafkaDataStoreParamsWTF
 
 trait KafkaDataStoreParamsWTF extends NamespaceParams {
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 object KafkaDataStoreParams extends NamespaceParams {
@@ -98,6 +109,8 @@ object KafkaDataStoreParams extends KafkaDataStoreParamsWTF
 trait KafkaDataStoreParamsWTF extends NamespaceParams {
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
   // deprecated lookups
   private val DeprecatedProducer = ConvertedParam[java.lang.Integer, java.lang.Boolean]("isProducer", v => if (v) { 0 } else { 1 })
   private val DeprecatedOffset = ConvertedParam[Duration, String]("autoOffsetReset", v => if ("earliest".equalsIgnoreCase(v)) { Duration.Inf } else { null })
@@ -140,10 +153,14 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
       default = DefaultCatalog,
 =======
       default = KafkaDataStoreFactory.DefaultCatalog,
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
       default = DefaultCatalog,
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -153,6 +170,8 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
       default = KafkaDataStoreFactory.DefaultCatalog,
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
       supportsNiFiExpressions = true
     )
 
@@ -163,10 +182,14 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
       default = DefaultZkPath,
 =======
       default = KafkaDataStoreFactory.DefaultZkPath,
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
       default = DefaultZkPath,
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -176,6 +199,8 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
       default = KafkaDataStoreFactory.DefaultZkPath,
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
       deprecatedKeys = Seq("zkPath"),
       supportsNiFiExpressions = true
     )
@@ -300,8 +325,11 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
@@ -310,6 +338,7 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -340,6 +369,10 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 >>>>>>> 8ec26b8c2a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
   val LayerViews =
     new GeoMesaParam[String](
       "kafka.layer.views",
