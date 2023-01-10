@@ -305,7 +305,6 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
             }
           }
         }
-<<<<<<< HEAD
         buf.toSeq
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -314,6 +313,9 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
         buf
 <<<<<<< HEAD
@@ -323,6 +325,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -354,6 +357,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
       }
 
       val timestampExtractor = new TimestampExtractingTransformer()
@@ -379,7 +384,6 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
       wordCounts.toStream.to("word-count")
 
       val props = new Properties()
-<<<<<<< HEAD
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "word-count-test")
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -388,6 +392,9 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
 <<<<<<< HEAD
@@ -397,6 +404,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -428,6 +436,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
       props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234")
 
       val output = scala.collection.mutable.Map.empty[String, java.lang.Long]
@@ -514,7 +524,6 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
       builder.to(sft.getTypeName, output)
 
       val props = new Properties()
-<<<<<<< HEAD
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "write-test")
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -523,6 +532,9 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "geomesa-test-app")
 <<<<<<< HEAD
@@ -532,6 +544,7 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -563,6 +576,8 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
       props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234")
 
       val kryoMessages = ArrayBuffer.empty[ProducerRecord[Array[Byte], Array[Byte]]]
