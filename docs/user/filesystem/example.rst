@@ -24,10 +24,13 @@ folder which contains an example csv file that we will ingest. First set the ver
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 419e2b9752 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -40,6 +43,7 @@ folder which contains an example csv file that we will ingest. First set the ver
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -59,6 +63,10 @@ folder which contains an example csv file that we will ingest. First set the ver
 >>>>>>> 419e2b9752 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 
 .. parsed-literal::
 
@@ -74,12 +82,16 @@ folder which contains an example csv file that we will ingest. First set the ver
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 17c1f8a18c (GEOMESA-3176 Docs - fix download links in install instructions)
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 8cbe155de6 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
 >>>>>>> 0fbf9e83e2 (GEOMESA-3176 Docs - fix download links in install instructions)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -313,17 +325,14 @@ Then download and extract the binary distribution:
     $ export TAG="|release_version|"
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
     $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
-=======
-    # note: |scala_binary_version| is the Scala build version
-    $ export VERSION="|scala_binary_version|-${TAG}"
->>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
-    # note: |scala_binary_version| is the Scala build version
-    $ export VERSION="|scala_binary_version|-${TAG}"
->>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 Then download and extract the binary distribution:
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -359,6 +368,8 @@ Then download and extract the binary distribution:
 =======
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
 >>>>>>> 16b2e83f22 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -787,6 +798,8 @@ Then download and extract the binary distribution:
   ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -810,6 +823,7 @@ Then download and extract the binary distribution:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-fs_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-fs_${VERSION}-bin.tar.gz
     $ cd geomesa-fs_${VERSION}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1194,6 +1208,8 @@ Then download and extract the binary distribution:
 >>>>>>> a8a55c9ccc4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 709d36fab5e (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 7c6dac7c346 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 =======
@@ -1527,6 +1543,8 @@ Then download and extract the binary distribution:
 >>>>>>> 1973f72e77 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -3236,7 +3254,12 @@ Then download and extract the binary distribution:
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
     $ cat examples/ingest/csv/example.csv
 >>>>>>> 759250a5978 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
