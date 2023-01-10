@@ -27,10 +27,6 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortedMergeIterator}
-<<<<<<< HEAD
-=======
-import org.locationtech.geomesa.utils.stats._
->>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -54,19 +50,9 @@ class MergedQueryRunner(
   // query interceptors are handled by the individual data stores
   override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
 
-<<<<<<< HEAD
   override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryResult = {
     // TODO deduplicate arrow, bin, density queries...
     // get view params and threaded query hints
-=======
-  override def runQuery(
-      sft: SimpleFeatureType,
-      original: Query,
-      explain: Explainer): CloseableIterator[SimpleFeature] = {
-
-    // TODO deduplicate arrow, bin, density queries...
-
->>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
     val query = configureQuery(sft, original)
     val hints = query.getHints
     val maxFeatures = if (query.isMaxFeaturesUnlimited) { None } else { Option(query.getMaxFeatures) }
@@ -82,12 +68,7 @@ class MergedQueryRunner(
       // query each delegate store
       lazy val readers = stores.map { case (store, filter) =>
         // make sure to coy the hints so they aren't shared
-<<<<<<< HEAD
         store.getFeatureReader(mergeFilter(sft, new Query(query), filter), Transaction.AUTO_COMMIT)
-=======
-        q.setHints(new Hints(hints))
-        store.getFeatureReader(mergeFilter(sft, q, filter), Transaction.AUTO_COMMIT)
->>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
       }
 
       if (hints.isDensityQuery) {
@@ -100,7 +81,6 @@ class MergedQueryRunner(
         }
         QueryResult(BinaryOutputEncoder.BinEncodedSft, hints, () => binQuery(sft, readers, hints))
       } else {
-<<<<<<< HEAD
         val resultSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
         def run(): CloseableIterator[SimpleFeature] = {
           val iters =
@@ -122,82 +102,8 @@ class MergedQueryRunner(
             case None => results
             case Some(m) => results.take(m)
           }
-=======
-        val iters =
-          if (deduplicate) {
-            // we re-use the feature id cache across readers
-            val cache = scala.collection.mutable.HashSet.empty[String]
-            readers.map(r => new DeduplicatingSimpleFeatureIterator(SelfClosingIterator(r), cache))
-          } else {
-            readers.map(SelfClosingIterator(_))
-          }
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        Option(query.getSortBy).filterNot(_.isEmpty) match {
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 45dca3e07 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
-=======
->>>>>>> 3cb02b7b0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
-=======
->>>>>>> f8f49130b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
-        val results = Option(query.getSortBy).filterNot(_.isEmpty) match {
-=======
-        Option(query.getSortBy).filterNot(_.isEmpty) match {
->>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
-=======
->>>>>>> 45dca3e07 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
-=======
->>>>>>> 3cb02b7b0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
-=======
->>>>>>> f8f49130b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
-=======
-        val results = Option(query.getSortBy).filterNot(_.isEmpty) match {
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
-          case None => SelfClosingIterator(iters.iterator).flatMap(i => i)
-          case Some(sort) =>
-            val sortSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
-            // the delegate stores should sort their results, so we can sort merge them
-            new SortedMergeIterator(iters)(SimpleFeatureOrdering(sortSft, sort))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
         }
         QueryResult(resultSft, hints, run)
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 45dca3e07 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
-=======
->>>>>>> 3cb02b7b0 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
-=======
->>>>>>> f8f49130b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
-=======
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
-        }
-
-        maxFeatures match {
-          case None => results
-          case Some(m) => results.take(m)
-<<<<<<< HEAD
-=======
->>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
-=======
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
-        }
->>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
       }
     }
   }
@@ -246,14 +152,8 @@ class MergedQueryRunner(
 
     // now that we have standardized dictionaries, we can query the delegate stores
     val readers = stores.map { case (store, filter) =>
-<<<<<<< HEAD
       // copy the query so hints aren't shared
       store.getFeatureReader(mergeFilter(sft, new Query(query), filter), Transaction.AUTO_COMMIT)
-=======
-      val q = new Query(query)
-      q.setHints(new Hints(hints))
-      store.getFeatureReader(mergeFilter(sft, q, filter), Transaction.AUTO_COMMIT)
->>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
     }
 
     def getSingle(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): CloseableIterator[SimpleFeature] = {

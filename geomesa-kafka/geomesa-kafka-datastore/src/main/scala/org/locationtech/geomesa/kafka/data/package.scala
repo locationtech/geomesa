@@ -9,10 +9,6 @@
 package org.locationtech.geomesa.kafka
 
 import org.apache.kafka.clients.producer.Producer
-<<<<<<< HEAD
-=======
-import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
->>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 
 import java.io.Closeable
 

@@ -14,16 +14,6 @@ Installing GeoMesa Kafka
         $ export TAG="|release_version|"
         $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 
-.. note::
-
-    The examples below expect a version to be set in the environment:
-
-    .. parsed-literal::
-
-        $ export TAG="|release_version|"
-        # note: |scala_binary_version| is the Scala build version
-        $ export VERSION="|scala_binary_version|-${TAG}"
-
 Installing from the Binary Distribution
 ---------------------------------------
 
@@ -32,278 +22,14 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-<<<<<<< HEAD
-=======
->>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
->>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
->>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 Download and extract it somewhere convenient:
-=======
-.. note::
-
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
-
-Extract it somewhere convenient:
->>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
-=======
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-Download and extract it somewhere convenient:
->>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
-Download and extract it somewhere convenient:
->>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
->>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
-Download and extract it somewhere convenient:
->>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
->>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
->>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
->>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
-=======
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-Download and extract it somewhere convenient:
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-kafka_${VERSION}-bin.tar.gz"
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-<<<<<<< HEAD
-=======
->>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
->>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
->>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
     $ tar xvf geomesa-kafka_${VERSION}-bin.tar.gz
     $ cd geomesa-kafka_${VERSION}
-=======
-    $ tar xzvf geomesa-kafka_${VERSION}-bin.tar.gz
-    $ cd geomesa-kafka_${VERSION}
-    $ ls
-    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt
->>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-<<<<<<< HEAD
->>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
->>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
->>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
->>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
-=======
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-    $ tar xvf geomesa-kafka_${VERSION}-bin.tar.gz
-    $ cd geomesa-kafka_${VERSION}
->>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-<<<<<<< HEAD
-=======
->>>>>>> 0e68e9f4c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
->>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
->>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-    $ tar xvf geomesa-kafka_${VERSION}-bin.tar.gz
-    $ cd geomesa-kafka_${VERSION}
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 
 .. _kafka_install_source:
 
@@ -395,11 +121,7 @@ Installing the GeoMesa Kafka Data Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install the GeoMesa data store, extract the contents of the
-<<<<<<< HEAD
 ``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/gs-plugins/``
-=======
-``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/geoserver/``
->>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 in the binary distribution or ``geomesa-kafka/geomesa-kafka-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
@@ -422,41 +144,6 @@ to match the target environment, and then run the script:
 
 .. warning::
 
-<<<<<<< HEAD
     Ensure that the Scala version of both GeoMesa and Kafka match to avoid compatibility errors.
-=======
-    Ensure that the Scala version (either ``_2.11`` or ``_2.12``) of both GeoMesa and Kafka match to avoid
-    compatibility issues.
-
-The specific JARs needed for some common configurations are listed below:
-
-.. tabs::
-
-    .. tab:: Kafka 2.0.0
-
-        * kafka-clients-2.0.0.jar
-        * kafka_2.11-2.0.0.jar
-        * zkclient-0.10.jar
-        * zookeeper-3.4.10.jar
-        * metrics-core-2.2.0.jar
-        * jopt-simple-5.0.4.jar
-
-    .. tab:: Kafka 1.0.1
-
-        * kafka-clients-1.0.1.jar
-        * kafka_2.11-1.0.1.jar
-        * zkclient-0.10.jar
-        * zookeeper-3.4.10.jar
-        * metrics-core-2.2.0.jar
-        * jopt-simple-5.0.4.jar
-
-    .. tab:: Kafka 0.10
-
-        * kafka-clients-0.10.2.1.jar
-        * kafka_2.11-0.10.2.1.jar
-        * zkclient-0.10.jar
-        * zookeeper-3.4.10.jar
-        * metrics-core-2.2.0.jar
->>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 Restart GeoServer after the JARs are installed.

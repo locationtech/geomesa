@@ -10,19 +10,7 @@ package org.locationtech.geomesa.gt.partition.postgis
 
 import org.geotools.data.postgis.{PostGISDialect, PostGISPSDialect, PostgisNGDataStoreFactory}
 import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
-<<<<<<< HEAD
-<<<<<<< HEAD
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
-=======
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
-
-import java.sql.{Connection, DatabaseMetaData}
->>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
-=======
-import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
->>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 
 class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 
@@ -65,44 +53,7 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
         val simplify = PostgisNGDataStoreFactory.SIMPLIFY.lookUp(params)
         dialect.setSimplifyEnabled(simplify == null || simplify == java.lang.Boolean.TRUE)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
-=======
-=======
->>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
-        ds.setSQLDialect(new PostGISPSDialect(ds, dialect) {
-          // fix bug with PostGISPSDialect dialect not delegating these methods
-          override def getDefaultVarcharSize: Int = dialect.getDefaultVarcharSize
-          override def encodeTableName(raw: String, sql: StringBuffer): Unit = dialect.encodeTableName(raw, sql)
-          override def postCreateFeatureType(
-              featureType: SimpleFeatureType,
-              metadata: DatabaseMetaData,
-              schemaName: String,
-              cx: Connection): Unit = {
-            dialect.postCreateFeatureType(featureType, metadata, schemaName, cx)
-          }
-          override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
-            dialect.splitFilter(filter, schema)
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-          override def getDesiredTablesType: Array[String] = dialect.getDesiredTablesType
-=======
->>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
->>>>>>> f9fc40305 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
-        })
-<<<<<<< HEAD
->>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
-=======
-=======
-        ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
->>>>>>> c79be4f83 (GEOMESA-3215 Postgis - support List-type attributes)
->>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
-=======
-        ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
     }

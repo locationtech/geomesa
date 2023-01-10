@@ -1,13 +1,5 @@
 /***********************************************************************
-<<<<<<< HEAD
-<<<<<<< HEAD
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
-=======
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
->>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
-=======
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -16,11 +8,6 @@
 
 package org.locationtech.geomesa.tools.utils
 
-<<<<<<< HEAD
-=======
-import java.util.Collections
-
->>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -29,11 +16,8 @@ import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.Command
 
-<<<<<<< HEAD
 import java.util.Collections
 
-=======
->>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 object StorageJobUtils extends LazyLogging {
 
   def distCopy(

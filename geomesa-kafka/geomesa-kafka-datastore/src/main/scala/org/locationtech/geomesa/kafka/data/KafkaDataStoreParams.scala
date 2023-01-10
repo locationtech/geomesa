@@ -18,13 +18,8 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam, ReadWriteFlag}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 
-<<<<<<< HEAD
 import java.util.concurrent.ScheduledExecutorService
 import java.util.{Locale, Properties}
-=======
-import java.util.Properties
-import java.util.concurrent.ScheduledExecutorService
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 import scala.concurrent.duration.Duration
 
 object KafkaDataStoreParams extends KafkaDataStoreParamsWTF
@@ -166,7 +161,6 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
       supportsNiFiExpressions = true
     )
 
-<<<<<<< HEAD
   object SerializationTypes {
 
     val Kryo = "kryo"
@@ -195,8 +189,6 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 
   }
 
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
   val LayerViews =
     new GeoMesaParam[String](
       "kafka.layer.views",

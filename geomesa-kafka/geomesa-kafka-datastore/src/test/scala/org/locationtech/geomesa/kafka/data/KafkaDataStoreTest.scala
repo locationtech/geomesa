@@ -8,71 +8,6 @@
 
 package org.locationtech.geomesa.kafka.data
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, SynchronousQueue, TimeUnit}
-import java.util.{Collections, Date}
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> locationtech-main
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 95c83ca7f (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> d2cb939f5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.ConfigCommand.{ConfigEntity, Entity}
 import kafka.zk.{AdminZkClient, KafkaZkClient}
@@ -406,10 +341,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       val (producer, consumer) = (getStore(path, 0), getStore(path, 1))
       try {
         producer.createSchema(sft)
-<<<<<<< HEAD
         consumer.metadata.resetCache()
-=======
->>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
         val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
 
         val f0 = ScalaSimpleFeature.create(sft, "sm", "[\"smith1\",\"smith2\"]", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
@@ -420,10 +352,6 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
 
-<<<<<<< HEAD
-=======
-        val q = new Query(sft.getTypeName)
->>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
         eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
             containTheSameElementsAs(Seq(f0, f1)))
       } finally {
@@ -432,7 +360,6 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       }
     }
 
-<<<<<<< HEAD
     "write/read avro collection attributes" >> {
       foreach(KafkaDataStoreParams.SerializationTypes.Types) { serde =>
         val params = Map(KafkaDataStoreParams.SerializationType.key -> serde)
@@ -480,8 +407,6 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       }
     }
 
-=======
->>>>>>> 865887e96 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
     "expire entries" >> {
       foreach(Seq(true, false)) { cqEngine =>
         val executor = mock[ScheduledExecutorService]
@@ -772,224 +697,6 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       }
     }
 
-    "support listeners without indexing" >> {
-      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
-      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
-      try {
-        val id = "fid-0"
-        val numUpdates = 1
-        val maxLon = 80.0
-
-        var latestLon = -1.0
-        var count = 0
-
-        val listener = new FeatureListener {
-          override def changed(event: FeatureEvent): Unit = {
-            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
-            feature.getID mustEqual id
-            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
-            count += 1
-          }
-        }
-
-        producer.createSchema(sft)
-        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
-        consumerStore.addFeatureListener(listener)
-
-        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          (numUpdates to 1 by -1).foreach { i =>
-            val ll = maxLon - maxLon / i
-            val sf = writer.next()
-            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
-            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
-            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-            writer.write()
-          }
-        }
-
-        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
-        latestLon must be equalTo 0.0
-      } finally {
-        consumer.dispose()
-        producer.dispose()
-      }
-    }
-
-    "support listeners without indexing" >> {
-      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
-      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
-      try {
-        val id = "fid-0"
-        val numUpdates = 1
-        val maxLon = 80.0
-
-        var latestLon = -1.0
-        var count = 0
-
-        val listener = new FeatureListener {
-          override def changed(event: FeatureEvent): Unit = {
-            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
-            feature.getID mustEqual id
-            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
-            count += 1
-          }
-        }
-
-        producer.createSchema(sft)
-        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
-        consumerStore.addFeatureListener(listener)
-
-        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          (numUpdates to 1 by -1).foreach { i =>
-            val ll = maxLon - maxLon / i
-            val sf = writer.next()
-            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
-            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
-            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-            writer.write()
-          }
-        }
-
-        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
-        latestLon must be equalTo 0.0
-      } finally {
-        consumer.dispose()
-        producer.dispose()
-      }
-    }
-
-    "support listeners without indexing" >> {
-      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
-      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
-      try {
-        val id = "fid-0"
-        val numUpdates = 1
-        val maxLon = 80.0
-
-        var latestLon = -1.0
-        var count = 0
-
-        val listener = new FeatureListener {
-          override def changed(event: FeatureEvent): Unit = {
-            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
-            feature.getID mustEqual id
-            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
-            count += 1
-          }
-        }
-
-        producer.createSchema(sft)
-        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
-        consumerStore.addFeatureListener(listener)
-
-        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          (numUpdates to 1 by -1).foreach { i =>
-            val ll = maxLon - maxLon / i
-            val sf = writer.next()
-            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
-            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
-            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-            writer.write()
-          }
-        }
-
-        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
-        latestLon must be equalTo 0.0
-      } finally {
-        consumer.dispose()
-        producer.dispose()
-      }
-    }
-
-<<<<<<< HEAD
-    "support listeners without indexing" >> {
-      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
-      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
-      try {
-        val id = "fid-0"
-        val numUpdates = 1
-        val maxLon = 80.0
-
-        var latestLon = -1.0
-        var count = 0
-
-        val listener = new FeatureListener {
-          override def changed(event: FeatureEvent): Unit = {
-            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
-            feature.getID mustEqual id
-            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
-            count += 1
-          }
-        }
-
-        producer.createSchema(sft)
-        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
-        consumerStore.addFeatureListener(listener)
-
-        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          (numUpdates to 1 by -1).foreach { i =>
-            val ll = maxLon - maxLon / i
-            val sf = writer.next()
-            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
-            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
-            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-            writer.write()
-          }
-        }
-
-        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
-        latestLon must be equalTo 0.0
-      } finally {
-        consumer.dispose()
-        producer.dispose()
-      }
-    }
-
-    "support listeners without indexing" >> {
-      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
-      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
-      try {
-        val id = "fid-0"
-        val numUpdates = 1
-        val maxLon = 80.0
-
-        var latestLon = -1.0
-        var count = 0
-
-        val listener = new FeatureListener {
-          override def changed(event: FeatureEvent): Unit = {
-            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
-            feature.getID mustEqual id
-            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
-            count += 1
-          }
-        }
-
-        producer.createSchema(sft)
-        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
-        consumerStore.addFeatureListener(listener)
-
-        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          (numUpdates to 1 by -1).foreach { i =>
-            val ll = maxLon - maxLon / i
-            val sf = writer.next()
-            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
-            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
-            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-            writer.write()
-          }
-        }
-
-        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
-        latestLon must be equalTo 0.0
-      } finally {
-        consumer.dispose()
-        producer.dispose()
-      }
-    }
-
-=======
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
     "support transactions" >> {
       val (producer, consumer, _) = createStorePair()
       try {
@@ -1050,121 +757,11 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           |}
           |
           |""".stripMargin
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-<<<<<<< HEAD
-      val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-=======
->>>>>>> 95c83ca7f (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-=======
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d2cb939f5 (GEOMESA-3100 Kafka layer views (#2784))
       val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
-=======
-      val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-<<<<<<< HEAD
->>>>>>> locationtech-main
-=======
->>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
-<<<<<<< HEAD
-=======
->>>>>>> 95c83ca7f (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-=======
->>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
->>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
-=======
->>>>>>> d2cb939f5 (GEOMESA-3100 Kafka layer views (#2784))
-=======
-      val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
       try {
         val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
         producer.createSchema(sft)
         consumer.metadata.resetCache()
-=======
-      val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
-      try {
-        val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-        producer.createSchema(sft)
->>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 
         val sft2 = SimpleFeatureTypes.createType("test2", "name:String,dtg:Date,*geom:Point:srid=4326")
         val sft3 = SimpleFeatureTypes.createType("test3", "derived:String,dtg:Date,*geom:Point:srid=4326")

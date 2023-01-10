@@ -1,13 +1,5 @@
 /***********************************************************************
-<<<<<<< HEAD
-<<<<<<< HEAD
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
-=======
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
->>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
-=======
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -16,10 +8,6 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-<<<<<<< HEAD
-=======
-import java.nio.charset.StandardCharsets
->>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 import java.util.Base64
 
 class EncodingFunctionFactory extends TransformerFunctionFactory {
