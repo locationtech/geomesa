@@ -19,10 +19,14 @@ import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, 
 package org.locationtech.geomesa.utils.io.fs
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/HadoopDelegate.scala
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/HadoopDelegate.scala
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/HadoopDelegate.scala
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c55f214e5cd (Merge branch 'a0x8o' into stag0)
@@ -43,10 +47,14 @@ import java.io.{IOException, InputStream, OutputStream}
 import java.net.{MalformedURLException, URL}
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/HadoopDelegate.scala
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/HadoopDelegate.scala
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/HadoopDelegate.scala
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 import java.util.Locale
 import scala.collection.mutable.ListBuffer
 
