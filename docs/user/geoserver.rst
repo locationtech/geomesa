@@ -28,6 +28,7 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 | 5.1.0             | 2.26.0            |
 +-------------------+-------------------+
 =======
@@ -45,6 +46,9 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 =======
 <<<<<<< HEAD
 >>>>>>> 9800bad9fa7 (Fix recommended GeoServer version in docs)
+=======
+<<<<<<< HEAD
+>>>>>>> 03da13e6d31 (GEOMESA-3254 Add Bloop build support)
 | 5.0.0             | 2.24.2            |
 +-------------------+-------------------+
 | 4.0.0             | 2.22.2            |
@@ -60,12 +64,19 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 6fffaab2f9 (Fix recommended GeoServer version in docs)
+<<<<<<< HEAD
 >>>>>>> c04ca2d2a2e (Fix recommended GeoServer version in docs)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
 | 4.0.0 and later   | 2.22.2            |
 =======
 | 4.0.0 and later   | 2.22.0            |
@@ -92,8 +103,11 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -104,7 +118,12 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 | 4.0.0 and later   | 2.22.2            |
 >>>>>>> fe2b699d58 (Fix recommended GeoServer version in docs)
 >>>>>>> 6fffaab2f9 (Fix recommended GeoServer version in docs)
+<<<<<<< HEAD
 >>>>>>> c04ca2d2a2e (Fix recommended GeoServer version in docs)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
 +-------------------+-------------------+
 | 3.1.1 to 3.5.x    | 2.17.3            |
 +-------------------+-------------------+
