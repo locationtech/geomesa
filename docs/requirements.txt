@@ -19,6 +19,7 @@ docutils<0.18
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> eb4b681d08 (Fix docutils version for Sphinx docs build)
 =======
 <<<<<<< HEAD
@@ -207,3 +208,7 @@ jinja2<3.1.0
 sphinx-copybutton==0.5.0
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+jinja2<3.1.0
+sphinx-copybutton==0.5.0
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
