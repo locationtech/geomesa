@@ -44,6 +44,7 @@ import org.locationtech.geomesa.tools.utils.TerminalCallback.PrintProgress
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -62,6 +63,8 @@ import org.locationtech.geomesa.tools.utils.TerminalCallback.PrintProgress
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 import org.locationtech.geomesa.tools._
 <<<<<<< HEAD
@@ -82,6 +85,7 @@ import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools._
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -150,6 +154,10 @@ import org.locationtech.geomesa.tools._
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
 
@@ -243,8 +251,8 @@ object FsCompactCommand {
             throw new ParameterException(s"Compaction is not supported for encoding '$encoding'")
           }
           val tempDir = Option(params.tempPath).map(t => new Path(t))
-<<<<<<< HEAD
           job.run(storage, toCompact.toSeq, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -281,6 +289,8 @@ object FsCompactCommand {
 =======
 >>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
           job.run(storage, toCompact, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -300,6 +310,7 @@ object FsCompactCommand {
           job.run(storage, toCompact, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 234aacdc12 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -368,6 +379,10 @@ object FsCompactCommand {
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7fff0a6154 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
             case JobSuccess(message, counts) =>
               Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
               val success = counts(FileSystemCompactionJob.MappedCounter)
