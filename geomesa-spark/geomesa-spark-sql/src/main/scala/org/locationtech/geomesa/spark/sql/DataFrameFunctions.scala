@@ -7,6 +7,7 @@
 =======
  * Copyright (c) 2019-2022 The MITRE Corporation
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 1463162d60 (GEOMESA-3254 Add Bloop build support)
@@ -14,7 +15,13 @@
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 9f430502b2 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> dce8c58b44 (GEOMESA-3254 Add Bloop build support)
  * This program and the accompanying materials are made available under
  * the Apache License, Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0.
