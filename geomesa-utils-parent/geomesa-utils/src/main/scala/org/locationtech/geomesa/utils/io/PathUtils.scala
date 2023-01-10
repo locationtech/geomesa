@@ -14,9 +14,16 @@ import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.{FileSystemDelegate, LocalDelegate}
 
 import java.io._
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/PathUtils.scala
 import java.net.URL
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
+=======
+import java.net.{MalformedURLException, URL}
+import java.nio.file._
+import java.nio.file.attribute.BasicFileAttributes
+import java.util.concurrent.atomic.AtomicBoolean
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/PathUtils.scala
 import java.util.regex.Pattern
 import scala.util.Try
 

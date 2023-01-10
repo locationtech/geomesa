@@ -58,6 +58,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 
   override protected def setupParameters(parameters: java.util.Map[String, AnyRef]): Unit = {
     super.setupParameters(parameters)
+<<<<<<< HEAD
     Seq(DbType, IdleInTransactionTimeout, PreparedStatements)
         .foreach(p => parameters.put(p.key, p))
   }
@@ -67,6 +68,13 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
     val options =
       Seq(IdleInTransactionTimeout)
           .flatMap(p => p.opt(params).map(t => s"-c ${p.key}=${t.millis}"))
+=======
+    // override postgis dbkey
+    parameters.put(DbType.key, DbType)
+  }
+
+  override protected def createDataStoreInternal(store: JDBCDataStore, params: java.util.Map[String, _]): JDBCDataStore = {
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
     logger.debug(s"Connection options: ${options.mkString(" ")}")
 
