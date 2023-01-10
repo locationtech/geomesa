@@ -87,6 +87,7 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       "org.apache.thrift:libthrift:0.12.0:jar"
 =======
 =======
@@ -115,6 +116,8 @@ function dependencies() {
 >>>>>>> f5016115b5a (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 2bf9294f93e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 75ae649304a (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -157,6 +160,8 @@ function dependencies() {
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> a154b4927b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
       "org.apache.thrift:libthrift:%%thrift.version%%:jar"
 =======
 <<<<<<< HEAD
@@ -282,6 +287,9 @@ function dependencies() {
       "org.apache.commons:commons-collections4:4.3:jar"
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+      "org.apache.commons:commons-collections4:4.4:jar"
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
       "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
     )
   fi
