@@ -12,8 +12,8 @@ import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.EvaluationContext.ContextDependent
 
 sealed trait Predicate extends ContextDependent[Predicate] {
-<<<<<<< HEAD
   def apply(args: Array[AnyRef]): Boolean
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -39,6 +39,8 @@ sealed trait Predicate extends ContextDependent[Predicate] {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 }
 
 object Predicate {
