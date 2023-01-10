@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert2.transforms
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import com.google.common.hash.Hashing
 <<<<<<< HEAD
@@ -16,16 +17,20 @@ import com.google.common.hash.Hashing
 =======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
-<<<<<<< HEAD
 import org.apache.commons.codec.digest.MurmurHash3
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -33,14 +38,16 @@ import org.locationtech.geomesa.utils.uuid.Z3UuidGenerator
 import org.locationtech.jts.geom.{Geometry, Point}
 
 import java.nio.charset.StandardCharsets
-<<<<<<< HEAD
 import java.security.MessageDigest
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 1e76dbd1e7 (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 import java.util.{Date, UUID}
 import scala.util.control.NonFatal
 
@@ -48,6 +55,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 
   override def functions: Seq[TransformerFunction] =
     Seq(string2Bytes, md5, uuid, uuidZ3, uuidZ3Centroid, base64, murmur3_32, murmur3_64, murmur3_128)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 
@@ -57,6 +65,8 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 >>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
   private val string2Bytes = TransformerFunction("string2bytes", "stringToBytes") {
     args => args(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8)
@@ -92,7 +102,6 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
   }
 
   private val md5: TransformerFunction = new NamedTransformerFunction(Seq("md5"), pure = true) {
-<<<<<<< HEAD
     private val hasher = MessageDigest.getInstance("MD5")
     override def apply(args: Array[AnyRef]): AnyRef = {
       val bytes = args(0) match {
@@ -145,6 +154,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
         }
       }
       sb.toString
+<<<<<<< HEAD
 =======
     private val hasher = Hashing.md5()
     override def apply(args: Array[AnyRef]): AnyRef =
@@ -1024,5 +1034,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
     }
 }

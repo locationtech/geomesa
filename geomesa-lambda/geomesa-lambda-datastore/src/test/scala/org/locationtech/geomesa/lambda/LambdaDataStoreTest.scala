@@ -51,8 +51,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
   )
 
   def testTransforms(ds: LambdaDataStore, transform: SimpleFeatureType): MatchResult[Any] = {
-<<<<<<< HEAD
     val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toSeq: _*)
+<<<<<<< HEAD
 =======
     val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
 <<<<<<< HEAD
@@ -60,6 +60,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
     // note: need to copy the features as the same object is re-used in the iterator
     val iter = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
     val result = iter.map(DataUtilities.encodeFeature).toSeq
@@ -214,8 +216,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
           clock.tick = 252
           ds.persist(sft.getTypeName)
           forall(Seq(ds, readOnly)) { store =>
-<<<<<<< HEAD
             eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()) must beEmpty)
+<<<<<<< HEAD
 =======
             eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()) must beEmpty)
 <<<<<<< HEAD
@@ -223,6 +225,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
                 containTheSameElementsAs(Seq(update, features.last))
           }
