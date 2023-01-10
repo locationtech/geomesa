@@ -78,8 +78,16 @@ object ConfluentKafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogg
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     SchemaRegistryUrl +: KafkaDataStoreFactory.ParameterInfo :+ SchemaOverrides
 
+<<<<<<< HEAD
   override def canProcess(params: java.util.Map[String, _]): Boolean =
     KafkaDataStoreParams.Brokers.exists(params) && SchemaRegistryUrl.exists(params)
+=======
+  override def canProcess(params: java.util.Map[String, _]): Boolean = {
+    KafkaDataStoreParams.Brokers.exists(params) &&
+      KafkaDataStoreParams.Zookeepers.exists(params) &&
+      SchemaRegistryUrl.exists(params)
+  }
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
   private[confluent] def parseSchemaOverrides(config: Option[String]): Map[String, (SimpleFeatureType, Schema)] = {
     try {

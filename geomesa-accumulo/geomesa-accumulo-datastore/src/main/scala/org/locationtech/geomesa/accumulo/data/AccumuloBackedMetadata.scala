@@ -8,7 +8,11 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+<<<<<<< HEAD
 import org.apache.accumulo.core.client.{AccumuloClient, BatchWriter}
+=======
+import org.apache.accumulo.core.client.AccumuloClient
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text

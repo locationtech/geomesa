@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.convert.shp
 
+<<<<<<< HEAD
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
@@ -25,6 +26,8 @@ import java.util.Collections
 import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -597,6 +600,7 @@ object ShapefileConverter extends LazyLogging {
     if (!Files.isRegularFile(cpgPath)) None else {
       val source = scala.io.Source.fromFile(cpgPath.toFile)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       val source = io.Source.fromFile(cpgPath.toFile)
 <<<<<<< HEAD
@@ -606,6 +610,8 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 3b1441ba6d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       try {
         source.getLines.take(1).toList match {
           case Nil => None
@@ -613,6 +619,7 @@ object ShapefileConverter extends LazyLogging {
         }
       } catch {
         case _: Exception =>
+<<<<<<< HEAD
           logger.warn("Can't figure out charset from cpg file, will use default charset")
           None
       } finally {
@@ -631,6 +638,13 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 3b1441ba6d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+          logger.warn("Can't figure out charset from cpg file, will use default charset")
+          None
+      } finally {
+        source.close()
+      }
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     }
   }
 }
