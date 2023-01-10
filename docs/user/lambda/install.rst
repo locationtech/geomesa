@@ -8,12 +8,7 @@ Installing GeoMesa Lambda
     .. parsed-literal::
 
         $ export TAG="|release_version|"
-<<<<<<< HEAD
         $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
-=======
-        # note: |scala_binary_version| is the Scala build version
-        $ export VERSION="|scala_binary_version|-${TAG}"
->>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -23,6 +18,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -100,6 +96,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f9e8439b0 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> bd3233180f (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -887,7 +885,13 @@ Download and extract it somewhere convenient:
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+Download and extract it somewhere convenient:
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 
 .. code-block:: bash
 
@@ -937,6 +941,7 @@ Download and extract it somewhere convenient:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 46c05fed5 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -972,6 +977,8 @@ Download and extract it somewhere convenient:
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f9e8439b0 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> bd3233180f (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -1711,7 +1718,12 @@ Download and extract it somewhere convenient:
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 
 .. _lambda_install_source:
 
@@ -1826,11 +1838,7 @@ Installing the GeoMesa Lambda Data Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install the GeoMesa data store, extract the contents of the
-<<<<<<< HEAD
 ``geomesa-lambda-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-lambda_${VERSION}/dist/gs-plugins/``
-=======
-``geomesa-lambda-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-lambda_${VERSION}/dist/geoserver/``
->>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 in the binary distribution or ``geomesa-lambda/geomesa-lambda-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
@@ -1851,56 +1859,6 @@ to match the target environment, and then run the script:
 
     $ ./bin/install-dependencies.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
-<<<<<<< HEAD
-=======
-.. warning::
-
-   Due to a classpath conflict with GeoServer, the version of Accumulo client JARs installed must be 1.9.2 or later.
-   Note that newer Accumulo clients can talk to older Accumulo instances, so it is only necessary to upgrade the
-   client JARs in GeoServer, but not the entire Accumulo cluster.
-
-.. warning::
-
-    GeoServer ships with an older version of commons-text, 1.4. The ``install-dependencies.sh`` script will
-    remove it, but if you don't use the script you will need to delete it manually.
-
-The specific JARs needed for some common configurations are listed below:
-
-Accumulo 1.7+
-
-* accumulo-core-1.7.1.jar
-* accumulo-fate-1.7.1.jar
-* accumulo-server-base-1.7.1.jar
-* accumulo-trace-1.7.1.jar
-* accumulo-start-1.7.1.jar
-* libthrift-0.9.1.jar
-* zookeeper-3.4.6.jar
-* htrace-core-3.1.0-incubating.jar
-* commons-vfs2-2.1.jar
-
-Hadoop 2.2
-
-* commons-configuration-1.6.jar
-* hadoop-auth-2.2.0.jar
-* hadoop-common-2.2.0.jar
-* hadoop-hdfs-2.2.0.jar
-
-Hadoop 2.4-2.7 (adjust versions as needed)
-
-* commons-configuration-1.6.jar
-* hadoop-auth-2.6.4.jar
-* hadoop-common-2.6.4.jar
-* hadoop-hdfs-2.6.4.jar
-
-Kafka 0.9.0.1
-
-* kafka_2.11-0.9.0.1.jar
-* kafka-clients-0.9.0.1.jar"
-* zookeeper-3.4.5.jar"
-* zkclient-0.7.jar"
-* metrics-core-2.2.0.jar
-
->>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 Restart GeoServer after the JARs are installed.
 
 .. _install_geomesa_process_lambda:

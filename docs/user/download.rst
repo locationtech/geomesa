@@ -47,6 +47,7 @@ Versions and Downloads
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 46c05fed5 (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -82,6 +83,8 @@ Versions and Downloads
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f9e8439b0 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> bd3233180f (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -864,7 +867,13 @@ Versions and Downloads
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+    The current recommended version of GeoMesa is |release_version_literal|.
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 
 GeoMesa requires `Java`__ to run. GeoMesa supports Java LTS versions 8, 11 and 17.
 
@@ -878,13 +887,6 @@ downloaded from `GitHub`__.
 
 __ https://github.com/locationtech/geomesa/releases
 
-<<<<<<< HEAD
-=======
-Older versions can be downloaded from the `Eclipse Maven repository`__.
-
-__ https://repo.eclipse.org/content/repositories/geomesa-releases/org/locationtech/geomesa
-
->>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 Maven Integration
 -----------------
 
@@ -913,11 +915,7 @@ and then include the desired ``geomesa-*`` dependencies:
 
     <properties>
       <geomesa.version>\ |release_version|\ </geomesa.version>
-<<<<<<< HEAD
       <scala.binary.version>\ |scala_binary_version|\ </scala.binary.version>
-=======
-      <scala.abi.version>\ |scala_binary_version|\ </scala.abi.version>
->>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
     </properties>
 
 .. code-block:: xml
@@ -966,6 +964,7 @@ and then include the desired ``geomesa-*`` dependencies:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 87bf55340 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -1024,6 +1023,8 @@ and then include the desired ``geomesa-*`` dependencies:
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 2aa923cc9 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -1058,45 +1059,11 @@ and then include the desired ``geomesa-*`` dependencies:
 >>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
       <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
-=======
-=======
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 15e998504 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 07a6a5c29 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
->>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> cdb410251 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-<<<<<<< HEAD
->>>>>>> 67b361c85 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
-=======
->>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
-<<<<<<< HEAD
->>>>>>> 63db7d154 (GEOMESA-3176 Docs - fix download links in install instructions)
-=======
-=======
-=======
->>>>>>> f71fa3c0e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
->>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
-=======
->>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
-      <artifactId>geomesa-utils_${scala.abi.version}</artifactId>
->>>>>>> 90ec70f55 (GEOMESA-3176 Docs - fix download links in install instructions)
       <version>${geomesa.version}</version>
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 8cbe155de (GEOMESA-3176 Docs - fix download links in install instructions)
 =======
@@ -1684,7 +1651,12 @@ and then include the desired ``geomesa-*`` dependencies:
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
     </dependency>
 
 For cutting-edge development, nightly snapshots are available from Eclipse:

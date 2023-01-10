@@ -8,16 +8,9 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-<<<<<<< HEAD
-=======
-import com.google.common.hash.Hashing
->>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
-<<<<<<< HEAD
 import org.apache.commons.codec.digest.MurmurHash3
-=======
->>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -25,10 +18,7 @@ import org.locationtech.geomesa.utils.uuid.Z3UuidGenerator
 import org.locationtech.jts.geom.{Geometry, Point}
 
 import java.nio.charset.StandardCharsets
-<<<<<<< HEAD
 import java.security.MessageDigest
-=======
->>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 import java.util.{Date, UUID}
 import scala.util.control.NonFatal
 
@@ -36,11 +26,6 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 
   override def functions: Seq[TransformerFunction] =
     Seq(string2Bytes, md5, uuid, uuidZ3, uuidZ3Centroid, base64, murmur3_32, murmur3_64, murmur3_128)
-<<<<<<< HEAD
-=======
-
-  private val murmur3_128Hashing = Hashing.murmur3_128()
->>>>>>> 1e76dbd1e (GEOMESA-3109 Json array to object converter function (#2788))
 
   private val string2Bytes = TransformerFunction("string2bytes", "stringToBytes") {
     args => args(0).asInstanceOf[String].getBytes(StandardCharsets.UTF_8)
@@ -76,7 +61,6 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
   }
 
   private val md5: TransformerFunction = new NamedTransformerFunction(Seq("md5"), pure = true) {
-<<<<<<< HEAD
     private val hasher = MessageDigest.getInstance("MD5")
     override def apply(args: Array[AnyRef]): AnyRef = {
       val bytes = args(0) match {
@@ -129,6 +113,7 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
         }
       }
       sb.toString
+<<<<<<< HEAD
 =======
     private val hasher = Hashing.md5()
     override def apply(args: Array[AnyRef]): AnyRef =
@@ -2109,6 +2094,11 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
     }
 }

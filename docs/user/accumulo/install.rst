@@ -12,12 +12,7 @@ Installing GeoMesa Accumulo
     .. parsed-literal::
 
         $ export TAG="|release_version|"
-<<<<<<< HEAD
         $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
-=======
-        # note: |scala_binary_version| is the Scala build version
-        $ export VERSION="|scala_binary_version|-${TAG}"
->>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -27,6 +22,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -104,6 +100,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f9e8439b0 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> bd3233180f (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -902,11 +900,19 @@ Download and extract it somewhere convenient:
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+
+Download and extract it somewhere convenient:
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -984,6 +990,8 @@ Download and extract it somewhere convenient:
 >>>>>>> d94c03a98e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f9e8439b0 (GEOMESA-3176 Docs - fix download links in install instructions)
 >>>>>>> bd3233180f (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -1869,7 +1877,15 @@ Download and extract it somewhere convenient:
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-accumulo_${VERSION}-bin.tar.gz"
+    $ tar xvf geomesa-accumulo_${VERSION}-bin.tar.gz
+    $ cd geomesa-accumulo_${VERSION}
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 
 .. _accumulo_install_source:
 
@@ -2083,74 +2099,6 @@ to match the target environment, and then run the script:
 
     $ ./bin/install-dependencies.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
-<<<<<<< HEAD
-=======
-.. warning::
-
-   Due to a classpath conflict with GeoServer, the version of Accumulo client JARs installed must be 1.9.2 or later.
-   Note that newer Accumulo clients can talk to older Accumulo instances, so it is only necessary to upgrade the
-   client JARs in GeoServer, but not the entire Accumulo cluster.
-
-.. warning::
-
-    GeoServer ships with an older version of commons-text, 1.4. The ``install-dependencies.sh`` script will
-    remove it, but if you don't use the script you will need to delete it manually.
-
-The specific JARs needed for some common configurations are listed below:
-
-.. tabs::
-
-    .. tab:: Accumulo 2.0
-
-        * accumulo-core-2.0.0.jar
-        * accumulo-server-base-2.0.0.jar
-        * accumulo-start-2.0.0.jar
-        * commons-configuration-1.6.jar
-        * commons-configuration2-2.5.jar
-        * commons-logging-1.1.3.jar
-        * commons-text-1.6.jar
-        * commons-vfs2-2.3.jar
-        * hadoop-auth-2.8.5.jar
-        * hadoop-common-2.8.5.jar
-        * hadoop-hdfs-2.8.5.jar
-        * htrace-core-3.1.0-incubating.jar
-        * htrace-core4-4.1.0-incubating.jar
-        * libthrift-0.12.0.jar
-        * zookeeper-3.4.14.jar
-
-    .. tab:: Accumulo 1.9
-
-        * accumulo-core-1.9.3.jar
-        * accumulo-fate-1.9.3.jar
-        * accumulo-server-base-1.9.3.jar
-        * accumulo-start-1.9.3.jar
-        * accumulo-trace-1.9.3.jar
-        * commons-configuration-1.6.jar
-        * commons-vfs2-2.1.jar
-        * hadoop-auth-2.8.5.jar
-        * hadoop-common-2.8.5.jar
-        * hadoop-hdfs-2.8.5.jar
-        * htrace-core-3.1.0-incubating.jar
-        * libthrift-0.9.3.jar
-        * zookeeper-3.4.14.jar
-
-    .. tab:: Accumulo 1.7
-
-        * accumulo-core-1.7.4.jar
-        * accumulo-fate-1.7.4.jar
-        * accumulo-server-base-1.7.4.jar
-        * accumulo-start-1.7.4.jar
-        * accumulo-trace-1.7.4.jar
-        * commons-configuration-1.6.jar
-        * commons-vfs2-2.1.jar
-        * hadoop-auth-2.8.5.jar
-        * hadoop-common-2.8.5.jar
-        * hadoop-hdfs-2.8.5.jar
-        * htrace-core-3.1.0-incubating.jar
-        * libthrift-0.9.1.jar
-        * zookeeper-3.4.14.jar
-
->>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 Restart GeoServer after the JARs are installed.
 
 .. _install_geomesa_process:
