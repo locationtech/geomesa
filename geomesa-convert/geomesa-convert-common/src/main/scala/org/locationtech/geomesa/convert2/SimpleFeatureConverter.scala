@@ -23,6 +23,7 @@ package org.locationtech.geomesa.convert2
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -36,6 +37,8 @@ package org.locationtech.geomesa.convert2
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
 import java.io.{Closeable, InputStream}
 
 <<<<<<< HEAD
@@ -45,6 +48,7 @@ import java.io.{Closeable, InputStream}
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -118,9 +122,12 @@ import java.io.{Closeable, InputStream}
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -154,6 +161,8 @@ import org.locationtech.geomesa.convert.EvaluationContext.DelegatingEvaluationCo
 =======
 import org.locationtech.geomesa.convert.EvaluationContext.DelegatingEvaluationContext
 >>>>>>> bca28211b26 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 75ae649304a (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -205,8 +214,8 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
    * @param failure counter for tracking failed conversions
    * @return
    */
-<<<<<<< HEAD
   def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -325,6 +334,8 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
   def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext =
     // TODO remove default impl in next major release
     new DelegatingEvaluationContext(createEvaluationContext(globalParams))(success, failure)
@@ -336,7 +347,12 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 
   /**
    * Java API for `createEvaluationContext`
