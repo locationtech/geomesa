@@ -24,6 +24,7 @@ package org.locationtech.geomesa.convert2.transforms
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -39,6 +40,8 @@ package org.locationtech.geomesa.convert2.transforms
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
 import java.util.{Collections, UUID}
 
 <<<<<<< HEAD
@@ -48,6 +51,7 @@ import java.util.{Collections, UUID}
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -124,6 +128,10 @@ import java.util.{Collections, UUID}
 >>>>>>> a154b4927b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.CollectionFunctionFactory.{CollectionParsing, TransformList}
 import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString

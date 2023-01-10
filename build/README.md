@@ -52,6 +52,7 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 988b67e035 (Add OpenSSF badge to README (#2965))
 =======
@@ -81,6 +82,11 @@ geospatial analytics.
 >>>>>>> 988b67e035 (Add OpenSSF badge to README (#2965))
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+  [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-gt_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 
 ### Verifying Downloads
 
@@ -261,6 +267,7 @@ The project is built using Maven. To build, run:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -278,11 +285,14 @@ The project is built using Maven. To build, run:
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
 
 To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
 =======
 The full build takes quite a while. To speed it up, you may skip tests and use multiple threads.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -328,6 +338,9 @@ To run unit tests, omit the `-DskipTests` (note: requires `docker` to be availab
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 
 ### Build with Bloop Compile Server
 
@@ -598,5 +611,15 @@ To build for a different Scala version (e.g. 2.11), run the following script, th
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 94790a4446 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+
+    ./build/change-scala-version.sh 2.13
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 08b5ee7322 (GEOMESA-3254 Add Bloop build support)
