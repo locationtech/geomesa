@@ -46,7 +46,10 @@ geospatial analytics.
   [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-kafka_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-redis_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-fs_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
+<<<<<<< HEAD
   [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-gt_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 ### Verifying Downloads
 
@@ -189,9 +192,13 @@ The project is built using Maven. To build, run:
 
     mvn clean install -DskipTests
 
+<<<<<<< HEAD
 The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
 
 To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
+=======
+The full build takes quite a while. To speed it up, you may skip tests and use multiple threads.
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 ### Build with Bloop Compile Server
 
@@ -220,6 +227,7 @@ environment variable to point to the root of your JDK. Example from a Mac:
 ### Scala Cross Build
 
 To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
+<<<<<<< HEAD
 
     ./build/change-scala-version.sh 2.13
 <<<<<<< HEAD
@@ -252,4 +260,11 @@ To build for a different Scala version (e.g. 2.11), run the following script, th
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> ab96a917ea (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+
+    ./build/change-scala-version.sh 2.13
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> d2a4c21745 (GEOMESA-3254 Add Bloop build support)

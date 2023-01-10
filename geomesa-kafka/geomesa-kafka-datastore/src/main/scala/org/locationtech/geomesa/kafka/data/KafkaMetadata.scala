@@ -1,5 +1,13 @@
 /***********************************************************************
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1463162d60 (GEOMESA-3254 Add Bloop build support)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -16,14 +24,21 @@ import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataS
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.versions.{KafkaAdminVersions, KafkaConsumerVersions}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+<<<<<<< HEAD
 import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, LazyCloseable}
+=======
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
 import java.io.Closeable
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.temporal.ChronoUnit
+<<<<<<< HEAD
 import java.util.concurrent.atomic.AtomicBoolean
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Future, TimeUnit}
 import java.util.{Collections, Properties, UUID}
 import scala.util.Try
@@ -45,7 +60,11 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
   import scala.collection.JavaConverters._
 
   private val producer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))
+<<<<<<< HEAD
   private val consumer = new LazyCloseable(new TopicMap())
+=======
+  private lazy val consumer = new TopicMap()
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
   override protected def checkIfTableExists: Boolean = {
     adminClientOp { adminClient=>
@@ -85,13 +104,20 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 
   override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit = {
     rows.foreach { case (row, value) =>
+<<<<<<< HEAD
       producer.instance.send(new ProducerRecord(config.catalog, row, value))
     }
     producer.instance.flush()
+=======
+      producer.producer.send(new ProducerRecord(config.catalog, row, value))
+    }
+    producer.producer.flush()
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
 
   override protected def delete(rows: Seq[Array[Byte]]): Unit = {
     rows.foreach { row =>
+<<<<<<< HEAD
       producer.instance.send(new ProducerRecord(config.catalog, row, null))
     }
     producer.instance.flush()
@@ -103,6 +129,19 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
     prefix match {
       case None => consumer.instance.all()
       case Some(p) => consumer.instance.prefix(p)
+=======
+      producer.producer.send(new ProducerRecord(config.catalog, row, null))
+    }
+    producer.producer.flush()
+  }
+
+  override protected def scanValue(row: Array[Byte]): Option[Array[Byte]] = consumer.get(row)
+
+  override protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[(Array[Byte], Array[Byte])] = {
+    prefix match {
+      case None => consumer.all()
+      case Some(p) => consumer.prefix(p)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     }
   }
 
@@ -125,7 +164,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 
     private val state = new ConcurrentHashMap[KeyBytes, Array[Byte]]()
     private val complete = new CountDownLatch(1)
+<<<<<<< HEAD
     private val closed = new AtomicBoolean(false)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
     private val consumer =
       KafkaDataStore.consumer(config.brokers,
@@ -222,10 +264,14 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
         }
         complete.await(10, TimeUnit.SECONDS)
       } finally {
+<<<<<<< HEAD
         // avoid checking consumer assignment if consumer is already closed, which will throw an error
         if (closed.compareAndSet(false, true)) {
           cleanupConsumer()
         }
+=======
+        cleanupConsumer()
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       }
     }
 

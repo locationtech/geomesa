@@ -1,5 +1,13 @@
 /***********************************************************************
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1463162d60 (GEOMESA-3254 Add Bloop build support)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,6 +22,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+<<<<<<< HEAD
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.Serdes;
@@ -23,6 +32,13 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+=======
+import org.apache.kafka.common.serialization.LongDeserializer;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.StreamsConfig;
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
@@ -32,7 +48,9 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
+<<<<<<< HEAD
 import org.apache.kafka.streams.test.TestRecord;
+<<<<<<< HEAD
 import org.geotools.api.data.DataStoreFinder;
 import org.geotools.api.data.Query;
 import org.geotools.api.data.SimpleFeatureReader;
@@ -40,11 +58,24 @@ import org.geotools.api.data.SimpleFeatureWriter;
 import org.geotools.api.data.Transaction;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+import org.geotools.data.DataStoreFinder;
+import org.geotools.data.Query;
+import org.geotools.data.Transaction;
+import org.geotools.data.simple.SimpleFeatureReader;
+import org.geotools.data.simple.SimpleFeatureWriter;
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.locationtech.geomesa.features.ScalaSimpleFeature;
+<<<<<<< HEAD
+=======
+import org.locationtech.geomesa.kafka.EmbeddedKafka;
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.kafka.data.KafkaDataStore;
 import org.locationtech.geomesa.kafka.streams.GeoMesaMessage;
 import org.locationtech.geomesa.utils.geotools.FeatureUtils;
@@ -52,9 +83,12 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+<<<<<<< HEAD
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.utility.DockerImageName;
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -75,7 +109,11 @@ public class GeoMesaStreamsBuilderTest {
 
     private static final Logger logger = LoggerFactory.getLogger(GeoMesaStreamsBuilderTest.class);
 
+<<<<<<< HEAD
     static KafkaContainer container = null;
+=======
+    static EmbeddedKafka kafka = null;
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
     static final SimpleFeatureType sft =
           SimpleFeatureTypes.createImmutableType("streams", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326");
@@ -84,6 +122,7 @@ public class GeoMesaStreamsBuilderTest {
 
     static final Set<String> zkPaths = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
+<<<<<<< HEAD
     static String zookeepers() {
         return String.format("%s:%s", container.getHost(), container.getMappedPort(KafkaContainer.ZOOKEEPER_PORT));
     }
@@ -91,13 +130,20 @@ public class GeoMesaStreamsBuilderTest {
         return container.getBootstrapServers();
     }
 
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     public Map<String, String> getParams(String zkPath) {
         if (!zkPaths.add(zkPath)) {
             throw new IllegalArgumentException("zk path '" + zkPath + "' is reused between tests, may cause conflicts");
         }
         Map<String, String> params = new HashMap<>();
+<<<<<<< HEAD
         params.put("kafka.brokers", brokers());
         params.put("kafka.zookeepers", zookeepers());
+=======
+        params.put("kafka.brokers", kafka.brokers());
+        params.put("kafka.zookeepers", kafka.zookeepers());
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         params.put("kafka.topic.partitions", "1");
         params.put("kafka.topic.replication", "1");
         params.put("kafka.consumer.read-back", "Inf");
@@ -107,12 +153,18 @@ public class GeoMesaStreamsBuilderTest {
 
     @BeforeClass
     public static void init() {
+<<<<<<< HEAD
         DockerImageName image =
               DockerImageName.parse("confluentinc/cp-kafka")
                              .withTag(System.getProperty("confluent.docker.tag", "7.3.1"));
         container = new KafkaContainer(image);
         container.start();
         container.followOutput(new Slf4jLogConsumer(logger));
+=======
+        logger.info("Starting embedded kafka/zk");
+        kafka = new EmbeddedKafka();
+        logger.info("Started embedded kafka/zk");
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
         for (int i = 0; i < 10; i ++) {
             ScalaSimpleFeature sf = new ScalaSimpleFeature(sft, "id" + i, null, null);
@@ -126,9 +178,17 @@ public class GeoMesaStreamsBuilderTest {
 
     @AfterClass
     public static void destroy() {
+<<<<<<< HEAD
         if (container != null) {
             container.stop();
         }
+=======
+        logger.info("Stopping embedded kafka/zk");
+        if (kafka != null) {
+            kafka.close();
+        }
+        logger.info("Stopped embedded kafka/zk");
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     }
 
     @Test
@@ -149,7 +209,11 @@ public class GeoMesaStreamsBuilderTest {
         }
 
         Properties consumerProps = new Properties();
+<<<<<<< HEAD
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers());
+=======
+        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.brokers());
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
@@ -185,6 +249,7 @@ public class GeoMesaStreamsBuilderTest {
         Properties streamsProps = new Properties();
         streamsProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "java-word-count-test");
         streamsProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
+<<<<<<< HEAD
         streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, StringSerde.class);
         streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, StringSerde.class);
 
@@ -196,6 +261,20 @@ public class GeoMesaStreamsBuilderTest {
             messages.forEach(m -> inputTopic.pipeInput(new TestRecord<>(m)));
             TestOutputTopic<String, Long> outputTopic = testDriver.createOutputTopic("word-count", new StringDeserializer(), new LongDeserializer());
             output = new HashMap<>(outputTopic.readKeyValuesToMap());
+=======
+        streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        Map<String, Long> output = new HashMap<>();
+        try (TopologyTestDriver testDriver = new TopologyTestDriver(builder.build(), streamsProps)) {
+            messages.forEach(testDriver::pipeInput);
+            ProducerRecord<String, Long> out =
+                  testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer());
+            while (out != null) {
+                output.put(out.key(), out.value());
+                out = testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer());
+            }
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         }
 
         Map<String, Long> expected = new HashMap<>();
@@ -246,13 +325,18 @@ public class GeoMesaStreamsBuilderTest {
             builder.wrapped().stream("input-topic",
                  Consumed.with(Serdes.String(), Serdes.String()).withTimestampExtractor(new WallclockTimestampExtractor()));
         KStream<String, GeoMesaMessage> output =
+<<<<<<< HEAD
             input.mapValues(lines -> GeoMesaMessage.upsert(Arrays.asList((Object[])lines.split(","))));
+=======
+            input.mapValues(lines -> GeoMesaMessage.upsert(Arrays.asList(lines.split(","))));
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
         builder.to(sft.getTypeName(), output);
 
         Properties streamsProps = new Properties();
         streamsProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "java-write-test");
         streamsProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
+<<<<<<< HEAD
         streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, StringSerde.class);
         streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, StringSerde.class);
 
@@ -266,6 +350,19 @@ public class GeoMesaStreamsBuilderTest {
             while (!outputTopic.isEmpty()) {
                 TestRecord<byte[], byte[]> rec = outputTopic.readRecord();
                 kryoMessages.add(new ProducerRecord<>(kryoTopic, 0, rec.timestamp(), rec.getKey(), rec.getValue(), rec.getHeaders()));
+=======
+        streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        List<ProducerRecord<byte[], byte[]>> kryoMessages = new ArrayList<>();
+        try (TopologyTestDriver testDriver = new TopologyTestDriver(builder.build(), streamsProps)) {
+            testInput.forEach(testDriver::pipeInput);
+            ProducerRecord<byte[], byte[]> out =
+                  testDriver.readOutput(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer());
+            while (out != null) {
+                kryoMessages.add(out);
+                out = testDriver.readOutput(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer());
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
             }
         }
 
