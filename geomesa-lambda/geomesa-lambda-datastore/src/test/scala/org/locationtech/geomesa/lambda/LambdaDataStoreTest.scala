@@ -10,11 +10,17 @@ package org.locationtech.geomesa.lambda
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.util.factory.Hints
@@ -38,6 +44,12 @@ import java.io.ByteArrayInputStream
 import java.util.Date
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
+=======
+
+class LambdaDataStoreTest extends LambdaTest with LazyLogging {
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
