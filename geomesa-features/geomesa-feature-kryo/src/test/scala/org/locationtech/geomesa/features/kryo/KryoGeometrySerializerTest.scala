@@ -13,6 +13,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerialization
 import org.locationtech.geomesa.features.serialization.{GeometryLengthThreshold, GeometryNestingThreshold, TwkbSerialization}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 <<<<<<< HEAD
@@ -20,6 +21,8 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Coordinate, Geometry}
 import org.specs2.matcher.MatchResult

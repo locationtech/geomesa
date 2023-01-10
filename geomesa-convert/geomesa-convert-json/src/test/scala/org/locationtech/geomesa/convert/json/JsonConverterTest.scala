@@ -1359,6 +1359,7 @@ class JsonConverterTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -1706,6 +1707,8 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
     "create json object attributes" >> {
       val sft = SimpleFeatureTypes.createType("objects", "foobar:String:json=true")
 
@@ -1767,6 +1770,7 @@ class JsonConverterTest extends Specification {
       }
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1947,6 +1951,8 @@ class JsonConverterTest extends Specification {
 >>>>>>> 6a5404e00f5 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> f03b61efde8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e82f13f69b9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -2533,7 +2539,12 @@ class JsonConverterTest extends Specification {
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> f03b61efde8 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> e82f13f69b9 (GEOMESA-3254 Add Bloop build support)
     "infer schema from geojson files" >> {
       val json =
         """{
