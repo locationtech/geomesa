@@ -114,6 +114,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -334,6 +335,8 @@
 >>>>>>> 3d4f8cb2301 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 7db4865b988 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b356a3e4748 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
 =======
@@ -481,6 +484,8 @@
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
         <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -1768,6 +1773,8 @@
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
         <version>4.1.0-SNAPSHOT</version>
 =======
 =======
@@ -2805,9 +2812,21 @@
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 7db4865b988 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b356a3e4748 (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -2884,7 +2903,11 @@
         </dependency>
         <dependency>
 =======
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
             <groupId>org.apache.cassandra</groupId>
             <artifactId>cassandra-thrift</artifactId>
             <version>3.11.14</version>
