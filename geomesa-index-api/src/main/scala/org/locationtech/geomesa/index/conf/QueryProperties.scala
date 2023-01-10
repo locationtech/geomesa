@@ -39,6 +39,7 @@ object QueryProperties {
   // allow for full table scans or preempt them due to size of data set
   val BlockFullTableScans = SystemProperty("geomesa.scan.block-full-table", "false")
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   val BlockFullTableScans = new SystemProperty("geomesa.scan.block-full-table", "false") {
     @deprecated("Deprecated with no replacement")
@@ -57,6 +58,8 @@ object QueryProperties {
 >>>>>>> 4c943341c0 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
   val BlockMaxThreshold: SystemProperty = SystemProperty("geomesa.scan.block-full-table.threshold", "1000")
 

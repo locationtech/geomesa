@@ -61,8 +61,13 @@ function get_classpath() {
       env_cp="$(. "$file")"
       classpath="$classpath:$(remove_slf4j_from_classpath "$env_cp")"
     done
+<<<<<<< HEAD
     classpath="$(remove_log4j1_from_classpath "$classpath")"
     classpath="$(fix_classpath_format "$classpath")"
+=======
+    classpath="$(remove_log4j1_from_classpath $classpath)"
+    classpath="$(fix_classpath_format $classpath)"
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     echo "$classpath"
   fi
 }
