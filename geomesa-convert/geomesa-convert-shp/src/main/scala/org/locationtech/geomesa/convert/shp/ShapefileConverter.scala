@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.convert.shp
 
+<<<<<<< HEAD
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
@@ -490,6 +491,8 @@ import java.util.Collections
 import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
