@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.convert.shp
 
-<<<<<<< HEAD
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -51,6 +51,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 import java.io.InputStream
 import java.util.Collections
@@ -1538,8 +1542,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
@@ -4000,6 +4007,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 import java.io.InputStream
 import java.util.Collections
@@ -6672,6 +6680,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
@@ -6702,16 +6712,6 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
     // inject placeholders for shapefile attributes into the evaluation context
     // used for accessing shapefile properties by name in ShapefileFunctionFactory
     val shpParams = Map(InputSchemaKey -> ArrayBuffer.empty[String], InputValuesKey -> ArrayBuffer.empty[AnyRef])
-    super.createEvaluationContext(globalParams ++ shpParams, success, failure)
-  }
-
-  override def createEvaluationContext(
-      globalParams: Map[String, Any],
-      success: Counter,
-      failure: Counter): EvaluationContext = {
-    // inject placeholders for shapefile attributes into the evaluation context
-    // used for accessing shapefile properties by name in ShapefileFunctionFactory
-    val shpParams = Map(InputSchemaKey -> Array.empty[String], InputValuesKey -> Array.empty[Any])
     super.createEvaluationContext(globalParams ++ shpParams, success, failure)
   }
 
@@ -6810,8 +6810,8 @@ object ShapefileConverter extends LazyLogging {
     val (baseName, _) = PathUtils.getBaseNameAndExtension(path)
     val cpgPath = shpDirPath.resolve(baseName + ".cpg")
     if (!Files.isRegularFile(cpgPath)) None else {
-<<<<<<< HEAD
       val source = scala.io.Source.fromFile(cpgPath.toFile)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6860,6 +6860,10 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> 31860203c1 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
       val source = io.Source.fromFile(cpgPath.toFile)
 <<<<<<< HEAD
 >>>>>>> 20b0d52e9d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -6872,6 +6876,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -6920,6 +6927,7 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 0736678d1d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -6979,13 +6987,14 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 3b1441ba6d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 0736678d1d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 36ff9b69f0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
       try {
         source.getLines.take(1).toList match {
           case Nil => None
           case charsetName :: _ => Some(Charset.forName(charsetName.trim))
         }
       } catch {
-<<<<<<< HEAD
         case _: Exception =>
 <<<<<<< HEAD
           logger.warn("Can't figure out charset from cpg file, will use default charset")
@@ -6993,6 +7002,7 @@ object ShapefileConverter extends LazyLogging {
       } finally {
         source.close()
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7032,6 +7042,8 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> 31860203c1 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 9fcae81780 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 9a64765dd6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -7044,6 +7056,7 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> 490baa117c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -7068,6 +7081,10 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> bf3b8e427c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 31860203c1 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
         case e: Exception =>
           logger.warn("Can't figure out charset from cpg file, will use default charset")
           None
@@ -7119,8 +7136,11 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 36ff9b69f0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
@@ -7158,10 +7178,14 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> 0736678d1d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -7210,6 +7234,8 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 31860203c1 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 36ff9b69f0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
     }
   }
 }
