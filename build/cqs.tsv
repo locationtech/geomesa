@@ -48,12 +48,17 @@ com.github.pureconfig:pureconfig-generic-base_2.12	0.17.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -61,11 +66,15 @@ com.github.pureconfig:pureconfig-generic-base_2.12	0.17.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -76,6 +85,8 @@ com.github.pureconfig:pureconfig-generic-base_2.12	0.17.2	compile
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 com.github.stephenc.findbugs:findbugs-annotations	1.3.9-1	compile
 com.google.code.gson:gson	2.10	compile
 com.google.errorprone:error_prone_annotations	2.10.0	compile
@@ -108,17 +119,24 @@ com.h2database:h2	2.2.220	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -127,6 +145,8 @@ com.h2database:h2	2.2.220	compile
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 com.google.code.gson:gson	2.10	compile
 com.googlecode.json-simple:json-simple	1.1.1	compile
 com.google.errorprone:error_prone_annotations	2.10.0	compile
@@ -145,19 +165,26 @@ com.google.re2j:re2j	1.6	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -167,6 +194,8 @@ com.google.re2j:re2j	1.6	compile
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 com.h2database:h2	2.1.214	compile
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 com.jayway.jsonpath:json-path	2.7.0	compile
@@ -204,12 +233,17 @@ com.yammer.metrics:metrics-core	2.2.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -217,11 +251,15 @@ com.yammer.metrics:metrics-core	2.2.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -232,6 +270,8 @@ com.yammer.metrics:metrics-core	2.2.0	compile
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 de.topobyte:adt-geo	0.0.2	compile
 de.topobyte:adt-graph	0.0.1	compile
 de.topobyte:adt-multicollections	0.0.3	compile
@@ -261,6 +301,7 @@ io.github.azagniotov:dropwizard-metrics-cloudwatch	1.0.13	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 io.micrometer:micrometer-commons	1.12.2	compile
 io.micrometer:micrometer-core	1.12.2	compile
 io.micrometer:micrometer-observation	1.12.2	compile
@@ -277,6 +318,8 @@ io.micrometer:micrometer-observation	1.12.2	compile
 >>>>>>> 49ca416474e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9d09d91af8d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 635fff74cfc (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 io.micrometer:micrometer-commons	1.11.1	compile
 io.micrometer:micrometer-core	1.11.1	compile
@@ -331,12 +374,20 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -351,7 +402,12 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 io.micrometer:micrometer-commons	1.10.6	compile
 io.micrometer:micrometer-core	1.10.6	compile
 io.micrometer:micrometer-observation	1.10.6	compile
@@ -362,12 +418,17 @@ io.micrometer:micrometer-observation	1.10.6	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 io.micrometer:micrometer-core	1.9.5	compile
 =======
@@ -376,10 +437,14 @@ io.micrometer:micrometer-core	1.9.5	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -388,6 +453,8 @@ io.micrometer:micrometer-core	1.9.5	compile
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 io.netty:netty-all	4.1.85.Final	compile
 io.netty:netty-buffer	4.1.85.Final	compile
 io.netty:netty-codec	4.1.85.Final	compile
@@ -405,12 +472,17 @@ io.netty:netty-codec-http	4.1.85.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -418,11 +490,15 @@ io.netty:netty-codec-http	4.1.85.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -433,6 +509,8 @@ io.netty:netty-codec-http	4.1.85.Final	compile
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 io.netty:netty-codec-memcache	4.1.85.Final	compile
 io.netty:netty-codec-mqtt	4.1.85.Final	compile
 io.netty:netty-codec-redis	4.1.85.Final	compile
@@ -493,6 +571,7 @@ io.prometheus:simpleclient_tracer_otel_agent	0.16.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d2a4c21745 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -505,6 +584,8 @@ io.prometheus:simpleclient_tracer_otel_agent	0.16.0	compile
 =======
 >>>>>>> 8cfbc794a4 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 7cd7fec2ba (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> db81e34c47 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -512,10 +593,15 @@ io.prometheus:simpleclient_tracer_otel_agent	0.16.0	compile
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
 io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -531,12 +617,19 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 =======
 >>>>>>> 8cfbc794a4 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7cd7fec2ba (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> db81e34c47 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> 7cd7fec2ba (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -551,7 +644,12 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 8cfbc794a4 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7cd7fec2ba (GEOMESA-3254 Add Bloop build support)
 io.sgr:s2-geometry-library-java	1.0.1	compile
 it.geosolutions.jaiext.affine:jt-affine	1.1.24	compile
 it.geosolutions.jaiext.algebra:jt-algebra	1.1.24	compile
@@ -610,6 +708,7 @@ org.apache.accumulo:accumulo-core	2.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 org.apache.accumulo:accumulo-core	2.1.3	compile
 =======
 =======
@@ -624,6 +723,8 @@ org.apache.accumulo:accumulo-core	2.1.3	compile
 >>>>>>> 49ca416474e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9d09d91af8d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 635fff74cfc (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 org.apache.accumulo:accumulo-core	2.1.2	compile
 >>>>>>> 87f87d63004 (GEOMESA-3254 Add Bloop build support)
@@ -696,12 +797,20 @@ org.apache.parquet:parquet-hadoop	1.13.1	compile
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -716,7 +825,12 @@ org.apache.parquet:parquet-hadoop	1.13.1	compile
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 org.apache.accumulo:accumulo-core	2.1.1	compile
 =======
 org.apache.accumulo:accumulo-core	2.1.0	compile
@@ -789,12 +903,15 @@ org.apache.arrow:arrow-vector	11.0.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 =======
@@ -802,11 +919,15 @@ org.apache.arrow:arrow-vector	11.0.0	compile
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -816,6 +937,8 @@ org.apache.arrow:arrow-vector	11.0.0	compile
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
 org.apache.arrow:arrow-format	10.0.1	compile
 org.apache.arrow:arrow-memory-core	10.0.1	compile
@@ -827,10 +950,13 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -844,6 +970,7 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
@@ -866,6 +993,11 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 org.apache.avro:avro	1.11.1	compile
 org.apache.commons:commons-collections4	4.4	compile
 org.apache.commons:commons-compress	1.22	compile
@@ -881,12 +1013,17 @@ org.apache.commons:commons-crypto	1.0.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -894,11 +1031,15 @@ org.apache.commons:commons-crypto	1.0.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -909,6 +1050,8 @@ org.apache.commons:commons-crypto	1.0.0	compile
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 org.apache.commons:commons-csv	1.9.0	compile
 org.apache.commons:commons-dbcp2	2.6.0	compile
 org.apache.commons:commons-lang3	3.8.1	compile
@@ -973,12 +1116,17 @@ org.apache.hbase.thirdparty:hbase-shaded-protobuf	3.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -986,11 +1134,15 @@ org.apache.hbase.thirdparty:hbase-shaded-protobuf	3.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -1001,6 +1153,8 @@ org.apache.hbase.thirdparty:hbase-shaded-protobuf	3.4.1	compile
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 org.apache.hive:hive-storage-api	2.7.2	compile
 org.apache.hive:hive-storage-api	2.8.1	compile
 org.apache.htrace:htrace-core	3.1.0-incubating	compile
@@ -1024,12 +1178,17 @@ org.apache.orc:orc-shims	1.8.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -1037,11 +1196,15 @@ org.apache.orc:orc-shims	1.8.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -1052,6 +1215,8 @@ org.apache.orc:orc-shims	1.8.1	compile
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 org.apache.parquet:parquet-column	1.12.3	compile
 org.apache.parquet:parquet-common	1.12.3	compile
 org.apache.parquet:parquet-encoding	1.12.3	compile
@@ -1083,12 +1248,17 @@ org.apache.zookeeper:zookeeper-jute	3.5.10	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -1104,6 +1274,7 @@ org.apache.zookeeper:zookeeper-jute	3.8.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -1112,8 +1283,12 @@ org.apache.zookeeper:zookeeper-jute	3.8.0	compile
 >>>>>>> be6b3b14b4a (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 =======
@@ -1121,10 +1296,13 @@ org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -1145,7 +1323,14 @@ org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 =======
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 org.calrissian.mango:mango-core	3.0.0	compile
 org.checkerframework:checker-qual	3.37.0	compile
 org.checkerframework:checker-qual	3.42.0	compile
@@ -1158,6 +1343,7 @@ org.ejml:ejml-core	0.41	compile
 org.ejml:ejml-ddense	0.41	compile
 org.ejml:ejml-fsparse	0.41	compile
 org.ejml:ejml-simple	0.41	compile
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1218,6 +1404,8 @@ org.geotools:gt-xml	30.4	compile
 >>>>>>> c2bad1154e5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7dea9a3366a (Update cq list)
+=======
+>>>>>>> 0d9cfe10fe5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 org.geotools.jdbc:gt-jdbc-postgis	30.2	compile
 org.geotools.ogc:net.opengis.fes	30.2	compile
@@ -1271,6 +1459,8 @@ org.geotools:gt-xml	30.2	compile
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 2fa702921d0 (Update cq list)
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -1282,9 +1472,14 @@ org.geotools:gt-xml	30.2	compile
 =======
 >>>>>>> bca9b86f60 (Update cq list)
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 4818f04155 (Update cq list)
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1298,6 +1493,10 @@ org.geotools:gt-xml	30.2	compile
 =======
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
@@ -1308,10 +1507,13 @@ org.geotools:gt-xml	30.2	compile
 >>>>>>> 1cb6d46e38 (Update cq list)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 8a255dd9ed8 (Update cq list)
 =======
 =======
 >>>>>>> 2fa702921d0 (Update cq list)
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -1343,7 +1545,14 @@ org.geotools:gt-xml	30.2	compile
 =======
 =======
 >>>>>>> bca9b86f60 (Update cq list)
+<<<<<<< HEAD
 >>>>>>> 2fa702921d0 (Update cq list)
+=======
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 org.geotools.jdbc:gt-jdbc-postgis	28.2	compile
 org.geotools.ogc:net.opengis.fes	28.2	compile
 org.geotools.ogc:net.opengis.ows	28.2	compile
@@ -1415,12 +1624,17 @@ org.hsqldb:hsqldb	2.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
@@ -1431,6 +1645,7 @@ org.hsqldb:hsqldb	2.4.1	compile
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1453,16 +1668,23 @@ org.hsqldb:hsqldb	2.4.1	compile
 =======
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 252e501e958 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -1485,8 +1707,16 @@ org.hsqldb:hsqldb	2.4.1	compile
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> c2bad1154e5 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 0d9cfe10fe5 (GEOMESA-3254 Add Bloop build support)
 org.huldra.math:bigint	0.7.1	compile
 org.jetbrains:annotations	17.0.0	compile
 org.jruby.jcodings:jcodings	1.0.55	compile
@@ -1504,12 +1734,17 @@ org.json:json	20220320	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -1517,11 +1752,15 @@ org.json:json	20220320	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -1532,6 +1771,8 @@ org.json:json	20220320	compile
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 org.locationtech.jts.io:jts-io-common	1.19.0	compile
 org.locationtech.jts:jts-core	1.19.0	compile
 org.locationtech.spatial4j:spatial4j	0.8	compile
@@ -1586,12 +1827,17 @@ org.threeten:threeten-extra	1.7.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
@@ -1602,6 +1848,7 @@ org.threeten:threeten-extra	1.7.1	compile
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1624,16 +1871,23 @@ org.threeten:threeten-extra	1.7.1	compile
 =======
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 2e997b484f7 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -1656,8 +1910,16 @@ org.threeten:threeten-extra	1.7.1	compile
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 9d09d91af8d (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 635fff74cfc (GEOMESA-3254 Add Bloop build support)
 picocontainer:picocontainer	1.2	compile
 redis.clients:jedis	5.1.0	compile
 si.uom:si-quantity	2.1	compile
@@ -3651,6 +3913,7 @@ org.apache.kafka:kafka-clients	test:2.8.2	test
 org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 org.cassandraunit:cassandra-unit	2.2.2.1	test
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
@@ -3766,6 +4029,8 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 org.cassandraunit:cassandra-unit	2.2.2.1	test
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> f01ac238e (GEOMESA-3198 Kafka streams integration (#2854))
