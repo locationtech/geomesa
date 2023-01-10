@@ -54,11 +54,11 @@ class ScriptingFunctionFactoryTest extends Specification {
         val sff = new ScriptingFunctionFactory
         val hello = sff.functions.find(_.names.contains("js:hello")).head
         hello.apply(Array("geomesa")) mustEqual "hello: geomesa"
-<<<<<<< HEAD
         val gbye = sff.functions.find(_.names.contains("js:gbye")).head
         gbye.apply(Array("geomesa")) mustEqual "goodbye: geomesa"
         val whatsup = sff.functions.find(_.names.contains("js:whatsup")).head
         whatsup.apply(Array("geomesa")) mustEqual "whatsup: geomesa"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -85,6 +85,8 @@ class ScriptingFunctionFactoryTest extends Specification {
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
         hello.eval(Array("geomesa")) mustEqual "hello: geomesa"
 =======
@@ -222,7 +224,12 @@ class ScriptingFunctionFactoryTest extends Specification {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 9231cf5fb4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
       } finally {
         ScriptingFunctionFactory.ConvertScriptsPath.threadLocalValue.remove()
       }

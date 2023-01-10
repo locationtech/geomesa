@@ -822,6 +822,7 @@ docutils<0.18
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 64eaeeb073 (Fix docutils version for Sphinx docs build)
 =======
@@ -848,6 +849,8 @@ docutils<0.18
 >>>>>>> 0f2c26f597 (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> eb4b681d0 (Fix docutils version for Sphinx docs build)
 <<<<<<< HEAD
 >>>>>>> 0261d5eff (Fix docutils version for Sphinx docs build)
@@ -1523,6 +1526,7 @@ sphinx-copybutton==0.5.0
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
@@ -3516,6 +3520,20 @@ sphinx-copybutton==0.5.0
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+jinja2<3.1.0
+sphinx-copybutton==0.5.0
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)

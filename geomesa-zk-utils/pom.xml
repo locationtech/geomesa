@@ -217,6 +217,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> d71f72fae9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -401,6 +402,8 @@
 >>>>>>> e726e0a8b7 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 548538f30d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -966,6 +969,8 @@
 >>>>>>> 3e836f467f ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> dbcf5b0db ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -3739,6 +3744,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -4954,6 +4960,9 @@
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
