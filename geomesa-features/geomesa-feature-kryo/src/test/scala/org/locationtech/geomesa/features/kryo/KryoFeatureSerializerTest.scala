@@ -24,7 +24,10 @@ import org.specs2.runner.JUnitRunner
 import java.nio.charset.StandardCharsets
 import java.util
 import java.util.{Collections, Date, UUID}
+<<<<<<< HEAD
 import scala.util.{Failure, Try}
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 @RunWith(classOf[JUnitRunner])
 class KryoFeatureSerializerTest extends Specification with LazyLogging {

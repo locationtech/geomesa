@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert2.transforms
 
 import com.typesafe.scalalogging.LazyLogging
+<<<<<<< HEAD
 import org.apache.commons.io.filefilter.TrueFileFilter
 import org.apache.commons.io.{FileUtils, FilenameUtils, IOUtils}
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
@@ -22,11 +23,14 @@ import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager
 import scala.collection.JavaConverters._
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.apache.commons.io.filefilter.TrueFileFilter
 import org.apache.commons.io.{FileUtils, FilenameUtils, IOUtils}
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
+<<<<<<< HEAD
 import scala.collection.JavaConversions._
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -35,6 +39,14 @@ import scala.collection.JavaConversions._
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+import java.io.File
+import java.net.URI
+import java.nio.file.FileSystems
+import java.util.Collections
+import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
+import scala.collection.JavaConverters._
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 /**
   * Provides TransformerFunctions that execute javax.scripts compatible functions defined

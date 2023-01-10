@@ -72,6 +72,7 @@ class AccumuloDataStoreJsonTest extends Specification with TestWithFeatureType {
     }
     "support projecting schemas" in {
       val query = new Query(sftName, Filter.INCLUDE, "geom", """"$.json.properties.characteristics.height"""")
+<<<<<<< HEAD
       val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 <<<<<<< HEAD
 =======
@@ -82,6 +83,8 @@ class AccumuloDataStoreJsonTest extends Specification with TestWithFeatureType {
     }
     "support projecting schemas" in {
       val query = new Query(sftName, Filter.INCLUDE, Array("geom", """"$.json.properties.characteristics.height""""))
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 <<<<<<< HEAD
 >>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -96,6 +99,7 @@ class AccumuloDataStoreJsonTest extends Specification with TestWithFeatureType {
     "support projecting json arrays" in {
       val query = new Query(sftName, Filter.INCLUDE, "geom", """"$.json[1]"""")
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       val query = new Query(sftName, Filter.INCLUDE, Array("geom", """"$.json[1]""""))
 <<<<<<< HEAD
@@ -105,6 +109,8 @@ class AccumuloDataStoreJsonTest extends Specification with TestWithFeatureType {
 >>>>>>> e243573ba4 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(5)
       features.map(_.getAttribute(1)) must containTheSameElementsAs(Seq(null, null, null, null, "a2"))

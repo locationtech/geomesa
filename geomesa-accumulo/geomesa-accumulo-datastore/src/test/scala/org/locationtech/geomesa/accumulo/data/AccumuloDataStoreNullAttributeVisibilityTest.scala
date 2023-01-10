@@ -113,6 +113,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 
   import scala.collection.JavaConverters._
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   import scala.collection.JavaConversions._
 <<<<<<< HEAD
@@ -122,6 +123,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> e980963df5 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
   sequential
 
@@ -161,6 +164,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
   def queryByAuths(auths: String, filter: String): Seq[SimpleFeature] = {
     val ds = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asJava).asInstanceOf[AccumuloDataStore]
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
 <<<<<<< HEAD
@@ -170,6 +174,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> e980963df5 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     val query = new Query(sftName, ECQL.toFilter(filter))
     SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
   }
