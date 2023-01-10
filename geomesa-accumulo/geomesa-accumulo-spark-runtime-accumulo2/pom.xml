@@ -85,6 +85,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 478cadaf01 ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -181,6 +182,8 @@
 >>>>>>> 320c3cc14c ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 6ed35b9ff (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -1512,7 +1515,13 @@
         <version>3.5.0-SNAPSHOT</version>
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+=======
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -1593,6 +1602,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1645,8 +1657,9 @@
 >>>>>>> 810876750d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
         <!-- bring in guava and relocate it -->
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
         <dependency>
-<<<<<<< HEAD
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-hadoop-mapreduce</artifactId>
             <scope>compile</scope>
@@ -1655,8 +1668,6 @@
 
         <!-- bring in guava and relocate it -->
         <dependency>
-=======
->>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <scope>compile</scope>
@@ -1868,6 +1879,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8adfab65bb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -1876,6 +1888,8 @@
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 810876750d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
                                 <!-- TODO remove this when spark supports parquet 1.9.0 out of the box -->
 =======
 <<<<<<< HEAD
@@ -1887,6 +1901,7 @@
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1911,6 +1926,8 @@
 =======
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 810876750d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
                                 <relocation>
                                     <pattern>org.apache.parquet</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.org.apache.parquet</shadedPattern>
