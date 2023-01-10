@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.AccumuloClient
+import org.apache.accumulo.core.client.{AccumuloClient, BatchWriter}
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
@@ -26,15 +26,9 @@ class AccumuloBackedMetadata[T](val connector: AccumuloClient, val table: String
 
   private val empty = new Text()
 
-  private var writerCreated = false
+  private var closed = false
 
-  private lazy val writer = synchronized {
-    if (writerCreated) {
-      throw new IllegalStateException("Trying to write using a closed instance")
-    }
-    writerCreated = true
-    connector.createBatchWriter(table, config)
-  }
+  private var writer: BatchWriter = _
 
   override protected def checkIfTableExists: Boolean = connector.tableOperations().exists(table)
 
@@ -44,6 +38,14 @@ class AccumuloBackedMetadata[T](val connector: AccumuloClient, val table: String
     new AccumuloBackedMetadata(connector, s"${table}_${timestamp}_bak", serializer)
 
   override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit = {
+    synchronized {
+      if (writer == null) {
+        if (closed) {
+          throw new IllegalStateException("Trying to write using a closed instance")
+        }
+        writer = connector.createBatchWriter(table, config)
+      }
+    }
     rows.foreach { case (k, v) =>
       val m = new Mutation(k)
       m.put(empty, empty, new Value(v))
@@ -84,10 +86,11 @@ class AccumuloBackedMetadata[T](val connector: AccumuloClient, val table: String
   }
 
   override def close(): Unit = synchronized {
-    if (writerCreated) {
-      CloseWithLogging(writer)
-    } else {
-      writerCreated = true // indicate that we've closed and don't want to open any more resources
+    if (!closed) {
+      closed = true
+      if (writer != null) {
+        CloseWithLogging(writer)
+      }
     }
   }
 }

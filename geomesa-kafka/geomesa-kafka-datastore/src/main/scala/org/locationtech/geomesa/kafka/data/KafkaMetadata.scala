@@ -22,6 +22,7 @@ import java.io.Closeable
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Future, TimeUnit}
 import java.util.{Collections, Properties, UUID}
 import scala.util.Try
@@ -99,6 +100,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 
     private val state = new ConcurrentHashMap[KeyBytes, Array[Byte]]()
     private val complete = new CountDownLatch(1)
+    private val closed = new AtomicBoolean(false)
 
     private val consumer =
       KafkaDataStore.consumer(config.brokers,
@@ -195,7 +197,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
         }
         complete.await(10, TimeUnit.SECONDS)
       } finally {
-        cleanupConsumer()
+        // avoid checking consumer assignment if consumer is already closed, which will throw an error
+        if (closed.compareAndSet(false, true)) {
+          cleanupConsumer()
+        }
       }
     }
 
