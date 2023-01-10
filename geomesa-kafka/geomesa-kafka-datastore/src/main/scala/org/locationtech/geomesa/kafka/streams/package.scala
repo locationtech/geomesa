@@ -34,6 +34,7 @@ package object streams {
 
   /**
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    * Data model for a GeoMesa data store message, used as the value in a Kafka record
    *
@@ -85,6 +86,8 @@ package object streams {
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
    * Trait for provided metadata about a feature type topic
    */
   trait HasTopicMetadata {
@@ -189,8 +192,8 @@ package object streams {
           val sft = ds.getSchema(typeNames(i))
           KafkaDataStore.topic(sft) match {
             case t if t == topic =>
-<<<<<<< HEAD
               val internal = ds.serialization(sft).serializer
+<<<<<<< HEAD
 =======
               val internal = ds.serialization(sft, ds.config.serialization, `lazy` = false).serializer
 <<<<<<< HEAD
@@ -198,6 +201,8 @@ package object streams {
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
               return new GeoMesaMessageSerializer(sft, internal)
 
             case t => topics += t
@@ -256,8 +261,8 @@ package object streams {
           }
           builder.result
         }
-<<<<<<< HEAD
         GeoMesaMessage.upsert(feature.getAttributes.asScala.toSeq, userData)
+<<<<<<< HEAD
 =======
         GeoMesaMessage.upsert(feature.getAttributes.asScala, userData)
 <<<<<<< HEAD
@@ -265,6 +270,8 @@ package object streams {
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
       }
     }
 
@@ -285,8 +292,8 @@ package object streams {
    *
    * See
    *   * @see [[org.locationtech.geomesa.features.kryo.impl.KryoFeatureSerialization#writeFeature]]
-<<<<<<< HEAD
    *   * @see [[org.locationtech.geomesa.features.avro.serialization.SimpleFeatureDatumWriter#write]]
+<<<<<<< HEAD
 =======
    *   * @see [[org.locationtech.geomesa.features.avro.AvroSimpleFeatureWriter#write]]
 <<<<<<< HEAD
@@ -294,6 +301,8 @@ package object streams {
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
    *
    * @param converters attribute converters to enforce feature type schema
    * @param attributes message attributes
