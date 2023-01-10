@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.convert.shp
 
+<<<<<<< HEAD
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
