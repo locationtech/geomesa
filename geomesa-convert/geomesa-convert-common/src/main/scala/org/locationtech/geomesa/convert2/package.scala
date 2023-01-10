@@ -11,6 +11,7 @@ package org.locationtech.geomesa
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
+<<<<<<< HEAD
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 <<<<<<< HEAD
 =======
@@ -24,6 +25,9 @@ import org.locationtech.geomesa.convert2.AbstractConverter.FieldApiError
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
@@ -80,6 +84,7 @@ package object convert2 {
      */
     def fieldArg: Option[Array[AnyRef] => AnyRef]
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     // TODO remove default impl in next major release
     // this will be caught and handled by the evaluation context
@@ -95,6 +100,8 @@ package object convert2 {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
 
   trait ConverterOptions {

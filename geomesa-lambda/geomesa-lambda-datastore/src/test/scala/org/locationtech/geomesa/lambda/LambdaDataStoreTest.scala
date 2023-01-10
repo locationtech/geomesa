@@ -8,6 +8,10 @@
 
 package org.locationtech.geomesa.lambda
 
+<<<<<<< HEAD
+=======
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -30,6 +34,11 @@ import org.specs2.runner.JUnitRunner
 
 import java.io.ByteArrayInputStream
 import java.util.Date
+<<<<<<< HEAD
+=======
+
+class LambdaDataStoreTest extends LambdaTest with LazyLogging {
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 <<<<<<< HEAD
 @RunWith(classOf[JUnitRunner])
@@ -53,6 +62,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
   def testTransforms(ds: LambdaDataStore, transform: SimpleFeatureType): MatchResult[Any] = {
     val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toSeq: _*)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
 <<<<<<< HEAD
@@ -62,6 +72,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     // note: need to copy the features as the same object is re-used in the iterator
     val iter = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
     val result = iter.map(DataUtilities.encodeFeature).toSeq
@@ -218,6 +230,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
           forall(Seq(ds, readOnly)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()) must beEmpty)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
             eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()) must beEmpty)
 <<<<<<< HEAD
@@ -227,6 +240,8 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
                 containTheSameElementsAs(Seq(update, features.last))
           }

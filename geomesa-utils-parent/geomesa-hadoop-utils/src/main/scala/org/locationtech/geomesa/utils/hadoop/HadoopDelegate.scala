@@ -6,10 +6,19 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/src/main/scala/org/locationtech/geomesa/utils/hadoop/HadoopDelegate.scala
 package org.locationtech.geomesa.utils.hadoop
 
 import com.typesafe.scalalogging.LazyLogging
+<<<<<<< HEAD
 import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
+=======
+=======
+package org.locationtech.geomesa.utils.io.fs
+
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/HadoopDelegate.scala
+import org.apache.commons.compress.archivers.ArchiveStreamFactory
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.commons.io.IOUtils
@@ -23,7 +32,10 @@ import org.locationtech.geomesa.utils.io.fs.{ArchiveFileIterator, FileSystemDele
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
 import java.io.{IOException, InputStream, OutputStream}
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/src/main/scala/org/locationtech/geomesa/utils/hadoop/HadoopDelegate.scala
 import java.net.{MalformedURLException, URL}
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/HadoopDelegate.scala
 import java.util.Locale
 import scala.collection.mutable.ListBuffer
 

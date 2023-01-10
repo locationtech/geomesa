@@ -8,6 +8,7 @@ com.conversantmedia:disruptor	1.2.15	compile
 com.esotericsoftware:kryo-shaded	4.0.3	compile
 com.esotericsoftware:minlog	1.3.0	compile
 com.facebook:nailgun-server	1.0.1	compile
+<<<<<<< HEAD
 com.fasterxml.jackson.core:jackson-annotations	2.16.1	compile
 com.fasterxml.jackson.core:jackson-core	2.16.1	compile
 com.fasterxml.jackson.core:jackson-databind	2.16.1	compile
@@ -23,6 +24,31 @@ com.google.code.gson:gson	2.10.1	compile
 com.google.errorprone:error_prone_annotations	2.21.1	compile
 com.google.flatbuffers:flatbuffers-java	23.5.26	compile
 com.google.guava:failureaccess	1.0	compile
+=======
+com.fasterxml.jackson.core:jackson-annotations	2.14.1	compile
+com.fasterxml.jackson.core:jackson-core	2.14.1	compile
+com.fasterxml.jackson.core:jackson-databind	2.14.1	compile
+com.fasterxml.jackson.dataformat:jackson-dataformat-cbor	2.14.1	compile
+com.fasterxml.jackson.datatype:jackson-datatype-jsr310	2.14.1	compile
+com.github.ben-manes.caffeine:caffeine	2.9.3	compile
+com.github.luben:zstd-jni	1.5.0-1	compile
+<<<<<<< HEAD
+com.github.pureconfig:pureconfig-core_2.12	0.17.2	compile
+com.github.pureconfig:pureconfig-generic-base_2.12	0.17.2	compile
+com.github.pureconfig:pureconfig-generic_2.12	0.17.2	compile
+com.github.pureconfig:pureconfig_2.12	0.17.2	compile
+=======
+com.github.pureconfig:pureconfig_2.12	0.17.2	compile
+com.github.pureconfig:pureconfig-core_2.12	0.17.2	compile
+com.github.pureconfig:pureconfig-generic_2.12	0.17.2	compile
+com.github.pureconfig:pureconfig-generic-base_2.12	0.17.2	compile
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+com.github.stephenc.findbugs:findbugs-annotations	1.3.9-1	compile
+com.google.code.gson:gson	2.10	compile
+com.google.errorprone:error_prone_annotations	2.10.0	compile
+com.google.errorprone:error_prone_annotations	2.16	compile
+com.google.flatbuffers:flatbuffers-java	1.12.0	compile
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 com.google.guava:failureaccess	1.0.1	compile
 com.google.guava:guava	18.0	compile
 com.google.guava:guava	27.0-jre	compile
@@ -32,9 +58,35 @@ com.google.protobuf:protobuf-java	2.5.0	compile
 com.google.re2j:re2j	1.1	compile
 com.google.re2j:re2j	1.6	compile
 com.googlecode.concurrent-trees:concurrent-trees	2.6.1	compile
+<<<<<<< HEAD
 com.googlecode.cqengine:cqengine	3.6.0	compile
 com.googlecode.json-simple:json-simple	1.1.1	compile
 com.jayway.jsonpath:json-path	2.9.0	compile
+=======
+com.googlecode.cqengine:cqengine	3.0.0	compile
+<<<<<<< HEAD
+com.googlecode.json-simple:json-simple	1.1.1	compile
+com.h2database:h2	2.2.220	compile
+=======
+com.google.code.gson:gson	2.10	compile
+com.googlecode.json-simple:json-simple	1.1.1	compile
+com.google.errorprone:error_prone_annotations	2.10.0	compile
+com.google.errorprone:error_prone_annotations	2.3.4	compile
+com.google.flatbuffers:flatbuffers-java	1.12.0	compile
+com.google.guava:failureaccess	1.0.1	compile
+com.google.guava:guava	11.0.2	compile
+com.google.guava:guava	18.0	compile
+com.google.guava:guava	28.0-jre	compile
+com.google.guava:guava	30.1-jre	compile
+com.google.protobuf:protobuf-java	2.5.0	compile
+com.google.re2j:re2j	1.6	compile
+com.h2database:h2	2.1.214	compile
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+com.jayway.jsonpath:json-path	2.7.0	compile
+com.lmax:disruptor	3.3.0	compile
+com.sun.jersey:jersey-core	1.9	compile
+com.sun.jersey:jersey-server	1.9	compile
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 com.thoughtworks.paranamer:paranamer	2.8	compile
 com.typesafe.scala-logging:scala-logging_2.12	3.9.5	compile
 com.typesafe:config	1.4.3	compile
@@ -45,11 +97,40 @@ commons-io:commons-io	2.15.1	compile
 commons-jxpath:commons-jxpath	1.3	compile
 commons-logging:commons-logging	1.2	compile
 commons-pool:commons-pool	1.6	compile
+<<<<<<< HEAD
 io.airlift:aircompressor	0.25	compile
+=======
+<<<<<<< HEAD
+=======
+com.sun.jersey:jersey-core	1.9	compile
+com.sun.jersey:jersey-server	1.9	compile
+com.thoughtworks.paranamer:paranamer	2.8	compile
+com.typesafe:config	1.4.2	compile
+com.typesafe.scala-logging:scala-logging_2.12	3.9.5	compile
+com.yammer.metrics:metrics-core	2.2.0	compile
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+de.topobyte:adt-geo	0.0.2	compile
+de.topobyte:adt-graph	0.0.1	compile
+de.topobyte:adt-multicollections	0.0.3	compile
+de.topobyte:compact-io	0.0.5	compile
+de.topobyte:dynsax	0.0.1	compile
+de.topobyte:jsi	1.1.0	compile
+de.topobyte:jts-utils	0.0.4	compile
+de.topobyte:large-scale-file-io	0.0.1	compile
+de.topobyte:melon-io	0.0.1	compile
+de.topobyte:osm4j-core	0.0.18	compile
+de.topobyte:osm4j-geometry	0.0.14	compile
+de.topobyte:osm4j-pbf	0.0.7	compile
+de.topobyte:osm4j-tbo	0.0.9	compile
+de.topobyte:osm4j-utils	0.0.22	compile
+de.topobyte:osm4j-xml	0.0.3	compile
+io.airlift:aircompressor	0.21	compile
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 io.dropwizard.metrics:metrics-core	3.2.6	compile
 io.dropwizard.metrics:metrics-graphite	3.2.6	compile
 io.dropwizard.metrics:metrics-jvm	3.2.6	compile
 io.github.azagniotov:dropwizard-metrics-cloudwatch	1.0.13	compile
+<<<<<<< HEAD
 io.micrometer:micrometer-commons	1.11.1	compile
 io.micrometer:micrometer-core	1.11.1	compile
 io.micrometer:micrometer-observation	1.11.1	compile
@@ -62,12 +143,59 @@ io.netty:netty-transport	4.1.106.Final	compile
 io.netty:netty-transport-classes-epoll	4.1.106.Final	compile
 io.netty:netty-transport-native-epoll	linux-x86_64:4.1.106.Final	compile
 io.netty:netty-transport-native-unix-common	4.1.106.Final	compile
+=======
+<<<<<<< HEAD
+io.micrometer:micrometer-commons	1.10.6	compile
+io.micrometer:micrometer-core	1.10.6	compile
+io.micrometer:micrometer-observation	1.10.6	compile
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+io.netty:netty-all	4.1.85.Final	compile
+io.netty:netty-buffer	4.1.85.Final	compile
+io.netty:netty-codec	4.1.85.Final	compile
+io.netty:netty-codec-dns	4.1.85.Final	compile
+io.netty:netty-codec-haproxy	4.1.85.Final	compile
+<<<<<<< HEAD
+io.netty:netty-codec-http	4.1.85.Final	compile
+io.netty:netty-codec-http2	4.1.85.Final	compile
+=======
+io.netty:netty-codec-http2	4.1.85.Final	compile
+io.netty:netty-codec-http	4.1.85.Final	compile
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+io.netty:netty-codec-memcache	4.1.85.Final	compile
+io.netty:netty-codec-mqtt	4.1.85.Final	compile
+io.netty:netty-codec-redis	4.1.85.Final	compile
+io.netty:netty-codec-smtp	4.1.85.Final	compile
+io.netty:netty-codec-socks	4.1.85.Final	compile
+io.netty:netty-codec-stomp	4.1.85.Final	compile
+io.netty:netty-codec-xml	4.1.85.Final	compile
+io.netty:netty-common	4.1.85.Final	compile
+io.netty:netty-handler	4.1.85.Final	compile
+io.netty:netty-handler-proxy	4.1.85.Final	compile
+io.netty:netty-resolver	4.1.85.Final	compile
+io.netty:netty-resolver-dns	4.1.85.Final	compile
+io.netty:netty-resolver-dns-classes-macos	4.1.85.Final	compile
+io.netty:netty-transport	4.1.85.Final	compile
+io.netty:netty-transport-classes-epoll	4.1.85.Final	compile
+io.netty:netty-transport-classes-kqueue	4.1.85.Final	compile
+io.netty:netty-transport-native-epoll	4.1.85.Final	compile
+io.netty:netty-transport-native-unix-common	4.1.85.Final	compile
+io.netty:netty-transport-rxtx	4.1.85.Final	compile
+io.netty:netty-transport-sctp	4.1.85.Final	compile
+io.netty:netty-transport-udt	4.1.85.Final	compile
+<<<<<<< HEAD
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 io.opentelemetry:opentelemetry-api	1.15.0	compile
 io.opentelemetry:opentelemetry-api	1.27.0	compile
 io.opentelemetry:opentelemetry-context	1.15.0	compile
 io.opentelemetry:opentelemetry-context	1.27.0	compile
 io.opentelemetry:opentelemetry-semconv	1.15.0-alpha	compile
+<<<<<<< HEAD
 io.opentelemetry:opentelemetry-semconv	1.27.0-alpha	compile
+=======
+io.opentelemetry:opentelemetry-semconv	1.25.0-alpha	compile
+<<<<<<< HEAD
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 io.prometheus:simpleclient	0.16.0	compile
 io.prometheus:simpleclient_common	0.16.0	compile
 io.prometheus:simpleclient_dropwizard	0.16.0	compile
@@ -76,6 +204,10 @@ io.prometheus:simpleclient_pushgateway	0.16.0	compile
 io.prometheus:simpleclient_tracer_common	0.16.0	compile
 io.prometheus:simpleclient_tracer_otel	0.16.0	compile
 io.prometheus:simpleclient_tracer_otel_agent	0.16.0	compile
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> d2a4c21745 (GEOMESA-3254 Add Bloop build support)
 io.sgr:s2-geometry-library-java	1.0.1	compile
 it.geosolutions.jaiext.affine:jt-affine	1.1.24	compile
 it.geosolutions.jaiext.algebra:jt-algebra	1.1.24	compile
@@ -125,6 +257,7 @@ net.sf.saxon:Saxon-HE	12.4	compile
 org.antlr:antlr4-runtime	4.7.2	compile
 org.apache.accumulo:accumulo-access	1.0.0-beta	compile
 org.apache.accumulo:accumulo-core	2.0.1	compile
+<<<<<<< HEAD
 org.apache.accumulo:accumulo-core	2.1.2	compile
 org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
 org.apache.accumulo:accumulo-hadoop-mapreduce	2.1.2	compile
@@ -176,14 +309,138 @@ org.apache.parquet:parquet-common	1.13.1	compile
 org.apache.parquet:parquet-encoding	1.13.1	compile
 org.apache.parquet:parquet-format-structures	1.13.1	compile
 org.apache.parquet:parquet-hadoop	1.13.1	compile
+=======
+<<<<<<< HEAD
+org.apache.accumulo:accumulo-core	2.1.1	compile
+org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
+org.apache.accumulo:accumulo-hadoop-mapreduce	2.1.1	compile
+org.apache.arrow:arrow-format	11.0.0	compile
+org.apache.arrow:arrow-memory-core	11.0.0	compile
+org.apache.arrow:arrow-memory-netty	11.0.0	compile
+org.apache.arrow:arrow-vector	11.0.0	compile
+=======
+org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
+org.apache.arrow:arrow-format	10.0.1	compile
+org.apache.arrow:arrow-memory-core	10.0.1	compile
+org.apache.arrow:arrow-memory-netty	10.0.1	compile
+org.apache.arrow:arrow-vector	10.0.1	compile
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+org.apache.avro:avro	1.11.1	compile
+org.apache.commons:commons-collections4	4.4	compile
+org.apache.commons:commons-compress	1.22	compile
+org.apache.commons:commons-configuration2	2.5	compile
+<<<<<<< HEAD
+org.apache.commons:commons-configuration2	2.8.0	compile
+org.apache.commons:commons-crypto	1.1.0	compile
+=======
+org.apache.commons:commons-crypto	1.0.0	compile
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+org.apache.commons:commons-csv	1.9.0	compile
+org.apache.commons:commons-dbcp2	2.6.0	compile
+org.apache.commons:commons-lang3	3.8.1	compile
+org.apache.commons:commons-math	2.2	compile
+org.apache.commons:commons-pool2	2.6.1	compile
+org.apache.commons:commons-text	1.10.0	compile
+org.apache.curator:curator-client	4.3.0	compile
+org.apache.curator:curator-framework	4.3.0	compile
+org.apache.curator:curator-recipes	4.3.0	compile
+<<<<<<< HEAD
+org.apache.datasketches:datasketches-java	3.3.0	compile
+org.apache.datasketches:datasketches-memory	2.1.0	compile
+org.apache.hbase.thirdparty:hbase-shaded-gson	3.0.0	compile
+org.apache.hbase.thirdparty:hbase-shaded-gson	4.1.3	compile
+org.apache.hbase.thirdparty:hbase-shaded-miscellaneous	4.1.3	compile
+org.apache.hbase.thirdparty:hbase-shaded-netty	4.1.3	compile
+org.apache.hbase.thirdparty:hbase-shaded-protobuf	4.1.3	compile
+org.apache.hbase.thirdparty:hbase-unsafe	4.1.3	compile
+org.apache.hbase:hbase-asyncfs	2.5.2	compile
+org.apache.hbase:hbase-client	1.4.14	compile
+org.apache.hbase:hbase-client	2.5.2	compile
+org.apache.hbase:hbase-common	1.4.14	compile
+org.apache.hbase:hbase-common	2.5.2	compile
+org.apache.hbase:hbase-logging	2.5.2	compile
+org.apache.hbase:hbase-mapreduce	2.5.2	compile
+org.apache.hbase:hbase-metrics	1.4.14	compile
+org.apache.hbase:hbase-metrics	2.5.2	compile
+org.apache.hbase:hbase-metrics-api	1.4.14	compile
+org.apache.hbase:hbase-metrics-api	2.5.2	compile
+org.apache.hbase:hbase-protocol	1.4.14	compile
+org.apache.hbase:hbase-protocol	2.5.2	compile
+org.apache.hbase:hbase-protocol-shaded	2.5.2	compile
+org.apache.hbase:hbase-replication	2.5.2	compile
+org.apache.hbase:hbase-server	1.4.14	compile
+org.apache.hbase:hbase-zookeeper	2.5.2	compile
+=======
+org.apache.hbase:hbase-asyncfs	2.4.4	compile
+org.apache.hbase:hbase-client	1.4.13	compile
+org.apache.hbase:hbase-client	2.4.4	compile
+org.apache.hbase:hbase-common	1.4.13	compile
+org.apache.hbase:hbase-common	2.4.4	compile
+org.apache.hbase:hbase-logging	2.4.4	compile
+org.apache.hbase:hbase-mapreduce	2.4.4	compile
+org.apache.hbase:hbase-metrics	1.4.13	compile
+org.apache.hbase:hbase-metrics	2.4.4	compile
+org.apache.hbase:hbase-metrics-api	1.4.13	compile
+org.apache.hbase:hbase-metrics-api	2.4.4	compile
+org.apache.hbase:hbase-protocol	1.4.13	compile
+org.apache.hbase:hbase-protocol	2.4.4	compile
+org.apache.hbase:hbase-protocol-shaded	2.4.4	compile
+org.apache.hbase:hbase-replication	2.4.4	compile
+org.apache.hbase:hbase-server	1.4.13	compile
+org.apache.hbase:hbase-zookeeper	2.4.4	compile
+org.apache.hbase.thirdparty:hbase-shaded-gson	3.0.0	compile
+org.apache.hbase.thirdparty:hbase-shaded-gson	3.4.1	compile
+org.apache.hbase.thirdparty:hbase-shaded-miscellaneous	3.4.1	compile
+org.apache.hbase.thirdparty:hbase-shaded-netty	3.4.1	compile
+org.apache.hbase.thirdparty:hbase-shaded-protobuf	3.4.1	compile
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+org.apache.hive:hive-storage-api	2.7.2	compile
+org.apache.hive:hive-storage-api	2.8.1	compile
+org.apache.htrace:htrace-core	3.1.0-incubating	compile
+org.apache.htrace:htrace-core	3.2.0-incubating	compile
+<<<<<<< HEAD
+org.apache.httpcomponents:httpclient	4.5.13	compile
+org.apache.httpcomponents:httpcore	4.4.15	compile
+org.apache.orc:orc-core	nohive:1.8.2	compile
+org.apache.orc:orc-mapreduce	nohive:1.8.2	compile
+org.apache.orc:orc-shims	1.8.2	compile
+=======
+org.apache.htrace:htrace-core4	4.2.0-incubating	compile
+org.apache.httpcomponents:httpclient	4.5.13	compile
+org.apache.httpcomponents:httpcore	4.4.15	compile
+org.apache.orc:orc-core	nohive:1.8.1	compile
+org.apache.orc:orc-mapreduce	nohive:1.8.1	compile
+org.apache.orc:orc-shims	1.8.1	compile
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+org.apache.parquet:parquet-column	1.12.3	compile
+org.apache.parquet:parquet-common	1.12.3	compile
+org.apache.parquet:parquet-encoding	1.12.3	compile
+org.apache.parquet:parquet-format-structures	1.12.3	compile
+org.apache.parquet:parquet-hadoop	1.12.3	compile
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 org.apache.thrift:libthrift	0.12.0	compile
 org.apache.thrift:libthrift	0.17.0	compile
 org.apache.xml:xml-commons-resolver	1.2	compile
 org.apache.yetus:audience-annotations	0.12.0	compile
 org.apache.yetus:audience-annotations	0.13.0	compile
+<<<<<<< HEAD
 org.apache.zookeeper:zookeeper	3.9.2	compile
 org.apache.zookeeper:zookeeper-jute	3.9.2	compile
+=======
+<<<<<<< HEAD
+org.apache.zookeeper:zookeeper	3.9.1	compile
+org.apache.zookeeper:zookeeper-jute	3.9.1	compile
+>>>>>>> 0c82c1bf002 (GEOMESA-3254 Add Bloop build support)
 org.apiguardian:apiguardian-api	1.1.2	compile
+=======
+org.apache.yetus:audience-annotations	0.5.0	compile
+org.apache.zookeeper:zookeeper	3.5.10	compile
+org.apache.zookeeper:zookeeper-jute	3.5.10	compile
+<<<<<<< HEAD
+org.apache.zookeeper:zookeeper-jute	3.8.1	compile
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 org.calrissian.mango:mango-core	3.0.0	compile
 org.checkerframework:checker-qual	3.37.0	compile
 org.checkerframework:checker-qual	3.42.0	compile
@@ -198,6 +455,7 @@ org.ejml:ejml-core	0.41	compile
 org.ejml:ejml-ddense	0.41	compile
 org.ejml:ejml-fsparse	0.41	compile
 org.ejml:ejml-simple	0.41	compile
+<<<<<<< HEAD
 org.geotools.jdbc:gt-jdbc-postgis	30.2	compile
 org.geotools.ogc:net.opengis.fes	30.2	compile
 org.geotools.ogc:net.opengis.ows	30.2	compile
@@ -226,6 +484,71 @@ org.geotools:gt-render	30.2	compile
 org.geotools:gt-shapefile	30.2	compile
 org.geotools:gt-transform	30.2	compile
 org.geotools:gt-xml	30.2	compile
+=======
+<<<<<<< HEAD
+org.geotools.jdbc:gt-jdbc-postgis	28.2	compile
+org.geotools.ogc:net.opengis.fes	28.2	compile
+org.geotools.ogc:net.opengis.ows	28.2	compile
+org.geotools.ogc:net.opengis.wfs	28.2	compile
+org.geotools.ogc:org.w3.xlink	28.2	compile
+org.geotools.xsd:gt-xsd-core	28.2	compile
+org.geotools.xsd:gt-xsd-fes	28.2	compile
+org.geotools.xsd:gt-xsd-filter	28.2	compile
+org.geotools.xsd:gt-xsd-gml2	28.2	compile
+org.geotools.xsd:gt-xsd-gml3	28.2	compile
+org.geotools.xsd:gt-xsd-ows	28.2	compile
+org.geotools.xsd:gt-xsd-wfs	28.2	compile
+org.geotools:gt-coverage	28.2	compile
+org.geotools:gt-cql	28.2	compile
+org.geotools:gt-epsg-hsql	28.2	compile
+org.geotools:gt-epsg-wkt	28.2	compile
+org.geotools:gt-grid	28.2	compile
+org.geotools:gt-http	28.2	compile
+org.geotools:gt-jdbc	28.2	compile
+org.geotools:gt-main	28.2	compile
+org.geotools:gt-metadata	28.2	compile
+org.geotools:gt-opengis	28.2	compile
+org.geotools:gt-process	28.2	compile
+org.geotools:gt-process-feature	28.2	compile
+org.geotools:gt-referencing	28.2	compile
+org.geotools:gt-render	28.2	compile
+org.geotools:gt-shapefile	28.2	compile
+org.geotools:gt-transform	28.2	compile
+org.geotools:gt-xml	28.2	compile
+org.hsqldb:hsqldb	jdk8:2.7.1	compile
+=======
+org.geotools:gt-coverage	28.0	compile
+org.geotools:gt-cql	28.0	compile
+org.geotools:gt-epsg-hsql	28.0	compile
+org.geotools:gt-epsg-wkt	28.0	compile
+org.geotools:gt-grid	28.0	compile
+org.geotools:gt-http	28.0	compile
+org.geotools:gt-jdbc	28.0	compile
+org.geotools:gt-main	28.0	compile
+org.geotools:gt-metadata	28.0	compile
+org.geotools:gt-opengis	28.0	compile
+org.geotools:gt-process	28.0	compile
+org.geotools:gt-process-feature	28.0	compile
+org.geotools:gt-referencing	28.0	compile
+org.geotools:gt-render	28.0	compile
+org.geotools:gt-shapefile	28.0	compile
+org.geotools:gt-transform	28.0	compile
+org.geotools:gt-xml	28.0	compile
+org.geotools.jdbc:gt-jdbc-postgis	28.0	compile
+org.geotools.ogc:net.opengis.fes	28.0	compile
+org.geotools.ogc:net.opengis.ows	28.0	compile
+org.geotools.ogc:net.opengis.wfs	28.0	compile
+org.geotools.ogc:org.w3.xlink	28.0	compile
+org.geotools.xsd:gt-xsd-core	28.0	compile
+org.geotools.xsd:gt-xsd-fes	28.0	compile
+org.geotools.xsd:gt-xsd-filter	28.0	compile
+org.geotools.xsd:gt-xsd-gml2	28.0	compile
+org.geotools.xsd:gt-xsd-gml3	28.0	compile
+org.geotools.xsd:gt-xsd-ows	28.0	compile
+org.geotools.xsd:gt-xsd-wfs	28.0	compile
+org.hsqldb:hsqldb	2.4.1	compile
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 org.huldra.math:bigint	0.7.1	compile
 org.jetbrains:annotations	17.0.0	compile
 org.jruby.jcodings:jcodings	1.0.55	compile
@@ -234,11 +557,23 @@ org.json4s:json4s-ast_2.12	3.6.12	compile
 org.json4s:json4s-core_2.12	3.6.12	compile
 org.json4s:json4s-native_2.12	3.6.12	compile
 org.json4s:json4s-scalap_2.12	3.6.12	compile
+<<<<<<< HEAD
+=======
+org.json:json	20220320	compile
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 org.locationtech.jts.io:jts-io-common	1.19.0	compile
 org.locationtech.jts:jts-core	1.19.0	compile
 org.locationtech.spatial4j:spatial4j	0.8	compile
+<<<<<<< HEAD
 org.mozilla:rhino	1.7.14	compile
 org.mozilla:rhino-engine	1.7.14	compile
+=======
+<<<<<<< HEAD
+=======
+org.mortbay.jetty:jetty-util	6.1.26	compile
+<<<<<<< HEAD
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 0c82c1bf002 (GEOMESA-3254 Add Bloop build support)
 org.objenesis:objenesis	2.5.1	compile
 org.objenesis:objenesis	2.6	compile
 org.objenesis:objenesis	3.3	compile
@@ -251,9 +586,28 @@ org.scala-lang:scala-library	2.12.19	compile
 org.scala-lang:scala-reflect	2.12.19	compile
 org.slf4j:slf4j-api	1.7.36	compile
 org.threeten:threeten-extra	1.7.1	compile
+<<<<<<< HEAD
 org.xmlresolver:xmlresolver	5.2.2	compile
 org.xmlresolver:xmlresolver	data:5.2.2	compile
 org.yaml:snakeyaml	2.0	compile
+=======
+org.xmlresolver:xmlresolver	4.4.3	compile
+org.xmlresolver:xmlresolver	data:4.4.3	compile
+org.yaml:snakeyaml	1.33	compile
+=======
+org.objenesis:objenesis	1.0	compile
+org.parboiled:parboiled-core	1.3.1	compile
+org.parboiled:parboiled-scala_2.12	1.3.1	compile
+org.postgresql:postgresql	42.4.1	compile
+org.scala-lang.modules:scala-parser-combinators_2.12	1.1.2	compile
+org.scala-lang.modules:scala-xml_2.12	1.3.0	compile
+org.scala-lang:scala-library	2.12.13	compile
+org.scala-lang:scala-reflect	2.12.13	compile
+org.slf4j:slf4j-api	1.7.36	compile
+org.threeten:threeten-extra	1.5.0	compile
+org.threeten:threeten-extra	1.7.1	compile
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 picocontainer:picocontainer	1.2	compile
 redis.clients:jedis	5.1.0	compile
 si.uom:si-quantity	2.1	compile
@@ -313,6 +667,7 @@ org.apache.hadoop:hadoop-mapreduce-client-common	2.10.2	provided
 org.apache.hadoop:hadoop-mapreduce-client-core	2.10.2	provided
 org.apache.hadoop:hadoop-yarn-api	2.10.2	provided
 org.apache.hadoop:hadoop-yarn-common	2.10.2	provided
+<<<<<<< HEAD
 org.apache.hbase:hbase-server	2.5.2	provided
 org.apache.kafka:kafka-clients	2.8.2	provided
 org.apache.kafka:kafka-streams-scala_2.12	2.8.2	provided
@@ -464,6 +819,35 @@ org.apache.kafka:kafka-streams-test-utils	2.1.1	test
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+org.apache.hbase:hbase-server	2.4.4	provided
+org.apache.kafka:kafka_2.12	2.8.2	provided
+org.apache.kafka:kafka-clients	2.8.2	provided
+org.apache.kafka:kafka-streams	2.8.2	provided
+org.apache.kafka:kafka-streams-scala_2.12	2.8.2	provided
+org.apache.spark:spark-catalyst_2.12	3.3.1	provided
+org.apache.spark:spark-core_2.12	3.3.1	provided
+org.apache.spark:spark-sql_2.12	3.3.1	provided
+org.scala-lang:scala-compiler	2.12.13	provided
+org.slf4j:slf4j-reload4j	1.7.36	provided
+org.springframework.security:spring-security-core	5.8.0	provided
+
+com.kjetland:mbknor-jackson-jsonschema_2.12	1.0.39	test
+io.confluent:kafka-schema-registry	6.2.7	test
+io.confluent:kafka-schema-registry	tests:6.2.7	test
+junit:junit	4.13.1	test
+org.apache.accumulo:accumulo-minicluster	2.0.1	test
+org.apache.accumulo:accumulo-test	2.0.1	test
+org.apache.arrow:arrow-vector	tests:10.0.1	test
+org.apache.cassandra:cassandra-all	3.0.0	test
+org.apache.curator:curator-test	4.3.0	test
+org.apache.hadoop:hadoop-minicluster	2.10.2	test
+org.apache.hbase:hbase-testing-util	1.4.13	test
+org.apache.hbase:hbase-testing-util	2.4.4	test
+org.apache.kafka:kafka_2.12	test:2.8.2	test
+org.apache.kafka:kafka-clients	test:2.8.2	test
+org.apache.kafka:kafka-streams-test-utils	2.8.2	test
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 org.cassandraunit:cassandra-unit	2.2.2.1	test
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 org.codehaus.groovy:groovy-jsr223	2.4.5	test
