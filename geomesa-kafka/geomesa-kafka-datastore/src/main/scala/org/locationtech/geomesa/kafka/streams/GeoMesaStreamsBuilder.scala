@@ -17,8 +17,8 @@
 package org.locationtech.geomesa.kafka.streams
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
-<<<<<<< HEAD
 import org.apache.kafka.common.serialization.Serde
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -36,6 +36,8 @@ import org.apache.kafka.common.serialization.Serde
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.kstream.GlobalKTable
@@ -56,9 +58,9 @@ import scala.concurrent.duration.Duration
  */
 class GeoMesaStreamsBuilder(
     val wrapped: StreamsBuilder,
-<<<<<<< HEAD
     serde: GeoMesaSerde,
     timestampExtractor: TimestampExtractor,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -80,6 +82,8 @@ class GeoMesaStreamsBuilder(
     val timestampExtractor: TimestampExtractor,
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
     resetPolicy: Option[AutoOffsetReset]) {
 
   import org.apache.kafka.streams.scala.Serdes.String
@@ -92,7 +96,6 @@ class GeoMesaStreamsBuilder(
   }
 
   /**
-<<<<<<< HEAD
    * Gets a serde for the given feature type
    *
    * @param typeName feature type name
@@ -101,6 +104,7 @@ class GeoMesaStreamsBuilder(
   def serde(typeName: String): Serde[GeoMesaMessage] = serde.forType(typeName)
 
   /**
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -118,6 +122,8 @@ class GeoMesaStreamsBuilder(
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
    * Create a stream of updates for a given feature type
    *
    * @param typeName feature type name
@@ -295,7 +301,6 @@ object GeoMesaStreamsBuilder {
       params: Map[String, String],
       timestampExtractor: TimestampExtractor,
       resetPolicy: AutoOffsetReset,
-<<<<<<< HEAD
       streamsBuilder: StreamsBuilder): GeoMesaStreamsBuilder =
     apply(params.asJava, timestampExtractor, resetPolicy, streamsBuilder)
 
@@ -319,6 +324,7 @@ object GeoMesaStreamsBuilder {
     val builder = Option(streamsBuilder).getOrElse(new StreamsBuilder())
     val timestamps = Option(timestampExtractor).getOrElse(GeoMesaTimestampExtractor(params))
     val reset = Option(resetPolicy).orElse(resetConfig(params))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -353,6 +359,8 @@ object GeoMesaStreamsBuilder {
     val reset = Option(resetPolicy).orElse(resetConfig(jParams))
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
     new GeoMesaStreamsBuilder(builder, serde, timestamps, reset)
   }
 
