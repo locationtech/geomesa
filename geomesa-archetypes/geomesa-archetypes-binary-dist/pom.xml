@@ -201,6 +201,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
 =======
@@ -593,6 +594,8 @@
 >>>>>>> b3e8c71d5cc (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 31e57b8ac92 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a34438bf2f4 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
@@ -989,6 +992,8 @@
 >>>>>>> cf5ca5d0ded (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 83363fd6e61 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> 3a2e956065 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -1284,7 +1289,12 @@
 =======
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 83363fd6e61 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.4.0-SNAPSHOT</version>
@@ -3362,6 +3372,7 @@
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> e82f13f69b9 (GEOMESA-3254 Add Bloop build support)
@@ -3369,6 +3380,8 @@
 =======
 =======
 >>>>>>> 83363fd6e61 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -6644,8 +6657,19 @@
 =======
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 83363fd6e61 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 31e57b8ac92 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> a34438bf2f4 (GEOMESA-3254 Add Bloop build support)
     </parent>
 
     <artifactId>geomesa-archetypes-binary-dist_2.12</artifactId>
