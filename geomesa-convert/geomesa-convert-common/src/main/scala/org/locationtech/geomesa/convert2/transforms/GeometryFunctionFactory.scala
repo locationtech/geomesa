@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-import java.util.concurrent.ConcurrentHashMap
-
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.locationtech.jts.geom._
 import org.opengis.referencing.operation.MathTransform
+
+import java.util.concurrent.ConcurrentHashMap
 
 class GeometryFunctionFactory extends TransformerFunctionFactory {
 

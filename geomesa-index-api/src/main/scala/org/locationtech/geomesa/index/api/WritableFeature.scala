@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.index.api
 
-import java.nio.charset.StandardCharsets
-
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.index.conf.ColumnGroups
 import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.nio.charset.StandardCharsets
 import scala.util.hashing.MurmurHash3
 
 /**

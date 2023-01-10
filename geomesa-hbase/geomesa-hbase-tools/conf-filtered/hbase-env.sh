@@ -18,7 +18,7 @@
 # export GEOMESA_HBASE_CLASSPATH=
 
 # HBase home directory
-# export HBASE_HOME="{HBASE_HOME:-/path/to/hbase}"
+# export HBASE_HOME="${HBASE_HOME:-/path/to/hbase}"
 
 # HBase lib directory, default to $HBASE_HOME/lib
 # export HBASE_LIB="${HBASE_LIB:-$HBASE_HOME/lib}"

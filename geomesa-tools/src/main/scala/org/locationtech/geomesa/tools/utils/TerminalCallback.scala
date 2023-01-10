@@ -8,15 +8,12 @@
 
 package org.locationtech.geomesa.tools.utils
 
-import java.io.PrintStream
-
 import org.locationtech.geomesa.jobs.StatusCallback
 import org.locationtech.geomesa.utils.text.TextTools
 
-object TerminalCallback {
+import java.io.PrintStream
 
-  @deprecated("JLine breaks tty settings when invoked")
-  lazy val terminalWidth: () => Float = () => 1.0f
+object TerminalCallback {
 
   def apply(mock: Boolean = false): StatusCallback = {
     if (mock) {

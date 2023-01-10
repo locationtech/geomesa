@@ -13,12 +13,22 @@ import org.locationtech.geomesa.convert2.transforms.MiscFunctionFactory.LineNumb
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 
 object MiscFunctionFactory {
+
   def intToBoolean(args: Array[Any]): Any = {
     if (args(0) == null) null else args(0).asInstanceOf[Int] != 0
   }
+
   def withDefault(args: Array[Any]): Any = {
-    if (args(0) == null) args(1) else args(0)
+    var i = 0
+    while (i < args.length) {
+      if (args(i) != null) {
+        return args(i)
+      }
+      i += 1
+    }
+    null
   }
+
   def require(args: Array[Any]): Any = {
     if (args(0) == null) {
       throw new IllegalArgumentException("Required field is null")
@@ -29,8 +39,6 @@ object MiscFunctionFactory {
   class LineNumber(ec: EvaluationContext) extends NamedTransformerFunction(Seq("lineNo", "lineNumber")) {
     override def apply(args: Array[AnyRef]): AnyRef = Long.box(ec.line)
     override def withContext(ec: EvaluationContext): TransformerFunction = new LineNumber(ec)
-    // noinspection ScalaDeprecation
-    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = ec.line
   }
 }
 

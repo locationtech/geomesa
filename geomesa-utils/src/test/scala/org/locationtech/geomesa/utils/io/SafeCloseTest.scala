@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.utils.io
 
-import java.io.{Closeable, IOException}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{Closeable, IOException}
 
 @RunWith(classOf[JUnitRunner])
 class SafeCloseTest extends Specification with LazyLogging {

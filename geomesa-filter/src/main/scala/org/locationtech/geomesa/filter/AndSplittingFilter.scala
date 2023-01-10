@@ -11,14 +11,14 @@ package org.locationtech.geomesa.filter
 import org.geotools.filter.visitor.DefaultFilterVisitor
 import org.opengis.filter.{And, Filter}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 // This class helps us split a Filter into pieces if there are ANDs at the top.
 class AndSplittingFilter extends DefaultFilterVisitor {
 
   // This function really returns a Seq[Filter].
   override def visit(filter: And, data: scala.Any): AnyRef = {
-    filter.getChildren.flatMap { subfilter =>
+    filter.getChildren.asScala.flatMap { subfilter =>
       this.visit(subfilter, data)
     }
   }

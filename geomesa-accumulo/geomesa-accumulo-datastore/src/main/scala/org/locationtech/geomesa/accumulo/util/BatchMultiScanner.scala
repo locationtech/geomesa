@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.util
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.{Connector, ScannerBase}
+import org.apache.accumulo.core.client.{AccumuloClient, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinFunction}
@@ -34,7 +34,7 @@ import java.util.concurrent.{Executors, Future, LinkedBlockingQueue, TimeUnit}
  * @param batchSize batch size
  */
 class BatchMultiScanner(
-    connector: Connector,
+    connector: AccumuloClient,
     in: ScannerBase,
     join: BatchScanPlan,
     joinFunction: JoinFunction,
@@ -104,7 +104,7 @@ class BatchMultiScanner(
             inQ.drainTo(entries.asJava)
             val task = executor.submit(new Runnable {
               override def run(): Unit = {
-                val iterator = join.copy(ranges = entries.map(joinFunction)).scan(connector, auths, partitionParallelScans, timeout)
+                val iterator = join.copy(ranges = entries.map(joinFunction).toSeq).scan(connector, auths, partitionParallelScans, timeout)
                 try {
                   iterator.foreach(outQ.put)
                 } finally {

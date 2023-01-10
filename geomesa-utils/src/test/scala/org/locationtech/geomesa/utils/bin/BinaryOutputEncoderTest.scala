@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.utils.bin
 
-import java.io.ByteArrayOutputStream
-import java.text.SimpleDateFormat
-
-import org.locationtech.jts.geom.{LineString, Point}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.junit.runner.RunWith
@@ -19,8 +15,12 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{LineString, Point}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayOutputStream
+import java.text.SimpleDateFormat
 
 @RunWith(classOf[JUnitRunner])
 class BinaryOutputEncoderTest extends Specification {
@@ -41,7 +41,7 @@ class BinaryOutputEncoderTest extends Specification {
       (0 until 4).foreach { i =>
         val point = WKTUtils.read(s"POINT (45 5$i)")
         val date = s"2014-01-01T08:0${9-i}:00.000Z"
-        builder.addAll(Array(s"1234-$i", java.lang.Long.valueOf(10 + i), 45 + i, 50, date, point).asInstanceOf[Array[AnyRef]])
+        builder.addAll(s"1234-$i", Long.box(10 + i), Double.box(45 + i), Double.box(50), date, point)
         fc.add(builder.buildFeature(s"$i"))
       }
 
@@ -101,7 +101,7 @@ class BinaryOutputEncoderTest extends Specification {
       val fc = new ListFeatureCollection(sft)
       val builder = new SimpleFeatureBuilder(sft)
       (0 until 1).foreach { i =>
-        builder.addAll(Array[AnyRef](s"1234-$i", java.lang.Long.valueOf(10 + i), date, dates, line))
+        builder.addAll(s"1234-$i", java.lang.Long.valueOf(10 + i), date, dates, line)
         fc.add(builder.buildFeature(s"$i"))
       }
 
@@ -168,7 +168,7 @@ class BinaryOutputEncoderTest extends Specification {
       (0 until 4).foreach { i =>
         val point = WKTUtils.read(s"POINT (45 5$i)")
         val date = s"2014-01-01T08:0${9-i}:00.000Z"
-        builder.addAll(Array(s"1234-$i", date, point).asInstanceOf[Array[AnyRef]])
+        builder.addAll(s"1234-$i", date, point)
         fc.add(builder.buildFeature(s"$i"))
       }
 
@@ -205,7 +205,7 @@ class BinaryOutputEncoderTest extends Specification {
       val fc = new ListFeatureCollection(sft)
       val builder = new SimpleFeatureBuilder(sft)
       (0 until 1).foreach { i =>
-        builder.addAll(Array[AnyRef](s"1234-$i", date, dates, line))
+        builder.addAll(s"1234-$i", date, dates, line)
         fc.add(builder.buildFeature(s"$i"))
       }
 

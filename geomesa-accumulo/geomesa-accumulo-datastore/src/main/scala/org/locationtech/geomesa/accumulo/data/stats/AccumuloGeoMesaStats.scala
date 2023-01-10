@@ -8,10 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data.stats
 
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
-import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
-
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
@@ -20,6 +17,9 @@ import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
+import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 
 /**
   * Accumulo stats implementation handling table compactions
@@ -49,7 +49,7 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
         compact()
       }
       if (running.get) {
-        synchronized(scheduledCompaction = executor.schedule(this, compactInterval, TimeUnit.MILLISECONDS))
+        synchronized{scheduledCompaction = executor.schedule(this, compactInterval, TimeUnit.MILLISECONDS)}
       }
     }
   }
@@ -61,7 +61,7 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
   override def close(): Unit = {
     super.close()
     running.set(false)
-    synchronized(scheduledCompaction.cancel(false))
+    synchronized{scheduledCompaction.cancel(false)}
   }
 
   /**
@@ -72,7 +72,7 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
     * @param connector accumulo connector
     * @param sft simple feature type
     */
-  def configureStatCombiner(connector: Connector, sft: SimpleFeatureType): Unit = {
+  def configureStatCombiner(connector: AccumuloClient, sft: SimpleFeatureType): Unit = {
     import MetadataBackedStats._
 
     StatsCombiner.configure(sft, connector, metadata.table, metadata.typeNameSeparator.toString)
@@ -90,7 +90,7 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
     * @param connector accumulo connector
     * @param sft simple feature type
     */
-  def removeStatCombiner(connector: Connector, sft: SimpleFeatureType): Unit =
+  def removeStatCombiner(connector: AccumuloClient, sft: SimpleFeatureType): Unit =
     StatsCombiner.remove(sft, connector, metadata.table, metadata.typeNameSeparator.toString)
 
   override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {

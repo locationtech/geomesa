@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.redis.tools
 
-import java.io.File
-
 import com.beust.jcommander.Parameter
 import org.locationtech.geomesa.redis.data.{RedisDataStore, RedisDataStoreParams}
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand.RedisDataStoreParams
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+
+import java.io.File
 
 /**
   * Abstract class for commands that require a RedisDataStore

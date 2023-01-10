@@ -107,6 +107,11 @@ geomesa.hbase.write.batch
 
 Specify the number of bytes that will be buffered before flushing to disk during write operations.
 
+geomesa.hbase.write.flush.timeout.millis
+++++++++++++++++++++++++++++++++++++++++
+
+Specify the maximum number of milliseconds before data will be flushed to disk during write operations.
+
 geomesa.hbase.query.block.caching.enabled
 +++++++++++++++++++++++++++++++++++++++++
 

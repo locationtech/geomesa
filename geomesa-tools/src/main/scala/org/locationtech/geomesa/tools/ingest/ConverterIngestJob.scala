@@ -15,7 +15,6 @@ import org.apache.hadoop.io.{LongWritable, Text}
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.{Job, Mapper}
 import org.geotools.data.DataUtilities
-import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat, JobWithLibJars}
 import org.locationtech.geomesa.jobs.{Awaitable, JobResult, StatusCallback}

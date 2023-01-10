@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util.Date
-import java.util.concurrent.ConcurrentHashMap
-
 import com.typesafe.config.Config
 import org.apache.commons.text.StringEscapeUtils
 import org.geotools.feature.AttributeTypeBuilder
@@ -23,6 +20,9 @@ import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.`type`.{AttributeDescriptor, FeatureTypeFactory, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.parboiled.errors.ParsingException
+
+import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 
 object SimpleFeatureTypes {
 
@@ -66,9 +66,6 @@ object SimpleFeatureTypes {
     val IndexZShards  = "geomesa.z.splits"
     val IndexZ2Shards = "geomesa.z2.splits"
     val IndexZ3Shards = "geomesa.z3.splits"
-
-    @deprecated("replaced with IndexS3Interval")
-    val S3_INTERVAL_KEY: String = IndexS3Interval
 
     // keep around old values for back compatibility
     @deprecated("EnabledIndices")

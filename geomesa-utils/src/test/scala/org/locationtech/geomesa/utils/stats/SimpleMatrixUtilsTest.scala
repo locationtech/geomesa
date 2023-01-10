@@ -12,12 +12,15 @@ import org.ejml.data.DMatrixRMaj
 import org.ejml.dense.row.CommonOps_DDRM
 import org.ejml.simple.SimpleMatrix
 import org.junit.runner.RunWith
-import org.specs2.mutable.Specification
 import org.locationtech.geomesa.utils.stats.SimpleMatrixUtils._
+import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class SimpleMatrixUtilsTest extends Specification with StatTestHelper {
+
+
+  private implicit def toDMatrixRMaj(sm: SimpleMatrix): DMatrixRMaj = sm.getMatrix[DMatrixRMaj]
 
   implicit class extract(sm: SimpleMatrix) {
     def array: Array[Double] = sm.getMatrix.asInstanceOf[DMatrixRMaj].data

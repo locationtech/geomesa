@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.arrow.vector
 
-import java.util.{Date, UUID}
 import org.apache.arrow.vector.complex.FixedSizeListVector
 import org.apache.arrow.vector.{BigIntVector, IntVector}
 import org.geotools.util.Converters
@@ -21,6 +20,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.{Date, UUID}
 
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureVectorTest extends Specification {

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools.compact
 
-import java.io.File
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -27,11 +25,13 @@ import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
 import org.locationtech.geomesa.jobs.mapreduce.JobWithLibJars
 import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
-import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
+import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.utils.{JobRunner, StorageJobUtils}
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.SimpleFeature
+
+import java.io.File
 
 trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 

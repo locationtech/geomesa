@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.tools.utils
 
-import java.util.regex.Pattern
-
 import com.beust.jcommander.{IStringConverter, IStringConverterFactory}
+
+import java.util.regex.Pattern
 
 class GeoMesaIStringConverterFactory extends IStringConverterFactory {
 

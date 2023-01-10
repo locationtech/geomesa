@@ -15,7 +15,7 @@ import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ParsingConverter, SimpleFeatureConverter, SimpleFeatureConverterFactory}
 import org.opengis.feature.simple.SimpleFeatureType
-import pureconfig.ConfigConvert
+import pureconfig.{ConfigConvert, ConfigSource}
 
 import scala.util.control.NonFatal
 
@@ -30,7 +30,7 @@ class JsonCompositeConverterFactory extends SimpleFeatureConverterFactory with L
       val defaults = AbstractConverterFactory.standardDefaults(conf, logger)
       try {
         implicit val convert: ConfigConvert[BasicOptions] = AbstractConverterFactory.BasicOptionsConvert
-        val options = pureconfig.loadConfigOrThrow[BasicOptions](defaults)
+        val options = ConfigSource.fromConfig(defaults).loadOrThrow[BasicOptions]
         val typeToProcess = ConfigValueFactory.fromAnyRef(JsonConverterFactory.TypeToProcess)
         val delegates = defaults.getConfigList("converters").asScala.map { base =>
           val conf = base.withFallback(defaults).withValue("type", typeToProcess)
@@ -41,7 +41,7 @@ class JsonCompositeConverterFactory extends SimpleFeatureConverterFactory with L
           val predicate = Predicate(conf.getString("predicate"))
           (predicate, converter)
         }
-        Some(new JsonCompositeConverter(sft, options.encoding, options.errorMode, delegates))
+        Some(new JsonCompositeConverter(sft, options.encoding, options.errorMode, delegates.toSeq))
       } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid configuration: ${e.getMessage}")
       }

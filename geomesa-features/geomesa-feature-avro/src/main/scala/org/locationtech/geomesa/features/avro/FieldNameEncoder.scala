@@ -8,27 +8,34 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.util.concurrent.ConcurrentHashMap
-
 import org.apache.commons.codec.binary.Hex
 import org.locationtech.geomesa.features.avro.FieldNameEncoder._
 
-import scala.collection.JavaConversions._
+import java.util.concurrent.ConcurrentHashMap
 
 class FieldNameEncoder(serializationVersion: Int, forceFullEncoding: Boolean = false) {
-  private val m = if (serializationVersion < 4 || forceFullEncoding) cachePreV4 else cacheV4
 
-  private val encodeFn: String => String = if (serializationVersion < 4 || forceFullEncoding) encodePreV4 else hexEscape
-  private val decodeFn: String => String = if (serializationVersion < 4 || forceFullEncoding) decodePreV4 else deHexEscape
+  private val cache = new ConcurrentHashMap[String, String]()
 
-  def encode(s: String): String = m.getOrElseUpdate(s, encodeFn(s))
-  def decode(s: String): String = m.getOrElseUpdate(s, decodeFn(s))
+  private val encodeFn = {
+    val fn: String => String = if (serializationVersion < 4 || forceFullEncoding) { encodePreV4 } else { hexEscape }
+    new java.util.function.Function[String, String]() {
+      override def apply(t: String): String = fn(t)
+    }
+  }
+
+  private val decodeFn = {
+    val fn: String => String = if (serializationVersion < 4 || forceFullEncoding) { decodePreV4 } else { deHexEscape }
+    new java.util.function.Function[String, String]() {
+      override def apply(t: String): String = fn(t)
+    }
+  }
+
+  def encode(s: String): String = cache.computeIfAbsent(s, encodeFn)
+  def decode(s: String): String = cache.computeIfAbsent(s, decodeFn)
 }
 
 object FieldNameEncoder {
-  // Need a separate cache for reading old data files generated before v4
-  val cacheV4    = new ConcurrentHashMap[String, String]()
-  val cachePreV4 = new ConcurrentHashMap[String, String]()
 
   def encodePreV4(s: String): String = "_" + Hex.encodeHexString(s.getBytes("UTF8"))
 
@@ -60,7 +67,4 @@ object FieldNameEncoder {
     }
     sb.toString()
   }
-
-  private def isSafeName(s: String): Boolean =  s.toCharArray.forall(_.isLetterOrDigit)
-
 }

@@ -16,7 +16,7 @@ hadoop_install_version="%%hadoop.version.recommended%%"
 zookeeper_install_version="%%zookeeper.version.recommended%%"
 thrift_install_version="%%thrift.version%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
-guava_install_version="%%guava.version%%"
+guava_install_version="%%accumulo.guava.version%%"
 
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
@@ -53,7 +53,6 @@ function dependencies() {
     "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
     "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
-    "org.slf4j:slf4j-log4j12:1.7.25:jar"
   )
 
   # add accumulo 1.x jars if needed
@@ -65,7 +64,7 @@ function dependencies() {
     )
   else
     gavs+=(
-      "org.apache.commons:commons-collections4:4.3:jar"
+      "org.apache.commons:commons-collections4:4.4:jar"
       "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
     )
   fi

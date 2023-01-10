@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.features
 
-import java.util.{Collection => jCollection, List => jList, Map => jMap}
-
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.utils.geotools.Transform
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
@@ -20,6 +18,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
+
+import java.util.{Collection => jCollection, List => jList, Map => jMap}
 
 /**
   * Simple feature implementation that wraps another feature type and applies a transform/projection
@@ -133,8 +133,4 @@ object TransformSimpleFeature {
 
   def apply(transformSchema: SimpleFeatureType, transforms: Seq[Transform]): TransformSimpleFeature =
     new TransformSimpleFeature(transformSchema, transforms.toArray)
-
-  @deprecated("replaced with org.locationtech.geomesa.utils.geotools.Transform")
-  def attributes(sft: SimpleFeatureType, transforms: String): Array[SimpleFeature => AnyRef] =
-    Transforms(sft, transforms).map(t => t.evaluate _).toArray
 }

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -75,7 +73,7 @@ class HBaseSamplingFilterTest extends Specification with LazyLogging {
           val filter = "bbox(geom, -179, -89, 179, 89)"+
             " AND dtg between '2009-05-07T00:00:00.000Z' and '2011-05-08T00:00:00.000Z'"
 
-          val query = new Query(sft.getTypeName, ECQL.toFilter(filter), Array("name","track"))
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter), "name","track")
 
           val features = runQuery(query)
 
@@ -119,7 +117,7 @@ class HBaseSamplingFilterTest extends Specification with LazyLogging {
           val filter = "bbox(geom, -179, -89, 179, 89)"+
             " AND dtg between '2009-05-07T00:00:00.000Z' and '2011-05-08T00:00:00.000Z'"
 
-          val query = new Query(sft.getTypeName, ECQL.toFilter(filter), Array("name","track"))
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter), "name","track")
           query.getHints.put(QueryHints.SAMPLING, 0.1f)
           query.getHints.put(QueryHints.SAMPLE_BY, "track")
 
@@ -143,7 +141,7 @@ class HBaseSamplingFilterTest extends Specification with LazyLogging {
           //sample-by enabled
 
           val query = new Query(sft.getTypeName)
-          query.setPropertyNames(Array("name","track"))
+          query.setPropertyNames("name","track")
           query.getHints.put(QueryHints.SAMPLING, 0.1f)
           query.getHints.put(QueryHints.SAMPLE_BY, "track")
 
@@ -214,7 +212,7 @@ class HBaseSamplingFilterTest extends Specification with LazyLogging {
           val filter = "bbox(geom, -179, -89, 179, 89)"+
             " AND dtg between '2009-05-07T00:00:00.000Z' and '2011-05-08T00:00:00.000Z'"
 
-          val query = new Query(sft.getTypeName, ECQL.toFilter(filter), Array("name","track"))
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter), "name","track")
           query.getHints.put(QueryHints.SAMPLING, 0.1f)
 
           val features = runQuery(query)
@@ -230,7 +228,7 @@ class HBaseSamplingFilterTest extends Specification with LazyLogging {
           //sample-by disabled
 
           val query = new Query(sft.getTypeName)
-          query.setPropertyNames(Array("name","track"))
+          query.setPropertyNames("name","track")
           query.getHints.put(QueryHints.SAMPLING, 0.1f)
 
           val features = runQuery(query)

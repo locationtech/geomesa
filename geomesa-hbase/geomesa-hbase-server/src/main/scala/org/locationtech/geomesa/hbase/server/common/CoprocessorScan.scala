@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.hbase.server.common
 
-import java.io.{IOException, InterruptedIOException}
-import java.util.Base64
-
 import com.google.protobuf.{ByteString, RpcCallback, RpcController}
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.hbase.client.Scan
@@ -27,6 +24,8 @@ import org.locationtech.geomesa.index.iterators.AggregatingScan.AggregateCallbac
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 
+import java.io.{IOException, InterruptedIOException}
+import java.util.Base64
 import scala.util.control.NonFatal
 
 /**

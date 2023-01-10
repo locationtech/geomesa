@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.utils.text
 
-import java.time.format.DateTimeFormatter
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.time.format.DateTimeFormatter
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class StringSerializationTest extends Specification {
@@ -75,17 +75,17 @@ class StringSerializationTest extends Specification {
       "with a single value" >> {
         val values = Map("foo" -> Seq("bar", "baz"))
         val encoded = StringSerialization.encodeSeqMap(values)
-        StringSerialization.decodeSeqMap(encoded, stringMap).mapValues(_.toSeq) mustEqual values
+        StringSerialization.decodeSeqMap(encoded, stringMap).map { case (k, v) => k -> v.toSeq } mustEqual values
       }
       "with multiple values" >> {
         val values = Map("foo" -> Seq("bar", "baz"), "bar" -> Seq("foo", "baz"))
         val encoded = StringSerialization.encodeSeqMap(values)
-        StringSerialization.decodeSeqMap(encoded, stringMap).mapValues(_.toSeq) mustEqual values
+        StringSerialization.decodeSeqMap(encoded, stringMap).map { case (k, v) => k -> v.toSeq } mustEqual values
       }
       "with escaped values" >> {
         val values = Map("foo" -> Seq("bar", "baz"), "bar:String" -> Seq("'\"],blerg", "blah", "", "test"))
         val encoded = StringSerialization.encodeSeqMap(values)
-        StringSerialization.decodeSeqMap(encoded, stringMap).mapValues(_.toSeq) mustEqual values
+        StringSerialization.decodeSeqMap(encoded, stringMap).map { case (k, v) => k -> v.toSeq } mustEqual values
       }
       "with non-string values" >> {
         val dt = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
@@ -93,7 +93,7 @@ class StringSerializationTest extends Specification {
         val values = Map("dtg" -> dates, "age" -> Seq(0, 1, 2).map(Int.box), "height" -> Seq(0.1f, 0.2f, 0.5f).map(Float.box))
         val encoded = StringSerialization.encodeSeqMap(values)
         val bindings = Map("dtg" -> classOf[Date], "age" -> classOf[Integer], "height" -> classOf[java.lang.Float])
-        StringSerialization.decodeSeqMap(encoded, bindings).mapValues(_.toSeq) mustEqual values
+        StringSerialization.decodeSeqMap(encoded, bindings).map { case (k, v) => k -> v.toSeq } mustEqual values
       }
     }
   }

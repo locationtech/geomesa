@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.util.Date
-
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -25,6 +21,10 @@ import org.opengis.filter.{Filter, PropertyIsLessThan}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
+
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class PartitionSchemeTest extends Specification with AllExpectations {
@@ -243,8 +243,8 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       val expected =
         ECQL.toFilter("bbox(geom,0,0,180,90) AND dtg >= '2018-01-01T00:00:00.000Z' AND dtg < '2018-01-02T00:00:00.000Z'")
       // compare toString to get around crs comparison failures in bbox
-      decomposeAnd(ps.getCoveringFilter("2018/01/01/3")).map(_.toString) must
-          containTheSameElementsAs(decomposeAnd(expected).map(_.toString))
+      decomposeAnd(ps.getCoveringFilter("2018/01/01/3")).map(ECQL.toCQL) must
+          containTheSameElementsAs(decomposeAnd(expected).map(ECQL.toCQL))
     }
 
     "calculate covering filters for monthly datetime" >> {

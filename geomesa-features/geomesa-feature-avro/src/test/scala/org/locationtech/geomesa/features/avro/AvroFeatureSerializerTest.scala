@@ -8,32 +8,33 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.nio.charset.StandardCharsets
-import java.util
-import java.util.{Date, UUID}
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Geometry
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.{ImmutableFeatureId, SimpleFeatureTypes}
+import org.locationtech.jts.geom.Geometry
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.nio.charset.StandardCharsets
+import java.util
+import java.util.{Collections, Date, UUID}
 
 @RunWith(classOf[JUnitRunner])
 class AvroFeatureSerializerTest extends Specification with LazyLogging {
 
   import SerializationOption._
 
+  import scala.collection.JavaConverters._
+
   val options = Seq(
       Set.empty[SerializationOption],
 //      Set(Immutable),
-      Set(WithUserData)
+      Set(WithUserData),
+      Set(NativeCollections)
 //      Set(Lazy),
 //      Set(Immutable, WithUserData),
 //      Set(Lazy, Immutable),
@@ -66,7 +67,7 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
       sf.setAttribute("bytes", "\u0000FOOBARBAZ\u0000\u4444123".getBytes(StandardCharsets.UTF_16BE))
-      sf.getUserData.putAll(userData)
+      sf.getUserData.putAll(userData.asJava)
 
       forall(options) { opts =>
         val serializer = new AvroFeatureSerializer(sft, opts)
@@ -74,14 +75,14 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
         val deserialized = serializer.deserialize(serialized)
 
         deserialized.getID mustEqual sf.getID
-        deserialized.getAttributes.dropRight(1) mustEqual sf.getAttributes.dropRight(1)
-        arrayEquals(sf.getAttributes.last, "\u0000FOOBARBAZ\u0000\u4444123".getBytes(StandardCharsets.UTF_16BE))
-        arrayEquals(deserialized.getAttributes.last, sf.getAttributes.last)
+        deserialized.getAttributes.asScala.dropRight(1) mustEqual sf.getAttributes.asScala.dropRight(1)
+        arrayEquals(sf.getAttributes.asScala.last, "\u0000FOOBARBAZ\u0000\u4444123".getBytes(StandardCharsets.UTF_16BE))
+        arrayEquals(deserialized.getAttributes.asScala.last, sf.getAttributes.asScala.last)
 
         if (opts.withUserData) {
-          deserialized.getUserData.toMap mustEqual userData
+          deserialized.getUserData.asScala.toMap mustEqual userData
         } else {
-          deserialized.getUserData must beEmpty
+          deserialized.getUserData.asScala must beEmpty
         }
 
         if (opts.immutable) {
@@ -90,7 +91,7 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
           deserialized.setAttribute(0, 2) must throwAn[UnsupportedOperationException]
           deserialized.setAttribute("a", 2) must throwAn[UnsupportedOperationException]
           deserialized.setAttributes(Array.empty[AnyRef]) must throwAn[UnsupportedOperationException]
-          deserialized.setAttributes(Seq.empty[AnyRef]) must throwAn[UnsupportedOperationException]
+          deserialized.setAttributes(Collections.emptyList[AnyRef]) must throwAn[UnsupportedOperationException]
           deserialized.getUserData.put("foo", "bar") must throwAn[UnsupportedOperationException]
         } else {
           deserialized.getUserData.put("foo", "bar")
@@ -105,7 +106,7 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
       val sftWkb = SimpleFeatureTypes.createType("testTypeWkb", spec)
       // use a different name to avoid cached serializers
       val sftTwkb = SimpleFeatureTypes.createType("testTypeTwkb", spec)
-      sftTwkb.getAttributeDescriptors.foreach(_.getUserData.put(AttributeOptions.OptPrecision, "6"))
+      sftTwkb.getAttributeDescriptors.asScala.foreach(_.getUserData.put(AttributeOptions.OptPrecision, "6"))
 
       val sf = new ScalaSimpleFeature(sftWkb, "fakeid")
       sf.setAttribute("a", "LINESTRING(0 2, 2 0, 8 6)")
@@ -154,7 +155,7 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
         deserialized must not(beNull)
         deserialized.getType mustEqual sf.getType
         deserialized.getAttributes mustEqual sf.getAttributes
-        forall(deserialized.getAttributes.zip(sf.getAttributes)) { case (left, right) =>
+        forall(deserialized.getAttributes.asScala.zip(sf.getAttributes.asScala)) { case (left, right) =>
           forall(left.asInstanceOf[Geometry].getCoordinates.zip(right.asInstanceOf[Geometry].getCoordinates)) {
             case (c1, c2) => c1.equals3D(c2) must beTrue
           }
@@ -173,7 +174,7 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      forall(options) { opts =>
+      foreach(options) { opts =>
         val serializer = new AvroFeatureSerializer(sft, opts)
         val serialized = serializer.serialize(sf)
         val deserialized = serializer.deserialize(serialized)
@@ -202,8 +203,8 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
         deserialized must not(beNull)
         deserialized.getType mustEqual sf.getType
         import org.locationtech.geomesa.utils.geotools.Conversions._
-        arrayEquals(deserialized.get[java.util.Map[String,_]]("m1")("a"), sf.get[java.util.Map[String,_]]("m1")("a"))
-        arrayEquals(deserialized.get[java.util.List[_]]("l")(0), sf.get[java.util.List[_]]("l")(0))
+        arrayEquals(deserialized.get[java.util.Map[String,_]]("m1").get("a"), sf.get[java.util.Map[String,_]]("m1").get("a"))
+        arrayEquals(deserialized.get[java.util.List[_]]("l").get(0), sf.get[java.util.List[_]]("l").get(0))
       }
     }
 
@@ -220,7 +221,7 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
 
         deserialized must not(beNull)
         deserialized.getType mustEqual sf.getType
-        deserialized.getAttributes.foreach(_ must beNull)
+        deserialized.getAttributes.asScala.foreach(_ must beNull)
         deserialized.getAttributes mustEqual sf.getAttributes
       }
     }
@@ -241,7 +242,7 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
       sf.setAttribute("g", java.lang.Boolean.FALSE)
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
-      sf.getUserData.putAll(userData)
+      sf.getUserData.putAll(userData.asJava)
 
       forall(options) { opts =>
         val serializer = new AvroFeatureSerializer(sft, opts)
@@ -256,9 +257,9 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
           deserialized.getAttributes mustEqual sf.getAttributes
 
           if (opts.withUserData) {
-            deserialized.getUserData.toMap mustEqual userData
+            deserialized.getUserData.asScala.toMap mustEqual userData
           } else {
-            deserialized.getUserData must beEmpty
+            deserialized.getUserData.asScala must beEmpty
           }
 
           if (opts.immutable) {
@@ -267,7 +268,7 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
             deserialized.setAttribute(0, 2) must throwAn[UnsupportedOperationException]
             deserialized.setAttribute("a", 2) must throwAn[UnsupportedOperationException]
             deserialized.setAttributes(Array.empty[AnyRef]) must throwAn[UnsupportedOperationException]
-            deserialized.setAttributes(Seq.empty[AnyRef]) must throwAn[UnsupportedOperationException]
+            deserialized.setAttributes(Collections.emptyList[AnyRef]) must throwAn[UnsupportedOperationException]
             deserialized.getUserData.put("foo", "bar") must throwAn[UnsupportedOperationException]
           } else {
             deserialized.getUserData.put("foo", "bar")
@@ -275,47 +276,6 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
           }
         }
       }
-    }
-
-    "correctly project features" in {
-      val sft = SimpleFeatureTypes.createType("fullType", "name:String,*geom:Point,dtg:Date")
-      val projectedSft = SimpleFeatureTypes.createType("projectedType", "*geom:Point")
-
-      val sf = new ScalaSimpleFeature(sft, "testFeature")
-      sf.setAttribute("name", "foo")
-      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
-      sf.setAttribute("geom", "POINT(45.0 49.0)")
-
-      val serializer = new AvroFeatureSerializer(sft)
-      val deserializer = new ProjectingAvroFeatureDeserializer(sft, projectedSft)
-
-      val serialized = serializer.serialize(sf)
-      val deserialized = deserializer.deserialize(serialized)
-
-      deserialized.getID mustEqual sf.getID
-      deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
-      deserialized.getAttributeCount mustEqual 1
-    }
-
-    "correctly project features to larger sfts" in {
-      val sft = SimpleFeatureTypes.createType("fullType", "name:String,*geom:Point,dtg:Date")
-      val projectedSft = SimpleFeatureTypes.createType("projectedType",
-        "name1:String,name2:String,*geom:Point,otherDate:Date")
-
-      val sf = new ScalaSimpleFeature(sft, "testFeature")
-      sf.setAttribute("name", "foo")
-      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
-      sf.setAttribute("geom", "POINT(45.0 49.0)")
-
-      val serializer = new AvroFeatureSerializer(sft)
-      val deserializer = new ProjectingAvroFeatureDeserializer(sft, projectedSft)
-
-      val serialized = serializer.serialize(sf)
-      val deserialized = deserializer.deserialize(serialized)
-
-      deserialized.getID mustEqual sf.getID
-      deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
-      deserialized.getAttributeCount mustEqual 4
     }
   }
 }

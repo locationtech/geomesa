@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.orc
 
-import java.io.File
-import java.nio.file.Files
-
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -21,6 +18,9 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.File
+import java.nio.file.Files
 
 @RunWith(classOf[JUnitRunner])
 class OrcFileSystemWriterTest extends Specification {

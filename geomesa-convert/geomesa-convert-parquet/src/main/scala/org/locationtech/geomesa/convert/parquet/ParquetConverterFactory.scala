@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.parquet
 
-import java.io.InputStream
-
 import com.typesafe.config.Config
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -19,27 +17,23 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema.{MessageType, OriginalType, Type}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
-import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicConfigConvert, BasicFieldConvert, BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicConfigConvert, BasicFieldConvert, BasicOptionsConvert}
 import org.locationtech.geomesa.convert2.TypeInference.{FunctionTransform, InferredType}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
-import org.locationtech.geomesa.parquet.io.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.InputStream
 import scala.util.control.NonFatal
 
 class ParquetConverterFactory
-    extends AbstractConverterFactory[ParquetConverter, BasicConfig, BasicField, BasicOptions] {
+    extends AbstractConverterFactory[ParquetConverter, BasicConfig, BasicField, BasicOptions](
+      ParquetConverterFactory.TypeToProcess, BasicConfigConvert, BasicFieldConvert, BasicOptionsConvert) {
 
   import scala.collection.JavaConverters._
-
-  override protected val typeToProcess: String = ParquetConverterFactory.TypeToProcess
-
-  override protected implicit def configConvert: ConverterConfigConvert[BasicConfig] = BasicConfigConvert
-  override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
-  override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
 
   /**
     * Handles parquet files (including those produced by the FSDS and CLI export)
@@ -105,7 +99,7 @@ class ParquetConverterFactory
         val converterConfig = BasicConfig(typeToProcess, id, Map.empty, Map.empty)
 
         val config = configConvert.to(converterConfig)
-            .withFallback(fieldConvert.to(fields))
+            .withFallback(fieldConvert.to(fields.toSeq))
             .withFallback(optsConvert.to(BasicOptions.default))
             .toConfig
 
@@ -206,8 +200,8 @@ object ParquetConverterFactory {
     schema.getFields.asScala.foreach(mapField(_))
 
     // check if we can derive a geometry field
-    TypeInference.deriveGeometry(types).foreach(g => types += g)
+    TypeInference.deriveGeometry(types.toSeq).foreach(g => types += g)
 
-    types
+    types.toSeq
   }
 }

@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io._
-import java.nio.charset.StandardCharsets
-
 import com.google.gson.stream.JsonWriter
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FilenameUtils
@@ -24,7 +21,9 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.jts.geom.{Coordinate, Geometry}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+import java.io._
+import java.nio.charset.StandardCharsets
+import scala.collection.JavaConverters._
 import scala.io.Source
 
 class LeafletMapExporter(stream: ExportStream) extends ByteCounterExporter(stream) with LazyLogging {
@@ -164,7 +163,7 @@ object LeafletMapExporter {
     if (sft == null) {
       str.append("\n    };\n\n").toString
     } else {
-      val attributes = sft.getAttributeDescriptors.map(_.getLocalName). collect {
+      val attributes = sft.getAttributeDescriptors.asScala.map(_.getLocalName). collect {
         case name if name != "geom" => s""""$name: " + feature.properties.$name"""
       }
       str.append("""        layer.bindPopup("ID: " + feature.id + "<br>" + """)

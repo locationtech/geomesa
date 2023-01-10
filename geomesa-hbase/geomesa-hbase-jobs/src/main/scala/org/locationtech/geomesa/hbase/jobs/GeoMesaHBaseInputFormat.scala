@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.jobs
 
-import java.util.Base64
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.{Configurable, Configuration}
 import org.apache.hadoop.hbase.HBaseConfiguration
@@ -29,6 +27,8 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.SimpleFeature
 
+import java.util.Base64
+
 /**
   * Input format that allows processing of simple features from GeoMesa based on a CQL query
   */
@@ -40,7 +40,9 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Conf
     * Gets splits for a job.
     */
   override def getSplits(context: JobContext): java.util.List[InputSplit] = {
-    val splits = delegate.getSplits(context)
+    val splits = Security.doAuthorized(context.getConfiguration) {
+      delegate.getSplits(context)
+    }
     logger.debug(s"Got ${splits.size()} splits")
     splits
   }
@@ -51,7 +53,9 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Conf
     ): RecordReader[Text, SimpleFeature] = {
     val toFeatures = GeoMesaConfigurator.getResultsToFeatures[Result](context.getConfiguration)
     val reducer = GeoMesaConfigurator.getReducer(context.getConfiguration)
-    new GeoMesaHBaseRecordReader(toFeatures, reducer, delegate.createRecordReader(split, context))
+    Security.doAuthorized(context.getConfiguration) {
+      new GeoMesaHBaseRecordReader(toFeatures, reducer, delegate.createRecordReader(split, context))
+    }
   }
 
   override def setConf(conf: Configuration): Unit = {

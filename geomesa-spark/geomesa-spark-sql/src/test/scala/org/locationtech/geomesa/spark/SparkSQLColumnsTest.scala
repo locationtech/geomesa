@@ -8,20 +8,21 @@
 
 package org.locationtech.geomesa.spark
 
-import java.util.{Collections, UUID}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.types.{ArrayType, DataTypes, MapType}
-import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
+import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.geotools.data.{DataStore, DataStoreFinder, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.spark.sql.SQLTypes
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
+import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.execute.Result
+
+import java.util.{Collections, UUID}
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLColumnsTest extends Specification with LazyLogging {

@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.convert.osm
 
-import java.io.InputStream
-import java.nio.file.Files
-import java.sql.DriverManager
-
 import com.typesafe.config.Config
 import de.topobyte.osm4j.core.model.iface._
 import de.topobyte.osm4j.core.model.impl.Node
@@ -27,6 +23,9 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, PathUtils, WithClose}
 import org.locationtech.jts.geom.Coordinate
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.InputStream
+import java.nio.file.Files
+import java.sql.DriverManager
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 

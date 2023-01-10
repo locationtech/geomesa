@@ -17,8 +17,8 @@ a default path will be used. Configuration parameters are described fully below.
     import org.geotools.data.DataStoreFinder;
 
     Map<String, Serializable> parameters = new HashMap<>();
-    parameters.put("kafka.zookeepers", "localhost:2181");
     parameters.put("kafka.brokers", "localhost:9092");
+    parameters.put("kafka.zookeepers", "localhost:2181");
     DataStore dataStore = DataStoreFinder.getDataStore(parameters);
 
 .. _kafka_parameters:
@@ -39,8 +39,10 @@ The Kafka data store accepts the following parameters (required parameters are m
 Parameter                            Type    Description
 ==================================== ======= ====================================================================================================
 ``kafka.brokers *``                  String  Kafka brokers, e.g. "localhost:9092"
-``kafka.zookeepers *``               String  Kafka zookeepers, e.g "localhost:2181"
-``kafka.zk.path``                    String  Zookeeper discoverable path, can be used to effectively namespace feature types
+``kafka.zookeepers``                 String  Kafka zookeepers, e.g "localhost:2181", used to persist GeoMesa metadata in Zookeeper instead
+                                             of in Kafka topics. See :ref:`no_zookeeper` for details.
+``kafka.catalog.topic``              String  The Kafka topic used to store schema metadata (when not using Zookeeper)
+``kafka.zk.path``                    String  Zookeeper discoverable path, can be used to namespace feature types (when using Zookeeper)
 ``kafka.producer.config``            String  Configuration options for kafka producer, in Java properties
                                              format. See `Producer Configs <http://kafka.apache.org/documentation.html#producerconfigs>`_
 ``kafka.producer.clear``             Boolean Send a 'clear' message on startup. This will cause clients to ignore any data that was in the
@@ -59,7 +61,8 @@ Parameter                            Type    Description
                                              which may require significant memory overhead.
 ``kafka.topic.partitions``           Integer Number of partitions to use in new kafka topics
 ``kafka.topic.replication``          Integer Replication factor to use in new kafka topics
-``kafka.serialization.type``         String  Internal serialization format to use for kafka messages. Must be one of ``kryo`` or ``avro``
+``kafka.serialization.type``         String  Internal serialization format to use for kafka messages. Must be one of ``kryo``, ``avro``
+                                             or ``avro-native``
 ``kafka.cache.expiry``               String  Expire features from in-memory cache after this delay, e.g. "10 minutes". See :ref:`kafka_expiry`
 ``kafka.cache.expiry.dynamic``       String  Expire features dynamically based on CQL predicates. See :ref:`kafka_expiry`
 ``kafka.cache.event-time``           String  Instead of message time, determine expiry based on feature data. See :ref:`kafka_event_time`

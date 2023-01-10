@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.tools.compact
 
-import java.io.{DataInput, DataOutput}
-
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
@@ -23,6 +21,8 @@ import org.locationtech.geomesa.fs.tools.compact.PartitionInputFormat.{Partition
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.io.{DataInput, DataOutput}
 
 /**
   * An Input format that creates splits based on FSDS Partitions. This is used for compaction, when we want a single
@@ -172,10 +172,9 @@ object PartitionInputFormat {
     override def addPartition(partition: PartitionMetadata): Unit = throw new NotImplementedError()
     override def removePartition(partition: PartitionMetadata): Unit = throw new NotImplementedError()
     override def setPartitions(partitions: Seq[PartitionMetadata]): Unit = throw new NotImplementedError()
-    // noinspection ScalaDeprecation
-    override def compact(partition: Option[String], threads: Int): Unit = throw new NotImplementedError()
     override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit =
       throw new NotImplementedError()
+    override def invalidate(): Unit = {}
     override def close(): Unit = {}
   }
 }

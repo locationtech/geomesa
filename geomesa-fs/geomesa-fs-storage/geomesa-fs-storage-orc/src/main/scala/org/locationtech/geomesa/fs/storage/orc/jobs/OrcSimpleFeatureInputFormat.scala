@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.orc.jobs
 
-import java.util
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileStatus
 import org.apache.hadoop.io.NullWritable
@@ -28,6 +26,8 @@ import org.locationtech.geomesa.fs.storage.orc.utils.OrcInputFormatReader
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.util
 
 /**
   * Input format for orc files
@@ -74,7 +74,7 @@ object OrcSimpleFeatureInputFormat {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     StorageConfiguration.setSft(conf, sft)
-    val q = QueryRunner.configureDefaultQuery(sft, new Query(sft.getTypeName, filter, transforms))
+    val q = QueryRunner.configureDefaultQuery(sft, new Query(sft.getTypeName, filter, transforms: _*))
     Option(q.getFilter).filter(_ != Filter.INCLUDE).foreach(StorageConfiguration.setFilter(conf, _))
     q.getHints.getTransform.foreach(StorageConfiguration.setTransforms(conf, _))
     // replicates orc input format strategy of always recursively listing directories

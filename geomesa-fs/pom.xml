@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -11,6 +11,10 @@
     <name>GeoMesa FileSystem</name>
 
     <packaging>pom</packaging>
+
+    <properties>
+        <guava.version>${hadoop.guava.version}</guava.version>
+    </properties>
 
     <modules>
         <module>geomesa-fs-datastore</module>

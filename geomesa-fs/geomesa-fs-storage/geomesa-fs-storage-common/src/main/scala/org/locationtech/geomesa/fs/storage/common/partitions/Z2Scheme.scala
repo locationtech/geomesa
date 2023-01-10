@@ -12,7 +12,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.fs.storage.common.partitions.SpatialScheme.SpatialPartitionSchemeFactory
 import org.locationtech.jts.geom.Point
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 

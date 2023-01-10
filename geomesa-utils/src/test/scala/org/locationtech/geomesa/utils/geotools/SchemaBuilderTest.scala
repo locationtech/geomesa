@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util.{Date, UUID}
-
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.{Date, UUID}
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])

@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.accumulo
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Trait to simplify tests that require reading and writing features from an AccumuloDataStore

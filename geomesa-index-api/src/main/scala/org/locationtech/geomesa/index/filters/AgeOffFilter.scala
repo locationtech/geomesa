@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.index.filters
 
-import java.time.{Duration, ZonedDateTime}
-
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.time.{Duration, ZonedDateTime}
 
 /**
   * Age off a feature based on the key timestamp

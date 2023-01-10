@@ -8,18 +8,18 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
-import java.util.Date
-
-import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod, Z2SFC}
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.locationtech.sfcurve.zorder.Z2
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.geomesa.zorder.sfcurve.Z2
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class FrequencyTest extends Specification with StatTestHelper {

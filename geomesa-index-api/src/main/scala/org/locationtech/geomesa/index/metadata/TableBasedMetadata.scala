@@ -8,19 +8,19 @@
 
 package org.locationtech.geomesa.index.metadata
 
+import com.github.benmanes.caffeine.cache.{Cache, CacheLoader, Caffeine, LoadingCache}
+import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.text.DateParsing
+
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 import java.time.{Instant, ZoneOffset}
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-
-import com.github.benmanes.caffeine.cache.{Cache, CacheLoader, Caffeine}
-import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, IsSynchronized, MaybeSynchronized, NotSynchronized}
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.text.DateParsing
 
 /**
   * Metadata persisted in a database table. The underlying table will be lazily created when required.
@@ -105,7 +105,7 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
 
   // cache for our metadata - invalidate every 10 minutes so we keep things current
-  private val metaDataCache =
+  private val metaDataCache: LoadingCache[(String, String), Option[T]] =
     Caffeine.newBuilder().expireAfterWrite(expiry, TimeUnit.MILLISECONDS).build(
       new CacheLoader[(String, String), Option[T]] {
         override def load(typeNameAndKey: (String, String)): Option[T] = {
@@ -119,7 +119,7 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
 
   // keep a separate cache for scan queries vs point lookups, so that the point lookups don't cache
   // partial values for a scan result
-  private val metaDataScanCache =
+  private val metaDataScanCache: LoadingCache[(String, String), Seq[(String, T)]] =
     Caffeine.newBuilder().expireAfterWrite(expiry, TimeUnit.MILLISECONDS).build(
       new CacheLoader[(String, String), Seq[(String, T)]] {
         override def load(typeNameAndPrefix: (String, String)): Seq[(String, T)] = {
@@ -230,14 +230,15 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
 
   // checks that the table is already created, and creates it if not
   def ensureTableExists(): Unit = {
-    if(tableExists.compareAndSet(false,true)) {
+    if (tableExists.compareAndSet(false, true)) {
       createTable()
     }
   }
 
-  override def resetCache():Unit={
+  override def resetCache(): Unit={
     tableExists.set(checkIfTableExists)
     metaDataCache.invalidateAll()
+    metaDataScanCache.invalidateAll()
   }
 
   /**

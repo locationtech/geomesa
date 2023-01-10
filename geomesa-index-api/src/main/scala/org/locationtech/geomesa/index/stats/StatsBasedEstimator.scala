@@ -8,21 +8,20 @@
 
 package org.locationtech.geomesa.index.stats
 
-import java.time.ZonedDateTime
-import java.util.Date
-
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC, Z3SFC}
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.jts.geom.Geometry
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.PropertyName
 
-import scala.collection.JavaConversions._
+import java.time.ZonedDateTime
+import java.util.Date
+import scala.collection.JavaConverters._
 
 /**
   * Estimate query counts based on cached stats.
@@ -37,7 +36,6 @@ trait StatsBasedEstimator {
   stats: GeoMesaStats =>
 
   import StatsBasedEstimator.{ErrorThresholds, ZHistogramPrecision}
-  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
   /**
     * Estimates the count for a given filter, based off the per-attribute metadata we have stored
@@ -76,8 +74,9 @@ trait StatsBasedEstimator {
   private def estimateAndCount(sft: SimpleFeatureType, filter: And): Option[Long] = {
     val stCount = estimateSpatioTemporalCount(sft, filter)
     // note: we might over count if we get bbox1 AND bbox2, as we don't intersect them
-    val individualCounts = filter.getChildren.flatMap(estimateCount(sft, _))
-    (stCount ++ individualCounts).minOption
+    val individualCounts = filter.getChildren.asScala.flatMap(estimateCount(sft, _))
+    val counts = (stCount ++ individualCounts)
+    if (counts.isEmpty) { None } else { Some(counts.min) }
   }
 
   /**
@@ -90,7 +89,8 @@ trait StatsBasedEstimator {
   private def estimateOrCount(sft: SimpleFeatureType, filter: Or): Option[Long] = {
     // estimate for each child separately and sum
     // note that we might double count some values if the filter is complex
-    filter.getChildren.flatMap(estimateCount(sft, _)).sumOption
+    val counts = filter.getChildren.asScala.flatMap(estimateCount(sft, _))
+    if (counts.isEmpty) { None } else { Some(counts.sum) }
   }
 
   /**
@@ -271,7 +271,7 @@ trait StatsBasedEstimator {
           val hiIndex = Some(histogram.directIndex(range.upper)).filter(_ != -1).getOrElse(histogram.length - 1)
           loIndex to hiIndex
         }
-        indices.distinct.map(histogram.count).sumOrElse(0L)
+        if (indices.isEmpty) { 0L } else { indices.distinct.map(histogram.count).sum }
       }
     }
   }
@@ -301,7 +301,7 @@ trait StatsBasedEstimator {
           val hiIndex = interval.upper.value.map(i => histogram.indexOf(Date.from(i.toInstant))).filter(_ != -1).getOrElse(histogram.length - 1)
           loIndex to hiIndex
         }
-        indices.distinct.map(histogram.count).sumOrElse(0L)
+        if (indices.isEmpty) { 0L } else { indices.distinct.map(histogram.count).sum }
       }
     }
   }
@@ -368,7 +368,7 @@ trait StatsBasedEstimator {
         val upperIndex = upper.map(histogram.indexOf).filter(_ != -1).getOrElse(histogram.length - 1)
         lowerIndex to upperIndex
       }
-      indices.distinct.map(histogram.count).sumOrElse(0L)
+      if (indices.isEmpty) { 0L } else { indices.distinct.map(histogram.count).sum }
     }
   }
 }

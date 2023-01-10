@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.utils.io.fs
 
-import java.io.{InputStream, OutputStream}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
+
+import java.io.{InputStream, OutputStream}
 
 trait FileSystemDelegate extends LazyLogging {
 

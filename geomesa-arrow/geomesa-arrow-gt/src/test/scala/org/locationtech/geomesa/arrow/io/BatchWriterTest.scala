@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.arrow.io
 
-import java.io.ByteArrayInputStream
-import java.util.Date
-
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.ArrowAllocator
@@ -22,6 +19,9 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayInputStream
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class BatchWriterTest extends Specification {

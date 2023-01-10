@@ -8,23 +8,20 @@
 
 package org.locationtech.geomesa.convert
 
-import java.net.URL
-import java.util.{ServiceLoader, List => JList}
-
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
-import scala.collection.JavaConversions._
+import java.net.URL
+import java.util.{ServiceLoader, List => JList}
 import scala.collection.JavaConverters._
-
 
 object ConverterConfigLoader extends LazyLogging {
 
   val ConfigPathProperty = SystemProperty("org.locationtech.geomesa.converter.config.path", "geomesa.converters")
 
   private val configProviders = {
-    val pList = ServiceLoader.load(classOf[ConverterConfigProvider]).toList
+    val pList = ServiceLoader.load(classOf[ConverterConfigProvider]).asScala.toList
     logger.debug(s"Found ${pList.size} SPI providers for ${classOf[ConverterConfigProvider].getName}" +
       s": ${pList.map(_.getClass.getName).mkString(", ")}")
     pList
@@ -33,7 +30,7 @@ object ConverterConfigLoader extends LazyLogging {
   def path: String = ConfigPathProperty.get
 
   // this is intentionally a method to allow reloading by the providers
-  def confs: Map[String, Config] = configProviders.map(_.loadConfigs).reduce( _ ++ _).toMap
+  def confs: Map[String, Config] = configProviders.map(_.loadConfigs.asScala).reduce( _ ++ _).toMap
 
   // Public API
   def listConverterNames: List[String] = confs.keys.toList
@@ -58,7 +55,7 @@ trait GeoMesaConvertParser extends LazyLogging {
       Map.empty[String, Config]
     } else {
       val confs = config.getConfig(ConverterConfigLoader.path)
-      confs.root.keySet.map { k =>
+      confs.root.keySet.asScala.map { k =>
         logger.trace(s"Found conf block $k")
         k -> confs.getConfig(k)
       }.toMap[String, Config]
@@ -103,7 +100,7 @@ class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParse
     if (config.hasPath(ConverterConfigURLs)) {
       config.getAnyRef(ConverterConfigURLs) match {
         case s: String          => s.split(',').map(_.trim).map(new URL(_))
-        case lst: JList[String] => lst.map(new URL(_))
+        case lst: JList[String] => lst.asScala.map(new URL(_)).toSeq
       }
     } else {
       Seq.empty[URL]

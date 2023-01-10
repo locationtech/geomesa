@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.tools.export
 
-import java.io._
-import java.util.Collections
-
-import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FilenameUtils
@@ -21,6 +17,7 @@ import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.{DataStore, FileDataStore, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
@@ -43,6 +40,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
 
+import java.io._
+import java.util.Collections
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
@@ -115,10 +114,9 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS]
             file.delete()
           }
         }
-        lazy val dictionaries = ArrowExporter.queryDictionaries(ds, query)
         val exporter = chunks match {
-          case None    => new Exporter(options, query.getHints, dictionaries)
-          case Some(c) => new ChunkedExporter(options, query.getHints, dictionaries, c)
+          case None    => new Exporter(options, query.getHints)
+          case Some(c) => new ChunkedExporter(options, query.getHints, c)
         }
         val count = try { export(ds, query, exporter, !params.suppressEmpty) } finally { exporter.close() }
         val outFile = options.file match {
@@ -300,21 +298,21 @@ object ExportCommand extends LazyLogging {
         null // all props
       }
     }
-    query.setPropertyNames(attributes)
+    query.setPropertyNames(attributes: _*)
 
     if (!params.sortFields.isEmpty) {
-      val fields = params.sortFields.asScala
+      val fields = params.sortFields.asScala.toSeq
       if (fields.exists(a => sft.indexOf(a) == -1)) {
         val errors = fields.filter(a => sft.indexOf(a) == -1)
         throw new ParameterException(s"Invalid sort attribute${if (errors.lengthCompare(1) == 0) "" else "s"}: " +
             errors.mkString(", "))
       }
       val order = if (params.sortDescending) { SortOrder.DESCENDING } else { SortOrder.ASCENDING }
-      query.setSortBy(fields.map(f => org.locationtech.geomesa.filter.ff.sort(f, order)).toArray)
+      query.setSortBy(fields.map(f => org.locationtech.geomesa.filter.ff.sort(f, order)): _*)
     } else if (hints.isArrowQuery) {
       hints.getArrowSort.foreach { case (f, r) =>
         val order = if (r) { SortOrder.DESCENDING } else { SortOrder.ASCENDING }
-        query.setSortBy(Array(org.locationtech.geomesa.filter.ff.sort(f, order)))
+        query.setSortBy(org.locationtech.geomesa.filter.ff.sort(f, order))
       }
     }
 
@@ -375,13 +373,12 @@ object ExportCommand extends LazyLogging {
     * @param hints query hints
     * @param dictionaries lazily evaluated arrow dictionaries
     */
-  class Exporter(options: ExportOptions, hints: Hints, dictionaries: => Map[String, Array[AnyRef]])
-      extends FeatureExporter {
+  class Exporter(options: ExportOptions, hints: Hints) extends FeatureExporter {
 
     // used only for streaming export formats
     private lazy val stream = {
       // avro compression is handled differently, see AvroExporter below
-      val gzip = options.gzip.filter(_ => options.format != ExportFormat.Avro)
+      val gzip = options.gzip.filter(_ => options.format != ExportFormat.Avro && options.format != ExportFormat.AvroNative)
       new LazyExportStream(options.file, gzip)
     }
 
@@ -395,19 +392,20 @@ object ExportCommand extends LazyLogging {
     private lazy val fids = !Option(hints.get(QueryHints.ARROW_INCLUDE_FID)).contains(java.lang.Boolean.FALSE)
 
     private val exporter = options.format match {
-      case ExportFormat.Arrow   => new ArrowExporter(stream, hints, dictionaries)
-      case ExportFormat.Avro    => new AvroExporter(stream, options.gzip)
-      case ExportFormat.Bin     => new BinExporter(stream, hints)
-      case ExportFormat.Csv     => DelimitedExporter.csv(stream, options.headers, fids)
-      case ExportFormat.Gml2    => GmlExporter.gml2(stream)
-      case ExportFormat.Gml3    => GmlExporter(stream)
-      case ExportFormat.Json    => new GeoJsonExporter(stream)
-      case ExportFormat.Leaflet => new LeafletMapExporter(stream)
-      case ExportFormat.Null    => NullExporter
-      case ExportFormat.Orc     => new OrcFileSystemExporter(name)
-      case ExportFormat.Parquet => new ParquetFileSystemExporter(name)
-      case ExportFormat.Shp     => new ShapefileExporter(new File(name))
-      case ExportFormat.Tsv     => DelimitedExporter.tsv(stream, options.headers, fids)
+      case ExportFormat.Arrow      => new ArrowExporter(stream, hints)
+      case ExportFormat.Avro       => new AvroExporter(stream, options.gzip)
+      case ExportFormat.AvroNative => new AvroExporter(stream, options.gzip, Set(SerializationOption.NativeCollections))
+      case ExportFormat.Bin        => new BinExporter(stream, hints)
+      case ExportFormat.Csv        => DelimitedExporter.csv(stream, options.headers, fids)
+      case ExportFormat.Gml2       => GmlExporter.gml2(stream)
+      case ExportFormat.Gml3       => GmlExporter(stream)
+      case ExportFormat.Json       => new GeoJsonExporter(stream)
+      case ExportFormat.Leaflet    => new LeafletMapExporter(stream)
+      case ExportFormat.Null       => NullExporter
+      case ExportFormat.Orc        => new OrcFileSystemExporter(name)
+      case ExportFormat.Parquet    => new ParquetFileSystemExporter(name)
+      case ExportFormat.Shp        => new ShapefileExporter(new File(name))
+      case ExportFormat.Tsv        => DelimitedExporter.tsv(stream, options.headers, fids)
       // shouldn't happen unless someone adds a new format and doesn't implement it here
       case _ => throw new NotImplementedError(s"Export for '${options.format}' is not implemented")
     }
@@ -429,19 +427,13 @@ object ExportCommand extends LazyLogging {
     * @param dictionaries arrow dictionaries (lazily evaluated)
     * @param chunks number of bytes to write per file
     */
-  class ChunkedExporter(
-      options: ExportOptions,
-      hints: Hints,
-      dictionaries: => Map[String, Array[AnyRef]],
-      chunks: Long
-    ) extends FeatureExporter with LazyLogging {
+  class ChunkedExporter(options: ExportOptions, hints: Hints, chunks: Long)
+      extends FeatureExporter with LazyLogging {
 
     private val names = options.file match {
       case None    => Iterator.continually(None)
       case Some(f) => new IncrementingFileName(f).map(Option.apply)
     }
-
-    private lazy val queriedDictionaries = dictionaries // only evaluate once, even if we have multiple chunks
 
     private var sft: SimpleFeatureType = _
     private var exporter: FeatureExporter = _
@@ -470,7 +462,7 @@ object ExportCommand extends LazyLogging {
         estimator.update(written, count)
         total += written
       }
-      exporter = new Exporter(options.copy(file = names.next), hints, queriedDictionaries)
+      exporter = new Exporter(options.copy(file = names.next), hints)
       exporter.start(sft)
       count = 0L
     }
@@ -558,7 +550,7 @@ object ExportCommand extends LazyLogging {
 
     @Parameter(
       names = Array("-F", "--output-format"),
-      description = "File format of output files (csv|tsv|gml|json|shp|avro|leaflet|orc|parquet|arrow)",
+      description = "File format of output files (csv|tsv|gml|json|shp|avro|avro-native|leaflet|orc|parquet|arrow)",
       converter = classOf[ExportFormatConverter])
     var explicitOutputFormat: ExportFormat = _
 

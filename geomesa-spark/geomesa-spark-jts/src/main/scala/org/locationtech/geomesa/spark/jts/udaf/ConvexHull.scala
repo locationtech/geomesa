@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.spark.jts.udaf
 
-import org.locationtech.jts.geom.Geometry
-import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
 import org.apache.spark.sql.Row
+import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
 import org.apache.spark.sql.jts.JTSTypes
+import org.locationtech.jts.geom.Geometry
 
 class ConvexHull extends UserDefinedAggregateFunction {
   import org.apache.spark.sql.types.{DataTypes => DT}

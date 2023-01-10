@@ -9,16 +9,16 @@
 package org.locationtech.geomesa.curve
 
 import com.google.common.geometry._
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 
 /**
   * S2 space-filling curve
   */
 class S2SFC(minLevel: Int, maxLevel: Int, levelMod: Int, maxCells: Int) extends SpaceFillingCurve {
 
-  import scala.collection.JavaConverters._
-
   import S2SFC.{LatMax, LatMin, LonMax, LonMin}
+
+  import scala.collection.JavaConverters._
 
   override def index(x: Double, y: Double, lenient: Boolean): Long = {
     if (lenient) {

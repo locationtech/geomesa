@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.utils
 
-import java.nio.charset.StandardCharsets
-
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionSchemeFactory}
 import org.locationtech.geomesa.fs.storage.common.StorageSerialization
@@ -18,6 +16,7 @@ import org.locationtech.geomesa.utils.conf.ArgResolver
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 object PartitionSchemeArgResolver {

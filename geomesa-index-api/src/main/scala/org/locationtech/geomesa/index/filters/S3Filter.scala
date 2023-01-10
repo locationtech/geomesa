@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.index.filters
 
-import java.nio.ByteBuffer
-
 import com.google.common.geometry.S2CellId
 import org.locationtech.geomesa.index.filters.RowFilter.RowFilterFactory
 import org.locationtech.geomesa.index.index.s3.S3IndexValues
 import org.locationtech.geomesa.utils.index.ByteArrays
+
+import java.nio.ByteBuffer
 
 /**
   * @author sunyabo 2019年08月01日 09:26

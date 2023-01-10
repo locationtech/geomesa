@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -17,7 +17,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class TypeUpdatingFeatureReaderTest extends Specification with Mockito {
@@ -26,12 +26,12 @@ class TypeUpdatingFeatureReaderTest extends Specification with Mockito {
   val sft = SimpleFeatureTypes.createType(sftName, "name:String,*geom:Point,dtg:Date")
 
   def getDelegate(featureCount: Int): FR = getDelegate(getFeatures(featureCount))
-  def getDelegate(features: Seq[SimpleFeature]): FR = new DFR(sft, new DFI(features.iterator))
+  def getDelegate(features: Seq[SimpleFeature]): FR = new DFR(sft, new DFI(features.asJava.iterator))
 
   def getFeatures(count: Int) = (0 until count).map { i =>
     val values = Seq[AnyRef](i.toString, WKTUtils.read("POINT(-110 30)"), "2012-01-02T05:06:07.000Z")
-    val sf = SimpleFeatureBuilder.build(sft, values, i.toString)
-    sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+    val sf = SimpleFeatureBuilder.build(sft, values.asJava, i.toString)
+    sf.getUserData().put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     sf
   }
 
@@ -83,7 +83,7 @@ class TypeUpdatingFeatureReaderTest extends Specification with Mockito {
 
       "with a single attribute" >> {
         val delegateReader = getDelegate(features)
-        val targetType = SimpleFeatureTypeBuilder.retype(sft, Seq("geom"))
+        val targetType = SimpleFeatureTypeBuilder.retype(sft, Seq("geom").asJava)
 
         val reader = new TypeUpdatingFeatureReader(delegateReader, targetType)
         val result = reader.next()
@@ -97,7 +97,7 @@ class TypeUpdatingFeatureReaderTest extends Specification with Mockito {
 
       "with multiple attributes" >> {
         val delegateReader = getDelegate(features)
-        val targetType = SimpleFeatureTypeBuilder.retype(sft, Seq("geom", "dtg"))
+        val targetType = SimpleFeatureTypeBuilder.retype(sft, Seq("geom", "dtg").asJava)
 
         val reader = new TypeUpdatingFeatureReader(delegateReader, targetType)
         val result = reader.next()

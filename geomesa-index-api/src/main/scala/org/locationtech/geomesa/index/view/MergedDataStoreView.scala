@@ -13,16 +13,20 @@ import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureSource}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedStats
 import org.locationtech.geomesa.index.view.MergedQueryRunner.DataStoreQueryable
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
   * Merged querying against multiple data stores
@@ -35,7 +39,7 @@ class MergedDataStoreView(
     deduplicate: Boolean,
     parallel: Boolean,
     namespace: Option[String] = None
-  ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaStats {
+  ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
 
   require(stores.nonEmpty, "No delegate stores configured")
 
@@ -52,10 +56,18 @@ class MergedDataStoreView(
   }
 
   override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader =
-    GeoMesaFeatureReader(getSchema(query.getTypeName), query, runner, None, None)
+    getFeatureReader(getSchema(query.getTypeName), transaction, query).reader()
+
+  override private[geomesa] def getFeatureReader(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      query: Query): GeoMesaFeatureReader =
+    GeoMesaFeatureReader(sft, query, runner, None)
 }
 
 object MergedDataStoreView {
+
+  import scala.collection.JavaConverters._
 
   class MergedStats(stores: Seq[(DataStore, Option[Filter])], parallel: Boolean) extends GeoMesaStats {
 
@@ -71,8 +83,13 @@ object MergedDataStoreView {
       def getSingle(statAndFilter: (GeoMesaStats, Option[Filter])): Option[Long] =
         statAndFilter._1.getCount(sft, mergeFilter(sft, filter, statAndFilter._2), exact, queryHints)
 
-      val seq = if (parallel) { stats.par } else { stats }
-      seq.flatMap(getSingle).reduceLeftOption(_ + _)
+      if (parallel) {
+        val results = new CopyOnWriteArrayList[Long]()
+        stats.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+        results.asScala.reduceLeftOption(_ + _)
+      } else {
+        stats.flatMap(getSingle).reduceLeftOption(_ + _)
+      }
     }
 
     override def getMinMax[T](
@@ -84,8 +101,13 @@ object MergedDataStoreView {
       def getSingle(statAndFilter: (GeoMesaStats, Option[Filter])): Option[MinMax[T]] =
         statAndFilter._1.getMinMax[T](sft, attribute, mergeFilter(sft, filter, statAndFilter._2), exact)
 
-      val seq = if (parallel) { stats.par } else { stats }
-      seq.flatMap(getSingle).reduceLeftOption(_ + _)
+      if (parallel) {
+        val results = new CopyOnWriteArrayList[MinMax[T]]()
+        stats.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+        results.asScala.reduceLeftOption(_ + _)
+      } else {
+        stats.flatMap(getSingle).reduceLeftOption(_ + _)
+      }
     }
 
     override def getEnumeration[T](
@@ -147,8 +169,9 @@ object MergedDataStoreView {
 
     private def merge[T <: Stat](query: (GeoMesaStats, Option[Filter]) => Option[T]): Option[T] = {
       if (parallel) {
-        val all = stats.par.map { case (s, f) => query(s, f) }
-        all.reduceLeft((res, next) => for { r <- res; n <- next } yield { (r + n).asInstanceOf[T] })
+        val results = new CopyOnWriteArrayList[Option[T]]()
+        stats.toList.map { case (s, f) => CachedThreadPool.submit(() => results.add(query(s, f))) }.foreach(_.get)
+        results.asScala.reduceLeft((res, next) => for { r <- res; n <- next } yield { (r + n).asInstanceOf[T] })
       } else {
         // lazily evaluate each stat as we only return Some if all the child stores do
         val head = query(stats.head._1, stats.head._2)

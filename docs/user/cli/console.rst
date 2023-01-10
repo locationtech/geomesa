@@ -1,7 +1,7 @@
 GeoMesa Scala Console
 =====================
 
-The GeoMesa tools have a ``scala-console`` command that starts a Scala REPL configured
+The GeoMesa tools have a ``scala-console`` command that starts a Scala REPL (read/evaluate/print/loop) configured
 for use with GeoMesa. The command will place the GeoMesa classpath and configuration
 for that distribution on the REPL's classpath. Additionally it will preload commonly
 used imports. The command also comes with tooling that will provide the option to
@@ -50,7 +50,7 @@ to a FileSystem Datastore, discover the feature type names, get the schema and q
             import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
             import org.locationtech.geomesa.features.ScalaSimpleFeature
             import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-            import scala.collection.JavaConversions._
+            import scala.collection.JavaConverters._
 
             Welcome to Scala 2.11.8 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_101).
             Type in expressions for evaluation. Or try :help.
@@ -65,7 +65,7 @@ to a FileSystem Datastore, discover the feature type names, get the schema and q
             scala> val dsParams = Map("fs.path" -> "file:///tmp/fsds/", "fs.encoding" -> "parquet")
             dsParams: scala.collection.immutable.Map[String,String] = Map(fs.path -> file:///tmp/fsds/, fs.encoding -> parquet)
 
-            scala> val ds = DataStoreFinder.getDataStore(dsParams)
+            scala> val ds = DataStoreFinder.getDataStore(dsParams.asJava)
             ds: org.geotools.data.DataStore = org.locationtech.geomesa.fs.FileSystemDataStore@27a7ef08
 
 

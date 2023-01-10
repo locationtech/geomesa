@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.filter
 
-import java.util.{Date, UUID}
-
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.{Date, UUID}
 
 @RunWith(classOf[JUnitRunner])
 class BoundsTest extends Specification {

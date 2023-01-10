@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.tube
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
@@ -28,7 +26,8 @@ import org.locationtech.jts.geom._
 import org.opengis.feature.Feature
 import org.opengis.filter.Filter
 
-import scala.collection.JavaConversions._
+import java.util.Date
+import scala.collection.JavaConverters._
 
 @DescribeProcess(
   title = "Tube Select",
@@ -169,7 +168,7 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
       val geoms = (0 until geom.getNumGeometries).toIterator.map(geom.getGeometryN)
       SelfClosingIterator(geoms).flatMap { g =>
         val geomFilter = ff.intersects(geomProperty, ff.literal(g))
-        val combinedFilter = ff.and(List(query.getFilter, geomFilter, dtg1, dtg2, filter))
+        val combinedFilter = ff.and(List(query.getFilter, geomFilter, dtg1, dtg2, filter).asJava)
         SelfClosingIterator(source.getFeatures(combinedFilter).features)
       }
     }

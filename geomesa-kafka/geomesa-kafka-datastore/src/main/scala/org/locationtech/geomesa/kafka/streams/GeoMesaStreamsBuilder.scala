@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka.streams
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.kstream.GlobalKTable
@@ -29,8 +30,8 @@ import scala.concurrent.duration.Duration
  */
 class GeoMesaStreamsBuilder(
     val wrapped: StreamsBuilder,
-    val serde: GeoMesaSerde,
-    val timestampExtractor: TimestampExtractor,
+    serde: GeoMesaSerde,
+    timestampExtractor: TimestampExtractor,
     resetPolicy: Option[AutoOffsetReset]) {
 
   import org.apache.kafka.streams.scala.Serdes.String
@@ -41,6 +42,14 @@ class GeoMesaStreamsBuilder(
     case None => Consumed.`with`(timestampExtractor)
     case Some(p) => Consumed.`with`(timestampExtractor, p)
   }
+
+  /**
+   * Gets a serde for the given feature type
+   *
+   * @param typeName feature type name
+   * @return
+   */
+  def serde(typeName: String): Serde[GeoMesaMessage] = serde.forType(typeName)
 
   /**
    * Create a stream of updates for a given feature type
@@ -220,13 +229,28 @@ object GeoMesaStreamsBuilder {
       params: Map[String, String],
       timestampExtractor: TimestampExtractor,
       resetPolicy: AutoOffsetReset,
+      streamsBuilder: StreamsBuilder): GeoMesaStreamsBuilder =
+    apply(params.asJava, timestampExtractor, resetPolicy, streamsBuilder)
+
+  /**
+   * Create a streams builder
+   *
+   * @param params data store parameters
+   * @param timestampExtractor timestamp extractor for message stream
+   * @param resetPolicy auto offset reset for reading existing topics
+   * @param streamsBuilder underlying streams builder to use
+   * @return
+   */
+  def apply(
+      params: java.util.Map[String, String],
+      timestampExtractor: TimestampExtractor,
+      resetPolicy: AutoOffsetReset,
       streamsBuilder: StreamsBuilder): GeoMesaStreamsBuilder = {
-    val jParams = params.asJava
     val serde = new GeoMesaSerde()
-    serde.configure(jParams, isKey = false)
+    serde.configure(params, isKey = false)
     val builder = Option(streamsBuilder).getOrElse(new StreamsBuilder())
-    val timestamps = Option(timestampExtractor).getOrElse(GeoMesaTimestampExtractor(jParams))
-    val reset = Option(resetPolicy).orElse(resetConfig(jParams))
+    val timestamps = Option(timestampExtractor).getOrElse(GeoMesaTimestampExtractor(params))
+    val reset = Option(resetPolicy).orElse(resetConfig(params))
     new GeoMesaStreamsBuilder(builder, serde, timestamps, reset)
   }
 

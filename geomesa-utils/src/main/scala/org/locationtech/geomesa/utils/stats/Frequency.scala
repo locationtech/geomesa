@@ -8,16 +8,15 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.util.{Date, Locale}
-
 import com.clearspring.analytics.stream.frequency.IFrequency
-import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC}
 import org.locationtech.geomesa.utils.clearspring.CountMinSketch
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.{Date, Locale}
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
@@ -51,8 +50,6 @@ class Frequency[T](
     implicit val ct: ClassTag[T]
   ) extends Stat {
 
-  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
-
   override type S = Frequency[T]
 
   private val i = sft.indexOf(property)
@@ -78,7 +75,7 @@ class Frequency[T](
     * @param value value to consider
     * @return count of the value
     */
-  def count(value: T): Long = sketchMap.values.map(getCount(_, value)).sumOrElse(0L)
+  def count(value: T): Long = if (sketchMap.isEmpty) { 0L } else { sketchMap.values.map(getCount(_, value)).sum }
 
   /**
     * Gets the count for a given value in a particular time bin
@@ -96,7 +93,8 @@ class Frequency[T](
     * @param value value to consider, converted into an appropriate string key
     * @return count of the value
     */
-  def countDirect(value: String): Long = sketchMap.values.map(_.estimateCount(value)).sumOrElse(0L)
+  def countDirect(value: String): Long =
+    if (sketchMap.isEmpty) { 0L } else { sketchMap.values.map(_.estimateCount(value)).sum }
 
   /**
     * Gets the count for a given value, which has already been converted into a string. Useful
@@ -116,7 +114,8 @@ class Frequency[T](
     * @param value value to consider, converted into an appropriate long key
     * @return count of the value
     */
-  def countDirect(value: Long): Long = sketchMap.values.map(_.estimateCount(value)).sumOrElse(0L)
+  def countDirect(value: Long): Long =
+    if (sketchMap.isEmpty) { 0L } else { sketchMap.values.map(_.estimateCount(value)).sum }
 
   /**
     * Gets the count for a given value, which has already been converted into a long. Useful
@@ -134,7 +133,7 @@ class Frequency[T](
     *
     * @return number of observations
     */
-  def size: Long = sketchMap.values.map(_.size).sumOrElse(0L)
+  def size: Long = if (sketchMap.isEmpty) { 0L } else { sketchMap.values.map(_.size).sum }
 
   /**
     * Number of observations in the frequency map

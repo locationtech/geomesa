@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.utils.bin
 
-import java.io.ByteArrayOutputStream
-
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.{ByteArrayCallback, ByteStreamCallback}
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayOutputStream
 
 @RunWith(classOf[JUnitRunner])
 class BinaryEncodeCallbackTest extends Specification {

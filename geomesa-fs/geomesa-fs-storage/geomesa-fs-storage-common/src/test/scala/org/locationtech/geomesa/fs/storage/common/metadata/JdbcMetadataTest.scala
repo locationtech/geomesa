@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
-import java.io.{File, FileOutputStream}
-import java.nio.file.Files
-
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
@@ -23,6 +20,9 @@ import org.locationtech.jts.geom.Envelope
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
+
+import java.io.{File, FileOutputStream}
+import java.nio.file.Files
 
 @RunWith(classOf[JUnitRunner])
 class JdbcMetadataTest extends Specification with AllExpectations {
@@ -232,5 +232,5 @@ class JdbcMetadataTest extends Specification with AllExpectations {
   }
 
   def getConfig(root: Path): Map[String, String] =
-    Map(JdbcMetadata.Config.UrlKey -> s"jdbc:h2:split:${new File(root.toString).getAbsolutePath}/metadata")
+    Map(JdbcMetadata.Config.UrlKey -> s"jdbc:h2:split:${new File(root.toString).getAbsolutePath}/metadata;CASE_INSENSITIVE_IDENTIFIERS=true")
 }

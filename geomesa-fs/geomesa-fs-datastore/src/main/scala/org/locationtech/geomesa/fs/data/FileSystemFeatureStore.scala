@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.fs.data
 
-import java.io.{Closeable, Flushable}
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, RemovalCause, RemovalListener}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.DelegateSimpleFeatureReader
@@ -28,6 +24,9 @@ import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushQ
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.io.{Closeable, Flushable}
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import scala.concurrent.duration.Duration
 
 class FileSystemFeatureStore(

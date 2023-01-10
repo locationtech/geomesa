@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.util.concurrent.atomic.AtomicLong
-
 import com.typesafe.scalalogging.LazyLogging
+
+import java.util.concurrent.atomic.AtomicLong
 
 trait MethodProfiling extends LazyLogging {
 

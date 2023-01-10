@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.index.attribute
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues, filterToString}
+import org.locationtech.geomesa.filter.{FilterHelper, filterToString}
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
 import org.locationtech.geomesa.index.api.ShardStrategy.AttributeShardStrategy
 import org.locationtech.geomesa.index.api._

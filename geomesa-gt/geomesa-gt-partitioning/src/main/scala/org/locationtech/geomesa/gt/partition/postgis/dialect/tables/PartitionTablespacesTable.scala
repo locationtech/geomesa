@@ -30,7 +30,8 @@ class PartitionTablespacesTable extends Sql {
          |);""".stripMargin
     ex.execute(create)
 
-    val insertSql = s"INSERT INTO $table (type_name, table_type, table_space) VALUES (?, ?, ?);"
+    val insertSql =
+      s"INSERT INTO $table (type_name, table_type, table_space) VALUES (?, ?, ?) ON CONFLICT DO NOTHING;"
 
     def insert(suffix: String, table: TableConfig): Unit =
       ex.executeUpdate(insertSql, Seq(info.typeName, suffix, table.tablespace.map(_.raw).orNull))

@@ -10,8 +10,6 @@
 package org.locationtech.geomesa.parquet
 
 
-import java.nio.file.Files
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
@@ -22,8 +20,9 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.parquet.ParquetFileSystemStorage.ParquetCompressionOpt
-import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetCompressionOpt
+import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
+import org.locationtech.geomesa.fs.storage.parquet.{FilterConverter, SimpleFeatureParquetWriter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -31,6 +30,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
 
+import java.nio.file.Files
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
@@ -75,7 +75,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
         sf = reader.read()
       }
     }
-    result
+    result.toSeq
   }
 
   def readFile(geoFilter: org.opengis.filter.Filter, tsft: SimpleFeatureType): Seq[SimpleFeature] = {

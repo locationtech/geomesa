@@ -9,9 +9,6 @@
 
 package org.locationtech.geomesa.parquet
 
-import java.nio.file.Files
-import java.util.UUID
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
@@ -22,8 +19,9 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.{SizeableFileSystemStorage, StorageKeys}
+import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -33,8 +31,13 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
 
+import java.nio.file.Files
+import java.util.UUID
+
 @RunWith(classOf[JUnitRunner])
 class ParquetStorageTest extends Specification with AllExpectations with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -327,7 +330,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       }
 
       // note: this is somewhat of a magic number, in that it works the first time through with no remainder
-      val targetSize = 1700L
+      val targetSize = 2100L
 
       withTestDir { dir =>
         val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
@@ -389,15 +392,14 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       (filter: String,
           transforms: Array[String],
           results: Seq[SimpleFeature]): MatchResult[Any] = {
-    import scala.collection.JavaConversions._
 
-    val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms)
+    val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms: _*)
     val features = {
       val iter = SelfClosingIterator(storage.getReader(query))
       // note: need to copy features in iterator as same object is re-used
       iter.map(ScalaSimpleFeature.copy).toList
     }
-    val attributes = Option(transforms).getOrElse(sft.getAttributeDescriptors.map(_.getLocalName).toArray)
+    val attributes = Option(transforms).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
     forall(features) { feature =>
       feature.getAttributes must haveLength(attributes.length)

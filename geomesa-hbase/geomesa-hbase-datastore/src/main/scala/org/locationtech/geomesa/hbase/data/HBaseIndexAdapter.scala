@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.nio.charset.StandardCharsets
-import java.util.regex.Pattern
-import java.util.{Collections, Locale, UUID}
-
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.TableName
@@ -25,8 +21,12 @@ import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.index.api.IndexAdapter.RequiredVisibilityWriter
-import org.locationtech.geomesa.utils.io.IsFlushableImplicits
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
+import org.locationtech.geomesa.utils.io.{IsCloseable, IsFlushableImplicits}
 
+import java.nio.charset.StandardCharsets
+import java.util.regex.Pattern
+import java.util.{Collections, Locale, UUID}
 import scala.util.Try
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, CoprocessorUrl, TableAvailabilityTimeout}
@@ -57,6 +57,7 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging, Wi
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.concurrent.TimeUnit
 import scala.util.Random
 import scala.util.control.NonFatal
 
@@ -149,11 +150,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
   override def deleteTables(tables: Seq[String]): Unit = {
     WithClose(ds.connection.getAdmin) { admin =>
-      tables.par.foreach { name =>
+      def deleteOne(name: String): Unit = {
         val table = TableName.valueOf(name)
         if (admin.tableExists(table)) {
           HBaseVersions.disableTableAsync(admin, table)
-          val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
+          val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite)
           logger.debug(s"Waiting for table '$table' to be disabled with " +
               s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
           val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
@@ -164,11 +165,12 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
           admin.deleteTable(table)
         }
       }
+      tables.toList.map(t => CachedThreadPool.submit(() => deleteOne(t))).foreach(_.get)
     }
   }
 
   override def clearTables(tables: Seq[String], prefix: Option[Array[Byte]]): Unit = {
-    tables.par.foreach { name =>
+    def clearOne(name: String): Unit = {
       val tableName = TableName.valueOf(name)
       WithClose(ds.connection.getTable(tableName)) { table =>
         val scan = new Scan().setFilter(new KeyOnlyFilter)
@@ -184,6 +186,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         }
       }
     }
+    tables.toList.map(t => CachedThreadPool.submit(() => clearOne(t))).foreach(_.get)
   }
 
   override def createQueryPlan(strategy: QueryStrategy): HBaseQueryPlan = {
@@ -540,7 +543,7 @@ object HBaseIndexAdapter extends LazyLogging {
    */
   def waitForTable(admin: Admin, table: TableName): Unit = {
     if (!admin.isTableAvailable(table)) {
-      val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
+      val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite)
       logger.debug(s"Waiting for table '$table' to become available with " +
           s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
       val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
@@ -585,7 +588,14 @@ object HBaseIndexAdapter extends LazyLogging {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     private val batchSize = HBaseSystemProperties.WriteBatchSize.toLong
+    private val flushTimeout = HBaseSystemProperties.WriteFlushTimeout.toLong
     private val deleteVis = HBaseSystemProperties.DeleteVis.option.map(new CellVisibility(_))
+
+    private val pools = {
+      // mimic config from default hbase connection
+      val maxThreads = math.max(1, ds.connection.getConfiguration.getInt("hbase.htable.threads.max", Int.MaxValue))
+      Array.fill(indices.length)(new CachedThreadPool(maxThreads))
+    }
 
     private val mutators = indices.toArray.map { index =>
       val table = index.getTableNames(partition) match {
@@ -594,6 +604,12 @@ object HBaseIndexAdapter extends LazyLogging {
       }
       val params = new BufferedMutatorParams(TableName.valueOf(table))
       batchSize.foreach(params.writeBufferSize)
+      flushTimeout.foreach(params.setWriteBufferPeriodicFlushTimeoutMs)
+
+      // We have to pass a pool explicitly and close it after manually,
+      // cause of HBase issue where pools got leaked and never closed
+      // (in case of long running Spark jobs 24+ hours the workers go out of memory without custom pool)
+      params.pool(pools(indices.indexOf(index)))
       ds.connection.getBufferedMutator(params)
     }
 
@@ -692,7 +708,14 @@ object HBaseIndexAdapter extends LazyLogging {
 
     override def flush(): Unit = FlushWithLogging.raise(mutators)(BufferedMutatorIsFlushable.arrayIsFlushable)
 
-    override def close(): Unit = CloseWithLogging.raise(mutators)
+    override def close(): Unit = {
+      try { CloseWithLogging.raise(mutators) } finally {
+        pools.foreach(CloseWithLogging(_)(IsCloseable.executorServiceIsCloseable))
+      }
+      if (!pools.foldLeft(true) { case (terminated, pool) => terminated && pool.awaitTermination(60, TimeUnit.SECONDS) }) {
+        logger.warn("Failed to terminate thread pool after 60 seconds")
+      }
+    }
   }
 
   object BufferedMutatorIsFlushable extends IsFlushableImplicits[BufferedMutator] {

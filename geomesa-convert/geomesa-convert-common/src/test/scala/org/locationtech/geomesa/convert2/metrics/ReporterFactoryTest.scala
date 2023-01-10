@@ -12,6 +12,7 @@ import com.codahale.metrics.{ConsoleReporter, MetricRegistry, Slf4jReporter}
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.metrics.core.ReporterFactory
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

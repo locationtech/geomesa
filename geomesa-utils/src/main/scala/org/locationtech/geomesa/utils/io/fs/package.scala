@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.utils.io
 
-import java.io.InputStream
-
 import org.apache.commons.compress.archivers.zip.{ZipArchiveEntry, ZipFile}
 import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
+import java.io.InputStream
 import scala.collection.mutable.ListBuffer
 
 package object fs {

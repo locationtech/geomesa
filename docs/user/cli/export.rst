@@ -180,6 +180,7 @@ Argument                 Description
                          will use the default schema date field
 ``--rate``               Rate multiplier to speed-up (or slow down) features being
                          returned, as a float
+``--live``               Will modify the returned dates to match the current time
 ``--step-window``        Query the interval in discrete chunks instead of all at
                          once ('10 minutes', '30 seconds', etc)
 ``-q, --cql``            Additional CQL filter to select features to export.

@@ -153,7 +153,7 @@ object RunnableStats {
   class UnoptimizedRunnableStats(ds: DataStore) extends RunnableStats(ds) {
     override protected def query[T <: Stat](sft: SimpleFeatureType, filter: Filter, query: String, queryHints: Hints): Option[T] = {
       try {
-        val q = new Query(sft.getTypeName, filter, StatParser.propertyNames(sft, query).toArray)
+        val q = new Query(sft.getTypeName, filter, StatParser.propertyNames(sft, query): _*)
         q.setHints(queryHints)
         WithClose(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)) { reader =>
           val stat = Stat(reader.getFeatureType, query).asInstanceOf[T]

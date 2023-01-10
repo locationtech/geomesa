@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.index.z3
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime.{DateToBinnedTime, TimeToBinnedTime}
@@ -25,10 +23,11 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.jts.geom.{Geometry, Point}
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.util.Date
 import scala.util.control.NonFatal
 
 class Z3IndexKeySpace(val sft: SimpleFeatureType,

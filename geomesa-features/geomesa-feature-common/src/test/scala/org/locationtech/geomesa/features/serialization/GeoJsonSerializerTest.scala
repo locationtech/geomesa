@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import java.io.StringWriter
-import java.util.{Date, UUID}
-
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.StringWriter
+import java.util.{Date, UUID}
 
 @RunWith(classOf[JUnitRunner])
 class GeoJsonSerializerTest extends Specification {

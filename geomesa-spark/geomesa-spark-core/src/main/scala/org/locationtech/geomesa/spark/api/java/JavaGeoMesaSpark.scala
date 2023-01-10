@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.spark.api.java
 
-import java.util
-import java.util.AbstractMap.SimpleEntry
-import java.util.Map.Entry
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.api.java.JavaRDD._
 import org.apache.spark.api.java._
@@ -19,6 +15,10 @@ import org.apache.spark.rdd.RDD
 import org.geotools.data.Query
 import org.locationtech.geomesa.spark.{GeoMesaSpark, Schema, SpatialRDD, SpatialRDDProvider}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util
+import java.util.AbstractMap.SimpleEntry
+import java.util.Map.Entry
 
 object JavaGeoMesaSpark {
   def apply(params: java.util.Map[String, _ <: java.io.Serializable]) =
@@ -88,8 +88,5 @@ class JavaSpatialRDD(val srdd: SpatialRDD) extends JavaRDD[SimpleFeature](srdd) 
   def asKeyValueArrayList:  JavaRDD[util.List[Array[AnyRef]]]                  = toKeyValueArrayList(srdd)
   def asKeyValueMap:        JavaRDD[util.Map[String, Object]]                  = toKeyValueJavaMap(srdd)
   def asGeoJSONString:      JavaRDD[String]                                    = toGeoJSONString(srdd)
-
-  @deprecated
-  def asKeyValueList = asKeyValueEntryList
 }
 

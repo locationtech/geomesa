@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.features.kryo.serialization
 
-import java.util.{Date, UUID}
-
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.serialization.HintKeySerialization
 import org.locationtech.jts.geom.{Geometry, LineString, Point, Polygon}
 
+import java.util.{Date, UUID}
 import scala.util.control.NonFatal
 
 object KryoUserDataSerialization extends LazyLogging {

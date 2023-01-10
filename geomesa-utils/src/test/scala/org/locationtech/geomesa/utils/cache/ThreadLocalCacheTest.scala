@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.cache
 
-import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit}
-
 import com.github.benmanes.caffeine.cache.Ticker
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.io.WithClose
@@ -18,16 +16,14 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit}
+
 @RunWith(classOf[JUnitRunner])
 class ThreadLocalCacheTest extends Specification with Mockito {
 
   import scala.concurrent.duration._
 
   "ThreadLocalCache" should {
-    "implement map methods" in {
-      new ThreadLocalCache[String, String](10.minutes) must
-          beAnInstanceOf[scala.collection.mutable.Map[String, String]]
-    }
 
     "allow getOrElseUpdate" in {
       WithClose(new ThreadLocalCache[String, String](10.minutes)) { cache =>
@@ -62,10 +58,10 @@ class ThreadLocalCacheTest extends Specification with Mockito {
       val ticker = new Ticker() { override def read(): Long = nanos }
       WithClose(new ThreadLocalCache[String, String](100.millis, es, Some(ticker))) { cache =>
         there was one(es).scheduleWithFixedDelay(cache, 100, 100, TimeUnit.MILLISECONDS)
-        cache.put("k1", "v1")
-        cache.get("k1") must beSome("v1")
+        cache.getOrElseUpdate("k1", "v1")
+        cache.getOrElseUpdate("k1", "v2") mustEqual "v1"
         nanos = 200L * 1000000
-        cache.get("k1") must beNone
+        cache.getOrElseUpdate("k1", "v2") mustEqual "v2"
       }
       there was one(future).cancel(true)
     }
@@ -79,13 +75,11 @@ class ThreadLocalCacheTest extends Specification with Mockito {
       val ticker = new Ticker() { override def read(): Long = nanos }
       WithClose(new ThreadLocalCache[String, String](100.millis, es, Some(ticker))) { cache =>
         there was one(es).scheduleWithFixedDelay(cache, 100, 100, TimeUnit.MILLISECONDS)
-        cache.put("k1", "v1")
-        cache.get("k1") must beSome("v1")
+        cache.getOrElseUpdate("k1", "v1")
+        cache.getOrElseUpdate("k1", "v2") mustEqual "v1"
         nanos = 200L * 1000000
-        cache.get("k1") must beNone
         cache.getOrElseUpdate("k1", "v2") mustEqual "v2"
-        cache.get("k1") must beSome("v2")
-        cache("k1") mustEqual "v2"
+        cache.getOrElseUpdate("k1", "v3") mustEqual "v2"
       }
       there was one(future).cancel(true)
     }

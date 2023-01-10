@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.nio.charset.StandardCharsets
-import java.util
-import java.util.{Collections, Date, UUID}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
 import org.geotools.util.factory.Hints
@@ -24,6 +20,10 @@ import org.locationtech.jts.geom.Geometry
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.nio.charset.StandardCharsets
+import java.util
+import java.util.{Collections, Date, UUID}
 
 @RunWith(classOf[JUnitRunner])
 class KryoFeatureSerializerTest extends Specification with LazyLogging {

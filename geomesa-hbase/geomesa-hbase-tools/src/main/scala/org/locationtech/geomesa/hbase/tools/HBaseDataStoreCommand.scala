@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.hbase.tools
 
-import java.io.File
-import java.util.Collections
-
 import com.beust.jcommander.Parameter
 import org.apache.hadoop.hbase.HConstants
 import org.apache.hadoop.hbase.client.Connection
@@ -18,6 +15,9 @@ import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore,
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseParams
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, DistributedCommand, OptionalZookeepersParam}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+
+import java.io.File
+import java.util.Collections
 
 /**
  * Abstract class for commands that have a pre-existing catalog

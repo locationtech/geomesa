@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.kafka.consumer
 
-import java.io.Closeable
-import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.consumer.Consumer
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.{ConsumerErrorHandler, LoggingConsumerErrorHandler}
+
+import java.io.Closeable
+import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
 
 abstract class BaseThreadedConsumer(consumers: Seq[Consumer[Array[Byte], Array[Byte]]])
     extends Closeable with LazyLogging {

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.tools.utils
 
-import java.util.Collections
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -17,6 +15,8 @@ import org.apache.hadoop.tools.{DistCp, DistCpOptions}
 import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.Command
+
+import java.util.Collections
 
 object StorageJobUtils extends LazyLogging {
 

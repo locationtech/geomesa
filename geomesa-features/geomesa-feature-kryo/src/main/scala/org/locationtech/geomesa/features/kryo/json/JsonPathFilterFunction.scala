@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.features.kryo.json
 
-import java.util.concurrent.ConcurrentHashMap
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
@@ -18,6 +16,8 @@ import org.locationtech.geomesa.utils.geotools.filter.FilterFunctions
 import org.locationtech.geomesa.utils.geotools.{SimpleFeaturePropertyAccessor, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.expression.{PropertyName, VolatileFunction}
+
+import java.util.concurrent.ConcurrentHashMap
 
 class JsonPathFilterFunction extends FunctionExpressionImpl(
   new FunctionNameImpl("jsonPath",

@@ -9,20 +9,22 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.github.benmanes.caffeine.cache.Ticker
+import org.locationtech.geomesa.features.SerializationOption
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
+import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
-import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.DefaultZkPath
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam, ReadWriteFlag}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 
-import java.util.Properties
 import java.util.concurrent.ScheduledExecutorService
+import java.util.{Locale, Properties}
 import scala.concurrent.duration.Duration
 
-object KafkaDataStoreParams extends KafkaDataStoreParams
+object KafkaDataStoreParams extends KafkaDataStoreParamsWTF
 
-trait KafkaDataStoreParams extends NamespaceParams {
+trait KafkaDataStoreParamsWTF extends NamespaceParams {
   // deprecated lookups
   private val DeprecatedProducer = ConvertedParam[java.lang.Integer, java.lang.Boolean]("isProducer", v => if (v) { 0 } else { 1 })
   private val DeprecatedOffset = ConvertedParam[Duration, String]("autoOffsetReset", v => if ("earliest".equalsIgnoreCase(v)) { Duration.Inf } else { null })
@@ -53,16 +55,24 @@ trait KafkaDataStoreParams extends NamespaceParams {
     new GeoMesaParam[String](
       "kafka.zookeepers",
       "Kafka zookeepers",
-      optional = false,
+      optional = true,
       deprecatedKeys = Seq("zookeepers"),
+      supportsNiFiExpressions = true
+    )
+
+  val Catalog =
+    new GeoMesaParam[String](
+      "kafka.catalog.topic",
+      "Topic used for cataloging feature types, if not using Zookeeper",
+      default = KafkaDataStoreFactory.DefaultCatalog,
       supportsNiFiExpressions = true
     )
 
   val ZkPath =
     new GeoMesaParam[String](
       "kafka.zk.path",
-      "Zookeeper discoverable path (namespace)",
-      default = DefaultZkPath,
+      "Zookeeper discoverable path (namespace), if using Zookeeper",
+      default = KafkaDataStoreFactory.DefaultZkPath,
       deprecatedKeys = Seq("zkPath"),
       supportsNiFiExpressions = true
     )
@@ -145,11 +155,39 @@ trait KafkaDataStoreParams extends NamespaceParams {
   val SerializationType =
     new GeoMesaParam[String](
       "kafka.serialization.type",
-      "Type of serialization to use. Must be one of 'kryo' or 'avro'",
-      default = "kryo",
-      enumerations = Seq("kryo", "avro"),
+      "Type of serialization to use. Must be one of 'kryo', 'avro', or 'avro-native'",
+      default = SerializationTypes.Types.head,
+      enumerations = SerializationTypes.Types,
       supportsNiFiExpressions = true
     )
+
+  object SerializationTypes {
+
+    val Kryo = "kryo"
+    val Avro = "avro"
+    val AvroNative = "avro-native"
+
+    val Types = Seq(Kryo, Avro, AvroNative)
+
+    def fromName(name: String): SerializationType = {
+      name.toLowerCase(Locale.US) match {
+        case Kryo => org.locationtech.geomesa.features.SerializationType.KRYO
+        case Avro => org.locationtech.geomesa.features.SerializationType.AVRO
+        case AvroNative => org.locationtech.geomesa.features.SerializationType.AVRO
+        case _ =>
+          throw new IllegalArgumentException(
+            s"Invalid serialization type, valid types are ${Types.mkString(", ")}: $name")
+      }
+    }
+
+    def opts(name: String): Set[SerializationOption] = {
+      name.toLowerCase(Locale.US) match {
+        case AvroNative => Set(SerializationOption.NativeCollections)
+        case _ => Set.empty
+      }
+    }
+
+  }
 
   val LayerViews =
     new GeoMesaParam[String](

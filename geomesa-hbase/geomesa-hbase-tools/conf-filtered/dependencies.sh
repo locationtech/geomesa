@@ -16,7 +16,7 @@ hbase_thirdparty_install_version="%%hbase.thirdparty.version.recommended%%"
 hadoop_install_version="%%hadoop.version.recommended%%"
 zookeeper_install_version="%%zookeeper.version.recommended%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
-guava_install_version="%%guava.version%%"
+guava_install_version="%%hbase.guava.version%%"
 
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
@@ -59,20 +59,20 @@ function dependencies() {
     # since they have separate package names, should be safe to install both
     "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
     "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
+    "io.dropwizard.metrics:metrics-core:3.2.6:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
   )
 
   local hbase_maj_ver="$(expr match "$hbase_version" '\([0-9][0-9]*\)\.')"
 
   # additional dependencies that depend on the major version
-  if [[ "hbase_maj_ver" -ge 2 ]]; then
+  if [[ "$hbase_maj_ver" -ge 2 ]]; then
     gavs+=(
       "org.apache.hbase:hbase-mapreduce:${hbase_version}:jar"
       "org.apache.hbase:hbase-protocol-shaded:${hbase_version}:jar"
       "org.apache.hbase.thirdparty:hbase-shaded-miscellaneous:${hbase_thirdparty_version}:jar"
       "org.apache.hbase.thirdparty:hbase-shaded-netty:${hbase_thirdparty_version}:jar"
       "org.apache.hbase.thirdparty:hbase-shaded-protobuf:${hbase_thirdparty_version}:jar"
-      "io.dropwizard.metrics:metrics-core:3.2.6:jar"
     )
   else
     gavs+=(

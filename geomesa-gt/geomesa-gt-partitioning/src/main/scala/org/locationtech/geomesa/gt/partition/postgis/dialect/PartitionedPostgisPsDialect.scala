@@ -24,6 +24,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 
   import PartitionedPostgisPsDialect.PreparedStatementKey
 
+  import scala.collection.JavaConverters._
+
   // cache for tracking json-type columns
   private val jsonColumns: LoadingCache[PreparedStatementKey, java.lang.Boolean] =
     Caffeine.newBuilder()
@@ -41,9 +43,43 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
     // json columns are string type in geotools, but we have to use setObject or else we get a binding error
     if (binding == classOf[String] && jsonColumns.get(new PreparedStatementKey(ps, column))) {
       ps.setObject(column, value, Types.OTHER)
+    } else if (binding == classOf[java.util.List[_]]) {
+      // handle bug in jdbc store not calling setArrayValue in update statements
+      value match {
+        case null =>
+          ps.setNull(column, Types.ARRAY)
+
+        case list: java.util.Collection[_] =>
+          if (list.isEmpty) {
+            ps.setNull(column, Types.ARRAY)
+          } else {
+            setArray(list.toArray(), ps, column, cx)
+          }
+
+        case array: Array[_] =>
+          if (array.isEmpty) {
+            ps.setNull(column, Types.ARRAY)
+          } else {
+            setArray(array, ps, column, cx)
+          }
+
+        case _ =>
+          // this will almost certainly fail...
+          super.setValue(value, binding, ps, column, cx)
+      }
     } else {
       super.setValue(value, binding, ps, column, cx)
     }
+  }
+
+  // based on setArrayValue, but we don't have the attribute descriptor to use
+  private def setArray(array: Array[_], ps: PreparedStatement, column: Int, cx: Connection): Unit = {
+    val componentType = array(0).getClass
+    val sqlType = dataStore.getSqlTypeNameToClassMappings.asScala.collectFirst { case (k, v) if v == componentType => k }
+    val componentTypeName = sqlType.getOrElse {
+      throw new java.sql.SQLException(s"Failed to find a SQL type for $componentType")
+    }
+    ps.setArray(column, super.convertToArray(array, componentTypeName, componentType, cx))
   }
 
   override protected def convertToArray(
@@ -56,9 +92,11 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
   }
 
   // fix bug with PostGISPSDialect dialect not delegating these methods
-
+  override def encodeCreateTable(sql: StringBuffer): Unit = delegate.encodeCreateTable(sql)
   override def getDefaultVarcharSize: Int = delegate.getDefaultVarcharSize
   override def encodeTableName(raw: String, sql: StringBuffer): Unit = delegate.encodeTableName(raw, sql)
+  override def encodePostCreateTable(tableName: String, sql: StringBuffer): Unit =
+    delegate.encodePostCreateTable(tableName, sql)
   override def postCreateFeatureType(
       featureType: SimpleFeatureType,
       metadata: DatabaseMetaData,

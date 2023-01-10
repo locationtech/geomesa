@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util.Date
-
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Date
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

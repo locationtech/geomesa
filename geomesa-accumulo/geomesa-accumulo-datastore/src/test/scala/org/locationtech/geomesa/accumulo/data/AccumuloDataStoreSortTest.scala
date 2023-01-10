@@ -74,14 +74,14 @@ class AccumuloDataStoreSortTest extends Specification with TestWithFeatureType {
         val filter = ECQL.toFilter(ecql)
         foreach(transforms) { transform =>
           foreach(sorts) { sort =>
-            val query = new Query(sft.getTypeName, filter, transform)
-            query.setSortBy(sort)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
+            query.setSortBy(sort: _*)
             val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             result.map(_.getID) mustEqual features.map(_.getID)
           }
           foreach(reverses) { sort =>
-            val query = new Query(sft.getTypeName, filter, transform)
-            query.setSortBy(sort)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
+            query.setSortBy(sort: _*)
             val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             result.map(_.getID) mustEqual features.map(_.getID).reverse
           }

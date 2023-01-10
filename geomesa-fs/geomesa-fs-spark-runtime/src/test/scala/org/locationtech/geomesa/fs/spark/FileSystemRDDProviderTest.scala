@@ -8,22 +8,23 @@
 
 package org.locationtech.geomesa.fs.spark
 
-import java.nio.file.{Files, Path}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
-import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
+import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.geotools.data.{DataStore, DataStoreFinder, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
+import org.locationtech.geomesa.spark.sql.SQLTypes
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.nio.file.{Files, Path}
 
 
 @RunWith(classOf[JUnitRunner])

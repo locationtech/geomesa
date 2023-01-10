@@ -9,9 +9,6 @@
 package org.locationtech.geomesa.redis.data
 package index
 
-import java.nio.charset.StandardCharsets
-
-import org.locationtech.geomesa.index.PartitionParallelScan
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{BoundedByteRange, FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.utils.Explainer
@@ -21,6 +18,8 @@ import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosing
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.filter.Filter
 import redis.clients.jedis.Response
+
+import java.nio.charset.StandardCharsets
 
 sealed trait RedisQueryPlan extends QueryPlan[RedisDataStore] {
 
@@ -122,7 +121,7 @@ object RedisQueryPlan {
 
     private def singleTableScan(ds: RedisDataStore, table: Array[Byte]): CloseableIterator[Array[Byte]] = {
       if (pipeline) {
-        val result = Seq.newBuilder[Response[java.util.Set[Array[Byte]]]]
+        val result = Seq.newBuilder[Response[java.util.List[Array[Byte]]]]
         result.sizeHint(ranges.length)
         WithClose(ds.connection.getResource) { jedis =>
           WithClose(jedis.pipelined()) { pipe =>

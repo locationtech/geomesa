@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
-import java.time.Duration
-
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.WritableFeatureCache
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
+
+import java.time.Duration
 
 /**
   * Consumes from kakfa and populates the local cache

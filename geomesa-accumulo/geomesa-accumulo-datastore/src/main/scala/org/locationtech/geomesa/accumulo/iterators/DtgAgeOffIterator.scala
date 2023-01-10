@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.concurrent.TimeUnit
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
@@ -23,6 +21,7 @@ import org.locationtech.geomesa.utils.conf.FeatureExpiration
 import org.locationtech.geomesa.utils.conf.FeatureExpiration.FeatureTimeExpiration
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
@@ -36,11 +35,11 @@ class DtgAgeOffIterator extends AgeOffIterator with DtgAgeOffFilter {
                     env: IteratorEnvironment): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     super.init(source, options, env)
     try {
-      super.init(options.toMap)
+      super.init(options.asScala.toMap)
     } catch {
       case _: NoSuchElementException => dtgIndex = sft.getDtgIndex.get // fallback for old configuration
     }

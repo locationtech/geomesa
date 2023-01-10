@@ -161,7 +161,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
                        val filter: Option[Filter],
                        histogram: Boolean) extends GeoMesaProcessVisitor with LazyLogging {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   private val attribute    = attributeDescriptor.getLocalName
   private val uniqueValues = mutable.Map.empty[Any, Long].withDefaultValue(0)
@@ -188,7 +188,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
   private def addMultiValue(f: SimpleFeature): Unit = {
     val values = getAttribute[java.util.Collection[_]](f)
     if (values != null) {
-      values.foreach(uniqueValues(_) += 1)
+      values.asScala.foreach(uniqueValues(_) += 1)
     }
   }
 

@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util.{Date, UUID}
-
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.AttributeDescriptor
 
+import java.util.{Date, UUID}
 import scala.math.Ordering
 
 /**

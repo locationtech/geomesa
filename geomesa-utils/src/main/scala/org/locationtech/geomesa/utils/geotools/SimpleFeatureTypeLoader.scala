@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.net.URL
-import java.util.Collections
-
 import com.typesafe.config.ConfigFactory
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.net.URL
+import java.util.Collections
 
 /**
  * Query all SimpleFeatureTypeProviders to expose all available SimpleFeatureTypes
@@ -75,7 +75,7 @@ object SimpleFeatureTypeLoader {
       if (!config.hasPath(URLSftProvider.SftConfigURLs)) { Seq.empty[URL] } else {
         config.getAnyRef(URLSftProvider.SftConfigURLs) match {
           case s: String => s.split(',').map(s => new URL(s.trim)).toList
-          case s: java.util.List[String] => s.asScala.map(new URL(_))
+          case s: java.util.List[String] => s.asScala.map(new URL(_)).toSeq
         }
       }
     }

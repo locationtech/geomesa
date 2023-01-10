@@ -9,9 +9,6 @@
 package org.locationtech.geomesa.convert.testing
 // this has to be in testing package because of weird import shadowing
 
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
@@ -20,6 +17,9 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 
 @RunWith(classOf[JUnitRunner])
 class CompositeTextConverterTest extends Specification with LazyLogging {

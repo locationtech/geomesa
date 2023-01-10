@@ -18,8 +18,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
-import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.locationtech.geomesa.process.analytic.MinMaxProcess.MinMaxVisitor
+import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats.Stat
@@ -101,6 +101,6 @@ object MinMaxProcess {
 
   private def createResult(stat: String): FeatureResult = {
     val sf = new ScalaSimpleFeature(StatsScan.StatsSft, "", Array(stat, GeometryUtils.zeroPoint))
-    FeatureResult(new ListFeatureCollection(StatsScan.StatsSft, Array[SimpleFeature](sf)))
+    FeatureResult(new ListFeatureCollection(StatsScan.StatsSft, sf))
   }
 }

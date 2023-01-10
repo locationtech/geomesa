@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.fs.tools.status
 
-import java.time.Instant
-import java.util.Locale
-
 import com.beust.jcommander.{ParameterException, Parameters}
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.status.FsGetFilesCommand.FSGetFilesParams
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
+
+import java.time.Instant
+import java.util.Locale
 
 class FsGetFilesCommand extends FsDataStoreCommand {
 

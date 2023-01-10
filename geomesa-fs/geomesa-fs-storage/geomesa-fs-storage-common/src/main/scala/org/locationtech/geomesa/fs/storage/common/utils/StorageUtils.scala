@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.fs.storage.common.utils
 
-import java.util.UUID
-
 import org.apache.hadoop.fs.Path
+
+import java.util.UUID
 
 object StorageUtils {
 

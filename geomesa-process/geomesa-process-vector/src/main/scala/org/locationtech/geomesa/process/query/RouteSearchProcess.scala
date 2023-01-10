@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.process.query
 
-import java.util.concurrent.ConcurrentHashMap
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
@@ -30,6 +28,8 @@ import org.locationtech.jts.operation.distance.DistanceOp
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.util.concurrent.ConcurrentHashMap
 
 @DescribeProcess(
   title = "Route Search",

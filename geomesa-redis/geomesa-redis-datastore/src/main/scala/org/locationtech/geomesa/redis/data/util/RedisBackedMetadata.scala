@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.redis.data.util
 
-import java.nio.charset.StandardCharsets
-
 import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import redis.clients.jedis.JedisPool
+
+import java.nio.charset.StandardCharsets
 
 /**
   * Redis-backed metadata implementation. Metadata is stored as a redis hashset

@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.index.metadata
 
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.AtomicBoolean
-
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(classOf[JUnitRunner])
 class KeyValueStoreMetadataTest extends Specification {

@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa
 
-import java.{io => jio, util => ju}
-
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 import org.opengis.feature.simple.SimpleFeature
+
+import java.{io => jio, util => ju}
 
 package object security {
 
@@ -75,6 +75,6 @@ package object security {
     def visibility: Option[String] = Option(SecurityUtils.getVisibility(sf))
   }
 
-  def getAuthorizationsProvider(params: ju.Map[String, jio.Serializable], auths: Seq[String]): AuthorizationsProvider =
+  def getAuthorizationsProvider(params: java.util.Map[String, _], auths: Seq[String]): AuthorizationsProvider =
     AuthorizationsProvider.apply(params, auths.asJava)
 }

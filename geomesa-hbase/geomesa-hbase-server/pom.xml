@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa-hbase_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -52,11 +52,6 @@
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-        </dependency>
-
     </dependencies>
 
 </project>

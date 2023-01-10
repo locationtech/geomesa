@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.lambda
 
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.{Lock, ReentrantLock}
-
 import org.locationtech.geomesa.index.utils.Releasable
 import org.locationtech.geomesa.lambda.stream.OffsetManager
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
+
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.{Lock, ReentrantLock}
 
 class InMemoryOffsetManager extends OffsetManager {
 
@@ -27,7 +27,7 @@ class InMemoryOffsetManager extends OffsetManager {
   override def setOffset(topic: String, partition: Int, offset: Long): Unit = {
     offsets.synchronized {
       offsets.put((topic, partition), offset)
-      listeners.synchronized(listeners.getOrElse(topic, Set.empty)).par.foreach(_.offsetChanged(partition, offset))
+      listeners.synchronized(listeners.getOrElse(topic, Set.empty)).foreach(_.offsetChanged(partition, offset))
     }
   }
 

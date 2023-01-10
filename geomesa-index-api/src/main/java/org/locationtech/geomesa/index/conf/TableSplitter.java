@@ -25,16 +25,11 @@ public interface TableSplitter {
     /**
      * Get splits for a partitioned table
      *
-     * Default implementation added for API compatibility, but will be removed in future versions
-     *
      * @param sft simple feature type
      * @param index name of the index being configured
      * @param partition name of the partition being configured
      * @param options splitter options
      * @return split points
      */
-    default byte[][] getSplits(SimpleFeatureType sft, String index, String partition, String options) {
-        // TODO remove default implementation for next major version bump
-        return getSplits(sft, index, options);
-    }
+    byte[][] getSplits(SimpleFeatureType sft, String index, String partition, String options);
 }

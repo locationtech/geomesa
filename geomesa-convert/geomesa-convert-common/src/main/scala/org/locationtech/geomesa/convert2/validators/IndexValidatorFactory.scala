@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.convert2.validators
 
-import java.util.{Date, Locale}
-
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util.{Date, Locale}
 
 /**
   * Validator based on the indices used by the feature type. Currently only the x/z2 and x/z3 indices have

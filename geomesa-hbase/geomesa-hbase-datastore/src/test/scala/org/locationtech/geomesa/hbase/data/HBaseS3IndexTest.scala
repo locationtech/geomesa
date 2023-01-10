@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -26,6 +24,8 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class HBaseS3IndexTest extends Specification with LazyLogging {
@@ -159,7 +159,7 @@ class HBaseS3IndexTest extends Specification with LazyLogging {
         { // apply transforms
           val filter = "bbox(geom, 38, 59, 51, 61)" +
               " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
-          val features = runQuery(new Query(sft.getTypeName, ECQL.toFilter(filter), Array("name")))
+          val features = runQuery(new Query(sft.getTypeName, ECQL.toFilter(filter), "name"))
           features must haveSize(4)
           features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
           forall(features) { f =>
@@ -171,7 +171,7 @@ class HBaseS3IndexTest extends Specification with LazyLogging {
         { // apply functional transforms
           val filter = "bbox(geom, 38, 59, 51, 61)" +
               " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
-          val features = runQuery(new Query(sft.getTypeName, ECQL.toFilter(filter), Array("derived=strConcat('my', name)")))
+          val features = runQuery(new Query(sft.getTypeName, ECQL.toFilter(filter), "derived=strConcat('my', name)"))
           features must haveSize(4)
           features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
           forall(features) { f =>
@@ -271,7 +271,7 @@ class HBaseS3IndexTest extends Specification with LazyLogging {
         { // optimize for bin format with transforms
           val filter = "bbox(geom, 38, 59, 51, 61)" +
               " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
-          val query = new Query(sft.getTypeName, ECQL.toFilter(filter), Array("name", "geom"))
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter), "name", "geom")
           query.getHints.put(BIN_TRACK, "name")
           query.getHints.put(BIN_BATCH_SIZE, 100)
 

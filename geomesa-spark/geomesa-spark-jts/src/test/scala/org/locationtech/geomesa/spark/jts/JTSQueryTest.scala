@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.spark.jts
 
-import org.locationtech.jts.geom._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.junit.runner.RunWith
+import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

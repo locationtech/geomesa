@@ -43,6 +43,13 @@ class MiscFunctionFactoryTest extends Specification {
       "return the default if the first argument is null" >> {
         MiscFunctionFactory.withDefault(Array(null, Int.box(1))) mustEqual 1
       }
+      "return the first non-null argument" >> {
+        MiscFunctionFactory.withDefault(Array("a", "b", "c", "d")) mustEqual "a"
+        MiscFunctionFactory.withDefault(Array(null, "b", "c", "d")) mustEqual "b"
+        MiscFunctionFactory.withDefault(Array(null, null, "c", "d")) mustEqual "c"
+        MiscFunctionFactory.withDefault(Array(null, null, null, "d")) mustEqual "d"
+        MiscFunctionFactory.withDefault(Array(null, null, null, null)) must beNull
+      }
     }
 
     "require" should {

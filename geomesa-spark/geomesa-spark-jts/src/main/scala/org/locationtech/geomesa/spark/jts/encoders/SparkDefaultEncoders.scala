@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.spark.jts.encoders
 
-import java.lang
-
-import org.apache.spark.sql.{Encoder, Encoders}
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
+import org.apache.spark.sql.{Encoder, Encoders}
 
+import java.lang
 import scala.reflect.runtime.universe._
 
 /**

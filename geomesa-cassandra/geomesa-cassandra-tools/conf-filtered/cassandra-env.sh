@@ -17,8 +17,8 @@
 # otherwise, CASSANDRA_HOME, etc will be used to build up the classpath
 # export GEOMESA_CASSANDRA_CLASSPATH=
 
-# Accumulo home directory
-# export CASSANDRA_HOME="{CASSANDRA_HOME:-/path/to/cassandra}"
+# Cassandra home directory
+# export CASSANDRA_HOME="${CASSANDRA_HOME:-/path/to/cassandra}"
 
 # get cassandra classpath
 function get_cassandra_classpath() {

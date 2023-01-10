@@ -18,6 +18,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest._
+import org.locationtech.geomesa.index.index.EmptyIndex
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
@@ -49,7 +50,7 @@ class GeoMesaDataStoreTest extends Specification {
 
   step {
     features.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
-    ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features.toArray[SimpleFeature]))
+    ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features: _*))
   }
 
   "GeoMesaDataStore" should {
@@ -101,10 +102,10 @@ class GeoMesaDataStoreTest extends Specification {
       val ds = new TestGeoMesaDataStore(true)
       ds.createSchema(sft)
 
-      ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features.toArray[SimpleFeature]))
+      ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features: _*))
 
       // INCLUDE should be re-written to EXCLUDE
-      ds.getQueryPlan(new Query(sft.getTypeName)) must beEmpty
+      forall(ds.getQueryPlan(new Query(sft.getTypeName)).map(_.filter.index))(_.getClass mustEqual classOf[EmptyIndex])
       var results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq
       results must beEmpty
 

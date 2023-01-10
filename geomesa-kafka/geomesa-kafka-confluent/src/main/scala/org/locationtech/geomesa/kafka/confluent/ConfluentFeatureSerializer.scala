@@ -15,7 +15,6 @@ import org.apache.avro.Schema.{Field, Type}
 import org.apache.avro.generic.{GenericData, GenericRecord}
 import org.apache.avro.{JsonProperties, Schema}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser.{GeoMesaAvroDateFormat, GeoMesaAvroDeserializableEnumProperty, GeoMesaAvroGeomFormat, GeoMesaAvroVisibilityField}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.kafka.confluent.ConfluentFeatureSerializer.ConfluentFeatureMapper
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
@@ -96,6 +95,8 @@ class ConfluentFeatureSerializer(
 }
 
 object ConfluentFeatureSerializer {
+
+  import SchemaParser.{GeoMesaAvroDateFormat, GeoMesaAvroDeserializableEnumProperty, GeoMesaAvroGeomFormat, GeoMesaAvroVisibilityField}
 
   def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL, schemaOverride: Option[Schema] = None): Builder =
     new Builder(sft, schemaRegistryUrl, schemaOverride)
@@ -179,7 +180,7 @@ object ConfluentFeatureSerializer {
       val mappedPositions = fieldMappings.map(_.schemaIndex) ++ visibilityField.toSeq
       schema.getFields.asScala.collect {
         case f if requiredField(f) && !mappedPositions.contains(f.pos()) => f.name()
-      }
+      }.toSeq
     }
 
     /**
@@ -235,7 +236,7 @@ object ConfluentFeatureSerializer {
         }
       }
 
-      val feature = ScalaSimpleFeature.create(sft, id, attributes: _*)
+      val feature = ScalaSimpleFeature.create(sft, id, attributes.toSeq: _*)
 
       // set the feature visibility if it exists
       visibilityField.foreach { field =>

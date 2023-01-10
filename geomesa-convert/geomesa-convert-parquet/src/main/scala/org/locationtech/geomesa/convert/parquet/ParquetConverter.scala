@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.parquet
 
-import java.io._
-
 import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -20,6 +18,8 @@ import org.locationtech.geomesa.convert2._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io._
 
 class ParquetConverter(
     sft: SimpleFeatureType,

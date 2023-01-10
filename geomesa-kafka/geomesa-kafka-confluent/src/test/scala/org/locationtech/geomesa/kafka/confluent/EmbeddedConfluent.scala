@@ -14,7 +14,8 @@ import org.locationtech.geomesa.kafka.EmbeddedKafka
 
 class EmbeddedConfluent extends EmbeddedKafka {
 
-  private val schemaRegistryApp = new RestApp(InstanceSpec.getRandomPort, zookeepers, "_schemas")
+  private val schemaRegistryApp =
+    new RestApp(InstanceSpec.getRandomPort, zookeepers, brokers, "_schemas", "NONE", true, null)
   schemaRegistryApp.start()
 
   val schemaRegistryUrl: String = schemaRegistryApp.restConnect

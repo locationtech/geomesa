@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.lambda
 
-import java.time.{Clock, Instant, ZoneId, ZoneOffset}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.MiniCluster
@@ -18,6 +16,8 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
 import org.specs2.specification.core.{Env, Fragments}
+
+import java.time.{Clock, Instant, ZoneId, ZoneOffset}
 
 /**
   * Base class for running all kafka/zk embedded tests

@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.security
 
-import java.nio.charset.StandardCharsets
-
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.security.VisibilityEvaluator._
 import org.parboiled.errors.ParsingException
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.nio.charset.StandardCharsets
 
 @RunWith(classOf[JUnitRunner])
 class VisibilityEvaluatorTest extends Specification {

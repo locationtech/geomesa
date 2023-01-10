@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.index.conf.partition
 
-import java.util.ServiceLoader
-
 import com.typesafe.scalalogging.StrictLogging
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.util.ServiceLoader
 
 /**
   * Partition tables based on the feature being written

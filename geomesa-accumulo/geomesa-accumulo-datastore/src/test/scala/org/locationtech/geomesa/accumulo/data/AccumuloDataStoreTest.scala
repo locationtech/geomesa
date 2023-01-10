@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.IOException
-import java.util.Date
-
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
@@ -25,8 +22,6 @@ import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.CachingFeatureCollection
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
@@ -44,10 +39,13 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.io.IOException
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -82,7 +80,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
         case (AccumuloDataStoreParams.CatalogParam.key, value)    => "tableName"  -> value
         case kv => kv
       }
-      val ds = DataStoreFinder.getDataStore(params)
+      val ds = DataStoreFinder.getDataStore(params.asJava)
       ds must not(beNull)
       try {
         ds must beAnInstanceOf[AccumuloDataStore]
@@ -104,19 +102,19 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val timestamp = System.currentTimeMillis()
 
       foreach(ds.getAllIndexTableNames(logical.getTypeName)) { index =>
-        foreach(ds.connector.createScanner(index, new Authorizations)) { entry =>
+        foreach(ds.connector.createScanner(index, new Authorizations).asScala) { entry =>
           entry.getKey.getTimestamp mustEqual 1L // logical time - incrementing counter
         }
       }
       foreach(ds.getAllIndexTableNames(millis.getTypeName)) { index =>
-        foreach(ds.connector.createScanner(index, new Authorizations)) { entry =>
+        foreach(ds.connector.createScanner(index, new Authorizations).asScala) { entry =>
           entry.getKey.getTimestamp must beCloseTo(timestamp, 10000L) // millis time - sys time
         }
       }
     }
 
     "prevent opening connections after dispose is called" in {
-      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+      val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
       ds.dispose()
       ds.createSchema(SimpleFeatureTypes.createType("dispose", defaultSpec)) must throwAn[IllegalStateException]
     }
@@ -148,7 +146,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       fc.add(f)
       fc.add(f2)
       val ids = fs.addFeatures(fc)
-      ids.map(_.getID).find(_ != "fid1").foreach(f2.setId)
+      ids.asScala.map(_.getID).find(_ != "fid1").foreach(f2.setId)
 
       SelfClosingIterator(fs.getFeatures(Filter.INCLUDE).features).toList must containTheSameElementsAs(List(f, f2))
       SelfClosingIterator(fs.getFeatures(ECQL.toFilter("IN('fid1')")).features).toList mustEqual List(f)
@@ -193,8 +191,8 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
         val splits = ds.connector.tableOperations().listSplits(recTable)
         // note: first split is dropped, which creates 259 splits but 260 regions
         splits.size() mustEqual 259
-        splits.head mustEqual new Text("a1")
-        splits.last mustEqual new Text("z9")
+        splits.asScala.head mustEqual new Text("a1")
+        splits.asScala.last mustEqual new Text("z9")
       }
     }
 
@@ -240,7 +238,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       def testThreads(numThreads: Option[Int]) = {
         val params = dsParams ++ numThreads.map(n => Map(param -> n)).getOrElse(Map.empty)
-        val dst = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+        val dst = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
         val z3Tables = dst.manager.indices(defaultSft).filter(_.name == Z3Index.name).flatMap(_.getTableNames())
         forall(dst.getQueryPlan(query)) { qpt =>
           qpt.tables mustEqual z3Tables
@@ -276,11 +274,11 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
 
       val pt = WKTUtils.read("POINT (0 0)")
-      val one = AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("one", new Integer(1), new Date(), pt), "1")
-      val two = AvroSimpleFeatureFactory.buildAvroFeature(sft, Seq("two", new Integer(2), new Date(), pt), "2")
+      val one = ScalaSimpleFeature.create(sft, "1", "one", new Integer(1), new Date(), pt)
+      val two = ScalaSimpleFeature.create(sft, "2", "two", new Integer(2), new Date(), pt)
 
       val fs = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
-      fs.addFeatures(DataUtilities.collection(List(one, two)))
+      fs.addFeatures(DataUtilities.collection(java.util.Arrays.asList[SimpleFeature](one, two)))
 
       // indexed attribute
       val q1 = ECQL.toFilter("name = 'one'")
@@ -340,7 +338,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "update metadata for indexed attributes" in {
       val sft = SimpleFeatureTypes.mutable(createNewSchema("name:String,dtg:Date,*geom:Point:srid=4326"))
       sft.getIndices.map(_.name) must containTheSameElementsAs(Seq(Z3Index, Z2Index, IdIndex).map(_.name))
-      sft.getAttributeDescriptors.head.getUserData.put(AttributeOptions.OptIndex, IndexCoverage.JOIN.toString)
+      sft.getAttributeDescriptors.get(0).getUserData.put(AttributeOptions.OptIndex, IndexCoverage.JOIN.toString)
       ds.updateSchema(sft.getTypeName, sft)
       ds.getSchema(sft.getTypeName).getIndices.map(_.name) must
           containTheSameElementsAs(Seq(Z3Index, Z2Index, IdIndex, JoinIndex).map(_.name))
@@ -413,32 +411,6 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       updated.getAttribute("name") mustEqual "2-updated"
     }
 
-    "allow caching to be configured" in {
-      DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> false))
-          .asInstanceOf[AccumuloDataStore].config.queries.caching must beFalse
-      DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> true))
-          .asInstanceOf[AccumuloDataStore].config.queries.caching must beTrue
-    }
-
-    "support caching for improved WFS performance due to count/getFeatures" in {
-      val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> true)).asInstanceOf[AccumuloDataStore]
-
-      "typeOf feature source must be CachingAccumuloFeatureCollection" >> {
-        val fc = ds.getFeatureSource(defaultTypeName).getFeatures(Filter.INCLUDE)
-        fc must beAnInstanceOf[CachingFeatureCollection]
-      }
-
-      "support getCount" >> {
-        val query = new Query(defaultTypeName, Filter.INCLUDE)
-        val fs = ds.getFeatureSource(defaultTypeName)
-        val count = fs.getCount(query)
-        count mustEqual 2
-        val features = SelfClosingIterator(fs.getFeatures(query).features()).toList
-        features must haveSize(2)
-        features.map(_.getID) must containAllOf(Seq("f1", "f2"))
-      }
-    }
-
     "Project to date/geom" in {
       val sft = createNewSchema("name:String,dtg:Date,*geom:Point:srid=4326,attr2:String")
       val sftName = sft.getTypeName
@@ -452,7 +424,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       val baseTime = features(0).getAttribute("dtg").asInstanceOf[Date].getTime
 
-      val query = new Query(sftName, ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 50.0)"), Array("geom", "dtg"))
+      val query = new Query(sftName, ECQL.toFilter("BBOX(geom, 40.0, 40.0, 50.0, 50.0)"), "geom", "dtg")
       val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
 
       val read = SelfClosingIterator(reader).toList
@@ -484,7 +456,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "create key plan that does not use STII when given something larger than the Whole World bbox" in {
-      val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom, -190, -100, 190, 100)"), Array("geom"))
+      val query = new Query(defaultTypeName, ECQL.toFilter("bbox(geom, -190, -100, 190, 100)"), "geom")
       val plan = ds.getQueryPlan(query)
       plan must haveLength(1)
       plan.head.filter.index.name mustEqual Z3Index.name
@@ -520,7 +492,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       })
 
       "with out of order attributes" >> {
-        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), Array("geom", "dtg", "label"))
+        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg", "label")
         val features =
           SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
@@ -535,7 +507,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       }
 
       "with only date and geom" >> {
-        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), Array("geom", "dtg"))
+        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg")
         val features =
           SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
@@ -550,7 +522,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       "with all attributes" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"),
-          Array("geom", "dtg", "label", "score", "trackId"))
+          "geom", "dtg", "label", "score", "trackId")
         val features =
           SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
         features must haveSize(5)
@@ -570,14 +542,14 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "delete all associated tables" >> {
       val catalog = "AccumuloDataStoreDeleteAllTablesTest"
       // note the table needs to be different to prevent testing errors
-      val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)).asInstanceOf[AccumuloDataStore]
+      val ds = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)).asJava).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=join,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
       val tables = ds.getAllIndexTableNames(sft.getTypeName) ++ Seq(catalog)
       tables must haveSize(5)
-      ds.connector.tableOperations().list().toSeq must containAllOf(tables)
+      ds.connector.tableOperations().list().asScala.toSeq must containAllOf(tables)
       ds.delete()
-      ds.connector.tableOperations().list().toSeq must not(containAnyOf(tables))
+      ds.connector.tableOperations().list().asScala.toSeq must not(containAnyOf(tables))
     }
 
     "query on bbox and unbounded temporal" >> {
@@ -603,7 +575,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "create tables with an accumulo namespace" >> {
       val table = "test.AccumuloDataStoreNamespaceTest"
       val params = dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> table)
-      val dsWithNs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      val dsWithNs = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType("test", "*geom:Point:srid=4326")
       dsWithNs.createSchema(sft)
       dsWithNs.connector.namespaceOperations().exists("test") must beTrue
@@ -612,7 +584,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "only create catalog table when necessary" >> {
       val table = "AccumuloDataStoreTableTest"
       val params = dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> table)
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
       ds must not(beNull)
       def exists = ds.connector.tableOperations().exists(table)
       exists must beFalse

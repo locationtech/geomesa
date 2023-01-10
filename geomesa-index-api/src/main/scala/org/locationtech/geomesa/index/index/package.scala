@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.index
 
-import java.time.ZonedDateTime
-
 import org.locationtech.geomesa.filter.{Bounds, FilterValues}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.time.ZonedDateTime
 
 package object index {
 

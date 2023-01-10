@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
@@ -18,6 +16,8 @@ import org.locationtech.geomesa.utils.stats.BinnedArray.LongBinning
 import org.locationtech.geomesa.utils.stats.MinMax.MinMaxGeometry
 import org.locationtech.jts.geom.{Coordinate, Geometry, Point}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util.Date
 
 /**
   * The histogram's state is stored in an indexed array, where the index is the bin number

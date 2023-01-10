@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.utils
 
-import java.lang.reflect.InvocationTargetException
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.client.{Admin, HBaseAdmin}
@@ -18,6 +16,7 @@ import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.{Coprocessor, NamespaceDescriptor, TableName}
 
+import java.lang.reflect.InvocationTargetException
 import scala.util.Try
 
 /**

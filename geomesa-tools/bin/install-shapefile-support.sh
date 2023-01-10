@@ -8,7 +8,7 @@
 #
 
 jai_version="1.1.3"
-jt_version="1.3.1"
+jt_version="1.6.0"
 imageio_version="1.1"
 jline_version="2.12.1"
 

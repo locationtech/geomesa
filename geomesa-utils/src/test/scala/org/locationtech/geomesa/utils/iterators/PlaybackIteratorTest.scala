@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.iterators
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.memory.MemoryDataStore
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -20,6 +18,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Date
 import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
@@ -28,10 +27,10 @@ class PlaybackIteratorTest extends Specification with LazyLogging {
   val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
   val builder = new SimpleFeatureBuilder(sft)
   val features = Seq.tabulate(10) { i =>
-    builder.addAll(Array[AnyRef](s"name$i", s"2018-01-01T00:00:0${9 - i}.000Z", s"POINT (4$i 55)"))
+    builder.addAll(s"name$i", s"2018-01-01T00:00:0${9 - i}.000Z", s"POINT (4$i 55)")
     builder.buildFeature(s"$i")
   }
-  val ds = new MemoryDataStore(features.toArray)
+  val ds = new MemoryDataStore(features: _*)
 
   val dtg = Some("dtg")
   val interval: (Date, Date) = {
@@ -71,6 +70,27 @@ class PlaybackIteratorTest extends Specification with LazyLogging {
         if (elapsed > 130L) {
           logger.warn(s"PlaybackIteratorTest - playback result was delayed longer than expected 100ms: ${elapsed}ms")
         }
+
+        iter.hasNext must beFalse
+      }
+    }
+    "project to current time" in {
+      val filter = Some(ECQL.toFilter("name IN ('name8', 'name7')")) // dates are 1 and 2 seconds into interval
+      WithClose(new PlaybackIterator(ds, sft.getTypeName, interval, dtg, filter = filter, rate = 10f, live = true)) { iter =>
+        // don't time the first result, as it will be inconsistent due to setup and querying
+        iter.hasNext must beTrue
+        val dtg1 = iter.next().getAttribute("dtg").asInstanceOf[Date]
+        val start = System.currentTimeMillis()
+        iter.hasNext must beTrue
+        // should block until second feature time has elapsed, 100 millis from first feature (due to 10x rate)
+        val dtg2 = iter.next().getAttribute("dtg").asInstanceOf[Date]
+        val elapsed = System.currentTimeMillis() - start
+        // due to system load, this test tends to fail in travis, so we don't cause an explicit test failure
+        if (elapsed > 130L) {
+          logger.warn(s"PlaybackIteratorTest - playback result was delayed longer than expected 100ms: ${elapsed}ms")
+        }
+        dtg1.getTime must beCloseTo(start, 30)
+        dtg2.getTime must beCloseTo(start + 100, 30) // + 100 due to 10x rate
 
         iter.hasNext must beFalse
       }

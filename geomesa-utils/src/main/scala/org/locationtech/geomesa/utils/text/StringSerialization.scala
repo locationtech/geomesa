@@ -8,18 +8,18 @@
 
 package org.locationtech.geomesa.utils.text
 
-import java.nio.charset.StandardCharsets
-import java.time.format.DateTimeFormatter
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.regex.Pattern
-import java.util.{Date, Locale}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.csv.{CSVFormat, CSVParser, CSVPrinter}
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.nio.charset.StandardCharsets
+import java.time.format.DateTimeFormatter
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.regex.Pattern
+import java.util.{Date, Locale}
 
 object StringSerialization extends LazyLogging {
 

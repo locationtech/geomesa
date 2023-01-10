@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.tools.export
 
-import java.io.{File, FileInputStream, FileWriter}
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.util.{Collections, Date}
-
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
@@ -30,10 +25,10 @@ import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroDataFileReader
+import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
-import org.locationtech.geomesa.parquet.ParquetPathReader
+import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
 import org.locationtech.geomesa.tools.export.formats.ExportFormat
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -41,6 +36,11 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.runner.JUnitRunner
+
+import java.io.{File, FileInputStream, FileWriter}
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.util.{Collections, Date}
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloExportCommandTest extends TestWithFeatureType {
@@ -150,18 +150,19 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
 
   def readFeatures(format: ExportFormat, file: String, sft: SimpleFeatureType = this.sft): Seq[SimpleFeature] = {
     format match {
-      case ExportFormat.Arrow   => readArrow(file)
-      case ExportFormat.Avro    => readAvro(file)
-      case ExportFormat.Bin     => readBin(file, sft)
-      case ExportFormat.Csv     => readCsv(file)
-      case ExportFormat.Json    => readJson(file, sft)
-      case ExportFormat.Leaflet => readLeaflet(file, sft)
-      case ExportFormat.Orc     => readOrc(file, sft)
-      case ExportFormat.Parquet => readParquet(file, sft)
-      case ExportFormat.Shp     => readShp(file, sft)
-      case ExportFormat.Tsv     => readTsv(file)
-      case ExportFormat.Gml2    => readGml2(file, sft)
-      case ExportFormat.Gml3    => readGml3(file, sft)
+      case ExportFormat.Arrow      => readArrow(file)
+      case ExportFormat.Avro       => readAvro(file)
+      case ExportFormat.AvroNative => readAvro(file)
+      case ExportFormat.Bin        => readBin(file, sft)
+      case ExportFormat.Csv        => readCsv(file)
+      case ExportFormat.Json       => readJson(file, sft)
+      case ExportFormat.Leaflet    => readLeaflet(file, sft)
+      case ExportFormat.Orc        => readOrc(file, sft)
+      case ExportFormat.Parquet    => readParquet(file, sft)
+      case ExportFormat.Shp        => readShp(file, sft)
+      case ExportFormat.Tsv        => readTsv(file)
+      case ExportFormat.Gml2       => readGml2(file, sft)
+      case ExportFormat.Gml3       => readGml3(file, sft)
     }
   }
 
@@ -185,7 +186,7 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
         case "dtg"  => dtg
         case "name" => f1.getAttribute("name")
       }
-      ScalaSimpleFeature.create(sft, f1.getID, attributes: _*)
+      ScalaSimpleFeature.create(sft, f1.getID, attributes.toSeq: _*)
     }
   }
 
@@ -251,7 +252,7 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
           case "dtg"  => dtg
           case "name" => f.getAttribute("name")
         }
-        ScalaSimpleFeature.create(sft, f1.getID, attributes: _*)
+        ScalaSimpleFeature.create(sft, f1.getID, attributes.toSeq: _*)
       }
     }
   }

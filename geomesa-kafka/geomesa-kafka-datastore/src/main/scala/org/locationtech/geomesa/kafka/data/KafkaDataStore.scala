@@ -27,7 +27,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.Namespace
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, RunnableStats}
-import org.locationtech.geomesa.kafka.KafkaConsumerVersions
+import org.locationtech.geomesa.index.utils.LocalLocking
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
@@ -36,6 +36,7 @@ import org.locationtech.geomesa.kafka.index._
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor.GeoMessageConsumer
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.{GeoMessagePartitioner, GeoMessageSerializerFactory}
+import org.locationtech.geomesa.kafka.versions.KafkaConsumerVersions
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -60,7 +61,7 @@ class KafkaDataStore(
     val config: KafkaDataStoreConfig,
     val metadata: GeoMesaMetadata[String],
     private[kafka] val serialization: GeoMessageSerializerFactory
-  ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
+  ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with LocalLocking {
 
   import KafkaDataStore.TopicKey
   import org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG
@@ -97,7 +98,7 @@ class KafkaDataStore(
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config.brokers, topic, config.consumers)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
-        val serializer = serialization.apply(sft, config.serialization, config.indices.lazyDeserialization)
+        val serializer = serialization.apply(sft)
         val initialLoad = config.consumers.readBack.isDefined
         val expiry = config.indices.expiry
         new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, serializer, initialLoad, expiry)
@@ -106,12 +107,6 @@ class KafkaDataStore(
   })
 
   private val runner = new KafkaQueryRunner(this, cache)
-
-  // migrate old schemas, if any
-  if (!metadata.read("migration", "check").exists(_.toBoolean)) {
-    new MetadataMigration(this, config.catalog, config.zookeepers).run()
-    metadata.insert("migration", "check", "true")
-  }
 
   /**
     * Start consuming from all topics. Consumers are normally only started for a simple feature type
@@ -146,7 +141,7 @@ class KafkaDataStore(
       KafkaDataStore.consumers(config.brokers, topic, conf)
     }
     val frequency = java.time.Duration.ofMillis(KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis)
-    val serializer = serialization.apply(sft, config.serialization, config.indices.lazyDeserialization)
+    val serializer = serialization.apply(sft)
     val consumer = new GeoMessageConsumer(consumers, frequency, serializer, processor)
     consumer.startConsumers(errorHandler)
     consumer
@@ -281,16 +276,16 @@ class KafkaDataStore(
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new KafkaFeatureStore(this, sft, runner, cache(typeName))
+    new KafkaFeatureStore(this, sft, cache(typeName))
   }
 
-  private[geomesa] def getFeatureReader(
+  override private[geomesa] def getFeatureReader(
       sft: SimpleFeatureType,
       transaction: Transaction,
       query: Query): GeoMesaFeatureReader = {
     // kick off the kafka consumers for this sft, if not already started
     caches.get(layerViewLookup.getOrElse(query.getTypeName, query.getTypeName))
-    GeoMesaFeatureReader(sft, query, runner, None, config.audit)
+    GeoMesaFeatureReader(sft, query, runner, config.audit)
   }
 
   override private[geomesa] def getFeatureWriter(
@@ -303,7 +298,7 @@ class KafkaDataStore(
     }
     val producer = getTransactionalProducer(sft, transaction)
     val vis = sft.isVisibilityRequired
-    val serializer = serialization.apply(sft, config.serialization, `lazy` = false)
+    val serializer = serialization.apply(sft)
     val writer = filter match {
       case None if vis    => new AppendKafkaFeatureWriter(sft, producer, serializer) with RequiredVisibilityWriter
       case None           => new AppendKafkaFeatureWriter(sft, producer, serializer)
@@ -323,9 +318,6 @@ class KafkaDataStore(
     caches.invalidateAll()
     super.dispose()
   }
-
-  // zookeeper locking methods
-  override protected def zookeepers: String = config.zookeepers
 
   private def getTransactionalProducer(sft: SimpleFeatureType, transaction: Transaction): KafkaFeatureProducer = {
     val useDefaultPartitioning = KafkaDataStore.usesDefaultPartitioning(sft)
@@ -517,7 +509,7 @@ object KafkaDataStore extends LazyLogging {
         if (partitions.add(tp.partition())) {
           KafkaConsumerVersions.pause(consumer, tp)
           try {
-            if (readBack.isFinite()) {
+            if (readBack.isFinite) {
               val offset = Try {
                 val time = System.currentTimeMillis() - readBack.toMillis
                 KafkaConsumerVersions.offsetsForTimes(consumer, tp.topic, Seq(tp.partition), time).get(tp.partition)
@@ -546,14 +538,22 @@ object KafkaDataStore extends LazyLogging {
     }
   }
 
+  class KafkaDataStoreWithZk(
+      config: KafkaDataStoreConfig,
+      metadata: GeoMesaMetadata[String],
+      serialization: GeoMessageSerializerFactory,
+      override protected val zookeepers: String
+    ) extends KafkaDataStore(config, metadata, serialization) with ZookeeperLocking
+
   case class KafkaDataStoreConfig(
       catalog: String,
       brokers: String,
-      zookeepers: String,
+      zookeepers: Option[String],
       consumers: ConsumerConfig,
       producers: ProducerConfig,
       clearOnStart: Boolean,
       topics: TopicConfig,
+      @deprecated("unused")
       serialization: SerializationType,
       indices: IndexConfig,
       looseBBox: Boolean,
@@ -579,6 +579,7 @@ object KafkaDataStore extends LazyLogging {
       resolution: IndexResolution,
       ssiTiers: Seq[(Double, Double)],
       cqAttributes: Seq[(String, CQIndexType)],
+      @deprecated("unused")
       lazyDeserialization: Boolean,
       executor: Option[(ScheduledExecutorService, Ticker)]
     )

@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.text.SimpleDateFormat
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
@@ -26,12 +23,15 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.text.SimpleDateFormat
+import java.util.Date
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class HBaseTTLTest extends Specification with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -50,7 +50,7 @@ class HBaseTTLTest extends Specification with LazyLogging {
   "HBase TTL" should {
     "remove X features based on TTL" >> {
       val numFeatures = 3
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
       ds.createSchema(sft)
 
@@ -66,16 +66,16 @@ class HBaseTTLTest extends Specification with LazyLogging {
 
           val featureTime = new Date(startTime.getTime + (ttl / 2) * i)
           sf.setAttribute(1, dateFormat.format(featureTime))
-          sf
+          sf: SimpleFeature
         }
 
-        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
         ids.asScala.map(_.getID) must containTheSameElementsAs((0 until numFeatures).map(_.toString))
 
         getElements(ds, typeName).size mustEqual numFeatures
 
         Thread.sleep(ttl) // wait until one feature times out
-        (1 until numFeatures).map { i =>
+        (1 until numFeatures).foreach { i =>
           getElements(ds, typeName).size mustEqual numFeatures - i
           Thread.sleep(ttl / 2) // wait for next feature to time out
         }
@@ -87,7 +87,7 @@ class HBaseTTLTest extends Specification with LazyLogging {
 
     "refuse to add already-expired features" >> {
       val numFeatures = 2; // one expired, other not
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
       ds.createSchema(sft)
 
@@ -102,9 +102,9 @@ class HBaseTTLTest extends Specification with LazyLogging {
           val featureTime = new Date(System.currentTimeMillis() - ttl * i)
           //          logger.info(f"to be deleted at ${featureTime.getTime}, 10 secs from now is ${System.currentTimeMillis() + 10000}")
           sf.setAttribute(1, dateFormat.format(featureTime))
-          sf
+          sf: SimpleFeature
         }
-        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
         ids.asScala.map(_.getID) must containTheSameElementsAs((0 until numFeatures).map(_.toString))
 
         // one element should've been rejected

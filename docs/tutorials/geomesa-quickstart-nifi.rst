@@ -34,8 +34,9 @@ In this tutorial we will be ingesting GDELT data. If you already have some GDELT
 you may skip this section.
 
 The `GDELT Event database <http://www.gdeltproject.org>`__ provides a comprehensive time- and location-indexed
-archive of events reported in broadcast, print, and web news media worldwide from 1979 to today. You
-can download raw GDELT data files at http://data.gdeltproject.org/events/index.html.
+archive of events reported in broadcast, print, and web news media worldwide from 1979 to today. The raw GDELT
+version 1 data files are available to download at http://data.gdeltproject.org/events/index.html. The version 2
+files can be downloaded at http://data.gdeltproject.org/gdeltv2/masterfilelist.txt.
 
 GeoMesa ships with the ability to parse GDELT data, and a script for downloading it. For more details,
 see :ref:`gdelt_converter`.

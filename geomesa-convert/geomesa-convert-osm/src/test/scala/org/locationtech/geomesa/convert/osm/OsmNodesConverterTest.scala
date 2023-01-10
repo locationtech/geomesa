@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.osm
 
-import java.util.Date
-
 import com.typesafe.config.ConfigFactory
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -17,6 +15,8 @@ import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class OsmNodesConverterTest extends Specification {

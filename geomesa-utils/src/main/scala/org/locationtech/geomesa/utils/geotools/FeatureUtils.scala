@@ -8,15 +8,14 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.lang.{Boolean => jBoolean}
-import java.util.Locale
-
 import org.geotools.data.{DataUtilities, FeatureWriter}
-import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.util.factory.Hints
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.lang.{Boolean => jBoolean}
+import java.util.Locale
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashSet
 
@@ -72,7 +71,7 @@ object FeatureUtils {
    * @return the new [[SimpleFeatureType]]
    */
   def retype(orig: SimpleFeatureType, propertyNames: Array[String]): SimpleFeatureType = {
-    val mod = SimpleFeatureTypeBuilder.retype(orig, propertyNames)
+    val mod = SimpleFeatureTypeBuilder.retype(orig, propertyNames: _*)
     mod.getUserData.putAll(orig.getUserData)
     mod
   }

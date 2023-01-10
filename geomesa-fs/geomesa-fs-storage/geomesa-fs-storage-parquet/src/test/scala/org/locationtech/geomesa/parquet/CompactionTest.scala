@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.parquet
 
-import java.nio.file.Files
-
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
@@ -21,12 +19,15 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFile
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
+
+import java.nio.file.Files
 
 
 @RunWith(classOf[JUnitRunner])

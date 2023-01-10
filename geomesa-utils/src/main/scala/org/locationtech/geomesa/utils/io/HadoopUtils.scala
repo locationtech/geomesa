@@ -8,16 +8,15 @@
 
 package org.locationtech.geomesa.utils.io
 
-import java.io.Closeable
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.security.UserGroupInformation
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.io.fs.HadoopDelegate
 
+import java.io.Closeable
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 import scala.util.control.NonFatal
 
 /**
@@ -86,9 +85,9 @@ object HadoopUtils extends LazyLogging {
 
     override def run(): Unit = {
       try {
-        logger.debug(s"Checking whether TGT needs renewing for ${UserGroupInformation.getCurrentUser}")
-        logger.debug(s"Logged in from keytab? ${UserGroupInformation.getCurrentUser.isFromKeytab}")
-        UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
+        logger.debug(s"Checking whether TGT needs renewing for ${UserGroupInformation.getLoginUser}")
+        logger.debug(s"Logged in from keytab? ${UserGroupInformation.getLoginUser.isFromKeytab}")
+        UserGroupInformation.getLoginUser.checkTGTAndReloginFromKeytab()
       } catch {
         case NonFatal(e) => logger.warn("Error checking and renewing TGT", e)
       }

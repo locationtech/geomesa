@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.utils.text
 
 import java.util.Locale
-
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{Success, Try}

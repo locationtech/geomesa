@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.fs.storage.common.s3
 
-import java.io.IOException
-
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.{ObjectTagging, SetObjectTaggingRequest, Tag}
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
+
+import java.io.IOException
 
 /**
  * Abstract baseclass for writing s3 object tags

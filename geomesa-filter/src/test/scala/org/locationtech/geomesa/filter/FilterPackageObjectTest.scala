@@ -19,11 +19,10 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.core.Fragments
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
 class FilterPackageObjectTest extends Specification with LazyLogging {
 
+  import scala.collection.JavaConverters._
   import TestFilters._
 
   "The partitionGeom function" should {
@@ -61,7 +60,7 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
 
     "handle ANDs with multiple predicates" in {
       val filters = List(ECQL.toFilter("attr1 = val1"), ECQL.toFilter("attr2 = val2"), geomFilter)
-          .permutations.map(ff.and(_)).toSeq
+          .permutations.map(andFilters(_)).toSeq
 
       forall(filters) { filter => 
         val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
@@ -113,7 +112,7 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
         dm.isInstanceOf[Or] must beTrue
         val dmChildren = dm.asInstanceOf[Or].getChildren
 
-        f.getChildren.zip(dmChildren).map {
+        f.getChildren.asScala.zip(dmChildren.asScala).map {
           case (origChild, dmChild) =>
             dmChild.isInstanceOf[Not] must beTrue
             dmChild.asInstanceOf[Not].getFilter mustEqual origChild
@@ -127,7 +126,7 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
         dm.isInstanceOf[And] must beTrue
         val dmChildren = dm.asInstanceOf[And].getChildren
 
-        f.getChildren.zip(dmChildren).map {
+        f.getChildren.asScala.zip(dmChildren.asScala).map {
           case (origChild, dmChild) =>
             dmChild.isInstanceOf[Not] must beTrue
             dmChild.asInstanceOf[Not].getFilter mustEqual origChild
@@ -264,7 +263,7 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
 
     def breakUpOr(f: Filter): Seq[Filter] = {
        f match {
-         case or: Or => or.getChildren
+         case or: Or => or.getChildren.asScala.toSeq
          case _ => Seq(f)
        }
     }

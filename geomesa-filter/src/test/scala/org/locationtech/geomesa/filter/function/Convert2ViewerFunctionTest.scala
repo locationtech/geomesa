@@ -9,9 +9,7 @@
 
 package org.locationtech.geomesa.filter.function
 
-import java.util.Date
-
-import org.geotools.data.Base64
+import org.geotools.util.Base64
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -20,6 +18,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Date
+
 @RunWith(classOf[JUnitRunner])
 class Convert2ViewerFunctionTest extends Specification {
 
@@ -27,11 +27,10 @@ class Convert2ViewerFunctionTest extends Specification {
 
   "Convert2ViewerFunction" should {
     "convert inputs" in {
-      import scala.collection.JavaConversions._
       val sft = SimpleFeatureTypes.createType("foo", "foo:String,dtg:Date,*geom:Point:srid=4326")
       val sf = ScalaSimpleFeature.create(sft, "", "foo", "2017-01-01T00:00:00.000Z", "POINT (45 50)")
       val fn = new Convert2ViewerFunction()
-      fn.setParameters(List(ff.property("foo"), ff.property("geom"), ff.property("dtg")))
+      fn.setParameters(java.util.Arrays.asList(ff.property("foo"), ff.property("geom"), ff.property("dtg")))
       val result = Base64.decode(fn.evaluate(sf))
       result must haveLength(24)
       BinaryOutputEncoder.decode(result) mustEqual

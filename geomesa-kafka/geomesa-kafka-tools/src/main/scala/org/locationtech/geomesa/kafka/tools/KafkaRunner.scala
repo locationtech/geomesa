@@ -17,12 +17,14 @@ object KafkaRunner extends Runner {
   override protected def commands: Seq[Command] = {
     super.commands ++ Seq(
       new data.KafkaCreateSchemaCommand,
+      new data.KafkaMigrateZkCommand,
       new data.KafkaRemoveSchemaCommand,
       new data.KafkaUpdateSchemaCommand,
       new export.KafkaListenCommand,
       new export.KafkaExportCommand,
       new ingest.KafkaIngestCommand,
       new status.KafkaDescribeSchemaCommand,
+      new status.KafkaGetSftConfigCommand,
       new status.KafkaGetTypeNamesCommand
     )
   }

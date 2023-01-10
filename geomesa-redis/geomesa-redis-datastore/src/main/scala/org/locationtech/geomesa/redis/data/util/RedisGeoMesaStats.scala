@@ -9,15 +9,14 @@
 package org.locationtech.geomesa.redis.data
 package util
 
-import java.security.SecureRandom
-import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
-
 import org.locationtech.geomesa.index.stats.MetadataBackedStats
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.{StatsMetadataSerializer, WritableStat}
 import org.locationtech.geomesa.redis.data.util.RedisGeoMesaStats.RedisStat
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.Stat
 
+import java.security.SecureRandom
+import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 import scala.util.control.NonFatal
 
 /**

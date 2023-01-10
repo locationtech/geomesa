@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.utils.io.fs
 
-import java.io.{IOException, InputStream, OutputStream}
-import java.util.Locale
-
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
@@ -23,6 +20,8 @@ import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.{CreateMode, File
 import org.locationtech.geomesa.utils.io.fs.HadoopDelegate.{HadoopFileHandle, HadoopTarHandle, HadoopZipHandle}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
+import java.io.{IOException, InputStream, OutputStream}
+import java.util.Locale
 import scala.collection.mutable.ListBuffer
 
 /**

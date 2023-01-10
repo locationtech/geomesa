@@ -8,29 +8,31 @@
 
 package org.locationtech.geomesa.spark
 
-import java.{util => ju}
-import java.util.{Map => JMap}
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
-import org.apache.spark.sql.{Column, DataFrame, SQLContext, SQLTypes, SparkSession}
-import org.geotools.data.{DataStore, DataStoreFinder}
-import org.geotools.geometry.jts.JTSFactoryFinder
-import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.interop.WKTUtils
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 import org.apache.spark.sql.catalyst.expressions.Literal
 import org.apache.spark.sql.catalyst.plans.logical.Filter
 import org.apache.spark.sql.execution.datasources.LogicalRelation
+import org.apache.spark.sql.{Column, DataFrame, SQLContext, SparkSession}
+import org.geotools.data.{DataStore, DataStoreFinder}
+import org.geotools.geometry.jts.JTSFactoryFinder
+import org.junit.runner.RunWith
+import org.locationtech.geomesa.spark.sql.SQLTypes
+import org.locationtech.geomesa.utils.interop.WKTUtils
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.util.{Map => JMap}
+import java.{util => ju}
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLDataTest extends Specification with LazyLogging {
+
+  import scala.collection.JavaConverters._
+
   sequential
 
-  val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")
+  val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true").asJava
   var ds: DataStore = _
   var spark: SparkSession = _
   var sc: SQLContext = _

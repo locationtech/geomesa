@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
@@ -17,6 +15,7 @@ import org.locationtech.geomesa.utils.clearspring.CountMinSketch
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.Date
 import scala.collection.immutable.ListMap
 
 /**

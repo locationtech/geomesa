@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.utils.bin
 
-import java.io.{ByteArrayOutputStream, OutputStream}
-import java.nio.charset.StandardCharsets
-import java.nio.{ByteBuffer, ByteOrder}
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.{ByteArrayCallback, ByteStreamCallback}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.ToValues
@@ -23,7 +18,11 @@ import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.jts.geom.{Geometry, LineString, Point}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+import java.io.{ByteArrayOutputStream, OutputStream}
+import java.nio.charset.StandardCharsets
+import java.nio.{ByteBuffer, ByteOrder}
+import java.util.Date
+import scala.collection.JavaConverters._
 
 class BinaryOutputEncoder private (toValues: ToValues) {
 
@@ -138,10 +137,11 @@ object BinaryOutputEncoder extends LazyLogging {
     case null => 0L
     case n: Number => n.longValue()
     case _ =>
-      import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
       var sum = 0L
-      label.toString.getBytes(StandardCharsets.UTF_8).iterator.take(8).foreachIndex {
-        case (b, i) => sum += (b & 0xffL) << (8 * i)
+      var i = 0
+      label.toString.getBytes(StandardCharsets.UTF_8).iterator.take(8).foreach { b =>
+        sum += (b & 0xffL) << (8 * i)
+        i += 1
       }
       sum
   }
@@ -295,7 +295,7 @@ object BinaryOutputEncoder extends LazyLogging {
 
   private def dateArray(f: SimpleFeature, i: Int): Array[Long] = {
     val dates = f.getAttribute(i).asInstanceOf[java.util.List[Date]]
-    if (dates == null) { Array.empty } else { dates.map(_.getTime).toArray }
+    if (dates == null) { Array.empty } else { dates.asScala.map(_.getTime).toArray }
   }
 
   private trait ToValues {

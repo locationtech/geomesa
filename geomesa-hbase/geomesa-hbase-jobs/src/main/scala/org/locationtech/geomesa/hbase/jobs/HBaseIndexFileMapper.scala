@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.jobs
 
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -31,6 +29,7 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 /**

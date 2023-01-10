@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.hbase.rpc.coprocessor
 
-import java.io.{InterruptedIOException, _}
-import java.util.concurrent._
-
 import com.google.protobuf.ByteString
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.TableName
@@ -21,6 +18,9 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
+
+import java.io.{InterruptedIOException, _}
+import java.util.concurrent._
 
 /**
  * Client-side coprocessor execution and common functions

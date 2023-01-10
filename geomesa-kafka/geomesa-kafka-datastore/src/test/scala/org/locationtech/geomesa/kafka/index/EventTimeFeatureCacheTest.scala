@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.kafka.index
 
-import java.util.Date
-import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
-
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -24,6 +21,8 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Date
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])

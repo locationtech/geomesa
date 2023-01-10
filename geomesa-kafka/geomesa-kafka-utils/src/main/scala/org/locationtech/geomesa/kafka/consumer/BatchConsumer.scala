@@ -8,17 +8,16 @@
 
 package org.locationtech.geomesa.kafka.consumer
 
+import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
+import org.apache.kafka.common.errors.{InterruptException, WakeupException}
+import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
+import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.{ConsumerErrorHandler, LogOffsetCommitCallback}
+import org.locationtech.geomesa.kafka.versions.KafkaConsumerVersions
+
 import java.time.Duration
 import java.util.Collections
 import java.util.concurrent._
-
-import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
-import org.apache.kafka.common.errors.{InterruptException, WakeupException}
-import org.locationtech.geomesa.kafka.KafkaConsumerVersions
-import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.{ConsumerErrorHandler, LogOffsetCommitCallback}
-
 import scala.util.control.NonFatal
-import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
 
 /**
  * Consumer that will process messages in batch, with guaranteed at-least-once processing

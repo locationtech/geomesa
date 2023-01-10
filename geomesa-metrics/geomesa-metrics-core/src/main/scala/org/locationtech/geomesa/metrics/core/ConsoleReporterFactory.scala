@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.metrics.core
 
-import java.util.concurrent.TimeUnit
-
 import com.codahale.metrics.{ConsoleReporter, MetricRegistry, ScheduledReporter}
 import com.typesafe.config.Config
+
+import java.util.concurrent.TimeUnit
 
 class ConsoleReporterFactory extends ReporterFactory {
 

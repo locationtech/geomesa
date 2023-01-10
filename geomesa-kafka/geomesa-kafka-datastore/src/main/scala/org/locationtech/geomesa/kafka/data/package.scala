@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.kafka
 
 import org.apache.kafka.clients.producer.Producer
-import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
 
 import java.io.Closeable
 

@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.process.transform
 
-import java.time._
-import java.time.format.DateTimeParseException
-import java.util.Date
-
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.process.ProcessException
@@ -20,7 +16,10 @@ import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 
-import scala.collection.JavaConversions._
+import java.time._
+import java.time.format.DateTimeParseException
+import java.util.Date
+import scala.collection.JavaConverters._
 
 @DescribeProcess(
   title = "Date Offset Process",
@@ -51,6 +50,6 @@ class DateOffsetProcess extends GeoMesaProcess {
       sf
     }
 
-    new ListFeatureCollection(obsFeatures.getSchema, iter.toList)
+    new ListFeatureCollection(obsFeatures.getSchema, iter.toList.asJava)
   }
 }

@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.curve
 
 import org.locationtech.geomesa.curve.NormalizedDimension.{NormalizedLat, NormalizedLon}
-import org.locationtech.sfcurve.IndexRange
-import org.locationtech.sfcurve.zorder.{Z2, ZRange}
+import org.locationtech.geomesa.zorder.sfcurve.{IndexRange, Z2, ZRange}
 
 object Z2SFC extends Z2SFC(31)
 

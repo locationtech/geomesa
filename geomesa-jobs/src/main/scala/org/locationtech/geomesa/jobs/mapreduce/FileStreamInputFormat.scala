@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.jobs.mapreduce
 
-import java.io.{Closeable, InputStream}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
@@ -21,6 +19,7 @@ import org.apache.hadoop.mapreduce.lib.input.{FileInputFormat, FileSplit}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.{Closeable, InputStream}
 import scala.util.control.NonFatal
 
 /**

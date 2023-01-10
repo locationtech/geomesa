@@ -8,11 +8,11 @@
 
 package org.apache.spark.sql.jts
 
-import org.locationtech.jts.geom.Geometry
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.GenericInternalRow
 import org.apache.spark.sql.types._
 import org.locationtech.geomesa.spark.jts.util.WKBUtils
+import org.locationtech.jts.geom.Geometry
 
 import scala.reflect._
 

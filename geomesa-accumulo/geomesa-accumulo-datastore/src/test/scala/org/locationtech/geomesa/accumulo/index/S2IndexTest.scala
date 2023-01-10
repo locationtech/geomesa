@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import java.util.Date
-
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -22,6 +20,8 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
+
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class S2IndexTest extends TestWithFeatureType {
@@ -47,7 +47,7 @@ class S2IndexTest extends TestWithFeatureType {
   def execute(ecql: String, transforms: Option[Array[String]] = None): Seq[SimpleFeature] = {
     val query = transforms match {
       case None    => new Query(sft.getTypeName, ECQL.toFilter(ecql))
-      case Some(t) => new Query(sft.getTypeName, ECQL.toFilter(ecql), t)
+      case Some(t) => new Query(sft.getTypeName, ECQL.toFilter(ecql), t: _*)
     }
     execute(query)
   }
@@ -204,7 +204,7 @@ class S2IndexTest extends TestWithFeatureType {
     }
 
     "support sampling with transformations" in {
-      val query = new Query(sft.getTypeName, Filter.INCLUDE, Array("name", "geom"))
+      val query = new Query(sft.getTypeName, Filter.INCLUDE, "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       val results = execute(query)
       results.length must beLessThan(30)
@@ -212,7 +212,7 @@ class S2IndexTest extends TestWithFeatureType {
     }
 
     "support sampling with cql and transformations" in {
-      val query = new Query(sft.getTypeName, ECQL.toFilter("track = 'track2'"), Array("name", "geom"))
+      val query = new Query(sft.getTypeName, ECQL.toFilter("track = 'track2'"), "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
       val results = execute(query)
       results.length must beLessThan(10)

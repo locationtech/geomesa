@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import java.util.Date
-
-import com.google.common.primitives.{Longs, Shorts}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -25,14 +22,17 @@ import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
+
+  import scala.collection.JavaConverters._
 
   sequential // note: test doesn't need to be sequential but it actually runs faster this way
 
@@ -67,7 +67,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
   addFeatures(features)
 
   def runQuery(filter: String, transforms: Array[String] = null): Iterator[SimpleFeature] =
-    runQuery(new Query(sftName, ECQL.toFilter(filter), transforms))
+    runQuery(new Query(sftName, ECQL.toFilter(filter), transforms: _*))
 
   def runQuery(query: Query): Iterator[SimpleFeature] =
     SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
@@ -79,12 +79,12 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
 
       ds.manager.indices(sft).filter(_.name == Z3Index.name).flatMap(_.getTableNames()).foreach { table =>
         println(table)
-        ds.connector.createScanner(table, new Authorizations()).foreach { r =>
+        ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val prefix = 2 // table sharing + split
           val bytes = r.getKey.getRow.getBytes
-          val keyZ = Longs.fromByteArray(bytes.drop(prefix))
+          val keyZ = ByteArrays.readLong(bytes, prefix + 2)
           val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(keyZ)
-          val weeks = Shorts.fromBytes(bytes(prefix), bytes(prefix + 1))
+          val weeks = ByteArrays.readShort(bytes, prefix)
           println(s"row: $weeks $x $y $t")
         }
       }
@@ -307,7 +307,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
     "optimize for bin format with transforms" >> {
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
-      val query = new Query(sftName, ECQL.toFilter(filter), Array("name", "geom"))
+      val query = new Query(sftName, ECQL.toFilter(filter), "name", "geom")
       query.getHints.put(BIN_TRACK, "name")
       query.getHints.put(BIN_BATCH_SIZE, 100)
 
@@ -351,7 +351,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
     "support sampling with transformations" >> {
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
-      val query = new Query(sftName, ECQL.toFilter(filter), Array("name", "geom"))
+      val query = new Query(sftName, ECQL.toFilter(filter), "name", "geom")
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
       // reduce our scan ranges so that we get fewer iterator instances and some sampling
       QueryProperties.ScanRangesTarget.threadLocalValue.set("1")

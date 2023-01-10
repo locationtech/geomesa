@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
-
 import org.apache.avro.io._
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
-import org.locationtech.geomesa.features.SimpleFeatureSerializer.LimitedSerialization
+import org.locationtech.geomesa.features.avro.serialization.{SimpleFeatureDatumReader, SimpleFeatureDatumWriter}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.{ByteArrayOutputStream, InputStream, OutputStream}
 
 object AvroFeatureSerializer {
 
@@ -61,8 +61,8 @@ object AvroFeatureSerializer {
 class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[SerializationOption] = Set.empty)
     extends SimpleFeatureSerializer {
 
-  private val writer = new AvroSimpleFeatureWriter(sft, options)
-  private val reader = FeatureSpecificReader(sft, options)
+  private val writer = new SimpleFeatureDatumWriter(sft, options)
+  private val reader = SimpleFeatureDatumReader(writer.getSchema, sft)
 
   override def serialize(feature: SimpleFeature): Array[Byte] = {
     val out = AvroFeatureSerializer.outputs.getOrElseUpdate(new ByteArrayOutputStream())
@@ -97,26 +97,3 @@ class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[Serializati
   }
 }
 
-/**
- * @param original the simple feature type that was encoded
- * @param projected the simple feature type to project to when decoding
- * @param options the options what were applied when encoding
- */
-class ProjectingAvroFeatureDeserializer(original: SimpleFeatureType, projected: SimpleFeatureType,
-                                        val options: Set[SerializationOption] = Set.empty)
-    extends SimpleFeatureSerializer with LimitedSerialization {
-
-  private val reader = FeatureSpecificReader(original, projected, options)
-
-  override def serialize(feature: SimpleFeature): Array[Byte] =
-    throw new NotImplementedError("This instance only handles deserialization")
-
-  override def deserialize(bytes: Array[Byte]): SimpleFeature = decode(new ByteArrayInputStream(bytes))
-
-  private var reuse: BinaryDecoder = _
-
-  def decode(is: InputStream): SimpleFeature = {
-    reuse = DecoderFactory.get().directBinaryDecoder(is, reuse)
-    reader.read(null, reuse)
-  }
-}

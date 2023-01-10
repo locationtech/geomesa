@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.tools.export
 
-import java.io._
-import java.nio.file.Files
-import java.util.concurrent.atomic.AtomicInteger
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.collection.ListFeatureCollection
@@ -24,7 +20,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
-import org.locationtech.geomesa.parquet.ParquetFileSystemStorageFactory
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -32,6 +28,10 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io._
+import java.nio.file.Files
+import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
 class ExportToFsTest extends Specification {
@@ -58,7 +58,7 @@ class ExportToFsTest extends Specification {
       }
       ds.createSchema(sft)
       ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
-          .addFeatures(new ListFeatureCollection(sft, features.toArray[SimpleFeature]))
+          .addFeatures(new ListFeatureCollection(sft, features: _*))
 
       val storage = {
         val context = FileSystemContext(FileContext.getFileContext, new Configuration(), new Path(out.toUri))

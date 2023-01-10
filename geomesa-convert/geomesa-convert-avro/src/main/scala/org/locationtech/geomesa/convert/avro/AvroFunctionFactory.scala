@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import java.nio.ByteBuffer
-
 import org.apache.avro.generic.GenericRecord
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{Expression, TransformerFunction, TransformerFunctionFactory}
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils
+import org.locationtech.geomesa.features.avro.serialization.AvroField.UuidBinaryField
+import org.locationtech.geomesa.features.avro.serialization.CollectionSerialization
+
+import java.nio.ByteBuffer
 
 class AvroFunctionFactory extends TransformerFunctionFactory {
 
@@ -26,7 +26,7 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
   // parses a list encoded by the geomesa avro writer
   private val binaryList = TransformerFunction.pure("avroBinaryList") { args =>
     args(0) match {
-      case bytes: Array[Byte] => AvroSimpleFeatureUtils.decodeList(ByteBuffer.wrap(bytes))
+      case bytes: Array[Byte] => CollectionSerialization.decodeList(ByteBuffer.wrap(bytes))
       case null => null
       case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
     }
@@ -35,7 +35,7 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
   // parses a map encoded by the geomesa avro writer
   private val binaryMap = TransformerFunction.pure("avroBinaryMap") { args =>
     args(0) match {
-      case bytes: Array[Byte] => AvroSimpleFeatureUtils.decodeMap(ByteBuffer.wrap(bytes))
+      case bytes: Array[Byte] => CollectionSerialization.decodeMap(ByteBuffer.wrap(bytes))
       case null => null
       case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
     }
@@ -44,7 +44,7 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
   // parses a uuid encoded by the geomesa avro writer
   private val binaryUuid = TransformerFunction.pure("avroBinaryUuid") { args =>
     args(0) match {
-      case bytes: Array[Byte] => AvroSimpleFeatureUtils.decodeUUID(ByteBuffer.wrap(bytes))
+      case bytes: Array[Byte] => UuidBinaryField.decode(ByteBuffer.wrap(bytes))
       case null => null
       case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
     }

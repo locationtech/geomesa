@@ -274,10 +274,10 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
 
   override def or(filters: java.util.List[Filter]): Or = {
     if (filters.isEmpty) {
-      return super.or(filters.asInstanceOf[java.util.List[_]])
+      return super.or(filters)
     }
 
-    val predicates = FilterHelper.flattenOr(filters.asScala)
+    val predicates = FilterHelper.flattenOr(filters.asScala.toSeq)
 
     val props = scala.collection.mutable.HashSet.empty[String]
     val literals = scala.collection.immutable.HashSet.newBuilder[AnyRef]
@@ -289,10 +289,10 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
         case p: PropertyIsEqualTo if p.getMatchAction == MatchAction.ANY && p.isMatchingCase =>
           org.locationtech.geomesa.filter.checkOrder(p.getExpression1, p.getExpression2) match {
             case Some(PropertyLiteral(name, lit, _)) if !props.add(name) || props.size == 1 => literals += lit.getValue
-            case _ => return super.or(filters.asInstanceOf[java.util.List[_]])
+            case _ => return super.or(filters)
           }
 
-        case _ => return super.or(filters.asInstanceOf[java.util.List[_]])
+        case _ => return super.or(filters)
       }
     }
 

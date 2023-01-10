@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.fixedwidth
 
-import java.io.InputStream
-
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.fixedwidth.FixedWidthConverter.FixedWidthField
@@ -18,6 +16,8 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.InputStream
 
 class FixedWidthConverter(sft: SimpleFeatureType,
                           config: BasicConfig,
@@ -58,14 +58,8 @@ object FixedWidthConverter {
       extends FixedWidthField {
 
     private val endIdx: Int = start + width
-    private val mutableArray = Array.ofDim[AnyRef](1)
 
     override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
-
-    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-      mutableArray(0) = args(0).asInstanceOf[String].substring(start, endIdx)
-      super.eval(mutableArray.asInstanceOf[Array[Any]])
-    }
 
     private def values(args: Array[AnyRef]): AnyRef = args(0).asInstanceOf[String].substring(start, endIdx)
   }

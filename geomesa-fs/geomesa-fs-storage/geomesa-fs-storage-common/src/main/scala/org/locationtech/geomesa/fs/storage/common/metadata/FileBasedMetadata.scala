@@ -8,12 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
-import java.io.{FileNotFoundException, InputStreamReader}
-import java.nio.charset.StandardCharsets
-import java.util.UUID
-import java.util.concurrent._
-import java.util.function.BiFunction
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
@@ -28,9 +22,12 @@ import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.{FileNotFoundException, InputStreamReader}
+import java.nio.charset.StandardCharsets
+import java.util.UUID
+import java.util.concurrent._
+import java.util.function.BiFunction
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.parallel.ExecutionContextTaskSupport
-import scala.concurrent.ExecutionContext
 import scala.runtime.BoxedUnit
 import scala.util.control.NonFatal
 
@@ -159,9 +156,6 @@ class FileBasedMetadata(
     delete(readPartitionFiles(8).asScala.flatMap { case (_, f) => f.unparsed ++ f.parsed }, 8)
   }
 
-  // noinspection ScalaDeprecation
-  override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
-
   override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit = {
     require(threads > 0, "Threads must be a positive number")
 
@@ -183,7 +177,7 @@ class FileBasedMetadata(
       paths ++= f.parsed
     }
 
-    writeCompactedConfig(configs)
+    writeCompactedConfig(configs.toSeq)
     delete(paths, threads)
 
     partitions.invalidate(BoxedUnit.UNIT)
@@ -286,11 +280,16 @@ class FileBasedMetadata(
     val updates = if (threads < 2) {
       files.unparsed.flatMap(readPartitionConfig)
     } else {
-      val ec = ExecutionContext.fromExecutorService(new CachedThreadPool(threads))
+      val ec = new CachedThreadPool(threads)
       try {
-        val unparsed = files.unparsed.par
-        unparsed.tasksupport = new ExecutionContextTaskSupport(ec)
-        unparsed.flatMap(readPartitionConfig).seq
+        val results = Seq.newBuilder[PartitionConfig]
+        def readOne(p: Path): Unit = {
+          readPartitionConfig(p).foreach { c =>
+            results.synchronized(results += c)
+          }
+        }
+        files.unparsed.toList.map(p => ec.submit(new Runnable() { override def run(): Unit = readOne(p)})).foreach(_.get)
+        results.result
       } finally {
         ec.shutdown()
       }
@@ -350,11 +349,9 @@ class FileBasedMetadata(
     if (threads < 2) {
       paths.foreach(fc.delete(_, false))
     } else {
-      val ec = ExecutionContext.fromExecutorService(new CachedThreadPool(threads))
+      val ec = new CachedThreadPool(threads)
       try {
-        val parPaths = paths.par
-        parPaths.tasksupport = new ExecutionContextTaskSupport(ec)
-        parPaths.foreach(fc.delete(_, false))
+        paths.toList.map(p => ec.submit(new Runnable() { override def run(): Unit = fc.delete(p, false)})).foreach(_.get)
       } finally {
         ec.shutdown()
       }

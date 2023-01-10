@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.convert2
 
-import java.time.Instant
-import java.util.Date
-
 import com.codahale.metrics.Counter
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeature
+
+import java.time.Instant
+import java.util.Date
 
 package object validators {
 

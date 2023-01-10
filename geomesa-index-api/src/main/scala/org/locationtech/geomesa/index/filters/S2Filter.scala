@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.index.filters
 
-import java.nio.ByteBuffer
-
 import com.google.common.geometry.S2CellId
 import org.locationtech.geomesa.index.filters.RowFilter.RowFilterFactory
 import org.locationtech.geomesa.index.index.s2.S2IndexValues
 import org.locationtech.geomesa.utils.index.ByteArrays
+
+import java.nio.ByteBuffer
 
 class S2Filter(val xy: Array[Array[Double]]) extends RowFilter {
   override def inBounds(buf: Array[Byte], offset: Int): Boolean = {

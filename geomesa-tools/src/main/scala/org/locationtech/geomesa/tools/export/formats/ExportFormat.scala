@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.util.Locale
-
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.util.Locale
 
 /**
   * Export format enumeration
@@ -30,7 +30,8 @@ sealed abstract class ExportFormat(
     val countable: Boolean,
     bytesPerAttribute: Float) {
 
-  val bytesPerFeatureProperty = SystemProperty(s"org.locationtech.geomesa.export.$name.bytes-per-feature")
+  val bytesPerFeatureProperty: SystemProperty =
+    SystemProperty(s"org.locationtech.geomesa.export.$name.bytes-per-feature")
 
   /**
     * Estimated bytes per feature
@@ -49,9 +50,10 @@ sealed abstract class ExportFormat(
 
 object ExportFormat {
 
-  val BytesPerFeatureProperty = SystemProperty("org.locationtech.geomesa.export.bytes-per-feature")
+  val BytesPerFeatureProperty: SystemProperty = SystemProperty("org.locationtech.geomesa.export.bytes-per-feature")
 
-  val Formats: Seq[ExportFormat] = Seq(Arrow, Avro, Bin, Csv, Gml2, Gml3, Json, Leaflet, Null, Orc, Parquet, Shp, Tsv)
+  val Formats: Seq[ExportFormat] =
+    Seq(Arrow, Avro, AvroNative, Bin, Csv, Gml2, Gml3, Json, Leaflet, Null, Orc, Parquet, Shp, Tsv)
 
   def apply(name: String): Option[ExportFormat] =
     Formats.find(f => f.name.equalsIgnoreCase(name) || f.extensions.contains(name.toLowerCase(Locale.US)))
@@ -62,6 +64,8 @@ object ExportFormat {
   case object Arrow extends ExportFormat("arrow", Seq("arrow"), true, true, 6.6f) with ArrowBytesPerFeature
 
   case object Avro extends ExportFormat("avro", Seq("avro"), true, true, 1.9f)
+
+  case object AvroNative extends ExportFormat("avro-native", Seq("avro"), true, true, 1.9f)
 
   case object Bin extends ExportFormat("bin", Seq("bin"), true, true, -1) with BinBytesPerFeature
 

@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.fs.storage.common.s3
 
-import java.io.IOException
-
 import com.amazonaws.services.s3.AmazonS3
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.IOException
 
 /**
  * Factory for S3VisibilityObserver

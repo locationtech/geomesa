@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.curve
 
 import org.locationtech.geomesa.curve.XZ2SFC.{QueryWindow, XElement}
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -248,7 +248,7 @@ class XZ2SFC(g: Short, xBounds: (Double, Double), yBounds: (Double, Double)) {
     // append the last range - there will always be one left that wasn't added
     result.append(current)
 
-    result
+    result.toSeq
   }
 
   /**

@@ -9,12 +9,12 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import org.locationtech.jts.geom.{Geometry, Point}
-import org.locationtech.jts.io.geojson.GeoJsonWriter
 import org.apache.spark.sql.SQLContext
+import org.locationtech.geomesa.spark.jts.util.GeoHashUtils._
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.geomesa.spark.jts.util.WKBUtils
-import org.locationtech.geomesa.spark.jts.util.GeoHashUtils._
+import org.locationtech.jts.geom.{Geometry, Point}
+import org.locationtech.jts.io.geojson.GeoJsonWriter
 
 object GeometricOutputFunctions {
   // use ThreadLocal to ensure thread safety

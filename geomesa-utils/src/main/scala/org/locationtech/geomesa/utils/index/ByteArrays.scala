@@ -13,8 +13,6 @@
 
 package org.locationtech.geomesa.utils.index
 
-import com.google.common.primitives.UnsignedBytes
-
 object ByteArrays {
 
   val ZeroByte: Byte = 0x00.toByte
@@ -24,11 +22,23 @@ object ByteArrays {
   val ZeroByteArray: Array[Byte] = Array(ByteArrays.ZeroByte)
   val OneByteArray : Array[Byte] = Array(ByteArrays.OneByte)
 
-  implicit val ByteOrdering: Ordering[Array[Byte]] =
-    Ordering.comparatorToOrdering(UnsignedBytes.lexicographicalComparator)
-
   implicit val UnsignedByteOrdering: Ordering[Byte] = new Ordering[Byte] {
-    override def compare(x: Byte, y: Byte): Int = UnsignedBytes.compare(x, y)
+    override def compare(x: Byte, y: Byte): Int = (x & 0xff) - (y & 0xff)
+  }
+
+  implicit val ByteOrdering: Ordering[Array[Byte]] = new Ordering[Array[Byte]] {
+    override def compare(x: Array[Byte], y: Array[Byte]): Int = {
+      var i = 0
+      val minLength = Math.min(x.length, y.length)
+      while (i < minLength) {
+        val res = UnsignedByteOrdering.compare(x(i), y(i))
+        if (res != 0) {
+          return res
+        }
+        i +=1
+      }
+      x.length - y.length
+    }
   }
 
   /**

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.nio.charset.Charset
-
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, LineMode, ParseMode}
@@ -21,14 +19,10 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
-class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConfig, XmlField, XmlOptions] {
+import java.nio.charset.Charset
 
-  override protected val typeToProcess: String = XmlConverterFactory.TypeToProcess
-
-  override protected implicit def configConvert: ConverterConfigConvert[XmlConfig] = XmlConfigConvert
-  override protected implicit def fieldConvert: FieldConvert[XmlField] = XmlFieldConvert
-  override protected implicit def optsConvert: ConverterOptionsConvert[XmlOptions] = XmlOptionsConvert
-
+class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConfig, XmlField, XmlOptions](
+  XmlConverterFactory.TypeToProcess, XmlConfigConvert, XmlFieldConvert, XmlOptionsConvert) {
   override protected def withDefaults(conf: Config): Config =
     super.withDefaults(conf).withFallback(ConfigFactory.load("xml-converter-defaults"))
 }
@@ -53,7 +47,9 @@ object XmlConverterFactory {
         path       <- optional(cur, "feature-path").right
         xsd        <- optional(cur, "xsd").right
       } yield {
-        val namespaces = namespace.value.unwrapped().asInstanceOf[java.util.Map[String, String]].asScala.toMap
+        val namespaces =
+          namespace.valueOpt.map(_.unwrapped().asInstanceOf[java.util.Map[String, String]].asScala.toMap)
+              .getOrElse(Map.empty)
         XmlConfig(`type`, provider, namespaces, xsd, path, idField, caches, userData)
       }
     }
@@ -101,7 +97,7 @@ object XmlConverterFactory {
               case Some(v) => Right(v.asInstanceOf[T])
               case None =>
                 val msg = s"Must be one of: ${values.mkString(", ")}"
-                value.failed(CannotConvert(value.value.toString, values.head.getClass.getSimpleName, msg))
+                value.failed(CannotConvert(value.valueOpt.map(_.toString).orNull, values.head.getClass.getSimpleName, msg))
             }
           }
         }

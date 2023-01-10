@@ -41,7 +41,11 @@ object DeleteTrigger extends SqlTriggerFunction {
        |          ${delete(info.tables.mainPartitions)};
        |          GET DIAGNOSTICS del_count := ROW_COUNT;
        |          IF del_count = 0 THEN
-       |            RETURN NULL;
+       |            ${delete(info.tables.spillPartitions)};
+       |            GET DIAGNOSTICS del_count := ROW_COUNT;
+       |            IF del_count = 0 THEN
+       |              RETURN NULL;
+       |            END IF;
        |          END IF;
        |        END IF;
        |      END IF;

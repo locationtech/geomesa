@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.kafka.utils
 
-import org.locationtech.jts.geom.Geometry
 import org.geotools.data.FeatureEvent
 import org.geotools.data.FeatureEvent.Type
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.utils.geotools._
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 

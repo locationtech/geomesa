@@ -11,6 +11,7 @@ package org.locationtech.geomesa.index.planning
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.index.EmptyIndex
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
@@ -27,9 +28,6 @@ import org.opengis.filter.Filter
   */
 trait StrategyDecider {
 
-  @deprecated("replaced with selectFilterPlan(SimpleFeatureType,Seq[FilterPlan],Option[GeoMesaStats],Explainer)")
-  def selectFilterPlan(sft: SimpleFeatureType, options: Seq[FilterPlan], explain: Explainer): FilterPlan
-
   /**
    * Select from available filter plans
    *
@@ -43,11 +41,7 @@ trait StrategyDecider {
       sft: SimpleFeatureType,
       options: Seq[FilterPlan],
       stats: Option[GeoMesaStats],
-      explain: Explainer): FilterPlan = {
-    // TODO remove default impl in next major release
-    // noinspection ScalaDeprecation
-    selectFilterPlan(sft, options, explain)
-  }
+      explain: Explainer): FilterPlan
 }
 
 object StrategyDecider extends MethodProfiling with LazyLogging {
@@ -100,8 +94,9 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
         forced
       } else if (options.isEmpty) {
         // corresponds to filter.exclude
-        explain("No filter plans found")
-        FilterPlan(Seq.empty)
+        // we still need to return something so that we can handle reduce steps, if needed
+        explain("No filter plans found - creating empty plan")
+        FilterPlan(Seq(FilterStrategy(new EmptyIndex(ds, sft), None, None, temporal = false, 1f)))
       } else if (options.lengthCompare(1) == 0) {
         // only a single option, so don't bother with cost
         explain(s"Filter plan: ${options.head}")
@@ -149,12 +144,6 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    // noinspection ScalaDeprecation
-    override def selectFilterPlan(
-        sft: SimpleFeatureType,
-        options: Seq[FilterPlan],
-        explain: Explainer): FilterPlan = selectFilterPlan(sft, options, None, explain)
-
     override def selectFilterPlan(
         sft: SimpleFeatureType,
         options: Seq[FilterPlan],
@@ -169,7 +158,7 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
             val count = stats.flatMap(_.getCount(sft, filter, exact = false)).getOrElse(100L)
             cost = cost + BigInt((count * strategy.costMultiplier).toLong)
           }
-          FilterPlanCost(option, if (cost.isValidLong) { cost.longValue() } else { Long.MaxValue }, 0L)
+          FilterPlanCost(option, if (cost.isValidLong) { cost.longValue } else { Long.MaxValue }, 0L)
         }
       }
 

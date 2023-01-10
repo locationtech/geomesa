@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
-import java.util.Locale
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTable
 
 /**
  * Drops any partitions older than the configured maximum
@@ -23,24 +23,32 @@ object DropAgedOffPartitions extends SqlProcedure {
   private def proc(info: TypeInfo): String = {
     val hours = info.partitions.hoursPerPartition
     val mainPartitions = info.tables.mainPartitions
+    val spillPartitions = info.tables.spillPartitions
     s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
+       |      num_partitions int;                          -- number of partitions to keep
        |      main_cutoff timestamp without time zone;     -- max age of the records for main tables
        |      partition_start timestamp without time zone; -- start bounds for the partition we're writing
        |      partition_name text;                         -- partition table name
        |    BEGIN
-       |      IF ${java.lang.Boolean.toString(info.partitions.maxPartitions.isDefined).toUpperCase(Locale.US)} THEN
-       |        -- constants
+       |      SELECT value::int FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
+       |        WHERE key = ${literal(PartitionedPostgisDialect.Config.MaxPartitions)}
+       |        INTO num_partitions;
+       |      IF FOUND THEN
        |        main_cutoff := truncate_to_partition(cur_time, $hours) - INTERVAL '$hours HOURS';
-       |
        |        -- remove any partitions that have aged out
-       |        partition_start := main_cutoff - INTERVAL '${hours * info.partitions.maxPartitions.getOrElse(0)} HOURS';
+       |        partition_start := main_cutoff - (INTERVAL '$hours HOURS' * num_partitions);
        |        FOR partition_name IN
        |          SELECT relid
        |            FROM pg_partition_tree(${mainPartitions.name.asRegclass})
        |            WHERE parentrelid IS NOT NULL
        |            AND (SELECT relname FROM pg_class WHERE oid = relid) <= ${literal(mainPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24')
+       |          UNION ALL
+       |            SELECT relid
+       |              FROM pg_partition_tree(${spillPartitions.name.asRegclass})
+       |              WHERE parentrelid IS NOT NULL
+       |              AND (SELECT relname FROM pg_class WHERE oid = relid) <= ${literal(spillPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24')
        |        LOOP
        |          IF EXISTS(SELECT FROM pg_tables WHERE schemaname = ${info.schema.asLiteral} AND tablename = partition_name) THEN
        |            EXECUTE 'DROP TABLE IF EXISTS ${info.schema.quoted}.' || quote_ident(partition_name);

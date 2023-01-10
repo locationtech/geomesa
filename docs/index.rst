@@ -7,5 +7,4 @@ GeoMesa Documentation
     :maxdepth: 1
 
     user/index
-    developer/index
     tutorials/index

@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.accumulo.util
 
-import java.util.Locale
-
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.accumulo.util.AccumuloSchemaBuilder.{AccumuloAttributeBuilder, AccumuloUserDataBuilder}
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder.{AbstractAttributeBuilder, AbstractSchemaBuilder, AbstractUserDataBuilder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
 import org.locationtech.geomesa.utils.stats.IndexCoverage
+
+import java.util.Locale
 
 class AccumuloSchemaBuilder extends AbstractSchemaBuilder[AccumuloAttributeBuilder, AccumuloUserDataBuilder] {
   override protected def createAttributeBuilder(spec: StringBuilder): AccumuloAttributeBuilder =
