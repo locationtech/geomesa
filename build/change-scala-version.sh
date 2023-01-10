@@ -22,6 +22,7 @@ set -e
 VALID_VERSIONS=("2.12" "2.13")
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 FULL_VERSIONS=("2.12.17" "2.13.10")
 =======
 FULL_VERSIONS=("2.12.13" "2.13.10")
@@ -29,6 +30,12 @@ FULL_VERSIONS=("2.12.13" "2.13.10")
 =======
 FULL_VERSIONS=("2.12.17" "2.13.10")
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+FULL_VERSIONS=("2.12.17" "2.13.10")
+=======
+FULL_VERSIONS=("2.12.13" "2.13.10")
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 
 usage() {
   echo "Usage: $(basename "$0") [-h|--help] <version>
