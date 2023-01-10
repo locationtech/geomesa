@@ -117,12 +117,16 @@ class MergedDataStoreView(
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
     namespace: Option[String] = None
+<<<<<<< HEAD
   ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaStats {
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
     namespace: Option[String] = None
   ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+  ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 
   require(stores.nonEmpty, "No delegate stores configured")
 
@@ -174,6 +178,7 @@ object MergedDataStoreView {
         stats.flatMap(getSingle).reduceLeftOption(_ + _)
       }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -221,7 +226,12 @@ object MergedDataStoreView {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
 
     override def getMinMax[T](
@@ -240,6 +250,7 @@ object MergedDataStoreView {
       } else {
         stats.flatMap(getSingle).reduceLeftOption(_ + _)
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
       val seq = if (parallel) { stats.par } else { stats }
@@ -270,6 +281,8 @@ object MergedDataStoreView {
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
 
     override def getEnumeration[T](

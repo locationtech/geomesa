@@ -90,6 +90,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   import scala.collection.JavaConverters._
 
   private val LayerViewReader = ConfigReader.fromCursor(readLayerViewConfig)
+<<<<<<< HEAD
   private val LayerViewClassTag = ClassTag[LayerViewConfig](classOf[LayerViewConfig])
 
 <<<<<<< HEAD
@@ -123,6 +124,11 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 >>>>>>> a0314fb7f (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+  private val LayerViewClassTag = ClassTag[LayerViewConfig](classOf[LayerViewConfig])
+
+  val DefaultCatalog: String = "geomesa-catalog"
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
   val DefaultZkPath: String = "geomesa/ds/kafka"
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> eecabb92a (GEOMESA-3100 Kafka layer views (#2784))
@@ -283,6 +289,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val nativeOpts = KafkaDataStoreParams.SerializationTypes.opts(serialization)
     val lazyOpts = if (LazyFeatures.lookup(params).booleanValue()) { Set(SerializationOption.Lazy) } else { Set.empty }
     new GeoMessageSerializerFactory(serializationType, nativeOpts ++ lazyOpts)
+<<<<<<< HEAD
   }
 
   private def buildAuthProvider(params: java.util.Map[String, _]): AuthorizationsProvider = {
@@ -292,6 +299,17 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     AuthUtils.getProvider(params, auths)
   }
 
+=======
+  }
+
+  private def buildAuthProvider(params: java.util.Map[String, _]): AuthorizationsProvider = {
+    import KafkaDataStoreParams.Authorizations
+    // get the auth params passed in as a comma-delimited string
+    val auths = Authorizations.lookupOpt(params).map(_.split(",").filterNot(_.isEmpty)).getOrElse(Array.empty)
+    security.getAuthorizationsProvider(params, auths)
+  }
+
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
   private def buildAuditProvider(params: java.util.Map[String, _]): AuditProvider =
     Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider)
 

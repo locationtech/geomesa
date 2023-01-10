@@ -22,7 +22,13 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.{Locale, Properties}
 import scala.concurrent.duration.Duration
 
+<<<<<<< HEAD
 object KafkaDataStoreParams extends NamespaceParams {
+=======
+object KafkaDataStoreParams extends KafkaDataStoreParamsWTF
+
+trait KafkaDataStoreParamsWTF extends NamespaceParams {
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
   // deprecated lookups
   private val DeprecatedProducer = ConvertedParam[java.lang.Integer, java.lang.Boolean]("isProducer", v => if (v) { 0 } else { 1 })
   private val DeprecatedOffset = ConvertedParam[Duration, String]("autoOffsetReset", v => if ("earliest".equalsIgnoreCase(v)) { Duration.Inf } else { null })
@@ -62,7 +68,11 @@ object KafkaDataStoreParams extends NamespaceParams {
     new GeoMesaParam[String](
       "kafka.catalog.topic",
       "Topic used for cataloging feature types, if not using Zookeeper",
+<<<<<<< HEAD
       default = DefaultCatalog,
+=======
+      default = KafkaDataStoreFactory.DefaultCatalog,
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
       supportsNiFiExpressions = true
     )
 
@@ -70,7 +80,11 @@ object KafkaDataStoreParams extends NamespaceParams {
     new GeoMesaParam[String](
       "kafka.zk.path",
       "Zookeeper discoverable path (namespace), if using Zookeeper",
+<<<<<<< HEAD
       default = DefaultZkPath,
+=======
+      default = KafkaDataStoreFactory.DefaultZkPath,
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
       deprecatedKeys = Seq("zkPath"),
       supportsNiFiExpressions = true
     )

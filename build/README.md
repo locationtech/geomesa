@@ -46,7 +46,10 @@ geospatial analytics.
   [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-kafka_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-redis_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-fs_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
+<<<<<<< HEAD
   [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-gt_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 
 ### Verifying Downloads
 
@@ -189,9 +192,13 @@ The project is built using Maven. To build, run:
 
     mvn clean install -DskipTests
 
+<<<<<<< HEAD
 The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
 
 To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
+=======
+The full build takes quite a while. To speed it up, you may skip tests and use multiple threads.
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 
 ### Build with Bloop Compile Server
 

@@ -3,7 +3,11 @@ Installing GeoMesa Kafka
 
 .. note::
 
+<<<<<<< HEAD
     GeoMesa currently supports Kafka |kafka_supported_versions|.
+=======
+    GeoMesa currently supports Kafka version |kafka_version|, and has been tested up to |kafka_tested_version|.
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 
 .. note::
 

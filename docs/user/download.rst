@@ -875,9 +875,17 @@ Versions and Downloads
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 
+<<<<<<< HEAD
 GeoMesa requires `Java`__ to run. GeoMesa supports Java LTS versions 8, 11 and 17.
+=======
+GeoMesa requires a minimum `Java`__ version of 8 to run.
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 
 __ https://adoptium.net/temurin/releases/
+
+.. note::
+
+    GeoMesa is tested against Java 8 and 11. Support for other versions should be considered experimental.
 
 Release Distributions
 ---------------------
@@ -922,6 +930,7 @@ and then include the desired ``geomesa-*`` dependencies:
 
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1025,6 +1034,8 @@ and then include the desired ``geomesa-*`` dependencies:
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 2aa923cc9 (GEOMESA-3176 Docs - fix download links in install instructions)
@@ -1099,6 +1110,9 @@ and then include the desired ``geomesa-*`` dependencies:
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
       <artifactId>geomesa-utils_${scala.abi.version}</artifactId>
+=======
+      <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
       <version>${geomesa.version}</version>
 >>>>>>> 16b2e83f2 (GEOMESA-3176 Docs - fix download links in install instructions)
 <<<<<<< HEAD

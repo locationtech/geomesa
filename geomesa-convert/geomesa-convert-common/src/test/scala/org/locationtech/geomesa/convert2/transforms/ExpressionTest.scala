@@ -1948,6 +1948,7 @@ class ExpressionTest extends Specification {
     "allow native booleans" >> {
       Expression("false").apply(null) mustEqual false
       Expression("true").apply(null) mustEqual true
+<<<<<<< HEAD
     }
     "allow native nulls" >> {
       Expression("null").apply(null) must beNull
@@ -1998,15 +1999,17 @@ class ExpressionTest extends Specification {
 =======
       Expression("false").eval(null) mustEqual false
       Expression("true").eval(null) mustEqual true
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "allow native nulls" >> {
       Expression("null").apply(null) must beNull
-      Expression("null").eval(Array(null)) must beNull
     }
     "trim" >> {
       val exp = Expression("trim($1)")
       exp.apply(Array("", "foo ", "bar")) must be equalTo "foo"
       exp.apply(Array("", null)) must beNull
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2027,6 +2030,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
       exp.eval(Array("", "foo ", "bar")) must be equalTo "foo"
       exp.eval(Array("", null)) must beNull
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "capitalize" >> {
       val exp = Expression("capitalize($1)")
@@ -2047,6 +2052,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
       exp.apply(Array("", "foo", "bar")) must be equalTo "Foo"
       exp.apply(Array("", null)) must beNull
+<<<<<<< HEAD
 =======
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -2059,6 +2065,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
       exp.eval(Array("", "foo", "bar")) must be equalTo "Foo"
       exp.eval(Array("", null)) must beNull
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "lowercase" >> {
       val exp = Expression("lowercase($1)")
@@ -2079,6 +2087,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
       exp.apply(Array("", "FOO", "bar")) must be equalTo "foo"
       exp.apply(Array("", null)) must beNull
+<<<<<<< HEAD
 =======
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -2091,6 +2100,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
       exp.eval(Array("", "FOO", "bar")) must be equalTo "foo"
       exp.eval(Array("", null)) must beNull
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "uppercase" >> {
       val exp = Expression("uppercase($1)")
@@ -2111,6 +2122,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
       exp.apply(Array("", "FoO")) must be equalTo "FOO"
       exp.apply(Array("", null)) must beNull
+<<<<<<< HEAD
 =======
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -2123,6 +2135,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
       exp.eval(Array("", "FoO")) must be equalTo "FOO"
       exp.eval(Array("", null)) must beNull
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "regexReplace" >> {
       val exp = Expression("regexReplace('foo'::r,'bar',$1)")
@@ -2143,6 +2157,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
       exp.apply(Array("", "foobar")) must be equalTo "barbar"
       exp.apply(Array("", null)) must beNull
+<<<<<<< HEAD
 =======
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -2155,6 +2170,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
       exp.eval(Array("", "foobar")) must be equalTo "barbar"
       exp.eval(Array("", null)) must beNull
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "compound expressions" >> {
       val exp = Expression("regexReplace('foo'::r,'bar',trim($1))")
@@ -2175,6 +2192,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
       exp.apply(Array("", " foobar ")) must be equalTo "barbar"
       exp.apply(Array("", null)) must beNull
+<<<<<<< HEAD
 =======
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -2190,6 +2208,8 @@ class ExpressionTest extends Specification {
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "take substrings" >> {
       foreach(Seq("substring", "substr")) { fn =>
@@ -2213,6 +2233,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
         exp.apply(Array("", "foobarbaz")) must be equalTo "foobarbaz".substring(2, 5)
         exp.apply(Array("", null)) must beNull
+<<<<<<< HEAD
 =======
 =======
         exp.apply(Array("", "foobarbaz")) must be equalTo "foobarbaz".substring(2, 5)
@@ -2248,6 +2269,8 @@ class ExpressionTest extends Specification {
         exp.apply(Array("", "foobarbaz")) must be equalTo "foobarbaz".substring(2, 5)
         exp.apply(Array("", null)) must beNull
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
       }
     }
     "calculate strlen" >> {
@@ -2292,6 +2315,7 @@ class ExpressionTest extends Specification {
       val exp = Expression("toString($1)")
       exp.apply(Array("", Int.box(5))) must be equalTo "5"
       exp.apply(Array("", null)) must beNull
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -2396,10 +2420,13 @@ class ExpressionTest extends Specification {
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "concat with toString" >> {
       val exp = Expression("concat(toString($1), toString($2))")
       exp.apply(Array("", Int.box(5), Int.box(6))) must be equalTo "56"
+<<<<<<< HEAD
     }
     "concat many args" >> {
       val exp = Expression("concat($1, $2, $3, $4, $5, $6)")
@@ -2426,11 +2453,14 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
 =======
       exp.eval(Array("", 5, 6)) must be equalTo "56"
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "concat many args" >> {
       val exp = Expression("concat($1, $2, $3, $4, $5, $6)")
       exp.apply(Array("", Int.box(1), Int.box(2), Int.box(3), Int.box(4), Int.box(5), Int.box(6))) mustEqual "123456"
       exp.apply(Array("", Int.box(1), null, Int.box(3), Int.box(4), Int.box(5), Int.box(6))) mustEqual "1null3456"
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2451,6 +2481,8 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
       exp.eval(Array("", 1, 2, 3, 4, 5, 6)) must be equalTo "123456"
       exp.eval(Array("", 1, null, 3, 4, 5, 6)) mustEqual "1null3456"
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "mkstring" >> {
       val exp = Expression("mkstring(',', $1, $2, $3, $4, $5, $6)")
@@ -2471,6 +2503,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
       exp.apply(Array("", Int.box(1), Int.box(2), Int.box(3), Int.box(4), Int.box(5), Int.box(6))) must be equalTo "1,2,3,4,5,6"
       exp.apply(Array("", Int.box(1), null, Int.box(3), Int.box(4), Int.box(5), Int.box(6))) must be equalTo "1,null,3,4,5,6"
+<<<<<<< HEAD
 =======
 >>>>>>> d9ed077cd (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -2486,6 +2519,8 @@ class ExpressionTest extends Specification {
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "convert emptyToNull" >> {
       val exp = Expression("emptyToNull($1)")
@@ -2639,6 +2674,7 @@ class ExpressionTest extends Specification {
     "parse date strings from printf" >> {
       val exp = Expression("datetime(printf('%s-%s-%sT00:00:00.000Z', $1, $2, $3))")
       exp.apply(Array("", "2015", "01", "01")) must be equalTo testDate
+<<<<<<< HEAD
     }
     "parse point geometries" >> {
       val exp = Expression("point($1, $2)")
@@ -2661,6 +2697,8 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 =======
       exp.eval(Array("", "2015", "01", "01")) must be equalTo testDate
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "parse point geometries" >> {
       val exp = Expression("point($1, $2)")
@@ -3099,11 +3137,9 @@ class ExpressionTest extends Specification {
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
       exp.apply(Array("", Double.box(45.0), Double.box(46.0))) mustEqual WKTUtils.read("POINT(45 46)")
-      exp.eval(Array("", 45.0, 46.0)) mustEqual WKTUtils.read("POINT(45 46)")
 
       val trans = Expression("point($0)")
       trans.apply(Array("POINT(50 52)")) mustEqual WKTUtils.read("POINT(50 52)")
-      trans.eval(Array("POINT(50 52)")) mustEqual WKTUtils.read("POINT(50 52)")
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3114,18 +3150,15 @@ class ExpressionTest extends Specification {
       val z = Expression("point($1,$2,$3)")
       z.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47))).asInstanceOf[Point]
           .getCoordinate.toString mustEqual new Coordinate(45.0, 46.0, 47).toString
-      z.eval(Array("", 45.0, 46.0, 47.0)).asInstanceOf[Point]
-          .getCoordinate.toString mustEqual new Coordinate(45.0, 46.0, 47).toString
 
       val zm = Expression("point($1,$2,$3,$4)")
       zm.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47), Double.box(48))).asInstanceOf[Point]
-          .getCoordinate.toString mustEqual new CoordinateXYZM(45.0, 46.0, 47, 48).toString
-      zm.eval(Array("", 45.0, 46.0, 47.0, 48)).asInstanceOf[Point]
           .getCoordinate.toString mustEqual new CoordinateXYZM(45.0, 46.0, 47, 48).toString
 
       val m = Expression("pointM($1,$2,$3)")
       m.apply(Array("", Double.box(45.0), Double.box(46.0), Double.box(47))).asInstanceOf[Point]
           .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
+<<<<<<< HEAD
       m.eval(Array("", 45.0, 46.0, 47.0)).asInstanceOf[Point]
           .getCoordinate.toString mustEqual new CoordinateXYM(45.0, 46.0, 47).toString
 <<<<<<< HEAD
@@ -4628,13 +4661,19 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
     "parse multipoint wkt and objects" >> {
       val geoFac = new GeometryFactory()
       val multiPoint = geoFac.createMultiPointFromCoords(Array(new Coordinate(45.0, 45.0), new Coordinate(50, 52)))
       val trans = Expression("multipoint($0)")
       trans.apply(Array("Multipoint((45.0 45.0), (50 52))")).asInstanceOf[MultiPoint] mustEqual multiPoint
+<<<<<<< HEAD
 
       // convert objects
       val geom = multiPoint.asInstanceOf[Geometry]
@@ -4781,6 +4820,15 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+=======
+
+      // convert objects
+      val geom = multiPoint.asInstanceOf[Geometry]
+      val res = trans.apply(Array(geom))
+      res must not(beNull)
+      res.getClass mustEqual classOf[MultiPoint]
+      res.asInstanceOf[MultiPoint] mustEqual WKTUtils.read("Multipoint((45.0 45.0), (50 52))")
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "parse multipoint from x/y coords" >> {
       val expected = WKTUtils.read("MultiPoint((45.0 45.0), (50 52))")
@@ -4789,6 +4837,7 @@ class ExpressionTest extends Specification {
       val x = Seq(45, 50).asJava
       val y = Seq(45, 52).asJava
       trans.apply(Array(x, y)) mustEqual expected
+<<<<<<< HEAD
       trans.eval(Array(x, y)) mustEqual expected
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -5129,12 +5178,15 @@ class ExpressionTest extends Specification {
       trans.eval(Array(x, y)) mustEqual expected
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "parse linestring wkt and objects" >> {
       val geoFac = new GeometryFactory()
       val lineStr = geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
       val trans = Expression("linestring($0)")
       trans.apply(Array("Linestring(102 0, 103 1, 104 0, 105 1)")).asInstanceOf[LineString] mustEqual lineStr
+<<<<<<< HEAD
 
       // type conversion
       val geom = lineStr.asInstanceOf[Geometry]
@@ -5281,6 +5333,15 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
+=======
+
+      // type conversion
+      val geom = lineStr.asInstanceOf[Geometry]
+      val res = trans.apply(Array(geom))
+      res must not(beNull)
+      res.getClass mustEqual classOf[LineString]
+      res.asInstanceOf[LineString] mustEqual WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "parse linestring from x/y coords" >> {
       val expected = WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
@@ -5289,6 +5350,7 @@ class ExpressionTest extends Specification {
       val x = Seq(102, 103, 104, 105).asJava
       val y = Seq(0, 1, 0, 1).asJava
       trans.apply(Array(x, y)) mustEqual expected
+<<<<<<< HEAD
       trans.eval(Array(x, y)) mustEqual expected
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -5629,6 +5691,8 @@ class ExpressionTest extends Specification {
       trans.eval(Array(x, y)) mustEqual expected
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "parse multilinestring wkt and objects" >> {
       val geoFac = new GeometryFactory()
@@ -5701,6 +5765,7 @@ class ExpressionTest extends Specification {
       trans.apply(Array("GeometryCollection(Linestring(102 0, 103 1, 104 0, 105 1)," +
           "multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), " +
           "((10 0, 11 0, 11 1, 10 1, 10 0))))")).asInstanceOf[GeometryCollection] mustEqual geoCol
+<<<<<<< HEAD
 
       // type conversion
       val geom = geoCol.asInstanceOf[Geometry]
@@ -5908,7 +5973,21 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0f4c829f2 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+
+      // type conversion
+      val geom = geoCol.asInstanceOf[Geometry]
+      val res = trans.apply(Array(geom))
+      res must not(beNull)
+      res.getClass mustEqual classOf[GeometryCollection]
+      res.asInstanceOf[GeometryCollection] mustEqual WKTUtils.read(
+        "GeometryCollection(Linestring(102 0, 103 1, 104 0, 105 1), " +
+        "multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), ((10 0, 11 0, 11 1, 10 1, 10 0))))")
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
     "parse null geometries" >> {
       val functions =
@@ -5925,7 +6004,6 @@ class ExpressionTest extends Specification {
         )
       foreach(functions.map(Expression.apply)) { exp =>
         exp.apply(Array(null, null)) must beNull
-        exp.eval(Array(null, null)) must beNull
       }
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -6479,6 +6557,7 @@ class ExpressionTest extends Specification {
       transformed.getClass mustEqual classOf[Point]
       transformed.asInstanceOf[Point].getX must beCloseTo(10d, 0.001)
       transformed.asInstanceOf[Point].getY must beCloseTo(15d, 0.001)
+<<<<<<< HEAD
     }
     "generate md5 hashes" >> {
       val exp = Expression("md5($0)")
@@ -6502,6 +6581,8 @@ class ExpressionTest extends Specification {
         transformed.asInstanceOf[Point].getX must beCloseTo(10d, 0.001)
         transformed.asInstanceOf[Point].getY must beCloseTo(15d, 0.001)
       }
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "generate md5 hashes" >> {
       val exp = Expression("md5($0)")
@@ -7244,12 +7325,12 @@ class ExpressionTest extends Specification {
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
       exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
-      exp.eval(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
     }
     "generate murmur hashes" >> {
       val exp = Expression("murmurHash3($0)")
       exp.apply(Array("foo")) mustEqual "6145f501578671e2877dba2be487af7e"
       exp.apply(Array("foo".getBytes)) mustEqual "6145f501578671e2877dba2be487af7e"
+<<<<<<< HEAD
       exp.eval(Array("foo")) mustEqual "6145f501578671e2877dba2be487af7e"
       exp.eval(Array("foo".getBytes)) mustEqual "6145f501578671e2877dba2be487af7e"
 <<<<<<< HEAD
@@ -9047,7 +9128,12 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
 =======
       exp.apply(Array(testBytes)) mustEqual "53587708703184a0b6f8952425c21d9f"
@@ -9069,6 +9155,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 919559e486 (GEOMESA-3109 Json array to object converter function (#2788))
     "generate uuids" >> {
       val exp = Expression("uuid()")
+<<<<<<< HEAD
       foreach(Seq(exp.apply(null), exp.eval(null))) { res =>
         res must not(beNull)
         res.getClass mustEqual classOf[String]
@@ -9076,6 +9163,11 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+      val res = exp.apply(null)
+      res must not(beNull)
+      res.getClass mustEqual classOf[String]
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "generate z3 uuids" >> {
       val exp = Expression("uuidZ3($0, $1, 'week')")
@@ -9092,6 +9184,7 @@ class ExpressionTest extends Specification {
       val res = exp.apply(Array(geom, date))
       res must not(beNull)
       res.getClass mustEqual classOf[String]
+<<<<<<< HEAD
     }
     "encode bytes as base64 strings" >> {
       foreach(Seq("base64($0)", "base64Encode($0)")) { expression =>
@@ -9109,6 +9202,8 @@ class ExpressionTest extends Specification {
         res must not(beNull)
         res.getClass mustEqual classOf[String]
       }
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "encode bytes as base64 strings" >> {
 <<<<<<< HEAD
@@ -9893,13 +9988,13 @@ class ExpressionTest extends Specification {
       foreach(Seq("base64($0)", "base64Encode($0)")) { expression =>
         val exp = Expression(expression)
         exp.apply(Array(testBytes)) mustEqual Base64.encodeBase64URLSafeString(testBytes)
-        exp.eval(Array(testBytes)) mustEqual Base64.encodeBase64URLSafeString(testBytes)
       }
     }
     "decode base64 strings as bytes" >> {
       val encoded = Base64.encodeBase64URLSafeString(testBytes)
       val exp = Expression("base64Decode($0)")
       exp.apply(Array(encoded)) mustEqual testBytes
+<<<<<<< HEAD
       exp.eval(Array(encoded)) mustEqual testBytes
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11071,7 +11166,12 @@ class ExpressionTest extends Specification {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
     "handle whitespace in functions" >> {
       val variants = Seq(
@@ -11160,6 +11260,7 @@ class ExpressionTest extends Specification {
       val exp2 = Expression("add($1,$2,$3)")
       exp2.apply(Array("","1","2","3.0")) mustEqual 6.0
       exp2.apply(Array("","-1","2","3.0")) mustEqual 4.0
+<<<<<<< HEAD
     }
     "add a list" >> {
       val exp = Expression("add($0)")
@@ -11171,6 +11272,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     }
     "add a list" >> {
       val exp = Expression("add($0)")
@@ -11180,10 +11282,15 @@ class ExpressionTest extends Specification {
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
     "add a list" >> {
       val exp = Expression("add($0)")
       exp.apply(Array(Seq("2","3").asJava)) mustEqual 5.0
+<<<<<<< HEAD
       exp.eval(Array(Seq("2","3").asJava)) mustEqual 5.0
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -11194,6 +11301,8 @@ class ExpressionTest extends Specification {
       exp.eval(Array(Seq("2","3").asJava)) mustEqual 5.0
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "multiply" >> {
       val exp1 = Expression("multiply($1,$2)")
@@ -11203,6 +11312,7 @@ class ExpressionTest extends Specification {
       val exp2 = Expression("multiply($1,$2,$3)")
       exp2.apply(Array("","1","2","3.0")) mustEqual 6.0
       exp2.apply(Array("","-1","2","3.0")) mustEqual -6.0
+<<<<<<< HEAD
     }
     "multiply a list" >> {
       val exp = Expression("multiply($0)")
@@ -11214,6 +11324,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     }
     "multiply a list" >> {
       val exp = Expression("multiply($0)")
@@ -11223,10 +11334,15 @@ class ExpressionTest extends Specification {
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
     "multiply a list" >> {
       val exp = Expression("multiply($0)")
       exp.apply(Array(Seq("2","3").asJava)) mustEqual 6.0
+<<<<<<< HEAD
       exp.eval(Array(Seq("2","3").asJava)) mustEqual 6.0
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -11237,6 +11353,8 @@ class ExpressionTest extends Specification {
       exp.eval(Array(Seq("2","3").asJava)) mustEqual 6.0
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "subtract" >> {
       val exp1 = Expression("subtract($1,$2)")
@@ -11246,6 +11364,7 @@ class ExpressionTest extends Specification {
       val exp2 = Expression("subtract($1,$2,$3)")
       exp2.apply(Array("","1","2","3.0")) mustEqual -4.0
       exp2.apply(Array("","-1","2","3.0")) mustEqual -6.0
+<<<<<<< HEAD
     }
     "subtract a list" >> {
       val exp = Expression("subtract($0)")
@@ -11257,6 +11376,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     }
     "subtract a list" >> {
       val exp = Expression("subtract($0)")
@@ -11266,10 +11386,15 @@ class ExpressionTest extends Specification {
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
     "subtract a list" >> {
       val exp = Expression("subtract($0)")
       exp.apply(Array(Seq("2","1").asJava)) mustEqual 1.0
+<<<<<<< HEAD
       exp.eval(Array(Seq("2","1").asJava)) mustEqual 1.0
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -11280,6 +11405,8 @@ class ExpressionTest extends Specification {
       exp.eval(Array(Seq("2","1").asJava)) mustEqual 1.0
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "divide" >> {
       val exp1 = Expression("divide($1,$2)")
@@ -11289,6 +11416,7 @@ class ExpressionTest extends Specification {
       val exp2 = Expression("divide($1,$2,$3)")
       exp2.apply(Array("","1","2","3.0")) mustEqual (1.0/2/3) // 0.166666666666
       exp2.apply(Array("","-1","2","3.0")) mustEqual (-1.0/2/3) // -0.166666666666
+<<<<<<< HEAD
     }
     "divide a list" >> {
       val exp = Expression("divide($0)")
@@ -11300,6 +11428,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     }
     "divide a list" >> {
       val exp = Expression("divide($0)")
@@ -11309,10 +11438,15 @@ class ExpressionTest extends Specification {
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
     "divide a list" >> {
       val exp = Expression("divide($0)")
       exp.apply(Array(Seq("2","1").asJava)) mustEqual 2.0
+<<<<<<< HEAD
       exp.eval(Array(Seq("2","1").asJava)) mustEqual 2.0
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -11323,10 +11457,13 @@ class ExpressionTest extends Specification {
       exp.eval(Array(Seq("2","1").asJava)) mustEqual 2.0
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "find mean" >> {
       val exp1 = Expression("mean($1,$2,$3,$4)")
       exp1.apply(Array("","1","2","3","4")) mustEqual 2.5
+<<<<<<< HEAD
     }
     "find mean of list" >> {
       val exp1 = Expression("mean($0)")
@@ -11337,6 +11474,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     }
     "find mean of list" >> {
       val exp1 = Expression("mean($0)")
@@ -11346,10 +11484,15 @@ class ExpressionTest extends Specification {
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
     "find mean of list" >> {
       val exp1 = Expression("mean($0)")
       exp1.apply(Array(Seq("1","2","3","4").asJava)) mustEqual 2.5
+<<<<<<< HEAD
       exp1.eval(Array(Seq("1","2","3","4").asJava)) mustEqual 2.5
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -11360,10 +11503,13 @@ class ExpressionTest extends Specification {
       exp1.eval(Array(Seq("1","2","3","4").asJava)) mustEqual 2.5
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "find min" >> {
       val exp1 = Expression("min($1,$2,$3,$4)::int")
       exp1.apply(Array("","1","2","3","4")) mustEqual 1
+<<<<<<< HEAD
     }
     "find min of list" >> {
       val exp1 = Expression("min($0)::int")
@@ -11378,6 +11524,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     }
     "find min of list" >> {
       val exp1 = Expression("min($0)::int")
@@ -11392,15 +11539,19 @@ class ExpressionTest extends Specification {
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
     "find min of list" >> {
       val exp1 = Expression("min($0)::int")
       exp1.apply(Array(Seq("1","2","3","4").asJava)) mustEqual 1
-      exp1.eval(Array(Seq("1","2","3","4").asJava)) mustEqual 1
     }
     "find min of dates" >> {
       val exp1 = Expression("min($0,$1,$2)")
       exp1.apply(Array.tabulate(3)(i => new Date(i))) mustEqual new Date(0)
+<<<<<<< HEAD
       exp1.eval(Array.tabulate(3)(i => new Date(i))) mustEqual new Date(0)
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -11416,10 +11567,13 @@ class ExpressionTest extends Specification {
       exp1.eval(Array.tabulate(3)(i => new Date(i))) mustEqual new Date(0)
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "find max" >> {
       val exp1 = Expression("max($1,$2,$3,$4)::int")
       exp1.apply(Array("","1","2","3","4")) mustEqual 4
+<<<<<<< HEAD
     }
     "find max of list" >> {
       val exp1 = Expression("max($0)::int")
@@ -11434,6 +11588,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     }
     "find max of list" >> {
       val exp1 = Expression("max($0)::int")
@@ -11448,15 +11603,19 @@ class ExpressionTest extends Specification {
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
     "find max of list" >> {
       val exp1 = Expression("max($0)::int")
       exp1.apply(Array(Seq("1","2","3","4").asJava)) mustEqual 4
-      exp1.eval(Array(Seq("1","2","3","4").asJava)) mustEqual 4
     }
     "find max of dates" >> {
       val exp1 = Expression("max($0,$1,$2)")
       exp1.apply(Array.tabulate(3)(i => new Date(i))) mustEqual new Date(2)
+<<<<<<< HEAD
       exp1.eval(Array.tabulate(3)(i => new Date(i))) mustEqual new Date(2)
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -11472,6 +11631,8 @@ class ExpressionTest extends Specification {
       exp1.eval(Array.tabulate(3)(i => new Date(i))) mustEqual new Date(2)
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "allow for number formatting using printf" >> {
       val exp = Expression("printf('%.2f', divide($1,$2,$3))")
@@ -11585,6 +11746,7 @@ class ExpressionTest extends Specification {
       val result = ctx.evaluate(Array("", "5", "10"))
       result must beRight
       result.right.get mustEqual Array("5", "10", null, "10")
+<<<<<<< HEAD
     }
     "create lists" >> {
       val trans = Expression("list($0, $1, $2)")
@@ -11630,36 +11792,36 @@ class ExpressionTest extends Specification {
       ctx.set(1, "10")
       Expression("$b").eval(Array())(ctx) mustEqual null
       Expression("$bar").eval(Array())(ctx) mustEqual "10"
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "create lists" >> {
       val trans = Expression("list($0, $1, $2)")
-      foreach(Seq(trans.apply(Array("a", "b", "c")), trans.eval(Array("a", "b", "c")))) { res =>
-        res must not(beNull)
-        res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.List[String]]
-        res.asInstanceOf[java.util.List[String]].size() mustEqual 3
-        res.asInstanceOf[java.util.List[String]].asScala mustEqual List("a", "b", "c")
-      }
+      val res = trans.apply(Array("a", "b", "c"))
+      res must not(beNull)
+      res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.List[String]]
+      res.asInstanceOf[java.util.List[String]].size() mustEqual 3
+      res.asInstanceOf[java.util.List[String]].asScala mustEqual List("a", "b", "c")
     }
     "parse lists with default delimiter" >> {
       val trans = Expression("parseList('string', $0)")
-      foreach(Seq(trans.apply(Array("a,b,c")), trans.eval(Array("a,b,c")))) { res =>
-        res must not(beNull)
-        res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.List[String]]
-        res.asInstanceOf[java.util.List[String]].size() mustEqual 3
-        res.asInstanceOf[java.util.List[String]].asScala mustEqual List("a", "b", "c")
-      }
+      val res = trans.apply(Array("a,b,c"))
+      res must not(beNull)
+      res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.List[String]]
+      res.asInstanceOf[java.util.List[String]].size() mustEqual 3
+      res.asInstanceOf[java.util.List[String]].asScala mustEqual List("a", "b", "c")
     }
     "parse lists with custom delimiter" >> {
       val trans = Expression("parseList('string', $0, '%')")
-      foreach(Seq(trans.apply(Array("a%b%c")), trans.eval(Array("a%b%c")))) { res =>
-        res must not(beNull)
-        res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.List[String]]
-        res.asInstanceOf[java.util.List[String]].size() mustEqual 3
-        res.asInstanceOf[java.util.List[String]].asScala mustEqual List("a", "b", "c")
-      }
+      val res = trans.apply(Array("a%b%c"))
+      res must not(beNull)
+      res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.List[String]]
+      res.asInstanceOf[java.util.List[String]].size() mustEqual 3
+      res.asInstanceOf[java.util.List[String]].asScala mustEqual List("a", "b", "c")
     }
     "parse lists with numbers" >> {
       val trans = Expression("parseList('int', $0, '%')")
+<<<<<<< HEAD
       foreach(Seq(trans.apply(Array("1%2%3")), trans.eval(Array("1%2%3")))) { res =>
         res must not(beNull)
         res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.List[Int]]
@@ -11899,13 +12061,18 @@ class ExpressionTest extends Specification {
 <<<<<<< HEAD
 =======
 >>>>>>> 0d80bae0c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+      val res = trans.apply(Array("1%2%3"))
+      res must not(beNull)
+      res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.List[Int]]
+      res.asInstanceOf[java.util.List[Int]].size() mustEqual 3
+      res.asInstanceOf[java.util.List[Int]].asScala mustEqual List(1, 2, 3)
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "parse null lists" >> {
       val trans = Expression("parseList('int', $0)")
       trans.apply(Array(null)) must beNull
       trans.apply(Array("")) mustEqual Collections.emptyList[Int]()
-      trans.eval(Array(null)) must beNull
-      trans.eval(Array("")) mustEqual Collections.emptyList[Int]()
     }
     "parse null lists" >> {
       val trans = Expression("parseList('int', $0)")
@@ -12461,6 +12628,7 @@ class ExpressionTest extends Specification {
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
       trans.apply(Array(null)) must beNull
       trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -13851,6 +14019,8 @@ class ExpressionTest extends Specification {
       trans.apply(Array(null)) must beNull
       trans.apply(Array("")) mustEqual Collections.emptyMap[String, Int]()
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
     "throw exception for invalid map values" >> {
       val trans = Expression("parseMap('String->Int', $0)")
@@ -13952,6 +14122,7 @@ class ExpressionTest extends Specification {
       trans.apply(Array("foo'")) mustEqual "foo\""
       trans.apply(Array("f'o'o'")) mustEqual "f\"o\"o\""
       Expression("replace($0, 'a', 'o')").apply(Array("faa")) mustEqual "foo"
+<<<<<<< HEAD
     }
     "select a list item" >> {
       val exp = Expression("listItem($0,1)")
@@ -13970,6 +14141,7 @@ class ExpressionTest extends Specification {
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     }
     "select a list item" >> {
       val exp = Expression("listItem($0,1)")
@@ -13984,15 +14156,19 @@ class ExpressionTest extends Specification {
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6839f8efad (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     }
     "select a list item" >> {
       val exp = Expression("listItem($0,1)")
       exp.apply(Array(Seq(1000, 2000).asJava)) mustEqual 2000
-      exp.eval(Array(Seq(1000, 2000).asJava)) mustEqual 2000
     }
     "map a list" >> {
       val exp = Expression("transformListItems($0,'millisToDate($0)')")
       exp.apply(Array(Seq(1000, 2000).asJava)) mustEqual Seq(new Date(1000), new Date(2000)).asJava
+<<<<<<< HEAD
       exp.eval(Array(Seq(1000, 2000).asJava)) mustEqual Seq(new Date(1000), new Date(2000)).asJava
 =======
 >>>>>>> 74661c314 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -14008,6 +14184,8 @@ class ExpressionTest extends Specification {
       exp.eval(Array(Seq(1000, 2000).asJava)) mustEqual Seq(new Date(1000), new Date(2000)).asJava
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
   }
 }

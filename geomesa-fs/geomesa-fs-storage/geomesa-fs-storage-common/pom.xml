@@ -67,6 +67,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -370,6 +371,8 @@
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
         <version>4.1.0-SNAPSHOT</version>
 =======
 =======
@@ -1155,7 +1158,13 @@
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -1238,6 +1247,7 @@
             <artifactId>specs2-mock_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+<<<<<<< HEAD
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
         </dependency>
@@ -1248,6 +1258,10 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+=======
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
             <scope>test</scope>
         </dependency>
     </dependencies>

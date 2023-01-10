@@ -96,6 +96,7 @@ class MergedQueryRunner(
             case None => SelfClosingIterator(iters.iterator).flatMap(i => i)
             // the delegate stores should sort their results, so we can sort merge them
             case Some(sort) => new SortedMergeIterator(iters)(SimpleFeatureOrdering(resultSft, sort))
+<<<<<<< HEAD
           }
 
           maxFeatures match {
@@ -533,6 +534,16 @@ class MergedQueryRunner(
         }
         QueryResult(resultSft, hints, run)
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+          }
+
+          maxFeatures match {
+            case None => results
+            case Some(m) => results.take(m)
+          }
+        }
+        QueryResult(resultSft, hints, run)
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
       }
     }
   }

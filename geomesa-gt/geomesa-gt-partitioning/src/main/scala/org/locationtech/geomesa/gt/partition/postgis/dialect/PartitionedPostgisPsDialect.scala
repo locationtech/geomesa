@@ -234,6 +234,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
@@ -267,7 +268,12 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
   override protected def convertToArray(
       value: Any, componentTypeName: String, componentType: Class[_], connection: Connection): java.sql.Array = {
     val array = value match {

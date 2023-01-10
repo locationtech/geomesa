@@ -8,6 +8,10 @@
 
 package org.locationtech.geomesa.lambda
 
+<<<<<<< HEAD
+=======
+import com.typesafe.scalalogging.LazyLogging
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.util.factory.Hints
@@ -29,6 +33,11 @@ import org.specs2.runner.JUnitRunner
 
 import java.io.ByteArrayInputStream
 import java.util.Date
+<<<<<<< HEAD
+=======
+
+class LambdaDataStoreTest extends LambdaTest with LazyLogging {
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 
 <<<<<<< HEAD
 @RunWith(classOf[JUnitRunner])
