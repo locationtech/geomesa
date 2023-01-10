@@ -349,6 +349,7 @@ List and Map Functions
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
@@ -2867,6 +2868,8 @@ Encoding Functions
 >>>>>>> 17eaba2c47 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
@@ -4000,6 +4003,8 @@ Encoding Functions
 >>>>>>> ff17a571bc (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
@@ -4246,6 +4251,8 @@ Encoding Functions
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
 Encoding Functions
 ~~~~~~~~~~~~~~~~~~
