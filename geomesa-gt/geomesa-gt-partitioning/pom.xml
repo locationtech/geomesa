@@ -3,10 +3,13 @@
 
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
+<<<<<<< HEAD
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-partitioning/pom.xml
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-partitioning/pom.xml
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
         <artifactId>geomesa-gt_2.12</artifactId>
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -103,6 +106,7 @@
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>4.0.0-SNAPSHOT</version>
+<<<<<<< HEAD
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-features/geomesa-feature-nio/pom.xml
@@ -122,9 +126,20 @@
         <version>3.4.0-SNAPSHOT</version>
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration):geomesa-features/geomesa-feature-nio/pom.xml
 >>>>>>> f9c85b7d5 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> d19a0298a4 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> b081210161 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> a765947c645 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+=======
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7db4865b988 (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
