@@ -4294,6 +4294,7 @@ The PROJ mailing list can be found at:
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5884394.svg)](https://doi.org/10.5281/zenodo.5884394)
 
+<<<<<<< HEAD
 PROJ is a generic coordinate transformation software, that transforms
 coordinates from one coordinate reference system (CRS) to another.
 This includes cartographic projections as well as geodetic transformations.
@@ -4442,6 +4443,17 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 =======
 >>>>>>> 61d746ac2 ([maven-release-plugin] prepare for next development iteration)
 **Current release: [3.4.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.4.0)**
+=======
+**Current release: [3.5.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.5.0)**
+
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-hbase_2.12-3.5.0-bin.tar.gz) |
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-accumulo_2.12-3.5.0-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-cassandra_2.12-3.5.0-bin.tar.gz) |
+  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-kafka_2.12-3.5.0-bin.tar.gz) |
+  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-redis_2.12-3.5.0-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-fs_2.12-3.5.0-bin.tar.gz) |
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.4.0/geomesa-hbase_2.12-3.4.0-bin.tar.gz) |
@@ -4611,6 +4623,7 @@ might be more up-to-date.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 $ gpg2 --verify geomesa-accumulo_2.12-4.0.0-bin.tar.gz.asc geomesa-accumulo_2.12-4.0.0-bin.tar.gz
 =======
 $ gpg2 --verify geomesa-accumulo_2.12-3.4.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.4.0-bin.tar.gz
@@ -4645,6 +4658,9 @@ $ gpg2 --verify geomesa-accumulo_2.12-3.3.0-bin.tar.gz.asc geomesa-accumulo_2.12
 =======
 $ gpg2 --verify geomesa-accumulo_2.12-3.4.1-bin.tar.gz.asc geomesa-accumulo_2.12-3.4.1-bin.tar.gz
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+=======
+$ gpg2 --verify geomesa-accumulo_2.12-3.5.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.5.0-bin.tar.gz
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 ```
 =======
 ## Distribution files and format
@@ -4804,6 +4820,7 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>4.0.0</version>
 =======
   <version>3.4.0</version>
@@ -4893,6 +4910,9 @@ CDN.
   <version>3.4.1</version>
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+  <version>3.5.0</version>
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 </dependency>
 ```
 =======
@@ -6222,6 +6242,7 @@ DataStore implementations:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>4.0.0</version>
 =======
   <version>3.4.0</version>
@@ -6311,6 +6332,9 @@ DataStore implementations:
   <version>3.4.1</version>
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+  <version>3.5.0</version>
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
@@ -6336,6 +6360,7 @@ resolvers ++= Seq(
 
 // Select desired modules
 libraryDependencies ++= Seq(
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6443,11 +6468,15 @@ libraryDependencies ++= Seq(
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.4.1"
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+  "org.locationtech.geomesa" %% "geomesa-utils" % "3.5.0"
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 )
 ```
 
 ## Building from Source
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7712,6 +7741,9 @@ libraryDependencies ++= Seq(
 >>>>>>> 78d1db9c2 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+=======
+**Development version: 4.0.0-SNAPSHOT**
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
@@ -7738,9 +7770,13 @@ The project is built using Maven. To build, run:
 
     mvn clean install -DskipTests
 
+<<<<<<< HEAD
 The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
 
 To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
+=======
+The full build takes quite a while. To speed it up, you may skip tests and use multiple threads.
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 
 ### Build with Bloop Compile Server
 
@@ -7768,6 +7804,7 @@ environment variable to point to the root of your JDK. Example from a Mac:
 
 ### Scala Cross Build
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
 
@@ -32347,7 +32384,9 @@ See [CITATION](CITATION)
 See [CITATION](CITATION)
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 9172626758 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 97c0a174f3 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -34576,4 +34615,16 @@ See [CITATION](CITATION)
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 491ae81179 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> ee125b41b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+=======
+To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
+
+    ./build/change-scala-version.sh 2.13
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b66dc8a9bf (GEOMESA-3254 Add Bloop build support)

@@ -421,12 +421,15 @@ any part of the environment is upgraded to 4.0.0.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -434,6 +437,7 @@ Version 4.0.0 Upgrade Guide
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
@@ -446,6 +450,11 @@ Version 4.0.0 Upgrade Guide
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 Scala Versions
 --------------
 
@@ -463,6 +472,7 @@ GeoTools/GeoServer Versions
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -473,6 +483,8 @@ GeoTools/GeoServer Versions
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 717bb1864b (GEOMESA-3253 Include full dependency change list for 4.0.0)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 GeoTools has been upgraded from ``23.3`` to ``28.2``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.2``.
 =======
 GeoTools has been upgraded from ``23.3`` to ``28.0``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.0``.
@@ -491,6 +503,7 @@ GeoTools has been upgraded from ``23.3`` to ``28.0``. GeoServer has been upgrade
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -507,6 +520,8 @@ GeoTools has been upgraded from ``23.3`` to ``28.2``. GeoServer has been upgrade
 GeoTools has been upgraded from ``23.3`` to ``28.2``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.2``.
 >>>>>>> fa3c19722d (GEOMESA-3253 Include full dependency change list for 4.0.0)
 >>>>>>> 717bb1864b (GEOMESA-3253 Include full dependency change list for 4.0.0)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 JTS has been upgraded from ``1.17.0`` to ``1.19.0``.
 
 As part of this upgrade, various GeoTools methods have changed in incompatible ways. Several classes, in
@@ -526,12 +541,16 @@ see TODO commit hash link on github
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -541,6 +560,8 @@ see TODO commit hash link on github
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 
 * Apache Hadoop ``2.8.5`` -> ``2.10.2``
 * Apache Spark ``2.4.7`` -> ``3.3.1``
@@ -565,10 +586,13 @@ see TODO commit hash link on github
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -590,6 +614,7 @@ see TODO commit hash link on github
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -601,11 +626,15 @@ see TODO commit hash link on github
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 * Apache Avro ``1.8.2`` -> ``1.11.1``
 * Apache Parquet ``1.9.0`` -> ``1.12.3``
 * Apache Orc ``1.5.4`` -> ``1.8.1``
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -613,6 +642,8 @@ see TODO commit hash link on github
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 * Jedis ``3.0.1`` -> ``4.3.1``
 * Confluent ``5.1.0`` -> ``6.2.7``
 * Kryo ``3.0.3`` -> ``4.0.2``
@@ -653,12 +684,15 @@ Support for older versions of some libraries has been dropped. The following min
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dc6c9b2b22 (Add min library version to upgrade guide)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 51960ee4cb (Add min library version to upgrade guide)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -676,12 +710,16 @@ Support for older versions of some libraries has been dropped. The following min
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -711,6 +749,8 @@ Support for older versions of some libraries has been dropped. The following min
 >>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 =======
 >>>>>>> 51960ee4cb (Add min library version to upgrade guide)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 
 Removal of Deprecated Modules
 -----------------------------
@@ -736,6 +776,7 @@ In addition, various other deprecated classes and methods were removed. To ident
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -746,6 +787,8 @@ In addition, various other deprecated classes and methods were removed. To ident
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 717bb1864b (GEOMESA-3253 Include full dependency change list for 4.0.0)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 build your project against GeoMesa 3.5.1 and note any deprecation warnings generated by the compiler.
 =======
 build your project against GeoMesa 3.5.0 and note any deprecation warnings generated by the compiler.
@@ -764,6 +807,7 @@ build your project against GeoMesa 3.5.0 and note any deprecation warnings gener
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -780,6 +824,8 @@ build your project against GeoMesa 3.5.1 and note any deprecation warnings gener
 build your project against GeoMesa 3.5.1 and note any deprecation warnings generated by the compiler.
 >>>>>>> fa3c19722d (GEOMESA-3253 Include full dependency change list for 4.0.0)
 >>>>>>> 717bb1864b (GEOMESA-3253 Include full dependency change list for 4.0.0)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 
 Package Changes
 ---------------
@@ -810,12 +856,16 @@ The ``geomesa-accumulo2-nar`` has been replaced with ``geomesa-accumulo20-nar``,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -825,6 +875,8 @@ The ``geomesa-accumulo2-nar`` has been replaced with ``geomesa-accumulo20-nar``,
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 Scan Range Changes
 ------------------
 
@@ -840,12 +892,16 @@ large value. Setting ``geomesa.scan.ranges.recurse`` to ``7`` will restore the o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -861,6 +917,8 @@ large value. Setting ``geomesa.scan.ranges.recurse`` to ``7`` will restore the o
 =======
 >>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
 >>>>>>> b5c0452b13 (GEOMESA-3262 Postgis - add config to skip whole world filters)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 Partitioned PostGIS Query Changes
 ---------------------------------
 
@@ -874,6 +932,7 @@ information, refer to :ref:`postgis_filter_world`.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 75d5a347f8 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
@@ -881,18 +940,24 @@ information, refer to :ref:`postgis_filter_world`.
 =======
 >>>>>>> b5c0452b13 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -908,6 +973,8 @@ information, refer to :ref:`postgis_filter_world`.
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b5c0452b13 (GEOMESA-3262 Postgis - add config to skip whole world filters)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 Version 3.5.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
