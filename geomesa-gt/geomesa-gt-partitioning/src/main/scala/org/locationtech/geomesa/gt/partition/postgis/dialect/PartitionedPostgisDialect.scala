@@ -24,6 +24,7 @@ import org.geotools.util.factory.Hints
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
 =======
 =======
@@ -33,6 +34,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterV
 >>>>>>> d30ebb4092 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> 5e000da485 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -53,6 +56,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunct
 >>>>>>> e694961e05 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
 <<<<<<< HEAD
 >>>>>>> 1be2e3ecb (GEOMESA-3262 Postgis - add config to skip whole world filters)
@@ -67,6 +72,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterV
 >>>>>>> 5e000da48 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunctionVisitor
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> 91b820951 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -171,7 +178,11 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   override def getDesiredTablesType: Array[String] = Array("VIEW", "TABLE")
 
 =======
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
   // filter out the partition tables from exposed feature types
   override def includeTable(schemaName: String, tableName: String, cx: Connection): Boolean = {
     super.includeTable(schemaName, tableName, cx) && {
@@ -762,23 +773,51 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   }
 
   override def encodePostColumnCreateTable(att: AttributeDescriptor, sql: StringBuffer): Unit = {
-    super.encodePostColumnCreateTable(att, sql)
-    if (att.isJson()) {
-      // replace 'VARCHAR' with jsonb
-      val i = sql.lastIndexOf(" VARCHAR")
-      if (i == sql.length() - 8) {
-        sql.replace(i + 1, i + 8, "JSONB")
-      } else {
-        logger.warn(s"Found JSON-type attribute but no CHARACTER VARYING column binding: $sql")
-      }
-    } else if (att.isList) {
-      // go back and encode the array type in the CQL create statement
-      val i = sql.lastIndexOf(" ARRAY")
-      if (i == sql.length() - 6) {
-        sql.insert(i, " " + getListTypeMapping(att.getListType()))
-      } else {
-        logger.warn(s"Found list-type attribute but no ARRAY column binding: $sql")
-      }
+    att match {
+      case gd: GeometryDescriptor =>
+        val nullable = gd.getMinOccurs <= 0 || gd.isNillable
+        val i = sql.lastIndexOf("geometry")
+        // expect `geometry NOT NULL` or `geometry` depending on nullable flag
+        if (i == -1 || (nullable && i != sql.length() - 8) || (!nullable && i != sql.length() - 17)) {
+          logger.warn(s"Found geometry-type attribute but no geometry column binding: $sql")
+        } else {
+          val srid =
+            Option(gd.getUserData.get(JDBCDataStore.JDBC_NATIVE_SRID).asInstanceOf[Integer])
+                .orElse(Option(gd.getCoordinateReferenceSystem).flatMap(crs => Try(CRS.lookupEpsgCode(crs, true)).filter(_ != null).toOption))
+                .map(_.intValue())
+                .getOrElse(-1)
+          val geomType = PartitionedPostgisDialect.GeometryMappings.getOrElse(gd.getType.getBinding, "GEOMETRY")
+          val geomTypeWithDims =
+            Option(gd.getUserData.get(Hints.COORDINATE_DIMENSION).asInstanceOf[Integer]).map(_.intValue) match {
+              case None | Some(2) => geomType
+              case Some(3) => s"${geomType}Z"
+              case Some(4) => s"${geomType}ZM"
+              case Some(d) =>
+                throw new IllegalArgumentException(
+                  s"PostGIS only supports geometries with 2, 3 and 4 dimensions, but found: $d")
+            }
+          sql.insert(i + 8, s" ($geomTypeWithDims, $srid)")
+        }
+
+      case _ if att.isJson() =>
+        // replace 'VARCHAR' with jsonb
+        val i = sql.lastIndexOf(" VARCHAR")
+        if (i == sql.length() - 8) {
+          sql.replace(i + 1, i + 8, "JSONB")
+        } else {
+          logger.warn(s"Found JSON-type attribute but no CHARACTER VARYING column binding: $sql")
+        }
+
+      case _ if att.isList =>
+        // go back and encode the array type in the CQL create statement
+        val i = sql.lastIndexOf(" ARRAY")
+        if (i == sql.length() - 6) {
+          sql.insert(i, " " + getListTypeMapping(att.getListType()))
+        } else {
+          logger.warn(s"Found list-type attribute but no ARRAY column binding: $sql")
+        }
+
+      case _ => // no-op
     }
   }
 
@@ -925,7 +964,12 @@ object PartitionedPostgisDialect {
       def getPagesPerRange: Int = Option(sft.getUserData.get(PagesPerRange).asInstanceOf[String]).map(int).getOrElse(128)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
       def isFilterWholeWorld: Boolean = Option(sft.getUserData.get(FilterWholeWorld).asInstanceOf[String]).forall(_.toBoolean)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     }
 
     implicit class GeometryAttributeConversions(val d: GeometryDescriptor) extends AnyVal {
