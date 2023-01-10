@@ -46,6 +46,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
@@ -682,6 +683,9 @@
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -700,8 +704,12 @@
         <module>geomesa-accumulo-gs-plugin</module>
         <module>geomesa-accumulo-jobs</module>
         <module>geomesa-accumulo-spark</module>
+<<<<<<< HEAD
         <module>geomesa-accumulo-spark-runtime-accumulo20</module>
         <module>geomesa-accumulo-spark-runtime-accumulo21</module>
+=======
+        <module>geomesa-accumulo-spark-runtime-accumulo2</module>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         <module>geomesa-accumulo-tools</module>
     </modules>
 

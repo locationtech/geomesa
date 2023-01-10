@@ -46,9 +46,21 @@ First, set the version to use:
 Obtain GDELT data
 -----------------
 
+<<<<<<< HEAD
 The `GDELT Event database <https://www.gdeltproject.org>`__ provides a comprehensive time- and location-indexed
 archive of events reported in broadcast, print, and web news media worldwide from 1979 to today. GeoMesa ships
 with the ability to parse GDELT data, so it's a good data format for this tutorial. For more details,
+=======
+In this tutorial we will be ingesting GDELT data. If you already have some GDELT data downloaded, then
+you may skip this section.
+
+The `GDELT Event database <http://www.gdeltproject.org>`__ provides a comprehensive time- and location-indexed
+archive of events reported in broadcast, print, and web news media worldwide from 1979 to today. The raw GDELT
+version 1 data files are available to download at http://data.gdeltproject.org/events/index.html. The version 2
+files can be downloaded at http://data.gdeltproject.org/gdeltv2/masterfilelist.txt.
+
+GeoMesa ships with the ability to parse GDELT data, and a script for downloading it. For more details,
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 see :ref:`gdelt_converter`.
 
 Run the following commands to download a recent GDELT file:
