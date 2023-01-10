@@ -10,10 +10,14 @@ Commands
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 .. _postgis_partition_upgrade:
 
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 .. _postgis_partition_upgrade:
 
@@ -24,6 +28,8 @@ Commands
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 ``partition-upgrade``
 ^^^^^^^^^^^^^^^^^^^^^
 

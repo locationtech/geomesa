@@ -391,8 +391,7 @@ Then download and extract the binary distribution:
 .. parsed-literal::
 
     $ export TAG="|release_version|"
-    # note: |scala_binary_version| is the Scala build version
-    $ export VERSION="|scala_binary_version|-${TAG}"
+    $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 
 Then download and extract the binary distribution:
 >>>>>>> 983d0b0983 (GEOMESA-3176 Docs - fix download links in install instructions)
