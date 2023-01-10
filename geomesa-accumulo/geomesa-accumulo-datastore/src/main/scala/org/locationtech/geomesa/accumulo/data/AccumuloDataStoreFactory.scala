@@ -36,6 +36,7 @@ import org.geotools.data.{DataStoreFactorySpi, Parameter}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -61,20 +62,27 @@ import org.geotools.data.{DataStoreFactorySpi, Parameter}
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> 6e002b864a (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 >>>>>>> c8c725f832f (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 53f64a9fef (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> addb5c4adcc (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 =======
 =======
 >>>>>>> c8c725f832f (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -104,7 +112,14 @@ import org.geotools.data.{DataStoreFactorySpi, Parameter}
 =======
 =======
 >>>>>>> 6e002b864a (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+<<<<<<< HEAD
 >>>>>>> c8c725f832f (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
 =======
 import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterProperties
@@ -131,6 +146,9 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterPropertie
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -138,6 +156,7 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterPropertie
 import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
 >>>>>>> 585c5638c0 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 >>>>>>> 53f64a9fef (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -156,6 +175,10 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperti
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 6e002b864a (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
@@ -396,12 +419,17 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -409,11 +437,15 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -424,6 +456,8 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 
     // verify that the configured auths are valid for the connector we are using (fail-fast)
     val invalidAuths = configuredAuths.filterNot(masterAuths.contains)
