@@ -96,7 +96,7 @@ object XmlConverter extends StrictLogging {
     if (namespaces.nonEmpty) {
       xpath.setNamespaceContext(new NamespaceContext() {
         override def getPrefix(namespaceURI: String): String = null
-        override def getPrefixes(namespaceURI: String): java.util.Iterator[_] = null
+        override def getPrefixes(namespaceURI: String): java.util.Iterator[String] = null
         override def getNamespaceURI(prefix: String): String = namespaces.getOrElse(prefix, null)
       })
     }

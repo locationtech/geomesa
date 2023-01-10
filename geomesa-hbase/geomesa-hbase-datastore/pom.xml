@@ -85,10 +85,29 @@
             <version>${hbase.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- used by hadoop-minicluster -->
+        <!-- hard coded by hbase minicluster -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.19.0</version><!-- latest version as of 2023/01 -->
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.19.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- used by hadoop minicluster -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.2.3</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
