@@ -65,6 +65,7 @@ object EnrichmentCacheFunctionFactory {
 =======
     }
 
+<<<<<<< HEAD
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
       val cache = ec.cache(args(0).asInstanceOf[String])
       cache.get(Array(args(1).asInstanceOf[String], args(2).asInstanceOf[String]))
