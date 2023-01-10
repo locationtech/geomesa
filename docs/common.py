@@ -224,6 +224,7 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -243,9 +244,14 @@ rst_epilog = """
 =======
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -254,6 +260,8 @@ rst_epilog = """
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 1ea8b10ac7 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 6d9a5b626 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -274,6 +282,7 @@ rst_epilog = """
 =======
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -307,6 +316,10 @@ rst_epilog = """
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 .. |geoserver_version| replace:: %(geoserver_version)s
 =======
 <<<<<<< HEAD
@@ -371,6 +384,7 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -396,6 +410,10 @@ rst_epilog = """
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -491,6 +509,7 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -499,10 +518,17 @@ rst_epilog = """
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 .. |maven_version| replace:: 3.5.2 or later
 
 .. |geoserver_version| replace:: 2.22.0
@@ -587,6 +613,7 @@ rst_epilog = """
 >>>>>>> a1f15598cb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -756,26 +783,46 @@ rst_epilog = """
 >>>>>>> b1f71c0764 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 .. |maven_version| replace:: 3.5.2 or later
 
-.. |geoserver_version| replace:: 2.17.3
+.. |geoserver_version| replace:: 2.22.0
 
-.. |geotools_version| replace:: 23.x
+.. |geotools_version| replace:: 28.0
 
-.. |accumulo_required_version| replace:: 1.7.x, 1.8.x, 1.9.x or 2.0.x
+.. |accumulo_required_version| replace:: 2.0.x
 
-.. |accumulo_supported_versions| replace:: versions 1.7.x, 1.8.x, 1.9.x and 2.0.x
+.. |accumulo_supported_versions| replace:: version 2.0.x
 
-.. |hbase_required_version| replace::  1.4.x or 2.2.x
+.. |hbase_required_version| replace::  1.4.x or 2.4.x
 
-.. |hbase_supported_versions| replace:: versions 1.4.x and 2.2.x
+.. |hbase_supported_versions| replace:: versions 1.4.x and 2.4.x
 
+<<<<<<< HEAD
 .. |hbase_bundled_version| replace:: 2.2.3
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 1bb69524c2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> a5b0374ee2 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 48cd142036c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+=======
+=======
+=======
+.. |hbase_bundled_version| replace:: 2.4.4
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 
 .. |hadoop_version| replace:: 2.8 or later
 
@@ -795,12 +842,17 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -808,11 +860,15 @@ rst_epilog = """
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
@@ -823,6 +879,8 @@ rst_epilog = """
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 
 .. |redis_supported_versions| replace:: versions 5.0 and later
 
@@ -4206,6 +4264,13 @@ rst_epilog = """
 >>>>>>> 2586fa6a40 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d329320e6a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 .. |release_version| replace:: %(release_version)s
+=======
+.. |redis_version| replace:: 5.0.x or later
+
+.. |spark_required_version| replace:: 3.3.x
+
+.. |spark_supported_versions| replace:: version 3.3.x
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9856,6 +9921,7 @@ rst_epilog = """
        "scala_binary_version": scala_binary_version,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -9876,10 +9942,24 @@ rst_epilog = """
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
        "url_github_archive": url_github_archive}
 
 # The language for content autogenerated by Sphinx. Refer to documentation
