@@ -51,7 +51,6 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |      LOCK TABLE ONLY ${table.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |
        |      -- don't re-create the table if there hasn't been any data inserted
-<<<<<<< HEAD
        |      EXECUTE 'SELECT EXISTS(SELECT 1 FROM ${info.schema.quoted}.' || quote_ident(cur_partition) || ')'
        |          INTO pexists;
        |      IF pexists THEN
@@ -71,6 +70,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48c6002574 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
@@ -79,6 +79,8 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 >>>>>>> 85b4d3f0dc (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> a9343b6734 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
        |      -- call to format fixes errors with non-lower-case identifiers
        |      IF EXISTS(SELECT 1 FROM $writePartition) THEN
@@ -95,6 +97,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 =======
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 203dda21b9 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -116,6 +119,10 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
 >>>>>>> a9343b6734 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 495444cdb7 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
        |
        |        -- format the table name to be 3 digits, with leading zeros as needed
        |        next_partition := ${literal(table.name.raw + "_")} || lpad(seq_val::text, 3, '0');
