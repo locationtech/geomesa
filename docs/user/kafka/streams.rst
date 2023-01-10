@@ -30,7 +30,6 @@ The following is adapted from the word-count `example`__ in Kafka Streams:
 
 __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.html#scala-dsl-sample-usage
 
-<<<<<<< HEAD
 .. tabs::
 <<<<<<< HEAD
 
@@ -91,6 +90,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
         Topology topology = builder.build();
         // construct the streams app as normal
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -200,13 +200,14 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
     // construct the streams app as normal
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 
 Write Example
 -------------
 
 The following shows how to persist data back to a GeoMesa topic:
 
-<<<<<<< HEAD
 .. tabs::
 <<<<<<< HEAD
 
@@ -264,6 +265,7 @@ The following shows how to persist data back to a GeoMesa topic:
 
         Topology topology = builder.build();
         // construct the streams app as normal
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -369,6 +371,8 @@ The following shows how to persist data back to a GeoMesa topic:
     // construct the streams app as normal
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 
 Joins and Topic Partitioning
 ----------------------------
