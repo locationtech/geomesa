@@ -464,6 +464,7 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
@@ -499,6 +500,8 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
@@ -510,6 +513,7 @@ class MergedFeatureSourceView(
 >>>>>>> 4c216bcec1 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -555,6 +559,10 @@ class MergedFeatureSourceView(
 =======
 >>>>>>> 5db8123db2 (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 =======
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 =======
@@ -2418,6 +2426,7 @@ class MergedFeatureSourceView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7ef901b98e (GEOMESA-3153 Fix merged view to only expand bounds on non-null bounds (#2814))
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -2569,6 +2578,9 @@ class MergedFeatureSourceView(
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
     bounds
   }
 
