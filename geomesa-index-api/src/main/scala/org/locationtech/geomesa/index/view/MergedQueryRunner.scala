@@ -51,6 +51,7 @@ import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureItera
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -82,6 +83,10 @@ import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureItera
 =======
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 import org.locationtech.geomesa.utils.stats._
 <<<<<<< HEAD
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -94,6 +99,9 @@ import org.locationtech.geomesa.utils.stats._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -142,6 +150,7 @@ import org.locationtech.geomesa.utils.stats._
 >>>>>>> b51333ce3c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -201,6 +210,8 @@ import org.locationtech.geomesa.utils.stats._
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> b51333ce3c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> e5abfb88a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 >>>>>>> 3ae745d8b6a (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -707,11 +718,11 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
   // query interceptors are handled by the individual data stores
   override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
 
-<<<<<<< HEAD
   override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryResult = {
 <<<<<<< HEAD
     // TODO deduplicate arrow, bin, density queries...
     // get view params and threaded query hints
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -751,6 +762,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 4623d9a687 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d36d85cd8e (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -763,6 +776,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -787,6 +801,10 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 4010468d90 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
   override def runQuery(
       sft: SimpleFeatureType,
       original: Query,
@@ -841,8 +859,11 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e5abfb88a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
@@ -877,10 +898,14 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 >>>>>>> b51333ce3c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -929,6 +954,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> e5abfb88a2 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
     val query = configureQuery(sft, original)
     val hints = query.getHints
     val maxFeatures = if (query.isMaxFeaturesUnlimited) { None } else { Option(query.getMaxFeatures) }
@@ -944,8 +971,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
       // query each delegate store
       lazy val readers = stores.map { case (store, filter) =>
         // make sure to coy the hints so they aren't shared
-<<<<<<< HEAD
         store.getFeatureReader(mergeFilter(sft, new Query(query), filter), Transaction.AUTO_COMMIT)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -994,6 +1021,10 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
         q.setHints(new Hints(hints))
         store.getFeatureReader(mergeFilter(sft, q, filter), Transaction.AUTO_COMMIT)
 <<<<<<< HEAD
@@ -1007,6 +1038,9 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1053,6 +1087,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -1137,6 +1172,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 85e1bb3bb8 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
       }
 
       if (hints.isDensityQuery) {
@@ -1149,7 +1186,6 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         }
         QueryResult(BinaryOutputEncoder.BinEncodedSft, hints, () => binQuery(sft, readers, hints))
       } else {
-<<<<<<< HEAD
         val resultSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
         def run(): CloseableIterator[SimpleFeature] = {
           val iters =
@@ -1194,13 +1230,17 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 38876e069f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1218,6 +1258,10 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 =======
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
         val iters =
           if (deduplicate) {
             // we re-use the feature id cache across readers
@@ -1533,6 +1577,9 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
@@ -5035,7 +5082,12 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 595c43086 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> f9397984eb (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 917dff0811 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 7e71095843 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
       }
     }
   }
@@ -5085,7 +5137,6 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 
     // now that we have standardized dictionaries, we can query the delegate stores
     val readers = stores.map { case (store, filter) =>
-<<<<<<< HEAD
       // copy the query so hints aren't shared
       store.getFeatureReader(mergeFilter(sft, new Query(query), filter), Transaction.AUTO_COMMIT)
 <<<<<<< HEAD
@@ -5109,6 +5160,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -5124,6 +5176,8 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> b71311c31d (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> bdd2bd6424 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -5136,6 +5190,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 >>>>>>> 6f8af866fb (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -5240,6 +5295,10 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> c5c38a96d0 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 83eb282a5c (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
       val q = new Query(query)
       q.setHints(new Hints(hints))
       store.getFeatureReader(mergeFilter(sft, q, filter), Transaction.AUTO_COMMIT)
@@ -5260,10 +5319,13 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 >>>>>>> 051bc58bcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 39517d146a (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 =======
 >>>>>>> 85e1bb3bb8 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -5305,7 +5367,14 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
 =======
 =======
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 >>>>>>> 85e1bb3bb8 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
     }
 
     def getSingle(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): CloseableIterator[SimpleFeature] = {
