@@ -353,6 +353,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
 =======
@@ -1049,6 +1050,8 @@
 >>>>>>> 92de70f11b5 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> b04fe1fccc7 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 3e69abb0ab0 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
@@ -1749,6 +1752,8 @@
 >>>>>>> 930c1d4d188 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> de29d2e6142 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a84b894f501 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> 67c850bb2f ([maven-release-plugin] prepare for next development iteration)
@@ -2900,7 +2905,12 @@
 =======
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> de29d2e6142 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+>>>>>>> a84b894f501 (GEOMESA-3254 Add Bloop build support)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.4.0-SNAPSHOT</version>
@@ -6485,6 +6495,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> e82f13f69b9 (GEOMESA-3254 Add Bloop build support)
@@ -6494,6 +6505,8 @@
 >>>>>>> 83363fd6e61 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a84b894f501 (GEOMESA-3254 Add Bloop build support)
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -13933,8 +13946,16 @@
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> de29d2e6142 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> b04fe1fccc7 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+>>>>>>> a84b894f501 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 3e69abb0ab0 (GEOMESA-3254 Add Bloop build support)
     </parent>
 
     <artifactId>geomesa-hbase-distributed-runtime-hbase2_2.12</artifactId>
