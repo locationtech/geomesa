@@ -8,6 +8,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 package org.locationtech.geomesa.tools.`export`
 =======
 package org.locationtech.geomesa.tools.export
@@ -15,6 +16,12 @@ package org.locationtech.geomesa.tools.export
 =======
 package org.locationtech.geomesa.tools.`export`
 >>>>>>> 83c1777325 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+=======
+package org.locationtech.geomesa.tools.`export`
+=======
+package org.locationtech.geomesa.tools.export
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
@@ -42,12 +49,18 @@ import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
 import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 >>>>>>> 83c1777325 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+=======
+import org.locationtech.geomesa.index.TestGeoMesaDataStore
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.export.formats.ExportFormat
@@ -112,13 +125,20 @@ class ExportCommandTest extends Specification with Retries {
         .addFeatures(new ListFeatureCollection(sft, features.map(ScalaSimpleFeature.copy): _*))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
     ds.getEntry(sft.getName).asInstanceOf[MemoryEntry].getMemory.asScala.foreach { case (_, feature) =>
       feature.getUserData.clear() // clear out the 'original feature' which causes serialization issues...
     }
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 83c1777325 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
   }
 
   "Export command" should {

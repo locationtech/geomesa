@@ -22,10 +22,13 @@ set -e
 VALID_VERSIONS=("2.12" "2.13")
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 FULL_VERSIONS=("2.12.19" "2.13.12") # note: 2.13.13 breaks the zinc compile server
 =======
 =======
 >>>>>>> ce69a697516 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 FULL_VERSIONS=("2.12.17" "2.13.10")
 =======
@@ -37,7 +40,16 @@ FULL_VERSIONS=("2.12.13" "2.13.10")
 =======
 FULL_VERSIONS=("2.12.17" "2.13.10")
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 >>>>>>> ce69a697516 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+FULL_VERSIONS=("2.12.17" "2.13.10")
+=======
+FULL_VERSIONS=("2.12.13" "2.13.10")
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
 
 usage() {
   echo "Usage: $(basename "$0") [-h|--help] <version>
