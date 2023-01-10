@@ -12,10 +12,13 @@ Commands
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9bd39d5310 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 .. _postgis_partition_upgrade:
 
 =======
@@ -29,16 +32,22 @@ Commands
 
 >>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 .. _postgis_partition_upgrade:
 
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9bd39d5310 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 ``partition-upgrade``
 ^^^^^^^^^^^^^^^^^^^^^
 
