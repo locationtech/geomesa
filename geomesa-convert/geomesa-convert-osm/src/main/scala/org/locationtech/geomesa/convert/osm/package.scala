@@ -98,6 +98,7 @@ package object osm {
     override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
       transforms match {
@@ -111,6 +112,8 @@ package object osm {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
     private def values(args: Array[AnyRef]): AnyRef = args(lookup)
   }
 
