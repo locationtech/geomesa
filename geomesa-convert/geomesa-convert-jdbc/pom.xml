@@ -46,6 +46,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -132,6 +133,8 @@
 >>>>>>> 12a626bb844 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 41b0b79cc0d (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
 =======
@@ -895,7 +898,13 @@
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 41b0b79cc0d (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -917,6 +926,7 @@
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+<<<<<<< HEAD
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
         </dependency>
@@ -927,6 +937,10 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+=======
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -53,6 +53,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -139,6 +140,8 @@
 >>>>>>> 12a626bb844 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 41b0b79cc0d (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
     <version>4.1.0-SNAPSHOT</version>
 =======
@@ -902,7 +905,13 @@
 =======
     <version>4.0.0-SNAPSHOT</version>
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+    <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 41b0b79cc0d (GEOMESA-3254 Add Bloop build support)
 
     <licenses>
         <license>
@@ -934,7 +943,11 @@
         <module>geomesa-security</module>
         <module>geomesa-spark</module>
         <module>geomesa-tools</module>
+<<<<<<< HEAD
         <module>geomesa-utils-parent</module>
+=======
+        <module>geomesa-utils</module>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         <module>geomesa-z3</module>
         <module>docs</module>
     </modules>
@@ -949,6 +962,7 @@
         <scala.xml.version>2.2.0</scala.xml.version>
         <scala.parsers.version>2.3.0</scala.parsers.version>
 
+<<<<<<< HEAD
         <!-- geotools -->
         <gt.version>30.2</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
         <geoserver.version>2.24.2</geoserver.version>
@@ -1002,6 +1016,73 @@
         <json.smart.version>2.5.0</json.smart.version> <!-- used by json-path and hadoop-auth -->
         <netty.version>4.1.106.Final</netty.version>
         <commons.cli.version>1.6.0</commons.cli.version>
+=======
+        <scala.xml.version>2.1.0</scala.xml.version>
+        <scala.parsers.version>2.1.1</scala.parsers.version>
+
+<<<<<<< HEAD
+        <gt.version>28.2</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
+        <geoserver.version>2.22.2</geoserver.version>
+        <jts.version>1.19.0</jts.version> <!-- needs to track with gt/gs version -->
+        <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
+        <ejml.version>0.41</ejml.version> <!-- needs to track with gt/gs version -->
+        <postgres.version>42.5.1</postgres.version>
+        <avro.version>1.11.1</avro.version> <!-- see also confluent.avro.version -->
+        <parquet.version>1.12.3</parquet.version>
+        <orc.version>1.8.2</orc.version>
+=======
+        <gt.version>28.0</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
+        <geoserver.version>2.22.0</geoserver.version>
+        <jts.version>1.19.0</jts.version> <!-- needs to track with gt/gs version -->
+        <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
+        <ejml.version>0.41</ejml.version> <!-- needs to track with gt/gs version -->
+        <avro.version>1.11.1</avro.version> <!-- see also confluent.avro.version -->
+        <parquet.version>1.12.3</parquet.version>
+        <orc.version>1.8.1</orc.version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+        <fasterxml.jackson.version>2.14.1</fasterxml.jackson.version> <!-- used by geoserver (2.13.2), spark (2.6.7) and arrow (2.7.1) -->
+        <fasterxml.jackson.databind.version>2.14.1</fasterxml.jackson.databind.version> <!-- used by geoserver (2.13.4.1), spark (2.6.7.1) and arrow (2.7.1) -->
+        <codehaus.jackson.version>1.9.3</codehaus.jackson.version>
+        <json4s.version>3.6.12</json4s.version> <!-- version 4+ causes issues with spark 3.3 -->
+        <kryo.version>4.0.2</kryo.version>
+<<<<<<< HEAD
+        <arrow.version>11.0.0</arrow.version>
+=======
+        <arrow.version>10.0.1</arrow.version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+        <netty.version>4.1.85.Final</netty.version>
+        <metrics.version>3.2.6</metrics.version>
+        <aws.sdk.version>1.11.421</aws.sdk.version>
+        <hsql.version>2.4.1</hsql.version> <!-- newer versions (at least 2.7+) require java 11 -->
+<<<<<<< HEAD
+        <h2.version>2.2.220</h2.version>
+        <curator.version>4.3.0</curator.version> <!-- last version that supports zk 3.4 -->
+        <json.smart.version>2.4.8</json.smart.version> <!-- used by json-path (2.2.1) and hadoop-auth (2.3)-->
+        <json.path.version>2.7.0</json.path.version>
+        <spring.security.version>5.8.3</spring.security.version> <!-- geoserver ships with 5.1.13.RELEASE but that has several CVEs against it -->
+=======
+        <h2.version>2.1.214</h2.version>
+        <curator.version>4.3.0</curator.version> <!-- last version that supports zk 3.4 -->
+        <json.smart.version>2.4.8</json.smart.version> <!-- used by json-path (2.2.1) and hadoop-auth (2.3)-->
+        <json.path.version>2.7.0</json.path.version>
+        <spring.security.version>5.8.0</spring.security.version> <!-- geoserver ships with 5.1.13.RELEASE but that has several CVEs against it -->
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+        <gson.version>2.10</gson.version>
+        <caffeine.version>2.9.3</caffeine.version> <!-- version 3+ requires java 11 -->
+        <mango.version>3.0.0</mango.version>
+        <typesafe.config.version>1.4.2</typesafe.config.version>
+        <pureconfig.version>0.17.2</pureconfig.version>
+        <commons.csv.version>1.9.0</commons.csv.version>
+        <commons.io.version>2.8.0</commons.io.version> <!-- This should match what Hadoop uses (and thus Hbase and Accumulo) -->
+<<<<<<< HEAD
+        <commons.compress.version>1.22</commons.compress.version>
+=======
+        <commons.compress.version>1.20</commons.compress.version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+        <commons.cli.version>1.2</commons.cli.version>
+        <commons.lang.version>2.6</commons.lang.version>
+        <commons.lang3.version>3.8.1</commons.lang3.version>
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
         <commons.collections.version>3.2.2</commons.collections.version>
         <commons.collections4.version>4.4</commons.collections4.version>
         <commons.lang.version>2.6</commons.lang.version>
@@ -1015,6 +1096,7 @@
         <!-- needs to track hadoop: https://github.com/apache/hadoop/blob/release-3.3.6-RC1/hadoop-project/pom.xml#L1279C18-L1279C24 -->
         <hadoop.minicluster.mockito.version>2.28.2</hadoop.minicluster.mockito.version>
 
+<<<<<<< HEAD
         <!-- provided artifacts, not bundled to support multiple environments -->
         <accumulo.version>2.1.2</accumulo.version>
         <accumulo-20.version>2.0.1</accumulo-20.version>
@@ -1036,6 +1118,42 @@
         <sedona.h3.version>4.1.1</sedona.h3.version>
         <jts2geojson.version>0.16.1</jts2geojson.version> <!-- for testing Apache Sedona integration -->
         <snappy.java.version>1.1.10.5</snappy.java.version>
+=======
+        <!-- *** provided artifacts, not bundled to support multiple environments *** -->
+
+        <accumulo.version>2.0.1</accumulo.version>
+<<<<<<< HEAD
+        <accumulo-21.version>2.1.1</accumulo-21.version>
+        <zookeeper.version>3.5.10</zookeeper.version>
+        <thrift.version>0.12.0</thrift.version>
+        <thrift-accumulo-21.version>0.17.0</thrift-accumulo-21.version>
+        <hadoop.version>2.10.2</hadoop.version>
+        <spark.version>3.3.1</spark.version>
+        <hbase.version>2.5.2</hbase.version>
+        <hbase-1.version>1.4.14</hbase-1.version>
+=======
+        <zookeeper.version>3.5.10</zookeeper.version>
+        <thrift.version>0.12.0</thrift.version>
+        <hadoop.version>2.10.2</hadoop.version>
+        <spark.version>3.3.1</spark.version>
+        <hbase.version>2.4.4</hbase.version>
+        <hbase-1.version>1.4.13</hbase-1.version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+        <protobuf.version>2.5.0</protobuf.version>
+        <cassandra.version>3.11.3</cassandra.version>
+        <kafka.version>2.8.2</kafka.version>
+        <zkclient.version>0.11</zkclient.version>
+        <kafka.jopt.version>5.0.4</kafka.jopt.version>
+        <confluent.version>6.2.7</confluent.version> <!-- corresponds to kafka 2.8 -->
+        <confluent.recommended.version>6.2.7</confluent.recommended.version>
+        <confluent.avro.version>1.11.1</confluent.avro.version>
+<<<<<<< HEAD
+        <sedona.version>1.3.1-incubating</sedona.version>
+        <sedona.spark.version>3.0</sedona.spark.version>
+        <jts2geojson.version>0.16.1</jts2geojson.version> <!-- for testing Apache Sedona integration -->
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 
         <!-- guava - versions vary across environments -->
         <guava.version>${geotools.guava.version}</guava.version>
@@ -1090,6 +1208,7 @@
 =======
         <maven.test.jvmargs>${maven.test.memory}</maven.test.jvmargs> <!--for java 11+: &#45;&#45;add-opens=java.base/java.nio=ALL-UNNAMED-->
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         <maven.test.jvmargs>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.jvmargs>
 <<<<<<< HEAD
@@ -1099,6 +1218,8 @@
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         <test.fork.count>4</test.fork.count>
         <test.fork.reuse>true</test.fork.reuse>
         <!-- arrow tests become extremely slow with assertions enabled-->
@@ -1112,6 +1233,7 @@
 
         <!-- documentation -->
         <!-- bump version right before performing releases for the README and the documentation -->
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1265,6 +1387,8 @@
 >>>>>>> e048f0e5775 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b7925a7bdc5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 8d17c775453 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
         <geomesa.release.version>4.0.4</geomesa.release.version>
 <<<<<<< HEAD
@@ -1689,6 +1813,10 @@
 =======
         <geomesa.release.version>3.4.1</geomesa.release.version>
         <geomesa.devel.version>3.5.0-SNAPSHOT</geomesa.devel.version>
+=======
+        <geomesa.release.version>3.5.0</geomesa.release.version>
+        <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         <copyright.year>2022</copyright.year>
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -2023,6 +2151,7 @@
 >>>>>>> c8d2cfae9c (GEOMESA-3254 Add Bloop build support)
 
         <!-- recommended installation versions -->
+<<<<<<< HEAD
         <accumulo.version.recommended>2.1.2</accumulo.version.recommended>
         <hbase.version.recommended>2.5.7</hbase.version.recommended>
         <hbase.thirdparty.version.recommended>4.1.5</hbase.thirdparty.version.recommended>
@@ -2031,6 +2160,24 @@
         <hadoop.version.recommended>3.3.6</hadoop.version.recommended>
         <zookeeper.version.recommended>3.9.1</zookeeper.version.recommended>
         <confluent.version.recommended>7.6.0</confluent.version.recommended>
+=======
+<<<<<<< HEAD
+        <accumulo.version.recommended>2.1.1</accumulo.version.recommended>
+        <hbase.version.recommended>2.5.2</hbase.version.recommended>
+        <hbase.thirdparty.version.recommended>4.1.3</hbase.thirdparty.version.recommended>
+        <cassandra.server.version.recommended>3.11.14</cassandra.server.version.recommended>
+        <cassandra.driver.version.recommended>3.11.3</cassandra.driver.version.recommended>
+        <hadoop.version.recommended>3.3.4</hadoop.version.recommended>
+=======
+        <accumulo.version.recommended>2.0.1</accumulo.version.recommended>
+        <hbase.version.recommended>2.4.4</hbase.version.recommended>
+        <hbase.thirdparty.version.recommended>2.2.1</hbase.thirdparty.version.recommended>
+        <cassandra.server.version.recommended>3.11.8</cassandra.server.version.recommended>
+        <cassandra.driver.version.recommended>3.10.2</cassandra.driver.version.recommended>
+        <hadoop.version.recommended>3.2.4</hadoop.version.recommended>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+        <zookeeper.version.recommended>3.5.10</zookeeper.version.recommended>
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
     </properties>
 
     <profiles>
@@ -2132,6 +2279,7 @@
         </profile>
 
         <profile>
+<<<<<<< HEAD
             <id>dash</id>
             <pluginRepositories>
                 <pluginRepository>
@@ -2145,6 +2293,7 @@
         </profile>
 
         <profile>
+<<<<<<< HEAD
             <id>cyclonedx</id>
             <build>
                 <plugins>
@@ -2171,6 +2320,10 @@
         </profile>
 
         <profile>
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> d2a4c21745 (GEOMESA-3254 Add Bloop build support)
             <id>bloop</id>
             <properties>
                 <scala.maven.plugin.version>4.8.0</scala.maven.plugin.version>
@@ -2641,11 +2794,14 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+<<<<<<< HEAD
                 <artifactId>geomesa-hadoop-utils_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
                 <artifactId>geomesa-z3_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -2831,7 +2987,11 @@
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
+<<<<<<< HEAD
                 <version>${postgres.version}</version>
+=======
+                <version>42.4.1</version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -3129,6 +3289,23 @@
                 <artifactId>gt-gml-geometry-streaming</artifactId>
                 <version>${gt.version}</version>
             </dependency>
+<<<<<<< HEAD
+=======
+            <!--gt-http-27.2.jar
+            gt-http-commons-27.2.jar
+            gt-image-27.2.jar
+            gt-process-raster-27.2.jar
+            gt-property-27.2.jar
+            gt-svg-27.2.jar
+            gt-tile-client-27.2.jar
+            gt-wfs-ng-27.2.jar
+            gt-wms-27.2.jar
+            gt-wmts-27.2.jar
+            gt-xsd-sld-27.2.jar
+            gt-xsd-wcs-27.2.jar
+            gt-xsd-wmts-27.2.jar-->
+
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
             <dependency>
                 <groupId>org.apache.accumulo</groupId>
@@ -3356,7 +3533,12 @@
             <dependency>
                 <groupId>redis.clients</groupId>
                 <artifactId>jedis</artifactId>
+<<<<<<< HEAD
                 <version>${jedis.version}</version>
+=======
+                <version>4.3.1</version>
+<<<<<<< HEAD
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issue -->
@@ -3365,6 +3547,8 @@
                         <artifactId>json</artifactId>
                     </exclusion>
                 </exclusions>
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
             </dependency>
             <dependency>
                 <groupId>io.sgr</groupId>
@@ -3788,6 +3972,7 @@
                     </exclusion>
                 </exclusions>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -3796,6 +3981,8 @@
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
             </dependency>
             <dependency>
                 <groupId>org.apache.thrift</groupId>
@@ -4016,12 +4203,15 @@
             </dependency>
             <!-- transitive dependency of hadoop 2.x -->
             <dependency>
+<<<<<<< HEAD
                 <groupId>xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
                 <version>2.12.2</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka_${scala.binary.version}</artifactId>
                 <version>${kafka.version}</version>
@@ -4181,11 +4371,14 @@
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-log4j12</artifactId>
                     </exclusion>
+<<<<<<< HEAD
                     <!-- excluded due to license issues: https://gitlab.eclipse.org/eclipsefdn/emo-team/iplab/-/issues/10246 -->
                     <exclusion>
                         <groupId>org.mortbay.jetty</groupId>
                         <artifactId>jsp-api-2.1</artifactId>
                     </exclusion>
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
                 </exclusions>
             </dependency>
             <dependency>
@@ -4621,7 +4814,12 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-all</artifactId>
+<<<<<<< HEAD
                 <version>1.10.19</version>
+=======
+                <version>1.8.5</version>
+<<<<<<< HEAD
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -4640,6 +4838,8 @@
                 <groupId>org.testcontainers</groupId>
                 <artifactId>kafka</artifactId>
                 <version>${testcontainers.version}</version>
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
                 <scope>test</scope>
             </dependency>
             <dependency>

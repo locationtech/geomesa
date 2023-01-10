@@ -30,6 +30,7 @@ import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.zk.ZookeeperMetadata
 import pureconfig.error.{CannotConvert, ConfigReaderFailures, FailureReason}
 import pureconfig.{ConfigCursor, ConfigReader, ConfigSource}
+<<<<<<< HEAD
 
 import java.awt.RenderingHints
 import java.io.IOException
@@ -46,6 +47,11 @@ import java.io.{IOException, Serializable}
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+
+import java.awt.RenderingHints
+import java.io.IOException
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -103,6 +109,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   import scala.collection.JavaConverters._
 
   private val LayerViewReader = ConfigReader.fromCursor(readLayerViewConfig)
+<<<<<<< HEAD
   private val LayerViewClassTag = ClassTag[LayerViewConfig](classOf[LayerViewConfig])
 
 <<<<<<< HEAD
@@ -122,6 +129,11 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+  private val LayerViewClassTag = ClassTag[LayerViewConfig](classOf[LayerViewConfig])
+
+  val DefaultCatalog: String = "geomesa-catalog"
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   val DefaultZkPath: String = "geomesa/ds/kafka"
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
 
@@ -281,6 +293,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val nativeOpts = KafkaDataStoreParams.SerializationTypes.opts(serialization)
     val lazyOpts = if (LazyFeatures.lookup(params).booleanValue()) { Set(SerializationOption.Lazy) } else { Set.empty }
     new GeoMessageSerializerFactory(serializationType, nativeOpts ++ lazyOpts)
+<<<<<<< HEAD
   }
 
   private def buildAuthProvider(params: java.util.Map[String, _]): AuthorizationsProvider = {
@@ -290,6 +303,17 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     AuthUtils.getProvider(params, auths)
   }
 
+=======
+  }
+
+  private def buildAuthProvider(params: java.util.Map[String, _]): AuthorizationsProvider = {
+    import KafkaDataStoreParams.Authorizations
+    // get the auth params passed in as a comma-delimited string
+    val auths = Authorizations.lookupOpt(params).map(_.split(",").filterNot(_.isEmpty)).getOrElse(Array.empty)
+    security.getAuthorizationsProvider(params, auths)
+  }
+
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   private def buildAuditProvider(params: java.util.Map[String, _]): AuditProvider =
     Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider)
 
@@ -383,6 +407,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
           }
           e.getKey -> views.map { c =>
             ConfigSource.fromConfig(c.toConfig).loadOrThrow[LayerViewConfig](LayerViewClassTag, LayerViewReader)
+<<<<<<< HEAD
           }
         }
         val configs = entries.map(f => (f._1, f._2.toSeq))
@@ -399,12 +424,18 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+          }
+        }
+        val configs = entries.map(f => (f._1, f._2.toSeq))
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         val typeNames = configs.toSeq.flatMap(_._2.map(_.typeName))
         if (typeNames != typeNames.distinct) {
           throw new IllegalArgumentException(
             s"Detected duplicate type name in layer view config: ${config.root().render(ConfigRenderOptions.concise)}")
         }
         configs.toMap
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
         configs
@@ -415,6 +446,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     }
   }
 
@@ -479,6 +512,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
   /**
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
@@ -487,6 +521,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     * Gets up a zk path parameter - trims, removes leading/trailing "/" if needed
     *
     * @param params data store params

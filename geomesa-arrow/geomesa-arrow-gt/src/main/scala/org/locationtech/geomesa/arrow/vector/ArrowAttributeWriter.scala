@@ -534,6 +534,7 @@ object ArrowAttributeWriter {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
 =======
   class ArrowUuidWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
@@ -613,6 +614,9 @@ object ArrowAttributeWriter {
 =======
   class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+  class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     extends ArrowAttributeWriter {
     val fieldType: FieldType = new FieldType(true, new ArrowType.FixedSizeList(2), null, metadata.asJava)
     override val vector: FixedSizeListVector = factory.apply(name, fieldType)
