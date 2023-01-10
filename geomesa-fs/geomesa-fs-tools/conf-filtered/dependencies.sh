@@ -19,10 +19,14 @@ aws_sdk_install_version="1.12.385" # latest version as of 2023/01
 guava_install_version="%%hadoop.guava.version%%"
 aws_sdk_install_version="1.10.6"
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 # this should match the parquet desired version
 snappy_install_version="1.1.1.6"
 
