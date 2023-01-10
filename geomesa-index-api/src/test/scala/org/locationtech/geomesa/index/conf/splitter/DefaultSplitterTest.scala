@@ -15,12 +15,18 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
+<<<<<<< HEAD
 import org.locationtech.geomesa.utils.text.DateParsing
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.nio.charset.StandardCharsets
+<<<<<<< HEAD
 import java.util.Date
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 @RunWith(classOf[JUnitRunner])
 class DefaultSplitterTest extends Specification {
