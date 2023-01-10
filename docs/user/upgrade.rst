@@ -119,7 +119,7 @@ see TODO commit hash link on github
 * Apache Hadoop ``2.8.5`` -> ``2.10.2``
 * Apache Spark ``2.4.7`` -> ``3.3.1``
 * Apache Accumulo ``2.0.0`` -> ``2.0.1``
-* Apache HBase ``1.4.12`` -> ``1.4.13``, ``2.2.3`` -> ``2.4.4``
+* Apache HBase ``1.4.12`` -> ``1.4.13``, ``2.2.3`` -> ``2.5.2``
 * Apache Kafka ``2.1.1`` -> ``2.8.2``
 * Apache Arrow ``0.16.0`` -> ``10.0.1``
 * Apache Avro ``1.8.2`` -> ``1.11.1``
@@ -130,6 +130,7 @@ see TODO commit hash link on github
 * Kryo ``3.0.3`` -> ``4.0.2``
 * Typesafe Config ``1.3.3`` -> ``1.4.2``
 * EJML ``0.34`` -> ``0.41``
+* Saxon ``9.7.0-20`` -> ``11.4``
 
 Removal of Deprecated Modules
 -----------------------------
@@ -160,6 +161,12 @@ The following packages were moved, renamed or split in order to support Java 11 
 * ``org.locationtech.geomesa.arrow.vector`` (partial) -> ``package org.locationtech.geomesa.arrow.jts``
 * ``org.locationtech.geomesa.parquet`` -> ``org.locationtech.geomesa.fs.storage.parquet``
 * ``org.locationtech.geomesa.process`` (partial) -> ``org.locationtech.geomesa.process.wps``
+
+GeoMesa NiFi Changes
+--------------------
+
+GeoMesa NiFi is now built against NiFi 1.19.1. The GeoMesa NARs and JARs have been renamed to include the Scala
+version (i.e. ``geomesa-datastore-services-nar_2.12-4.0.0.nar``).
 
 Scan Range Changes
 ------------------

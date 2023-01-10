@@ -47,8 +47,22 @@ class GeoMesaMetrics(val registry: MetricRegistry, prefix: String, reporters: Se
    * @param supplier metric supplier
    * @return
    */
-  def gauge(typeName: String, id: String, supplier: MetricSupplier[Gauge[_]]): Gauge[_] =
-    registry.gauge(this.id(typeName, id), supplier)
+  def gauge(typeName: String, id: String, supplier: MetricSupplier[Gauge[_]]): Gauge[_] = {
+    val ident = this.id(typeName, id)
+    // note: don't use MetricRegistry#gauge(String, MetricSupplier<Gauge>) to support older
+    // metric jars that ship with hbase
+    def getOrCreate(): Gauge[_] = {
+      registry.getMetrics.get(ident) match {
+        case g: Gauge[_] => g
+        case null => registry.register(ident, supplier.newMetric())
+        case m =>
+          throw new IllegalArgumentException(s"${m.getClass.getSimpleName} already registered under the name '$ident'")
+      }
+    }
+
+    // re-try once to avoid concurrency issues with checking then adding a metric (which should be rare)
+    try { getOrCreate() } catch { case _: IllegalArgumentException => getOrCreate() }
+  }
 
   /**
    * Creates a prefixed histogram
