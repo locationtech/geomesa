@@ -40,7 +40,11 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptio
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.OverrideDtgJoin
 import org.locationtech.geomesa.utils.hadoop.HadoopUtils
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, VisibilityLevel}
+<<<<<<< HEAD
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
+=======
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClose}
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 
