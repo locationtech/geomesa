@@ -86,6 +86,7 @@ function dependencies() {
     )
   else
     gavs+=(
+<<<<<<< HEAD
       "org.apache.commons:commons-collections4:4.3:jar"
 =======
 <<<<<<< HEAD
@@ -97,6 +98,9 @@ function dependencies() {
 =======
       "org.apache.commons:commons-collections4:4.4:jar"
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+      "org.apache.commons:commons-collections4:4.4:jar"
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
     )
   fi
