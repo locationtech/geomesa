@@ -733,6 +733,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 //    "kafka.serialization.type" -> "avro",
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     "kafka.brokers"            -> brokers,
 =======
     "kafka.brokers"            -> kafka.brokers,
@@ -740,6 +741,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
     "kafka.brokers"            -> brokers,
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+    "kafka.brokers"            -> brokers,
+=======
+    "kafka.brokers"            -> kafka.brokers,
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
     "kafka.topic.partitions"   -> 1,
     "kafka.topic.replication"  -> 1,
     "kafka.consumer.read-back" -> "Inf"
@@ -833,6 +840,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         val (producer, consumer, _) = try {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
           createStorePair(if (zk) { Map("kafka.zookeepers" -> zookeepers) } else { Map.empty[String, String] })
 =======
           createStorePair(if (zk) { Map("kafka.zookeepers" -> kafka.zookeepers) } else { Map.empty[String, String] })
@@ -840,6 +848,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
           createStorePair(if (zk) { Map("kafka.zookeepers" -> zookeepers) } else { Map.empty[String, String] })
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+          createStorePair(if (zk) { Map("kafka.zookeepers" -> zookeepers) } else { Map.empty[String, String] })
+=======
+          createStorePair(if (zk) { Map("kafka.zookeepers" -> kafka.zookeepers) } else { Map.empty[String, String] })
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
         } finally {
           TableBasedMetadata.Expiry.threadLocalValue.remove()
         }
@@ -883,6 +897,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         val params = if (cqEngine) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
           Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
 =======
           Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
@@ -890,6 +905,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
           Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
+=======
+          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
         } else {
           Map.empty[String, String]
         }
@@ -960,6 +981,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         val params = if (cqEngine) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
           Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
 =======
           Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
@@ -967,6 +989,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
           Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
+=======
+          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
         } else {
           Map.empty[String, String]
         }
@@ -1176,6 +1204,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
             "kafka.index.cqengine" -> "geom:default,name:unique",
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             "kafka.zookeepers" -> zookeepers)
 =======
             "kafka.zookeepers" -> kafka.zookeepers)
@@ -1183,6 +1212,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
             "kafka.zookeepers" -> zookeepers)
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+            "kafka.zookeepers" -> zookeepers)
+=======
+            "kafka.zookeepers" -> kafka.zookeepers)
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
         } else {
           Map("kafka.cache.expiry" -> "100ms", "kafka.cache.executor" -> (executor, ticker))
         }
@@ -1248,6 +1283,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           if (cqEngine) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
 =======
             base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
@@ -1255,6 +1291,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
             base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+            base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
+=======
+            base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
           } else {
             base
           }
@@ -3745,6 +3787,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         val ds = getStore(path, 0, Map("kafka.zookeepers" -> zookeepers))
 =======
         val ds = getStore(path, 0, Map("kafka.zookeepers" -> kafka.zookeepers))
@@ -3752,6 +3795,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
         val ds = getStore(path, 0, Map("kafka.zookeepers" -> zookeepers))
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+        val ds = getStore(path, 0, Map("kafka.zookeepers" -> zookeepers))
+=======
+        val ds = getStore(path, 0, Map("kafka.zookeepers" -> kafka.zookeepers))
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
         try {
           ds.getTypeNames.toSeq mustEqual Seq("test")
           val sft = ds.getSchema("test")
