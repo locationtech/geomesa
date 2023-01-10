@@ -17,7 +17,6 @@ __ https://github.com/locationtech/geomesa/releases
 
 .. note::
 
-<<<<<<< HEAD
     The examples below expect a version to be set in the environment:
 
     .. parsed-literal::
@@ -31,6 +30,9 @@ __ https://github.com/locationtech/geomesa/releases
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
   In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
   ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
@@ -41,6 +43,7 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -74,6 +77,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 810876750d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 
 Extract it somewhere convenient:
 
