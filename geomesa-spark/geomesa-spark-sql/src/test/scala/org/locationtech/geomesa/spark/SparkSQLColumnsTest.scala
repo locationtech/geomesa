@@ -11,8 +11,8 @@ package org.locationtech.geomesa.spark
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.types.{ArrayType, DataTypes, MapType}
-<<<<<<< HEAD
 import org.apache.spark.sql.{SQLContext, SparkSession}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -25,6 +25,8 @@ import org.geotools.api.data.{DataStore, DataStoreFinder, Transaction}
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 6404cee6de6 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 15b6bf02d15 (GEOMESA-3254 Add Bloop build support)
 =======
 import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
 <<<<<<< HEAD
@@ -41,6 +43,8 @@ import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
 import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
 >>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> f4e2dcfd14 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 import org.geotools.data.{DataStore, DataStoreFinder, Transaction}
 >>>>>>> 10b992fa94b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 import org.junit.runner.RunWith
@@ -51,7 +55,6 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.execute.Result
 
 import java.util.{Collections, UUID}
 
