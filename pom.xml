@@ -64,6 +64,7 @@
         <jts.version>1.19.0</jts.version> <!-- needs to track with gt/gs version -->
         <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
         <ejml.version>0.41</ejml.version> <!-- needs to track with gt/gs version -->
+        <postgres.version>42.5.1</postgres.version>
         <avro.version>1.11.1</avro.version> <!-- see also confluent.avro.version -->
         <parquet.version>1.12.3</parquet.version>
         <orc.version>1.8.1</orc.version>
@@ -928,7 +929,7 @@
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
-                <version>42.4.1</version>
+                <version>${postgres.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>

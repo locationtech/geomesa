@@ -66,8 +66,20 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   def upgrade(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit =
     postCreateTable(schemaName, sft, cx)
 
+  override def getDesiredTablesType: Array[String] = Array("VIEW", "TABLE")
+
   // filter out the partition tables from exposed feature types
-  override def getDesiredTablesType: Array[String] = Array("VIEW")
+  override def includeTable(schemaName: String, tableName: String, cx: Connection): Boolean = {
+    super.includeTable(schemaName, tableName, cx) && {
+      val metadata = cx.getMetaData
+      val schemaPattern = store.escapeNamePattern(metadata, schemaName)
+      val tablePattern = store.escapeNamePattern(metadata, tableName)
+      val rs = metadata.getTables(null, schemaPattern, tablePattern, Array("VIEW"))
+      try { rs.next() } finally {
+        rs.close()
+      }
+    }
+  }
 
   override def encodeCreateTable(sql: StringBuffer): Unit =
     sql.append("CREATE TABLE IF NOT EXISTS ")
