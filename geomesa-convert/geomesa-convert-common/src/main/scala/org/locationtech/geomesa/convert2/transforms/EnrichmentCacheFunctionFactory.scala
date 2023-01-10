@@ -45,6 +45,7 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -60,6 +61,8 @@ object EnrichmentCacheFunctionFactory {
 =======
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 =======
 =======
 =======
@@ -72,6 +75,7 @@ object EnrichmentCacheFunctionFactory {
 =======
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -79,6 +83,10 @@ object EnrichmentCacheFunctionFactory {
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
     }
 
 <<<<<<< HEAD
@@ -119,6 +127,7 @@ object EnrichmentCacheFunctionFactory {
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -146,6 +155,8 @@ object EnrichmentCacheFunctionFactory {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
     }
 
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {

@@ -79,6 +79,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -242,6 +243,8 @@
 >>>>>>> e6fd6d7654 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> e6ede6713f (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -258,6 +261,8 @@
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -312,10 +317,13 @@
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -561,7 +569,14 @@
 =======
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -951,6 +966,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b368bb796e (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -963,8 +979,12 @@
 >>>>>>> 4464bbe22c (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -1282,8 +1302,11 @@
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> dbed56f042 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 60be59afe8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
@@ -1788,7 +1811,12 @@
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -1819,6 +1847,7 @@ package org.locationtech.geomesa.accumulo.tools.ingest
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1846,6 +1875,10 @@ package org.locationtech.geomesa.accumulo.tools.ingest
 =======
 >>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 import java.io.File
 
 <<<<<<< HEAD
@@ -1859,6 +1892,9 @@ import java.io.File
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1915,6 +1951,7 @@ import java.io.File
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -1973,6 +2010,8 @@ import java.io.File
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.config.Config
 import org.apache.hadoop.conf.Configuration
@@ -1981,7 +2020,6 @@ import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-<<<<<<< HEAD
 import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloFileOutputFormat
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2004,6 +2042,7 @@ import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloFileOutpu
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2031,6 +2070,10 @@ import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloFileOutpu
 =======
 >>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -2042,6 +2085,9 @@ import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloFileOutpu
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2086,6 +2132,7 @@ import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloFileOutpu
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -2143,6 +2190,8 @@ import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloFileOutpu
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.accumulo.tools.AccumuloDataStoreCommand.AccumuloDistributedCommand
 import org.locationtech.geomesa.accumulo.tools.AccumuloDataStoreParams
 import org.locationtech.geomesa.accumulo.tools.ingest.AccumuloBulkIngestCommand.AccumuloBulkIngestParams
@@ -2170,6 +2219,7 @@ import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2197,6 +2247,10 @@ import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 =======
 >>>>>>> d420f80210 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 import org.locationtech.geomesa.jobs.accumulo.mapreduce.GeoMesaAccumuloFileOutputFormat
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -2209,6 +2263,9 @@ import org.locationtech.geomesa.jobs.accumulo.mapreduce.GeoMesaAccumuloFileOutpu
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2257,6 +2314,7 @@ import org.locationtech.geomesa.jobs.accumulo.mapreduce.GeoMesaAccumuloFileOutpu
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -2316,6 +2374,8 @@ import org.locationtech.geomesa.jobs.accumulo.mapreduce.GeoMesaAccumuloFileOutpu
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
 import org.locationtech.geomesa.jobs.{Awaitable, JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
@@ -2328,9 +2388,9 @@ import org.locationtech.geomesa.tools.utils.{Prompt, StorageJobUtils}
 import org.locationtech.geomesa.utils.hadoop.HadoopDelegate
 import org.locationtech.geomesa.utils.index.IndexMode
 
-<<<<<<< HEAD
 import java.io.File
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2370,6 +2430,10 @@ import java.io.File
 >>>>>>> 89085e28b8 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2569,11 +2633,15 @@ import java.io.File
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2641,6 +2709,8 @@ import java.io.File
 =======
 >>>>>>> 87ab0f22da (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with AccumuloDistributedCommand {
 
   override val name = "bulk-ingest"

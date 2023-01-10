@@ -54,11 +54,11 @@ class ScriptingFunctionFactoryTest extends Specification {
         val sff = new ScriptingFunctionFactory
         val hello = sff.functions.find(_.names.contains("js:hello")).head
         hello.apply(Array("geomesa")) mustEqual "hello: geomesa"
-<<<<<<< HEAD
         val gbye = sff.functions.find(_.names.contains("js:gbye")).head
         gbye.apply(Array("geomesa")) mustEqual "goodbye: geomesa"
         val whatsup = sff.functions.find(_.names.contains("js:whatsup")).head
         whatsup.apply(Array("geomesa")) mustEqual "whatsup: geomesa"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -98,6 +98,8 @@ class ScriptingFunctionFactoryTest extends Specification {
 =======
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
         hello.eval(Array("geomesa")) mustEqual "hello: geomesa"
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -133,10 +135,13 @@ class ScriptingFunctionFactoryTest extends Specification {
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
         hello.eval(Array("geomesa")) mustEqual "hello: geomesa"
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -178,10 +183,14 @@ class ScriptingFunctionFactoryTest extends Specification {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -287,6 +296,9 @@ class ScriptingFunctionFactoryTest extends Specification {
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
       } finally {
         ScriptingFunctionFactory.ConvertScriptsPath.threadLocalValue.remove()
       }
