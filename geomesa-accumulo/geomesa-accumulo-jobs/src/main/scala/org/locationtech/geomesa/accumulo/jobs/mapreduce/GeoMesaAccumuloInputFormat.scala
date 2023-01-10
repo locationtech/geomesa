@@ -10,14 +10,18 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -30,6 +34,11 @@
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -59,11 +68,15 @@ package org.locationtech.geomesa.accumulo.jobs.mapreduce
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> 7d60ced0de (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -90,6 +103,8 @@ package org.locationtech.geomesa.accumulo.jobs.mapreduce
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 package org.locationtech.geomesa.jobs.mapreduce
 <<<<<<< HEAD
 >>>>>>> 9bde42cc4b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
@@ -103,8 +118,11 @@ package org.locationtech.geomesa.jobs.mapreduce
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -154,10 +172,14 @@ package org.locationtech.geomesa.jobs.mapreduce
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 7d60ced0de (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
@@ -215,6 +237,8 @@ package org.locationtech.geomesa.jobs.mapreduce
 >>>>>>> 2ca11908da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting.Column
@@ -264,6 +288,7 @@ import java.util.{Collections, Properties}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 70f1ed62e1 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -289,6 +314,8 @@ import java.util.{Collections, Properties}
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 70f1ed62e1 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 15b11b70cf (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -307,6 +334,7 @@ import java.util.{Collections, Properties}
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 70f1ed62e1 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 7d60ced0de (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -332,6 +360,8 @@ import java.util.{Collections, Properties}
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 import java.nio.charset.StandardCharsets
 import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.Collections
@@ -396,6 +426,9 @@ import java.util.Map.Entry
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 >>>>>>> 70f1ed62e1 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -427,6 +460,7 @@ import java.util.Map.Entry
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -478,6 +512,10 @@ import java.util.Map.Entry
 >>>>>>> 2ca11908da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -595,6 +633,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
@@ -677,6 +716,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -687,6 +727,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 3f25a89beb (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/accumulo/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7424,8 +7468,18 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     // all accumulo input config methods requires a job
     // assertion: only the JobConf is updated - to get credentials pass in a JobConf instead of Configuration
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+    // all accumulo input config methods requires a job
+    // assertion: only the JobConf is updated - to get credentials pass in a JobConf instead of Configuration
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
     val job = new Job(conf)
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 
@@ -7481,6 +7535,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 70f1ed62e1 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -7506,6 +7561,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 70f1ed62e1 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> 15b11b70cf (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -7524,6 +7581,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 70f1ed62e1 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> 7d60ced0de (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -7549,6 +7607,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
     // note: for Kerberos, this will create a DelegationToken for us and add it to the Job credentials
     AbstractInputFormat.setConnectorInfo(job, user, token)
 
@@ -7613,6 +7673,9 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787)):geomesa-accumulo/geomesa-accumulo-jobs/src/main/scala/org/locationtech/geomesa/jobs/mapreduce/GeoMesaAccumuloInputFormat.scala
 >>>>>>> 70f1ed62e1 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -7644,6 +7707,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -7695,6 +7759,10 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 >>>>>>> 2ca11908da (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 
     // use the query plan to set the accumulo input format options
     require(plan.tables.lengthCompare(1) == 0, s"Can only query from a single table: ${plan.tables.mkString(", ")}")

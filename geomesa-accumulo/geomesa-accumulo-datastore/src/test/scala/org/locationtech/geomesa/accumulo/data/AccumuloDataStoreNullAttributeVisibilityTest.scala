@@ -1206,11 +1206,15 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> 7bbbc378d7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -1237,6 +1241,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
   import scala.collection.JavaConversions._
 <<<<<<< HEAD
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -1250,8 +1256,11 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1301,10 +1310,14 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 7bbbc378d7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -1362,6 +1375,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 58065d3fec (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 
   sequential
 
@@ -1422,11 +1437,15 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> 7bbbc378d7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -1453,6 +1472,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
     val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
 <<<<<<< HEAD
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -1466,8 +1487,11 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1517,10 +1541,14 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 7bbbc378d7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -1578,6 +1606,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 58065d3fec (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
     val query = new Query(sftName, ECQL.toFilter(filter))
     SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
   }

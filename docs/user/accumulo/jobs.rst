@@ -50,11 +50,15 @@ GeoMesaAccumuloInputFormat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -81,6 +85,8 @@ GeoMesaAccumuloInputFormat
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
     org.locationtech.geomesa.jobs.interop.mapreduce.FeatureCountJob
     org.locationtech.geomesa.jobs.interop.mapreduce.FeatureWriterJob
 <<<<<<< HEAD
@@ -95,8 +101,11 @@ GeoMesaAccumuloInputFormat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -144,10 +153,14 @@ GeoMesaAccumuloInputFormat
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 12e3a588fc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -230,6 +243,8 @@ GeoMesaAccumuloInputFormat
 >>>>>>> 5a55bf9756 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 
 The ``GeoMesaAccumuloInputFormat`` can be used to get ``SimpleFeature``\ s into
 your jobs directly from GeoMesa.
@@ -310,11 +325,15 @@ The job can be invoked through Yarn as follows:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -341,6 +360,8 @@ The job can be invoked through Yarn as follows:
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
         org.locationtech.geomesa.jobs.index.AttributeIndexJob \
 <<<<<<< HEAD
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -354,8 +375,11 @@ The job can be invoked through Yarn as follows:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -405,10 +429,14 @@ The job can be invoked through Yarn as follows:
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -466,6 +494,8 @@ The job can be invoked through Yarn as follows:
 >>>>>>> 5a55bf9756 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
         --geomesa.input.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \
         --geomesa.input.user <user> \
@@ -521,11 +551,15 @@ slightly):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -552,6 +586,8 @@ slightly):
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
         org.locationtech.geomesa.jobs.index.SchemaCopyJob \
 <<<<<<< HEAD
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -565,8 +601,11 @@ slightly):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -616,10 +655,14 @@ slightly):
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 96d5d442fa (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -677,6 +720,8 @@ slightly):
 >>>>>>> 5a55bf9756 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
         --geomesa.input.instanceId <instance> \
         --geomesa.output.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \

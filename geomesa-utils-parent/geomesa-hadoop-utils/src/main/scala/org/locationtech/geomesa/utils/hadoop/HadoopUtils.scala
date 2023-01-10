@@ -15,14 +15,18 @@ package org.locationtech.geomesa.utils.io
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/HadoopUtils.scala
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/HadoopUtils.scala
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -35,6 +39,11 @@ package org.locationtech.geomesa.utils.io
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/HadoopUtils.scala
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
