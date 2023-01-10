@@ -301,7 +301,6 @@ Back inside the Apache Spark container on your master node run the following:
 
   cd /mnt/geomesa
   pip install toree
-<<<<<<< HEAD
   wget https://repo1.maven.org/maven2/org/locationtech/geomesa/geomesa-spark-jupyter-leaflet_2.12/${VERSION}/geomesa-spark-jupyter-leaflet_${VERSION}.jar
 <<<<<<< HEAD
   jupyter toree install \
@@ -320,6 +319,9 @@ Back inside the Apache Spark container on your master node run the following:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -385,6 +387,7 @@ Back inside the Apache Spark container on your master node run the following:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
@@ -439,6 +442,10 @@ Back inside the Apache Spark container on your master node run the following:
 >>>>>>> 3d5144418e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d498bef1ce (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 
 If you have increased the size of your cluster, you should also increase ``--num-executors`` accordingly. You can also
 set other executor and driver options by editing the ``spark_opts`` contents.

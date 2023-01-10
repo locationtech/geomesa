@@ -35,8 +35,8 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
   override def createDataStore(params: java.util.Map[String, _]): DataStore =
     createNewDataStore(params)
 
-<<<<<<< HEAD
   override def createNewDataStore(params: java.util.Map[String, _]): DataStore = {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -64,6 +64,8 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
 =======
 >>>>>>> a1baa0b13f (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
   override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
 <<<<<<< HEAD
 >>>>>>> 9bde42cc4b (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
@@ -72,6 +74,7 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
 >>>>>>> b1c30e3f26 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -140,6 +143,8 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
 >>>>>>> 9bde42cc4 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> b1c30e3f26 (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
 >>>>>>> e0b25aeebc (GEOMESA-3102 Fix removal of user data in FileSystemDataStore.createSchema (#2787))
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
     val config = ConfigFactory.parseString(ConfigParam.lookup(params)).resolve()
     val configs = if (config.hasPath("stores")) { config.getConfigList("stores").asScala } else { Seq.empty }
     if (configs.isEmpty) {
