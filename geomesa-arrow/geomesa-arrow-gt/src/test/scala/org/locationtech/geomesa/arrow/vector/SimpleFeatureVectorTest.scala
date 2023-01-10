@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.arrow.vector
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import java.util.{Date, UUID}
 <<<<<<< HEAD
@@ -16,6 +17,8 @@ import java.util.{Date, UUID}
 =======
 >>>>>>> 728c6f1ae (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
 >>>>>>> 822d0242c6 (GEOMESA-3137 Arrow - UUID attribute types cause queries to fail (#2809))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 import org.apache.arrow.vector.complex.FixedSizeListVector
 import org.apache.arrow.vector.{BigIntVector, IntVector}
 import org.geotools.util.Converters

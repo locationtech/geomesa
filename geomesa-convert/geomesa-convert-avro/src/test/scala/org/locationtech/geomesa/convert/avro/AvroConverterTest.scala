@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert.avro
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 
@@ -18,6 +19,8 @@ import com.google.common.hash.Hashing
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.file.DataFileWriter
