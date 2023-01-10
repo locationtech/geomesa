@@ -42,7 +42,6 @@ class MiscFunctionFactoryTest extends Specification {
       }
       "return the default if the first argument is null" >> {
         MiscFunctionFactory.withDefault(Array(null, Int.box(1))) mustEqual 1
-<<<<<<< HEAD
       }
       "return the first non-null argument" >> {
         MiscFunctionFactory.withDefault(Array("a", "b", "c", "d")) mustEqual "a"
@@ -50,6 +49,7 @@ class MiscFunctionFactoryTest extends Specification {
         MiscFunctionFactory.withDefault(Array(null, null, "c", "d")) mustEqual "c"
         MiscFunctionFactory.withDefault(Array(null, null, null, "d")) mustEqual "d"
         MiscFunctionFactory.withDefault(Array(null, null, null, null)) must beNull
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -98,6 +98,10 @@ class MiscFunctionFactoryTest extends Specification {
 =======
 >>>>>>> 9677081a1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -109,6 +113,9 @@ class MiscFunctionFactoryTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -153,6 +160,7 @@ class MiscFunctionFactoryTest extends Specification {
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -210,6 +218,8 @@ class MiscFunctionFactoryTest extends Specification {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
       }
     }
 
