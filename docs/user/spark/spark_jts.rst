@@ -23,9 +23,9 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
-<<<<<<< HEAD
       <artifactId>geomesa-spark-jts_${scala.binary.version}</artifactId>
       <version>${geomesa.version}</version>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -74,6 +74,10 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 =======
 >>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
       <artifactId>geomesa-spark-jts_2.12</artifactId>
       // version, etc.
 <<<<<<< HEAD
@@ -87,6 +91,9 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -133,6 +140,7 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 >>>>>>> 810876750d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -217,6 +225,8 @@ This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 810876750d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 5a55bf9756 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
     </dependency>
 
 Example
