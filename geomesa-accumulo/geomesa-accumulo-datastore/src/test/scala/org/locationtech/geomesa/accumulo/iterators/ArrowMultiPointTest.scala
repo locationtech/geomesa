@@ -200,6 +200,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -605,6 +606,8 @@
 >>>>>>> 16a40d6802 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
 >>>>>>> 5dcf23da52 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -765,6 +768,8 @@
 >>>>>>> 63546aacdc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 947a867d1c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -1081,6 +1086,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> c5ef523249 (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -1089,6 +1095,8 @@
 >>>>>>> 2d904e5c26 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -1828,7 +1836,14 @@
 =======
 =======
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
@@ -5331,6 +5346,7 @@
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> c5ef523249 (Merge branch 'feature/postgis-fixes')
@@ -6316,6 +6332,10 @@
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 =======
@@ -7915,10 +7935,25 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7945,6 +7980,7 @@ package org.locationtech.geomesa.accumulo.iterators
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -7963,6 +7999,8 @@ package org.locationtech.geomesa.accumulo.iterators
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
@@ -7985,6 +8023,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8057,6 +8096,10 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
@@ -8079,6 +8122,7 @@ import org.geotools.data.{Query, Transaction}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -8097,6 +8141,8 @@ import org.geotools.data.{Query, Transaction}
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 import org.geotools.filter.text.ecql.ECQL
 <<<<<<< HEAD
@@ -8117,6 +8163,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.text.ecql.ECQL
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8185,6 +8232,10 @@ import org.geotools.filter.text.ecql.ECQL
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
@@ -8210,6 +8261,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -8228,6 +8280,8 @@ import org.locationtech.geomesa.utils.io.WithClose
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
 import org.locationtech.jts.geom.{MultiPoint, Point}
 <<<<<<< HEAD
@@ -8248,6 +8302,7 @@ import org.locationtech.jts.geom.{MultiPoint, Point}
 import org.locationtech.jts.geom.{MultiPoint, Point}
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8316,11 +8371,14 @@ import org.locationtech.jts.geom.{MultiPoint, Point}
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 import org.opengis.filter.Filter
 import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
 
-<<<<<<< HEAD
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 <<<<<<< HEAD
@@ -8340,6 +8398,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -8359,6 +8418,8 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 =======
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
 <<<<<<< HEAD
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -8376,6 +8437,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8440,6 +8502,10 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 @RunWith(classOf[JUnitRunner])
 class ArrowMultiPointTest extends TestWithFeatureType with Mockito with LazyLogging {
 
@@ -8459,8 +8525,8 @@ class ArrowMultiPointTest extends TestWithFeatureType with Mockito with LazyLogg
 
   "Arrow delta scans" should {
     "query multipoints" in {
-<<<<<<< HEAD
       val query = new Query(sft.getTypeName, Filter.INCLUDE, "name", "dtg", "geom")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8497,6 +8563,8 @@ class ArrowMultiPointTest extends TestWithFeatureType with Mockito with LazyLogg
 =======
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
       val query = new Query(sft.getTypeName, Filter.INCLUDE, Array("name", "dtg", "geom"))
 <<<<<<< HEAD
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -8516,6 +8584,7 @@ class ArrowMultiPointTest extends TestWithFeatureType with Mockito with LazyLogg
       val query = new Query(sft.getTypeName, Filter.INCLUDE, Array("name", "dtg", "geom"))
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8584,6 +8653,10 @@ class ArrowMultiPointTest extends TestWithFeatureType with Mockito with LazyLogg
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
