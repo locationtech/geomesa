@@ -96,7 +96,11 @@ function dependencies() {
       "io.opentelemetry:opentelemetry-context:1.15.0:jar"
       "io.opentelemetry:opentelemetry-semconv:1.15.0-alpha:jar"
 =======
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
     )
   else
     gavs+=(
