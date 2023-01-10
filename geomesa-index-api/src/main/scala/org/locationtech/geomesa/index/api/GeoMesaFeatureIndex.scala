@@ -12,6 +12,7 @@ package org.locationtech.geomesa.index.api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import java.nio.charset.StandardCharsets
 import java.util.UUID
@@ -31,6 +32,8 @@ import java.util.UUID
 =======
 >>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> 4c943341c0 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.{ExcludeFilter, Filter}
@@ -58,10 +61,14 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{ExcludeFilter, Filter}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 000d7133f33 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 <<<<<<< HEAD
 >>>>>>> 6fd4ba295f1 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+<<<<<<< HEAD
+>>>>>>> 0884e75348d (GEOMESA-3254 Add Bloop build support)
 
 import java.nio.charset.StandardCharsets
 import java.util.UUID
@@ -74,6 +81,8 @@ import java.nio.charset.StandardCharsets
 import java.util.UUID
 =======
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
 import java.nio.charset.StandardCharsets
 import java.util.UUID
@@ -325,6 +334,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9e5293be2a (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
@@ -333,6 +343,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> 4c943341c0 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
             lazy val filterString =
               org.locationtech.geomesa.filter.filterToString(filter.filter.getOrElse(Filter.INCLUDE))
             val block =
@@ -345,6 +357,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
             } else {
               logger.warn(s"Running full table scan for schema '${sft.getTypeName}' with filter: $filterString")
             }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -365,6 +378,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> 4c943341c0 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
           }
           val keyRanges = Seq(UnboundedRange(null))
           val byteRanges = Seq(BoundedByteRange(sharing, ByteArrays.rowFollowingPrefix(sharing)))
@@ -384,8 +399,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 
         if (tier == null) {
           QueryStrategy(filter, bytes, keyRanges, Seq.empty, ecql, hints, indexValues)
-<<<<<<< HEAD
         } else if (secondary == null || tiers.exists(_.isInstanceOf[UnboundedByteRange])) {
+<<<<<<< HEAD
 =======
         } else if (secondary == null) {
 <<<<<<< HEAD
@@ -393,6 +408,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> d022c4befe (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
           val byteRanges = keySpace.getRangeBytes(keyRanges.iterator, tier = true).map {
             case BoundedByteRange(lo, hi)      => BoundedByteRange(lo, ByteArrays.concat(hi, ByteRange.UnboundedUpperRange))
             case SingleRowByteRange(row)       => BoundedByteRange(row, ByteArrays.concat(row, ByteRange.UnboundedUpperRange))
@@ -412,7 +429,6 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
           val byteRanges = bytes.flatMap {
             case SingleRowByteRange(row) =>
               // single row - we can use all the tiered ranges appended to the end
-<<<<<<< HEAD
               tiers.map {
                 case BoundedByteRange(lo, hi) => BoundedByteRange(ByteArrays.concat(row, lo), ByteArrays.concat(row, hi))
                 case SingleRowByteRange(trow) => SingleRowByteRange(ByteArrays.concat(row, trow))
@@ -434,6 +450,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
               // we can't use either side of the tiers
               Iterator.single(BoundedByteRange(lo, hi))
 
+<<<<<<< HEAD
 =======
               if (tiers.isEmpty) {
                 Iterator.single(BoundedByteRange(row, ByteArrays.concat(row, ByteRange.UnboundedUpperRange)))
@@ -465,6 +482,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> d022c4befe (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
             case r =>
               throw new IllegalArgumentException(s"Unexpected range type $r")
           }

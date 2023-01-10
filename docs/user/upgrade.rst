@@ -92,6 +92,7 @@ Compatibility Matrix
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Version 5.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -142,10 +143,15 @@ The package for configuring audit logging has changed from ``org.locationtech.ge
 =======
 <<<<<<< HEAD
 >>>>>>> fbec420d0f3 (Add note on NiFi scala version to upgrade guide)
+=======
+<<<<<<< HEAD
+>>>>>>> 27f159a17d6 (GEOMESA-3254 Add Bloop build support)
 Version 5.0.0 Upgrade Guide
 =======
 =======
 >>>>>>> 52032d25f6e (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 Version 4.1.0 Upgrade Guide
 >>>>>>> 00f021f6c00 (Add note on NiFi scala version to upgrade guide)
@@ -285,6 +291,8 @@ supported through prepared statements.
 
 =======
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -433,12 +441,15 @@ Dependency Updates
 * org.slf4j:slf4j-api: ``1.7.25`` -> ``1.7.36``
 * com.google.code.gson:gson: ``2.8.1`` -> ``2.8.9``
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
 =======
 >>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

@@ -14,16 +14,6 @@ Installing GeoMesa Kafka
         $ export TAG="|release_version|"
         $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 
-.. note::
-
-    The examples below expect a version to be set in the environment:
-
-    .. parsed-literal::
-
-        $ export TAG="|release_version|"
-        # note: |scala_binary_version| is the Scala build version
-        $ export VERSION="|scala_binary_version|-${TAG}"
-
 Installing from the Binary Distribution
 ---------------------------------------
 
@@ -32,6 +22,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -436,11 +427,15 @@ Download and extract it somewhere convenient:
 Download and extract it somewhere convenient:
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+Download and extract it somewhere convenient:
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-kafka_${VERSION}-bin.tar.gz"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -867,6 +862,10 @@ Download and extract it somewhere convenient:
     $ cd geomesa-kafka_${VERSION}
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+=======
+    $ tar xvf geomesa-kafka_${VERSION}-bin.tar.gz
+    $ cd geomesa-kafka_${VERSION}
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
 .. _kafka_install_source:
 
@@ -964,8 +963,8 @@ Installing the GeoMesa Kafka Data Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install the GeoMesa data store, extract the contents of the
-<<<<<<< HEAD
 ``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/gs-plugins/``
+<<<<<<< HEAD
 =======
 ``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/geoserver/``
 <<<<<<< HEAD
@@ -973,6 +972,8 @@ To install the GeoMesa data store, extract the contents of the
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 in the binary distribution or ``geomesa-kafka/geomesa-kafka-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
@@ -995,8 +996,8 @@ to match the target environment, and then run the script:
 
 .. warning::
 
-<<<<<<< HEAD
     Ensure that the Scala version of both GeoMesa and Kafka match to avoid compatibility errors.
+<<<<<<< HEAD
 =======
     Ensure that the Scala version (either ``_2.11`` or ``_2.12``) of both GeoMesa and Kafka match to avoid
     compatibility issues.
@@ -1035,5 +1036,7 @@ The specific JARs needed for some common configurations are listed below:
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
 Restart GeoServer after the JARs are installed.
