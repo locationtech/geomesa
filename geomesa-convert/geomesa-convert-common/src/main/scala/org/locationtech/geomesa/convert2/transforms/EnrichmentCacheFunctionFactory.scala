@@ -31,6 +31,7 @@ object EnrichmentCacheFunctionFactory {
 =======
     }
 
+<<<<<<< HEAD
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
       val cache = ec.cache(args(0).asInstanceOf[String])
       cache.get(Array(args(1).asInstanceOf[String], args(2).asInstanceOf[String]))
@@ -43,6 +44,8 @@ object EnrichmentCacheFunctionFactory {
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
     }
 
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     override def withContext(ec: EvaluationContext): TransformerFunction = new CacheLookup(ec)
   }
 }

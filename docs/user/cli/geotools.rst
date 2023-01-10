@@ -24,6 +24,7 @@ __ https://github.com/locationtech/geomesa/releases
         $ export TAG="|release_version|"
         $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
   ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
@@ -34,6 +35,8 @@ __ https://github.com/locationtech/geomesa/releases
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 Extract it somewhere convenient:
 

@@ -17,6 +17,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer
 import org.locationtech.geomesa.kafka.versions.{KafkaConsumerVersions, RecordVersions}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
 <<<<<<< HEAD
@@ -26,6 +27,8 @@ import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType

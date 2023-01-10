@@ -28,6 +28,7 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
     args(0) match {
       case bytes: Array[Byte] => CollectionSerialization.decodeList(ByteBuffer.wrap(bytes))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       case bytes: Array[Byte] => AvroSimpleFeatureUtils.decodeList(ByteBuffer.wrap(bytes))
 <<<<<<< HEAD
@@ -37,6 +38,8 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       case null => null
       case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
     }
@@ -47,6 +50,7 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
     args(0) match {
       case bytes: Array[Byte] => CollectionSerialization.decodeMap(ByteBuffer.wrap(bytes))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       case bytes: Array[Byte] => AvroSimpleFeatureUtils.decodeMap(ByteBuffer.wrap(bytes))
 <<<<<<< HEAD
@@ -56,6 +60,8 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       case null => null
       case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
     }
@@ -66,6 +72,7 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
     args(0) match {
       case bytes: Array[Byte] => UuidBinaryField.decode(ByteBuffer.wrap(bytes))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       case bytes: Array[Byte] => AvroSimpleFeatureUtils.decodeUUID(ByteBuffer.wrap(bytes))
 <<<<<<< HEAD
@@ -75,6 +82,8 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       case null => null
       case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
     }
