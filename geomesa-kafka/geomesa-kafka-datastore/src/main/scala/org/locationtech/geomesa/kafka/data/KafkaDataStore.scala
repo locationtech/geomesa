@@ -24131,6 +24131,7 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 66bdd8fd8d (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -24217,6 +24218,8 @@ class KafkaDataStore(
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
   override private[geomesa] def getFeatureReader(
 =======
 <<<<<<< HEAD
@@ -24312,6 +24315,7 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 314efe4dee (GEOMESA-3100 Kafka layer views (#2784))
@@ -24385,6 +24389,10 @@ class KafkaDataStore(
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 1a5f68233 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 65a3a6e36 (GEOMESA-3100 Kafka layer views (#2784))
@@ -24456,6 +24464,7 @@ class KafkaDataStore(
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d5f6f5af59 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 9e433ba57e (GEOMESA-3100 Kafka layer views (#2784))
@@ -24500,6 +24509,8 @@ class KafkaDataStore(
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 862857ce2 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 4231e686d (GEOMESA-3100 Kafka layer views (#2784))
@@ -25378,6 +25389,9 @@ class KafkaDataStore(
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
   private[geomesa] def getFeatureReader(
 >>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
+=======
+  override private[geomesa] def getFeatureReader(
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
       sft: SimpleFeatureType,
       transaction: Transaction,
       query: Query): GeoMesaFeatureReader = {
@@ -34358,7 +34372,7 @@ class KafkaDataStore(
     }
     // kick off the kafka consumers for this sft, if not already started
     caches.get(layerViewLookup.getOrElse(query.getTypeName, query.getTypeName))
-    GeoMesaFeatureReader(sft, query, runner, None, config.audit)
+    GeoMesaFeatureReader(sft, query, runner, config.audit)
   }
 
 <<<<<<< HEAD
@@ -34993,6 +35007,10 @@ class KafkaDataStore(
     val producer = getTransactionalProducer(transaction)
 >>>>>>> 4d37d5ef5 (GEOMESA-3100 Kafka layer views (#2784))
     val vis = sft.isVisibilityRequired
+<<<<<<< HEAD
+=======
+    val serializer = serialization.apply(sft)
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
     val writer = filter match {
       case None if vis    => new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
       case None           => new AppendKafkaFeatureWriter(sft, producer, config.serialization)
