@@ -507,6 +507,7 @@ The PROJ mailing list can be found at:
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 
+<<<<<<< HEAD
 https://lists.osgeo.org/mailman/listinfo/proj/
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
@@ -543,6 +544,7 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 =======
 <<<<<<< HEAD
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -568,6 +570,8 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 PROJ is a generic coordinate transformation software, that transforms
 coordinates from one coordinate reference system (CRS) to another.
 This includes cartographic projections as well as geodetic transformations.
@@ -1159,8 +1163,11 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 >>>>>>> 61d746ac2 ([maven-release-plugin] prepare for next development iteration)
 **Current release: [3.4.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.4.0)**
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 733d59f917 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 **Current release: [3.5.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.5.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -1171,6 +1178,9 @@ https://lists.osgeo.org/mailman/listinfo/proj/
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-redis_2.12-3.5.0-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-fs_2.12-3.5.0-bin.tar.gz) |
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -1748,6 +1758,7 @@ might be more up-to-date.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 $ gpg2 --verify geomesa-accumulo_2.12-5.0.1-bin.tar.gz.asc geomesa-accumulo_2.12-5.0.1-bin.tar.gz
 =======
 =======
@@ -1784,6 +1795,8 @@ $ gpg2 --verify geomesa-accumulo_2.12-5.0.1-bin.tar.gz.asc geomesa-accumulo_2.12
 >>>>>>> 7ca858a5ed1 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 752dc59f773 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 52e23139c99 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 $ gpg2 --verify geomesa-accumulo_2.12-5.0.0-bin.tar.gz.asc geomesa-accumulo_2.12-5.0.0-bin.tar.gz
 =======
@@ -1821,6 +1834,8 @@ $ gpg2 --verify geomesa-accumulo_2.12-5.0.0-bin.tar.gz.asc geomesa-accumulo_2.12
 >>>>>>> 7f458917812 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> a34438bf2f4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 762aa6676ad (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 $ gpg2 --verify geomesa-accumulo_2.12-4.0.5-bin.tar.gz.asc geomesa-accumulo_2.12-4.0.5-bin.tar.gz
 =======
@@ -1858,8 +1873,13 @@ $ gpg2 --verify geomesa-accumulo_2.12-4.0.5-bin.tar.gz.asc geomesa-accumulo_2.12
 >>>>>>> 24b3b2611ac (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 90d56ecb136 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 42a46303c6c (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 $ gpg2 --verify geomesa-accumulo_2.12-4.0.4-bin.tar.gz.asc geomesa-accumulo_2.12-4.0.4-bin.tar.gz
+=======
+$ gpg2 --verify geomesa-accumulo_2.12-4.0.2-bin.tar.gz.asc geomesa-accumulo_2.12-4.0.2-bin.tar.gz
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 806bf03d8f ([maven-release-plugin] prepare for next development iteration)
@@ -6306,7 +6326,10 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
   <version>4.0.1</version>
 =======
@@ -31204,6 +31227,7 @@ DataStore implementations:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <version>5.0.1</version>
 =======
 =======
@@ -31256,6 +31280,8 @@ DataStore implementations:
 >>>>>>> eaede82e41a (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> e495c480596 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 52e23139c99 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
   <version>5.0.0</version>
 =======
@@ -31309,6 +31335,8 @@ DataStore implementations:
 >>>>>>> d2661a7b146 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> a09d5696838 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 762aa6676ad (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
   <version>4.0.5</version>
 =======
@@ -31362,6 +31390,8 @@ DataStore implementations:
 >>>>>>> f9359962c97 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> d28f154dbd5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 42a46303c6c (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
   <version>4.0.4</version>
 =======
@@ -31378,11 +31408,15 @@ DataStore implementations:
 >>>>>>> 9233b0b6ee (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
   <version>4.0.2</version>
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
   <version>4.0.1</version>
 >>>>>>> 1587fcc39d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
@@ -31581,6 +31615,7 @@ DataStore implementations:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> e048f0e5775 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> f03b61efde8 (Merge branch 'feature/postgis-fixes')
@@ -31608,13 +31643,18 @@ DataStore implementations:
 >>>>>>> 5a0cc1930b5 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+>>>>>>> 42a46303c6c (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 >>>>>>> d28f154dbd5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
   <version>3.5.0</version>
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ef56ed136e4 (Merge branch 'feature/postgis-fixes')
@@ -31629,9 +31669,14 @@ DataStore implementations:
 >>>>>>> d28f154dbd5 (Merge branch 'feature/postgis-fixes')
 =======
 =======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 42a46303c6c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
   <version>3.5.0</version>
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 90d56ecb136 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -31641,6 +31686,8 @@ DataStore implementations:
 =======
 =======
 =======
+=======
+>>>>>>> 42a46303c6c (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -31668,9 +31715,20 @@ DataStore implementations:
 =======
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> d28f154dbd5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> a09d5696838 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e495c480596 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 42a46303c6c (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 762aa6676ad (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 52e23139c99 (GEOMESA-3254 Add Bloop build support)
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
@@ -31696,6 +31754,7 @@ resolvers ++= Seq(
 
 // Select desired modules
 libraryDependencies ++= Seq(
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -31768,6 +31827,8 @@ libraryDependencies ++= Seq(
 >>>>>>> 36e26cb8e32 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e495c480596 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 52e23139c99 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
   "org.locationtech.geomesa" %% "geomesa-utils" % "5.0.0"
 =======
@@ -31817,6 +31878,8 @@ libraryDependencies ++= Seq(
 >>>>>>> 498f4afb467 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> a09d5696838 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 762aa6676ad (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
   "org.locationtech.geomesa" %% "geomesa-utils" % "4.0.5"
 =======
@@ -31866,6 +31929,8 @@ libraryDependencies ++= Seq(
 >>>>>>> 5a0cc1930b5 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d28f154dbd5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 42a46303c6c (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
   "org.locationtech.geomesa" %% "geomesa-utils" % "4.0.4"
 =======
@@ -31878,9 +31943,13 @@ libraryDependencies ++= Seq(
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
   "org.locationtech.geomesa" %% "geomesa-utils" % "4.0.2"
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
   "org.locationtech.geomesa" %% "geomesa-utils" % "4.0.1"
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
@@ -32051,6 +32120,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> e048f0e5775 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> f03b61efde8 (Merge branch 'feature/postgis-fixes')
@@ -32078,13 +32148,18 @@ libraryDependencies ++= Seq(
 >>>>>>> 5a0cc1930b5 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+>>>>>>> 42a46303c6c (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 >>>>>>> d28f154dbd5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.5.0"
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ef56ed136e4 (Merge branch 'feature/postgis-fixes')
@@ -32099,9 +32174,14 @@ libraryDependencies ++= Seq(
 >>>>>>> d28f154dbd5 (Merge branch 'feature/postgis-fixes')
 =======
 =======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 42a46303c6c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.5.0"
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 90d56ecb136 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -32111,6 +32191,8 @@ libraryDependencies ++= Seq(
 =======
 =======
 =======
+=======
+>>>>>>> 42a46303c6c (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -32138,14 +32220,26 @@ libraryDependencies ++= Seq(
 =======
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> d28f154dbd5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> a09d5696838 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> e495c480596 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 42a46303c6c (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 762aa6676ad (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 52e23139c99 (GEOMESA-3254 Add Bloop build support)
 )
 ```
 
 ## Building from Source
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -32371,6 +32465,8 @@ libraryDependencies ++= Seq(
 >>>>>>> 498f4afb467 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> a09d5696838 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 762aa6676ad (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 **Development version: 5.0.0-SNAPSHOT**
 =======
@@ -32527,12 +32623,20 @@ libraryDependencies ++= Seq(
 >>>>>>> c1ef4c5a127 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 21338adb2fa (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> 21338adb2fa (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -32547,7 +32651,12 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> c1ef4c5a127 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 21338adb2fa (GEOMESA-3254 Add Bloop build support)
 **Development version: 4.1.0-SNAPSHOT**
 =======
 **Development version: 4.0.0-SNAPSHOT**
@@ -35923,6 +36032,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 12a626bb844 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> f03b61efde8 (Merge branch 'feature/postgis-fixes')
@@ -35938,8 +36048,12 @@ libraryDependencies ++= Seq(
 >>>>>>> d174f455090 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+>>>>>>> 21338adb2fa (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 >>>>>>> c1ef4c5a127 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 **Development version: 4.0.0-SNAPSHOT**
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -36467,11 +36581,14 @@ libraryDependencies ++= Seq(
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> a34438bf2f4 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+=======
+>>>>>>> 21338adb2fa (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 64d5739f45 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
@@ -37330,8 +37447,16 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> c1ef4c5a127 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> a09d5696838 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 21338adb2fa (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 762aa6676ad (GEOMESA-3254 Add Bloop build support)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
@@ -37361,6 +37486,9 @@ The project is built using Maven. To build, run:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
 
 To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
@@ -44237,6 +44365,20 @@ See [CITATION](CITATION)
 See [CITATION](CITATION)
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 7d700fd597 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+=======
+To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
+
+    ./build/change-scala-version.sh 2.13
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 8cfbc794a4 (GEOMESA-3254 Add Bloop build support)
