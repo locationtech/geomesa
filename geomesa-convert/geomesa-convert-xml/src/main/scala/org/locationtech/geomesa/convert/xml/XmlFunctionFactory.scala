@@ -16,6 +16,7 @@ package org.locationtech.geomesa.convert.xml
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -24,6 +25,8 @@ package org.locationtech.geomesa.convert.xml
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 import java.io.StringWriter
 import java.util.concurrent.TimeUnit
@@ -40,6 +43,7 @@ import java.util.concurrent.TimeUnit
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
@@ -61,6 +65,10 @@ import java.util.concurrent.TimeUnit
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 6519fcd623 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 import com.typesafe.config.ConfigFactory
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
@@ -81,6 +89,7 @@ import javax.xml.xpath.XPathExpression
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -89,6 +98,8 @@ import javax.xml.xpath.XPathExpression
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 import scala.concurrent.duration.Duration
 =======
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
@@ -108,6 +119,7 @@ import org.w3c.dom.Element
 
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -133,6 +145,8 @@ import org.w3c.dom.Element
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 import scala.concurrent.duration.Duration
 
 class XmlFunctionFactory extends TransformerFunctionFactory {
