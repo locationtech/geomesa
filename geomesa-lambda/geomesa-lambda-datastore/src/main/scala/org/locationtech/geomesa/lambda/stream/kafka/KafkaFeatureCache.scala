@@ -133,8 +133,11 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
     ExpiredFeatures(maxExpiredOffset, latest)
 <<<<<<< HEAD
@@ -144,6 +147,7 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
 >>>>>>> 425a920afa (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -178,6 +182,10 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
 >>>>>>> b51333ce3c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
   }
 
   override def offsetChanged(partition: Int, offset: Long): Unit = {
