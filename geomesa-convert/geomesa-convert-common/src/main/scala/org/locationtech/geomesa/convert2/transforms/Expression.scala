@@ -35,6 +35,7 @@ sealed trait Expression extends ContextDependent[Expression] {
   def apply(args: Array[_ <: AnyRef]): AnyRef
 
   /**
+<<<<<<< HEAD
     * Evaluate the expression against an input
     *
     * @param args arguments
@@ -53,6 +54,8 @@ sealed trait Expression extends ContextDependent[Expression] {
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
   /**
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     * Gets the field dependencies that this expr relies on
     *
     * @param stack current field stack, used to detect circular dependencies

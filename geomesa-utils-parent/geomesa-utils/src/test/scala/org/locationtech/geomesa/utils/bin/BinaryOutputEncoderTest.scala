@@ -17,6 +17,13 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{LineString, Point}
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/bin/BinaryOutputEncoderTest.scala
+import org.opengis.feature.simple.SimpleFeature
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/bin/BinaryOutputEncoderTest.scala
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

@@ -13,6 +13,8 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 
+import java.{io => jio, util => ju}
+
 package object security {
 
   val GEOMESA_AUDIT_PROVIDER_IMPL: SystemProperty = SystemProperty("geomesa.audit.provider.impl")
@@ -71,7 +73,12 @@ package object security {
     def visibility: Option[String] = Option(SecurityUtils.getVisibility(sf))
   }
 
+<<<<<<< HEAD
   @deprecated("Use AuthUtils.getProvider")
   def getAuthorizationsProvider(params: java.util.Map[String, _], auths: Seq[String]): AuthorizationsProvider =
     AuthUtils.getProvider(params, auths)
+=======
+  def getAuthorizationsProvider(params: java.util.Map[String, _], auths: Seq[String]): AuthorizationsProvider =
+    AuthorizationsProvider.apply(params, auths.asJava)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 }
