@@ -106,6 +106,7 @@ package org.locationtech.geomesa.convert2.transforms
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import java.nio.charset.StandardCharsets
 <<<<<<< HEAD
@@ -115,6 +116,8 @@ import java.nio.charset.StandardCharsets
 >>>>>>> 0d4c68bdad (GEOMESA-3109 Json array to object converter function (#2788))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import java.util.Base64
 
 class EncodingFunctionFactory extends TransformerFunctionFactory {

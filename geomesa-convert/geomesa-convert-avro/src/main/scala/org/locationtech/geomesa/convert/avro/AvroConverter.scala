@@ -94,6 +94,7 @@ object AvroConverter {
       case Schema.Type.UNION =>
         Schema.createUnion(schema.getTypes.asScala.map(s => addBytes(s)).toSeq: _*)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         Schema.createUnion(schema.getTypes.asScala.map(addBytes): _*)
 <<<<<<< HEAD
@@ -103,6 +104,8 @@ object AvroConverter {
 >>>>>>> d9ed077cd1 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
       case _ =>
         throw new NotImplementedError(

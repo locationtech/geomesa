@@ -1,5 +1,13 @@
 /***********************************************************************
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1463162d60 (GEOMESA-3254 Add Bloop build support)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,9 +16,17 @@
 
 package org.locationtech.geomesa.kafka.confluent
 
+<<<<<<< HEAD
 import org.apache.avro.LogicalTypes.{TimestampMicros, TimestampMillis}
 import org.apache.avro.Schema
+<<<<<<< HEAD
 import org.geotools.api.feature.simple.SimpleFeatureType
+=======
+=======
+import org.apache.avro.Schema
+import org.apache.avro.generic.GenericRecord
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.locationtech.geomesa.utils.text.{DateParsing, WKBUtils, WKTUtils}
 import org.locationtech.jts.geom._
@@ -26,10 +42,18 @@ object SchemaParser {
 
   import scala.collection.JavaConverters._
 
+<<<<<<< HEAD
   private val SkippedPropertyKeys: Set[String] = Set(
     GeoMesaAvroGeomType.KEY,
     GeoMesaAvroGeomFormat.KEY,
     GeoMesaAvroGeomDefault.KEY,
+=======
+  private val reservedPropertyKeys: Set[String] = Set(
+    GeoMesaAvroGeomFormat.KEY,
+    GeoMesaAvroGeomType.KEY,
+    GeoMesaAvroGeomDefault.KEY,
+    GeoMesaAvroDateFormat.KEY,
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     GeoMesaAvroVisibilityField.KEY,
     GeoMesaAvroExcludeField.KEY
   )
@@ -47,7 +71,11 @@ object SchemaParser {
       val metadata = parseMetadata(field)
 
       metadata.field match {
+<<<<<<< HEAD
         case GeometryField(geomType, default) if !metadata.exclude =>
+=======
+        case GeometryField(_, geomType, default) if !metadata.exclude =>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
           if (default) {
             defaultGeomField.foreach { name =>
               throw new IllegalArgumentException("There may be only one default geometry field in a schema: " +
@@ -91,18 +119,25 @@ object SchemaParser {
       field: Schema.Field,
       typeOverride: Option[Schema.Type] = None,
       userData: Map[String, String] = Map.empty): Unit = {
+<<<<<<< HEAD
     lazy val logicalType = if (typeOverride.isDefined) { None } else { Option(field.schema().getLogicalType) }
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     typeOverride.getOrElse(field.schema.getType) match {
       case Schema.Type.STRING  => builder.addString(field.name).withOptions(userData.toSeq: _*)
       case Schema.Type.BOOLEAN => builder.addBoolean(field.name).withOptions(userData.toSeq: _*)
       case Schema.Type.INT     => builder.addInt(field.name).withOptions(userData.toSeq: _*)
       case Schema.Type.DOUBLE  => builder.addDouble(field.name).withOptions(userData.toSeq: _*)
+<<<<<<< HEAD
       case Schema.Type.LONG    =>
         logicalType match {
           case Some(_: TimestampMillis) => builder.addDate(field.name).withOptions(userData.toSeq: _*)
           case Some(_: TimestampMicros) => builder.addDate(field.name).withOptions(userData.toSeq: _*)
           case _ => builder.addLong(field.name).withOptions(userData.toSeq: _*)
         }
+=======
+      case Schema.Type.LONG    => builder.addLong(field.name).withOptions(userData.toSeq: _*)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       case Schema.Type.FLOAT   => builder.addFloat(field.name).withOptions(userData.toSeq: _*)
       case Schema.Type.BYTES   => builder.addBytes(field.name).withOptions(userData.toSeq: _*)
       case Schema.Type.UNION   =>
@@ -143,14 +178,23 @@ object SchemaParser {
   }
 
   private def parseMetadata(field: Schema.Field): GeoMesaAvroMetadata = {
+<<<<<<< HEAD
+=======
+    lazy val geomFormat = GeoMesaAvroGeomFormat.parse(field)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     lazy val geomType = GeoMesaAvroGeomType.parse(field)
     lazy val geomDefault = GeoMesaAvroGeomDefault.parse(field).getOrElse(false)
     lazy val dateFormat = GeoMesaAvroDateFormat.parse(field)
     lazy val visibility = GeoMesaAvroVisibilityField.parse(field).getOrElse(false)
 
     val metadata =
+<<<<<<< HEAD
       if (geomType.isDefined) {
         GeometryField(geomType.get, geomDefault)
+=======
+      if (geomFormat.isDefined && geomType.isDefined) {
+        GeometryField(geomFormat.get, geomType.get, geomDefault)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       } else if (dateFormat.isDefined) {
         DateField(dateFormat.get)
       } else if (visibility) {
@@ -161,7 +205,11 @@ object SchemaParser {
 
     // any field properties that are not one of the defined geomesa avro properties will go in the attribute user data
     val extraProps = field.getObjectProps.asScala.collect {
+<<<<<<< HEAD
       case (k, v: String) if !SkippedPropertyKeys.contains(k) => k -> v
+=======
+      case (k, v: String) if !reservedPropertyKeys.contains(k) => k -> v
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     }
 
     val exclude = GeoMesaAvroExcludeField.parse(field).getOrElse(false)
@@ -172,7 +220,11 @@ object SchemaParser {
   private case class GeoMesaAvroMetadata(field: GeoMesaAvroField, extraProps: Map[String, String], exclude: Boolean)
 
   private sealed trait GeoMesaAvroField
+<<<<<<< HEAD
   private case class GeometryField(typ: Class[_ <: Geometry], default: Boolean) extends GeoMesaAvroField
+=======
+  private case class GeometryField(format: String, typ: Class[_ <: Geometry], default: Boolean) extends GeoMesaAvroField
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   private case class DateField(format: String) extends GeoMesaAvroField
   private case object VisibilityField extends GeoMesaAvroField
   private case object StandardField extends GeoMesaAvroField
@@ -259,13 +311,19 @@ object SchemaParser {
    * @tparam T the type of the value to be parsed from this property
    * @tparam K the type of the value to be deserialized from this property
    */
+<<<<<<< HEAD
   @deprecated("deprecated with no replacement")
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   abstract class GeoMesaAvroDeserializableEnumProperty[T, K: ClassTag] extends GeoMesaAvroEnumProperty[T] {
     // case clauses to match the value of the enum to a function to deserialize the data
     protected val fieldReaderMatcher: PartialFunction[T, AnyRef => K]
     protected val fieldWriterMatcher: PartialFunction[T, K => AnyRef]
 
+<<<<<<< HEAD
     @deprecated("deprecated with no replacement")
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     final def getFieldReader(schema: Schema, fieldName: String): AnyRef => K = {
       try {
         parse(schema.getField(fieldName)).map { value =>
@@ -282,7 +340,10 @@ object SchemaParser {
       }
     }
 
+<<<<<<< HEAD
     @deprecated("deprecated with no replacement")
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     final def getFieldWriter(schema: Schema, fieldName: String): K => AnyRef = {
       try {
         parse(schema.getField(fieldName)).map { value =>
@@ -300,7 +361,10 @@ object SchemaParser {
     }
   }
 
+<<<<<<< HEAD
   @deprecated("deprecated with no replacement")
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   object GeoMesaAvroDeserializableEnumProperty {
     final case class MissingPropertyException(fieldName: String, key: String)
       extends RuntimeException(s"Key '$key' is missing from schema for field '$fieldName'")
@@ -315,7 +379,10 @@ object SchemaParser {
    * accompanied by the [[GeoMesaAvroGeomType]] property.
    */
   object GeoMesaAvroGeomFormat extends GeoMesaAvroDeserializableEnumProperty[String, Geometry] {
+<<<<<<< HEAD
 
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     override val KEY: String = "geomesa.geom.format"
 
     /**

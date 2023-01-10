@@ -340,7 +340,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
   lazy val baseParams = Map(
 //    "kafka.serialization.type" -> "avro",
+<<<<<<< HEAD
     "kafka.brokers"            -> brokers,
+=======
+    "kafka.brokers"            -> kafka.brokers,
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     "kafka.topic.partitions"   -> 1,
     "kafka.topic.replication"  -> 1,
     "kafka.consumer.read-back" -> "Inf"
@@ -446,7 +450,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       foreach(Seq(true, false)) { zk =>
         TableBasedMetadata.Expiry.threadLocalValue.set("10ms")
         val (producer, consumer, _) = try {
+<<<<<<< HEAD
           createStorePair(if (zk) { Map("kafka.zookeepers" -> zookeepers) } else { Map.empty[String, String] })
+=======
+          createStorePair(if (zk) { Map("kafka.zookeepers" -> kafka.zookeepers) } else { Map.empty[String, String] })
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         } finally {
           TableBasedMetadata.Expiry.threadLocalValue.remove()
         }
@@ -488,7 +496,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
     "write/update/read/delete features" >> {
       foreach(Seq(true, false)) { cqEngine =>
         val params = if (cqEngine) {
+<<<<<<< HEAD
           Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
+=======
+          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         } else {
           Map.empty[String, String]
         }
@@ -557,7 +569,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           override def configure(params: java.util.Map[String, _]): Unit = {}
         }
         val params = if (cqEngine) {
+<<<<<<< HEAD
           Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
+=======
+          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         } else {
           Map.empty[String, String]
         }
@@ -630,6 +646,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         producer.createSchema(sft)
         consumer.metadata.resetCache()
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -638,6 +655,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> e243573ba4 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
 
         val f0 = ScalaSimpleFeature.create(sft, "sm", "[\"smith1\",\"smith2\"]", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
@@ -650,6 +669,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         val q = new Query(sft.getTypeName)
 <<<<<<< HEAD
@@ -659,6 +679,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> e243573ba4 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
             containTheSameElementsAs(Seq(f0, f1)))
       } finally {
@@ -715,6 +737,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 865887e960 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
@@ -723,6 +746,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> e243573ba4 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     "expire entries" >> {
       foreach(Seq(true, false)) { cqEngine =>
         val executor = mock[ScheduledExecutorService]
@@ -731,7 +756,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           Map("kafka.cache.expiry" -> "100ms",
             "kafka.cache.executor" -> (executor, ticker),
             "kafka.index.cqengine" -> "geom:default,name:unique",
+<<<<<<< HEAD
             "kafka.zookeepers" -> zookeepers)
+=======
+            "kafka.zookeepers" -> kafka.zookeepers)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         } else {
           Map("kafka.cache.expiry" -> "100ms", "kafka.cache.executor" -> (executor, ticker))
         }
@@ -795,7 +824,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
             "kafka.cache.executor"       -> (executor, ticker)
           )
           if (cqEngine) {
+<<<<<<< HEAD
             base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
+=======
+            base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
           } else {
             base
           }
@@ -1726,6 +1759,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         producer.createSchema(sft)
         consumer.metadata.resetCache()
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
       try {
@@ -1738,6 +1772,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
         val sft2 = SimpleFeatureTypes.createType("test2", "name:String,dtg:Date,*geom:Point:srid=4326")
         val sft3 = SimpleFeatureTypes.createType("test3", "derived:String,dtg:Date,*geom:Point:srid=4326")
@@ -1964,7 +2000,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         client.create.forPath("/test", s"$spec;geomesa.index.dtg=dtg".getBytes(StandardCharsets.UTF_8))
         client.create.forPath("/test/Topic", "test-topic".getBytes(StandardCharsets.UTF_8))
 
+<<<<<<< HEAD
         val ds = getStore(path, 0, Map("kafka.zookeepers" -> zookeepers))
+=======
+        val ds = getStore(path, 0, Map("kafka.zookeepers" -> kafka.zookeepers))
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
         try {
           ds.getTypeNames.toSeq mustEqual Seq("test")
           val sft = ds.getSchema("test")

@@ -6,7 +6,11 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/src/main/scala/org/locationtech/geomesa/utils/hadoop/HadoopUtils.scala
 package org.locationtech.geomesa.utils.hadoop
+=======
+package org.locationtech.geomesa.utils.io
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/HadoopUtils.scala
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
