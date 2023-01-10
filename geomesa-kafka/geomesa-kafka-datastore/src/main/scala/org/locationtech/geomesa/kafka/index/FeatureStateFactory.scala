@@ -30,6 +30,7 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -45,6 +46,8 @@ package org.locationtech.geomesa.kafka.index
 =======
 >>>>>>> 8e665b32ac (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 >>>>>>> 7ae88ee16e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 56698b9664 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -57,6 +60,7 @@ package org.locationtech.geomesa.kafka.index
 =======
 >>>>>>> e2aff21ea9 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -161,6 +165,10 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 >>>>>>> 025b2c463d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> 8e665b32ac (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 import java.io.Closeable
 import java.util.Date
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
@@ -181,10 +189,13 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 >>>>>>> 5ad2f6a7b2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d47b1e15e8 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 =======
 >>>>>>> 4c428126e4 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -226,7 +237,14 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 =======
 =======
 >>>>>>> ae468ad6f1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+<<<<<<< HEAD
 >>>>>>> 4c428126e4 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}

@@ -15,9 +15,9 @@ import org.geotools.api.filter.Filter
 import org.geotools.data.postgis.PostGISDialect
 import org.geotools.geometry.jts._
 import org.geotools.jdbc.JDBCDataStore
-<<<<<<< HEAD
 import org.geotools.referencing.CRS
 import org.geotools.util.factory.Hints
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -83,6 +83,8 @@ import org.geotools.util.factory.Hints
 >>>>>>> 83c2c09260 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> edde3a188e (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
 =======
 <<<<<<< HEAD
@@ -367,13 +369,20 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunct
 =======
 =======
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
 =======
 =======
 =======
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> 5e000da485 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 >>>>>>> 406de071e1 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunctionVisitor
 >>>>>>> dcd872c1ac (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> df43e72c50 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -384,7 +393,6 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.triggers.{DeleteTrigger, InsertTrigger, UpdateTrigger, WriteAheadTrigger}
 import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-<<<<<<< HEAD
 import org.locationtech.jts.geom._
 <<<<<<< HEAD
 =======
@@ -410,6 +418,7 @@ import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -437,6 +446,10 @@ import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 =======
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 import org.opengis.feature.`type`.AttributeDescriptor
 <<<<<<< HEAD
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -449,6 +462,9 @@ import org.opengis.feature.`type`.AttributeDescriptor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -497,6 +513,7 @@ import org.opengis.feature.`type`.AttributeDescriptor
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -556,12 +573,13 @@ import org.opengis.feature.`type`.AttributeDescriptor
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 6768ebe0c2 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 >>>>>>> a8e0698bf72 (GEOMESA-3215 Postgis - support List-type attributes)
 
 import java.sql.{Connection, DatabaseMetaData, ResultSet, Types}
-<<<<<<< HEAD
 import scala.util.Try
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -584,6 +602,7 @@ import scala.util.Try
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -611,6 +630,10 @@ import scala.util.Try
 =======
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
 <<<<<<< HEAD
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -622,6 +645,9 @@ import scala.util.Try
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -666,6 +692,7 @@ import scala.util.Try
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -723,6 +750,8 @@ import scala.util.Try
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 6768ebe0c2 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 
 class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(store) with StrictLogging {
 
@@ -1101,6 +1130,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
     super.splitFilter(LiteralFunctionVisitor(filter), schema)
@@ -1255,6 +1285,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 <<<<<<< HEAD
 >>>>>>> dcd872c1ac (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 713060f3a2 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
@@ -2232,6 +2264,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 42af7673bd (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 
   override def registerClassToSqlMappings(mappings: java.util.Map[Class[_], Integer]): Unit = {
     super.registerClassToSqlMappings(mappings)
@@ -2249,7 +2283,6 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   }
 
   override def encodePostColumnCreateTable(att: AttributeDescriptor, sql: StringBuffer): Unit = {
-<<<<<<< HEAD
     att match {
       case gd: GeometryDescriptor =>
         val nullable = gd.getMinOccurs <= 0 || gd.isNillable
@@ -2295,25 +2328,6 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
         }
 
       case _ => // no-op
-=======
-    super.encodePostColumnCreateTable(att, sql)
-    if (att.isJson()) {
-      // replace 'VARCHAR' with jsonb
-      val i = sql.lastIndexOf(" VARCHAR")
-      if (i == sql.length() - 8) {
-        sql.replace(i + 1, i + 8, "JSONB")
-      } else {
-        logger.warn(s"Found JSON-type attribute but no CHARACTER VARYING column binding: $sql")
-      }
-    } else if (att.isList) {
-      // go back and encode the array type in the CQL create statement
-      val i = sql.lastIndexOf(" ARRAY")
-      if (i == sql.length() - 6) {
-        sql.insert(i, " " + getListTypeMapping(att.getListType()))
-      } else {
-        logger.warn(s"Found list-type attribute but no ARRAY column binding: $sql")
-      }
->>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
     }
   }
 
@@ -2357,10 +2371,14 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 83c2c09260 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 <<<<<<< HEAD
 >>>>>>> 6de7ca735b (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+<<<<<<< HEAD
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -3059,6 +3077,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 =======
 =======
 =======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
 <<<<<<< HEAD
   override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
     super.splitFilter(LiteralFunctionVisitor(filter), schema)
@@ -3167,8 +3187,16 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> cf1d94c7a8 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 >>>>>>> bf9e5cdd91 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 >>>>>>> 6768ebe0c2 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 }
 
 object PartitionedPostgisDialect {
