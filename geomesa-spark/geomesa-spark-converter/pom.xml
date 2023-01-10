@@ -46,6 +46,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -132,6 +133,8 @@
 >>>>>>> 12a626bb844 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 41b0b79cc0d (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
 =======
@@ -895,7 +898,13 @@
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 44834baf12c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 41b0b79cc0d (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -904,10 +913,13 @@
 
     <dependencies>
         <dependency>
+<<<<<<< HEAD
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-spark-core_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-spark-sql_${scala.binary.version}</artifactId>
         </dependency>
@@ -927,10 +939,13 @@
             <artifactId>spark-core_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+<<<<<<< HEAD
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
         </dependency>

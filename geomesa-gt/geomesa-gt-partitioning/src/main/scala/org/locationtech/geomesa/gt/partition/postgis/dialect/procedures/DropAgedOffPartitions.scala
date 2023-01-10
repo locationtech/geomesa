@@ -34,7 +34,10 @@ object DropAgedOffPartitions extends SqlProcedure {
        |    BEGIN
        |      SELECT value::int FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
        |        WHERE key = ${literal(PartitionedPostgisDialect.Config.MaxPartitions)}
+<<<<<<< HEAD
        |          AND type_name = ${literal(info.typeName)}
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
        |        INTO num_partitions;
        |      IF FOUND THEN
        |        main_cutoff := truncate_to_partition(cur_time, $hours) - INTERVAL '$hours HOURS';

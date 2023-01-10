@@ -8,10 +8,14 @@
 
 package org.locationtech.geomesa.redis.data
 
+<<<<<<< HEAD
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
+=======
+import org.geotools.data.{DataStoreFinder, Query}
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.utils.ExplainString
@@ -28,6 +32,9 @@ import org.testcontainers.utility.DockerImageName
 
 import java.util.{Collections, Date}
 import scala.concurrent.duration.DurationInt
+
+import java.nio.charset.StandardCharsets
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class RedisDataStoreTest extends Specification with LazyLogging {
