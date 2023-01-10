@@ -608,6 +608,7 @@ class MergedDataStoreView(
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
     namespace: Option[String] = None
+<<<<<<< HEAD
   ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
 =======
 =======
@@ -684,6 +685,8 @@ class MergedDataStoreView(
     namespace: Option[String] = None
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
   ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaStats {
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -753,13 +756,17 @@ class MergedDataStoreView(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
   ) extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaFeatureReader with HasGeoMesaStats {
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -938,6 +945,9 @@ class MergedDataStoreView(
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 
   require(stores.nonEmpty, "No delegate stores configured")
 
@@ -1264,6 +1274,7 @@ object MergedDataStoreView {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       val seq = if (parallel) { stats.par } else { stats }
       seq.flatMap(getSingle).reduceLeftOption(_ + _)
@@ -1297,6 +1308,8 @@ object MergedDataStoreView {
 =======
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
       val seq = if (parallel) { stats.par } else { stats }
       seq.flatMap(getSingle).reduceLeftOption(_ + _)
 <<<<<<< HEAD
@@ -1314,6 +1327,8 @@ object MergedDataStoreView {
 >>>>>>> b71311c31d (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1582,6 +1597,7 @@ object MergedDataStoreView {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
@@ -1868,9 +1884,21 @@ object MergedDataStoreView {
 =======
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1dae86c846 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
     }
 
     override def getMinMax[T](
@@ -2156,7 +2184,11 @@ object MergedDataStoreView {
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
       }
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
       val seq = if (parallel) { stats.par } else { stats }
       seq.flatMap(getSingle).reduceLeftOption(_ + _)
@@ -2323,12 +2355,16 @@ object MergedDataStoreView {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2493,6 +2529,9 @@ object MergedDataStoreView {
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
     }
 
     override def getEnumeration[T](
