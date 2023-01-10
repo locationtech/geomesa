@@ -26,7 +26,10 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.collection.JavaConverters._
+<<<<<<< HEAD
 import scala.util.Try
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import scala.util.hashing.MurmurHash3
 
 class GeoMesaSparkKryoRegistrator extends KryoRegistrator with LazyLogging {
@@ -65,6 +68,7 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator with LazyLogging {
     }
     kryo.setReferences(false)
     GeoMesaSparkKryoRegistrator.SimpleFeatureImpls.foreach(kryo.register(_, serializer, kryo.getNextRegistrationId))
+<<<<<<< HEAD
   }
 
   def registerSedonaClasses(kryo: Kryo): Unit = {
@@ -73,6 +77,8 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator with LazyLogging {
     logger.debug(s"found sedona kryo registrator class ${registratorClass.getCanonicalName}")
     val sedonaRegistrator = registratorClass.newInstance().asInstanceOf[KryoRegistrator]
     sedonaRegistrator.registerClasses(kryo)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
 }
 

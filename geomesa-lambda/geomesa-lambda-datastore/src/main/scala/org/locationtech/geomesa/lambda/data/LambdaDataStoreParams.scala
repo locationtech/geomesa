@@ -106,6 +106,7 @@ package org.locationtech.geomesa.lambda.data
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import java.time.Clock
 import java.util.Properties
@@ -117,6 +118,8 @@ import java.util.Properties
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, ZookeeperOffsetManager}
@@ -126,6 +129,7 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import java.time.Clock
 import java.util.Properties
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -134,6 +138,8 @@ import java.util.Properties
 >>>>>>> 120815d0b0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import scala.concurrent.duration.Duration
 
 object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {

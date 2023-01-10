@@ -619,6 +619,7 @@ class KafkaDataStore(
     private[kafka] val serialization: GeoMessageSerializerFactory
   ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with LocalLocking {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
 <<<<<<< HEAD
@@ -628,6 +629,8 @@ class KafkaDataStore(
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
   import KafkaDataStore.TopicKey
   import org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG
@@ -1159,6 +1162,7 @@ class KafkaDataStore(
 <<<<<<< HEAD
 =======
 
+<<<<<<< HEAD
   // migrate old schemas, if any
   if (!metadata.read("migration", "check").exists(_.toBoolean)) {
     new MetadataMigration(this, config.catalog, config.zookeepers).run()
@@ -1172,6 +1176,8 @@ class KafkaDataStore(
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   /**
     * Start consuming from all topics. Consumers are normally only started for a simple feature type
     * when it is first queried - this will start them immediately.
@@ -1354,6 +1360,7 @@ class KafkaDataStore(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   override private[geomesa] def getFeatureReader(
 =======
 <<<<<<< HEAD
@@ -1367,6 +1374,9 @@ class KafkaDataStore(
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
   private[geomesa] def getFeatureReader(
 >>>>>>> f7038468b7 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+  override private[geomesa] def getFeatureReader(
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
       sft: SimpleFeatureType,
       transaction: Transaction,
       query: Query): GeoMesaFeatureReader = {

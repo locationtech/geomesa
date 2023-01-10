@@ -90,10 +90,13 @@ function dependencies() {
       "org.apache.hbase.thirdparty:hbase-shaded-miscellaneous:${hbase_thirdparty_version}:jar"
       "org.apache.hbase.thirdparty:hbase-shaded-netty:${hbase_thirdparty_version}:jar"
       "org.apache.hbase.thirdparty:hbase-shaded-protobuf:${hbase_thirdparty_version}:jar"
+<<<<<<< HEAD
       "org.apache.hbase.thirdparty:hbase-unsafe:${hbase_thirdparty_version}:jar"
       "io.opentelemetry:opentelemetry-api:1.15.0:jar"
       "io.opentelemetry:opentelemetry-context:1.15.0:jar"
       "io.opentelemetry:opentelemetry-semconv:1.15.0-alpha:jar"
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
     )
   else
     gavs+=(

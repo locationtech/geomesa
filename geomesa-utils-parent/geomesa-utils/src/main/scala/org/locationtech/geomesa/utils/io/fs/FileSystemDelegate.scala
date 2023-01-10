@@ -14,7 +14,10 @@ import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 
 import java.io.{InputStream, OutputStream}
+<<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/FileSystemDelegate.scala
 import java.net.URL
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/FileSystemDelegate.scala
 
 trait FileSystemDelegate extends LazyLogging {
 

@@ -104,6 +104,7 @@
 
 package org.locationtech.geomesa.convert
 
+<<<<<<< HEAD
 import org.apache.commons.io.IOUtils
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.TestConverterFactory.TestField
@@ -123,24 +124,21 @@ import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.apache.commons.io.IOUtils
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.TestConverterFactory.TestField
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicOptions}
-import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicConfigConvert, BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert, PrimitiveConvert}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicConfigConvert, BasicOptionsConvert, FieldConvert, OptionConvert, PrimitiveConvert}
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{Expression, TransformerFunction, TransformerFunctionFactory}
-import org.locationtech.geomesa.convert2.{AbstractConverter, AbstractConverterFactory, Field, SimpleFeatureConverter}
+import org.locationtech.geomesa.convert2.{AbstractConverter, AbstractConverterFactory, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.ConfigReaderFailures
 
+<<<<<<< HEAD
 @RunWith(classOf[JUnitRunner])
 class ApiTest extends Specification {
 
@@ -184,6 +182,9 @@ class ApiTest extends Specification {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+import java.io.InputStream
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 class TestConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Seq[TestField], options: BasicOptions)
     extends AbstractConverter[String, BasicConfig, TestField, BasicOptions](sft, config, fields, options) {
@@ -201,6 +202,7 @@ class TestConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Seq[Tes
 class TestConverterFactory extends AbstractConverterFactory[TestConverter, BasicConfig, TestField, BasicOptions](
   "test", BasicConfigConvert, TestConverterFactory.TestFieldConvert, BasicOptionsConvert)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 class TestConverterFactory extends AbstractConverterFactory[TestConverter, BasicConfig, TestField, BasicOptions] {
   override protected val typeToProcess: String = "test"
@@ -215,6 +217,8 @@ class TestConverterFactory extends AbstractConverterFactory[TestConverter, Basic
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
 object TestConverterFactory {
 
@@ -244,6 +248,7 @@ object TestConverterFactory {
   case class TestDerivedField(name: String, transforms: Option[Expression]) extends TestField {
     override def fieldArg: Option[Array[AnyRef] => AnyRef] = None
   }
+<<<<<<< HEAD
 
   case class TestSplitField(name: String, transforms: Option[Expression]) extends TestField {
     override def fieldArg: Option[Array[AnyRef] => AnyRef] =
@@ -262,6 +267,12 @@ object TestConverterFactory {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+
+  case class TestSplitField(name: String, transforms: Option[Expression]) extends TestField {
+    override def fieldArg: Option[Array[AnyRef] => AnyRef] =
+      Some(args => Array[Any](args(0)) ++ args(0).asInstanceOf[String].split(","))
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
 }
 
@@ -272,6 +283,7 @@ class TestFunctionFactory extends TransformerFunctionFactory {
   private val foo = new NamedTransformerFunction(Seq("foo")) {
     override def apply(args: Array[AnyRef]): AnyRef = "foo " + args(0)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = "foo " + args(0)
 <<<<<<< HEAD
@@ -281,12 +293,15 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
 
   private val bar = new TransformerFunction {
     override def names: Seq[String] = Seq("bar")
     override def apply(args: Array[AnyRef]): AnyRef = "bar " + args(0)
     override def withContext(ec: EvaluationContext): TransformerFunction = this
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = "bar " + args(0)
@@ -297,5 +312,7 @@ class TestFunctionFactory extends TransformerFunctionFactory {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
 }
