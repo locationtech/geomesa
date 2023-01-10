@@ -291,6 +291,7 @@
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
         <artifactId>geomesa-gt_2.12</artifactId>
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>4.0.0-SNAPSHOT</version>
@@ -325,9 +326,21 @@
 =======
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 83363fd6e61 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 31e57b8ac92 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9761fd9aca5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> a34438bf2f4 (GEOMESA-3254 Add Bloop build support)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -375,10 +388,14 @@
         </dependency>
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
     </dependencies>
 
 </project>
