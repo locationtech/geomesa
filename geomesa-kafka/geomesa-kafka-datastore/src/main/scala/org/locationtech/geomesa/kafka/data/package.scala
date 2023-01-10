@@ -44,6 +44,7 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -64,6 +65,8 @@ import org.apache.kafka.clients.producer.Producer
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.concurrent.LazyCloseable
 =======
 <<<<<<< HEAD
@@ -101,6 +104,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -125,6 +129,10 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 
 import java.io.Closeable
 
