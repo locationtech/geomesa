@@ -16,7 +16,6 @@ import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.AppendKafkaFeature
 import org.locationtech.geomesa.kafka.index.KafkaListeners
 import org.locationtech.geomesa.utils.io.WithClose
 
-<<<<<<< HEAD
 class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: KafkaListeners)
     extends GeoMesaFeatureStore(ds, sft) {
 <<<<<<< HEAD
@@ -26,6 +25,9 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: K
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: QueryRunner, listeners: KafkaListeners)
     extends GeoMesaFeatureStore(ds, sft, runner) {
@@ -36,6 +38,7 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -69,6 +72,8 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> a0314fb7ff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 8ec26b8c2a (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 
   override def removeFeatures(filter: Filter): Unit = filter match {
     case Filter.INCLUDE => clearFeatures()
