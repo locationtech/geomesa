@@ -8,6 +8,10 @@
 
 package org.locationtech.geomesa.metrics.core
 
+<<<<<<< HEAD
+=======
+import com.codahale.metrics.MetricRegistry.MetricSupplier
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import com.codahale.metrics._
 import com.typesafe.config.Config
 import org.locationtech.geomesa.utils.io.CloseWithLogging
