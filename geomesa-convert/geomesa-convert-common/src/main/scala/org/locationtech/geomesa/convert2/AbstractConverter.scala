@@ -12,6 +12,7 @@ package org.locationtech.geomesa.convert2
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -32,6 +33,8 @@ import java.util.Date
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -76,7 +79,6 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     extends SimpleFeatureConverter with ParsingConverter[T] with LazyLogging {
 
   import AbstractConverter.{IdFieldName, UserDataFieldPrefix}
-<<<<<<< HEAD
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
@@ -152,6 +154,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     }
     builder.result
   }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -270,6 +273,8 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     }
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 
   private val metrics = ConverterMetrics(sft, options.reporters)
 
@@ -490,10 +495,10 @@ object AbstractConverter {
    * @param message message
    */
   class AbstractApiError(message: String) extends Exception(message, null, false, false)
-<<<<<<< HEAD
 
   object FieldApiError extends AbstractApiError("Field")
   object TransformerFunctionApiError extends AbstractApiError("TransformerFunction")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -544,6 +549,8 @@ object AbstractConverter {
   }
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 
   /**
 <<<<<<< HEAD
