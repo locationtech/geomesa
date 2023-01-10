@@ -41,6 +41,7 @@ object MiscFunctionFactory {
     override def withContext(ec: EvaluationContext): TransformerFunction = new LineNumber(ec)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     // noinspection ScalaDeprecation
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = ec.line
@@ -51,6 +52,8 @@ object MiscFunctionFactory {
 >>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   }
 }
 
