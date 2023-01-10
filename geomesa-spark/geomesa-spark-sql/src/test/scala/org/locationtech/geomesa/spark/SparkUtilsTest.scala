@@ -95,7 +95,11 @@ package org.locationtech.geomesa.spark
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{Row, SQLContext, SparkSession}
+<<<<<<< HEAD
 import org.geotools.api.feature.simple.SimpleFeature
+=======
+<<<<<<< HEAD
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
@@ -111,6 +115,11 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 >>>>>>> 7f520da00a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+import org.junit.runner.RunWith
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.specs2.mutable.Specification

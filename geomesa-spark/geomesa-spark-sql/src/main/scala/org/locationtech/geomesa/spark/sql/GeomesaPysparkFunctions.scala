@@ -1,5 +1,13 @@
 /***********************************************************************
+<<<<<<< HEAD
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 1463162d60 (GEOMESA-3254 Add Bloop build support)
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,7 +22,11 @@ import org.locationtech.geomesa.spark.jts.udf.GeometricAccessorFunctions._
 import org.locationtech.geomesa.spark.jts.udf.GeometricCastFunctions._
 import org.locationtech.geomesa.spark.jts.udf.GeometricConstructorFunctions._
 import org.locationtech.geomesa.spark.jts.udf.GeometricOutputFunctions._
+<<<<<<< HEAD
 import org.locationtech.geomesa.spark.jts.udf.GeometricProcessingFunctions.{ST_BufferPoint, ST_MakeValid, ST_antimeridianSafeGeom}
+=======
+import org.locationtech.geomesa.spark.jts.udf.GeometricProcessingFunctions.{ST_BufferPoint, ST_antimeridianSafeGeom}
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 import org.locationtech.geomesa.spark.sql.GeometricDistanceFunctions._
 
@@ -86,7 +98,10 @@ object GeomesaPysparkFunctions {
   def st_antimeridianSafeGeom: UserDefinedFunction = udf(ST_antimeridianSafeGeom)
   def st_bufferPoint: UserDefinedFunction = udf(ST_BufferPoint)
   def st_idlSafeGeom: UserDefinedFunction = udf(ST_antimeridianSafeGeom)
+<<<<<<< HEAD
   def st_makeValid: UserDefinedFunction = udf(ST_MakeValid)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
   /* Spatial Relation Functions */
   def st_translate: UserDefinedFunction = udf(ST_Translate)

@@ -9,6 +9,13 @@
 package org.locationtech.geomesa.spark
 
 import com.typesafe.scalalogging.LazyLogging
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+import org.locationtech.geomesa.spark.isUsingSedona
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 import org.apache.spark.sql.catalyst.expressions.Literal
 import org.apache.spark.sql.catalyst.plans.logical.Filter
 import org.apache.spark.sql.execution.datasources.LogicalRelation
