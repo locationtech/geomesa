@@ -30,7 +30,6 @@ The following is adapted from the word-count `example`__ in Kafka Streams:
 
 __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.html#scala-dsl-sample-usage
 
-<<<<<<< HEAD
 .. tabs::
 <<<<<<< HEAD
 
@@ -91,6 +90,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
         Topology topology = builder.build();
         // construct the streams app as normal
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -178,6 +178,8 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 .. code-block:: scala
 
@@ -228,14 +230,18 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 
 Write Example
 -------------
 
 The following shows how to persist data back to a GeoMesa topic:
 
-<<<<<<< HEAD
 .. tabs::
 <<<<<<< HEAD
 
@@ -293,6 +299,7 @@ The following shows how to persist data back to a GeoMesa topic:
 
         Topology topology = builder.build();
         // construct the streams app as normal
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -378,6 +385,8 @@ The following shows how to persist data back to a GeoMesa topic:
 =======
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
 .. code-block:: scala
 
     import org.apache.kafka.streams.scala.ImplicitConversions._
@@ -426,7 +435,12 @@ The following shows how to persist data back to a GeoMesa topic:
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 
 Joins and Topic Partitioning
 ----------------------------
