@@ -30,7 +30,6 @@ The following is adapted from the word-count `example`__ in Kafka Streams:
 
 __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.html#scala-dsl-sample-usage
 
-<<<<<<< HEAD
 .. tabs::
 <<<<<<< HEAD
 
@@ -111,13 +110,17 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
@@ -138,6 +141,8 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 .. code-block:: scala
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -605,15 +610,22 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
     // construct the streams app as normal
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 
 Write Example
 -------------
 
 The following shows how to persist data back to a GeoMesa topic:
 
-<<<<<<< HEAD
 .. tabs::
 <<<<<<< HEAD
 
@@ -691,13 +703,17 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
@@ -718,6 +734,8 @@ The following shows how to persist data back to a GeoMesa topic:
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 .. code-block:: scala
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -1172,8 +1190,16 @@ The following shows how to persist data back to a GeoMesa topic:
     // construct the streams app as normal
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 >>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 
 Joins and Topic Partitioning
 ----------------------------
