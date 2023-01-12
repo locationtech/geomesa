@@ -3,64 +3,47 @@ Processors
 
 GeoMesa NiFi provides several processors:
 
-+-------------------------------------+-----------------------------------------------------------------+
-| Processor                           | Description                                                     |
-+=====================================+=================================================================+
-| * ``PutGeoMesaAccumulo``            | Ingest data into a GeoMesa Accumulo datastore                   |
-| * ``PutGeoMesaAccumuloRecord``      |                                                                 |
-| * ``UpdateGeoMesaAccumuloRecord``   |                                                                 |
-| * ``AvroToPutGeoMesaAccumulo``      |                                                                 |
-+-------------------------------------+-----------------------------------------------------------------+
-| * ``PutGeoMesaHBase``               | Ingest data into a GeoMesa HBase datastore                      |
-| * ``PutGeoMesaHBaseRecord``         |                                                                 |
-| * ``UpdateGeoMesaHBaseRecord``      |                                                                 |
-| * ``AvroToPutGeoMesaHBase``         |                                                                 |
-+-------------------------------------+-----------------------------------------------------------------+
-| * ``PutGeoMesaFileSystem``          | Ingest data into a GeoMesa File System datastore                |
-| * ``PutGeoMesaFileSystemRecord``    |                                                                 |
-| * ``UpdateGeoMesaFileSystemRecord`` |                                                                 |
-| * ``AvroToPutGeoMesaFileSystem``    |                                                                 |
-+-------------------------------------+-----------------------------------------------------------------+
-| * ``PutGeoMesaKafka``               | Ingest data into a GeoMesa Kafka datastore                      |
-| * ``PutGeoMesaKafkaRecord``         |                                                                 |
-| * ``UpdateGeoMesaKafkaRecord``      |                                                                 |
-| * ``AvroToPutGeoMesaKafka``         |                                                                 |
-+-------------------------------------+-----------------------------------------------------------------+
-| * ``PutGeoMesaRedis``               | Ingest data into a GeoMesa Redis datastore                      |
-| * ``PutGeoMesaRedisRecord``         |                                                                 |
-| * ``UpdateGeoMesaRedisRecord``      |                                                                 |
-| * ``AvroToPutGeoMesaRedis``         |                                                                 |
-+-------------------------------------+-----------------------------------------------------------------+
-| * ``PutGeoTools``                   | Ingest data into an arbitrary GeoTools datastore                |
-| * ``PutGeoToolsRecord``             |                                                                 |
-| * ``UpdateGeoToolsRecord``          |                                                                 |
-| * ``AvroToPutGeoTools``             |                                                                 |
-+-------------------------------------+-----------------------------------------------------------------+
-| * ``GetGeoMesaKafkaRecord``         | Read GeoMesa Kafka messages and output them as NiFi records     |
-+-------------------------------------+-----------------------------------------------------------------+
-| * ``ConvertToGeoFile``              | Use a GeoMesa converter to create files in a variety of         |
-|                                     | geometry-enabled formats                                        |
-+-------------------------------------+-----------------------------------------------------------------+
++-----------------------------------+-----------------------------------------------------------------+
+| Processor                         | Description                                                     |
++===================================+=================================================================+
+| ``PutGeoMesa``                    | Ingest data into a GeoMesa data store using a GeoMesa converter |
++-----------------------------------+-----------------------------------------------------------------+
+| ``PutGeoMesaRecord``              | Ingest data into a GeoMesa data store using the NiFi record API |
++-----------------------------------+-----------------------------------------------------------------+
+| ``AvroToPutGeoMesa``              | Ingest GeoAvro files into a GeoMesa data store                  |
++-----------------------------------+-----------------------------------------------------------------+
+| ``UpdateGeoMesaRecord``           | Update existing records in a GeoMesa data store using the NiFi  |
+|                                   | record API                                                      |
++-----------------------------------+-----------------------------------------------------------------+
+| ``GetGeoMesaKafkaRecord``         | Read GeoMesa Kafka messages and output them as NiFi records     |
++-----------------------------------+-----------------------------------------------------------------+
+| ``ConvertToGeoFile``              | Create files in a variety of geometry-enabled formats using a   |
+|                                   | GeoMesa converter                                               |
++-----------------------------------+-----------------------------------------------------------------+
+
+Each processor (with the exception of ``ConvertToGeoFile``) needs to be configured with a ``DataStoreService``,
+which will connect to the GeoMesa back-end data source (for example, HBase or Kafka). See
+:ref:`nifi_datstore_services` for the available services.
 
 Records, Converters, and Avro
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The GeoMesa ``Put`` NiFi processors come in three different flavors. They all write to the same data stores, but
+GeoMesa provides three different ingest processors. They all write to the same data stores, but
 they vary in how the input data is converted into GeoTools ``SimpleFeatures`` (which are necessary for ingest).
 
-The standard processors use the :ref:`converters` framework to define ``SimpleFeatureTypes`` and the mapping from
-input files to ``SimpleFeatures``. Converters can be re-used in the GeoMesa command-line tools and other non-NiFi
-projects. See :doc:`/user/nifi/converters` for details.
+The ``PutGeoMesa`` processor uses the :ref:`converters` framework to define ``SimpleFeatureTypes`` and the mapping
+from input files to ``SimpleFeatures``. Converters can be re-used in the GeoMesa command-line tools and other
+non-NiFi projects. See :doc:`/user/nifi/converters` for details.
 
-The record-based processors use the NiFi records API to define the input schema using a NiFi ``RecordReader``.
+The ``PutGeoMesaRecord`` processor uses the NiFi records API to define the input schema using a NiFi ``RecordReader``.
 Through ``RecordReaders``, ``SimpleFeatureTypes`` can be managed in a centralized schema registry. Similarly, records
 can be manipulated using standard NiFi processors before being passed to the GeoMesa processor. The use of standard
 NiFi APIs greatly reduces the amount of GeoMesa-specific configuration required. See :doc:`/user/nifi/records`
 for details.
 
-Finally, the ``AvroToPut`` processors will ingest GeoMesa-specific GeoAvro files without any configuration. GeoAvro
-is a special Avro file that has ``SimpleFeatureType`` metadata included. It can be produced using the GeoMesa
-command-line tools export in ``avro`` format, the ``ConvertToGeoFile`` processor, the
+Finally, the ``AvroToPutGeoMesa`` processor will ingest GeoMesa-specific GeoAvro files without any configuration.
+GeoAvro is a special Avro file that has ``SimpleFeatureType`` metadata included. It can be produced using the
+GeoMesa command-line tools export in ``avro`` format, the ``ConvertToGeoFile`` processor, the
 ``GeoAvroRecordSetWriterFactory`` record writer factory, or directly through an instance of
 ``org.locationtech.geomesa.features.avro.io.AvroDataFileWriter``. GeoAvro is particularly useful because it is
 self-describing. See :doc:`/user/nifi/avro` for details.
@@ -73,7 +56,7 @@ All types of input processors have some common configuration parameters for cont
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | Property                      | Description                                                                             |
 +===============================+=========================================================================================+
-| ``ExtraClasspaths``           | Additional resources to add to the classpath, e.g. converter definitions                |
+| ``DataStore Service``         | Controller service to manage the GeoMesa data store being used                          |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``Write Mode``                | Use an appending writer (for new features) or a modifying writer (to update existing    |
 |                               | features)                                                                               |
@@ -88,8 +71,6 @@ All types of input processors have some common configuration parameters for cont
 |                               |   configured schema.                                                                    |
 |                               | * ``Update`` will update the existing schema to match the configured schema.            |
 |                               | * ``Exact`` requires the configured schema to  match the existing schema.               |
-+-------------------------------+-----------------------------------------------------------------------------------------+
-| ``BatchSize``                 | The number of flow files that will be processed in a single batch                       |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``FeatureWriterCaching``      | Enable caching of feature writers between flow files, useful if flow files have a       |
 |                               | small number of records (see below)                                                     |

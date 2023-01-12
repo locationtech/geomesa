@@ -3,9 +3,8 @@
 Record Processors
 -----------------
 
-Record-based processors (``PutGeoMesa*Record``) accept the following configuration parameters for specifying the
-input source. Each datastore-specific processor also has additional parameters for connecting to the datastore,
-detailed in the following sections.
+The record-based processor (``PutGeoMesaRecord``) accepts the following configuration parameters for specifying
+the input source:
 
 +-----------------------------------+-----------------------------------------------------------------------------------------------------+
 | Property                          | Description                                                                                         |

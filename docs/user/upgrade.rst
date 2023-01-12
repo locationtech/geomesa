@@ -93,6 +93,15 @@ Compatibility Matrix
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
+Version Compatibility
+---------------------
+
+GeoMesa 4.0.0 is focused on upgrading dependency versions and removing deprecated features, and does not contain
+any new functionality. To make upgrading easier, version 4.0.x is generally compatible with version 3.5.x across
+different environments. This means that it is possible to upgrade in parts; i.e. upgrade GeoServer to 4.0.0
+but keep NiFi at 3.5.0. Please note that previously deprecated functionality (see below) may no longer work once
+any part of the environment is upgraded to 4.0.0.
+
 Scala Versions
 --------------
 
@@ -114,7 +123,7 @@ Dependency Version Upgrades
 ---------------------------
 
 The following high-level dependencies have been upgraded. For a full changelist of all the dependency changes,
-see TODO commit hash link on github
+see the following `gist <https://gist.github.com/elahrvivaz/410370ab29e11ac39618c4310701398b/revisions?diff=split>`__.
 
 * Apache Hadoop ``2.8.5`` -> ``2.10.2``
 * Apache Spark ``2.4.7`` -> ``3.3.1``
@@ -166,7 +175,10 @@ GeoMesa NiFi Changes
 --------------------
 
 GeoMesa NiFi is now built against NiFi 1.19.1. The GeoMesa NARs and JARs have been renamed to include the Scala
-version (i.e. ``geomesa-datastore-services-nar_2.12-4.0.0.nar``).
+version (i.e. ``geomesa-datastore-services-nar_2.12-4.0.0.nar``). The datastore-specific processors (e.g.
+``PutGeoMesaHBase``) have been removed in favor of the generic processors (e.g. ``PutGeoMesa``). The
+recommended upgrade path is to first upgrade to GeoMesa NiFi 3.5.0, and replace all the datastore-specific
+processors in the flow. This will ensure that the flow is still valid after upgrading to GeoMesa NiFi 4.0.0.
 
 Scan Range Changes
 ------------------
