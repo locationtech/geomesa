@@ -25,7 +25,7 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterPropertie
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
-import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -245,10 +245,10 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
   def buildAuthsProvider(connector: AccumuloClient, params: java.util.Map[String, _]): AuthorizationsProvider = {
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
     val securityOps = connector.securityOperations
-    val masterAuths = securityOps.getUserAuthorizations(connector.whoami).asScala.toArray.map(b => new String(b))
+    val masterAuths = securityOps.getUserAuthorizations(connector.whoami).asScala.toSeq.map(b => new String(b))
 
     // get the auth params passed in as a comma-delimited string
-    val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filterNot(_.isEmpty)
+    val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filterNot(_.isEmpty).toSeq
 
     // verify that the configured auths are valid for the connector we are using (fail-fast)
     val invalidAuths = configuredAuths.filterNot(masterAuths.contains)
@@ -261,12 +261,12 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 
     // if the caller provided any non-null string for authorizations, use it;
     // otherwise, grab all authorizations to which the Accumulo user is entitled
-    if (configuredAuths.length != 0 && forceEmptyAuths) {
+    if (configuredAuths.nonEmpty && forceEmptyAuths) {
       throw new IllegalArgumentException("Forcing empty auths is checked, but explicit auths are provided")
     }
-    val auths = if (forceEmptyAuths || configuredAuths.length > 0) { configuredAuths } else { masterAuths }
+    val auths = if (forceEmptyAuths || configuredAuths.nonEmpty) { configuredAuths } else { masterAuths }
 
-    AuthorizationsProvider.apply(params, java.util.Arrays.asList(auths: _*))
+    AuthUtils.getProvider(params, auths)
   }
 
   /**

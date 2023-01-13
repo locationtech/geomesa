@@ -22,8 +22,7 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams.{LazyFeatures, S
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
-import org.locationtech.geomesa.security
-import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
@@ -257,8 +256,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   private def buildAuthProvider(params: java.util.Map[String, _]): AuthorizationsProvider = {
     import KafkaDataStoreParams.Authorizations
     // get the auth params passed in as a comma-delimited string
-    val auths = Authorizations.lookupOpt(params).map(_.split(",").filterNot(_.isEmpty)).getOrElse(Array.empty)
-    security.getAuthorizationsProvider(params, auths)
+    val auths = Authorizations.lookupOpt(params).map(_.split(",").filterNot(_.isEmpty).toSeq).getOrElse(Seq.empty)
+    AuthUtils.getProvider(params, auths)
   }
 
   private def buildAuditProvider(params: java.util.Map[String, _]): AuditProvider =
