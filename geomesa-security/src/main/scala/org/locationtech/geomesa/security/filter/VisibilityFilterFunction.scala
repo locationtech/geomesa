@@ -11,7 +11,7 @@ package org.locationtech.geomesa.security.filter
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl.parameter
-import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils, VisibilityEvaluator}
+import org.locationtech.geomesa.security.{AuthUtils, SecurityUtils, VisibilityEvaluator}
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.capability.FunctionName
 import org.opengis.filter.expression.Expression
@@ -62,5 +62,5 @@ object VisibilityFilterFunction {
       parameter("auths", classOf[String]),
       parameter("attribute", classOf[String], 0, 1))
 
-  private val provider = AuthorizationsProvider.apply(Collections.emptyMap(), Collections.emptyList())
+  private val provider = AuthUtils.getProvider(Collections.emptyMap[String, AnyRef](), Seq.empty)
 }
