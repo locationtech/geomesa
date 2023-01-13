@@ -13,11 +13,7 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 import org.opengis.feature.simple.SimpleFeature
 
-import java.{io => jio, util => ju}
-
 package object security {
-
-  import scala.collection.JavaConverters._
 
   val GEOMESA_AUDIT_PROVIDER_IMPL: SystemProperty = SystemProperty("geomesa.audit.provider.impl")
   val GEOMESA_AUTH_PROVIDER_IMPL : SystemProperty = SystemProperty("geomesa.auth.provider.impl")
@@ -75,6 +71,7 @@ package object security {
     def visibility: Option[String] = Option(SecurityUtils.getVisibility(sf))
   }
 
+  @deprecated("Use AuthUtils.getProvider")
   def getAuthorizationsProvider(params: java.util.Map[String, _], auths: Seq[String]): AuthorizationsProvider =
-    AuthorizationsProvider.apply(params, auths.asJava)
+    AuthUtils.getProvider(params, auths)
 }
