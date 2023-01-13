@@ -22,7 +22,7 @@ object AuthUtils {
    * @return authorizations provider
    */
   def getProvider(params: java.util.Map[String, _], authorizations: java.util.List[String]): AuthorizationsProvider =
-    getProvider(params, authorizations.asScala)
+    getProvider(params, authorizations.asScala.toSeq)
 
   /**
    * Static method to load and configure an authorization provider from the classpath
