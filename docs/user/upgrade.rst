@@ -179,6 +179,8 @@ version (i.e. ``geomesa-datastore-services-nar_2.12-4.0.0.nar``). The datastore-
 ``PutGeoMesaHBase``) have been removed in favor of the generic processors (e.g. ``PutGeoMesa``). The
 recommended upgrade path is to first upgrade to GeoMesa NiFi 3.5.0, and replace all the datastore-specific
 processors in the flow. This will ensure that the flow is still valid after upgrading to GeoMesa NiFi 4.0.0.
+The ``geomesa-accumulo2-nar`` has been replaced with ``geomesa-accumulo20-nar``, and there is an additional
+``geomesa-accumulo21-nar`` for Accumulo 2.1 support.
 
 Scan Range Changes
 ------------------
