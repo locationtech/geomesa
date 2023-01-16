@@ -103,8 +103,10 @@
         <!-- *** provided artifacts, not bundled to support multiple environments *** -->
 
         <accumulo.version>2.0.1</accumulo.version>
+        <accumulo-21.version>2.1.0</accumulo-21.version>
         <zookeeper.version>3.5.10</zookeeper.version>
         <thrift.version>0.12.0</thrift.version>
+        <thrift-accumulo-21.version>0.17.0</thrift-accumulo-21.version>
         <hadoop.version>2.10.2</hadoop.version>
         <spark.version>3.3.1</spark.version>
         <hbase.version>2.5.2</hbase.version>
@@ -149,7 +151,7 @@
         <copyright.year>2023</copyright.year>
 
         <!-- recommended installation versions -->
-        <accumulo.version.recommended>2.0.1</accumulo.version.recommended>
+        <accumulo.version.recommended>2.1.0</accumulo.version.recommended>
         <hbase.version.recommended>2.5.2</hbase.version.recommended>
         <hbase.thirdparty.version.recommended>4.1.3</hbase.thirdparty.version.recommended>
         <cassandra.server.version.recommended>3.11.14</cassandra.server.version.recommended>

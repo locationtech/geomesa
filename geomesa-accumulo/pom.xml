@@ -22,7 +22,8 @@
         <module>geomesa-accumulo-gs-plugin</module>
         <module>geomesa-accumulo-jobs</module>
         <module>geomesa-accumulo-spark</module>
-        <module>geomesa-accumulo-spark-runtime-accumulo2</module>
+        <module>geomesa-accumulo-spark-runtime-accumulo20</module>
+        <module>geomesa-accumulo-spark-runtime-accumulo21</module>
         <module>geomesa-accumulo-tools</module>
     </modules>
 

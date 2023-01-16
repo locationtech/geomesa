@@ -55,7 +55,6 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
   }
 
   override def rowEncoder(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
-    // TODO if we don't have a geometry, skip the record?
     values.get(0).get.head match {
       case KryoFeatureSerializer.Version3 => encodeV3(keys, values)
       case KryoFeatureSerializer.Version2 => encodeV2(keys, values)
