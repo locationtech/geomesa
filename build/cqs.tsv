@@ -75,6 +75,7 @@ io.dropwizard.metrics:metrics-ganglia	3.2.6	compile
 io.dropwizard.metrics:metrics-graphite	3.2.6	compile
 io.dropwizard.metrics:metrics-jvm	3.2.6	compile
 io.github.azagniotov:dropwizard-metrics-cloudwatch	1.0.13	compile
+io.micrometer:micrometer-core	1.9.5	compile
 io.netty:netty-all	4.1.85.Final	compile
 io.netty:netty-buffer	4.1.85.Final	compile
 io.netty:netty-codec	4.1.85.Final	compile
@@ -104,8 +105,11 @@ io.netty:netty-transport-rxtx	4.1.85.Final	compile
 io.netty:netty-transport-sctp	4.1.85.Final	compile
 io.netty:netty-transport-udt	4.1.85.Final	compile
 io.opentelemetry:opentelemetry-api	1.15.0	compile
+io.opentelemetry:opentelemetry-api	1.19.0	compile
 io.opentelemetry:opentelemetry-context	1.15.0	compile
+io.opentelemetry:opentelemetry-context	1.19.0	compile
 io.opentelemetry:opentelemetry-semconv	1.15.0-alpha	compile
+io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 io.sgr:s2-geometry-library-java	1.0.1	compile
 it.geosolutions.jaiext.affine:jt-affine	1.1.24	compile
 it.geosolutions.jaiext.algebra:jt-algebra	1.1.24	compile
@@ -156,7 +160,9 @@ net.sf.saxon:Saxon-HE	11.4	compile
 net.sf.trove4j:trove4j	3.0.3	compile
 org.antlr:antlr4-runtime	4.7.1	compile
 org.apache.accumulo:accumulo-core	2.0.1	compile
+org.apache.accumulo:accumulo-core	2.1.0	compile
 org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
+org.apache.accumulo:accumulo-hadoop-mapreduce	2.1.0	compile
 org.apache.arrow:arrow-format	10.0.1	compile
 org.apache.arrow:arrow-memory-core	10.0.1	compile
 org.apache.arrow:arrow-memory-netty	10.0.1	compile
@@ -165,6 +171,7 @@ org.apache.avro:avro	1.11.1	compile
 org.apache.commons:commons-collections4	4.4	compile
 org.apache.commons:commons-compress	1.22	compile
 org.apache.commons:commons-configuration2	2.5	compile
+org.apache.commons:commons-configuration2	2.8.0	compile
 org.apache.commons:commons-crypto	1.1.0	compile
 org.apache.commons:commons-csv	1.9.0	compile
 org.apache.commons:commons-dbcp2	2.6.0	compile
@@ -175,6 +182,8 @@ org.apache.commons:commons-text	1.10.0	compile
 org.apache.curator:curator-client	4.3.0	compile
 org.apache.curator:curator-framework	4.3.0	compile
 org.apache.curator:curator-recipes	4.3.0	compile
+org.apache.datasketches:datasketches-java	3.3.0	compile
+org.apache.datasketches:datasketches-memory	2.1.0	compile
 org.apache.hbase:hbase-asyncfs	2.5.2	compile
 org.apache.hbase:hbase-client	1.4.13	compile
 org.apache.hbase:hbase-client	2.5.2	compile
@@ -213,11 +222,13 @@ org.apache.parquet:parquet-encoding	1.12.3	compile
 org.apache.parquet:parquet-format-structures	1.12.3	compile
 org.apache.parquet:parquet-hadoop	1.12.3	compile
 org.apache.thrift:libthrift	0.12.0	compile
+org.apache.thrift:libthrift	0.17.0	compile
 org.apache.xml:xml-commons-resolver	1.2	compile
 org.apache.yetus:audience-annotations	0.13.0	compile
 org.apache.yetus:audience-annotations	0.5.0	compile
 org.apache.zookeeper:zookeeper	3.5.10	compile
 org.apache.zookeeper:zookeeper-jute	3.5.10	compile
+org.apache.zookeeper:zookeeper-jute	3.8.0	compile
 org.calrissian.mango:mango-core	3.0.0	compile
 org.checkerframework:checker-qual	3.19.0	compile
 org.checkerframework:checker-qual	3.5.0	compile
@@ -259,6 +270,7 @@ org.geotools.xsd:gt-xsd-gml2	28.0	compile
 org.geotools.xsd:gt-xsd-gml3	28.0	compile
 org.geotools.xsd:gt-xsd-ows	28.0	compile
 org.geotools.xsd:gt-xsd-wfs	28.0	compile
+org.hdrhistogram:HdrHistogram	2.1.12	compile
 org.hsqldb:hsqldb	2.4.1	compile
 org.huldra.math:bigint	0.7.1	compile
 org.jamon:jamon-runtime	2.4.1	compile
@@ -290,6 +302,7 @@ org.threeten:threeten-extra	1.5.0	compile
 org.threeten:threeten-extra	1.7.1	compile
 org.xmlresolver:xmlresolver	4.4.3	compile
 org.xmlresolver:xmlresolver	data:4.4.3	compile
+org.yaml:snakeyaml	1.33	compile
 picocontainer:picocontainer	1.2	compile
 redis.clients:jedis	4.3.1	compile
 si.uom:si-quantity	2.0.1	compile
