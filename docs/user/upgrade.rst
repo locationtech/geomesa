@@ -123,7 +123,7 @@ Dependency Version Upgrades
 ---------------------------
 
 The following high-level dependencies have been upgraded. For a full changelist of all the dependency changes,
-see the following `gist <https://gist.github.com/elahrvivaz/410370ab29e11ac39618c4310701398b/revisions?diff=split>`__.
+see the following `gist <https://gist.github.com/elahrvivaz/2c66ffbc126408a642913d157aef881b/revisions?diff=split>`__.
 
 * Apache Hadoop ``2.8.5`` -> ``2.10.2``
 * Apache Spark ``2.4.7`` -> ``3.3.1``
