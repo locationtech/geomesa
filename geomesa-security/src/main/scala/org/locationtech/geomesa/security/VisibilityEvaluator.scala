@@ -174,7 +174,13 @@ class VisibilityEvaluator private extends BasicParser {
 
   private def parens: Rule1[VisibilityExpression] = rule { "(" ~ expression ~ ")" }
 
+  private def authChar: Rule0 = rule { char | "-" | ":" | "." | "/" }
+
+  private def unquotedAuthString: Rule1[String] = rule { oneOrMore(authChar) ~> { c => c } }
+
+  private def authString: Rule1[String] = rule { quotedString | singleQuotedString | unquotedAuthString }
+
   private def value: Rule1[VisibilityExpression] = rule {
-    string ~~> { s => VisibilityValue(s.getBytes(StandardCharsets.UTF_8))}
+    authString ~~> { s => VisibilityValue(s.getBytes(StandardCharsets.UTF_8))}
   }
 }
