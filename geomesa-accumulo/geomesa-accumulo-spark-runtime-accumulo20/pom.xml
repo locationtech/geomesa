@@ -7,8 +7,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>GeoMesa Accumulo Spark Runtime, Accumulo 2.x</name>
-    <artifactId>geomesa-accumulo-spark-runtime-accumulo2_2.12</artifactId>
+    <name>GeoMesa Accumulo Spark Runtime, Accumulo 2.0.x</name>
+    <artifactId>geomesa-accumulo-spark-runtime-accumulo20_2.12</artifactId>
 
     <dependencies>
         <dependency>
@@ -40,10 +40,10 @@
             <artifactId>geomesa-spark-jupyter-leaflet_${scala.binary.version}</artifactId>
             <scope>runtime</scope>
         </dependency>
-
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-cqengine-datastore_${scala.binary.version}</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
