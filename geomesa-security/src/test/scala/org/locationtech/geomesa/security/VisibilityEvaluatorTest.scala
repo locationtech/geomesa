@@ -25,6 +25,20 @@ class VisibilityEvaluatorTest extends Specification {
 
   "VisibilityEvaluator" should {
 
+    "be able to parse non-string chars" >> {
+      foreach(Seq('_', '-', ':', '.', '/')) { char =>
+        val vis = s"x${char}x"
+        VisibilityEvaluator.parse(vis) mustEqual VisibilityValue(vis.getBytes(StandardCharsets.UTF_8))
+      }
+    }
+
+    "be able to parse escaped quoted chars" >> {
+      foreach(Seq("'foo\\'bar'", "\"foo\\\"bar\"")) { vis =>
+        val value = vis.drop(1).dropRight(1).replaceAllLiterally("\\", "").getBytes(StandardCharsets.UTF_8)
+        VisibilityEvaluator.parse(vis) mustEqual VisibilityValue(value)
+      }
+    }
+
     "be able to parse empty visibilities" >> {
       VisibilityEvaluator.parse(null) mustEqual VisibilityNone
       VisibilityEvaluator.parse("") mustEqual VisibilityNone
