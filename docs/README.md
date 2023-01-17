@@ -4,7 +4,8 @@ This is not the GeoMesa documentation itself, but rather notes on how to build i
 
 ## Setup
 
-The documentation is built using Python's [Sphinx](http://sphinx-doc.org/) module.
+The documentation is built using Python's [Sphinx](http://sphinx-doc.org/) module. It is tested to work with Python
+3.10.
 
 Installing Sphinx and its dependencies in a Python ``virtualenv``:
 
@@ -49,8 +50,7 @@ To build a single HTML file containing all three manuals:
 
 ## About
 
-There are currently three main manuals: the User Manual (``user``), the Developer Manual (``developer``),
-and Tutorials (``tutorials``).
+There are currently two main manuals: the User Manual (``user``) and Tutorials (``tutorials``).
 
 In each manual, the root page of the documentation is ``index.rst``. Any static files included go in
 the ``_static`` directory. 

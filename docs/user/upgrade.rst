@@ -133,7 +133,7 @@ see the following `gist <https://gist.github.com/elahrvivaz/410370ab29e11ac39618
 * Apache Arrow ``0.16.0`` -> ``10.0.1``
 * Apache Avro ``1.8.2`` -> ``1.11.1``
 * Apache Parquet ``1.9.0`` -> ``1.12.3``
-* Apache Orc ``1.5.4`` -> ``1.8.1``
+* Apache Orc ``1.5.4`` -> ``1.8.2``
 * Jedis ``3.0.1`` -> ``4.3.1``
 * Confluent ``5.1.0`` -> ``6.2.7``
 * Kryo ``3.0.3`` -> ``4.0.2``
