@@ -73,3 +73,6 @@ The ``GetGeoMesaKafkaRecord`` will set the following NiFi expression attributes,
 +-------------------------------+---------------------------------------------------------------------------------------+
 | ``geomesa.visibilities.col``  | The name of the visibilities column in the output record                              |
 +-------------------------------+---------------------------------------------------------------------------------------+
+
+These properties correspond to the default configuration of the GeoMesa :ref:`nifi_record_input_configuration`,
+so generally no additional configuration is needed to read from Kafka and write to another data store.

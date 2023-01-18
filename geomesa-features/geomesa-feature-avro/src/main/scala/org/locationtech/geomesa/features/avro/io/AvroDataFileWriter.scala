@@ -34,6 +34,9 @@ class AvroDataFileWriter(
     opts: Set[SerializationOption] = Set.empty
   ) extends Closeable with Flushable {
 
+  // constructors for java interop
+  def this(os: OutputStream, sft: SimpleFeatureType, compression: Int) = this(os, sft, compression, Set.empty)
+
   private val writer = new SimpleFeatureDatumWriter(sft, SerializationOptions.withUserData ++ opts)
   private val dfw    = new DataFileWriter[SimpleFeature](writer)
 

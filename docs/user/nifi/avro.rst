@@ -1,9 +1,8 @@
 Avro Processors
 ---------------
 
-GeoAvro processors (``AvroToPutGeoMesa*``) accept the following configuration parameters for specifying the
-input source. Each datastore-specific processor also has additional parameters for connecting to the datastore,
-detailed in the following sections.
+The GeoAvro processor (``AvroToPutGeoMesa``) accepts the following configuration parameters for specifying the
+input source:
 
 +-----------------------------+-------------------------------------------------------------------------------------------+
 | Property                    | Description                                                                               |

@@ -3,9 +3,8 @@
 Converter Processors
 --------------------
 
-Converter processors (``PutGeoMesa*``) accept the following configuration parameters for specifying the input source. Each
-datastore-specific processor also has additional parameters for connecting to the datastore, detailed in the
-following sections.
+Converter processors (``PutGeoMesa`` and ``ConvertToGeoFile``) accept the following configuration parameters for
+specifying the input source:
 
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | Property                      | Description                                                                             |
@@ -25,6 +24,8 @@ following sections.
 | ``ConverterMetricReporters``  | Override the converter metrics reporters (see below)                                    |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConvertFlowFileAttributes`` | Expose flow file attributes to the converter framework, referenced by name              |
++-------------------------------+-----------------------------------------------------------------------------------------+
+| ``ExtraClasspaths``           | Additional resources to add to the classpath, e.g. converter and SFT definitions        |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 
 Defining SimpleFeatureTypes and Converters

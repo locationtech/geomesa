@@ -93,6 +93,15 @@ Compatibility Matrix
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
+Version Compatibility
+---------------------
+
+GeoMesa 4.0.0 is focused on upgrading dependency versions and removing deprecated features, and does not contain
+any new functionality. To make upgrading easier, version 4.0.x is generally compatible with version 3.5.x across
+different environments. This means that it is possible to upgrade in parts; i.e. upgrade GeoServer to 4.0.0
+but keep NiFi at 3.5.0. Please note that previously deprecated functionality (see below) may no longer work once
+any part of the environment is upgraded to 4.0.0.
+
 Scala Versions
 --------------
 
@@ -114,7 +123,7 @@ Dependency Version Upgrades
 ---------------------------
 
 The following high-level dependencies have been upgraded. For a full changelist of all the dependency changes,
-see TODO commit hash link on github
+see the following `gist <https://gist.github.com/elahrvivaz/2c66ffbc126408a642913d157aef881b/revisions?diff=split>`__.
 
 * Apache Hadoop ``2.8.5`` -> ``2.10.2``
 * Apache Spark ``2.4.7`` -> ``3.3.1``
@@ -124,7 +133,7 @@ see TODO commit hash link on github
 * Apache Arrow ``0.16.0`` -> ``10.0.1``
 * Apache Avro ``1.8.2`` -> ``1.11.1``
 * Apache Parquet ``1.9.0`` -> ``1.12.3``
-* Apache Orc ``1.5.4`` -> ``1.8.1``
+* Apache Orc ``1.5.4`` -> ``1.8.2``
 * Jedis ``3.0.1`` -> ``4.3.1``
 * Confluent ``5.1.0`` -> ``6.2.7``
 * Kryo ``3.0.3`` -> ``4.0.2``
@@ -166,7 +175,12 @@ GeoMesa NiFi Changes
 --------------------
 
 GeoMesa NiFi is now built against NiFi 1.19.1. The GeoMesa NARs and JARs have been renamed to include the Scala
-version (i.e. ``geomesa-datastore-services-nar_2.12-4.0.0.nar``).
+version (i.e. ``geomesa-datastore-services-nar_2.12-4.0.0.nar``). The datastore-specific processors (e.g.
+``PutGeoMesaHBase``) have been removed in favor of the generic processors (e.g. ``PutGeoMesa``). The
+recommended upgrade path is to first upgrade to GeoMesa NiFi 3.5.0, and replace all the datastore-specific
+processors in the flow. This will ensure that the flow is still valid after upgrading to GeoMesa NiFi 4.0.0.
+The ``geomesa-accumulo2-nar`` has been replaced with ``geomesa-accumulo20-nar``, and there is an additional
+``geomesa-accumulo21-nar`` for Accumulo 2.1 support.
 
 Scan Range Changes
 ------------------
