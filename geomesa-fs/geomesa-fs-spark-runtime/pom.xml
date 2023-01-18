@@ -41,10 +41,10 @@
             <artifactId>geomesa-spark-jupyter-leaflet_${scala.binary.version}</artifactId>
             <scope>runtime</scope>
         </dependency>
-
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-cqengine-datastore_${scala.binary.version}</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- bring in guava and relocate it -->
