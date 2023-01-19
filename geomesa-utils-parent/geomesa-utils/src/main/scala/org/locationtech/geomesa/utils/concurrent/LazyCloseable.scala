@@ -6,13 +6,23 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.kafka
+package org.locationtech.geomesa.utils.concurrent
 
-import org.apache.kafka.clients.producer.Producer
-import org.locationtech.geomesa.utils.concurrent.LazyCloseable
+import java.io.Closeable
 
-package object data {
+class LazyCloseable[T <: Closeable](create: => T) extends Closeable {
 
-  class LazyProducer(create: => Producer[Array[Byte], Array[Byte]])
-      extends LazyCloseable[Producer[Array[Byte], Array[Byte]]](create)
+  @volatile
+  private var initialized = false
+
+  lazy val instance: T = {
+    initialized = true
+    create
+  }
+
+  override def close(): Unit = {
+    if (initialized) {
+      instance.close()
+    }
+  }
 }
