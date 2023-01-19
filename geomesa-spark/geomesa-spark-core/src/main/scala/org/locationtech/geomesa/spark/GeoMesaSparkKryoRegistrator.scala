@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -81,20 +81,18 @@ object GeoMesaSparkKryoRegistrator {
 
   def putType(sft: SimpleFeatureType): Int = {
     val id = identifier(sft)
-    if (typeCache.putIfAbsent(id, sft) == null) GeoMesaSparkKryoRegistratorEndpoint.Client.putType(id, sft)
+    if (typeCache.putIfAbsent(id, sft) == null) {
+      GeoMesaSparkKryoRegistratorEndpoint.Client.putType(id, sft)
+    }
     id
   }
 
   def putTypes(types: Seq[SimpleFeatureType]): Seq[Int] =
-    types.map { sft =>
-      val id = identifier(sft)
-      typeCache.putIfAbsent(id, sft)
-      id
-    }
+    types.map(putType)
 
   def getType(id: Int): SimpleFeatureType =
     Option(typeCache.get(id)).orElse {
-        fromSystemProperties(id) orElse GeoMesaSparkKryoRegistratorEndpoint.Client.getType(id) map {
+        fromSystemProperties(id).orElse(GeoMesaSparkKryoRegistratorEndpoint.Client.getType(id)).map {
           sft => typeCache.put(id, sft); sft
         }
       }.orNull

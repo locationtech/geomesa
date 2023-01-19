@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -20,7 +20,8 @@ import org.apache.hadoop.security.{SecurityUtil, UserGroupInformation}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{HBaseGeoMesaKeyTab, HBaseGeoMesaPrincipal}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConfigsParam, ConnectionParam, ZookeeperParam}
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils}
+import org.locationtech.geomesa.utils.hadoop.HadoopUtils
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.{ByteArrayInputStream, Closeable}
 import java.nio.charset.StandardCharsets

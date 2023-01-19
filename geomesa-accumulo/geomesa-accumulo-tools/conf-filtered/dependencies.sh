@@ -14,7 +14,6 @@
 accumulo_install_version="%%accumulo.version.recommended%%"
 hadoop_install_version="%%hadoop.version.recommended%%"
 zookeeper_install_version="%%zookeeper.version.recommended%%"
-thrift_install_version="%%thrift.version%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
 guava_install_version="%%accumulo.guava.version%%"
 
@@ -37,35 +36,35 @@ function dependencies() {
     "org.apache.accumulo:accumulo-core:${accumulo_version}:jar"
     "org.apache.accumulo:accumulo-server-base:${accumulo_version}:jar"
     "org.apache.accumulo:accumulo-start:${accumulo_version}:jar"
-    "org.apache.thrift:libthrift:${thrift_install_version}:jar"
+    "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
     "org.apache.zookeeper:zookeeper:${zk_version}:jar"
-    "commons-configuration:commons-configuration:1.6:jar"
-    "org.apache.commons:commons-configuration2:2.5:jar"
-    "org.apache.commons:commons-text:1.6:jar"
+    "org.apache.commons:commons-configuration2:2.8.0:jar"
+    "org.apache.commons:commons-text:1.10.0:jar"
+    "org.apache.commons:commons-collections4:4.4:jar"
+    "org.apache.commons:commons-vfs2:2.9.0:jar"
+    "commons-collections:commons-collections:3.2.2:jar"
+    "commons-logging:commons-logging:1.2:jar"
     "org.apache.hadoop:hadoop-auth:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-common:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-hdfs:${hadoop_version}:jar"
-    "commons-logging:commons-logging:1.1.3:jar"
-    "org.apache.commons:commons-vfs2:2.3:jar"
-    # htrace 3 required for hadoop before 2.8, accumulo up to 1.9.2
-    # htrace 4 required for hadoop 2.8 and later
-    # since they have separate package names, should be safe to install both
     "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
     "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
+    "com.fasterxml.woodstox:woodstox-core:5.3.0:jar"
+    "org.codehaus.woodstox:stax2-api:4.2.1:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
   )
 
-  # add accumulo 1.x jars if needed
-  local accumulo_maj_ver="$(expr match "$accumulo_version" '\([0-9][0-9]*\)\.')"
-  if [[ "$accumulo_maj_ver" -lt 2 ]]; then
+  # add accumulo 2.1 jars if needed
+  if version_ge ${accumulo_version} 2.1.0; then
     gavs+=(
-      "org.apache.accumulo:accumulo-fate:${accumulo_version}:jar"
-      "org.apache.accumulo:accumulo-trace:${accumulo_version}:jar"
+      "org.apache.thrift:libthrift:%%thrift-accumulo-21.version%%:jar"
+      "io.opentelemetry:opentelemetry-api:1.19.0:jar"
+      "io.opentelemetry:opentelemetry-context:1.19.0:jar"
+      "io.micrometer:micrometer-core:1.9.6:jar"
     )
   else
     gavs+=(
-      "org.apache.commons:commons-collections4:4.4:jar"
-      "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
+      "org.apache.thrift:libthrift:%%thrift.version%%:jar"
     )
   fi
 
@@ -75,6 +74,10 @@ function dependencies() {
     gavs+=(
       "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
       "org.apache.hadoop:hadoop-client-runtime:${hadoop_version}:jar"
+    )
+  else
+    gavs+=(
+      "commons-configuration:commons-configuration:1.6:jar"
     )
   fi
 

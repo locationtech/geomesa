@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -11,7 +11,7 @@ package org.locationtech.geomesa.security.filter
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl.parameter
-import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils, VisibilityEvaluator}
+import org.locationtech.geomesa.security.{AuthUtils, SecurityUtils, VisibilityEvaluator}
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.capability.FunctionName
 import org.opengis.filter.expression.Expression
@@ -62,5 +62,5 @@ object VisibilityFilterFunction {
       parameter("auths", classOf[String]),
       parameter("attribute", classOf[String], 0, 1))
 
-  private val provider = AuthorizationsProvider.apply(Collections.emptyMap(), Collections.emptyList())
+  private val provider = AuthUtils.getProvider(Collections.emptyMap[String, AnyRef](), Seq.empty)
 }

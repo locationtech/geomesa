@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -72,8 +72,6 @@ class GmlExporter private (stream: ExportStream, configuration: WFSConfiguration
         if (System.getProperty(GmlExporter.TransformerProperty) != null) { encode() } else {
           // explicitly set the default java transformer, to avoid picking up saxon (which causes errors)
           // the default class is hard-coded in javax.xml.transform.TransformerFactory.newInstance() ...
-
-          // TODO this may fail in java 9?
           System.setProperty(GmlExporter.TransformerProperty,
             "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl")
           try { encode() } finally {

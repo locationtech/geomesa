@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
- * Portions Crown Copyright (c) 2016-2022 Dstl
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2023 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -55,7 +55,6 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
   }
 
   override def rowEncoder(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
-    // TODO if we don't have a geometry, skip the record?
     values.get(0).get.head match {
       case KryoFeatureSerializer.Version3 => encodeV3(keys, values)
       case KryoFeatureSerializer.Version2 => encodeV2(keys, values)

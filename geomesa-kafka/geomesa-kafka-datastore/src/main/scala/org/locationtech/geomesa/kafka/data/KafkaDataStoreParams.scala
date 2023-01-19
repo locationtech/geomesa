@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -22,9 +22,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.{Locale, Properties}
 import scala.concurrent.duration.Duration
 
-object KafkaDataStoreParams extends KafkaDataStoreParamsWTF
-
-trait KafkaDataStoreParamsWTF extends NamespaceParams {
+object KafkaDataStoreParams extends NamespaceParams {
   // deprecated lookups
   private val DeprecatedProducer = ConvertedParam[java.lang.Integer, java.lang.Boolean]("isProducer", v => if (v) { 0 } else { 1 })
   private val DeprecatedOffset = ConvertedParam[Duration, String]("autoOffsetReset", v => if ("earliest".equalsIgnoreCase(v)) { Duration.Inf } else { null })

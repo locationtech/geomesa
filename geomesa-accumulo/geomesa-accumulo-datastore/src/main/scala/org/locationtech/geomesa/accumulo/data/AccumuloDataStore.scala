@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -37,8 +37,9 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.OverrideDtgJoin
+import org.locationtech.geomesa.utils.hadoop.HadoopUtils
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, VisibilityLevel}
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClose}
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType

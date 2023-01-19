@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15,8 +15,7 @@ import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo}
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff
-import org.locationtech.geomesa.security
-import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import redis.clients.jedis.util.JedisURIHelper
@@ -122,7 +121,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       Some((AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "redis"))
     }
     // get the auth params passed in as a comma-delimited string
-    val authProvider = security.getAuthorizationsProvider(params,
+    val authProvider = AuthUtils.getProvider(params,
       AuthsParam.lookupOpt(params).map(_.split(",").toSeq.filterNot(_.isEmpty)).getOrElse(Seq.empty))
 
     val queries = RedisQueryConfig(

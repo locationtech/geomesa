@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -33,6 +33,9 @@ class AvroDataFileWriter(
     compression: Int = Deflater.DEFAULT_COMPRESSION,
     opts: Set[SerializationOption] = Set.empty
   ) extends Closeable with Flushable {
+
+  // constructors for java interop
+  def this(os: OutputStream, sft: SimpleFeatureType, compression: Int) = this(os, sft, compression, Set.empty)
 
   private val writer = new SimpleFeatureDatumWriter(sft, SerializationOptions.withUserData ++ opts)
   private val dfw    = new DataFileWriter[SimpleFeature](writer)

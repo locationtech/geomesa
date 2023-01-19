@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -96,7 +96,7 @@ object XmlConverter extends StrictLogging {
     if (namespaces.nonEmpty) {
       xpath.setNamespaceContext(new NamespaceContext() {
         override def getPrefix(namespaceURI: String): String = null
-        override def getPrefixes(namespaceURI: String): java.util.Iterator[_] = null
+        override def getPrefixes(namespaceURI: String): java.util.Iterator[String] = null
         override def getNamespaceURI(prefix: String): String = namespaces.getOrElse(prefix, null)
       })
     }

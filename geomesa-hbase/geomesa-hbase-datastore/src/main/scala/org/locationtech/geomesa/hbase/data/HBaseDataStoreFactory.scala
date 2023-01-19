@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -20,8 +20,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStore.NoAuthsProvider
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo}
-import org.locationtech.geomesa.security
-import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -227,6 +226,6 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     }
     val auths = if (forceEmptyAuths || configuredAuths.nonEmpty) { configuredAuths.toList } else { masterAuths.toList }
 
-    security.getAuthorizationsProvider(params, auths)
+    AuthUtils.getProvider(params, auths)
   }
 }
