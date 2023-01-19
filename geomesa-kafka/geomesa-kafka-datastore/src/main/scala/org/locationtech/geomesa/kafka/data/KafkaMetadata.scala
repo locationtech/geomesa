@@ -15,7 +15,7 @@ import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataS
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.versions.{KafkaAdminVersions, KafkaConsumerVersions}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
+import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, LazyCloseable}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
 import java.io.Closeable
@@ -43,7 +43,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
   import scala.collection.JavaConverters._
 
   private val producer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))
-  private lazy val consumer = new TopicMap()
+  private val consumer = new LazyCloseable(new TopicMap())
 
   override protected def checkIfTableExists: Boolean =
     adminClientOp(_.listTopics().names().get.contains(config.catalog))
@@ -60,24 +60,24 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 
   override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit = {
     rows.foreach { case (row, value) =>
-      producer.producer.send(new ProducerRecord(config.catalog, row, value))
+      producer.instance.send(new ProducerRecord(config.catalog, row, value))
     }
-    producer.producer.flush()
+    producer.instance.flush()
   }
 
   override protected def delete(rows: Seq[Array[Byte]]): Unit = {
     rows.foreach { row =>
-      producer.producer.send(new ProducerRecord(config.catalog, row, null))
+      producer.instance.send(new ProducerRecord(config.catalog, row, null))
     }
-    producer.producer.flush()
+    producer.instance.flush()
   }
 
-  override protected def scanValue(row: Array[Byte]): Option[Array[Byte]] = consumer.get(row)
+  override protected def scanValue(row: Array[Byte]): Option[Array[Byte]] = consumer.instance.get(row)
 
   override protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[(Array[Byte], Array[Byte])] = {
     prefix match {
-      case None => consumer.all()
-      case Some(p) => consumer.prefix(p)
+      case None => consumer.instance.all()
+      case Some(p) => consumer.instance.prefix(p)
     }
   }
 

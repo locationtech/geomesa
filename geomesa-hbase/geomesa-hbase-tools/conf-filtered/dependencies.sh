@@ -51,6 +51,7 @@ function dependencies() {
     "org.codehaus.woodstox:stax2-api:4.2.1:jar"
     "commons-collections:commons-collections:3.2.2:jar"
     "commons-configuration:commons-configuration:1.6:jar"
+    "commons-lang:commons-lang:2.6:jar"
     "commons-logging:commons-logging:1.1.3:jar"
     "commons-cli:commons-cli:1.2:jar"
     "commons-io:commons-io:2.5:jar"
@@ -92,7 +93,6 @@ function dependencies() {
   else
     gavs+=(
       "com.yammer.metrics:metrics-core:2.2.0:jar"
-      "commons-lang:commons-lang:2.6:jar"
     )
   fi
 

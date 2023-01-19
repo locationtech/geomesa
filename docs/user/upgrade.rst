@@ -128,7 +128,7 @@ see the following `gist <https://gist.github.com/elahrvivaz/2c66ffbc126408a64291
 * Apache Hadoop ``2.8.5`` -> ``2.10.2``
 * Apache Spark ``2.4.7`` -> ``3.3.1``
 * Apache Accumulo ``2.0.0`` -> ``2.0.1``
-* Apache HBase ``1.4.12`` -> ``1.4.13``, ``2.2.3`` -> ``2.5.2``
+* Apache HBase ``1.4.12`` -> ``1.4.14``, ``2.2.3`` -> ``2.5.2``
 * Apache Kafka ``2.1.1`` -> ``2.8.2``
 * Apache Arrow ``0.16.0`` -> ``10.0.1``
 * Apache Avro ``1.8.2`` -> ``1.11.1``

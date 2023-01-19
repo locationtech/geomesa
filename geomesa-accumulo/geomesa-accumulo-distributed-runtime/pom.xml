@@ -24,6 +24,11 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-opengis</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
