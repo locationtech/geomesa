@@ -122,8 +122,7 @@ arguments). Additionally, the various ``DataStore`` methods, such as ``DataStore
 Dependency Version Upgrades
 ---------------------------
 
-The following high-level dependencies have been upgraded. For a full changelist of all the dependency changes,
-see the following `gist <https://gist.github.com/elahrvivaz/2c66ffbc126408a642913d157aef881b/revisions?diff=split>`__.
+The following high-level dependencies have been upgraded:
 
 * Apache Hadoop ``2.8.5`` -> ``2.10.2``
 * Apache Spark ``2.4.7`` -> ``3.3.1``
@@ -140,6 +139,9 @@ see the following `gist <https://gist.github.com/elahrvivaz/2c66ffbc126408a64291
 * Typesafe Config ``1.3.3`` -> ``1.4.2``
 * EJML ``0.34`` -> ``0.41``
 * Saxon ``9.7.0-20`` -> ``11.4``
+
+For a full changelist of all dependencies, see the diff
+`here <https://gist.github.com/elahrvivaz/e3e07d3e0b120d595519bb599e982cf0/revisions?diff=split>`__.
 
 Removal of Deprecated Modules
 -----------------------------
