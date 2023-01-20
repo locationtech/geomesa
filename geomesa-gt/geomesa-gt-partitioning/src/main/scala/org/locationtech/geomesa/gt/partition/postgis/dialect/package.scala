@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -34,6 +34,7 @@ package object dialect {
   private[dialect] val WriteAheadTableSuffix            = SqlLiteral("_wa")
   private[dialect] val PartitionedWriteAheadTableSuffix = SqlLiteral("_wa_partition")
   private[dialect] val PartitionedTableSuffix           = SqlLiteral("_partition")
+  private[dialect] val SpillTableSuffix                 = SqlLiteral("_spill")
   private[dialect] val AnalyzeTableSuffix               = SqlLiteral("_analyze_queue")
   private[dialect] val SortTableSuffix                  = SqlLiteral("_sort_queue")
 
@@ -182,6 +183,7 @@ package object dialect {
       writeAhead: TableConfig,
       writeAheadPartitions: TableConfig,
       mainPartitions: TableConfig,
+      spillPartitions: TableConfig,
       analyzeQueue: TableConfig,
       sortQueue: TableConfig)
 
@@ -195,9 +197,10 @@ package object dialect {
       val writeAhead = TableConfig(schema, view.name.raw + WriteAheadTableSuffix.raw, sft.getWriteAheadTableSpace, vacuum = false)
       val writeAheadPartitions = TableConfig(schema, view.name.raw + PartitionedWriteAheadTableSuffix.raw, sft.getWriteAheadPartitionsTableSpace, vacuum = false)
       val mainPartitions = TableConfig(schema, view.name.raw + PartitionedTableSuffix.raw, sft.getMainTableSpace)
+      val spillPartitions = TableConfig(schema, view.name.raw + SpillTableSuffix.raw, sft.getMainTableSpace)
       val analyzeQueue = TableConfig(schema, view.name.raw + AnalyzeTableSuffix.raw, sft.getMainTableSpace)
       val sortQueue = TableConfig(schema, view.name.raw + SortTableSuffix.raw, sft.getMainTableSpace)
-      Tables(view, writeAhead, writeAheadPartitions, mainPartitions, analyzeQueue, sortQueue)
+      Tables(view, writeAhead, writeAheadPartitions, mainPartitions, spillPartitions, analyzeQueue, sortQueue)
     }
   }
 
@@ -250,7 +253,9 @@ package object dialect {
    * @param quoted escaped name without the schema
    * @param raw unqualified name without escaping
    */
-  case class TableIdentifier(qualified: String, quoted: String, raw: String) extends QualifiedSqlIdentifier
+  case class TableIdentifier(qualified: String, quoted: String, raw: String) extends QualifiedSqlIdentifier {
+    def asRegclass: String = s"${literal(qualified)}::regclass"
+  }
 
   object TableIdentifier {
     def apply(schema: String, raw: String): TableIdentifier =
@@ -314,7 +319,7 @@ package object dialect {
 
       val indices = sft.getAttributeDescriptors.asScala.collect { case d if indexed(d) => ColumnName(d) }
       val all = sft.getAttributeDescriptors.asScala.map(ColumnName.apply)
-      Columns(dtg, geom, geoms, indices, all)
+      Columns(dtg, geom, geoms.toSeq, indices.toSeq, all.toSeq)
     }
   }
 
@@ -335,10 +340,16 @@ package object dialect {
    * Partition config
    *
    * @param hoursPerPartition number of hours to keep in each partition, must be a divisor of 24
+   * @param pagesPerRange number of pages to add to each range in the BRIN index
    * @param maxPartitions max number of partitions to keep
    * @param cronMinute minute of each 10 minute chunk that partition maintenance will run
    */
-  case class PartitionInfo(hoursPerPartition: Int, maxPartitions: Option[Int], cronMinute: Option[Int])
+  case class PartitionInfo(
+      hoursPerPartition: Int,
+      pagesPerRange: Int,
+      maxPartitions: Option[Int],
+      cronMinute: Option[Int]
+    )
 
   object PartitionInfo {
 
@@ -350,7 +361,9 @@ package object dialect {
       require(24 % hours == 0, s"Partition interval must be a divisor of 24 hours: $hours hours")
       val cronMinute = sft.getCronMinute
       require(cronMinute.forall(m => m >= 0 && m < 9), s"Cron minute must be between 0 and 8: ${cronMinute.orNull}")
-      PartitionInfo(hours, sft.getMaxPartitions, cronMinute)
+      val pagesPerRange = sft.getPagesPerRange
+      require(pagesPerRange >= 0, s"Pages per range but be a positive number: $pagesPerRange")
+      PartitionInfo(hours, pagesPerRange, sft.getMaxPartitions, cronMinute)
     }
   }
 
@@ -541,12 +554,18 @@ package object dialect {
     protected def action: String
 
     override protected def createStatements(info: TypeInfo): Seq[String] = {
-      // there is no "create or replace" for triggers so we have to drop it first
+      // there is no "create or replace" for triggers so we have to wrap it in a check
+      val tgName = triggerName(info)
       val create =
-        s"""CREATE TRIGGER ${triggerName(info).quoted}
-           |  $action ON ${table(info).qualified}
-           |  FOR EACH ROW EXECUTE PROCEDURE ${name(info).quoted}();""".stripMargin
-      Seq(dropTrigger(info), create)
+        s"""DO $$$$
+           |BEGIN
+           |  IF NOT EXISTS (SELECT FROM pg_trigger WHERE tgname = ${tgName.asLiteral}) THEN
+           |    CREATE TRIGGER ${tgName.quoted}
+           |      $action ON ${table(info).qualified}
+           |      FOR EACH ROW EXECUTE PROCEDURE ${name(info).quoted}();
+           |  END IF;
+           |END$$$$;""".stripMargin
+      Seq(create)
     }
 
     override protected def dropStatements(info: TypeInfo): Seq[String] =
@@ -585,10 +604,59 @@ package object dialect {
      */
     protected def invocation(info: TypeInfo): SqlLiteral
 
-    override protected def createStatements(info: TypeInfo): Seq[String] =
-      Seq(s"SELECT cron.schedule(${jobName(info).quoted}, ${schedule(info).quoted}, ${invocation(info).quoted});")
+    override protected def createStatements(info: TypeInfo): Seq[String] = {
+      val jName = jobName(info).quoted
+      val create =
+        s"""DO $$$$
+           |BEGIN
+           |  IF NOT EXISTS (SELECT FROM cron.job WHERE jobname = $jName) THEN
+           |    PERFORM cron.schedule($jName, ${schedule(info).quoted}, ${invocation(info).quoted});
+           |  END IF;
+           |END$$$$;""".stripMargin
+      Seq(create)
+    }
 
-    abstract override protected def dropStatements(info: TypeInfo): Seq[String] =
-      Seq(s"SELECT cron.unschedule(${jobName(info).quoted});") ++ super.dropStatements(info)
+    abstract override protected def dropStatements(info: TypeInfo): Seq[String] = {
+      val jName = jobName(info).quoted
+      val drop =
+        s"""DO $$$$
+           |BEGIN
+           |  IF EXISTS (SELECT FROM cron.job WHERE jobname = $jName) THEN
+           |    PERFORM cron.unschedule($jName);
+           |  END IF;
+           |END$$$$;""".stripMargin
+      Seq(drop) ++ super.dropStatements(info)
+    }
+  }
+
+  /**
+   * Uses a postgres advisory lock to synchronize create and drop statements
+   */
+  trait AdvisoryLock extends Sql {
+
+    /**
+     * The lock id associated with this object
+     *
+     * @return
+     */
+    protected def lockId: Long
+
+    private def lock: String = s"SELECT pg_advisory_lock($lockId);"
+    private def unlock: String = s"SELECT pg_advisory_unlock($lockId);"
+
+    abstract override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
+      ex.execute(lock)
+      try { super.create(info) } finally {
+        ex.execute(unlock)
+      }
+    }
+
+    abstract override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
+      ex.execute(lock)
+      try { super.drop(info) } finally {
+        ex.execute(unlock)
+      }
+    }
+
   }
 }

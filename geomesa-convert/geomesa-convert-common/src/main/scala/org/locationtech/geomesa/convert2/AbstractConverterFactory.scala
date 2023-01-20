@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,10 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert2
-
-import java.lang.reflect.InvocationTargetException
-import java.nio.charset.Charset
-import java.util.Collections
 
 import com.typesafe.config._
 import com.typesafe.scalalogging.{LazyLogging, Logger}
@@ -26,39 +22,35 @@ import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
+import java.lang.reflect.InvocationTargetException
+import java.nio.charset.Charset
+import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
-import scala.reflect.ClassTag
+import scala.reflect.{ClassTag, classTag}
 import scala.util.control.NonFatal
 
 /**
   * Abstract converter factory implementation. Subclasses need to implement `typeToProcess` and make available
   * pureconfig readers for the converter configuration
+ *
+ *  The converter to use is identified by the 'type' field in the config, e.g. 'xml' or 'json'
   */
-abstract class AbstractConverterFactory[S <: AbstractConverter[_, C, F, O]: ClassTag,
-                                        C <: ConverterConfig: ClassTag,
-                                        F <: Field,
-                                        O <: ConverterOptions: ClassTag]
-    extends SimpleFeatureConverterFactory {
+abstract class AbstractConverterFactory[S <: AbstractConverter[_, C, F, O] : ClassTag, C <: ConverterConfig : ClassTag, F <: Field : ClassTag, O <: ConverterOptions : ClassTag](
+    val typeToProcess: String,
+    protected val configConvert: ConverterConfigConvert[C],
+    protected val fieldConvert: FieldConvert[F],
+    protected val optsConvert: ConverterOptionsConvert[O]
+  ) extends SimpleFeatureConverterFactory {
 
-  /**
-    * The converter to use is identified by the 'type' field in the config, e.g. 'xml' or 'json'
-    *
-    * @return
-    */
-  protected def typeToProcess: String
-
-  protected implicit def configConvert: ConverterConfigConvert[C]
-  protected implicit def fieldConvert: FieldConvert[F]
-  protected implicit def optsConvert: ConverterOptionsConvert[O]
+  private def loadConfig(config: ConfigObjectSource): C = config.loadOrThrow[C](classTag[C], configConvert)
+  private def loadFields(config: ConfigObjectSource): Seq[F] = config.loadOrThrow[Seq[F]](classTag[Seq[F]], fieldConvert)
+  private def loadOptions(config: ConfigObjectSource): O = config.loadOrThrow[O](classTag[O], optsConvert)
 
   override def apply(sft: SimpleFeatureType, conf: Config): Option[SimpleFeatureConverter] = {
     if (!conf.hasPath("type") || !conf.getString("type").equalsIgnoreCase(typeToProcess)) { None } else {
       val (config, fields, opts) = try {
-        val c = withDefaults(conf)
-        val config = pureconfig.loadConfigOrThrow[C](c)
-        val fields = pureconfig.loadConfigOrThrow[Seq[F]](c)
-        val opts = pureconfig.loadConfigOrThrow[O](c)
-        (config, fields, opts)
+        val c = ConfigSource.fromConfig(withDefaults(conf))
+        (loadConfig(c), loadFields(c), loadOptions(c))
       } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid configuration: ${e.getMessage}")
       }
@@ -249,7 +241,7 @@ object AbstractConverterFactory extends LazyLogging {
 
       if (cur.isUndefined) { Right(Map.empty) } else {
         def merge(cur: ConfigObjectCursor): Either[ConfigReaderFailures, Map[String, Expression]] = {
-          val map = cur.value.toConfig.toStringMap() // handles quoting keys
+          val map = cur.valueOpt.get.toConfig.toStringMap() // handles quoting keys
           map.foldLeft[Either[ConfigReaderFailures, Map[String, Expression]]](Right(Map.empty)) {
             case (map, (k, v)) =>
               // convert back to a cursor for parsing the expression
@@ -370,8 +362,8 @@ object AbstractConverterFactory extends LazyLogging {
         cur.atKey(key).right.flatMap { value =>
           value.asString.right.flatMap { string =>
             values.find(_.toString.equalsIgnoreCase(string)) match {
-              case Some(v) => Right(v.asInstanceOf[T])
-              case None => value.failed(CannotConvert(value.value.toString, values.head.getClass.getSimpleName, s"Must be one of: ${values.mkString(", ")}"))
+              case Some(v) => Right(v)
+              case None => value.failed(CannotConvert(value.valueOpt.map(_.toString).orNull, values.head.getClass.getSimpleName, s"Must be one of: ${values.mkString(", ")}"))
             }
           }
         }
@@ -428,7 +420,7 @@ object AbstractConverterFactory extends LazyLogging {
     protected def exprFrom(cur: ConfigCursor): Either[ConfigReaderFailures, Expression] = {
       def parse(expr: String): Either[ConfigReaderFailures, Expression] =
         try { Right(Expression(expr)) } catch {
-          case NonFatal(e) => cur.failed(CannotConvert(cur.value.toString, "Expression", e.getMessage))
+          case NonFatal(e) => cur.failed(CannotConvert(cur.valueOpt.map(_.toString).orNull, "Expression", e.getMessage))
         }
       for { raw  <- cur.asString.right; expr <- parse(raw).right } yield { expr }
     }
@@ -455,7 +447,9 @@ object AbstractConverterFactory extends LazyLogging {
         def merge(cur: ConfigObjectCursor): Either[ConfigReaderFailures, Map[String, Config]] = {
           cur.map.foldLeft[Either[ConfigReaderFailures, Map[String, Config]]](Right(Map.empty)) {
             case (map, (k, v)) =>
-              for { m <- map.right; c <- v.asObjectCursor.right } yield { m + (k -> c.value.toConfig) }
+              for { m <- map.right; c <- v.asObjectCursor.right } yield {
+                m + (k -> c.valueOpt.map(_.toConfig).getOrElse(ConfigFactory.empty))
+              }
           }
         }
         for { obj <- cur.asObjectCursor.right; configs <- merge(obj).right } yield { configs }
@@ -471,7 +465,9 @@ object AbstractConverterFactory extends LazyLogging {
       if (cur.isUndefined) { Right(Seq.empty) } else {
         def merge(cur: ConfigListCursor): Either[ConfigReaderFailures, Seq[Config]] = {
           cur.list.foldLeft[Either[ConfigReaderFailures, Seq[Config]]](Right(Seq.empty)) {
-            case (seq, v) => for { s <- seq.right; c <- v.asObjectCursor.right } yield { s :+ c.value.toConfig }
+            case (seq, v) => for { s <- seq.right; c <- v.asObjectCursor.right } yield {
+              s :+ c.valueOpt.map(_.toConfig).getOrElse(ConfigFactory.empty)
+            }
           }
         }
         for { obj <- cur.asListCursor.right; configs <- merge(obj).right } yield { configs }

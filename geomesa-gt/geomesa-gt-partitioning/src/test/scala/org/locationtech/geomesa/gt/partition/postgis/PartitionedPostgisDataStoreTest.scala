@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.gt.partition.postgis
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.data._
 import org.geotools.data.postgis.PostGISPSDialect
-import org.geotools.data.{DataStoreFinder, DefaultTransaction, Transaction}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
@@ -23,7 +23,9 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Collections
 import scala.annotation.tailrec
+import scala.util.Try
 import scala.util.control.NonFatal
 
 @RunWith(classOf[JUnitRunner])
@@ -33,10 +35,11 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 
   val hours = 1
   val spec =
-    "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;" +
+    "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
         Seq(
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
+          "pg.partitions.pages-per-range=32",
           "pg.partitions.max=2",
           "pg.partitions.tablespace.wa=partition",
           "pg.partitions.tablespace.wa-partitions=partition",
@@ -46,9 +49,10 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
   val methods =
     Methods(
       create = false,
-      recreate = false,
+      upgrade = false,
       write = false,
       update = false,
+      query = false,
       delete = false,
       remove = false
     )
@@ -57,16 +61,18 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 
   "PartitionedPostgisDataStore" should {
     "work" in {
-      skipped("requires postgis instance")
+      if (!methods.any) {
+        skipped("requires postgis instance")
+      }
       val params =
         Map(
           "dbtype"   -> PartitionedPostgisDataStoreParams.DbType.sample,
           "host"     -> "localhost",
           "port"     -> "5432",
           "schema"   -> "public",
-          "database" -> "geodata",
+          "database" -> "postgres",
           "user"     -> "postgres",
-          "passwd"   -> "gimmee",
+          "passwd"   -> "postgres",
           "Batch insert size"  -> "10",
           "Commit size"        -> "20",
           "preparedStatements" -> "true"
@@ -81,8 +87,13 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
         logger.info(s"Existing type names: ${ds.getTypeNames.mkString(", ")}")
 
         if (methods.create) {
-          ds.createSchema(sft)
-        } else if (methods.recreate) {
+          if (ds.getTypeNames.contains(sft.getTypeName)) {
+            logger.warn("Schema already exists, skipping create")
+          } else {
+            ds.createSchema(sft)
+          }
+        }
+        if (methods.upgrade) {
           WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
             val dialect = ds.asInstanceOf[JDBCDataStore].dialect match {
               case p: PartitionedPostgisDialect => p
@@ -94,12 +105,14 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
                 m.setAccessible(true)
                 m.invoke(p).asInstanceOf[PartitionedPostgisDialect]
             }
-            dialect.recreateFunctions("public", sft, cx)
+            dialect.upgrade("public", sft, cx)
           }
         }
 
-        val userData = ds.getSchema(sft.getTypeName).getUserData.asScala
-        userData must containAllOf(sft.getUserData.asScala.toSeq)
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.info(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 
         val now = System.currentTimeMillis()
 
@@ -108,8 +121,9 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
             WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
               (1 to 10).foreach { i =>
                 val next = writer.next()
-                next.setAttribute("name", s"name$i")
+                next.setAttribute("name", Collections.singletonList(s"name$i"))
                 next.setAttribute("age", i)
+                next.setAttribute("props", s"""["name$i"]""")
                 next.setAttribute("dtg", new java.util.Date(now - (i * 20 * 60 * 1000))) // 20 minutes
                 next.setAttribute("geom", WKTUtils.read(s"POINT(0 $i)"))
                 next.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -126,11 +140,21 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
             WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter(s"IN('fid$i')"), Transaction.AUTO_COMMIT)) { writer =>
               if (writer.hasNext) {
                 val next = writer.next()
+                next.setAttribute("name", java.util.Arrays.asList(s"name$i", s"name$i-update"))
+                next.setAttribute("props", s"""["name$i-update"]""")
                 next.setAttribute("dtg", new java.util.Date(now - (i * 5 * 60 * 1000)))
                 writer.write()
               } else {
                 logger.warn(s"No entry found for update fid$i")
               }
+            }
+          }
+        }
+
+        if (methods.query) {
+          WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+            while (reader.hasNext) {
+              logger.info(DataUtilities.encodeFeature(reader.next))
             }
           }
         }
@@ -152,7 +176,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
           ds.removeSchema(sft.getTypeName)
         }
       } catch {
-        case NonFatal(e) => e.printStackTrace(); ko(e.toString)
+        case NonFatal(e) => logger.error("", e); ko
       } finally {
         if (ds != null) {
           ds.dispose()
@@ -162,5 +186,15 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
     }
   }
 
-  case class Methods(create: Boolean, recreate: Boolean, write: Boolean, update: Boolean, delete: Boolean, remove: Boolean)
+  case class Methods(
+      create: Boolean,
+      upgrade: Boolean,
+      write: Boolean,
+      update: Boolean,
+      query: Boolean,
+      delete: Boolean,
+      remove: Boolean
+    ) {
+    def any: Boolean = create || upgrade || write || update || query || delete || remove
+  }
 }

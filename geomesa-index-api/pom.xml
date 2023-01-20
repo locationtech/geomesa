@@ -4,7 +4,7 @@
     <parent>
         <artifactId>geomesa_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -12,11 +12,6 @@
     <name>GeoMesa Index API</name>
 
     <dependencies>
-        <dependency>
-            <groupId>io.sgr</groupId>
-            <artifactId>s2-geometry-library-java</artifactId>
-            <version>1.0.1</version>
-        </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-filter_${scala.binary.version}</artifactId>
@@ -41,6 +36,17 @@
             <groupId>org.calrissian.mango</groupId>
             <artifactId>mango-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.sgr</groupId>
+            <artifactId>s2-geometry-library-java</artifactId>
+            <version>1.0.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- pull in arrow for aggregating scan code, but don't make it a transitive dep -->
         <dependency>
@@ -63,15 +69,10 @@
             <artifactId>specs2-mock_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-hsql</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
 </project>

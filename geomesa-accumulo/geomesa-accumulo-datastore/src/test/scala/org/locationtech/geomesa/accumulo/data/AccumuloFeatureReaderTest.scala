@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
-
-import java.time.ZonedDateTime
 
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -23,6 +21,7 @@ import org.locationtech.geomesa.utils.audit.{AuditReader, AuditWriter, AuditedEv
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.time.ZonedDateTime
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 

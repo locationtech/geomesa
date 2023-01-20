@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,7 +12,11 @@ package functions
 /**
  * Truncates a timestamp to the nearest ten-minute boundary. For example, 05:45:23 -> 05:40:00
  */
-object TruncateToTenMinutes extends SqlStatements {
+object TruncateToTenMinutes extends TruncateToTenMinutes with AdvisoryLock {
+  override protected val lockId: Long = 2276984964099379703L
+}
+
+class TruncateToTenMinutes extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     Seq(

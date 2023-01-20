@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
+import org.geotools.data.simple._
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
@@ -22,12 +23,11 @@ import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
-import org.geotools.data.simple._
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -70,7 +70,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
   }
 
   def queryByAuths(auths: String, filter: String, expectedStrategy: String): Seq[SimpleFeature] = {
-    val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
+    val ds = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asJava).asInstanceOf[AccumuloDataStore]
     val query = new Query(sftName, ECQL.toFilter(filter))
     val plans = ds.getQueryPlan(query)
     forall(plans)(_.filter.index.name mustEqual expectedStrategy)
@@ -107,7 +107,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
     }
 
     "delete one record" in {
-      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+      val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
       val fs: SimpleFeatureStore = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
 
       val queryBefore = new Query(sftName, ECQL.toFilter("IN('user')"))
@@ -122,7 +122,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
     }
 
     "delete all records" in {
-      val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
+      val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
       val fs: SimpleFeatureStore = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
 
       val queryBefore = new Query(sftName, ECQL.toFilter("INCLUDE"))

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,11 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.tools.ingest
-
-import java.io.File
-import java.nio.file.{Files, Path}
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.{Collections, Date}
 
 import org.geotools.data.Transaction
 import org.geotools.data.shapefile.ShapefileDataStore
@@ -28,6 +23,11 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.File
+import java.nio.file.{Files, Path}
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.{Collections, Date}
 
 @RunWith(classOf[JUnitRunner])
 class ShpIngestTest extends Specification {

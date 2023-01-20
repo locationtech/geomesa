@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.tools
 
-import java.awt.RenderingHints
-import java.util.Collections
-import java.util.concurrent.ConcurrentHashMap
-
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.geotools.util.factory.FactoryIteratorProvider
+
+import java.awt.RenderingHints
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 
 /**
   * This class allows us to pass a concrete datastore instance through SPI loading, which is useful for testing
@@ -55,13 +55,13 @@ object DataStoreRegistration {
 
   private val factory = new DataStoreFactorySpi() {
 
-    override def createDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore =
+    override def createDataStore(params: java.util.Map[String, _]): DataStore =
       dataStores.get(params.get(param.key).asInstanceOf[String])
 
-    override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore =
+    override def createNewDataStore(params: java.util.Map[String, _]): DataStore =
       createDataStore(params)
 
-    override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+    override def canProcess(params: java.util.Map[String, _]): Boolean =
       params.containsKey(param.key)
 
     override def getParametersInfo: Array[Param] = Array(param)

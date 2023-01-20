@@ -40,9 +40,9 @@ Parameter                              Type    Description
 ``geomesa.stats.generate``             Boolean Toggle collection of statistics for newly created feature types
 ``geomesa.query.audit``                Boolean Audit queries being run. Queries will be written to a log file
 ``geomesa.query.loose-bounding-box``   Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
-``geomesa.query.caching``              Boolean Toggle caching of results
 ``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries
 ``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
+``geomesa.partition.scan.parallel``    Boolean For partitioned schemas, execute scans in parallel instead of sequentially
 ====================================== ======= ====================================================================================
 
 More information on using GeoTools can be found in the `GeoTools user guide

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -26,7 +26,6 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Function1;
-import scala.collection.JavaConversions;
 import scala.runtime.AbstractFunction1;
 
 import java.util.HashSet;
@@ -154,7 +153,17 @@ public abstract class AbstractGeoIndex<A extends Geometry, O extends SimpleFeatu
         public Iterator<O> iterator() {
             scala.collection.Iterator<O> iter =
                   getSimpleFeatureIteratorInternal((Intersects) query, queryOptions);
-            return JavaConversions.asJavaIterator(iter);
+            return new Iterator<O>() {
+                @Override
+                public boolean hasNext() {
+                    return iter.hasNext();
+                }
+
+                @Override
+                public O next() {
+                    return iter.next();
+                }
+            };
         }
 
         @Override

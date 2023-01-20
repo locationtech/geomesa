@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,24 +8,23 @@
 
 package org.locationtech.geomesa.process.tube
 
-import java.util.Date
-import java.util.concurrent.atomic.AtomicInteger
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
-import org.locationtech.jts.geom.impl.CoordinateArraySequence
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.referencing.GeodeticCalculator
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom._
+import org.locationtech.jts.geom.impl.CoordinateArraySequence
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.Date
+import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.immutable.NumericRange
 
 object TubeBuilder {
@@ -90,7 +89,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
       }
 
       builder.reset()
-      builder.buildFeature(sf.getID, Array(sf.getDefaultGeometry, date, null))
+      builder.buildFeature(sf.getID, sf.getDefaultGeometry, date, null)
     }
   }
 
@@ -147,14 +146,14 @@ class NoGapFill(tubeFeatures: SimpleFeatureCollection,
 
   // Union features to create a single geometry and single combined time range
   def unionFeatures(orderedFeatures: Seq[SimpleFeature], id: String): SimpleFeature = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
     val geoms = orderedFeatures.map { sf => getGeom(sf) }
-    val unionGeom = geoFac.buildGeometry(geoms).union
+    val unionGeom = geoFac.buildGeometry(geoms.asJava).union
     val min = getStartTime(orderedFeatures.head)
     val max = getStartTime(orderedFeatures.last)
 
     builder.reset()
-    builder.buildFeature(id, Array(unionGeom, min, max))
+    builder.buildFeature(id, unionGeom, min, max)
   }
 
   override def createTube: Iterator[SimpleFeature] = {
@@ -195,12 +194,12 @@ class LineGapFill(tubeFeatures: SimpleFeatureCollection,
     val lineFeatures = if (pointsAndTimes.lengthCompare(1) == 0) {
       val (p1, t1) = pointsAndTimes.head
       logger.debug("Only a single result - can't create a line")
-      Iterator(builder.buildFeature(nextId, Array(p1, t1, t1)))
+      Iterator(builder.buildFeature(nextId, p1, t1, t1))
     } else {
       pointsAndTimes.sliding(2).map { case Seq((p1, t1), (p2, t2)) =>
         val geo = if (p1.equals(p2)) p1 else makeIDLSafeLineString(p1.getCoordinate,p2.getCoordinate)
         logger.debug(s"Created Line-filled Geometry: ${WKTUtils.write(geo)} From ${WKTUtils.write(p1)} and ${WKTUtils.write(p2)}")
-        builder.buildFeature(nextId, Array(geo, t1, t2))
+        builder.buildFeature(nextId, geo, t1, t2)
       }
     }
     buffer(lineFeatures, bufferDistance)
@@ -232,7 +231,7 @@ class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
     val lineFeatures = if (pointsAndTimes.lengthCompare(1) == 0) {
       val (p1, t1) = pointsAndTimes.head
       logger.debug("Only a single result - can't create a line")
-      Iterator(builder.buildFeature(nextId, Array(p1, t1, t1)))
+      Iterator(builder.buildFeature(nextId, p1, t1, t1))
     } else {
       pointsAndTimes.sliding(2).flatMap { case Seq((p1, t1), (p2, t2)) =>
         calc.setStartingGeographicPoint(p1.getX, p1.getY)
@@ -255,13 +254,13 @@ class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
             val destPoint = calc.getDestinationGeographicPoint
             segStep = new Coordinate(destPoint.getX, destPoint.getY, 0)
             val geo = makeIDLSafeLineString(segP1, segStep)
-            builder.buildFeature(nextId, Array(geo, new Date(time0), new Date(time1)))
+            builder.buildFeature(nextId, geo, new Date(time0), new Date(time1))
           }
         } else {
           val geo = if (p1.equals(p2)) { p1 } else { makeIDLSafeLineString(p1.getCoordinate, p2.getCoordinate) }
           logger.debug(s"Created line-filled geometry: ${WKTUtils.write(geo)} " +
               s"from ${WKTUtils.write(p1)} and ${WKTUtils.write(p2)}")
-          Seq(builder.buildFeature(nextId, Array(geo, t1, t2)))
+          Seq(builder.buildFeature(nextId, geo, t1, t2))
         }
       }
     }

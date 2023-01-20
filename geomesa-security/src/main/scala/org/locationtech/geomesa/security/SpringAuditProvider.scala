@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,12 @@
 
 package org.locationtech.geomesa.security
 
-import java.io.Serializable
-import java.util.Collections
-
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
 
+import java.util.Collections
 import scala.collection.JavaConverters._
 
 class SpringAuditProvider extends AuditProvider {
@@ -49,7 +47,7 @@ class SpringAuditProvider extends AuditProvider {
     }
   }
 
-  override def configure(params: java.util.Map[String, _ <: Serializable]): Unit = {}
+  override def configure(params: java.util.Map[String, _]): Unit = {}
 
   private def getAuth: Option[Authentication] =
     Option(SecurityContextHolder.getContext).flatMap(c => Option(c.getAuthentication))

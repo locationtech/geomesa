@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,12 +12,7 @@ import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.EvaluationContext.ContextDependent
 
 sealed trait Predicate extends ContextDependent[Predicate] {
-
   def apply(args: Array[AnyRef]): Boolean
-
-  @deprecated("Use `withContext` and `evaluate`")
-  def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
-    withContext(ctx).apply(args.asInstanceOf[Array[AnyRef]])
 }
 
 object Predicate {

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.storage.common
-
-import java.util.concurrent._
 
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.fs.Path
@@ -20,6 +18,7 @@ import org.locationtech.geomesa.utils.concurrent.PhaserUtils
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 
+import java.util.concurrent._
 import scala.util.control.NonFatal
 
 /**
@@ -112,14 +111,14 @@ object FileSystemThreadedReader extends StrictLogging {
               group += file
             } else {
               if (group.nonEmpty) {
-                groups += group
+                groups += group.toSeq
                 group = scala.collection.mutable.ArrayBuffer.empty[StorageFilePath]
               }
               groups += Seq(file)
             }
           }
           if (group.nonEmpty) {
-            groups += group // add the last group
+            groups += group.toSeq // add the last group
           }
 
           // each chained reader task will register at most groups.length parties
@@ -129,7 +128,7 @@ object FileSystemThreadedReader extends StrictLogging {
             child = new Phaser(phaser)
           }
           child.register() // register new task
-          es.submit(new ChainedReaderTask(es, child, reader, groups.head, groups.tail, queue))
+          es.submit(new ChainedReaderTask(es, child, reader, groups.head, groups.tail.toSeq, queue))
         }
       } catch {
         case NonFatal(e) => es.shutdownNow(); throw e

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,23 +8,23 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.{Collections, Date}
-
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithFeatureType}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.{Collections, Date}
 
 @RunWith(classOf[JUnitRunner])
 class DtgAgeOffTest extends Specification with TestWithFeatureType {
@@ -102,12 +102,13 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 
   // Scans all GeoMesa Accumulo tables directly and verifies the number of records that the `root` user can see.
   private def scanDirect(expected: Int) = {
-    val conn: Connector = MiniCluster.cluster.getConnector(MiniCluster.Users.root.name, MiniCluster.Users.root.password)
+    val conn = MiniCluster.cluster.createAccumuloClient(MiniCluster.Users.root.name, new PasswordToken(MiniCluster.Users.root.password))
     conn.tableOperations().list().asScala.filter(t => t.contains("DtgAgeOffTest_DtgAgeOffTest")).forall { tableName =>
       val scanner = conn.createScanner(tableName, MiniCluster.Users.root.auths)
       val count = scanner.asScala.size
       scanner.close()
       count mustEqual expected
     }
+    conn.close()
   }
 }

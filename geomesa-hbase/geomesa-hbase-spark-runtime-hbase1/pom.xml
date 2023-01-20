@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa-hbase_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -114,14 +114,6 @@
 
         <!-- test dependencies -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-core_${scala.binary.version}</artifactId>
         </dependency>
@@ -142,7 +134,6 @@
             <version>${hbase.version}</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -159,26 +150,16 @@
                         <configuration>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>org.locationtech.geomesa:geomesa-*-runtime*</exclude>
                                     <exclude>io.netty:*</exclude>
-                                    <exclude>org.slf4j:*</exclude>
-                                    <exclude>org.geotools:gt-render:*</exclude>
-                                    <exclude>org.geotools:gt-coverage:*</exclude>
-                                    <exclude>it.geosolutions.jaiext.*</exclude>
                                     <exclude>com.esotericsoftware.kryo:*</exclude>
                                     <exclude>org.ow2.asm:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
-                                    <exclude>io.netty:*</exclude>
                                 </excludes>
                             </artifactSet>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
                                     <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
                                         <exclude>org/objectweb/asm/**</exclude>
                                     </excludes>
                                 </filter>
@@ -208,7 +189,6 @@
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
                                 </relocation>
                                 <!-- we need parquet 1.9.0 in order to do dictionary filtering = 30% speed increase -->
-                                <!-- TODO remove this when spark supports parquet 1.9.0 out of the box -->
                                 <relocation>
                                     <pattern>org.apache.parquet</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.org.apache.parquet</shadedPattern>
@@ -233,9 +213,6 @@
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
                                 </relocation>
                             </relocations>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                            </transformers>
                         </configuration>
                     </execution>
                 </executions>

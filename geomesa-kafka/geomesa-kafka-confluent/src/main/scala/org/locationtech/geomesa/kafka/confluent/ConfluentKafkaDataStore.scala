@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,6 +10,7 @@ package org.locationtech.geomesa.kafka.confluent
 
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient
 import org.apache.avro.Schema
+import org.locationtech.geomesa.index.utils.LocalLocking
 import org.locationtech.geomesa.kafka.confluent.ConfluentGeoMessageSerializer.ConfluentGeoMessageSerializerFactory
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
@@ -30,9 +31,19 @@ object ConfluentKafkaDataStore {
     val metadata = new ConfluentMetadata(client, topicToSft)
     val serialization = new ConfluentGeoMessageSerializerFactory(schemaRegistryUrl, topicToSchema)
 
-    new KafkaDataStore(config, metadata, serialization) {
+    new KafkaDataStore(config, metadata, serialization) with LocalLocking {
+      override protected def preSchemaCreate(sft: SimpleFeatureType): Unit =
+        throw new NotImplementedError(
+          "Confluent Kafka stores do not support creating schemas, " +
+              "the schemas must be added to the schema registry separately")
       override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit =
-        throw new NotImplementedError("Confluent Kafka stores do not support updateSchema")
+        throw new NotImplementedError(
+          "Confluent Kafka stores do not support updating schemas, " +
+              "the schemas must be updated in the schema registry separately")
+      override protected def onSchemaDeleted(sft: SimpleFeatureType): Unit =
+        throw new NotImplementedError(
+          "Confluent Kafka stores do not support deleting schemas, " +
+              "the schemas must be removed from the schema registry separately")
     }
   }
 }

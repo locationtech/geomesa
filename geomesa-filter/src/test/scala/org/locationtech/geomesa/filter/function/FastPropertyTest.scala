@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,15 +9,15 @@
 
 package org.locationtech.geomesa.filter.function
 
-import org.locationtech.jts.geom.Point
-import org.geotools.feature.{NameImpl, AttributeTypeBuilder}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.geotools.feature.{AttributeTypeBuilder, NameImpl}
 import org.geotools.filter.spatial.BBOXImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

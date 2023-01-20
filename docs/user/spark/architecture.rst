@@ -15,7 +15,7 @@ Next, the ``geomesa-spark-core`` module (see :doc:`./core`) is an extension for 
 `GeoTools`_ ``Query`` objects as input and produces resilient distributed datasets
 (``RDD``\ s) containing serialized versions of SimpleFeatures. Multiple
 backends that target different types of feature stores are available,
-including ones for Accumulo, HBase, FileSystem, Kudu, files readable by the :ref:`converters` library,
+including ones for Accumulo, HBase, FileSystem, files readable by the :ref:`converters` library,
 and any generic GeoTools ``DataStore``\ s.
 
 The ``geomesa-spark-sql`` module (see :doc:`./sparksql`) builds on top of the core module

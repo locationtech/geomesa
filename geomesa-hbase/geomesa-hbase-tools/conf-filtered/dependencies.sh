@@ -13,10 +13,10 @@
 
 hbase_install_version="%%hbase.version.recommended%%"
 hbase_thirdparty_install_version="%%hbase.thirdparty.version.recommended%%"
-hadoop_install_version="%%hadoop.version.recommended%%"
+hadoop_install_version="%%hadoop.version%%"
 zookeeper_install_version="%%zookeeper.version.recommended%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
-guava_install_version="%%guava.version%%"
+guava_install_version="%%hbase.guava.version%%"
 
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
@@ -47,32 +47,48 @@ function dependencies() {
     "org.apache.hadoop:hadoop-hdfs:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-hdfs-client:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-mapreduce-client-core:${hadoop_version}:jar"
+    "com.fasterxml.woodstox:woodstox-core:5.3.0:jar"
+    "org.codehaus.woodstox:stax2-api:4.2.1:jar"
+    "commons-collections:commons-collections:3.2.2:jar"
     "commons-configuration:commons-configuration:1.6:jar"
+    "commons-lang:commons-lang:2.6:jar"
     "commons-logging:commons-logging:1.1.3:jar"
     "commons-cli:commons-cli:1.2:jar"
     "commons-io:commons-io:2.5:jar"
+    "org.apache.commons:commons-configuration2:2.8.0:jar"
     "javax.servlet:servlet-api:2.4:jar"
-    "io.netty:netty-all:%%netty.version%%:jar"
+    "io.netty:netty-buffer:%%netty.version%%:jar"
+    "io.netty:netty-resolver:%%netty.version%%:jar"
+    "io.netty:netty-codec:%%netty.version%%:jar"
+    "io.netty:netty-transport:%%netty.version%%:jar"
+    "io.netty:netty-common:%%netty.version%%:jar"
+    "io.netty:netty-transport-native-epoll:%%netty.version%%:jar"
+    "io.netty:netty-handler:%%netty.version%%:jar"
+    "io.netty:netty-transport-native-unix-common:%%netty.version%%:jar"
     "io.netty:netty:3.6.2.Final:jar"
     # htrace 3 required for hadoop before 2.8
     # htrace 4 required for hadoop 2.8 and later
     # since they have separate package names, should be safe to install both
     "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
     "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
+    "io.dropwizard.metrics:metrics-core:3.2.6:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
   )
 
   local hbase_maj_ver="$(expr match "$hbase_version" '\([0-9][0-9]*\)\.')"
 
   # additional dependencies that depend on the major version
-  if [[ "hbase_maj_ver" -ge 2 ]]; then
+  if [[ "$hbase_maj_ver" -ge 2 ]]; then
     gavs+=(
       "org.apache.hbase:hbase-mapreduce:${hbase_version}:jar"
       "org.apache.hbase:hbase-protocol-shaded:${hbase_version}:jar"
       "org.apache.hbase.thirdparty:hbase-shaded-miscellaneous:${hbase_thirdparty_version}:jar"
       "org.apache.hbase.thirdparty:hbase-shaded-netty:${hbase_thirdparty_version}:jar"
       "org.apache.hbase.thirdparty:hbase-shaded-protobuf:${hbase_thirdparty_version}:jar"
-      "io.dropwizard.metrics:metrics-core:3.2.6:jar"
+      "org.apache.hbase.thirdparty:hbase-unsafe:${hbase_thirdparty_version}:jar"
+      "io.opentelemetry:opentelemetry-api:1.15.0:jar"
+      "io.opentelemetry:opentelemetry-context:1.15.0:jar"
+      "io.opentelemetry:opentelemetry-semconv:1.15.0-alpha:jar"
     )
   else
     gavs+=(

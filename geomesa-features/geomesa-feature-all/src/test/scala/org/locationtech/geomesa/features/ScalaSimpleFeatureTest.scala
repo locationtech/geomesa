@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,23 +8,23 @@
 
 package org.locationtech.geomesa.features
 
-import java.util
-
-import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.NameImpl
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.Property
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.util
 import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
 class ScalaSimpleFeatureTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   "ScalaSimpleFeature" should {
     "properly convert attributes that are set as strings" in {
@@ -56,20 +56,20 @@ class ScalaSimpleFeatureTest extends Specification {
       //Test getProperties(name: String)
       for((name, value) <- nameStringList.view.zip(valueList)) {
         val tempProperty = f.getProperties(name)
-        tempProperty.head.getName.toString mustEqual name
-        tempProperty.head.getValue.toString mustEqual value
+        tempProperty.iterator().next.getName.toString mustEqual name
+        tempProperty.iterator().next.getValue.toString mustEqual value
       }
 
       //Test getProperties(name: Name)
       for((name, value) <- nameList.view.zip(valueList)) {
         val tempProperty = f.getProperties(name)
-        tempProperty.head.getName mustEqual name
-        tempProperty.head.getValue.toString mustEqual value
+        tempProperty.iterator().next.getName mustEqual name
+        tempProperty.iterator().next.getValue.toString mustEqual value
       }
 
       f.getProperties must beAnInstanceOf[util.Collection[Property]]
       f.getProperties("a") must beAnInstanceOf[util.Collection[Property]]
-      f.getProperties("a").head.getValue must not(throwA [org.opengis.feature.IllegalAttributeException])
+      f.getProperties("a").iterator().next.getValue must not(throwA [org.opengis.feature.IllegalAttributeException])
 
       val prop = f.getProperty("a")
       prop must not beNull;
@@ -136,7 +136,7 @@ class ScalaSimpleFeatureTest extends Specification {
       f.setAttribute("l","")
       f.setAttribute("m","")
 
-      f.getAttributes.foreach { v => v must beNull}
+      f.getAttributes.asScala.foreach { v => v must beNull}
 
       f.validate must not(throwA [org.opengis.feature.IllegalAttributeException])
     }
@@ -149,7 +149,7 @@ class ScalaSimpleFeatureTest extends Specification {
       sf.getAttribute("c") must not(throwA[NullPointerException])
       sf.getAttribute("c") must beNull
 
-      val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
+      val oldSf = new SimpleFeatureImpl(java.util.Arrays.asList(null, null), sft, new FeatureIdImpl("fakeid"))
       oldSf.getAttribute("c") must beNull
     }
 
@@ -160,7 +160,7 @@ class ScalaSimpleFeatureTest extends Specification {
       sf.getProperty("c") must not(throwA[NullPointerException])
       sf.getProperty("c") must beNull
 
-      val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
+      val oldSf = new SimpleFeatureImpl(java.util.Arrays.asList(null, null), sft, new FeatureIdImpl("fakeid"))
       oldSf.getProperty("c") must beNull
     }
     "give back a property when a property exists but the value is null" in {
@@ -170,7 +170,7 @@ class ScalaSimpleFeatureTest extends Specification {
       sf.getProperty("b") must not(throwA[NullPointerException])
       sf.getProperty("b") must not beNull
 
-      val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
+      val oldSf = new SimpleFeatureImpl(java.util.Arrays.asList(null, null), sft, new FeatureIdImpl("fakeid"))
       oldSf.getProperty("b") must not beNull
     }
     "give back a null when the property value is null" in {
@@ -180,7 +180,7 @@ class ScalaSimpleFeatureTest extends Specification {
       sf.getProperty("b").getValue must not(throwA[NullPointerException])
       sf.getProperty("b").getValue must beNull
 
-      val oldSf = new SimpleFeatureImpl(List(null, null), sft, new FeatureIdImpl("fakeid"))
+      val oldSf = new SimpleFeatureImpl(java.util.Arrays.asList(null, null), sft, new FeatureIdImpl("fakeid"))
       oldSf.getProperty("b").getValue must beNull
     }
     "implement equals" in {

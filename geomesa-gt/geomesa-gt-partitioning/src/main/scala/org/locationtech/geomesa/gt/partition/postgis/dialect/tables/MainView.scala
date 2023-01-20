@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -19,7 +19,8 @@ object MainView extends SqlStatements {
       s"""CREATE OR REPLACE VIEW ${info.tables.view.name.qualified} AS
          |  SELECT * FROM ${info.tables.writeAhead.name.qualified} UNION ALL
          |  SELECT * FROM ${info.tables.writeAheadPartitions.name.qualified} UNION ALL
-         |  SELECT * FROM ${info.tables.mainPartitions.name.qualified};""".stripMargin
+         |  SELECT * FROM ${info.tables.mainPartitions.name.qualified} UNION ALL
+         |  SELECT * FROM ${info.tables.spillPartitions.name.qualified};""".stripMargin
     )
   }
 

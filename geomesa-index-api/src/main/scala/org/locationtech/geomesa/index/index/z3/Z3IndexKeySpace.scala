@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.index.z3
-
-import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
@@ -25,10 +23,11 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.jts.geom.{Geometry, Point}
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.util.Date
 import scala.util.control.NonFatal
 
 class Z3IndexKeySpace(val sft: SimpleFeatureType,
@@ -160,32 +159,38 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
   }
 
   override def getRanges(values: Z3IndexValues, multiplier: Int): Iterator[ScanRange[Z3IndexKey]] = {
-    val Z3IndexValues(z3, _, xy, _, timesByBin, unboundedBins) = values
+    val Z3IndexValues(z3, geoms, xy, intervals, timesByBin, unboundedBins) = values
 
-    // note: `target` will always be Some, as ScanRangesTarget has a default value
-    val target = QueryProperties.ScanRangesTarget.option.map { t =>
-      math.max(1, if (timesByBin.isEmpty) { t.toInt } else { t.toInt / timesByBin.size } / multiplier)
+    if (geoms.disjoint || intervals.disjoint) {
+      Iterator.empty
+    } else if (timesByBin.isEmpty && unboundedBins.isEmpty) {
+      Iterator.single(UnboundedRange(null))
+    } else {
+      // note: `target` will always be Some, as ScanRangesTarget has a default value
+      val target = QueryProperties.ScanRangesTarget.option.map { t =>
+        math.max(1, if (timesByBin.isEmpty) { t.toInt } else { t.toInt / timesByBin.size } / multiplier)
+      }
+
+      def toZRanges(t: Seq[(Long, Long)]): Seq[IndexRange] = z3.ranges(xy, t, 64, target)
+
+      lazy val wholePeriodRanges = toZRanges(z3.wholePeriod)
+
+      val bounded = timesByBin.iterator.flatMap { case (bin, times) =>
+        val zs = if (times.eq(z3.wholePeriod)) { wholePeriodRanges } else { toZRanges(times) }
+        zs.map(range => BoundedRange(Z3IndexKey(bin, range.lower), Z3IndexKey(bin, range.upper)))
+      }
+
+      val unbounded = unboundedBins.iterator.map {
+        case (0, Short.MaxValue)     => UnboundedRange(Z3IndexKey(0, 0L))
+        case (lower, Short.MaxValue) => LowerBoundedRange(Z3IndexKey(lower, 0L))
+        case (0, upper)              => UpperBoundedRange(Z3IndexKey(upper, Long.MaxValue))
+        case (lower, upper) =>
+          logger.error(s"Unexpected unbounded bin endpoints: $lower:$upper")
+          UnboundedRange(Z3IndexKey(0, 0L))
+      }
+
+      bounded ++ unbounded
     }
-
-    def toZRanges(t: Seq[(Long, Long)]): Seq[IndexRange] = z3.ranges(xy, t, 64, target)
-
-    lazy val wholePeriodRanges = toZRanges(z3.wholePeriod)
-
-    val bounded = timesByBin.iterator.flatMap { case (bin, times) =>
-      val zs = if (times.eq(z3.wholePeriod)) { wholePeriodRanges } else { toZRanges(times) }
-      zs.map(range => BoundedRange(Z3IndexKey(bin, range.lower), Z3IndexKey(bin, range.upper)))
-    }
-
-    val unbounded = unboundedBins.iterator.map {
-      case (0, Short.MaxValue)     => UnboundedRange(Z3IndexKey(0, 0L))
-      case (lower, Short.MaxValue) => LowerBoundedRange(Z3IndexKey(lower, 0L))
-      case (0, upper)              => UpperBoundedRange(Z3IndexKey(upper, Long.MaxValue))
-      case (lower, upper) =>
-        logger.error(s"Unexpected unbounded bin endpoints: $lower:$upper")
-        UnboundedRange(Z3IndexKey(0, 0L))
-    }
-
-    bounded ++ unbounded
   }
 
   override def getRangeBytes(ranges: Iterator[ScanRange[Z3IndexKey]], tier: Boolean): Iterator[ByteRange] = {

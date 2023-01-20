@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,20 +8,20 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import java.nio.ByteBuffer
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.{Date, UUID}
-
-import org.locationtech.jts.geom.Geometry
 import org.apache.accumulo.core.data.Value
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.{Date, UUID}
 
 @RunWith(classOf[JUnitRunner])
 class IndexValueEncoderTest extends Specification {
@@ -40,7 +40,7 @@ class IndexValueEncoderTest extends Specification {
     SimpleFeatureTypes.createType("IndexValueEncoderTest" + index.getAndIncrement, schema)
 
   def getIndexValueFields(sft: SimpleFeatureType): Seq[String] =
-    IndexValueEncoder.getIndexSft(sft).getAttributeDescriptors.asScala.map(_.getLocalName)
+    IndexValueEncoder.getIndexSft(sft).getAttributeDescriptors.asScala.map(_.getLocalName).toSeq
 
   "IndexValueEncoder" should {
     "default to id,geom,date" in {
@@ -68,8 +68,7 @@ class IndexValueEncoderTest extends Specification {
       val sft = getSft()
 
       // inputs
-      val entry = AvroSimpleFeatureFactory.buildAvroFeature(sft,
-        List(geom, dt, null, null, null, null, null, null), id)
+      val entry = ScalaSimpleFeature.create(sft, id, geom, dt, null, null, null, null, null, null)
 
       val encoder = IndexValueEncoder(sft)
 
@@ -93,8 +92,7 @@ class IndexValueEncoderTest extends Specification {
     "encode and decode id,geom,date when there is no date" in {
       val sft = getSft()
 
-      val entry = AvroSimpleFeatureFactory.buildAvroFeature(sft,
-        List(geom, null, null, null, null, null, null, null), id)
+      val entry = ScalaSimpleFeature.create(sft, id, geom, null, null, null, null, null, null, null)
 
       val encoder = IndexValueEncoder(sft)
 
@@ -123,8 +121,7 @@ class IndexValueEncoderTest extends Specification {
       val f: java.lang.Float = 1.0f
       val u = UUID.randomUUID()
 
-      val entry = AvroSimpleFeatureFactory.buildAvroFeature(sft,
-        List(geom, dt, s, i, d, f, u, null), id)
+      val entry = ScalaSimpleFeature.create(sft, id, geom, dt, s, i, d, f, u, null)
 
       val encoder = IndexValueEncoder(sft)
 
@@ -157,8 +154,7 @@ class IndexValueEncoderTest extends Specification {
       val d: java.lang.Double = 10d
       val f: java.lang.Float = 1.0f
 
-      val entry = AvroSimpleFeatureFactory.buildAvroFeature(sft,
-        List(geom, null, null, i, d, f, null, null), id)
+      val entry = ScalaSimpleFeature.create(sft, id, geom, null, null, i, d, f, null, null)
 
       val encoder = IndexValueEncoder(sft)
 

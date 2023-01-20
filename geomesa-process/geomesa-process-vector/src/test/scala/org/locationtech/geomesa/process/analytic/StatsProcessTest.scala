@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15,6 +15,8 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class StatsProcessTest extends Specification {
@@ -43,8 +45,7 @@ class StatsProcessTest extends Specification {
       result.map(_.getAttribute(0)) mustEqual Seq("""{"count":10}""")
     }
     "manually visit a feature collection with projections" in {
-      import scala.collection.JavaConversions._
-      val props = Seq("m=strConcat('m:', track)")
+      val props = Collections.singletonList("m=strConcat('m:', track)")
       val result = SelfClosingIterator(process.execute(fc, "Enumeration(m)", encode = false, props).features).toSeq
       result.map(_.getAttribute(0)) mustEqual Seq("""{"m:t-0":5,"m:t-1":5}""")
     }

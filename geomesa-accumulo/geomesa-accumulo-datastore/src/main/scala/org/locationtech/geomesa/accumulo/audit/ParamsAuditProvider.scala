@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
-import java.io.Serializable
-import java.util.Collections
-
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.utils.audit.AuditProvider
+
+import java.util.Collections
 
 class ParamsAuditProvider extends AuditProvider {
 
@@ -22,7 +21,7 @@ class ParamsAuditProvider extends AuditProvider {
 
   override val getCurrentUserDetails: java.util.Map[AnyRef, AnyRef] = Collections.emptyMap()
 
-  override def configure(params: java.util.Map[String, _ <: Serializable]): Unit = {
+  override def configure(params: java.util.Map[String, _]): Unit = {
     id = AccumuloDataStoreParams.UserParam.lookupOpt(params).map(u => s"accumulo[$u]").getOrElse("unknown")
   }
 }

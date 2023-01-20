@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -16,7 +16,11 @@ import java.util.Locale
 /**
  * Primary key table used by the JDBC data store to specify primary key columns
  */
-object PrimaryKeyTable extends Sql {
+object PrimaryKeyTable extends PrimaryKeyTable with AdvisoryLock {
+  override protected val lockId: Long = 6133394343366639763L
+}
+
+class PrimaryKeyTable extends Sql {
 
   val Name: TableName = TableName(MetadataTablePrimaryKeyFinder.DEFAULT_TABLE.toLowerCase(Locale.US))
 

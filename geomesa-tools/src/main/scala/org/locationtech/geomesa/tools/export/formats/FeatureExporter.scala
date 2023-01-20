@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io.{BufferedOutputStream, ByteArrayOutputStream, Closeable, OutputStream}
-import java.util.zip.GZIPOutputStream
-
 import org.apache.commons.compress.utils.CountingOutputStream
 import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ByteCounter
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.CreateMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.{BufferedOutputStream, ByteArrayOutputStream, Closeable, OutputStream}
+import java.util.zip.GZIPOutputStream
 
 /**
   * Exports features in various formats. Usage pattern is:

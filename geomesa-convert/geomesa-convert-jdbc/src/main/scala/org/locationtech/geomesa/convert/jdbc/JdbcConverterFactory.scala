@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,21 +13,13 @@ import org.locationtech.geomesa.convert.jdbc.JdbcConverter.JdbcConfig
 import org.locationtech.geomesa.convert.jdbc.JdbcConverterFactory.JdbcConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
-import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, BasicOptionsConvert, ConverterConfigConvert}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.ConfigReaderFailures
 
-class JdbcConverterFactory extends AbstractConverterFactory[JdbcConverter, JdbcConfig, BasicField, BasicOptions] {
-
-  override protected val typeToProcess = "jdbc"
-
-  override protected implicit def configConvert: ConverterConfigConvert[JdbcConfig] = JdbcConfigConvert
-
-  override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
-
-  override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
-}
+class JdbcConverterFactory extends AbstractConverterFactory[JdbcConverter, JdbcConfig, BasicField, BasicOptions](
+  "jdbc", JdbcConfigConvert, BasicFieldConvert, BasicOptionsConvert)
 
 object JdbcConverterFactory {
 

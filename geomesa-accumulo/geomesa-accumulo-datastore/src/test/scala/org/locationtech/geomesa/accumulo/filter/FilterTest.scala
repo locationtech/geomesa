@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,28 +8,26 @@
 
 package org.locationtech.geomesa.accumulo.filter
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Coordinate
 import org.geotools.data.Query
-import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.accumulo.iterators.TestData
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Coordinate
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class FilterTest extends Specification with TestWithFeatureType with LazyLogging {
@@ -94,7 +92,7 @@ class FilterTest extends Specification with TestWithFeatureType with LazyLogging
   def compareFilter(filter: Filter, projection: Array[String]) = {
     val filterCount = mediumDataFeatures.count(filter.evaluate)
     val query = new Query(sftName, filter)
-    Option(projection).foreach(query.setPropertyNames)
+    Option(projection).foreach(query.setPropertyNames(_: _*))
     val queryCount = SelfClosingIterator(fs.getFeatures(query)).length
     logger.debug(s"\nFilter: ${ECQL.toCQL(filter)}\nFullData size: ${mediumDataFeatures.size}: " +
         s"filter hits: $filterCount query hits: $queryCount")
@@ -113,15 +111,15 @@ class IdQueryTest extends Specification with TestWithFeatureType {
   override val spec = "age:Int:index=join,name:String:index=join,dtg:Date,*geom:Point:srid=4326"
 
   val geomBuilder = JTSFactoryFinder.getGeometryFactory
-  val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
+  val builder = new SimpleFeatureBuilder(sft, new ScalaSimpleFeatureFactory)
   val data = List(
-    ("1", Array(10, "johndoe", new Date), geomBuilder.createPoint(new Coordinate(10, 10))),
-    ("2", Array(20, "janedoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20))),
-    ("3", Array(30, "johnrdoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20)))
+    ("1", Array("10", "johndoe", new Date), geomBuilder.createPoint(new Coordinate(10, 10))),
+    ("2", Array("20", "janedoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20))),
+    ("3", Array("30", "johnrdoe", new Date), geomBuilder.createPoint(new Coordinate(20, 20)))
   )
   val features = data.map { case (id, attrs, geom) =>
     builder.reset()
-    builder.addAll(attrs.asInstanceOf[Array[AnyRef]])
+    builder.addAll(attrs: _*)
     val f = builder.buildFeature(id)
     f.setDefaultGeometry(geom)
     f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)

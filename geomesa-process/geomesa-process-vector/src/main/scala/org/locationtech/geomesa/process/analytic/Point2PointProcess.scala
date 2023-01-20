@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,20 +8,21 @@
 
 package org.locationtech.geomesa.process.analytic
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.opengis.feature.simple.SimpleFeature
+
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 
 @DescribeProcess(title = "Point2PointProcess", description = "Aggregates a collection of points into a collection of line segments")
 class Point2PointProcess extends GeoMesaProcess {
@@ -68,9 +69,8 @@ class Point2PointProcess extends GeoMesaProcess {
     sftBuilder.add(s"${sortAttrName}_end", sortType)
 
     val sft = sftBuilder.buildFeatureType()
-    val builder = new SimpleFeatureBuilder(sft)
 
-    val lineFeatures =
+    val lineFeatures: Iterable[SimpleFeature] =
       SelfClosingIterator(data.features()).toList
         .groupBy(f => String.valueOf(f.getAttribute(groupingFieldIndex)))
         .filter { case (_, coll) => coll.lengthCompare(minPoints) > 0 }
@@ -95,7 +95,7 @@ class Point2PointProcess extends GeoMesaProcess {
               val startDtg = ptLst.head.getAttribute(sortAttrName)
               val endDtg   = ptLst.last.getAttribute(sortAttrName)
               val attrs    = Array[AnyRef](gf.createLineString(pts.toArray), group, startDtg, endDtg)
-              val sf = builder.buildFeature(s"$group-$idx", attrs)
+              val sf = new ScalaSimpleFeature(sft, s"$group-$idx", attrs)
               (length, sf)
             }
           }
@@ -107,9 +107,9 @@ class Point2PointProcess extends GeoMesaProcess {
           }
         }
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
-    new ListFeatureCollection(sft, lineFeatures.toList)
+    new ListFeatureCollection(sft, lineFeatures.toList.asJava)
   }
 
   def getDayOfYear(sortFieldIndex: Int, f: SimpleFeature): Int =

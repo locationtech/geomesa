@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.jobs.mapreduce
-
-import java.io.IOException
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
@@ -23,6 +21,8 @@ import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.IOException
 
 /**
   * Output format that writes simple features using GeoMesaDataStore's FeatureWriterAppend. Can write only
@@ -77,6 +77,20 @@ object GeoMesaOutputFormat {
     GeoMesaConfigurator.setDataStoreOutParams(conf, params)
     GeoMesaConfigurator.setSerialization(conf, sft)
     indices.foreach(GeoMesaConfigurator.setIndicesOut(conf, _))
+  }
+
+  /**
+   * Helper for java interop
+   *
+   * @param conf conf
+   * @param params data store parameters
+   * @param sft simple feature type to write, must exist already in the store
+   */
+  def setOutputJava(
+      conf: Configuration,
+      params: java.util.Map[String, String],
+      sft: SimpleFeatureType): Unit = {
+    setOutput(conf, params.asScala.toMap, sft)
   }
 
   /**

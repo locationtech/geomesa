@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,19 +8,19 @@
 
 package org.locationtech.geomesa.index.conf.partition
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.conf.partition.TimePartition.CustomPartitionCache
-import org.locationtech.geomesa.index.metadata.{TableBasedMetadata, GeoMesaMetadata, HasGeoMesaMetadata}
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, TableBasedMetadata}
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 
 
 /**

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,16 +8,12 @@
 
 package org.locationtech.geomesa
 
-import java.{io => jio, util => ju}
-
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 import org.opengis.feature.simple.SimpleFeature
 
 package object security {
-
-  import scala.collection.JavaConverters._
 
   val GEOMESA_AUDIT_PROVIDER_IMPL: SystemProperty = SystemProperty("geomesa.audit.provider.impl")
   val GEOMESA_AUTH_PROVIDER_IMPL : SystemProperty = SystemProperty("geomesa.auth.provider.impl")
@@ -75,6 +71,7 @@ package object security {
     def visibility: Option[String] = Option(SecurityUtils.getVisibility(sf))
   }
 
-  def getAuthorizationsProvider(params: ju.Map[String, jio.Serializable], auths: Seq[String]): AuthorizationsProvider =
-    AuthorizationsProvider.apply(params, auths.asJava)
+  @deprecated("Use AuthUtils.getProvider")
+  def getAuthorizationsProvider(params: java.util.Map[String, _], auths: Seq[String]): AuthorizationsProvider =
+    AuthUtils.getProvider(params, auths)
 }

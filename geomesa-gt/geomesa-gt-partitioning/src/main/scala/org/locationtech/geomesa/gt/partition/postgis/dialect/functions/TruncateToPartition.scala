@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,7 +12,11 @@ package functions
 /**
  * Truncates a timestamp to the closest partition boundary, based on the number of hours in each partition
  */
-object TruncateToPartition extends SqlStatements {
+object TruncateToPartition extends TruncateToPartition with AdvisoryLock {
+  override protected val lockId: Long = 1616433564832724520L
+}
+
+class TruncateToPartition extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     Seq(

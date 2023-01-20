@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.curve
 
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+
 import java.time._
 import java.time.temporal.ChronoUnit
-
-import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 
 /**
   * Represents a time by an offset into a binned bucket. The bin represents days, weeks,

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -31,13 +31,13 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 
   import scala.collection.JavaConverters._
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     MergedDataStoreViewFactory.canProcess(params)
 
-  override def createDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore =
+  override def createDataStore(params: java.util.Map[String, _]): DataStore =
     createNewDataStore(params)
 
-  override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = {
     val configs: Seq[Config] = {
       val explicit = Option(ConfigParam.lookup(params)).map(c => ConfigFactory.parseString(c).resolve())
       val loaded = ConfigLoaderParam.flatMap(_.lookupOpt(params)).flatMap { name =>
@@ -81,15 +81,16 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
     }
 
     val deduplicate = DeduplicateParam.lookup(params).booleanValue()
+    val parallel = ParallelScanParam.lookup(params).booleanValue()
 
-    new MergedDataStoreView(stores.result, deduplicate, namespace)
+    new MergedDataStoreView(stores.result, deduplicate, parallel, namespace)
   }
 
   override def getDisplayName: String = DisplayName
 
   override def getDescription: String = Description
 
-  override def getParametersInfo: Array[Param] = ParameterInfo :+ NamespaceParam
+  override def getParametersInfo: Array[Param] = Array(ParameterInfo :+ NamespaceParam: _*)
 
   override def isAvailable: Boolean = true
 
@@ -134,9 +135,17 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
       readWrite = ReadWriteFlag.ReadOnly
     )
 
-  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
-    ConfigLoaderParam.toArray ++ Array(ConfigParam, DeduplicateParam)
+  val ParallelScanParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "geomesa.merged.scan.parallel",
+      "Scan each store in parallel, instead of sequentially",
+      default = java.lang.Boolean.FALSE,
+      readWrite = ReadWriteFlag.ReadOnly
+    )
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
+    ConfigLoaderParam.toArray ++ Array[GeoMesaParam[_ <: AnyRef]](ConfigParam, DeduplicateParam, ParallelScanParam)
+
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     params.containsKey(ConfigParam.key) || ConfigLoaderParam.exists(p => params.containsKey(p.key))
 }

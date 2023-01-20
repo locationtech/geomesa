@@ -5,6 +5,15 @@ Installing GeoMesa Cassandra
 
     GeoMesa currently supports Cassandra version |cassandra_version|.
 
+.. note::
+
+    The examples below expect a version to be set in the environment:
+
+    .. parsed-literal::
+
+        $ export TAG="|release_version|"
+        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
+
 Connecting to Cassandra
 -----------------------
 
@@ -46,12 +55,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
-.. note::
-
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
-
-Extract it somewhere convenient:
+Download and extract it somewhere convenient:
 
 .. code-block:: bash
 
@@ -59,21 +63,18 @@ Extract it somewhere convenient:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-cassandra_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-cassandra_${VERSION}-bin.tar.gz
     $ cd geomesa-cassandra_${VERSION}
-    $ ls
-    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
 .. _cassandra_install_source:
 
 Building from Source
 --------------------
 
-GeoMesa Cassandra may also be built from source. For more information refer to :ref:`building_from_source`
-in the developer manual, or to the ``README.md`` file in the the source distribution.
+GeoMesa Cassandra may also be built from source. For more information, refer to the instructions on
+`GitHub <https://github.com/locationtech/geomesa#building-from-source>`__.
+`GitHub <https://github.com/locationtech/geomesa#building-from-source>`__.
 The remainder of the instructions in this chapter assume the use of the binary GeoMesa Cassandra
 distribution. If you have built from source, the distribution is created in the ``target`` directory of
 ``geomesa-cassandra/geomesa-cassandra-dist``.
-
-More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
 
 .. _setting_up_cassandra_commandline:
 
@@ -113,6 +114,9 @@ Run ``geomesa-cassandra`` without arguments to confirm that the tools work.
 .. code::
 
     $ bin/geomesa-cassandra
+
+The output should look like this::
+
     INFO  Usage: geomesa-cassandra [command] [command options]
       Commands:
       ...
@@ -132,16 +136,24 @@ Cassandra data stores in GeoServer. The plugin files are in the
 GeoMesa Cassandra distribution directory.
 
 To install the plugins, extract the archive and copy the contents to the ``WEB-INF/lib``
-directory of your GeoServer installation. You will also need to install the Cassandra JARs; these
-are not bundled to allow for different versions. The distribution includes a script to download
-the JARs: ``bin/install-dependencies.sh``. Call it with the path to the GeoServer ``WEB-INF/lib`` directory.
-By default, it will install the following JARs:
+directory of your GeoServer installation::
 
- * cassandra-all-3.11.8.jar
- * cassandra-driver-core-3.10.2.jar
- * netty-all-4.1.48.Final.jar
- * metrics-core-3.2.6.jar
- * logback-core-1.1.3.jar
- * logback-classic-1.1.3.jar
+.. code-block:: bash
+
+    $ tar -xzvf \
+      geomesa-cassandra_${VERSION}/dist/gs-plugins/geomesa-cassandra-gs-plugin_${VERSION}-install.tar.gz \
+      -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
+
+
+Next, install the JARs for Cassandra. By default, JARs will be downloaded from Maven central. You may
+override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do no have an internet connection
+you can download the JARs manually.
+
+Edit the file ``geomesa-cassandra_${VERSION}/conf/dependencies.sh`` to set the version of Cassandra
+to match the target environment, and then run the script:
+
+.. code-block:: bash
+
+    $ ./bin/install-dependencies.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 Restart GeoServer after the JARs are installed.

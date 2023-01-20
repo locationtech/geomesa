@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.tools.status
 
-import java.util
-import java.util.Collections
-
 import com.beust.jcommander._
 import org.geotools.data.{DataStore, FileDataStore}
 import org.locationtech.geomesa.tools.status.GetSftConfigCommand.{Spec, TypeSafe}
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, ProvidedTypeNameParam, TypeNameParam}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.util
+import java.util.Collections
 
 trait GetSftConfigCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
@@ -27,7 +27,7 @@ trait GetSftConfigCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   override def execute(): Unit = withDataStore(showSftConfig)
 
   protected def showSftConfig(ds: DS): Unit = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
     for {
       p <- Option(params).collect { case p: ProvidedTypeNameParam => p }
       f <- Option(ds).collect { case f: FileDataStore => f }
@@ -39,7 +39,7 @@ trait GetSftConfigCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     if (sft == null) {
       throw new ParameterException(s"Schema '${params.featureName}' does not exist in the provided datastore")
     }
-    params.format.map(_.toLowerCase).foreach {
+    params.format.asScala.map(_.toLowerCase).foreach {
       case TypeSafe => Command.output.info(SimpleFeatureTypes.toConfigString(sft, !params.excludeUserData, params.concise))
       case Spec => Command.output.info(SimpleFeatureTypes.encodeType(sft, !params.excludeUserData))
       // shouldn't happen due to parameter validation
@@ -73,9 +73,9 @@ trait GetSftConfigParams extends TypeNameParam {
 
 class FormatValidator extends IValueValidator[java.util.List[String]] {
   override def validate(name: String, value: util.List[String]): Unit = {
-    import scala.collection.JavaConversions._
-    if (value == null || value.isEmpty || value.map(_.toLowerCase ).exists(v => v != Spec && v != TypeSafe)) {
-      throw new ParameterException(s"Invalid value for format: ${Option(value).map(_.mkString(",")).orNull}")
+    import scala.collection.JavaConverters._
+    if (value == null || value.isEmpty || value.asScala.map(_.toLowerCase ).exists(v => v != Spec && v != TypeSafe)) {
+      throw new ParameterException(s"Invalid value for format: ${Option(value).map(_.asScala.mkString(",")).orNull}")
     }
   }
 }

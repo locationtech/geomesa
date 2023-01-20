@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.features.kryo.json
 
-import java.nio.charset.StandardCharsets
-
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import org.json4s.JsonAST._
@@ -17,45 +15,50 @@ import org.json4s.native.JsonMethods.{parse => _, _}
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.JsonPathFunction.JsonPathFunction
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser._
 
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 /**
-  * Serializes into bson (http://bsonspec.org/). Note this is a limited form of bson that only matches
-  * the existing json types - does not cover the bson extensions like binary data, etc. Also note endianness,
-  * etc might not match the spec 100%.
-  *
-  * Reduced BSON spec - only native JSON elements supported:
-  *
-  * byte    1 byte (8-bits)
-  * int32   4 bytes (32-bit signed integer, two's complement)
-  * int64   8 bytes (64-bit signed integer, two's complement)
-  * double  8 bytes (64-bit IEEE 754-2008 binary floating point)
-  *
-  * document  ::= int32 e_list "\x00" BSON Document. int32 is the total number of bytes comprising the document.
-  * e_list    ::= element e_list
-  *           |	""
-  * element   ::= "\x01" e_name double	64-bit binary floating point
-  *           | "\x02" e_name string	UTF-8 string
-  *           | "\x03" e_name document	Embedded document
-  *           |	"\x04" e_name document	Array
-  *           |	"\x08" e_name "\x00"	Boolean "false"
-  *           |	"\x08" e_name "\x01"	Boolean "true"
-  *           |	"\x09" e_name int64	UTC datetime
-  *           |	"\x0A" e_name	Null value
-  *           |	"\x10" e_name int32	32-bit integer
-  *           |	"\x11" e_name int64	Timestamp
-  *           |	"\x12" e_name int64	64-bit integer
-  * e_name    ::= cstring	Key name
-  * string    ::= int32 (byte*) "\x00"	String - The int32 is the number bytes in the (byte*) + 1 (for the trailing '\x00').
-  *                                              The (byte*) is zero or more UTF-8 encoded characters.
-  * cstring   ::= (byte*) "\x00"	Zero or more modified UTF-8 encoded characters followed by '\x00'. The (byte*)
-  *                               MUST NOT contain '\x00', hence it is not full UTF-8.
-  *
-  * Note:
-  *   Array - The document for an array is a normal BSON document with integer values for the keys,
-  *   starting with 0 and continuing sequentially. For example, the array ['red', 'blue'] would be
-  *   encoded as the document {'0': 'red', '1': 'blue'}. The keys must be in ascending numerical order.
-  */
+ * Serializes into bson (http://bsonspec.org/). Note this is a limited form of bson that only matches
+ * the existing json types - does not cover the bson extensions like binary data, etc. Also note endianness,
+ * etc might not match the spec 100%.
+ *
+ * The bson serialized value is preceded by a single byte, `\x00` to indicate null, or `\x01` to indicate non-null.
+ * Additionally, non-document top-level values are supported, indicated with the prefix byte `\x02`. Top-level,
+ * non-document values are encoded as a jsonb `element` with an empty name.
+ *
+ * Reduced BSON spec - only native JSON elements supported:
+ *
+ * byte    1 byte (8-bits)
+ * int32   4 bytes (32-bit signed integer, two's complement)
+ * int64   8 bytes (64-bit signed integer, two's complement)
+ * double  8 bytes (64-bit IEEE 754-2008 binary floating point)
+ *
+ * document  ::= int32 e_list "\x00" BSON Document. int32 is the total number of bytes comprising the document.
+ * e_list    ::= element e_list
+ *           |	""
+ * element   ::= "\x01" e_name double	64-bit binary floating point
+ *           | "\x02" e_name string	UTF-8 string
+ *           | "\x03" e_name document	Embedded document
+ *           |	"\x04" e_name document	Array
+ *           |	"\x08" e_name "\x00"	Boolean "false"
+ *           |	"\x08" e_name "\x01"	Boolean "true"
+ *           |	"\x09" e_name int64	UTC datetime
+ *           |	"\x0A" e_name	Null value
+ *           |	"\x10" e_name int32	32-bit integer
+ *           |	"\x11" e_name int64	Timestamp
+ *           |	"\x12" e_name int64	64-bit integer
+ * e_name    ::= cstring	Key name
+ * string    ::= int32 (byte*) "\x00"	String - The int32 is the number bytes in the (byte*) + 1 (for the trailing '\x00').
+ *                                              The (byte*) is zero or more UTF-8 encoded characters.
+ * cstring   ::= (byte*) "\x00"	Zero or more modified UTF-8 encoded characters followed by '\x00'. The (byte*)
+ *                               MUST NOT contain '\x00', hence it is not full UTF-8.
+ *
+ * Note:
+ *   Array - The document for an array is a normal BSON document with integer values for the keys,
+ *   starting with 0 and continuing sequentially. For example, the array ['red', 'blue'] would be
+ *   encoded as the document {'0': 'red', '1': 'blue'}. The keys must be in ascending numerical order.
+ */
 object KryoJsonSerialization extends LazyLogging {
 
   private val TerminalByte :Byte = 0x00
@@ -70,6 +73,7 @@ object KryoJsonSerialization extends LazyLogging {
 
   private val BooleanFalse :Byte = 0x00
   private val BooleanTrue  :Byte = 0x01
+  private val NonDoc       :Byte = 0x02
 
   private val nameBuffers = new ThreadLocal[Array[Byte]] {
     override def initialValue(): Array[Byte] = Array.ofDim[Byte](32)
@@ -86,7 +90,7 @@ object KryoJsonSerialization extends LazyLogging {
     import org.json4s.native.JsonMethods._
     val obj = if (json == null) { null } else {
       try {
-        parse(json).asInstanceOf[JObject]
+        parse(json)
       } catch {
         case NonFatal(e) =>
           logger.warn(s"Error parsing json:\n$json", e)
@@ -102,12 +106,11 @@ object KryoJsonSerialization extends LazyLogging {
     * @param out output to write to
     * @param json object to serialize
     */
-  def serialize(out: Output, json: JObject): Unit = {
-    if (json == null) {
-      out.write(BooleanFalse)
-    } else {
-      out.write(BooleanTrue)
-      writeDocument(out, json)
+  def serialize(out: Output, json: JValue): Unit = {
+    json match {
+      case null | JNull  => out.write(BooleanFalse)
+      case j: JObject    => out.write(BooleanTrue); writeDocument(out, j)
+      case j             => out.write(NonDoc); writeValue(out, "", j)
     }
   }
 
@@ -137,12 +140,12 @@ object KryoJsonSerialization extends LazyLogging {
     * @param in input, pointing to the start of the json object
     * @return parsed json object
     */
-  def deserialize(in: Input): JObject = {
+  def deserialize(in: Input): JValue = {
     try {
-      if (in.readByte == BooleanFalse) {
-        null
-      } else {
-        readDocument(in: Input)
+      in.readByte match {
+        case BooleanFalse => null
+        case BooleanTrue  => readDocument(in: Input)
+        case NonDoc       => readValue(in)._2
       }
     } catch {
       case NonFatal(e) => logger.error("Error reading serialized kryo json", e); null
@@ -167,38 +170,43 @@ object KryoJsonSerialization extends LazyLogging {
       deserializeAndRender(in)
     } else {
       try {
-        if (in.readByte == BooleanFalse) { null } else {
-          // collection of (type, position) for our matches so far
-          var matches: Seq[(Byte, Int)] = Seq((DocByte, in.position()))
-          var function: Option[JsonPathFunction] = None
+        // collection of (type, position) for our matches so far
+        var matches: Seq[(Byte, Int)] = in.readByte match {
+          case BooleanTrue => Seq((DocByte, in.position()))
+          case BooleanFalse => Seq.empty // null
+          case NonDoc =>
+            val switch = in.readByte()
+            in.readName()
+            Seq((switch, in.position()))
+        }
+        var function: Option[JsonPathFunction] = None
 
-          // collect types and indices for each match at each level
-          val paths = path.iterator
-          while (paths.hasNext && matches.nonEmpty) {
-            paths.next match {
-              case PathAttribute(name: String, _)       => matches = matchPathAttribute(in, matches, Some(name))
-              case PathAttributeWildCard                => matches = matchPathAttribute(in, matches, None)
-              case PathIndex(index: Int)                => matches = matchPathIndex(in, matches, Some(Seq(index)))
-              case PathIndices(indices: Seq[Int])       => matches = matchPathIndex(in, matches, Some(indices))
-              case PathIndexWildCard                    => matches = matchPathIndex(in, matches, None)
-              case PathDeepScan                         => matches = matchDeep(in, matches)
-              case PathFunction(f)                      => function = Some(f) // only 1 trailing function allowed by parser spec
-            }
+        // collect types and indices for each match at each level
+        val paths = path.iterator
+        while (paths.hasNext && matches.nonEmpty) {
+          paths.next match {
+            case PathAttribute(name: String, _)       => matches = matchPathAttribute(in, matches, Some(name))
+            case PathAttributeWildCard                => matches = matchPathAttribute(in, matches, None)
+            case PathIndex(index: Int)                => matches = matchPathIndex(in, matches, Some(Seq(index)))
+            case PathIndices(indices: Seq[Int])       => matches = matchPathIndex(in, matches, Some(indices))
+            case PathIndexWildCard                    => matches = matchPathIndex(in, matches, None)
+            case PathDeepScan                         => matches = matchDeep(in, matches)
+            case PathFunction(f)                      => function = Some(f) // only 1 trailing function allowed by parser spec
           }
+        }
 
-          val values = matches.map { case (t, p) => readPathValue(in, t, p) }
-          val mapped = function match {
-            case None    => values
-            case Some(f) => values.map(applyPathFunction(f, _))
-          }
+        val values = matches.map { case (t, p) => readPathValue(in, t, p) }
+        val mapped = function match {
+          case None    => values
+          case Some(f) => values.map(applyPathFunction(f, _))
+        }
 
-          if (mapped.isEmpty) {
-            null
-          } else if (values.length == 1) {
-            mapped.head
-          } else {
-            mapped
-          }
+        if (mapped.isEmpty) {
+          null
+        } else if (values.length == 1) {
+          mapped.head
+        } else {
+          mapped
         }
       } catch {
         case NonFatal(e) => logger.error("Error reading serialized kryo json", e); null
@@ -220,24 +228,26 @@ object KryoJsonSerialization extends LazyLogging {
     // write a placeholder that we will overwrite when we go back to write total length
     // note: don't just modify position, as that doesn't expand the buffer correctly
     out.writeInt(0)
-    value.obj.foreach { case (name, elem) =>
-      elem match {
-        case v: JString  => writeString(out, name, v)
-        case v: JObject  => writeDocument(out, name, v)
-        case v: JArray   => writeArray(out, name, v)
-        case v: JDouble  => writeDouble(out, name, v)
-        case v: JInt     => writeInt(out, name, v)
-        case JNull       => writeNull(out, name)
-        case v: JBool    => writeBoolean(out, name, v)
-        case v: JDecimal => writeDecimal(out, name, v)
-      }
-    }
+    value.obj.foreach { case (name, elem) => writeValue(out, name, elem) }
     out.writeByte(TerminalByte) // marks the end of our object
     // go back and write the total length
     val end = out.position()
     out.setPosition(start)
     out.writeInt(end - start)
     out.setPosition(end)
+  }
+
+  private def writeValue(out: Output, name: String, value: JValue): Unit = {
+    value match {
+      case v: JString  => writeString(out, name, v)
+      case v: JObject  => writeDocument(out, name, v)
+      case v: JArray   => writeArray(out, name, v)
+      case v: JDouble  => writeDouble(out, name, v)
+      case v: JInt     => writeInt(out, name, v)
+      case JNull       => writeNull(out, name)
+      case v: JBool    => writeBoolean(out, name, v)
+      case v: JDecimal => writeDecimal(out, name, v)
+    }
   }
 
   private def writeArray(out: Output, name: String, value: JArray): Unit = {
@@ -274,11 +284,11 @@ object KryoJsonSerialization extends LazyLogging {
     if (value.values.isValidInt) {
       out.writeByte(IntByte)
       out.writeName(name)
-      out.writeInt(value.values.intValue())
+      out.writeInt(value.values.intValue)
     } else if (value.values.isValidLong) {
       out.writeByte(LongByte)
       out.writeName(name)
-      out.writeLong(value.values.longValue())
+      out.writeLong(value.values.longValue)
     } else {
       logger.warn(s"Skipping int value that does not fit in a long: $value")
     }
@@ -302,22 +312,26 @@ object KryoJsonSerialization extends LazyLogging {
     val end = in.position() + in.readInt() - 1 // last byte is the terminal byte
     val elements = scala.collection.mutable.ArrayBuffer.empty[JField]
     while (in.position() < end) {
-      val switch = in.readByte()
-      val name = in.readName()
-      val value = switch match {
-        case StringByte   => JString(readString(in))
-        case DocByte      => readDocument(in)
-        case ArrayByte    => readArray(in)
-        case DoubleByte   => JDouble(in.readDouble())
-        case IntByte      => JInt(in.readInt())
-        case LongByte     => JInt(in.readLong())
-        case NullByte     => JNull
-        case BooleanByte  => JBool(readBoolean(in))
-      }
-      elements.append(JField(name, value))
+      elements.append(readValue(in))
     }
     in.skip(1) // skip over terminal byte
     JObject(elements.toList)
+  }
+
+  private def readValue(in: Input): JField = {
+    val switch = in.readByte()
+    val name = in.readName()
+    val value = switch match {
+      case StringByte   => JString(readString(in))
+      case DocByte      => readDocument(in)
+      case ArrayByte    => readArray(in)
+      case DoubleByte   => JDouble(in.readDouble())
+      case IntByte      => JInt(in.readInt())
+      case LongByte     => JInt(in.readLong())
+      case NullByte     => JNull
+      case BooleanByte  => JBool(readBoolean(in))
+    }
+    JField(name, value)
   }
 
   private def readArray(in: Input): JArray = JArray(readDocument(in).obj.map(_._2))
@@ -402,7 +416,7 @@ object KryoJsonSerialization extends LazyLogging {
         }
       }
     }
-    elements
+    elements.toSeq
   }
 
   /**
@@ -422,11 +436,12 @@ object KryoJsonSerialization extends LazyLogging {
       elements.append((typ, position))
       in.setPosition(position)
       typ match {
-        case DocByte | ArrayByte => toSearch.enqueue(matchObjectPath(in, Seq(position), predicate): _*)
+        case DocByte | ArrayByte =>
+          matchObjectPath(in, Seq(position), predicate).foreach{ case(val1: Byte, val2:Int) => toSearch.enqueue((val1, val2))}
         case StringByte | DoubleByte | IntByte | LongByte | NullByte | BooleanByte => // no-op
       }
     }
-    elements
+    elements.toSeq
   }
 
   /**

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,23 +8,19 @@
 
 package org.locationtech.geomesa.process.analytic
 
-import java.text.SimpleDateFormat
-import java.util.TimeZone
-
-import org.geotools.factory.CommonFactoryFinder
+import org.geotools.data.util.NullProgressListener
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQL
-import org.geotools.data.util.NullProgressListener
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.process.analytic.{AttributeVisitor, UniqueProcess}
+import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.text.SimpleDateFormat
+import java.util.TimeZone
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
@@ -40,7 +36,7 @@ class UniqueProcessTest extends Specification with TestWithFeatureType {
   addFeatures({
     val geom = WKTUtils.read("POINT(45.0 49.0)")
 
-    val builder = new SimpleFeatureBuilder(sft, new AvroSimpleFeatureFactory)
+    val builder = new SimpleFeatureBuilder(sft, new ScalaSimpleFeatureFactory)
     val dtFormat = new SimpleDateFormat("yyyyMMdd HH:mm:SS")
     dtFormat.setTimeZone(TimeZone.getTimeZone("UTC"))
 

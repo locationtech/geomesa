@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert
-
-import java.io.InputStream
-import java.util.{Date, Locale}
 
 import de.topobyte.osm4j.core.model.iface.{EntityContainer, OsmEntity}
 import de.topobyte.osm4j.core.model.util.OsmModelUtil
@@ -24,6 +21,8 @@ import org.locationtech.jts.geom.Geometry
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
+import java.io.InputStream
+import java.util.{Date, Locale}
 import scala.util.control.NonFatal
 
 package object osm {
@@ -95,16 +94,8 @@ package object osm {
   case class AttributeField(name: String, attribute: OsmAttribute, transforms: Option[Expression]) extends OsmField {
 
     private val lookup = OsmAttribute.index(attribute)
-    private val mutableArray = Array.ofDim[Any](1)
 
     override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
-
-    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-      transforms match {
-        case None => args(lookup)
-        case Some(t) => mutableArray(0) = args(lookup); t.eval(mutableArray)
-      }
-    }
 
     private def values(args: Array[AnyRef]): AnyRef = args(lookup)
   }

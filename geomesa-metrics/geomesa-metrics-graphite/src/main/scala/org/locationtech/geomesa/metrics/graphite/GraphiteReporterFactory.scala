@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,7 +12,7 @@ import com.codahale.metrics.graphite.{Graphite, GraphiteReporter}
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.locationtech.geomesa.metrics.core.ReporterFactory
-import pureconfig.ConfigReader
+import pureconfig.{ConfigReader, ConfigSource}
 
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
@@ -30,7 +30,7 @@ class GraphiteReporterFactory extends ReporterFactory {
       rates: TimeUnit,
       durations: TimeUnit): Option[ScheduledReporter] = {
     if (!conf.hasPath("type") || !conf.getString("type").equalsIgnoreCase("graphite")) { None } else {
-      val graphite = pureconfig.loadConfigOrThrow[GraphiteConfig](conf.withFallback(Defaults))
+      val graphite = ConfigSource.fromConfig(conf.withFallback(Defaults)).loadOrThrow[GraphiteConfig]
       val url +: Nil :+ port = try { graphite.url.split(":").toList } catch {
         case NonFatal(_) => throw new IllegalArgumentException(s"Invalid url: ${graphite.url}")
       }

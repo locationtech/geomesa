@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2017-2022 IBM
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2017-2023 IBM
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,8 +9,6 @@
 
 package org.locationtech.geomesa.cassandra.index
 
-import java.nio.ByteBuffer
-
 import com.datastax.driver.core.{PreparedStatement, Session}
 import org.locationtech.geomesa.cassandra.{NamedColumn, RowSelect}
 import org.locationtech.geomesa.index.api._
@@ -18,6 +16,8 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
+
+import java.nio.ByteBuffer
 
 object CassandraColumnMapper {
 

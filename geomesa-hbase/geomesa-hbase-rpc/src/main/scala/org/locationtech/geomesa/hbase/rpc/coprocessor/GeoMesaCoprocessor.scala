@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.rpc.coprocessor
-
-import java.io.{InterruptedIOException, _}
-import java.util.concurrent._
 
 import com.google.protobuf.ByteString
 import com.typesafe.scalalogging.LazyLogging
@@ -21,6 +18,9 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
+
+import java.io.{InterruptedIOException, _}
+import java.util.concurrent._
 
 /**
  * Client-side coprocessor execution and common functions

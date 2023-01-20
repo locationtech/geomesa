@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,9 +9,10 @@
 package org.locationtech.geomesa.spark.jts.util
 
 import org.locationtech.jts.geom.{Envelope, Geometry, GeometryFactory, PrecisionModel}
+
+import java.{lang => jl}
 import scala.collection.BitSet
 import scala.collection.immutable.{BitSet => IBitSet}
-import java.{lang => jl}
 
 /**
   * Exposes the two methods needed by ST_GeoHash and ST_GeomFromGeoHash

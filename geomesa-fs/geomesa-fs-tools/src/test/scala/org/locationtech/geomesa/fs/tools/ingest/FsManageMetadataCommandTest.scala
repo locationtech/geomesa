@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,10 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.tools.ingest
-
-import java.nio.file.Files
-import java.util.Collections
-import java.util.concurrent.atomic.AtomicInteger
 
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.fs.Path
@@ -25,12 +21,16 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.nio.file.Files
+import java.util.Collections
+import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
 class FsManageMetadataCommandTest extends Specification {
 
   import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
+
+  import scala.collection.JavaConverters._
 
   val dir = Files.createTempDirectory("gm-FsManageMetadataCommandTest").toFile
 
@@ -64,7 +64,7 @@ class FsManageMetadataCommandTest extends Specification {
     "find file inconsistencies" in {
       val dir = nextPath()
       val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> gzipXml)
-      WithClose(DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]) { ds =>
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.createSchema(SimpleFeatureTypes.copy(sft))
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
@@ -101,7 +101,7 @@ class FsManageMetadataCommandTest extends Specification {
     "rebuild metadata from scratch" in {
       val dir = nextPath()
       val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> gzipXml)
-      WithClose(DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]) { ds =>
+      WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.createSchema(SimpleFeatureTypes.copy(sft))
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,12 +8,9 @@
 
 package org.locationtech.geomesa.index.index.attribute
 
-import java.nio.charset.StandardCharsets
-import java.util.{Collections, Locale}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues, filterToString}
+import org.locationtech.geomesa.filter.{FilterHelper, filterToString}
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
 import org.locationtech.geomesa.index.api.ShardStrategy.AttributeShardStrategy
 import org.locationtech.geomesa.index.api._
@@ -24,6 +21,8 @@ import org.locationtech.geomesa.utils.index.ByteArrays.{OneByteArray, ZeroByteAr
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.nio.charset.StandardCharsets
+import java.util.Collections
 import scala.util.Try
 
 /**
@@ -137,15 +136,14 @@ class AttributeIndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStra
   }
 
   override def getIndexValues(filter: Filter, explain: Explainer): AttributeIndexValues[Any] = {
-    val bounds = FilterHelper.extractAttributeBounds(filter, attributeField, binding)
+    val bounds = FilterHelper.extractAttributeBounds(filter, attributeField, binding.asInstanceOf[Class[Any]])
 
     if (bounds.isEmpty) {
       // we have an attribute, but weren't able to extract any bounds
       logger.warn(s"Unable to extract any attribute bounds from: ${filterToString(filter)}")
     }
 
-    AttributeIndexValues[Any](attributeField, fieldIndex,
-      bounds.asInstanceOf[FilterValues[Bounds[Any]]], binding.asInstanceOf[Class[Any]])
+    AttributeIndexValues[Any](attributeField, fieldIndex, bounds, binding.asInstanceOf[Class[Any]])
   }
 
   override def getRanges(values: AttributeIndexValues[Any],
@@ -157,6 +155,8 @@ class AttributeIndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStra
     if (values.values.isEmpty) {
       // we have an attribute, but weren't able to extract any bounds... scan all values
       Iterator.single(UnboundedRange(AttributeIndexKey(fieldIndexShort, null, inclusive = false)))
+    } else if (values.values.disjoint && !isList) {
+      Iterator.empty
     } else {
       values.values.values.iterator.flatMap { bounds =>
         bounds.bounds match {

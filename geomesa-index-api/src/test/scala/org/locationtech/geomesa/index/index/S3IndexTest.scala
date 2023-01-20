@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -53,10 +53,14 @@ class S3IndexTest extends Specification with LazyLogging {
     SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
   def execute(ecql: String, transforms: Option[Array[String]] = None, explain: Boolean = false): Seq[SimpleFeature] = {
-    if (explain) {
-      ds.getQueryPlan(new Query(sft.getTypeName, ECQL.toFilter(ecql), transforms.orNull), explainer = new ExplainPrintln)
+    val query = transforms match {
+      case None => new Query(sft.getTypeName, ECQL.toFilter(ecql))
+      case Some(t) => new Query(sft.getTypeName, ECQL.toFilter(ecql), t: _*)
     }
-    execute(new Query(sft.getTypeName, ECQL.toFilter(ecql), transforms.orNull))
+    if (explain) {
+      ds.getQueryPlan(query, explainer = new ExplainPrintln)
+    }
+    execute(query)
   }
 
   "S3Index" should {

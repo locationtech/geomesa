@@ -17,8 +17,12 @@ __ https://github.com/locationtech/geomesa/releases
 
 .. note::
 
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
+    The examples below expect a version to be set in the environment:
+
+    .. parsed-literal::
+
+        $ export TAG="|release_version|"
+        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 
 Extract it somewhere convenient:
 
@@ -31,8 +35,8 @@ Extract it somewhere convenient:
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
-Alternatively, it may be built from source. For more information refer to :ref:`building_from_source`
-in the developer manual, or to the ``README.md`` file in the the source distribution. If you have built from
+Alternatively, it may be built from source. For more information, refer to the instructions on
+`GitHub <https://github.com/locationtech/geomesa#building-from-source>`__. If you have built from
 source, the distribution is created in the ``target`` directory of ``geomesa-gt/geomesa-gt-dist``.
 
 Setting up the Command Line Tools

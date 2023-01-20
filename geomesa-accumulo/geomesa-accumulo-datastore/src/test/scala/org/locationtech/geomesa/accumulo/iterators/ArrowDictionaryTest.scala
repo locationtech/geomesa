@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -61,7 +61,7 @@ class ArrowDictionaryTest extends TestWithFeatureType with Mockito with LazyLogg
       dataStores.foreach { ds =>
         transforms.foreach { transform =>
           Seq(transform.dropRight(2).reverse, transform.dropRight(2)).distinct.foreach { dictionaries =>
-            val query = new Query(sft.getTypeName, filter, transform.toArray)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
             query.getHints.put(QueryHints.ARROW_ENCODE, true)
             query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
             query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, dictionaries.mkString(","))

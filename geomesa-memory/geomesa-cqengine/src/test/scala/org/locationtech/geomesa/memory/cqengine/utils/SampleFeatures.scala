@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,18 +8,17 @@
 
 package org.locationtech.geomesa.memory.cqengine.utils
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
-
-import org.locationtech.jts.geom.Point
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Point
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
 import scala.language._
 import scala.util.Random
 

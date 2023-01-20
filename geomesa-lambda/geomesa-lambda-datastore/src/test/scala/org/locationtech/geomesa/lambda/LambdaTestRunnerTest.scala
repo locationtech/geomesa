@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.lambda
-
-import java.time.{Clock, Instant, ZoneId, ZoneOffset}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
@@ -18,6 +16,8 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
 import org.specs2.specification.core.{Env, Fragments}
+
+import java.time.{Clock, Instant, ZoneId, ZoneOffset}
 
 /**
   * Base class for running all kafka/zk embedded tests

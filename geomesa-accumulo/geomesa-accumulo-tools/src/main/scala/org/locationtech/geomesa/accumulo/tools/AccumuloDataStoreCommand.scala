@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
- * Portions Crown Copyright (c) 2016-2022 Dstl
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2023 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,12 +9,12 @@
 
 package org.locationtech.geomesa.accumulo.tools
 
-import java.io.File
-
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.AccumuloClient
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+
+import java.io.File
 
 /**
  * Abstract class for commands that have a pre-existing catalog
@@ -27,7 +27,7 @@ trait AccumuloDataStoreCommand extends DataStoreCommand[AccumuloDataStore] {
 
   override def connection: Map[String, String] = {
     Map[String, String](
-      InstanceIdParam.key   -> params.instance,
+      InstanceNameParam.key -> params.instance,
       ZookeepersParam.key   -> params.zookeepers,
       UserParam.key         -> params.user,
       PasswordParam.key     -> params.password,
@@ -50,7 +50,7 @@ object AccumuloDataStoreCommand {
       () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HOME", "lib"), // old geomesa accumulo home path
       () => ClassPathUtils.getJarsFromEnvironment("ACCUMULO_HOME"),
       () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloDataStore]),
-      () => ClassPathUtils.getJarsFromClasspath(classOf[Connector])
+      () => ClassPathUtils.getJarsFromClasspath(classOf[AccumuloClient])
     ) ++ super.libjarsPaths
   }
 }

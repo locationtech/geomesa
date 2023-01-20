@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.server.coprocessor
-
-import java.util.Collections
 
 import com.google.protobuf.{RpcCallback, RpcController, Service}
 import org.apache.hadoop.hbase.client.Scan
@@ -18,6 +16,8 @@ import org.apache.hadoop.hbase.{Coprocessor, CoprocessorEnvironment}
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.GeoMesaCoprocessorService
 import org.locationtech.geomesa.hbase.server.common.CoprocessorScan
+
+import java.util.Collections
 
 /**
  * Server-side coprocessor implementation for HBase 2.2

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.arrow.io
-
-import java.io.{Closeable, Flushable, OutputStream}
-import java.nio.channels.Channels
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.vector.dictionary.{Dictionary, DictionaryProvider}
@@ -19,6 +16,9 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.{Closeable, Flushable, OutputStream}
+import java.nio.channels.Channels
 
 /**
   * For writing simple features to an arrow file.
@@ -87,6 +87,8 @@ class SimpleFeatureArrowFileWriter private (
 
 object SimpleFeatureArrowFileWriter {
 
+  import scala.collection.JavaConverters._
+
   /**
    * For writing simple features to an arrow file.
    *
@@ -111,6 +113,7 @@ object SimpleFeatureArrowFileWriter {
     val provider: DictionaryProvider with Closeable = new DictionaryProvider with Closeable {
       private val dictionaries = vector.dictionaries.collect { case (_, d) => d.id -> d.toDictionary(vector.encoding) }
       override def lookup(id: Long): Dictionary = dictionaries(id)
+      override def getDictionaryIds: java.util.Set[java.lang.Long] = dictionaries.keys.map(Long.box).toSet.asJava
       override def close(): Unit = CloseWithLogging(dictionaries.values)
     }
     new SimpleFeatureArrowFileWriter(vector, provider, os, ipcOpts, sort)
@@ -123,6 +126,7 @@ object SimpleFeatureArrowFileWriter {
     new DictionaryProvider with Closeable {
       private val dicts = dictionaries.collect { case (_, d) => d.id -> d.toDictionary(encoding) }
       override def lookup(id: Long): Dictionary = dicts(id)
+      override def getDictionaryIds: java.util.Set[java.lang.Long] = dicts.keys.map(Long.box).toSet.asJava
       override def close(): Unit = CloseWithLogging(dicts.values)
     }
   }

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,25 +8,24 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Geometry, GeometryFactory}
 import org.apache.accumulo.core.data.Value
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.DataStore
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
-import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.accumulo.index.IndexValueEncoder
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
+import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{Geometry, GeometryFactory}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.util.Date
 import scala.collection.JavaConverters._
 import scala.util.Random
 
@@ -81,7 +80,7 @@ object TestData extends LazyLogging {
   // This is a quick trick to make sure that the userData is set.
   lazy val featureType: SimpleFeatureType = getFeatureType()
 
-  lazy val featureEncoder = SimpleFeatureSerializers(getFeatureType(), SerializationType.AVRO)
+  lazy val featureEncoder = new AvroFeatureSerializer(getFeatureType())
   lazy val indexValueEncoder = IndexValueEncoder(featureType)
 
   val defaultDateTime = ZonedDateTime.of(2011, 6, 1, 0, 0, 0, 0, ZoneOffset.UTC)
@@ -91,10 +90,11 @@ object TestData extends LazyLogging {
   def createSF(e: Entry, sft: SimpleFeatureType): SimpleFeature = {
     val geometry: Geometry = WKTUtils.read(e.wkt)
     val entry =
-      AvroSimpleFeatureFactory.buildAvroFeature(
+      ScalaSimpleFeature.create(
         sft,
-        List(null, null, null, null, geometry, Date.from(e.dt.toInstant), Date.from(e.dt.toInstant)),
-        s"${e.id}")
+        s"${e.id}",
+        null, null, null, null, geometry, Date.from(e.dt.toInstant), Date.from(e.dt.toInstant)
+        )
     entry.setAttribute("attr2", "2nd" + e.id)
     entry.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     entry

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,7 +12,11 @@ package tables
 /**
  * Stores tablespaces used by each feature type
  */
-object PartitionTablespacesTable extends Sql {
+object PartitionTablespacesTable extends PartitionTablespacesTable with AdvisoryLock {
+  override protected val lockId: Long = 2005234735580322669L
+}
+
+class PartitionTablespacesTable extends Sql {
 
   val Name: TableName = TableName("partition_tablespaces")
 
@@ -26,7 +30,8 @@ object PartitionTablespacesTable extends Sql {
          |);""".stripMargin
     ex.execute(create)
 
-    val insertSql = s"INSERT INTO $table (type_name, table_type, table_space) VALUES (?, ?, ?);"
+    val insertSql =
+      s"INSERT INTO $table (type_name, table_type, table_space) VALUES (?, ?, ?) ON CONFLICT DO NOTHING;"
 
     def insert(suffix: String, table: TableConfig): Unit =
       ex.executeUpdate(insertSql, Seq(info.typeName, suffix, table.tablespace.map(_.raw).orNull))

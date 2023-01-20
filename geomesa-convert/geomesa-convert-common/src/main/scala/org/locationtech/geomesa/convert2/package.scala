@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,17 +8,14 @@
 
 package org.locationtech.geomesa
 
-import java.nio.charset.Charset
-
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
-import org.locationtech.geomesa.convert2.AbstractConverter.FieldApiError
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
+import java.nio.charset.Charset
 import scala.util.control.NonFatal
 
 package object convert2 {
@@ -41,13 +38,7 @@ package object convert2 {
      *
      * @return an optional function to use instead of the args
      */
-    // TODO remove default impl in next major release
-    // this will be caught and handled by the evaluation context
-    def fieldArg: Option[Array[AnyRef] => AnyRef] = throw FieldApiError
-
-    // noinspection ScalaDeprecation
-    @deprecated("Replaced with `fieldArg` for updating the raw input")
-    def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = transforms.map(_.eval(args)).getOrElse(args(0))
+    def fieldArg: Option[Array[AnyRef] => AnyRef]
   }
 
   trait ConverterOptions {

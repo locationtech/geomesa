@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -153,7 +153,7 @@ object RunnableStats {
   class UnoptimizedRunnableStats(ds: DataStore) extends RunnableStats(ds) {
     override protected def query[T <: Stat](sft: SimpleFeatureType, filter: Filter, query: String, queryHints: Hints): Option[T] = {
       try {
-        val q = new Query(sft.getTypeName, filter, StatParser.propertyNames(sft, query).toArray)
+        val q = new Query(sft.getTypeName, filter, StatParser.propertyNames(sft, query): _*)
         q.setHints(queryHints)
         WithClose(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)) { reader =>
           val stat = Stat(reader.getFeatureType, query).asInstanceOf[T]

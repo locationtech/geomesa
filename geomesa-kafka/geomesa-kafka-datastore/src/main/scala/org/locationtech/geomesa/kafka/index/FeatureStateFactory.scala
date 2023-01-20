@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.kafka.index
 
-import java.io.Closeable
-import java.util.Date
-import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.text.ecql.ECQL
@@ -25,6 +22,9 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
 
+import java.io.Closeable
+import java.util.Date
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 import scala.util.control.NonFatal
 
 /**
@@ -66,7 +66,7 @@ object FeatureStateFactory extends LazyLogging {
 
       case EventTimeConfig(ex, time, ordering) =>
         val expression = FastFilterFactory.toExpression(sft, time)
-        if (!ex.isFinite() && ordering) {
+        if (!ex.isFinite && ordering) {
           new EventTimeFactory(index, geom, expression)
         } else if (ordering) {
           new EventTimeOrderedExpiryFactory(index, geom, expression, expiration, es, ticker, ex.toMillis)

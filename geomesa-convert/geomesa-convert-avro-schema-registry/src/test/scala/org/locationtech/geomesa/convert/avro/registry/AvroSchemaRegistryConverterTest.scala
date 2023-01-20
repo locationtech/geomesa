@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,20 +8,20 @@
 
 package org.locationtech.geomesa.convert.avro.registry
 
-import java.io.ByteArrayInputStream
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.mortbay.jetty.{Connector, Handler, Request, Server}
 import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.{AbstractHandler, ContextHandler}
+import org.mortbay.jetty.{Handler, Request, Server}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayInputStream
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 @RunWith(classOf[JUnitRunner])
 class AvroSchemaRegistryConverterTest extends Specification with AvroSchemaRegistryUtils with LazyLogging {

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.arrow.io
 package reader
-
-import java.io.{Closeable, InputStream}
-import java.util.Collections
-import java.util.concurrent.ConcurrentLinkedDeque
 
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.StructVector
@@ -26,6 +22,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.io.{Closeable, InputStream}
+import java.util.Collections
+import java.util.concurrent.ConcurrentLinkedDeque
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -65,7 +64,7 @@ class StreamingSimpleFeatureArrowFileReader(is: () => InputStream) extends Simpl
       reader.loadNextBatch() // load the first batch so we get any dictionaries
       val encoding = SimpleFeatureVector.getFeatureType(underlying)._2
       // load any dictionaries into memory
-      loadDictionaries(underlying.getField.getChildren.asScala, reader, encoding)
+      loadDictionaries(underlying.getField.getChildren.asScala.toSeq, reader, encoding)
     }
     dicts.values.foreach(opened.addFirst)
     dicts
@@ -133,7 +132,7 @@ object StreamingSimpleFeatureArrowFileReader {
 
     // load any dictionaries into memory
     val dictionaries: Map[String, ArrowDictionary] =
-      SimpleFeatureArrowFileReader.loadDictionaries(underlying.getField.getChildren.asScala, reader, encoding)
+      SimpleFeatureArrowFileReader.loadDictionaries(underlying.getField.getChildren.asScala.toSeq, reader, encoding)
     private val vector = new SimpleFeatureVector(sft, underlying, dictionaries, encoding, None)
 
     def metadata: java.util.Map[String, String] = reader.getVectorSchemaRoot.getSchema.getCustomMetadata

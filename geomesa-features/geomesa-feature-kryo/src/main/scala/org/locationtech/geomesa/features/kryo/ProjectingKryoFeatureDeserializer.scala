@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.io.{InputStream, OutputStream}
-
 import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.{InputStream, OutputStream}
 
 /**
   * Deserialize and project to a new feature type

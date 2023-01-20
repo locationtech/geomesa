@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.lambda.data
 
-import java.util.concurrent.atomic.AtomicLong
-
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.security.VisibilityChecker
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util.concurrent.atomic.AtomicLong
 
 object LambdaFeatureWriter {
 

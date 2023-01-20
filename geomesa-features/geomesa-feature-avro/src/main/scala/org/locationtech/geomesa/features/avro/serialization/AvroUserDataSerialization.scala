@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.features.avro.serialization
 
-import java.nio.ByteBuffer
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.io.{Decoder, Encoder}
 import org.geotools.util.factory.Hints
+
+import java.nio.ByteBuffer
 
 object AvroUserDataSerialization extends LazyLogging {
 

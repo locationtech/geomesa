@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.hbase.server.common
 
-import java.nio.charset.StandardCharsets
-
 import org.apache.hadoop.hbase.regionserver.RegionScanner
 import org.locationtech.geomesa.hbase.server.common.HBaseVersionAggregator.VersionAggregator
 import org.locationtech.geomesa.index.iterators.AggregatingScan
 import org.locationtech.geomesa.index.iterators.AggregatingScan.AggregateCallback
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.nio.charset.StandardCharsets
 
 class HBaseVersionAggregator extends HBaseAggregator[VersionAggregator] {
 

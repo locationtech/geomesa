@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,11 +8,7 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.io.IOException
-import java.util.Collections
-import java.util.concurrent.TimeUnit
-
-import com.github.benmanes.caffeine.cache.{AsyncCacheLoader, CacheLoader, Caffeine}
+import com.github.benmanes.caffeine.cache.{AsyncCacheLoader, AsyncLoadingCache, CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.locationtech.geomesa.index.FlushableFeatureWriter
@@ -25,6 +21,7 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.conf.SemanticVersion.MinorOrdering
 import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, IndexId, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -37,6 +34,9 @@ import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.io.IOException
+import java.util.Collections
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -261,17 +261,20 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
   // delete the index tables
   override protected def onSchemaDeleted(sft: SimpleFeatureType): Unit = {
+    def deleteFull(index: GeoMesaFeatureIndex[_, _]): Unit =
+      adapter.deleteTables(index.deleteTableNames(None))
+    def deleteShared(index: GeoMesaFeatureIndex[_, _]): Unit = {
+      if (index.keySpace.sharing.isEmpty) { deleteFull(index) } else {
+        adapter.clearTables(index.deleteTableNames(None), Some(index.keySpace.sharing))
+      }
+    }
+
+    val indices = manager.indices(sft).toList
     // noinspection ScalaDeprecation
     if (sft.isTableSharing && getTypeNames.exists(t => t != sft.getTypeName && getSchema(t).isTableSharing)) {
-      manager.indices(sft).par.foreach { index =>
-        if (index.keySpace.sharing.isEmpty) {
-          adapter.deleteTables(index.deleteTableNames(None))
-        } else {
-          adapter.clearTables(index.deleteTableNames(None), Some(index.keySpace.sharing))
-        }
-      }
+      indices.map(i => CachedThreadPool.submit(() => deleteShared(i))).foreach(_.get)
     } else {
-      manager.indices(sft).par.foreach(index => adapter.deleteTables(index.deleteTableNames(None)))
+      indices.map(i => CachedThreadPool.submit(() => deleteFull(i))).foreach(_.get)
     }
     if (sft.statsEnabled) {
       stats.writer.clear(sft)
@@ -323,7 +326,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
       }
 
       // get the remote version if it's available, but don't wait for it
-      GeoMesaDataStore.versions.get(new VersionKey(this)).getNow(Right(None)) match {
+      GeoMesaDataStore.versions.get(VersionKey(this)).getNow(Right(None)) match {
         case Left(e) => throw e
         case Right(version) =>
           version.foreach { v =>
@@ -345,81 +348,17 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    if (config.queries.caching) {
-      new GeoMesaFeatureStore(this, sft, queryPlanner) with GeoMesaFeatureSource.CachingFeatureSource
-    } else {
-      new GeoMesaFeatureStore(this, sft, queryPlanner)
-    }
+    new GeoMesaFeatureStore(this, sft)
   }
 
-  /**
-   * @see org.geotools.data.DataStore#getFeatureReader(org.geotools.data.Query, org.geotools.data.Transaction)
-   * @param query query to execute
-   * @param transaction transaction to use (currently ignored)
-   * @return feature reader
-   */
-  override def getFeatureReader(query: Query, transaction: Transaction): GeoMesaFeatureReader = {
-    require(query.getTypeName != null, "Type name is required in the query")
-    val sft = getSchema(query.getTypeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
-    }
+  override private[geomesa] def getFeatureReader(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      query: Query): GeoMesaFeatureReader = {
     if (transaction != Transaction.AUTO_COMMIT) {
       logger.warn("Ignoring transaction - not supported")
     }
-    getFeatureReader(sft, query)
-  }
-
-  /**
-    * Internal method to get a feature reader without reloading the simple feature type. We don't expose this
-    * widely as we want to ensure that the sft has been loaded from our catalog
-    *
-    * @param sft simple feature type
-    * @param query query
-    * @return
-    */
-  private [geotools] def getFeatureReader(sft: SimpleFeatureType, query: Query): GeoMesaFeatureReader =
-    GeoMesaFeatureReader(sft, query, queryPlanner, config.queries.timeout, config.audit)
-
-  /**
-   * Create a general purpose writer that is capable of updates and deletes.
-   * Does <b>not</b> allow inserts.
-   *
-   * @see org.geotools.data.DataStore#getFeatureWriter(java.lang.String, org.opengis.filter.Filter,
-   *        org.geotools.data.Transaction)
-   * @param typeName feature type name
-   * @param filter cql filter to select features for update/delete
-   * @param transaction transaction (currently ignored)
-   * @return feature writer
-   */
-  override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): FlushableFeatureWriter = {
-    val sft = getSchema(typeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
-    }
-    if (transaction != Transaction.AUTO_COMMIT) {
-      logger.warn("Ignoring transaction - not supported")
-    }
-    getFeatureWriter(sft, Some(filter))
-  }
-
-  /**
-   * Creates a feature writer only for writing - does not allow updates or deletes.
-   *
-   * @see org.geotools.data.DataStore#getFeatureWriterAppend(java.lang.String, org.geotools.data.Transaction)
-   * @param typeName feature type name
-   * @param transaction transaction (currently ignored)
-   * @return feature writer
-   */
-  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): FlushableFeatureWriter = {
-    val sft = getSchema(typeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
-    }
-    if (transaction != Transaction.AUTO_COMMIT) {
-      logger.warn("Ignoring transaction - not supported")
-    }
-    getFeatureWriter(sft, None)
+    GeoMesaFeatureReader(sft, query, queryPlanner, config.audit)
   }
 
   /**
@@ -430,8 +369,15 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     * @param filter if defined, will do an updating write, otherwise will do an appending write
     * @return
     */
-  private [geotools] def getFeatureWriter(sft: SimpleFeatureType, filter: Option[Filter]): FlushableFeatureWriter =
+  override private[geomesa] def getFeatureWriter(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      filter: Option[Filter]): FlushableFeatureWriter = {
+    if (transaction != Transaction.AUTO_COMMIT) {
+      logger.warn("Ignoring transaction - not supported")
+    }
     GeoMesaFeatureWriter(this, sft, manager.indices(sft, mode = IndexMode.Write), filter)
+  }
 
   /**
     * Writes to the specified indices
@@ -454,6 +400,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
    * @see org.geotools.data.DataAccess#dispose()
    */
   override def dispose(): Unit = {
+    Try(GeoMesaDataStore.liveStores.get(VersionKey(config.catalog, getClass)).remove(this))
     CloseWithLogging(stats)
     config.audit.foreach { case (writer, _, _) => CloseWithLogging(writer) }
     super.dispose()
@@ -496,7 +443,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     * @return iterator version, if data store has iterators
     */
   def getDistributedVersion: Option[SemanticVersion] = {
-    GeoMesaDataStore.versions.get(new VersionKey(this)).get() match {
+    GeoMesaDataStore.versions.get(VersionKey(this)).get() match {
       case Right(v) => v
       case Left(e)  => throw e
     }
@@ -616,17 +563,22 @@ object GeoMesaDataStore extends LazyLogging {
 
   import org.locationtech.geomesa.index.conf.SchemaProperties.{CheckDistributedVersion, ValidateDistributedClasspath}
 
+  import scala.collection.JavaConverters._
+
+  private val liveStores = new ConcurrentHashMap[VersionKey, java.util.Set[GeoMesaDataStore[_]]]()
+
   private val loader: AsyncCacheLoader[VersionKey, Either[Exception, Option[SemanticVersion]]] =
     new CacheLoader[VersionKey, Either[Exception, Option[SemanticVersion]]]() {
       override def load(key: VersionKey): Either[Exception, Option[SemanticVersion]] = {
-        if (key.ds.getTypeNames.length == 0) {
-          // short-circuit load - should try again next time cache is accessed
-          throw new RuntimeException("Can't load remote versions if there are no feature types")
-        }
         if (CheckDistributedVersion.toBoolean.contains(false)) { Right(None) } else {
-          val clientVersion = key.ds.getClientVersion
+          val ds = Option(liveStores.get(key)).flatMap(_.asScala.find(_.getTypeNames.nonEmpty)).orNull
+          if (ds == null) {
+            // short-circuit load - should try again next time cache is accessed
+            throw new RuntimeException("Can't load remote versions if there are no feature types")
+          }
+          val clientVersion = ds.getClientVersion
           // use lenient parsing to account for versions like 1.3.5.1
-          val iterVersions = key.ds.loadIteratorVersions.map(v => SemanticVersion(v, lenient = true))
+          val iterVersions = ds.loadIteratorVersions.map(v => SemanticVersion(v, lenient = true))
 
           def message: String = "Classpath errors detected: configured server-side iterators do not match " +
               s"client version. Client version: $clientVersion, server versions: ${iterVersions.mkString(", ")}"
@@ -652,7 +604,8 @@ object GeoMesaDataStore extends LazyLogging {
       }
     }
 
-  private val versions = Caffeine.newBuilder().refreshAfterWrite(1, TimeUnit.DAYS).buildAsync(loader)
+  private val versions: AsyncLoadingCache[VersionKey, Either[Exception, Option[SemanticVersion]]] =
+    Caffeine.newBuilder().refreshAfterWrite(1, TimeUnit.DAYS).buildAsync(loader)
 
   /**
     * Kick off an asynchronous call to load remote iterator versions
@@ -660,9 +613,15 @@ object GeoMesaDataStore extends LazyLogging {
     * @param ds datastore
     */
   def initRemoteVersion(ds: GeoMesaDataStore[_]): Unit = {
+    val key = VersionKey(ds)
+    val loader = new java.util.function.Function[VersionKey, java.util.Set[GeoMesaDataStore[_]]]() {
+      override def apply(t: VersionKey): java.util.Set[GeoMesaDataStore[_]] =
+        Collections.newSetFromMap(new ConcurrentHashMap[GeoMesaDataStore[_], java.lang.Boolean])
+    }
+    liveStores.computeIfAbsent(key, loader).add(ds)
     // can't get remote version if there aren't any tables
     if (ds.getTypeNames.length > 0) {
-      versions.get(new VersionKey(ds))
+      versions.get(key)
     }
   }
 
@@ -725,19 +684,11 @@ object GeoMesaDataStore extends LazyLogging {
   }
 
   /**
-    * Cache key that bases equality on data store class and catalog, but allows for loading remote version
-    * from datastore
-    *
-    * @param ds data store
+    * Cache key that for looking up remote versions
     */
-  private class VersionKey(val ds: GeoMesaDataStore[_]) {
+  private case class VersionKey(catalog: String, clas: Class[_])
 
-    override def equals(other: Any): Boolean = other match {
-      case that: VersionKey => ds.config.catalog == that.ds.config.catalog && ds.getClass == that.ds.getClass
-      case _ => false
-    }
-
-    override def hashCode(): Int =
-      Seq(ds.config.catalog, ds.getClass).map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  private object VersionKey{
+    def apply(ds: GeoMesaDataStore[_]): VersionKey = VersionKey(ds.config.catalog, ds.getClass)
   }
 }

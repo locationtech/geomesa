@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,10 +8,7 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io._
-
 import org.apache.arrow.vector.ipc.message.IpcOption
-import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.{DictionaryBuildingWriter, FormatVersion, SimpleFeatureArrowFileWriter}
@@ -20,14 +17,12 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
 import org.locationtech.geomesa.tools.export.formats.ArrowExporter.{BatchDelegate, DictionaryDelegate, EncodedDelegate}
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.reflect.ClassTag
+import java.io._
 
-class ArrowExporter(stream: ExportStream, hints: Hints, queryDictionaries: => Map[String, Array[AnyRef]])
-    extends ByteCounterExporter(stream) {
+class ArrowExporter(stream: ExportStream, hints: Hints) extends ByteCounterExporter(stream) {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
@@ -42,22 +37,14 @@ class ArrowExporter(stream: ExportStream, hints: Hints, queryDictionaries: => Ma
   override def start(sft: SimpleFeatureType): Unit = {
     delegate = if (sft == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
       new EncodedDelegate(stream.os)
+    } else if (dictionaryFields.isEmpty) {
+      // note: features should be sorted already, even if arrow encoding wasn't performed
+      new BatchDelegate(stream.os, encoding, FormatVersion.options(ipc), sort, batchSize, Map.empty)
     } else {
-      val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
-      if (dictionaryFields.forall(providedDictionaries.contains)) {
-        var id = -1
-        val dictionaries = (queryDictionaries ++ providedDictionaries).map { case (k, v) =>
-          id += 1
-          k -> ArrowDictionary.create(sft.getTypeName, id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
-        }
-        // note: features should be sorted already, even if arrow encoding wasn't performed
-        new BatchDelegate(stream.os, encoding, FormatVersion.options(ipc), sort, batchSize, dictionaries)
-      } else {
-        if (sort.isDefined) {
-          throw new NotImplementedError("Sorting and calculating dictionaries at the same time is not supported")
-        }
-        new DictionaryDelegate(stream.os, dictionaryFields, encoding, FormatVersion.options(ipc), batchSize)
+      if (sort.isDefined) {
+        throw new NotImplementedError("Sorting and calculating dictionaries at the same time is not supported")
       }
+      new DictionaryDelegate(stream.os, dictionaryFields, encoding, FormatVersion.options(ipc), batchSize)
     }
     delegate.start(sft)
   }
@@ -71,29 +58,6 @@ class ArrowExporter(stream: ExportStream, hints: Hints, queryDictionaries: => Ma
 }
 
 object ArrowExporter {
-
-  def queryDictionaries(ds: DataStore, query: Query): Map[String, Array[AnyRef]] = {
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
-    import scala.collection.JavaConversions._
-
-    val hints = query.getHints
-    val dictionaryFields = {
-      val provided = hints.getArrowDictionaryEncodedValues(ds.getSchema(query.getTypeName))
-      hints.getArrowDictionaryFields.filterNot(provided.contains)
-    }
-
-    if (dictionaryFields.isEmpty) { Map.empty } else {
-      // if we're hitting this, we can't do a stats query as we're not dealing with a geomesa store
-      val dictionaryQuery = new Query(query.getTypeName, query.getFilter)
-      dictionaryQuery.setPropertyNames(dictionaryFields)
-      val map = dictionaryFields.map(f => f -> scala.collection.mutable.HashSet.empty[AnyRef]).toMap
-      SelfClosingIterator(ds.getFeatureReader(dictionaryQuery, Transaction.AUTO_COMMIT)).foreach { sf =>
-        map.foreach { case (k, values) => Option(sf.getAttribute(k)).foreach(values.add) }
-      }
-      map.map { case (k, values) => (k, values.toArray) }
-    }
-  }
 
   private class EncodedDelegate(os: OutputStream) extends FeatureExporter {
     override def start(sft: SimpleFeatureType): Unit = {}

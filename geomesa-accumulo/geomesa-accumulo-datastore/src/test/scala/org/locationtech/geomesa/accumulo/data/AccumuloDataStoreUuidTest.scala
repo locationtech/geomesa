@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-
 import org.apache.accumulo.core.security.Authorizations
-import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{Query, Transaction}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
@@ -30,6 +26,8 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
@@ -90,7 +88,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       val ids = features.map(_.getID)
       foreach(filters) { filter =>
         foreach(transforms) { transform =>
-          val query = new Query(sftName, filter, transform)
+          val query = new Query(sftName, filter, transform: _*)
           val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           result must not(beEmpty)
           foreach(result)(f => ids.contains(f.getID) must beTrue)
@@ -112,7 +110,6 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       query.getHints.put(QueryHints.ARROW_PROXY_FID, true)
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, false)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
 
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
@@ -137,7 +134,6 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       query.getHints.put(QueryHints.ARROW_PROXY_FID, true)
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
-      query.getHints.put(QueryHints.ARROW_DICTIONARY_CACHED, false)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
 
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))

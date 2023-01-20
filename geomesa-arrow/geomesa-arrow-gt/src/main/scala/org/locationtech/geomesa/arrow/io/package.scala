@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,23 +8,25 @@
 
 package org.locationtech.geomesa.arrow
 
-import java.io.ByteArrayOutputStream
-import java.nio.channels.Channels
-import java.util.Collections
-
 import org.apache.arrow.vector.ipc.ArrowStreamWriter
 import org.apache.arrow.vector.ipc.message.IpcOption
+import org.apache.arrow.vector.types.MetadataVersion
 import org.apache.arrow.vector.types.pojo.Schema
 import org.apache.arrow.vector.{FieldVector, VectorSchemaRoot}
 import org.locationtech.geomesa.arrow.io.records.RecordBatchLoader
+import org.locationtech.geomesa.arrow.jts.{GeometryFields, GeometryVector}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, GeometryFields, GeometryVector, SimpleFeatureVector}
+import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.conf.SemanticVersion
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.ByteArrayOutputStream
+import java.nio.channels.Channels
+import java.util.Collections
 
 package object io {
 
@@ -35,17 +37,15 @@ package object io {
 
   object FormatVersion {
 
-    val LatestVersion = "0.16"
+    val LatestVersion = "10.0.1"
 
     val ArrowFormatVersion: SystemProperty = SystemProperty("geomesa.arrow.format.version", LatestVersion)
 
     def options(version: String): IpcOption = {
-      val opt = new IpcOption()
-      if (version != LatestVersion) {
-        lazy val semver = SemanticVersion(version, lenient = true) // avoid parsing if it's a known version (0.10)
-        opt.write_legacy_ipc_format = version == "0.10" || (semver.major == 0 && semver.minor < 15)
-      }
-      opt
+      lazy val semver = SemanticVersion(version, lenient = true) // avoid parsing if it's a known version (0.10)
+      val legacy = version != LatestVersion && (version == "0.10" || (semver.major == 0 && semver.minor < 15))
+      val meta = if (legacy) { MetadataVersion.V4 } else { MetadataVersion.DEFAULT }
+      new IpcOption(legacy, meta)
     }
 
     def version(opt: IpcOption): String = if (opt.write_legacy_ipc_format) { "0.10" } else { LatestVersion }
@@ -75,9 +75,9 @@ package object io {
    * @return metadata map
    */
   def getSortAsMetadata(field: String, reverse: Boolean): java.util.Map[String, String] = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
     // note: reverse == descending
-    Map(Metadata.SortField -> field, Metadata.SortOrder -> (if (reverse) { "descending" } else { "ascending" }))
+    Map(Metadata.SortField -> field, Metadata.SortOrder -> (if (reverse) { "descending" } else { "ascending" })).asJava
   }
 
   /**
@@ -164,8 +164,8 @@ package object io {
       sort: Option[(String, Boolean)],
       batches: CloseableIterator[Array[Byte]],
       firstBatchHasHeader: Boolean): CloseableIterator[Array[Byte]] = {
-    val body = new ArrowFileIterator(sft, dictionaries, encoding, sort, ipcOpts, batches, firstBatchHasHeader)
-    body ++ CloseableIterator.single(if (ipcOpts.write_legacy_ipc_format) { legacyFooter } else { footer })
+    val ft = if (ipcOpts.write_legacy_ipc_format) { legacyFooter } else { footer }
+    new ArrowFileIterator(sft, dictionaries, encoding, sort, ipcOpts, batches, firstBatchHasHeader, ft)
   }
 
   // per arrow streaming format footer is the encoded int -1, 0
@@ -179,16 +179,25 @@ package object io {
       sort: Option[(String, Boolean)],
       ipcOpts: IpcOption,
       batches: CloseableIterator[Array[Byte]],
-      firstBatchHasHeader: Boolean
+      firstBatchHasHeader: Boolean,
+      footer: Array[Byte]
     ) extends CloseableIterator[Array[Byte]] {
 
     private var seenBatch = false
+    private var seenFooter = false
 
-    override def hasNext: Boolean = batches.hasNext || !seenBatch
+    override def hasNext: Boolean = batches.hasNext || !seenBatch || !seenFooter
 
     override def next(): Array[Byte] = {
       if (seenBatch) {
-        batches.next()
+        if (batches.hasNext) {
+          batches.next()
+        } else if (seenFooter) {
+          throw new NoSuchElementException("Next on an empty iterator")
+        } else {
+          seenFooter = true
+          footer
+        }
       } else {
         seenBatch = true
         if (batches.hasNext) {

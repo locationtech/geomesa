@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.index
-
-import java.util.Date
-import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -24,6 +21,8 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Date
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -17,7 +17,7 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ConverterConfig, SimpleFeatureConverter, SimpleFeatureConverterFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import org.opengis.feature.simple.SimpleFeatureType
-import pureconfig.ConfigObjectCursor
+import pureconfig.{ConfigObjectCursor, ConfigSource}
 import pureconfig.error.ConfigReaderFailures
 
 import scala.util.control.NonFatal
@@ -38,10 +38,10 @@ class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory wit
   override def apply(sft: SimpleFeatureType, conf: Config): Option[SimpleFeatureConverter] = {
     if (!conf.hasPath("type") || !conf.getString("type").equalsIgnoreCase(TypeToProcess)) { None } else {
       val (config, fields, opts) = try {
-        val c = AbstractConverterFactory.standardDefaults(conf, logger)
-        val config = pureconfig.loadConfigOrThrow[FeatureToFeatureConfig](c)
-        val fields = pureconfig.loadConfigOrThrow[Seq[BasicField]](c)
-        val opts = pureconfig.loadConfigOrThrow[BasicOptions](c)
+        val c = ConfigSource.fromConfig(AbstractConverterFactory.standardDefaults(conf, logger))
+        val config = c.loadOrThrow[FeatureToFeatureConfig]
+        val fields = c.loadOrThrow[Seq[BasicField]]
+        val opts = c.loadOrThrow[BasicOptions]
         (config, fields, opts)
       } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid configuration: ${e.getMessage}")

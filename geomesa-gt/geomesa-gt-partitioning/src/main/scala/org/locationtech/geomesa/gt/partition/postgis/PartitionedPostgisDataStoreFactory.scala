@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,10 +10,7 @@ package org.locationtech.geomesa.gt.partition.postgis
 
 import org.geotools.data.postgis.{PostGISDialect, PostGISPSDialect, PostgisNGDataStoreFactory}
 import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect
-import org.opengis.feature.simple.SimpleFeatureType
-
-import java.sql.{Connection, DatabaseMetaData}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 
 class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 
@@ -25,13 +22,13 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 
   override protected def getDatabaseID: String = DbType.sample.asInstanceOf[String]
 
-  override protected def setupParameters(parameters: java.util.Map[_, _]): Unit = {
+  override protected def setupParameters(parameters: java.util.Map[String, AnyRef]): Unit = {
     super.setupParameters(parameters)
     // override postgis dbkey
-    parameters.asInstanceOf[java.util.Map[AnyRef, AnyRef]].put(DbType.key, DbType)
+    parameters.put(DbType.key, DbType)
   }
 
-  override protected def createDataStoreInternal(store: JDBCDataStore, params: java.util.Map[_, _]): JDBCDataStore = {
+  override protected def createDataStoreInternal(store: JDBCDataStore, params: java.util.Map[String, _]): JDBCDataStore = {
 
     val ds = super.createDataStoreInternal(store, params)
     val dialect = new PartitionedPostgisDialect(ds)
@@ -51,23 +48,12 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
         dialect.setLooseBBOXEnabled(d.isLooseBBOXEnabled)
 
         // these configs aren't exposed through the PS dialect so re-calculate them from the params
-        val est = PostgisNGDataStoreFactory.ESTIMATED_EXTENTS.lookUp(params.asInstanceOf[java.util.Map[String, _]])
+        val est = PostgisNGDataStoreFactory.ESTIMATED_EXTENTS.lookUp(params)
         dialect.setEstimatedExtentsEnabled(est == null || est == java.lang.Boolean.TRUE)
-        val simplify = PostgisNGDataStoreFactory.SIMPLIFY.lookUp(params.asInstanceOf[java.util.Map[String, _]])
+        val simplify = PostgisNGDataStoreFactory.SIMPLIFY.lookUp(params)
         dialect.setSimplifyEnabled(simplify == null || simplify == java.lang.Boolean.TRUE)
 
-        ds.setSQLDialect(new PostGISPSDialect(ds, dialect) {
-          // fix bug with PostGISPSDialect dialect not delegating these methods
-          override def getDefaultVarcharSize: Int = dialect.getDefaultVarcharSize
-          override def encodeTableName(raw: String, sql: StringBuffer): Unit = dialect.encodeTableName(raw, sql)
-          override def postCreateFeatureType(
-              featureType: SimpleFeatureType,
-              metadata: DatabaseMetaData,
-              schemaName: String,
-              cx: Connection): Unit = {
-            dialect.postCreateFeatureType(featureType, metadata, schemaName, cx)
-          }
-        })
+        ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
     }
@@ -76,6 +62,6 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 
   // these will get replaced in createDataStoreInternal, above
   override protected def createSQLDialect(dataStore: JDBCDataStore): SQLDialect = new PostGISDialect(dataStore)
-  override protected def createSQLDialect(dataStore: JDBCDataStore, params: java.util.Map[_, _]): SQLDialect =
+  override protected def createSQLDialect(dataStore: JDBCDataStore, params: java.util.Map[String, _]): SQLDialect =
     new PostGISDialect(dataStore)
 }

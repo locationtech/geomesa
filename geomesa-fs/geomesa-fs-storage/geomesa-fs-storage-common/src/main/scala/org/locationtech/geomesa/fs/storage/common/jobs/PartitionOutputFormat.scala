@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -118,7 +118,7 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
       def meta: PartitionMetadata = {
         val millis = System.currentTimeMillis()
         val f = files.map(StorageFile(_, millis))
-        PartitionMetadata(partition, f, PartitionBounds(bounds), count)
+        PartitionMetadata(partition, f.toSeq, PartitionBounds(bounds), count)
       }
 
       def close(context: TaskAttemptContext): Unit =

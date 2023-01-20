@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,14 +13,12 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.Schema
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureTypeParser
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.kafka.data.{KafkaDataStore, KafkaDataStoreFactory, KafkaDataStoreParams}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.opengis.feature.simple.SimpleFeatureType
 
 import java.awt.RenderingHints
-import java.io.Serializable
 import java.net.URL
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
@@ -28,10 +26,10 @@ import scala.util.control.NonFatal
 class ConfluentKafkaDataStoreFactory extends DataStoreFactorySpi {
 
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore =
+  override def createNewDataStore(params: java.util.Map[String, _]): KafkaDataStore =
     createDataStore(params)
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): KafkaDataStore = {
     val config = KafkaDataStoreFactory.buildConfig(params)
     val url = ConfluentKafkaDataStoreFactory.SchemaRegistryUrl.lookup(params)
     val schemaOverridesConfig = ConfluentKafkaDataStoreFactory.SchemaOverrides.lookupOpt(params)
@@ -47,9 +45,9 @@ class ConfluentKafkaDataStoreFactory extends DataStoreFactorySpi {
 
   // note: we don't return producer configs, as they would not be used in geoserver
   override def getParametersInfo: Array[Param] =
-    ConfluentKafkaDataStoreFactory.ParameterInfo :+ KafkaDataStoreParams.NamespaceParam
+    Array(ConfluentKafkaDataStoreFactory.ParameterInfo :+ KafkaDataStoreParams.NamespaceParam: _*)
 
-  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     ConfluentKafkaDataStoreFactory.canProcess(params)
 
   override def isAvailable: Boolean = true
@@ -80,7 +78,7 @@ object ConfluentKafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogg
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     SchemaRegistryUrl +: KafkaDataStoreFactory.ParameterInfo :+ SchemaOverrides
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
+  override def canProcess(params: java.util.Map[String, _]): Boolean = {
     KafkaDataStoreParams.Brokers.exists(params) &&
       KafkaDataStoreParams.Zookeepers.exists(params) &&
       SchemaRegistryUrl.exists(params)
@@ -93,7 +91,7 @@ object ConfluentKafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogg
           case (topic, schemaConfig) =>
             try {
               val schema = new Schema.Parser().parse(schemaConfig.render(ConfigRenderOptions.concise()))
-              val sft = AvroSimpleFeatureTypeParser.schemaToSft(schema, Some(topic))
+              val sft = SchemaParser.schemaToSft(schema, Some(topic))
               topic -> (sft, schema)
             } catch {
               case NonFatal(ex) =>

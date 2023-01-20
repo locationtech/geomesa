@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,10 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.tools.export
-
-import java.io.File
-import java.text.NumberFormat
-import java.util.UUID
 
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.hadoop.conf.Configuration
@@ -35,6 +31,10 @@ import org.locationtech.geomesa.tools.export.formats.{ExportFormat, FeatureExpor
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.File
+import java.text.NumberFormat
+import java.util.UUID
 
 /**
  * Class that handles configuration and tracking of the remote job
@@ -306,7 +306,7 @@ object ExportJob extends JobWithLibJars {
 
     override def write(key: Text, value: SimpleFeature): Unit = {
       if (exporter == null) {
-        exporter = new Exporter(opts, hints, Map.empty)
+        exporter = new Exporter(opts, hints)
         exporter.start(value.getFeatureType)
       }
       exporter.export(Iterator.single(value))
@@ -341,7 +341,7 @@ object ExportJob extends JobWithLibJars {
 
     override def write(key: Text, value: SimpleFeature): Unit = {
       if (exporter == null) {
-        exporter = new Exporter(opts.copy(file = Some(files.next)), hints, Map.empty)
+        exporter = new Exporter(opts.copy(file = Some(files.next)), hints)
         exporter.start(value.getFeatureType)
         if (estimator == null) {
           val bytesPerFeature = opts.format.bytesPerFeature(value.getFeatureType)
@@ -389,7 +389,7 @@ object ExportJob extends JobWithLibJars {
 
     override def write(key: Text, value: SimpleFeature): Unit = {
       if (exporter == null) {
-        exporter = new Exporter(opts.copy(file = Some(files.next)), hints, Map.empty)
+        exporter = new Exporter(opts.copy(file = Some(files.next)), hints)
         exporter.start(value.getFeatureType)
         if (estimator == null) {
           val bytesPerFeature = opts.format.bytesPerFeature(value.getFeatureType)

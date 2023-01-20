@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.fs.storage.api
 
-import java.io.Closeable
-
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.Closeable
 
 /**
   * Metadata interface for managing storage partitions. Metadata implementations can be fairly expensive to
@@ -105,16 +105,12 @@ trait StorageMetadata extends Compactable with Closeable {
    *
    * @param partitions partitions
    */
-  def setPartitions(partitions: Seq[PartitionMetadata]): Unit =
-    throw new NotImplementedError() // TODO remove default impl in next major release
+  def setPartitions(partitions: Seq[PartitionMetadata]): Unit
 
   /**
    * Invalidate any cached state
    */
-  def invalidate(): Unit = throw new NotImplementedError() // TODO remove default impl in next major release
-
-  @deprecated("deprecated with no replacement")
-  def reload(): Unit = {}
+  def invalidate(): Unit
 }
 
 object StorageMetadata {

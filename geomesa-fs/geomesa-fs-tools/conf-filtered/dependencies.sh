@@ -12,9 +12,7 @@
 # Update the versions as required to match the target environment.
 
 hadoop_install_version="%%hadoop.version.recommended%%"
-# required for hadoop - make sure it corresponds to the hadoop installed version
-guava_install_version="%%guava.version%%"
-aws_sdk_install_version="1.10.6"
+aws_sdk_install_version="1.12.385" # latest version as of 2023/01
 # this should match the parquet desired version
 snappy_install_version="1.1.1.6"
 
@@ -36,27 +34,31 @@ function dependencies() {
     "org.apache.hadoop:hadoop-common:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-hdfs:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-hdfs-client:${hadoop_version}:jar"
+    "org.apache.hadoop:hadoop-mapreduce-client-core:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-aws:${hadoop_version}:jar"
     "org.xerial.snappy:snappy-java:${snappy_version}:jar"
+    "com.fasterxml.woodstox:woodstox-core:5.3.0:jar"
+    "org.codehaus.woodstox:stax2-api:4.2.1:jar"
+    "org.apache.commons:commons-configuration2:2.8.0:jar"
     "commons-configuration:commons-configuration:1.6:jar"
+    "commons-collections:commons-collections:3.2.2:jar"
+    "commons-lang:commons-lang:2.6:jar"
     "commons-logging:commons-logging:1.1.3:jar"
     "commons-cli:commons-cli:1.2:jar"
     "commons-io:commons-io:2.5:jar"
     "com.google.protobuf:protobuf-java:2.5.0:jar"
-    # htrace 3 required for hadoop before 2.8
-    # htrace 4 required for hadoop 2.8 and later
-    # since they have separate package names, should be safe to install both
     "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
     "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
     "com.amazonaws:aws-java-sdk-core:${aws_sdk_version}:jar"
     "com.amazonaws:aws-java-sdk-s3:${aws_sdk_version}:jar"
+    "com.amazonaws:aws-java-sdk-dynamodb:${aws_sdk_version}:jar"
     # joda-time required for aws sdk
     "joda-time:joda-time:2.8.1:jar"
     # these are the versions used by hadoop 2.8 and 3.1
     "org.apache.httpcomponents:httpclient:4.5.2:jar"
     "org.apache.httpcomponents:httpcore:4.4.4:jar"
     "commons-httpclient:commons-httpclient:3.1:jar"
-    "com.google.guava:guava:${guava_install_version}:jar"
+
   )
 
   # add hadoop 3+ jars if needed
@@ -65,6 +67,11 @@ function dependencies() {
     gavs+=(
       "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
       "org.apache.hadoop:hadoop-client-runtime:${hadoop_version}:jar"
+      "com.google.guava:guava:27.0-jre:jar"
+    )
+  else
+    gavs+=(
+      "com.google.guava:guava:11.0.2:jar"
     )
   fi
 

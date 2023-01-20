@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15,11 +15,12 @@ object SerializationOption extends Enumeration {
 
   type SerializationOption = Value
 
-  val WithUserData    :Value = Value
-  val WithoutFidHints :Value = Value
-  val WithoutId       :Value = Value
-  val Immutable       :Value = Value
-  val Lazy            :Value = Value
+  val WithUserData      :Value = Value
+  val WithoutFidHints   :Value = Value
+  val WithoutId         :Value = Value
+  val Immutable         :Value = Value
+  val Lazy              :Value = Value
+  val NativeCollections :Value = Value
 
   implicit class SerializationOptions(val options: Set[SerializationOption]) extends AnyVal {
 
@@ -46,6 +47,8 @@ object SerializationOption extends Enumeration {
     def immutable: Boolean = options.contains(Immutable)
 
     def isLazy: Boolean = options.contains(Lazy)
+
+    def useNativeCollections: Boolean = options.contains(NativeCollections)
   }
 
   object SerializationOptions {
@@ -57,6 +60,8 @@ object SerializationOption extends Enumeration {
     val withoutId: Set[SerializationOption] = Set(WithoutId)
 
     val immutable: Set[SerializationOption] = Set(Immutable)
+
+    val nativeCollections: Set[SerializationOption] = Set(NativeCollections)
 
     def builder: Builder = new Builder()
 
@@ -81,6 +86,8 @@ object SerializationOption extends Enumeration {
       def withoutId: Builder = { options.add(WithoutId); this }
 
       def `lazy`: Builder = { options.add(Lazy); this }
+
+      def withNativeCollections: Builder = { options.add(NativeCollections); this }
 
       def build: Set[SerializationOption] = options.toSet
     }

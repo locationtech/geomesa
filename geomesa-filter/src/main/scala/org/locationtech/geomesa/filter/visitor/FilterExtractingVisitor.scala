@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,7 +14,7 @@ import org.opengis.filter.spatial.{DWithin, _}
 import org.opengis.filter.temporal.{Before, Ends, Meets, TOverlaps, _}
 import org.opengis.filter.{ExcludeFilter, Or, _}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
   * Extracts filters for a given attribute
@@ -69,9 +69,9 @@ class FilterExtractingVisitor(attribute: String, sft: SimpleFeatureType, predica
   private def keep(f: Filter): Boolean = FilterHelper.propertyNames(f, sft).contains(attribute) && predicate(f)
 
   override def visit(f: Or, data: AnyRef): AnyRef = {
-    val children = f.getChildren.map(_.accept(this, data).asInstanceOf[(Filter, Filter)])
-    val yes = children.map(_._1).filter(_ != null)
-    val no  = children.map(_._2).filter(_ != null)
+    val children = f.getChildren.asScala.map(_.accept(this, data).asInstanceOf[(Filter, Filter)])
+    val yes = children.map(_._1).filter(_ != null).toSeq
+    val no  = children.map(_._2).filter(_ != null).toSeq
     // only return ORs where both sides satisfy the predicate
     // we handle the returned predicates as implicit ANDs, if we split an OR we break that
     if (no.isEmpty) {
@@ -82,9 +82,9 @@ class FilterExtractingVisitor(attribute: String, sft: SimpleFeatureType, predica
   }
 
   override def visit(f: And, data: AnyRef): AnyRef = {
-    val children = f.getChildren.map(_.accept(this, data).asInstanceOf[(Filter, Filter)])
-    val yes = children.map(_._1).filter(_ != null)
-    val no  = children.map(_._2).filter(_ != null)
+    val children = f.getChildren.asScala.map(_.accept(this, data).asInstanceOf[(Filter, Filter)])
+    val yes = children.map(_._1).filter(_ != null).toSeq
+    val no  = children.map(_._2).filter(_ != null).toSeq
     (andOption(yes).orNull, andOption(no).orNull)
   }
 

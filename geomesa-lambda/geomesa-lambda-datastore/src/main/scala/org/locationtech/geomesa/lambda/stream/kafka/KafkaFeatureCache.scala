@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -90,7 +90,7 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
       }
       i += 1
     }
-    result
+    result.toSeq
   }
 
   override def expired(partition: Int, expiry: Long): ExpiredFeatures = {
@@ -124,7 +124,7 @@ class KafkaFeatureCache(topic: String) extends WritableFeatureCache with Readabl
     // only remove from feature cache (and persist) if there haven't been additional updates
     val latest = expired.flatMap(ref => remove(ref))
 
-    ExpiredFeatures(maxExpiredOffset, latest)
+    ExpiredFeatures(maxExpiredOffset, latest.toSeq)
   }
 
   override def offsetChanged(partition: Int, offset: Long): Unit = {

@@ -66,6 +66,7 @@ function get_hadoop_classpath() {
         # Hadoop 3 requirements
         $HADOOP_HOME/share/hadoop/client/
         $HADOOP_HOME/share/hadoop/common/lib/
+        $HADOOP_HOME/share/hadoop/yarn/lib/
         # HDP 2.0 requirements
         /usr/lib/hadoop/
         /usr/lib/hadoop-hdfs/

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -17,7 +17,7 @@ class DefaultAuthorizationsProvider extends AuthorizationsProvider {
 
   override def getAuthorizations: java.util.List[String] = authorizations
 
-  override def configure(params: java.util.Map[String, _ <: java.io.Serializable]) {
+  override def configure(params: java.util.Map[String, _]) {
     val authString = AuthsParam.lookup(params)
     if (authString == null || authString.isEmpty) {
       authorizations = new java.util.ArrayList[String]()
@@ -25,5 +25,4 @@ class DefaultAuthorizationsProvider extends AuthorizationsProvider {
       authorizations = java.util.Arrays.asList(authString.split(","): _*)
     }
   }
-
 }

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.data
-
-import java.util.Collections
 
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
@@ -37,6 +35,7 @@ import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util.Collections
 import scala.util.control.NonFatal
 
 class HBaseDataStore(con: ConnectionWrapper, override val config: HBaseDataStoreConfig)
@@ -177,6 +176,6 @@ object HBaseDataStore {
 
   object NoAuthsProvider extends AuthorizationsProvider {
     override def getAuthorizations: java.util.List[String] = null
-    override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
+    override def configure(params: java.util.Map[String, _]): Unit = {}
   }
 }

@@ -7,15 +7,12 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-# This file lists the dependencies required for running the geomesa-accumulo command-line tools.
-# Usually these dependencies will be provided by the environment (e.g. ACCUMULO_HOME).
+# This file lists the dependencies required for running the geomesa-cassandra command-line tools.
+# Usually these dependencies will be provided by the environment (e.g. CASSANDRA_HOME).
 # Update the versions as required to match the target environment.
 
 cassandra_install_version="%%cassandra.server.version.recommended%%"
 driver_install_version="%%cassandra.driver.version.recommended%%"
-netty_install_version="%%netty.version%%"
-metrics_install_version="%%metrics.version%%"
-guava_install_version="%%cassandra.guava.version%%"
 
 function dependencies() {
   local classpath="$1"
@@ -32,11 +29,18 @@ function dependencies() {
 
   declare -a gavs=(
     "com.datastax.cassandra:cassandra-driver-core:${driver_version}:jar"
-    "io.netty:netty-all:${netty_install_version}:jar"
-    "io.dropwizard.metrics:metrics-core:${metrics_install_version}:jar"
+    "io.netty:netty-buffer:%%netty.version%%:jar"
+    "io.netty:netty-resolver:%%netty.version%%:jar"
+    "io.netty:netty-codec:%%netty.version%%:jar"
+    "io.netty:netty-transport:%%netty.version%%:jar"
+    "io.netty:netty-common:%%netty.version%%:jar"
+    "io.netty:netty-transport-native-epoll:%%netty.version%%:jar"
+    "io.netty:netty-handler:%%netty.version%%:jar"
+    "io.netty:netty-transport-native-unix-common:%%netty.version%%:jar"
+    "io.dropwizard.metrics:metrics-core:%%metrics.version%%:jar"
     "ch.qos.logback:logback-core:1.1.3:jar"
     "ch.qos.logback:logback-classic:1.1.3:jar"
-    "com.google.guava:guava:${guava_install_version}:jar"
+    "com.google.guava:guava:%%cassandra.guava.version%%:jar"
   )
 
   # the cassandra install bundles the cassandra-all.jar as apache-cassandra.jar

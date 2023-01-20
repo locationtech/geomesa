@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,18 +8,8 @@
 
 package org.locationtech.geomesa.convert.xml
 
-import java.io._
-import java.nio.charset.Charset
-
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.StrictLogging
-import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
-import javax.xml.namespace.NamespaceContext
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamSource
-import javax.xml.validation.SchemaFactory
-import javax.xml.xpath.{XPath, XPathConstants, XPathExpression, XPathFactory}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BOMInputStream
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, LineMode, ParseMode}
@@ -34,6 +24,15 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.w3c.dom.{Element, NodeList}
 import org.xml.sax.InputSource
 
+import java.io._
+import java.nio.charset.Charset
+import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
+import javax.xml.namespace.NamespaceContext
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamSource
+import javax.xml.validation.SchemaFactory
+import javax.xml.xpath.{XPath, XPathConstants, XPathExpression, XPathFactory}
 import scala.util.control.NonFatal
 
 class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlField], options: XmlOptions)
@@ -97,7 +96,7 @@ object XmlConverter extends StrictLogging {
     if (namespaces.nonEmpty) {
       xpath.setNamespaceContext(new NamespaceContext() {
         override def getPrefix(namespaceURI: String): String = null
-        override def getPrefixes(namespaceURI: String): java.util.Iterator[_] = null
+        override def getPrefixes(namespaceURI: String): java.util.Iterator[String] = null
         override def getNamespaceURI(prefix: String): String = namespaces.getOrElse(prefix, null)
       })
     }
@@ -156,8 +155,6 @@ object XmlConverter extends StrictLogging {
 
     private var helper: ThreadLocal[XmlHelper] = _
 
-    private val mutableArray = Array.ofDim[Any](1)
-
     private val expression = new ThreadLocal[XPathExpression]() {
       override def initialValue(): XPathExpression = helper.get.xpath.compile(path)
     }
@@ -165,11 +162,6 @@ object XmlConverter extends StrictLogging {
     override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
 
     override def compile(helper: ThreadLocal[XmlHelper]): Unit = this.helper = helper
-
-    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-      mutableArray(0) = expression.get.evaluate(args(0))
-      super.eval(mutableArray)
-    }
 
     private def values(args: Array[AnyRef]): AnyRef = expression.get.evaluate(args(0))
   }

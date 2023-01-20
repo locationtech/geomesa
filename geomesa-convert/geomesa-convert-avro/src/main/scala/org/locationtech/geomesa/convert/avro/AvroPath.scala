@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import java.nio.ByteBuffer
-
 import org.apache.avro.generic.{GenericArray, GenericEnumSymbol, GenericFixed, GenericRecord}
 import org.apache.avro.util.Utf8
 import org.locationtech.geomesa.utils.text.BasicParser
 import org.parboiled.errors.ParsingException
 import org.parboiled.scala.parserunners.{BasicParseRunner, ReportingParseRunner}
+
+import java.nio.ByteBuffer
 
 sealed trait AvroPath {
   def eval(record: Any): Option[Any]
@@ -40,18 +40,18 @@ object AvroPath extends BasicParser {
 
   private def convert(record: Any): Any = {
     record match {
-      case x: Utf8              => x.toString
-      case x: ByteBuffer        => convertBytes(x)
-      case x: GenericFixed      => x.bytes()
-      case x: GenericEnumSymbol => x.toString
-      case x: GenericArray[Any] => convertList(x)
-      case x                    => x
+      case x: Utf8                 => x.toString
+      case x: ByteBuffer           => convertBytes(x)
+      case x: GenericFixed         => x.bytes()
+      case x: GenericEnumSymbol[_] => x.toString
+      case x: GenericArray[Any]    => convertList(x)
+      case x                       => x
     }
   }
 
   private def convertBytes(x: ByteBuffer): Array[Byte] = {
-    val start = x.position
-    val length = x.limit - start
+    val start = x.position()
+    val length = x.limit() - start
     val bytes = Array.ofDim[Byte](length)
     x.get(bytes, 0, length)
     x.position(start)
@@ -70,7 +70,8 @@ object AvroPath extends BasicParser {
   case class PathExpr(field: String, predicate: AvroPredicate) extends AvroPath {
     override def eval(record: Any): Option[Any] = {
       record match {
-        case gr: GenericRecord =>
+        // schema null check supports our parquet support
+        case gr: GenericRecord if gr.getSchema == null || gr.getSchema.getField(field) != null =>
           gr.get(field) match {
             case x: GenericRecord => Some(x).filter(predicate)
             case x                => Option(convert(x))

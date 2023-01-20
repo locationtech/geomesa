@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.index.filters
 
-import java.nio.ByteBuffer
-
 import org.locationtech.geomesa.index.filters.RowFilter.RowFilterFactory
 import org.locationtech.geomesa.index.index.z3.Z3IndexValues
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.sfcurve.zorder.Z3
+import org.locationtech.geomesa.zorder.sfcurve.Z3
+
+import java.nio.ByteBuffer
 
 class Z3Filter(
     val xy: Array[Array[Int]],

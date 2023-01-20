@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.redis.data
-
-import java.util.{Collections, Date}
 
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -21,6 +19,8 @@ import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, Sim
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.{Collections, Date}
 
 @RunWith(classOf[JUnitRunner])
 class RedisDataStoreIntegrationTest extends Specification {
@@ -76,10 +76,10 @@ class RedisDataStoreIntegrationTest extends Specification {
         foreach(filters) { filter =>
           val filtered = features.filter(filter.evaluate)
           foreach(transforms) { transform =>
-            val query = new Query(sft.getTypeName, filter, transform)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
             val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             val expected = if (transform == null) { filtered } else {
-              val tsft = DataUtilities.createSubType(sft, transform)
+              val tsft = DataUtilities.createSubType(sft, transform: _*)
               filtered.map(DataUtilities.reType(tsft, _)).map(ScalaSimpleFeature.copy)
             }
             result must containTheSameElementsAs(expected)

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.storage.common.utils
-
-import java.nio.charset.StandardCharsets
 
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionSchemeFactory}
@@ -18,6 +16,7 @@ import org.locationtech.geomesa.utils.conf.ArgResolver
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 object PartitionSchemeArgResolver {

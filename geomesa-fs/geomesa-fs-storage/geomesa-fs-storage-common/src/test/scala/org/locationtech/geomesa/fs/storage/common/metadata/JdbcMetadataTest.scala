@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.storage.common.metadata
-
-import java.io.{File, FileOutputStream}
-import java.nio.file.Files
 
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.apache.hadoop.conf.Configuration
@@ -23,6 +20,9 @@ import org.locationtech.jts.geom.Envelope
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
+
+import java.io.{File, FileOutputStream}
+import java.nio.file.Files
 
 @RunWith(classOf[JUnitRunner])
 class JdbcMetadataTest extends Specification with AllExpectations {
@@ -232,5 +232,5 @@ class JdbcMetadataTest extends Specification with AllExpectations {
   }
 
   def getConfig(root: Path): Map[String, String] =
-    Map(JdbcMetadata.Config.UrlKey -> s"jdbc:h2:split:${new File(root.toString).getAbsolutePath}/metadata")
+    Map(JdbcMetadata.Config.UrlKey -> s"jdbc:h2:split:${new File(root.toString).getAbsolutePath}/metadata;CASE_INSENSITIVE_IDENTIFIERS=true")
 }

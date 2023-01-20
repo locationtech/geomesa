@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -25,7 +25,7 @@ class TransientStats(store: TransientStore) extends GeoMesaStats {
   override val writer: GeoMesaStatWriter = NoopStatWriter
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] =
-    Some(SelfClosingIterator(store.read(Option(filter).filter(_ != Filter.INCLUDE))).length)
+    Some(SelfClosingIterator(store.read(Option(filter).filter(_ != Filter.INCLUDE)).iterator()).length)
 
   override def getMinMax[T](
       sft: SimpleFeatureType,
@@ -97,7 +97,7 @@ class TransientStats(store: TransientStore) extends GeoMesaStats {
       exact: Boolean): Option[T] = {
     if (!exact) { None } else {
       val stat = Stat(sft, query).asInstanceOf[T]
-      SelfClosingIterator(store.read(Option(filter).filter(_ != Filter.INCLUDE))).foreach(stat.observe)
+      SelfClosingIterator(store.read(Option(filter).filter(_ != Filter.INCLUDE)).iterator()).foreach(stat.observe)
       Some(stat)
     }
   }

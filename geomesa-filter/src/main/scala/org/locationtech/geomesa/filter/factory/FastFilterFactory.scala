@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -112,7 +112,7 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
                        exp2: Expression,
                        matchCase: Boolean,
                        matchAction: MatchAction): PropertyIsGreaterThan = {
-    if (matchCase || matchAction != MatchAction.ANY) {
+    if (matchAction != MatchAction.ANY) {
       super.greater(exp1, exp2, matchCase, matchAction)
     } else {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
@@ -150,7 +150,7 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
                               exp2: Expression,
                               matchCase: Boolean,
                               matchAction: MatchAction): PropertyIsGreaterThanOrEqualTo = {
-    if (matchCase || matchAction != MatchAction.ANY) {
+    if (matchAction != MatchAction.ANY) {
       super.greaterOrEqual(exp1, exp2, matchCase, matchAction)
     } else {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
@@ -186,7 +186,7 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
                     exp2: Expression,
                     matchCase: Boolean,
                     matchAction: MatchAction): PropertyIsLessThan = {
-    if (matchCase || matchAction != MatchAction.ANY) {
+    if (matchAction != MatchAction.ANY) {
       super.less(exp1, exp2, matchCase, matchAction)
     } else {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
@@ -224,7 +224,7 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
                            exp2: Expression,
                            matchCase: Boolean,
                            matchAction: MatchAction): PropertyIsLessThanOrEqualTo = {
-    if (matchCase || matchAction != MatchAction.ANY) {
+    if (matchAction != MatchAction.ANY) {
       super.lessOrEqual(exp1, exp2, matchCase, matchAction)
     } else {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
@@ -274,10 +274,10 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
 
   override def or(filters: java.util.List[Filter]): Or = {
     if (filters.isEmpty) {
-      return super.or(filters.asInstanceOf[java.util.List[_]])
+      return super.or(filters)
     }
 
-    val predicates = FilterHelper.flattenOr(filters.asScala)
+    val predicates = FilterHelper.flattenOr(filters.asScala.toSeq)
 
     val props = scala.collection.mutable.HashSet.empty[String]
     val literals = scala.collection.immutable.HashSet.newBuilder[AnyRef]
@@ -289,10 +289,10 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
         case p: PropertyIsEqualTo if p.getMatchAction == MatchAction.ANY && p.isMatchingCase =>
           org.locationtech.geomesa.filter.checkOrder(p.getExpression1, p.getExpression2) match {
             case Some(PropertyLiteral(name, lit, _)) if !props.add(name) || props.size == 1 => literals += lit.getValue
-            case _ => return super.or(filters.asInstanceOf[java.util.List[_]])
+            case _ => return super.or(filters)
           }
 
-        case _ => return super.or(filters.asInstanceOf[java.util.List[_]])
+        case _ => return super.or(filters)
       }
     }
 

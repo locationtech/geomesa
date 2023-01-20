@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.memory.cqengine.datastore
-
-import java.util.UUID
-import java.util.concurrent.atomic.AtomicLong
 
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
@@ -23,6 +20,9 @@ import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineFeatureStore.{GeoCQEngineFeatureWriter, GeoCQEngineQueryCapabilities}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 
 class GeoCQEngineFeatureStore(engine: GeoCQEngine, entry: ContentEntry, query: Query) extends
   ContentFeatureStore(entry, query) {

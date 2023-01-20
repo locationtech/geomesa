@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,7 +10,7 @@ package org.locationtech.geomesa.curve
 
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.XZ3SFC.{QueryWindow, XElement}
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -258,7 +258,7 @@ class XZ3SFC(val g: Short, val xBounds: (Double, Double), val yBounds: (Double, 
     // append the last range - there will always be one left that wasn't added
     result.append(current)
 
-    result
+    result.toSeq
   }
 
   /**

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,11 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.text.DecimalFormat
-
-import com.google.common.collect.HashBasedTable
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Envelope
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.filter.text.ecql.ECQL
@@ -24,14 +20,17 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.locationtech.geomesa.utils.geotools.GridSnap
+import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.text.DecimalFormat
 
 @RunWith(classOf[JUnitRunner])
 class LiveDensityIteratorTest extends Specification with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -59,10 +58,10 @@ class LiveDensityIteratorTest extends Specification with LazyLogging {
 
   var snap: GridSnap = null
 
-  val map = HashBasedTable.create[Double, Double, Long]()
+  val map = scala.collection.mutable.Map.empty[(Double, Double), Long]
 
   def getDataStore: AccumuloDataStore = {
-    DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+    DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
   }
 
   def printFeatures(featureIterator: SimpleFeatureIterator): Unit = {
@@ -90,29 +89,29 @@ class LiveDensityIteratorTest extends Specification with LazyLogging {
     logger.debug(s"total weight: ${weights.sum}")
     logger.debug(s"max weight: ${weights.max}")
 
-    features.foreach {
-      f =>
-        val point = f.point
-        map.put(point.getY, point.getX, map.get(point.getY, point.getX) + f.getProperty("weight").getValue.toString.toDouble.toLong)
+    features.foreach { f =>
+      val point = f.point
+      val k = (point.getY, point.getX)
+      map += (k -> (map.getOrElse(k, 0L) + f.getProperty("weight").getValue.toString.toDouble.toLong))
     }
 
-    logger.debug(s"max joined weight: ${map.values().max}")
+    logger.debug(s"max joined weight: ${map.values.max}")
 
     val output = new StringBuilder()
 
     val df = new DecimalFormat("0")
 
-    map.rowMap().foreach {
-      case (rowIdx, cols) =>
-        cols.foreach {
-          case (colIdx, v) =>
-            if (v == 0) {
-              output.append(" ")
-            } else {
-              output.append(df.format(v))
-            }
-        }
+    var row = 0d
+    map.toSeq.sorted.foreach { case ((i, j), v) =>
+      if (i != row) {
+        row = i
         output.append("\n")
+      }
+      if (v == 0) {
+        output.append(" ")
+      } else {
+        output.append(df.format(v))
+      }
     }
 
     logger.trace(output.toString())
@@ -133,7 +132,7 @@ class LiveDensityIteratorTest extends Specification with LazyLogging {
     while(i < width) {
       var j = 0
       while(j < height) {
-        map.put(snap.y(j), snap.x(i), 0)
+        map.put((snap.y(j), snap.x(i)), 0)
         j = j + 1
       }
       i = i + 1

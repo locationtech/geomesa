@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -18,13 +18,16 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ReadWriteFlag, Syst
 // keep params in a separate object so we don't require accumulo classes on the build path to access it
 object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
 
-  val InstanceIdParam =
+  val InstanceNameParam =
     new GeoMesaParam[String](
-      "accumulo.instance.id",
-      "Accumulo Instance ID",
-      deprecatedKeys = Seq("instanceId", "accumulo.instanceId"),
+      "accumulo.instance.name",
+      "Accumulo Instance Name",
+      deprecatedKeys = Seq("instanceId", "accumulo.instanceId", "accumulo.instance.id"),
       supportsNiFiExpressions = true
     )
+
+  @deprecated("InstanceNameParam")
+  val InstanceIdParam: GeoMesaParam[String] = InstanceNameParam
 
   val ZookeepersParam =
     new GeoMesaParam[String](

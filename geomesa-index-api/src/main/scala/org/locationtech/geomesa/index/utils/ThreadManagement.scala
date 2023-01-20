@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.utils
-
-import java.io.Closeable
-import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 
 import com.typesafe.scalalogging.Logger
 import org.locationtech.geomesa.filter.filterToString
@@ -19,6 +16,8 @@ import org.locationtech.geomesa.utils.iterators.ExceptionalIterator
 import org.opengis.filter.Filter
 import org.slf4j.LoggerFactory
 
+import java.io.Closeable
+import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 

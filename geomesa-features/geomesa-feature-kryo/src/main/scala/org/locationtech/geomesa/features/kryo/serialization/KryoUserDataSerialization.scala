@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.features.kryo.serialization
 
-import java.util.{Date, UUID}
-
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.serialization.HintKeySerialization
 import org.locationtech.jts.geom.{Geometry, LineString, Point, Polygon}
 
+import java.util.{Date, UUID}
 import scala.util.control.NonFatal
 
 object KryoUserDataSerialization extends LazyLogging {

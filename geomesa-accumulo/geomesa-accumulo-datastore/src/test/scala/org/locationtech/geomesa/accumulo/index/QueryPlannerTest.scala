@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import java.util.AbstractMap.SimpleEntry
-
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
 import org.geotools.data.Query
@@ -17,17 +15,20 @@ import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.AccumuloResultsToFeatures
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureSerializers}
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.iterators.ExceptionalIterator
 import org.opengis.filter.sort.SortBy
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.util.AbstractMap.SimpleEntry
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class QueryPlannerTest extends Specification with TestWithFeatureType {
@@ -46,15 +47,15 @@ class QueryPlannerTest extends Specification with TestWithFeatureType {
   "adaptStandardIterator" should {
     "return a LazySortedIterator when the query has an order by clause" >> {
       val query = new Query(sft.getTypeName)
-      query.setSortBy(Array(SortBy.NATURAL_ORDER))
-      val result = planner.runQuery(sft, query)
+      query.setSortBy(SortBy.NATURAL_ORDER)
+      val result = planner.runQuery(sft, query).iterator()
       result must beAnInstanceOf[ExceptionalIterator[_]]
       result.asInstanceOf[ExceptionalIterator[_]].delegate must beAnInstanceOf[SortingSimpleFeatureIterator]
     }
 
     "not return a LazySortedIterator when the query does not have an order by clause" >> {
       val query = new Query(sft.getTypeName)
-      query.setSortBy(null)
+      query.setSortBy()
 
       val result = planner.runQuery(sft, query)
 
@@ -69,7 +70,7 @@ class QueryPlannerTest extends Specification with TestWithFeatureType {
       val visibilities = Array("", "USER", "ADMIN")
       val expectedVis = visibilities.map(vis => if (vis.isEmpty) None else Some(vis))
 
-      val serializer = SimpleFeatureSerializers(sft, SerializationType.KRYO, SerializationOptions.withoutId)
+      val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
 
       val value = new Value(serializer.serialize(sf))
       val kvs = visibilities.zipWithIndex.map { case (vis, ndx) =>
@@ -87,10 +88,10 @@ class QueryPlannerTest extends Specification with TestWithFeatureType {
     "sort with a projected SFT" >> {
       val ff = CommonFactoryFinder.getFilterFactory2
       val query = new Query(sft.getTypeName)
-      query.setSortBy(Array(SortBy.NATURAL_ORDER))
-      query.setProperties(List(ff.property("s")))
+      query.setSortBy(SortBy.NATURAL_ORDER)
+      query.setProperties(Collections.singletonList(ff.property("s")))
 
-      val result = planner.runQuery(sft, query).toList
+      val result = WithClose(planner.runQuery(sft, query).iterator())(_.toList)
 
       result.map(_.getID) mustEqual Seq("id", "id2")
       forall(result)(r => r.getAttributeCount mustEqual 1)

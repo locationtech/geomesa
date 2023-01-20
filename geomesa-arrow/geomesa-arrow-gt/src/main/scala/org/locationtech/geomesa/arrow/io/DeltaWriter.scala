@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,12 +8,6 @@
 
 package org.locationtech.geomesa.arrow.io
 
-import java.io.{ByteArrayOutputStream, Closeable, OutputStream}
-import java.nio.channels.Channels
-import java.util.concurrent.ThreadLocalRandom
-import java.util.{Collections, PriorityQueue}
-
-import com.google.common.collect.HashBiMap
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.{ListVector, StructVector}
@@ -25,16 +19,22 @@ import org.apache.arrow.vector.util.TransferPair
 import org.apache.arrow.vector.{FieldVector, IntVector}
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
+import org.locationtech.geomesa.arrow.jts.{GeometryFields, GeometryVector}
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader.{ArrowDateReader, ArrowDictionaryReader, ArrowListDictionaryReader}
+import org.locationtech.geomesa.arrow.vector.ArrowDictionary.ArrowDictionaryArray
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{AttributeOrdering, ObjectType, SimpleFeatureOrdering, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.{ByteArrayOutputStream, Closeable, OutputStream}
+import java.nio.channels.Channels
+import java.util.concurrent.ThreadLocalRandom
+import java.util.{Collections, PriorityQueue}
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 import scala.math.Ordering
@@ -234,7 +234,37 @@ object DeltaWriter extends StrictLogging {
       sorted: Boolean,
       batchSize: Int,
       deltas: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
-    new ReducingIterator(sft, dictionaryFields, encoding, ipcOpts, sort, sorted, batchSize, deltas)
+    reduce(sft, dictionaryFields, encoding, ipcOpts, sort, sorted, batchSize, process = true, deltas)
+  }
+
+  /**
+   * Reduce function for delta records created by DeltaWriter
+   *
+   * @param sft simple feature type
+   * @param dictionaryFields dictionary fields
+   * @param encoding simple feature encoding
+   * @param sort sort metadata, if defined each delta is assumed to be sorted
+   * @param sorted whether features are already globally sorted or not
+   * @param batchSize batch size
+   * @param deltas output from `DeltaWriter.encode`
+   * @param process process the output into a valid arrow file (which usually requires reading the entire input stream)
+   * @return single arrow streaming file, with potentially multiple record batches, or raw delta batches
+   */
+  def reduce(
+      sft: SimpleFeatureType,
+      dictionaryFields: Seq[String],
+      encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
+      sort: Option[(String, Boolean)],
+      sorted: Boolean,
+      batchSize: Int,
+      process: Boolean,
+      deltas: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
+    if (process) {
+      new ReducingIterator(sft, dictionaryFields, encoding, ipcOpts, sort, sorted, batchSize, deltas)
+    } else {
+      new RawIterator(sft, dictionaryFields, encoding, ipcOpts, sort, deltas)
+    }
   }
 
   /**
@@ -321,7 +351,7 @@ object DeltaWriter extends StrictLogging {
               }
             }
           (name, transfer)
-        }
+        }.toSeq
       }
 
       private val threadIterator = threadedBatches.iterator
@@ -511,7 +541,7 @@ object DeltaWriter extends StrictLogging {
               val transfer = fromVector.makeTransferPair(toVector)
               (fromIndex: Int, toIndex: Int) => transfer.copyValueSafe(fromIndex, toIndex)
             }
-          }
+          }.toSeq
           val mapVector = toLoad.underlying
           val dict = dictionaries.get(sortBy)
           val descriptor = sft.getDescriptor(sortBy)
@@ -678,7 +708,7 @@ object DeltaWriter extends StrictLogging {
       }
 
       val transfers = Array.ofDim[TransferPair](dictionaries.length)
-      val mappings = Array.fill(dictionaries.length)(HashBiMap.create[Integer, Integer]())
+      val mappings = Array.fill(dictionaries.length)(new java.util.HashMap[Integer, Integer]())
 
       var i = 0 // dictionary field index
       while (i < dictionaries.length) {
@@ -693,7 +723,7 @@ object DeltaWriter extends StrictLogging {
         while (!queue.isEmpty) {
           val merger = queue.remove()
           merger.transfer(count)
-          mappings(i).put(merger.offset, count)
+          mappings(i).put(count, merger.offset)
           if (merger.advance()) {
             queue.add(merger)
           }
@@ -1002,12 +1032,12 @@ object DeltaWriter extends StrictLogging {
    * @param mappings mappings from the local threaded batch dictionary to the global dictionary
    * @param batch the batch number
    */
-  class DictionaryMerger(
+  private class DictionaryMerger(
       readers: Array[ArrowAttributeReader],
       transfers: Array[TransferPair],
       offsets: Array[Int],
       orderings: Array[Ordering[AnyRef]],
-      val mappings: Array[HashBiMap[Integer, Integer]],
+      val mappings: Array[java.util.HashMap[Integer, Integer]],
       val batch: Int
     ) extends Ordered[DictionaryMerger] {
 
@@ -1060,7 +1090,7 @@ object DeltaWriter extends StrictLogging {
      *
      * @return
      */
-    def remap: Integer = mappings(current).inverse().get(_index)
+    def remap: Integer = mappings(current).get(_index)
 
     /**
      * Read the next value from the current dictionary. Closes the current dictionary if there are no more values.
@@ -1162,5 +1192,49 @@ object DeltaWriter extends StrictLogging {
     override def next(): Array[Byte] = reduced.next()
 
     override def close(): Unit = CloseWithLogging(deltas, reduced)
+  }
+
+  private class RawIterator(
+      sft: SimpleFeatureType,
+      dictionaryFields: Seq[String],
+      encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
+      sort: Option[(String, Boolean)],
+      deltas: CloseableIterator[Array[Byte]]
+    ) extends CloseableIterator[Array[Byte]] {
+
+    private lazy val reduced = {
+      try {
+        // write out an empty batch so that we get the header and dictionaries
+        var i = -1L
+        val dictionaries = dictionaryFields.map { name =>
+          val descriptor = sft.getDescriptor(name)
+          val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
+          // delta dicts are encoded as int32s since we don't know the size up front
+          val enc = new DictionaryEncoding({i += 1; i}, true, new ArrowType.Int(32, true))
+          name -> new ArrowDictionaryArray(sft.getTypeName, enc, Array.empty, 0, binding.asInstanceOf[Class[AnyRef]])
+        }.toMap
+        val header = WithClose(SimpleFeatureVector.create(sft, dictionaries, encoding, 0)) { vector =>
+          writeHeaderAndFirstBatch(vector, dictionaries, ipcOpts, sort, 0)
+        }
+        CloseWithLogging(dictionaries.values)
+        val length = Array.ofDim[Byte](4)
+        ByteArrays.writeInt(header.length, length)
+        Iterator(length, header) ++ deltas
+      } catch {
+        case NonFatal(e) =>
+          // if we get an error, re-throw it on next()
+          new Iterator[Array[Byte]] {
+            override def hasNext: Boolean = true
+            override def next(): Array[Byte] = throw e
+          }
+      }
+    }
+
+    override def hasNext: Boolean = reduced.hasNext
+
+    override def next(): Array[Byte] = reduced.next()
+
+    override def close(): Unit = CloseWithLogging(deltas)
   }
 }

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.iterators
-
-import java.util.Map.Entry
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
@@ -19,6 +17,8 @@ import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.iterators.StatsScan.{StatResult, StatsResultsToFeatures}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import java.util.Map.Entry
 
 /**
  * Reads simple features and observe them with a Stat server-side

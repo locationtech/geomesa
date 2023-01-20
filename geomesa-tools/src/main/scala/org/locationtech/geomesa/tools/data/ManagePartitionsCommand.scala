@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.tools.data
-
-import java.time.{ZoneOffset, ZonedDateTime}
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -19,10 +17,14 @@ import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.data.ManagePartitionsCommand._
 import org.locationtech.geomesa.tools.utils.ParameterConverters.IntervalConverter
 import org.locationtech.geomesa.tools.utils.Prompt
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.time.{ZoneOffset, ZonedDateTime}
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * List, add, delete partitioned tables
@@ -57,8 +59,13 @@ object ManagePartitionsCommand {
 
     override protected def execute(ds: DS, sft: SimpleFeatureType, partition: TablePartition): Unit = {
       Command.user.info(s"Partitions for schema ${params.featureName}:")
-      val partitions = ds.manager.indices(sft).par.flatMap(_.getPartitions)
-      partitions.seq.distinct.sorted.foreach(p => Command.output.info(p))
+      val partitions = ArrayBuffer.empty[String]
+      def loadSingle(index: GeoMesaFeatureIndex[_, _]): Unit = {
+        val p = index.getPartitions
+        partitions.synchronized(partitions ++= p)
+      }
+      ds.manager.indices(sft).toList.map(i => CachedThreadPool.submit(() => loadSingle(i))).foreach(_.get)
+      partitions.distinct.sorted.foreach(p => Command.output.info(p))
     }
   }
 
@@ -71,9 +78,11 @@ object ManagePartitionsCommand {
 
     override protected def modify(ds: DS, sft: SimpleFeatureType, partition: TablePartition, p: String): Unit = {
       Command.user.info(s"Adding partition '$p'")
-      ds.manager.indices(sft, mode = IndexMode.Write).par.foreach { index =>
+      def createSingle(index: GeoMesaFeatureIndex[_, _]): Unit =
         ds.adapter.createTable(index, Some(p), index.getSplits(Some(p)))
-      }
+      ds.manager.indices(sft, mode = IndexMode.Write).toList
+          .map(i => CachedThreadPool.submit(() => createSingle(i)))
+          .foreach(_.get)
     }
   }
 
@@ -153,9 +162,9 @@ object ManagePartitionsCommand {
 
     override protected def modify(ds: DS, sft: SimpleFeatureType, partition: TablePartition, p: String): Unit = {
       Command.user.info(s"Deleting partition '$p'")
-      ds.manager.indices(sft).par.foreach { index =>
+      def deleteSingle(index: GeoMesaFeatureIndex[_, _]): Unit =
         ds.adapter.deleteTables(index.deleteTableNames(Some(p)))
-      }
+      ds.manager.indices(sft).toList.map(i => CachedThreadPool.submit(() => deleteSingle(i))).foreach(_.get)
     }
   }
 

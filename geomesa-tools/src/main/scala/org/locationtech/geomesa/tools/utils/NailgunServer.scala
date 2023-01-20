@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,10 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.tools.utils
-
-import java.net.InetAddress
-import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
-import java.util.concurrent.{Future, Phaser, TimeUnit}
 
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{JCommander, Parameter}
@@ -22,6 +18,9 @@ import org.locationtech.geomesa.tools.utils.NailgunServer.{CommandStat, NailgunA
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
+import java.net.InetAddress
+import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
+import java.util.concurrent.{Future, Phaser, TimeUnit}
 import scala.concurrent.duration.Duration
 
 class NailgunServer(addr: InetAddress, port: Int, sessionPoolSize: Int, timeoutMillis: Int, idleTimeoutMillis: Long)

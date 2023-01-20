@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,18 +12,20 @@ import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
-import org.apache.spark.rdd.RDD
 import org.apache.spark.serializer.KryoRegistrator
 import org.geotools.data.DataStore
-import org.locationtech.geomesa.features.SimpleFeatureSerializers
+import org.geotools.feature.simple.SimpleFeatureImpl
+import org.locationtech.geomesa.features.ScalaSimpleFeature.{ImmutableSimpleFeature, LazyImmutableSimpleFeature, LazyMutableSimpleFeature}
+import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.features.kryo.serialization.SimpleFeatureSerializer
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.concurrent.ConcurrentHashMap
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.Try
 import scala.util.hashing.MurmurHash3
 
@@ -62,7 +64,7 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator with LazyLogging {
       }
     }
     kryo.setReferences(false)
-    SimpleFeatureSerializers.simpleFeatureImpls.foreach(kryo.register(_, serializer, kryo.getNextRegistrationId))
+    GeoMesaSparkKryoRegistrator.SimpleFeatureImpls.foreach(kryo.register(_, serializer, kryo.getNextRegistrationId))
   }
 
   def registerSedonaClasses(kryo: Kryo): Unit = {
@@ -78,47 +80,47 @@ object GeoMesaSparkKryoRegistrator {
 
   private val typeCache = new ConcurrentHashMap[Int, SimpleFeatureType]()
 
+  private val SimpleFeatureImpls: Seq[Class[_ <: SimpleFeature]] =
+    Seq(
+      classOf[ScalaSimpleFeature],
+      classOf[ImmutableSimpleFeature],
+      classOf[LazyImmutableSimpleFeature],
+      classOf[LazyMutableSimpleFeature],
+      classOf[KryoBufferSimpleFeature],
+      classOf[TransformSimpleFeature],
+      classOf[SimpleFeatureImpl],
+      classOf[SimpleFeature]
+    )
+
   GeoMesaSparkKryoRegistratorEndpoint.init()
 
   def identifier(sft: SimpleFeatureType): Int = math.abs(MurmurHash3.stringHash(CacheKeyGenerator.cacheKey(sft)))
 
   def putType(sft: SimpleFeatureType): Int = {
     val id = identifier(sft)
-    if (typeCache.putIfAbsent(id, sft) == null) GeoMesaSparkKryoRegistratorEndpoint.Client.putType(id, sft)
+    if (typeCache.putIfAbsent(id, sft) == null) {
+      GeoMesaSparkKryoRegistratorEndpoint.Client.putType(id, sft)
+    }
     id
   }
 
   def putTypes(types: Seq[SimpleFeatureType]): Seq[Int] =
-    types.map { sft =>
-      val id = identifier(sft)
-      typeCache.putIfAbsent(id, sft)
-      id
-    }
+    types.map(putType)
 
   def getType(id: Int): SimpleFeatureType =
     Option(typeCache.get(id)).orElse {
-        fromSystemProperties(id) orElse GeoMesaSparkKryoRegistratorEndpoint.Client.getType(id) map {
+        fromSystemProperties(id).orElse(GeoMesaSparkKryoRegistratorEndpoint.Client.getType(id)).map {
           sft => typeCache.put(id, sft); sft
         }
       }.orNull
 
-  def getTypes: Seq[SimpleFeatureType] = Seq(typeCache.values.toSeq: _*)
+  def getTypes: Seq[SimpleFeatureType] = Seq(typeCache.values.asScala.toSeq: _*)
 
   def register(ds: DataStore): Unit = register(ds.getTypeNames.map(ds.getSchema))
 
   def register(sfts: Seq[SimpleFeatureType]): Unit = sfts.foreach(register)
 
   def register(sft: SimpleFeatureType): Unit = GeoMesaSparkKryoRegistrator.putType(sft)
-
-  @deprecated
-  def broadcast(partitions: RDD[_]): Unit = {
-    val encodedTypes = typeCache
-      .map { case (_, sft) => (sft.getTypeName, SimpleFeatureTypes.encodeType(sft)) }
-      .toArray
-    partitions.foreachPartition { _ =>
-      encodedTypes.foreach { case (name, spec) => putType(SimpleFeatureTypes.createType(name, spec)) }
-    }
-  }
 
   def systemProperties(schemas: SimpleFeatureType*): Seq[(String, String)] = {
     schemas.flatMap { sft =>

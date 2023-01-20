@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,10 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
-
-import java.nio.charset.StandardCharsets
-import java.util.Collections
-import java.util.Map.Entry
 
 import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
@@ -25,7 +21,7 @@ import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.Accumu
 import org.locationtech.geomesa.accumulo.iterators.DensityIterator.AccumuloDensityResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators.StatsIterator.AccumuloStatsResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, TableUtils}
+import org.locationtech.geomesa.accumulo.util.TableUtils
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
@@ -40,9 +36,14 @@ import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index, Z3IndexValues
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.nio.charset.StandardCharsets
+import java.util.Collections
+import java.util.Map.Entry
 
 /**
   * Index adapter for accumulo back-end
@@ -123,25 +124,26 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
   }
 
   override def deleteTables(tables: Seq[String]): Unit = {
-    tables.par.foreach { table =>
+    def deleteOne(table: String): Unit = {
       if (tableOps.exists(table)) {
         tableOps.delete(table)
       }
     }
+    tables.toList.map(table => CachedThreadPool.submit(() => deleteOne(table))).foreach(_.get)
   }
 
   override def clearTables(tables: Seq[String], prefix: Option[Array[Byte]]): Unit = {
     val auths = ds.auths // get the auths once up front
-    tables.par.foreach { table =>
+    def clearOne(table: String): Unit = {
       if (tableOps.exists(table)) {
-        val config = GeoMesaBatchWriterConfig().setMaxWriteThreads(ds.config.writeThreads)
-        WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queries.threads, config)) { deleter =>
+        WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queries.threads)) { deleter =>
           val range = prefix.map(p => Range.prefix(new Text(p))).getOrElse(new Range())
           deleter.setRanges(Collections.singletonList(range))
           deleter.delete()
         }
       }
     }
+    tables.toList.map(table => CachedThreadPool.submit(() => clearOne(table))).foreach(_.get)
   }
 
   override def createQueryPlan(strategy: QueryStrategy): AccumuloQueryPlan = {
@@ -365,7 +367,7 @@ object AccumuloIndexAdapter {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    private val multiWriter = ds.connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
+    private val multiWriter = ds.connector.createMultiTableBatchWriter()
     private val writers = indices.toArray.map { index =>
       val table = index.getTableNames(partition) match {
         case Seq(t) => t // should always be writing to a single table here

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -47,6 +47,15 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
    * Not testing too much here stat-wise, as most of the stat testing is in geomesa-utils
    */
   "StatsIterator" should {
+
+    "return correctly for exclude filter" in {
+      val q = getQuery("MinMax(attr)", Some("EXCLUDE"))
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
+      val sf = results.head
+
+      val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
+      minMaxStat.bounds mustEqual (Long.MinValue, Long.MaxValue)
+    }
 
     "work with the MinMax stat" in {
       val q = getQuery("MinMax(attr)")
@@ -170,6 +179,5 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithFeatureType {
       val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
       minMaxStat.bounds mustEqual (22, 298)
     }
-
   }
 }

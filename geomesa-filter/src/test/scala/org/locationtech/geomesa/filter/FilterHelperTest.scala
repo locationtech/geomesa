@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,11 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.filter
-
-import java.time.temporal.ChronoUnit
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util
-import java.util.Date
 
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl, LiteralExpressionImpl, OrImpl}
@@ -27,6 +22,11 @@ import org.opengis.filter._
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.time.temporal.ChronoUnit
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class FilterHelperTest extends Specification {
@@ -314,6 +314,56 @@ class FilterHelperTest extends Specification {
       intervals1 mustEqual intervals2
     }
 
+    "remove interleaving bounds for AND filter" >> {
+      var cql = "S < 3 AND S < 2 AND S < 4"
+      var bounds = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql), "S", classOf[Integer])
+      bounds.values must haveSize(1)
+      bounds.values.exists(_ == Bounds(Bound(None, false), Bound(Some(2), false))) must beTrue
+      cql = "S >= 3 AND S >= 2 AND S >= 1"
+      bounds = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql), "S", classOf[Integer])
+      bounds.values must haveSize(1)
+      bounds.values.exists(_ == Bounds(Bound(Some(3), true), Bound(None, false))) must beTrue
+    }
+
+    "remove interleaving bounds for OR filter" >> {
+      var cql = "S < 3 OR S < 2 OR S < 1"
+      var bounds = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql), "S", classOf[Integer])
+      bounds.values must haveSize(1)
+      bounds.values.exists(_ == Bounds(Bound(None, false), Bound(Some(3), false))) must beTrue
+      cql = "S >= 3 OR S >= 2 OR S >= 1"
+      bounds = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql), "S", classOf[Integer])
+      bounds.values must haveSize(1)
+      bounds.values.exists(_ == Bounds(Bound(Some(1), true), Bound(None, false))) must beTrue
+    }
+
+    "concatenate bounds for OR filter" >> {
+      var cql = "(S > 2 AND S <= 5) OR (S > 1 AND S < 3)"
+      var bounds = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql), "S", classOf[Integer])
+      bounds.values must haveSize(1)
+      bounds.values.exists(_ == Bounds(Bound(Some(1), false), Bound(Some(5), true))) must beTrue
+      cql = "(S >= 3 AND S <= 5) OR (S > 1 AND S < 3)"
+      bounds = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql), "S", classOf[Integer])
+      bounds.values must haveSize(1)
+      bounds.values.exists(_ == Bounds(Bound(Some(1), false), Bound(Some(5), true))) must beTrue
+    }
+
+    "don't concatenate open bounds for OR filter" >> {
+      val cql = "(S > 3 AND S <= 5) OR (S > 1 AND S < 3)"
+      val bounds = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql), "S", classOf[Integer])
+      bounds.values must haveSize(2)
+      bounds.values.exists(_ == Bounds(Bound(Some(1), false), Bound(Some(3), false))) must beTrue
+      bounds.values.exists(_ == Bounds(Bound(Some(3), false), Bound(Some(5), true))) must beTrue
+    }
+
+    "remove duplicated bounds" >> {
+      val cql1 = "(S > 3 AND S < 5) OR (S > 8)"
+      val cql2 = "(S > 3 OR S > 8) AND (S < 5 OR S > 8)"
+      val bounds1 = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql1), "S", classOf[Integer])
+      val bounds2 = FilterHelper.extractAttributeBounds(ECQL.toFilter(cql2), "S", classOf[Integer])
+      bounds1 mustEqual bounds2
+      bounds1.values must haveSize(2)
+    }
+
     "deduplicate OR filters" >> {
       val filters = Seq(
         ("(a > 1 AND b < 2 AND c = 3) OR (c = 3 AND a > 2 AND b < 2) OR (b < 2 AND a > 3 AND c = 3)",
@@ -330,7 +380,7 @@ class FilterHelperTest extends Specification {
     }
 
     "deduplicate massive OR filters without stack overflow" >> {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       // actual count to get the old code to stack overflow varies depending on environment
       // with the fix, tested up to 100k without issue, but the specs checks take a long time with that many
       val count = 1000
@@ -342,7 +392,7 @@ class FilterHelperTest extends Specification {
       val flattened = FilterHelper.simplify(filter)
       flattened must beAnInstanceOf[Or]
       flattened.asInstanceOf[Or].getChildren must haveLength(count)
-      flattened.asInstanceOf[Or].getChildren.map(_.toString) must
+      flattened.asInstanceOf[Or].getChildren.asScala.map(_.toString) must
           containTheSameElementsAs((0 until count).map(i => s"[ a equals $i ]"))
     }
 

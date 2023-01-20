@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.security
 
-import java.nio.charset.StandardCharsets
-
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.security.VisibilityEvaluator._
 import org.parboiled.errors.ParsingException
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.nio.charset.StandardCharsets
 
 @RunWith(classOf[JUnitRunner])
 class VisibilityEvaluatorTest extends Specification {
@@ -24,6 +24,20 @@ class VisibilityEvaluatorTest extends Specification {
   val test: Array[Byte]  = "test".getBytes(StandardCharsets.UTF_8)
 
   "VisibilityEvaluator" should {
+
+    "be able to parse non-string chars" >> {
+      foreach(Seq('_', '-', ':', '.', '/')) { char =>
+        val vis = s"x${char}x"
+        VisibilityEvaluator.parse(vis) mustEqual VisibilityValue(vis.getBytes(StandardCharsets.UTF_8))
+      }
+    }
+
+    "be able to parse escaped quoted chars" >> {
+      foreach(Seq("'foo\\'bar'", "\"foo\\\"bar\"")) { vis =>
+        val value = vis.drop(1).dropRight(1).replaceAllLiterally("\\", "").getBytes(StandardCharsets.UTF_8)
+        VisibilityEvaluator.parse(vis) mustEqual VisibilityValue(value)
+      }
+    }
 
     "be able to parse empty visibilities" >> {
       VisibilityEvaluator.parse(null) mustEqual VisibilityNone

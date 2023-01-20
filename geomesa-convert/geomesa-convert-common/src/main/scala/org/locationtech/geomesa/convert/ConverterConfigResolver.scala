@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.convert
 
-import java.io.InputStreamReader
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.conf.ArgResolver
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
+import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 /**
@@ -48,10 +47,13 @@ object ConverterConfigResolver extends ArgResolver[Config, ConfArgs] with LazyLo
   )
 
   private [ConverterConfigResolver] def getLoadedConf(args: ConfArgs): ResEither = {
-    ConverterConfigLoader.confs.find(_._1 == args.config).map(_._2) match {
+    ConverterConfigLoader.confs.get(args.config) match {
       case Some(conf) => Right(conf)
-      case None => Left((s"Unable to get loaded conf ${args.config}",
-        new RuntimeException(s"${args.config} was not found in the loaded confs"), NAME))
+      case None =>
+        val error =
+          new RuntimeException(s"Unable to find config with name: ${args.config}\n  " +
+              s"Available configs: ${ConverterConfigLoader.confs.keys.mkString(", ")}")
+        Left((s"Unable to get loaded conf: ${args.config}", error, NAME))
     }
   }
 
@@ -63,14 +65,14 @@ object ConverterConfigResolver extends ArgResolver[Config, ConfArgs] with LazyLo
       }
       Right(confs.values.head)
     } catch {
-      case NonFatal(e) => Left((s"Unable to parse config from string ${args.config}", e, CONFSTR))
+      case NonFatal(e) => Left((s"Unable to parse config from string: ${args.config}", e, CONFSTR))
     }
   }
 
   private [ConverterConfigResolver] def parseFile(args: ConfArgs): ResEither = {
     try {
       val handle = PathUtils.interpretPath(args.config).headOption.getOrElse {
-        throw new RuntimeException(s"Could not read file at ${args.config}")
+        throw new RuntimeException(s"Could not read file: ${args.config}")
       }
       WithClose(handle.open) { is =>
         if (is.hasNext) {
@@ -81,12 +83,12 @@ object ConverterConfigResolver extends ArgResolver[Config, ConfArgs] with LazyLo
           }
           Right(confs.values.head)
         } else {
-          throw new RuntimeException(s"Could not read file at ${args.config}")
+          throw new RuntimeException(s"Could not read file: ${args.config}")
         }
       }
 
     } catch {
-      case NonFatal(e) => Left((s"Unable to parse config from file ${args.config}", e, PATH))
+      case NonFatal(e) => Left((s"Unable to parse config from file: ${args.config}", e, PATH))
     }
   }
 }

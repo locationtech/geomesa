@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,17 +8,17 @@
 
 package org.locationtech.geomesa.arrow.features
 
-import java.util.{Objects, Collection => jCollection, List => jList, Map => jMap}
-
-import org.locationtech.jts.geom.Geometry
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader
 import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
+
+import java.util.{Objects, Collection => jCollection, List => jList, Map => jMap}
 
 /**
   * Simple feature backed by an arrow vector. Attributes are lazily evaluated - this allows filters to only
@@ -34,7 +34,7 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
                          idReader: ArrowAttributeReader,
                          attributeReaders: Array[ArrowAttributeReader],
                          private [arrow] var index: Int) extends SimpleFeature {
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   private lazy val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
 
@@ -58,7 +58,7 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
   override def getID: String = idReader.apply(index).asInstanceOf[String]
   override def getIdentifier: FeatureId = new ImmutableFeatureId(getID)
 
-  override def getUserData: jMap[AnyRef, AnyRef] = Map.empty[AnyRef, AnyRef]
+  override def getUserData: jMap[AnyRef, AnyRef] = Map.empty[AnyRef, AnyRef].asJava
 
   override def getType: SimpleFeatureType = sft
   override def getFeatureType: SimpleFeatureType = sft
@@ -110,7 +110,7 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
   override def isNillable: Boolean = true
   override def validate(): Unit = throw new NotImplementedError
 
-  override def toString: String = s"ArrowSimpleFeature:$getID:${getAttributes.mkString("|")}"
+  override def toString: String = s"ArrowSimpleFeature:$getID:${getAttributes.asScala.mkString("|")}"
 
   override def hashCode: Int = Objects.hash(getID, getName, getAttributes)
 

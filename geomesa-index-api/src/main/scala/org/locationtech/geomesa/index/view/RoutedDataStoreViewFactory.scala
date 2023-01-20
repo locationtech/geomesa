@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.view
-
-import java.awt.RenderingHints
 
 import com.typesafe.config._
 import org.geotools.data.DataAccessFactory.Param
@@ -18,6 +16,7 @@ import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 
+import java.awt.RenderingHints
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
@@ -30,13 +29,13 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
 
   import scala.collection.JavaConverters._
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     RoutedDataStoreViewFactory.canProcess(params)
 
-  override def createDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore =
+  override def createDataStore(params: java.util.Map[String, _]): DataStore =
     createNewDataStore(params)
 
-  override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = {
     val config = ConfigFactory.parseString(ConfigParam.lookup(params)).resolve()
     val configs = if (config.hasPath("stores")) { config.getConfigList("stores").asScala } else { Seq.empty }
     if (configs.isEmpty) {
@@ -57,7 +56,7 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
         val storeParams = nsConfig.map(config.withValue(NamespaceParam.key, _)).getOrElse(config).root().unwrapped()
         Try(DataStoreFinder.getDataStore(storeParams)) match {
           case Success(null)  => throw error
-          case Success(store) => stores += store -> storeParams.asInstanceOf[java.util.Map[String, AnyRef]]
+          case Success(store) => stores += store -> storeParams
           case Failure(e)     => throw error.initCause(e)
         }
       }
@@ -88,7 +87,7 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
 
   override def getDescription: String = Description
 
-  override def getParametersInfo: Array[Param] = ParameterInfo :+ NamespaceParam
+  override def getParametersInfo: Array[Param] = Array(ParameterInfo :+ NamespaceParam: _*)
 
   override def isAvailable: Boolean = true
 
@@ -120,6 +119,6 @@ object RoutedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] = Array(ConfigParam, RouterParam)
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     params.containsKey(ConfigParam.key)
 }

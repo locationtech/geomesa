@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,6 +12,7 @@ import com.codahale.metrics.{ConsoleReporter, MetricRegistry, Slf4jReporter}
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.metrics.core.ReporterFactory
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

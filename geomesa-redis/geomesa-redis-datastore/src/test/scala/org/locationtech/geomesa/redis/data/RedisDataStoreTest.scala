@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.redis.data
-
-import java.nio.charset.StandardCharsets
-import java.util.Collections
 
 import org.geotools.data.{DataStoreFinder, Query}
 import org.junit.runner.RunWith
@@ -22,6 +19,9 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import redis.clients.jedis.{Jedis, JedisPool}
+
+import java.nio.charset.StandardCharsets
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class RedisDataStoreTest extends Specification with Mockito {

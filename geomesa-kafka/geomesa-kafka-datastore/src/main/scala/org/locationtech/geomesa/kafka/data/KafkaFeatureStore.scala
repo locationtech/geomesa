@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,15 +10,14 @@ package org.locationtech.geomesa.kafka.data
 
 import org.geotools.data.{FeatureListener, Transaction}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureStore
-import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.AppendKafkaFeatureWriter
 import org.locationtech.geomesa.kafka.index.KafkaListeners
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: QueryRunner, listeners: KafkaListeners)
-    extends GeoMesaFeatureStore(ds, sft, runner) {
+class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: KafkaListeners)
+    extends GeoMesaFeatureStore(ds, sft) {
 
   override def removeFeatures(filter: Filter): Unit = filter match {
     case Filter.INCLUDE => clearFeatures()

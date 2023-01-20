@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -163,7 +163,7 @@ class FileSystemDataStoreTest extends Specification {
 
         val queries = Seq(
           new Query(sft.getTypeName),
-          new Query(sft.getTypeName, Filter.INCLUDE, Array("geom"))
+          new Query(sft.getTypeName, Filter.INCLUDE, "geom")
         )
         foreach(queries) { query =>
           val reader = dsWithNs.getFeatureReader(query, Transaction.AUTO_COMMIT)
@@ -225,7 +225,7 @@ class FileSystemDataStoreTest extends Specification {
 
         filters.foreach { filter =>
           transforms.foreach { transform =>
-            val query = new Query(format, filter, transform)
+            val query = new Query(format, filter, transform: _*)
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             results must haveLength(features.length)
             if (transform == null) {
@@ -338,7 +338,7 @@ class FileSystemDataStoreTest extends Specification {
             foreach(Seq("INCLUDE", s"bbox(geom,${env.getMinX},${env.getMinY},${env.getMaxX},${env.getMaxY})")) { filter =>
               val query = new Query(format, ECQL.toFilter(filter))
               SelfClosingIterator(fs.getFeatures(query).features()).toList must containTheSameElementsAs(features)
-              val transform = new Query(format, ECQL.toFilter(filter), Array("dtg", "geom"))
+              val transform = new Query(format, ECQL.toFilter(filter), "dtg", "geom")
               val transformSft = SimpleFeatureTypes.createType(format,
                 s"dtg:Date,*geom:${sft.getGeometryDescriptor.getType.getBinding.getSimpleName}")
               SelfClosingIterator(fs.getFeatures(transform).features()).toList must

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -27,7 +27,7 @@ import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleF
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 /**
@@ -64,10 +64,10 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     FileInputFormat.setInputPaths(job, params(InputFilesKey))
     conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
     val queryProperties = query.getPropertyNames
-    val sftProperties = sft.getAttributeDescriptors.map{_.getLocalName}
+    val sftProperties = sft.getAttributeDescriptors.asScala.map{_.getLocalName}
     if (queryProperties != null && queryProperties.nonEmpty && sftProperties != queryProperties.toSeq) {
       logger.debug("Query transform retyping results")
-      val modifiedSft = SimpleFeatureTypeBuilder.retype(sft, query.getPropertyNames)
+      val modifiedSft = SimpleFeatureTypeBuilder.retype(sft, query.getPropertyNames: _*)
       ConverterInputFormat.setRetypeSft(conf, modifiedSft)
     }
 

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,10 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.arrow.io
-
-import java.io.{Closeable, OutputStream}
-import java.nio.channels.Channels
-import java.util.Collections
 
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.StructVector
@@ -27,6 +23,10 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.{Closeable, OutputStream}
+import java.nio.channels.Channels
+import java.util.Collections
 
 /**
  * Writes an arrow file of simple features. Dictionaries will be built up as features are observed.

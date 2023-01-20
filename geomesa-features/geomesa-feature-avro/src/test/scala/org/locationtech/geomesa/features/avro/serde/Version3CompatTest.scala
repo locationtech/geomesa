@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,20 +8,19 @@
 
 package org.locationtech.geomesa.features.avro.serde
 
-import java.io.{File, FileInputStream, FileOutputStream}
-import java.text.SimpleDateFormat
-import java.util.UUID
-
 import org.apache.avro.io.DecoderFactory
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.FeatureSpecificReader
+import org.locationtech.geomesa.features.avro.serialization.{AvroSerialization, SimpleFeatureDatumReader}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.{File, FileInputStream, FileOutputStream}
+import java.text.SimpleDateFormat
+import java.util.UUID
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
@@ -64,7 +63,7 @@ class Version3CompatTest extends Specification {
 
       val fis = new FileInputStream(f)
       val decoder = DecoderFactory.get().binaryDecoder(fis, null)
-      val fsr = FeatureSpecificReader(sft)
+      val fsr = SimpleFeatureDatumReader(AvroSerialization(sft, Set.empty).schema, sft)
 
       val sfList = new ListBuffer[SimpleFeature]()
       do {

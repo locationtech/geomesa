@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -16,7 +16,6 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{TableScan, filterToString, rangeToString, scanToString}
 import org.locationtech.geomesa.hbase.utils.{CoprocessorBatchScan, HBaseBatchScan}
-import org.locationtech.geomesa.index.PartitionParallelScan
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.utils.Explainer
@@ -45,7 +44,7 @@ sealed trait HBaseQueryPlan extends QueryPlan[HBaseDataStore] {
     // convert the relative timeout to an absolute timeout up front
     val timeout = ds.config.queries.timeout.map(Timeout.apply)
     val iter = scans.iterator.map(singleTableScan(_, ds.connection, threads(ds), timeout))
-    if (PartitionParallelScan.toBoolean.contains(true)) {
+    if (ds.config.queries.parallelPartitionScans) {
       // kick off all the scans at once
       iter.foldLeft(CloseableIterator.empty[Results])(_ ++ _)
     } else {

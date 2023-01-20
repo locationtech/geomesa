@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.data
-
-import java.util.concurrent.ConcurrentHashMap
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
@@ -19,6 +17,7 @@ import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 
+import java.util.concurrent.ConcurrentHashMap
 import scala.util.control.NonFatal
 
 /**
@@ -53,7 +52,7 @@ class FileSystemStorageManager private (fc: FileContext, conf: Configuration, ro
     * @return
     */
   def storages(): Seq[FileSystemStorage] = {
-    loadAll().foreach(_ => Unit) // force loading of everything
+    loadAll().foreach(_ => ()) // force loading of everything
     cache.map { case (_, (_, storage)) => storage }.toSeq
   }
 

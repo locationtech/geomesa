@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,7 +14,11 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{Analyze
 /**
  * Deletes history older than 7 days
  */
-object LogCleaner extends SqlFunction with CronSchedule {
+object LogCleaner extends LogCleaner with AdvisoryLock {
+  override protected val lockId: Long = 6743164310736814350L
+}
+
+class LogCleaner extends SqlFunction with CronSchedule {
 
   override def name(info: TypeInfo): FunctionName = FunctionName("cron_log_cleaner")
 

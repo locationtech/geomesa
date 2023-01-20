@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -22,8 +22,8 @@ class ArrowIngestCommand extends IngestCommand[ArrowDataStore] with ArrowDataSto
   override val params = new ArrowIngestParams()
 
   override def execute(): Unit = {
-    import scala.collection.JavaConversions._
-    if (params.files.exists(PathUtils.isRemote)) {
+    import scala.collection.JavaConverters._
+    if (params.files.asScala.exists(PathUtils.isRemote _)) {
       throw new ParameterException(s"Only local ingestion supported: ${params.files}")
     }
     super.execute()

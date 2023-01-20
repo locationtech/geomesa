@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,22 +9,23 @@
 package org.locationtech.geomesa.hbase.spark
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.spark.sql.{DataFrame, SQLContext, SQLTypes, SparkSession}
-import org.geotools.data.{Query, Transaction}
+import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
+import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory
+import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseDataStoreFactory}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
+import org.locationtech.geomesa.spark.sql.SQLTypes
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class HBaseSparkProviderIntegrationTest extends Specification with LazyLogging {
 
   import org.locationtech.geomesa.filter.ff
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -36,8 +37,7 @@ class HBaseSparkProviderIntegrationTest extends Specification with LazyLogging {
   def dtgField: Option[String] = Some("dtg")
 
   lazy val dsParams = Map(HBaseCatalogParam.getName -> "test_sft")
-  lazy val dsf = new HBaseDataStoreFactory()
-  lazy val ds = dsf.createDataStore(dsParams)
+  lazy val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[HBaseDataStore]
 
   var spark: SparkSession = null
   var sc: SQLContext = null

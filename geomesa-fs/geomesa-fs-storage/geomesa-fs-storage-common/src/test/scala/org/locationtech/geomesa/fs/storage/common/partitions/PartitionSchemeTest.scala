@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,10 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.storage.common.partitions
-
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.util.Date
 
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -25,6 +21,10 @@ import org.opengis.filter.{Filter, PropertyIsLessThan}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
+
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class PartitionSchemeTest extends Specification with AllExpectations {
@@ -41,8 +41,9 @@ class PartitionSchemeTest extends Specification with AllExpectations {
     "partition based on attribute" >> {
       val ps = PartitionSchemeFactory.load(sft, NamedOptions("attribute", Map("partitioned-attribute" -> "name")))
       ps.getPartitionName(sf) mustEqual "test"
-      ps.getSimplifiedFilters(ECQL.toFilter("name IN ('foo', 'bar')")) must
-          beSome(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("foo", "bar"), partial = false)))
+      ps.getSimplifiedFilters(ECQL.toFilter("name IN ('foo', 'bar')")) must beOneOf(
+        Some(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("foo", "bar"), partial = false))),
+        Some(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("bar", "foo"), partial = false))))
       ps.getSimplifiedFilters(ECQL.toFilter("name IN ('foo', 'bar')"), Some("foo")) must
           beSome(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("foo"), partial = false)))
       ps.getSimplifiedFilters(ECQL.toFilter("name < 'foo' and name > 'bar'")) must beNone
@@ -242,8 +243,8 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       val expected =
         ECQL.toFilter("bbox(geom,0,0,180,90) AND dtg >= '2018-01-01T00:00:00.000Z' AND dtg < '2018-01-02T00:00:00.000Z'")
       // compare toString to get around crs comparison failures in bbox
-      decomposeAnd(ps.getCoveringFilter("2018/01/01/3")).map(_.toString) must
-          containTheSameElementsAs(decomposeAnd(expected).map(_.toString))
+      decomposeAnd(ps.getCoveringFilter("2018/01/01/3")).map(ECQL.toCQL) must
+          containTheSameElementsAs(decomposeAnd(expected).map(ECQL.toCQL))
     }
 
     "calculate covering filters for monthly datetime" >> {

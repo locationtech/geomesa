@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -97,7 +97,7 @@ object VisibilityFilterFunctionTest {
   private val auths = new ThreadLocal[java.util.List[String]]
 
   class TestAuthorizationsProvider extends AuthorizationsProvider {
-    override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
+    override def configure(params: java.util.Map[String, _]): Unit = {}
     override def getAuthorizations: java.util.List[String] = auths.get
   }
 }

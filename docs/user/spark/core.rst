@@ -140,6 +140,11 @@ To save features, use the ``save()`` method:
 
     GeoMesaSpark(params).save(rdd, params, "gdelt")
 
+.. warning::
+
+  The ``save()`` method executes an appending write, and does not currently support updating existing features.
+  Reusing feature IDs is a logical error, and may produce inconsistencies in your data.
+
 Note that some providers may be read-only.
 
 See :doc:`./providers` for details on specific provider implementations.

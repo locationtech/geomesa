@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.view
-
-import java.nio.file.{Files, Path}
-import java.util.Date
 
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -24,28 +21,31 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.jts.geom.Point
 import org.specs2.runner.JUnitRunner
 
+import java.nio.file.{Files, Path}
+import java.util.Date
+
 @RunWith(classOf[JUnitRunner])
 class RoutedDataStoreViewTest extends TestWithFeatureType {
 
   import scala.collection.JavaConverters._
 
-  // note: h2 seems to require ints as the primary key, and then prepends `<typeName>.` when returning them
+  // note: shp seems to just use an incrementing number for the feature id,
+  // and return `<typeName>.` when returning feature them
   // as such, we don't compare primary keys directly here
-  // there may be a way to override this behavior but I haven't found it...
 
-  sequential // note: shouldn't need to be sequential, but h2 doesn't do well with concurrent requests
+  override val spec = "*the_geom:Point:srid=4326,name:String,age:Int,dtg:Date"
 
-  override val spec = "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"
-
-  lazy val features = Seq.tabulate(10) { i =>
-    ScalaSimpleFeature.create(sft, s"$i", s"name$i", 20 + i, s"2018-01-01T00:0$i:00.000Z", s"POINT (45 5$i)")
+  lazy val features = Seq.tabulate(9) { u =>
+    val i = u + 1 // sync up with shp fid
+    // shp seems to round dates to whole days??
+    ScalaSimpleFeature.create(sft, s"$i", s"POINT (45 5$i)", s"name$i", 20 + i, s"2018-01-0${i}T00:00:00.000Z")
   }
 
   lazy val accumuloParams =
     (dsParams +
-      (RouteSelectorByAttribute.RouteAttributes -> Seq(Seq.empty.asJava, "id", "geom", Seq("dtg", "geom").asJava).asJava)).asJava
+      (RouteSelectorByAttribute.RouteAttributes -> Seq(Seq.empty.asJava, "id", "the_geom", Seq("dtg", "the_geom").asJava).asJava)).asJava
 
-  var h2Params: java.util.Map[String, _] = _
+  var shpParams: java.util.Map[String, _] = _
 
   var path: Path = _
   var routedDs: RoutedDataStoreView = _
@@ -57,28 +57,32 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
   }
 
   step {
+    addFeatures(features)
+    SelfClosingIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must
+        haveLength(features.length)
+
     path = Files.createTempDirectory(s"route-ds-test")
 
-    h2Params = Map(
-      "dbtype"                                 -> "h2",
-      "database"                               -> path.toFile.getAbsolutePath,
+    shpParams = Map(
+      "url"                                    -> s"file://${path.toFile.getAbsolutePath}/$sftName.shp",
       RouteSelectorByAttribute.RouteAttributes -> Seq("name", "age").asJava
     ).asJava
 
-    val h2Ds = DataStoreFinder.getDataStore(h2Params)
-    h2Ds.createSchema(sft)
-    WithClose(h2Ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)) { writer =>
-      features.iterator.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+    val shpDs = DataStoreFinder.getDataStore(shpParams)
+    try {
+      shpDs.createSchema(sft)
+      WithClose(shpDs.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)) { writer =>
+        features.iterator.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+      }
+      SelfClosingIterator(shpDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must
+          haveLength(features.length)
+    } finally {
+      if (shpDs != null) {
+        shpDs.dispose()
+      }
     }
 
-    addFeatures(features)
-
-    foreach(Seq(h2Ds, ds)) { ds =>
-      SelfClosingIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must haveLength(10)
-    }
-    h2Ds.dispose()
-
-    routedDs = DataStoreFinder.getDataStore(comboParams(h2Params, accumuloParams)).asInstanceOf[RoutedDataStoreView]
+    routedDs = DataStoreFinder.getDataStore(comboParams(shpParams, accumuloParams)).asInstanceOf[RoutedDataStoreView]
     routedDs must not(beNull)
   }
 
@@ -90,16 +94,16 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
       val sft = routedDs.getSchema(sftName)
 
       sft.getAttributeCount mustEqual 4
-      sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("name", "age", "dtg", "geom")
+      sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("the_geom", "name", "age", "dtg")
       sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
-          Seq(classOf[String], classOf[Integer], classOf[Date], classOf[Point])
+          Seq(classOf[Point], classOf[String], classOf[Integer], classOf[Date])
     }
 
     "query multiple data stores" in {
       val results = SelfClosingIterator(routedDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList
 
-      results must haveLength(10)
-      foreach(results.sortBy(_.getAttribute(0).asInstanceOf[String]).zip(features)) { case (actual, expected) =>
+      results must haveLength(features.length)
+      foreach(results.sortBy(_.getAttribute("name").asInstanceOf[String]).zip(features)) { case (actual, expected) =>
         // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
         expected.getAttributes.asScala mustEqual actual.getAttributes.asScala
       }
@@ -108,16 +112,16 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
     "query multiple data stores with filters and transforms" in {
       val filters = Seq(
         "IN('3', '4', '5', '6')",
-        "bbox(geom,44,52.5,46,56.5)",
-        "bbox(geom,44,52,46,59) and dtg DURING 2018-01-01T00:02:30.000Z/2018-01-01T00:06:30.000Z",
+        "bbox(the_geom,44,52.5,46,56.5)",
+        "bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-02T12:00:00.000Z/2018-01-06T12:00:00.000Z",
         "name IN('name3', 'name4', 'name5', 'name6')"
       )
-      val transforms = Seq(null, Array("geom"), Array("geom", "dtg"), Array("name"), Array("dtg", "geom", "age", "name"))
+      val transforms = Seq(null, Array("the_geom"), Array("the_geom", "dtg"), Array("name"), Array("dtg", "the_geom", "age", "name"))
 
       foreach(filters) { filter =>
         val ecql = ECQL.toFilter(filter)
         foreach(transforms) { transform =>
-          val query = new Query(sftName, ecql, transform)
+          val query = new Query(sftName, ecql, transform: _*)
           val results = SelfClosingIterator(routedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must haveLength(4)
           val attributes = Option(transform).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)

@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2017-2022 IBM
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2017-2023 IBM
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,10 +8,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.cassandra.data
-
-import java.awt.RenderingHints
-import java.io.Serializable
-import java.util
 
 import com.datastax.driver.core._
 import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, TokenAwarePolicy}
@@ -23,6 +19,8 @@ import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthori
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
+import java.awt.RenderingHints
+import java.util
 import scala.util.control.NonFatal
 
 class CassandraDataStoreFactory extends DataStoreFactorySpi {
@@ -30,9 +28,9 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
   import CassandraDataStoreFactory.Params._
 
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: util.Map[String, Serializable]): DataStore = createDataStore(params)
+  override def createNewDataStore(params: util.Map[String, _]): DataStore = createDataStore(params)
 
-  override def createDataStore(params: util.Map[String, Serializable]): DataStore = {
+  override def createDataStore(params: util.Map[String, _]): DataStore = {
     import org.locationtech.geomesa.cassandra.CassandraSystemProperties.{ConnectionTimeoutMillis, ReadTimeoutMillis}
 
     val (cp, portString) = ContactPointParam.lookup(params).split(":") match {
@@ -88,7 +86,7 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
       threads = QueryThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params),
-      caching = CachingParam.lookup(params)
+      parallelPartitionScans = PartitionParallelScansParam.lookup(params)
     )
 
     val authProvider = new DefaultAuthorizationsProvider()
@@ -110,7 +108,7 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     CassandraDataStoreFactory.ParameterInfo ++
         Array(NamespaceParam, CassandraDataStoreFactory.DeprecatedGeoServerPasswordParam)
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     CassandraDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
@@ -143,12 +141,12 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       Params.GenerateStatsParam,
       Params.AuditQueriesParam,
       Params.LooseBBoxParam,
-      Params.CachingParam,
+      Params.PartitionParallelScansParam,
       Params.QueryThreadsParam,
       Params.QueryTimeoutParam
     )
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     Params.KeySpaceParam.exists(params)
 
   object Params extends GeoMesaDataStoreParams {
@@ -208,6 +206,6 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       threads: Int,
       timeout: Option[Long],
       looseBBox: Boolean,
-      caching: Boolean
+      parallelPartitionScans: Boolean
     ) extends DataStoreQueryConfig
 }

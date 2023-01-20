@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,22 +8,22 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
-import java.io.Closeable
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
-
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.{BatchWriter, Connector}
+import org.apache.accumulo.core.client.{AccumuloClient, BatchWriter}
 import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, TableUtils}
 import org.locationtech.geomesa.utils.audit.AuditedEvent
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
+import java.io.Closeable
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
+
 /**
  * Manages writing of usage stats in a background thread.
  */
-class AccumuloEventWriter(connector: Connector, table: String) extends Runnable with Closeable with LazyLogging {
+class AccumuloEventWriter(connector: AccumuloClient, table: String) extends Runnable with Closeable with LazyLogging {
 
   private val delay = AccumuloEventWriter.WriteInterval.toDuration.get.toMillis
 

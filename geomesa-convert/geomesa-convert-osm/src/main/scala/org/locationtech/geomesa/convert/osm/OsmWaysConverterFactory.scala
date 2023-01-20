@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,29 +8,22 @@
 
 package org.locationtech.geomesa.convert.osm
 
-import java.util.Locale
-
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.osm.OsmWaysConverter.OsmWaysConfig
 import org.locationtech.geomesa.convert.osm.OsmWaysConverterFactory.OsmWaysConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
-import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsConvert, ConverterConfigConvert, OptionConvert}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
+import java.util.Locale
 import scala.util.control.NonFatal
 
 class OsmWaysConverterFactory
-    extends AbstractConverterFactory[OsmWaysConverter, OsmWaysConfig, OsmField, BasicOptions] {
-
-  override protected val typeToProcess = "osm-ways"
-
-  override protected implicit def configConvert: ConverterConfigConvert[OsmWaysConfig] = OsmWaysConfigConvert
-  override protected implicit def fieldConvert: FieldConvert[OsmField] = OsmFieldConvert
-  override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
-}
+    extends AbstractConverterFactory[OsmWaysConverter, OsmWaysConfig, OsmField, BasicOptions](
+      "osm-ways", OsmWaysConfigConvert, OsmFieldConvert, BasicOptionsConvert)
 
 object OsmWaysConverterFactory {
 

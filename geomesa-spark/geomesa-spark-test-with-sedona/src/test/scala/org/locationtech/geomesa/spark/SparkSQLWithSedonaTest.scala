@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,7 +13,7 @@ import org.apache.spark.sql.catalyst.expressions.{Alias, Literal}
 import org.apache.spark.sql.catalyst.plans.logical.Project
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.functions.{broadcast, expr}
-import org.apache.spark.sql.{DataFrame, SQLTypes, SparkSession}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities}
 import org.geotools.filter.text.ecql.ECQL
@@ -22,6 +22,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 import org.locationtech.geomesa.spark.jts.util.WKTUtils
 import org.locationtech.geomesa.spark.jts.{geomLit, st_equals, st_intersects}
+import org.locationtech.geomesa.spark.sql.SQLTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.{Coordinate, Geometry, GeometryFactory, Point}
 import org.opengis.feature.simple.SimpleFeature

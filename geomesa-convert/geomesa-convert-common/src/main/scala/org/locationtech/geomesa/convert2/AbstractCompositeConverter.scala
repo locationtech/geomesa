@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert2
-
-import java.io.InputStream
 
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
@@ -22,6 +20,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.InputStream
 import scala.util.control.NonFatal
 
 abstract class AbstractCompositeConverter[T <: AnyRef](
@@ -91,13 +90,8 @@ abstract class AbstractCompositeConverter[T <: AnyRef](
 
 object AbstractCompositeConverter {
 
-  // noinspection ScalaDeprecation
   case class CompositeEvaluationContext(contexts: Seq[EvaluationContext], success: Counter, failure: Counter)
       extends EvaluationContext {
-    override def get(i: Int): Any = throw new NotImplementedError()
-    override def set(i: Int, v: Any): Unit = throw new NotImplementedError()
-    override def indexOf(n: String): Int = throw new NotImplementedError()
-    override def clear(): Unit = throw new NotImplementedError()
     override def cache: Map[String, EnrichmentCache] = throw new NotImplementedError()
     override def metrics: ConverterMetrics = throw new NotImplementedError()
     override def accessor(name: String): FieldAccessor = throw new NotImplementedError()

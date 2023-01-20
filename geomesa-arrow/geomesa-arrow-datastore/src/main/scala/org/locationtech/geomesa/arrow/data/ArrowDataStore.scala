@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.arrow.data
-
-import java.io.{FileOutputStream, IOException, InputStream, OutputStream}
-import java.net.URL
 
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureSource
@@ -27,6 +24,8 @@ import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.io.{FileOutputStream, IOException, InputStream, OutputStream}
+import java.net.URL
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -63,8 +62,8 @@ class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore wi
   }
 
   override def createTypeNames(): java.util.List[Name] = {
-    import scala.collection.JavaConversions._
-    Option(getSchema).map(s => new NameImpl(namespaceURI, s.getTypeName)).toList
+    import scala.collection.JavaConverters._
+    Option(getSchema).map(s => (new NameImpl(namespaceURI, s.getTypeName)).asInstanceOf[Name]).toList.asJava
   }
 
   override def createSchema(sft: SimpleFeatureType): Unit = {

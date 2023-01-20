@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,25 +8,23 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.text.SimpleDateFormat
-import java.util.{Collections, Date, TimeZone}
-
 import org.geotools.data.Query
-import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.index.JoinIndex
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.conf.QueryHints.QUERY_INDEX
-import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.text.SimpleDateFormat
+import java.util.{Collections, Date, TimeZone}
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexIteratorTest extends Specification with TestWithFeatureType {
@@ -46,13 +44,13 @@ class AttributeIndexIteratorTest extends Specification with TestWithFeatureType 
     addFeatures({
       List("a", "b", "c", "d", null).flatMap { name =>
         List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
-          val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
+          val sf = SimpleFeatureBuilder.build(sft, Collections.emptyList[AnyRef](), name + i.toString)
           sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
           sf.setAttribute("dtg", dateToIndex)
           sf.setAttribute("age", i)
           sf.setAttribute("name", name)
           sf.setAttribute("scars", Collections.singletonList("face"))
-          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+          sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
           sf
         }
       }
@@ -61,10 +59,10 @@ class AttributeIndexIteratorTest extends Specification with TestWithFeatureType 
 
   lazy val queryPlanner = ds.queryPlanner
 
-  def query(filter: String, attributes: Array[String] = Array.empty, explain: Explainer = ExplainNull) = {
-    val query = new Query(sftName, ECQL.toFilter(filter), if (attributes.length == 0) null else attributes)
+  def query(filter: String, attributes: Array[String] = Array.empty, explain: Explainer = ExplainNull): List[SimpleFeature] = {
+    val query = new Query(sftName, ECQL.toFilter(filter), attributes: _*)
     query.getHints.put(QUERY_INDEX, JoinIndex.name)
-    queryPlanner.runQuery(sft, query, explain).toList
+    WithClose(queryPlanner.runQuery(sft, query, explain).iterator())(_.toList)
   }
 
   "AttributeIndexIterator" should {

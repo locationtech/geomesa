@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,11 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.features.avro.serde
-
-import java.io.OutputStream
-import java.nio._
-import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
-import java.util.{Date, UUID, Collection => JCollection, List => JList}
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
@@ -31,7 +26,10 @@ import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
 
-import scala.collection.JavaConversions._
+import java.io.OutputStream
+import java.nio._
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
+import java.util.{Date, UUID, Collection => JCollection, List => JList}
 import scala.util.Try
 
 
@@ -43,6 +41,8 @@ import scala.util.Try
 class Version2ASF(id: FeatureId, sft: SimpleFeatureType)
   extends SimpleFeature
   with Serializable {
+
+  import scala.collection.JavaConverters._
 
   import Version2ASF._
 
@@ -92,17 +92,17 @@ class Version2ASF(id: FeatureId, sft: SimpleFeatureType)
   def setAttribute(name: String, value: Object) = setAttribute(nameIndex(name), value)
   def setAttribute(name: Name, value: Object) = setAttribute(name.getLocalPart, value)
   def setAttribute(index: Int, value: Object) = setAttributeNoConvert(index, Converters.convert(value, getFeatureType.getDescriptor(index).getType.getBinding).asInstanceOf[AnyRef])
-  def setAttributes(vals: JList[Object]) = vals.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
+  def setAttributes(vals: JList[Object]) = vals.asScala.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
   def setAttributes(vals: Array[Object])= vals.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
 
   def setAttributeNoConvert(index: Int, value: Object) = values(index) = value
   def setAttributeNoConvert(name: String, value: Object): Unit = setAttributeNoConvert(nameIndex(name), value)
   def setAttributeNoConvert(name: Name, value: Object): Unit = setAttributeNoConvert(name.getLocalPart, value)
-  def setAttributesNoConvert(vals: JList[Object]) = vals.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
+  def setAttributesNoConvert(vals: JList[Object]) = vals.asScala.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
   def setAttributesNoConvert(vals: Array[Object])= vals.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
 
   def getAttributeCount = values.length
-  def getAttributes: JList[Object] = values.toList
+  def getAttributes: JList[Object] = values.toList.asJava
   def getDefaultGeometry: Object = Try(sft.getGeometryDescriptor.getName).map { getAttribute }.getOrElse(null)
 
   def setDefaultGeometry(geo: Object) = setAttribute(sft.getGeometryDescriptor.getName, geo)
@@ -132,12 +132,12 @@ class Version2ASF(id: FeatureId, sft: SimpleFeatureType)
   }
 
   def getProperties: JCollection[Property] =
-    getAttributes.zip(sft.getAttributeDescriptors).map {
+    getAttributes.asScala.zip(sft.getAttributeDescriptors.asScala).map {
       case(attribute, attributeDescriptor) =>
-        new AttributeImpl(attribute, attributeDescriptor, id)
-    }
+        new AttributeImpl(attribute, attributeDescriptor, id).asInstanceOf[Property]
+    }.asJava
   def getProperties(name: Name): JCollection[Property] = getProperties(name.getLocalPart)
-  def getProperties(name: String): JCollection[Property] = getProperties.filter(_.getName.toString == name)
+  def getProperties(name: String): JCollection[Property] = getProperties.asScala.filter(_.getName.toString == name).toSeq.asJava
   def getProperty(name: Name): Property = getProperty(name.getLocalPart)
   def getProperty(name: String): Property =
     Option(sft.getDescriptor(name)) match {
@@ -147,14 +147,15 @@ class Version2ASF(id: FeatureId, sft: SimpleFeatureType)
 
   def getValue: JCollection[_ <: Property] = getProperties
 
-  def setValue(values: JCollection[Property]) = values.zipWithIndex.foreach { case (p, idx) =>
-    this.values(idx) = p.getValue}
+  def setValue(values: JCollection[Property]) = values.asScala.zipWithIndex.foreach { case (p, idx) =>
+    this.values(idx) = p.getValue
+  }
 
   def getDescriptor: AttributeDescriptor = new AttributeDescriptorImpl(sft, sft.getName, 0, Int.MaxValue, true, null)
 
   def getName: Name = sft.getName
 
-  def getUserData = userData
+  def getUserData = userData.asJava
 
   def isNillable = true
 
@@ -166,14 +167,14 @@ class Version2ASF(id: FeatureId, sft: SimpleFeatureType)
 
 object Version2ASF {
 
+  import scala.collection.JavaConverters._
+
   def apply(sf: SimpleFeature) = {
     val asf = new Version2ASF(sf.getIdentifier, sf.getFeatureType)
     for (i <- 0 until sf.getAttributeCount) asf.setAttribute(i, sf.getAttribute(i))
 
     asf
   }
-
-  import scala.collection.JavaConversions._
 
   val primitiveTypes =
     List(
@@ -190,7 +191,7 @@ object Version2ASF {
       classOf[Boolean]
     )
 
-  def loadingCacheBuilder[V <: AnyRef](f: SimpleFeatureType => V) =
+  def loadingCacheBuilder[V <: AnyRef](f: SimpleFeatureType => V): LoadingCache[SimpleFeatureType, V] =
     Caffeine
       .newBuilder
       .maximumSize(100)
@@ -205,7 +206,7 @@ object Version2ASF {
 
   val typeMapCache: LoadingCache[SimpleFeatureType, Map[String, Binding]] =
     loadingCacheBuilder { sft =>
-      sft.getAttributeDescriptors.map { ad =>
+      sft.getAttributeDescriptors.asScala.map { ad =>
         val conv =
           ad.getType.getBinding match {
             case t if primitiveTypes.contains(t) => (v: AnyRef) => v
@@ -264,9 +265,9 @@ object Version2ASF {
 
   def decode(s: String): String = new String(Hex.decodeHex(s.substring(1).toCharArray), "UTF8")
 
-  def encodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, encode(s))
+  def encodeAttributeName(s: String): String = attributeNameLookUp.asScala.getOrElseUpdate(s, encode(s))
 
-  def decodeAttributeName(s: String): String = attributeNameLookUp.getOrElseUpdate(s, decode(s))
+  def decodeAttributeName(s: String): String = attributeNameLookUp.asScala.getOrElseUpdate(s, decode(s))
 
   def generateSchema(sft: SimpleFeatureType): Schema = {
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
@@ -277,7 +278,7 @@ object Version2ASF {
         .name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
 
     val result =
-      sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
+      sft.getAttributeDescriptors.asScala.foldLeft(initialAssembler) { case (assembler, ad) =>
         addField(assembler, encodeAttributeName(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
       }
 

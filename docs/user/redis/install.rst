@@ -5,6 +5,15 @@ Installing GeoMesa Redis
 
     GeoMesa currently supports Redis version |redis_version|.
 
+.. note::
+
+    The examples below expect a version to be set in the environment:
+
+    .. parsed-literal::
+
+        $ export TAG="|release_version|"
+        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
+
 Installing the Binary Distribution
 ----------------------------------
 
@@ -13,12 +22,7 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
-.. note::
-
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
-
-Extract it somewhere convenient:
+Download and extract it somewhere convenient:
 
 .. code-block:: bash
 
@@ -26,21 +30,17 @@ Extract it somewhere convenient:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-redis_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-redis_${VERSION}-bin.tar.gz
     $ cd geomesa-redis_${VERSION}
-    $ ls
-    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
 .. _redis_install_source:
 
 Building from Source
 --------------------
 
-GeoMesa Redis may also be built from source. For more information refer to :ref:`building_from_source`
-in the developer manual, or to the ``README.md`` file in the the source distribution.
+GeoMesa Redis may also be built from source. For more information, refer to the instructions on
+`GitHub <https://github.com/locationtech/geomesa#building-from-source>`__.
 The remainder of the instructions in this chapter assume the use of the binary GeoMesa Redis
 distribution. If you have built from source, the distribution is created in the ``target`` directory of
 ``geomesa-redis/geomesa-redis-dist``.
-
-More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
 
 .. _setting_up_redis_commandline:
 
@@ -56,9 +56,12 @@ GeoMesa comes with a set of command line tools for managing Redis features locat
 
 Test the command that invokes the GeoMesa Tools:
 
-.. code::
+.. code-block:: bash
 
     $ ./bin/geomesa-redis
+
+The output should look like this::
+
     INFO  Usage: geomesa-redis [command] [command options]
       Commands:
       ...

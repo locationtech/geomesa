@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
- * Portions Crown Copyright (c) 2016-2022 Dstl
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2023 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,13 +9,13 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.IOException
-
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.MiniCluster
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.IOException
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreFactoryTest extends Specification {

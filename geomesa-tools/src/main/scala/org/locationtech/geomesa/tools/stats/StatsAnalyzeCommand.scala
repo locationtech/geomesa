@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -46,7 +46,7 @@ trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[D
       // sleep an additional bit so that the stat table gets configured
       Thread.sleep(1000)
       val queries = sft.getAttributeDescriptors.asScala.map(d => Stat.MinMax(d.getLocalName))
-      ds.stats.getStat[CountStat](sft, Stat.Count()) ++ ds.stats.getSeqStat[MinMax[Any]](sft, queries)
+      ds.stats.getStat[CountStat](sft, Stat.Count()) ++ ds.stats.getSeqStat[MinMax[Any]](sft, queries.toSeq)
     } else {
       ds.stats.writer.analyze(sft)
     }

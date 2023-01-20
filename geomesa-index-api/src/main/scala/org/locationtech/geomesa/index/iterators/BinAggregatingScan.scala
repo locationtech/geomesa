@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.iterators
-
-import java.nio.{ByteBuffer, ByteOrder}
-import java.util.Date
 
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -22,6 +19,9 @@ import org.locationtech.geomesa.utils.bin.{BinaryOutputCallback, BinaryOutputEnc
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.nio.{ByteBuffer, ByteOrder}
+import java.util.Date
 
 trait BinAggregatingScan extends AggregatingScan[ResultCallback] {
 
@@ -135,26 +135,26 @@ object BinAggregatingScan {
     override def init(): Unit = {}
 
     override def aggregate(sf: SimpleFeature): Int = {
-      val pos = buffer.position + overflow.position
+      val pos = buffer.position() + overflow.position()
       encoder.encode(sf, this)
-      (buffer.position + overflow.position - pos) / binSize
+      (buffer.position() + overflow.position() - pos) / binSize
     }
 
     override def encode(): Array[Byte] = {
       val bytes = try {
         if (overflow.position() > 0) {
           // overflow bytes - copy the two buffers into one
-          val copy = Array.ofDim[Byte](buffer.position + overflow.position)
-          System.arraycopy(buffer.array, 0, copy, 0, buffer.position)
-          System.arraycopy(overflow.array, 0, copy, buffer.position, overflow.position)
+          val copy = Array.ofDim[Byte](buffer.position() + overflow.position())
+          System.arraycopy(buffer.array, 0, copy, 0, buffer.position())
+          System.arraycopy(overflow.array, 0, copy, buffer.position(), overflow.position())
           copy
-        } else if (buffer.position == buffer.limit) {
+        } else if (buffer.position() == buffer.limit()) {
           // use the existing buffer if possible
           buffer.array
         } else {
           // if not, we have to copy it - values do not allow you to specify a valid range
-          val copy = Array.ofDim[Byte](buffer.position)
-          System.arraycopy(buffer.array, 0, copy, 0, buffer.position)
+          val copy = Array.ofDim[Byte](buffer.position())
+          System.arraycopy(buffer.array, 0, copy, 0, buffer.position())
           copy
         }
       } finally {
@@ -170,15 +170,15 @@ object BinAggregatingScan {
     override def cleanup(): Unit = {}
 
     private def ensureCapacity(size: Int): ByteBuffer = {
-      if (buffer.position < buffer.limit - size) {
+      if (buffer.position() < buffer.limit() - size) {
         buffer
-      } else if (overflow.position < overflow.limit - size) {
+      } else if (overflow.position() < overflow.limit() - size) {
         overflow
       } else {
-        val expanded = Array.ofDim[Byte](overflow.limit * 2)
-        System.arraycopy(overflow.array, 0, expanded, 0, overflow.limit)
-        val order = overflow.order
-        val position = overflow.position
+        val expanded = Array.ofDim[Byte](overflow.limit() * 2)
+        System.arraycopy(overflow.array, 0, expanded, 0, overflow.limit())
+        val order = overflow.order()
+        val position = overflow.position()
         overflow = ByteBuffer.wrap(expanded).order(order).position(position).asInstanceOf[ByteBuffer]
         overflow
       }

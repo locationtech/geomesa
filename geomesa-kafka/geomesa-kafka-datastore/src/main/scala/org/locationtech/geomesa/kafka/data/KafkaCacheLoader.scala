@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15,7 +15,7 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore.ExpiryTimeConfig
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer
-import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
+import org.locationtech.geomesa.kafka.versions.{KafkaConsumerVersions, RecordVersions}
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
@@ -168,8 +168,8 @@ object KafkaCacheLoader extends LazyLogging {
       val partitions = consumers.head.partitionsFor(topic).asScala.map(_.partition)
       try {
         // note: these methods are not available in kafka 0.9, which will cause it to fall back to normal loading
-        val beginningOffsets = KafkaConsumerVersions.beginningOffsets(consumers.head, topic, partitions)
-        val endOffsets = KafkaConsumerVersions.endOffsets(consumers.head, topic, partitions)
+        val beginningOffsets = KafkaConsumerVersions.beginningOffsets(consumers.head, topic, partitions.toSeq)
+        val endOffsets = KafkaConsumerVersions.endOffsets(consumers.head, topic, partitions.toSeq)
         partitions.foreach { p =>
           // end offsets are the *next* offset that will be returned, so subtract one to track the last offset
           // we will actually consume

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.storage.orc.utils
-
-import java.nio.charset.StandardCharsets
-import java.util.UUID
 
 import org.apache.hadoop.io._
 import org.apache.orc.TypeDescription
@@ -20,6 +17,9 @@ import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.nio.charset.StandardCharsets
+import java.util.UUID
 
 trait OrcOutputFormatWriter {
   def apply(sf: SimpleFeature, output: OrcStruct): Unit
@@ -419,7 +419,7 @@ object OrcOutputFormatWriter {
     private val converter = getConverter(binding)
 
     override def apply(sf: SimpleFeature, output: OrcStruct): Unit = {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       val value = sf.getAttribute(attribute).asInstanceOf[java.util.List[AnyRef]]
       if (value == null) {
         output.setFieldValue(col, null)
@@ -431,7 +431,7 @@ object OrcOutputFormatWriter {
         } else {
           field.clear()
         }
-        value.foreach(v => field.add(converter.setValue(v, null)))
+        value.asScala.foreach(v => field.add(converter.setValue(v, null)))
       }
     }
   }
@@ -445,7 +445,7 @@ object OrcOutputFormatWriter {
     private val valueConverter = getConverter(valueBinding)
 
     override def apply(sf: SimpleFeature, output: OrcStruct): Unit = {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       val value = sf.getAttribute(attribute).asInstanceOf[java.util.Map[AnyRef, AnyRef]]
       if (value == null) {
         output.setFieldValue(col, null)
@@ -457,7 +457,7 @@ object OrcOutputFormatWriter {
         } else {
           field.clear()
         }
-        value.foreach { case (k, v) => field.put(keyConverter.setValue(k, null), valueConverter.setValue(v, null)) }
+        value.asScala.foreach { case (k, v) => field.put(keyConverter.setValue(k, null), valueConverter.setValue(v, null)) }
       }
     }
   }

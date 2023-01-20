@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -19,14 +19,12 @@ import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
 class ConfigureShardsTest extends Specification with TestWithFeatureType {
 
-  sequential
+  import scala.collection.JavaConverters._
 
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+  sequential
 
   val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.z3.splits='8'"
 
@@ -56,7 +54,7 @@ class ConfigureShardsTest extends Specification with TestWithFeatureType {
       val index = ds.manager.indices(sft).find(_.name == Z3Index.name)
       index must beSome
       index.get.getTableNames().foreach { table =>
-        ds.connector.createScanner(table, new Authorizations()).foreach { r =>
+        ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val bytes = r.getKey.getRow.getBytes
           val shard = bytes(0).toInt
           shardSet = shardSet + shard

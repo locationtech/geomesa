@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -161,7 +161,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
                        val filter: Option[Filter],
                        histogram: Boolean) extends GeoMesaProcessVisitor with LazyLogging {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   private val attribute    = attributeDescriptor.getLocalName
   private val uniqueValues = mutable.Map.empty[Any, Long].withDefaultValue(0)
@@ -188,7 +188,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
   private def addMultiValue(f: SimpleFeature): Unit = {
     val values = getAttribute[java.util.Collection[_]](f)
     if (values != null) {
-      values.foreach(uniqueValues(_) += 1)
+      values.asScala.foreach(uniqueValues(_) += 1)
     }
   }
 

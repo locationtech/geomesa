@@ -66,7 +66,7 @@ Setting the user data can be done in multiple ways. See :ref:`set_sft_options` f
 
 Attribute indices also support a secondary, tiered index structure. This can improve attribute queries
 that also contain a spatial and/or temporal predicate. Unless configured differently, the default geometry
-and date attributes will be used to create a secondary Z3 of XZ3 index.
+and date attributes will be used to create a secondary Z3 or XZ3 index.
 
 .. note::
 
@@ -208,10 +208,10 @@ The following versions are available:
 The version numbers here may not correspond exactly to schemas created with GeoMesa versions prior to 2.3.0, as
 each back-end implementation initially had its own versioning scheme. However, the implementation for each index
 was consistent across back-ends in a given GeoMesa release, so if you know the GeoMesa version you can determine
-the index format from the tables above. Refer to the archived `GeoMesa 2.2.0 documentation`_ to see the
+the index format from the tables above. Refer to the archived `GeoMesa 2.2 documentation`_ to see the
 back-end-specific index version numbers.
 
-.. _GeoMesa 2.2.0 documentation: https://www.geomesa.org/documentation/2.2.0/user/datastores/index_basics.html#index-versioning
+.. _GeoMesa 2.2 documentation: https://www.geomesa.org/documentation/2.2.2/user/datastores/index_basics.html#index-versioning
 
 Note that GeoMesa versions prior to 1.2.2 included a geohash index. That index has been replaced with
 the Z indices and is no longer supported.

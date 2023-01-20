@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,19 +8,19 @@
 
 package org.locationtech.geomesa.accumulo.audit
 
-import java.time.ZonedDateTime
-
-import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.accumulo.core.data.Range
 import org.apache.accumulo.core.security.Authorizations
 import org.locationtech.geomesa.utils.audit.AuditedEvent
 import org.locationtech.geomesa.utils.collection.{IsSynchronized, MaybeSynchronized, NotSynchronized}
 
+import java.time.ZonedDateTime
+
 
 /**
   * Manages reading of usage stats
   */
-class AccumuloEventReader(connector: Connector, table: String) {
+class AccumuloEventReader(connector: AccumuloClient, table: String) {
 
   private val tableExists: MaybeSynchronized[Boolean] =
     if (connector.tableOperations().exists(table)) { new NotSynchronized(true) } else { new IsSynchronized(false) }

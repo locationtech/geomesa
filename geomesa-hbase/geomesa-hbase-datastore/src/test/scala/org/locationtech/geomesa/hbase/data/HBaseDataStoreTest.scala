@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,11 +8,8 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.io.File
-import java.util.Collections
-
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.hbase.{NamespaceDescriptor, TableName}
+import org.apache.hadoop.hbase.TableName
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
@@ -39,11 +36,13 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
+import java.io.File
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class HBaseDataStoreTest extends Specification with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -54,7 +53,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       val params = Map(
         ConnectionParam.getName -> MiniCluster.connection,
         HBaseCatalogParam.getName -> getClass.getSimpleName)
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
 
       try {
@@ -66,7 +65,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
         sft must not(beNull)
 
-        val ns = DataStoreFinder.getDataStore(params ++ Map(NamespaceParam.key -> "ns0")).getSchema(typeName).getName
+        val ns = DataStoreFinder.getDataStore((params ++ Map(NamespaceParam.key -> "ns0")).asJava).getSchema(typeName).getName
         ns.getNamespaceURI mustEqual "ns0"
         ns.getLocalPart mustEqual typeName
 
@@ -79,10 +78,10 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
           sf.setAttribute(1, s"name$i")
           sf.setAttribute(2, f"2014-01-${i + 1}%02dT00:00:01.000Z")
           sf.setAttribute(3, s"POINT(4$i 5$i)")
-          sf
+          sf: SimpleFeature
         }
 
-        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
         ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
         val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("name"), Array("dtg", "geom", "attr", "name"))
@@ -90,7 +89,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         foreach(Seq(true, false)) { remote =>
           foreach(Seq(true, false)) { loose =>
             val settings = Map(LooseBBoxParam.getName -> loose, RemoteFilteringParam.getName -> remote)
-            val ds = DataStoreFinder.getDataStore(params ++ settings).asInstanceOf[HBaseDataStore]
+            val ds = DataStoreFinder.getDataStore((params ++ settings).asJava).asInstanceOf[HBaseDataStore]
             foreach(transformsList) { transforms =>
               // test that blocking full table scans doesn't interfere with regular queries
               QueryProperties.BlockFullTableScans.threadLocalValue.set("true")
@@ -119,7 +118,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         def testTransforms(ds: HBaseDataStore): MatchResult[_] = {
           forall(Seq(("INCLUDE", toAdd), ("bbox(geom,42,48,52,62)", toAdd.drop(2)))) { case (filter, results) =>
             val transforms = Array("derived=strConcat('hello',name)", "geom")
-            val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
+            val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms: _*), Transaction.AUTO_COMMIT)
             val features = SelfClosingIterator(fr).toList
             features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
               beSome("derived:String,*geom:Point:srid=4326")
@@ -134,7 +133,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         testTransforms(ds)
 
         def testProcesses(ds: HBaseDataStore): MatchResult[_] = {
-          val query = new ListFeatureCollection(sft, Array[SimpleFeature](toAdd(4)))
+          val query = new ListFeatureCollection(sft, toAdd(4))
           val source = ds.getFeatureSource(typeName).getFeatures()
 
           val proximity = new ProximitySearchProcess().execute(query, source, 10.0)
@@ -199,7 +198,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         ConnectionParam.getName -> MiniCluster.connection,
         HBaseCatalogParam.getName -> getClass.getSimpleName
       )
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
 
       try {
@@ -219,17 +218,17 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
           sf.setAttribute(0, s"name$i")
           sf.setAttribute(1, s"2014-01-01T0$i:00:01.000Z")
           sf.setAttribute(2, s"POLYGON((-120 4$i, -120 50, -125 50, -125 4$i, -120 4$i))")
-          sf
+          sf: SimpleFeature
         }
 
-        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+        val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
         ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
         val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("name"), Array("dtg", "geom", "name"))
 
         foreach(Seq(true, false)) { remote =>
           val settings = Map(RemoteFilteringParam.getName -> remote)
-          val ds = DataStoreFinder.getDataStore(params ++ settings).asInstanceOf[HBaseDataStore]
+          val ds = DataStoreFinder.getDataStore((params ++ settings).asJava).asInstanceOf[HBaseDataStore]
           foreach(transformsList) { transforms =>
             testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
             testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))
@@ -251,7 +250,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         ConnectionParam.getName -> MiniCluster.connection,
         HBaseCatalogParam.getName -> getClass.getSimpleName
       )
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
 
       try {
@@ -296,7 +295,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         ConnectionParam.getName -> MiniCluster.connection,
         HBaseCatalogParam.getName -> getClass.getSimpleName
       )
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
 
       try {
@@ -334,7 +333,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         ConnectionParam.getName -> MiniCluster.connection,
         HBaseCatalogParam.getName -> s"ns:${getClass.getSimpleName}"
       )
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
 
       try {
@@ -363,14 +362,14 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
     "support remote version" in {
       // note: we have to use a unique catalog to avoid getting a cached version
-      // we can't use the thread local value b/c it's loaded in an asynchronous guava cache
+      // we can't use the thread local value b/c it's loaded in an asynchronous cache
       SchemaProperties.CheckDistributedVersion.set("true")
       try {
         val params = Map(
           ConnectionParam.getName -> MiniCluster.connection,
           HBaseCatalogParam.getName -> "HBaseDistributedVersionTest"
         )
-        val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+        val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
         ds must not(beNull)
 
         try {
@@ -406,7 +405,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
                 filter: String,
                 transforms: Array[String],
                 results: Seq[SimpleFeature]): MatchResult[Any] = {
-    testQuery(ds, new Query(typeName, ECQL.toFilter(filter), transforms), results)
+    testQuery(ds, new Query(typeName, ECQL.toFilter(filter), transforms: _*), results)
   }
 
   def testQuery(ds: HBaseDataStore, query: Query, results: Seq[SimpleFeature], count: Boolean = true): MatchResult[Any] = {
@@ -414,7 +413,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
     val features = SelfClosingIterator(fr).toList
     val attributes = Option(query.getPropertyNames)
-        .getOrElse(ds.getSchema(query.getTypeName).getAttributeDescriptors.map(_.getLocalName).toArray)
+        .getOrElse(ds.getSchema(query.getTypeName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
     forall(features) { feature =>
       feature.getAttributes must haveLength(attributes.length)

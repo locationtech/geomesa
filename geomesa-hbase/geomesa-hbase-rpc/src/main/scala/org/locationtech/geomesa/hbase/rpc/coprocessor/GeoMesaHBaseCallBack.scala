@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,11 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.rpc.coprocessor
-
-import java.io.InterruptedIOException
-import java.util.Base64
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{CancellationException, LinkedBlockingQueue}
 
 import com.google.protobuf.{ByteString, RpcCallback}
 import com.typesafe.scalalogging.LazyLogging
@@ -21,6 +16,10 @@ import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor.{GeoMesaHBaseRequestVersion, ScanOpt}
 import org.locationtech.geomesa.utils.index.ByteArrays
+
+import java.io.InterruptedIOException
+import java.util.Base64
+import java.util.concurrent.{CancellationException, LinkedBlockingQueue}
 
 /**
  * Callback class for invoking htable services

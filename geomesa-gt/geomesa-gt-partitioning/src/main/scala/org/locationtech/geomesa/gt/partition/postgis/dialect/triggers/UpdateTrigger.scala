@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -44,7 +44,13 @@ object UpdateTrigger extends SqlTriggerFunction {
        |          IF del_count > 0 THEN
        |            INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
        |          ELSE
-       |            RETURN NULL;
+       |            DELETE FROM ${info.tables.spillPartitions.name.qualified} WHERE $where;
+       |            GET DIAGNOSTICS del_count := ROW_COUNT;
+       |            IF del_count > 0 THEN
+       |              INSERT INTO ${info.tables.writeAhead.name.qualified} VALUES(NEW.*);
+       |            ELSE
+       |              RETURN NULL;
+       |            END IF;
        |          END IF;
        |        END IF;
        |      END IF;

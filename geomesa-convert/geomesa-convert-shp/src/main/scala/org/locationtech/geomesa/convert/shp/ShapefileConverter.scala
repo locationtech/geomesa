@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,11 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert.shp
-
-import java.io.InputStream
-import java.util.Collections
-import java.nio.charset.Charset
-import java.nio.file.{Files, Paths}
 
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
@@ -26,17 +21,16 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.InputStream
+import java.nio.charset.Charset
+import java.nio.file.{Files, Paths}
+import java.util.Collections
+import scala.collection.mutable.ArrayBuffer
+
 class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Seq[BasicField], options: BasicOptions)
     extends AbstractConverter[SimpleFeature, BasicConfig, BasicField, BasicOptions](sft, config, fields, options)  {
 
   import org.locationtech.geomesa.convert.shp.ShapefileFunctionFactory.{InputSchemaKey, InputValuesKey}
-
-  override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext = {
-    // inject placeholders for shapefile attributes into the evaluation context
-    // used for accessing shapefile properties by name in ShapefileFunctionFactory
-    val shpParams = Map(InputSchemaKey -> Array.empty[String], InputValuesKey -> Array.empty[Any])
-    super.createEvaluationContext(globalParams ++ shpParams)
-  }
 
   override def createEvaluationContext(
       globalParams: Map[String, Any],
@@ -44,7 +38,7 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
       failure: Counter): EvaluationContext = {
     // inject placeholders for shapefile attributes into the evaluation context
     // used for accessing shapefile properties by name in ShapefileFunctionFactory
-    val shpParams = Map(InputSchemaKey -> Array.empty[String], InputValuesKey -> Array.empty[Any])
+    val shpParams = Map(InputSchemaKey -> ArrayBuffer.empty[String], InputValuesKey -> ArrayBuffer.empty[AnyRef])
     super.createEvaluationContext(globalParams ++ shpParams, success, failure)
   }
 
@@ -57,18 +51,16 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
     }
     val ds = ShapefileConverter.getDataStore(path)
     val schema = ds.getSchema()
-    val names = Array.tabulate(schema.getAttributeCount)(i => schema.getDescriptor(i).getLocalName)
-    val array = Array.ofDim[Any](schema.getAttributeCount + 1)
 
-    val i = ec.indexOf(InputSchemaKey)
-    val j = ec.indexOf(InputValuesKey)
-
-    if (i == -1 || j == -1) {
-      logger.warn("Input schema not found in evaluation context, shapefile functions " +
-          s"${TextTools.wordList(new ShapefileFunctionFactory().functions.map(_.names.head))} will not be available")
-    } else {
-      ec.set(i, names)
-      ec.set(j, array)
+    (ec.accessor(InputSchemaKey).apply(), ec.accessor(InputValuesKey).apply()) match {
+      case (n: ArrayBuffer[String], v: ArrayBuffer[AnyRef]) =>
+        n.clear()
+        n ++= Array.tabulate(schema.getAttributeCount)(i => schema.getDescriptor(i).getLocalName)
+        v.clear()
+        v ++= Array.fill[AnyRef](n.length + 1)(null)
+      case _ =>
+        logger.warn("Input schema not found in evaluation context, shapefile functions " +
+            s"${TextTools.wordList(new ShapefileFunctionFactory().functions.map(_.names.head))} will not be available")
     }
 
     val q = new Query
@@ -86,39 +78,34 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
 
   override protected def values(parsed: CloseableIterator[SimpleFeature],
                                 ec: EvaluationContext): CloseableIterator[Array[Any]] = {
-    val i = ec.indexOf(InputValuesKey)
-    val j = ec.indexOf(InputSchemaKey)
+    (ec.accessor(InputSchemaKey).apply(), ec.accessor(InputValuesKey).apply()) match {
+      case (_: ArrayBuffer[String], v: ArrayBuffer[AnyRef]) =>
+        parsed.map { feature =>
+          var i = 1
+          while (i < v.length) {
+            v(i) = feature.getAttribute(i - 1)
+            i += 1
+          }
+          v(0) = feature.getID
+          v.toArray
+        }
 
-    if (i == -1 || j == -1) {
-      logger.warn("Input schema not found in evaluation context, shapefile functions " +
-          s"${TextTools.wordList(new ShapefileFunctionFactory().functions.map(_.names.head))} will not be available")
-    }
-
-    if (i == -1) {
-      var array: Array[Any] = null
-      parsed.map { feature =>
-        if (array == null) {
-          array = Array.ofDim(feature.getAttributeCount + 1)
+      case _ =>
+        logger.warn("Input schema not found in evaluation context, shapefile functions " +
+            s"${TextTools.wordList(new ShapefileFunctionFactory().functions.map(_.names.head))} will not be available")
+        var array: Array[Any] = null
+        parsed.map { feature =>
+          if (array == null) {
+            array = Array.ofDim(feature.getAttributeCount + 1)
+          }
+          var i = 1
+          while (i < array.length) {
+            array(i) = feature.getAttribute(i - 1)
+            i += 1
+          }
+          array(0) = feature.getID
+          array
         }
-        var i = 1
-        while (i < array.length) {
-          array(i) = feature.getAttribute(i - 1)
-          i += 1
-        }
-        array(0) = feature.getID
-        array
-      }
-    } else {
-      val array = ec.get(i).asInstanceOf[Array[Any]]
-      parsed.map { feature =>
-        var i = 1
-        while (i < array.length) {
-          array(i) = feature.getAttribute(i - 1)
-          i += 1
-        }
-        array(0) = feature.getID
-        array
-      }
     }
   }
 }
@@ -150,17 +137,19 @@ object ShapefileConverter extends LazyLogging {
     val (baseName, _) = PathUtils.getBaseNameAndExtension(path)
     val cpgPath = shpDirPath.resolve(baseName + ".cpg")
     if (!Files.isRegularFile(cpgPath)) None else {
-      val source = io.Source.fromFile(cpgPath.toFile)
+      val source = scala.io.Source.fromFile(cpgPath.toFile)
       try {
         source.getLines.take(1).toList match {
           case Nil => None
           case charsetName :: _ => Some(Charset.forName(charsetName.trim))
         }
       } catch {
-        case e: Exception =>
+        case _: Exception =>
           logger.warn("Can't figure out charset from cpg file, will use default charset")
           None
-      } finally source.close()
+      } finally {
+        source.close()
+      }
     }
   }
 }

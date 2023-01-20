@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,29 +8,28 @@
 
 package org.locationtech.geomesa.fs.tools.compact
 
-import java.util.Locale
-import java.util.concurrent.{CountDownLatch, Executors}
-
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.{OrcCompactionJob, ParquetCompactionJob}
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand.CompactCommand
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
-import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.Command.CommandException
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
+import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.utils.ParameterConverters.BytesConverter
 import org.locationtech.geomesa.tools.utils.TerminalCallback.PrintProgress
-import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
 
+import java.util.Locale
+import java.util.concurrent.{CountDownLatch, Executors}
 import scala.util.control.NonFatal
 
 // need to mixin FsDistributedCommand to pick up base libjars file
@@ -119,7 +118,7 @@ object FsCompactCommand {
             throw new ParameterException(s"Compaction is not supported for encoding '$encoding'")
           }
           val tempDir = Option(params.tempPath).map(t => new Path(t))
-          job.run(storage, toCompact, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
+          job.run(storage, toCompact.toSeq, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
             case JobSuccess(message, counts) =>
               Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
               val success = counts(FileSystemCompactionJob.MappedCounter)

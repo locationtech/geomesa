@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.features
 
-import java.io.{InputStream, OutputStream}
-
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.opengis.feature.simple.SimpleFeature
+
+import java.io.{InputStream, OutputStream}
 
 trait HasEncodingOptions {
   def options: Set[SerializationOption]
@@ -128,6 +128,7 @@ object SimpleFeatureSerializer {
     def withoutId: T = add(SerializationOption.WithoutId)
     def `lazy`: T = add(SerializationOption.Lazy)
     def active: T = remove(SerializationOption.Lazy)
+    def opts(opts: Set[SerializationOption]): T = { options ++= opts; this }
 
     def build(): SimpleFeatureSerializer
   }
