@@ -70,7 +70,7 @@ On the command line, run:
 
     $ java -cp geomesa-tutorials-accumulo/geomesa-tutorials-accumulo-quickstart/target/geomesa-tutorials-accumulo-quickstart-${geomesa.version}.jar \
         org.geomesa.example.accumulo.AccumuloQuickStart \
-        --accumulo.instance.id <instance>               \
+        --accumulo.instance.name <instance>             \
         --accumulo.zookeepers <zookeepers>              \
         --accumulo.user <user>                          \
         --accumulo.password <password>                  \
@@ -174,11 +174,11 @@ profile and specifying the connection parameters as system properties:
 
 .. code-block:: bash
 
-    $ mvn -Plive-test exec:exec            \
-        -Daccumulo.instance.id <instance>  \
-        -Daccumulo.zookeepers <zookeepers> \
-        -Daccumulo.user <user>             \
-        -Daccumulo.password <password>     \
+    $ mvn -Plive-test exec:exec             \
+        -Daccumulo.instance.name <instance> \
+        -Daccumulo.zookeepers <zookeepers>  \
+        -Daccumulo.user <user>              \
+        -Daccumulo.password <password>      \
         -Daccumulo.catalog <table>
 
 Looking at the Code

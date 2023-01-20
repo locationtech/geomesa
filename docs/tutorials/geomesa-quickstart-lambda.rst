@@ -106,7 +106,7 @@ On the command line, run:
 
     $ java -cp geomesa-tutorials-accumulo/geomesa-tutorials-accumulo-lambda-quickstart/target/geomesa-tutorials-accumulo-lambda-quickstart-${geomesa.version}.jar \
         com.example.geomesa.lambda.LambdaQuickStart        \
-        --lambda.accumulo.instance.id <instance>           \
+        --lambda.accumulo.instance.name <instance>         \
         --lambda.accumulo.zookeepers <accumulo.zookeepers> \
         --lambda.accumulo.user <user>                      \
         --lambda.accumulo.password <password>              \

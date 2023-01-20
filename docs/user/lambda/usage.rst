@@ -10,7 +10,7 @@ that the GeoMesa code is on the classpath:
 .. code-block:: java
 
     Map<String, String> parameters = new HashMap<>;
-    parameters.put("lambda.accumulo.instance.id", "myInstance");
+    parameters.put("lambda.accumulo.instance.name", "myInstance");
     parameters.put("lambda.accumulo.zookeepers", "zoo1,zoo2,zoo3");
     parameters.put("lambda.accumulo.user", "myUser");
     parameters.put("lambda.accumulo.password", "myPassword");
@@ -32,7 +32,7 @@ The data store takes several parameters (required parameters are marked with ``*
 ====================================== ======= ==================================================================================================
 Parameter                              Type    Description
 ====================================== ======= ==================================================================================================
-``lambda.accumulo.instance.id *``      String  The instance ID of the Accumulo installation
+``lambda.accumulo.instance.name *``    String  The instance ID of the Accumulo installation
 ``lambda.accumulo.zookeepers *``       String  A comma separated list of zookeeper servers (e.g. "zoo1,zoo2,zoo3" or "localhost:2181")
 ``lambda.accumulo.catalog *``          String  The name of the GeoMesa catalog table
 ``lambda.accumulo.user *``             String  Accumulo username

@@ -90,7 +90,7 @@ data frame.
 .. code-block:: python
 
     params = {
-        "accumulo.instance.id": "myInstance",
+        "accumulo.instance.name": "myInstance",
         "accumulo.zookeepers": "zoo1,zoo2,zoo3",
         "accumulo.user": "user",
         "accumulo.password": "password",

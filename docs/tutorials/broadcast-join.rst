@@ -98,18 +98,18 @@ catalogs, we would set up the following parameter maps:
 .. code-block:: scala
 
   val fipsParams = Map(
-    "accumulo.instance.id" -> "instance",
-    "accumulo.zookeepers"  -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "accumulo.user"        -> "user",
-    "accumulo.password"    -> "password",
-    "accumulo.catalog"     -> "fips")
+    "accumulo.instance.name" -> "instance",
+    "accumulo.zookeepers"    -> "zoo1:2181,zoo2:2181,zoo3:2181",
+    "accumulo.user"          -> "user",
+    "accumulo.password"      -> "password",
+    "accumulo.catalog"       -> "fips")
 
   val gdeltParams = Map(
-    "accumulo.instance.id" -> "instance",
-    "accumulo.zookeepers"  -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "accumulo.user"        -> "user",
-    "accumulo.password"    -> "password",
-    "accumulo.catalog"     -> "gdelt")
+    "accumulo.instance.name" -> "instance",
+    "accumulo.zookeepers"    -> "zoo1:2181,zoo2:2181,zoo3:2181",
+    "accumulo.user"          -> "user",
+    "accumulo.password"      -> "password",
+    "accumulo.catalog"       -> "gdelt")
 
 .. note::
 
