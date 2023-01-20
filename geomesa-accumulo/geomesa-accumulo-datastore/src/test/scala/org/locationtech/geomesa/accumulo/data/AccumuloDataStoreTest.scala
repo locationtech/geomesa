@@ -73,11 +73,11 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "create a store with old parameters" in {
       val params = dsParams.map {
-        case (AccumuloDataStoreParams.UserParam.key, value)       => "user"       -> value
-        case (AccumuloDataStoreParams.PasswordParam.key, value)   => "password"   -> value
-        case (AccumuloDataStoreParams.InstanceIdParam.key, value) => "instanceId" -> value
-        case (AccumuloDataStoreParams.ZookeepersParam.key, value) => "zookeepers" -> value
-        case (AccumuloDataStoreParams.CatalogParam.key, value)    => "tableName"  -> value
+        case (AccumuloDataStoreParams.UserParam.key, value)         => "user"       -> value
+        case (AccumuloDataStoreParams.PasswordParam.key, value)     => "password"   -> value
+        case (AccumuloDataStoreParams.InstanceNameParam.key, value) => "instanceId" -> value
+        case (AccumuloDataStoreParams.ZookeepersParam.key, value)   => "zookeepers" -> value
+        case (AccumuloDataStoreParams.CatalogParam.key, value)      => "tableName"  -> value
         case kv => kv
       }
       val ds = DataStoreFinder.getDataStore(params.asJava)

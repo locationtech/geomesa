@@ -90,7 +90,7 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
   object Params extends GeoMesaDataStoreParams with SecurityParams {
 
     object Accumulo {
-      val InstanceParam      = copy(AccumuloDataStoreParams.InstanceIdParam)
+      val InstanceParam      = copy(AccumuloDataStoreParams.InstanceNameParam)
       val ZookeepersParam    = copy(AccumuloDataStoreParams.ZookeepersParam)
       val UserParam          = copy(AccumuloDataStoreParams.UserParam)
       val PasswordParam      = copy(AccumuloDataStoreParams.PasswordParam)
