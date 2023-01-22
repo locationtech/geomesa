@@ -62,6 +62,7 @@ class ProjectedCRS;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -83,12 +84,15 @@ class ProjectedCRS;
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 namespace coordinates {
 class CoordinateMetadata;
 using CoordinateMetadataPtr = std::shared_ptr<CoordinateMetadata>;
 using CoordinateMetadataNNPtr = util::nn<CoordinateMetadataPtr>;
 } // namespace coordinates
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -155,6 +159,8 @@ using CoordinateMetadataNNPtr = util::nn<CoordinateMetadataPtr>;
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 /** osgeo.proj.operation namespace
 
   \brief Coordinate operations (relationship between any two coordinate
@@ -313,6 +319,7 @@ class PROJ_GCC_DLL CoordinateOperation : public common::ObjectUsage,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -334,11 +341,14 @@ class PROJ_GCC_DLL CoordinateOperation : public common::ObjectUsage,
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     setSourceCoordinateEpoch(const util::optional<common::DataEpoch> &epoch);
     PROJ_INTERNAL void
     setTargetCoordinateEpoch(const util::optional<common::DataEpoch> &epoch);
 
     PROJ_INTERNAL void
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -405,6 +415,8 @@ class PROJ_GCC_DLL CoordinateOperation : public common::ObjectUsage,
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     setProperties(const util::PropertyMap
                       &properties); // throw(InvalidValueTypeException)
 
@@ -1169,6 +1181,7 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1190,11 +1203,14 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     PROJ_DLL static ConversionNNPtr createTunisiaMiningGrid(
         const util::PropertyMap &properties, const common::Angle &centerLat,
         const common::Angle &centerLong, const common::Length &falseEasting,
         const common::Length &falseNorthing);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1261,6 +1277,8 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     PROJ_DLL static ConversionNNPtr
     createAlbersEqualArea(const util::PropertyMap &properties,
                           const common::Angle &latitudeFalseOrigin,
@@ -1708,6 +1726,7 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1848,13 +1867,17 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
                               const common::Angle &offsetLon);
+=======
+                              const common::Angle &offsetLong);
+>>>>>>> bf1dfe8af6 (typo fixes)
 
     PROJ_DLL static ConversionNNPtr createGeographic3DOffsets(
         const util::PropertyMap &properties, const common::Angle &offsetLat,
-        const common::Angle &offsetLon, const common::Length &offsetHeight);
+        const common::Angle &offsetLong, const common::Length &offsetHeight);
 
     PROJ_DLL static ConversionNNPtr createGeographic2DWithHeightOffsets(
         const util::PropertyMap &properties, const common::Angle &offsetLat,
+<<<<<<< HEAD
         const common::Angle &offsetLon, const common::Length &offsetHeight);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1869,6 +1892,9 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        const common::Angle &offsetLong, const common::Length &offsetHeight);
+>>>>>>> bf1dfe8af6 (typo fixes)
 
     PROJ_DLL static ConversionNNPtr
     createVerticalOffset(const util::PropertyMap &properties,
@@ -2077,6 +2103,7 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2155,6 +2182,9 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
 =======
         const common::Angle &offsetLon,
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        const common::Angle &offsetLong,
+>>>>>>> bf1dfe8af6 (typo fixes)
         const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies);
 
     PROJ_DLL static TransformationNNPtr createGeographic3DOffsets(
@@ -2173,6 +2203,7 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2251,6 +2282,9 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
 =======
         const common::Angle &offsetLon, const common::Length &offsetHeight,
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        const common::Angle &offsetLong, const common::Length &offsetHeight,
+>>>>>>> bf1dfe8af6 (typo fixes)
         const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies);
 
     PROJ_DLL static TransformationNNPtr createGeographic2DWithHeightOffsets(
@@ -2269,6 +2303,7 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2347,6 +2382,9 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
 =======
         const common::Angle &offsetLon, const common::Length &offsetHeight,
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        const common::Angle &offsetLong, const common::Length &offsetHeight,
+>>>>>>> bf1dfe8af6 (typo fixes)
         const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies);
 
     PROJ_DLL static TransformationNNPtr createVerticalOffset(
@@ -2663,6 +2701,7 @@ class PROJ_GCC_DLL CoordinateOperationContext {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2684,6 +2723,8 @@ class PROJ_GCC_DLL CoordinateOperationContext {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     PROJ_DLL void
     setSourceCoordinateEpoch(const util::optional<common::DataEpoch> &epoch);
 
@@ -2702,6 +2743,7 @@ class PROJ_GCC_DLL CoordinateOperationContext {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2762,6 +2804,8 @@ class PROJ_GCC_DLL CoordinateOperationContext {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     PROJ_DLL static CoordinateOperationContextNNPtr
     create(const io::AuthorityFactoryPtr &authorityFactory,
            const metadata::ExtentPtr &extent, double accuracy);
@@ -2779,6 +2823,7 @@ class PROJ_GCC_DLL CoordinateOperationContext {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2800,12 +2845,15 @@ class PROJ_GCC_DLL CoordinateOperationContext {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     PROJ_DLL CoordinateOperationContextNNPtr clone() const;
 
   protected:
     PROJ_INTERNAL CoordinateOperationContext();
     PROJ_INTERNAL
     CoordinateOperationContext(const CoordinateOperationContext &);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2889,6 +2937,8 @@ class PROJ_GCC_DLL CoordinateOperationContext {
   protected:
     PROJ_INTERNAL CoordinateOperationContext();
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     INLINED_MAKE_UNIQUE
 
   private:
@@ -2939,6 +2989,7 @@ class PROJ_GCC_DLL CoordinateOperationFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2960,6 +3011,8 @@ class PROJ_GCC_DLL CoordinateOperationFactory {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     PROJ_DLL std::vector<CoordinateOperationNNPtr> createOperations(
         const coordinates::CoordinateMetadataNNPtr &sourceCoordinateMetadata,
         const crs::CRSNNPtr &targetCRS,
@@ -2970,6 +3023,7 @@ class PROJ_GCC_DLL CoordinateOperationFactory {
         const coordinates::CoordinateMetadataNNPtr &targetCoordinateMetadata,
         const CoordinateOperationContextNNPtr &context) const;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3036,6 +3090,8 @@ class PROJ_GCC_DLL CoordinateOperationFactory {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     PROJ_DLL static CoordinateOperationFactoryNNPtr create();
 
   protected:
