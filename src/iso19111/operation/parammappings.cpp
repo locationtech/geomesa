@@ -227,6 +227,7 @@ static const ParamMapping paramLatNatLatCenter = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -241,6 +242,8 @@ static const ParamMapping paramLatNatLatCenter = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 static const ParamMapping paramLongNatLongCenter = {
 =======
 static const ParamMapping paramLonNatLonCenter = {
@@ -285,6 +288,7 @@ static const ParamMapping paramLonNatLonCenter = {
 =======
 static const ParamMapping paramLonNatLonCenter = {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 static const ParamMapping paramLongNatLongCenter = {
@@ -353,6 +357,11 @@ static const ParamMapping paramLonNatLonCenter = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+static const ParamMapping paramLongNatLongCenter = {
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     EPSG_NAME_PARAMETER_LONGITUDE_OF_NATURAL_ORIGIN,
     EPSG_CODE_PARAMETER_LONGITUDE_OF_NATURAL_ORIGIN, WKT1_LONGITUDE_OF_CENTER,
     common::UnitOfMeasure::Type::ANGULAR, lon_0};
@@ -378,6 +387,7 @@ static const ParamMapping *const paramsAEQD[]{
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -392,6 +402,8 @@ static const ParamMapping *const paramsAEQD[]{
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     &paramLatNatLatCenter, &paramLongNatLongCenter, &paramFalseEasting,
 =======
     &paramLatNatLatCenter, &paramLonNatLonCenter, &paramFalseEasting,
@@ -436,6 +448,7 @@ static const ParamMapping *const paramsAEQD[]{
 =======
     &paramLatNatLatCenter, &paramLonNatLonCenter, &paramFalseEasting,
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     &paramLatNatLatCenter, &paramLongNatLongCenter, &paramFalseEasting,
@@ -504,6 +517,11 @@ static const ParamMapping *const paramsAEQD[]{
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    &paramLatNatLatCenter, &paramLongNatLongCenter, &paramFalseEasting,
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     &paramFalseNorthing, nullptr};
 
 static const ParamMapping *const paramsNatOrigin[] = {
@@ -549,6 +567,7 @@ static const ParamMapping *const paramsEQDC[] = {&paramLatNatLatCenter,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -563,6 +582,8 @@ static const ParamMapping *const paramsEQDC[] = {&paramLatNatLatCenter,
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
                                                  &paramLongNatLongCenter,
 =======
                                                  &paramLonNatLonCenter,
@@ -607,6 +628,7 @@ static const ParamMapping *const paramsEQDC[] = {&paramLatNatLatCenter,
 =======
                                                  &paramLonNatLonCenter,
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
                                                  &paramLongNatLongCenter,
@@ -675,6 +697,11 @@ static const ParamMapping *const paramsEQDC[] = {&paramLatNatLatCenter,
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+                                                 &paramLongNatLongCenter,
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
                                                  &paramLatitude1stStdParallel,
                                                  &paramLatitude2ndStdParallel,
                                                  &paramFalseEasting,
@@ -701,6 +728,7 @@ static const ParamMapping *const paramsEQDC[] = {&paramLatNatLatCenter,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -715,6 +743,8 @@ static const ParamMapping *const paramsEQDC[] = {&paramLatNatLatCenter,
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 static const ParamMapping *const paramsLongNatOrigin[] = {
 =======
 static const ParamMapping *const paramsLonNatOrigin[] = {
@@ -759,6 +789,7 @@ static const ParamMapping *const paramsLonNatOrigin[] = {
 =======
 static const ParamMapping *const paramsLonNatOrigin[] = {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 static const ParamMapping *const paramsLongNatOrigin[] = {
@@ -827,6 +858,11 @@ static const ParamMapping *const paramsLonNatOrigin[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+static const ParamMapping *const paramsLongNatOrigin[] = {
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     &paramLongitudeNatOrigin, &paramFalseEasting, &paramFalseNorthing, nullptr};
 
 static const ParamMapping *const paramsEqc[] = {
@@ -921,6 +957,7 @@ static const ParamMapping paramLatPoint1 = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -935,6 +972,8 @@ static const ParamMapping paramLatPoint1 = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 static const ParamMapping paramLongPoint1 = {
 =======
 static const ParamMapping paramLonPoint1 = {
@@ -979,6 +1018,7 @@ static const ParamMapping paramLonPoint1 = {
 =======
 static const ParamMapping paramLonPoint1 = {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 static const ParamMapping paramLongPoint1 = {
@@ -1047,6 +1087,11 @@ static const ParamMapping paramLonPoint1 = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+static const ParamMapping paramLongPoint1 = {
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     "Longitude of 1st point", 0, "longitude_of_point_1",
     common::UnitOfMeasure::Type::ANGULAR, lon_1};
 
@@ -1074,6 +1119,7 @@ static const ParamMapping paramLatPoint2 = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1088,6 +1134,8 @@ static const ParamMapping paramLatPoint2 = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 static const ParamMapping paramLongPoint2 = {
 =======
 static const ParamMapping paramLonPoint2 = {
@@ -1132,6 +1180,7 @@ static const ParamMapping paramLonPoint2 = {
 =======
 static const ParamMapping paramLonPoint2 = {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 static const ParamMapping paramLongPoint2 = {
@@ -1200,6 +1249,11 @@ static const ParamMapping paramLonPoint2 = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+static const ParamMapping paramLongPoint2 = {
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     "Longitude of 2nd point", 0, "longitude_of_point_2",
     common::UnitOfMeasure::Type::ANGULAR, lon_2};
 
@@ -1226,12 +1280,15 @@ static const ParamMapping *const paramsHomTwoPoint[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1352,11 +1409,15 @@ static const ParamMapping *const paramsHomTwoPoint[] = {
     &paramLonPoint2,
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
     &paramLongPoint1,
     &paramLatPoint2,
     &paramLongPoint2,
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1395,6 +1456,8 @@ static const ParamMapping *const paramsHomTwoPoint[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     &paramScaleFactorInitialLine,
     &paramFalseEastingProjectionCentre,
     &paramFalseNorthingProjectionCentre,
@@ -1424,6 +1487,7 @@ static const ParamMapping *const paramsIMWP[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1438,6 +1502,8 @@ static const ParamMapping *const paramsIMWP[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 static const ParamMapping paramLongCentreLongCenter = {
 =======
 static const ParamMapping paramLonCentreLonCenter = {
@@ -1482,6 +1548,7 @@ static const ParamMapping paramLonCentreLonCenter = {
 =======
 static const ParamMapping paramLonCentreLonCenter = {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 static const ParamMapping paramLongCentreLongCenter = {
@@ -1550,6 +1617,11 @@ static const ParamMapping paramLonCentreLonCenter = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+static const ParamMapping paramLongCentreLongCenter = {
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     EPSG_NAME_PARAMETER_LONGITUDE_OF_ORIGIN,
     EPSG_CODE_PARAMETER_LONGITUDE_OF_ORIGIN, WKT1_LONGITUDE_OF_CENTER,
     common::UnitOfMeasure::Type::ANGULAR, lon_0};
@@ -1594,6 +1666,7 @@ static const ParamMapping *const krovakParameters[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1608,6 +1681,8 @@ static const ParamMapping *const krovakParameters[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     &paramLongCentreLongCenter,
 =======
     &paramLonCentreLonCenter,
@@ -1652,6 +1727,7 @@ static const ParamMapping *const krovakParameters[] = {
 =======
     &paramLonCentreLonCenter,
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     &paramLongCentreLongCenter,
@@ -1720,6 +1796,11 @@ static const ParamMapping *const krovakParameters[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    &paramLongCentreLongCenter,
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     &paramColatitudeConeAxis,
     &paramLatitudePseudoStdParallel,
     &paramScaleFactorPseudoStdParallel,
@@ -1748,12 +1829,15 @@ static const ParamMapping *const paramsLaea[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1927,6 +2011,9 @@ static const ParamMapping *const paramsMiller[] = {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
     &paramLatNatLatCenter, &paramLongNatLongCenter, &paramFalseEasting,
     &paramFalseNorthing, nullptr};
@@ -1934,6 +2021,7 @@ static const ParamMapping *const paramsMiller[] = {
 static const ParamMapping *const paramsMiller[] = {
     &paramLongNatLongCenter, &paramFalseEasting, &paramFalseNorthing, nullptr};
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1975,6 +2063,8 @@ static const ParamMapping *const paramsMiller[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 
 static const ParamMapping paramLatMerc1SP = {
     EPSG_NAME_PARAMETER_LATITUDE_OF_NATURAL_ORIGIN,
@@ -2020,6 +2110,7 @@ static const ParamMapping paramLatStdParallel = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2034,6 +2125,8 @@ static const ParamMapping paramLatStdParallel = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 static const ParamMapping paramsLongOrigin = {
 =======
 static const ParamMapping paramsLonOrigin = {
@@ -2078,6 +2171,7 @@ static const ParamMapping paramsLonOrigin = {
 =======
 static const ParamMapping paramsLonOrigin = {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 static const ParamMapping paramsLongOrigin = {
@@ -2146,11 +2240,17 @@ static const ParamMapping paramsLonOrigin = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+static const ParamMapping paramsLongOrigin = {
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     EPSG_NAME_PARAMETER_LONGITUDE_OF_ORIGIN,
     EPSG_CODE_PARAMETER_LONGITUDE_OF_ORIGIN, WKT1_CENTRAL_MERIDIAN,
     common::UnitOfMeasure::Type::ANGULAR, lon_0};
 
 static const ParamMapping *const paramsPolarStereo[] = {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2177,6 +2277,8 @@ static const ParamMapping *const paramsPolarStereo[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2350,6 +2452,9 @@ static const ParamMapping *const paramsLongNatOriginLongitudeCentre[] = {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
     &paramLatStdParallel, &paramsLongOrigin, &paramFalseEasting,
     &paramFalseNorthing, nullptr};
@@ -2357,6 +2462,7 @@ static const ParamMapping *const paramsLongNatOriginLongitudeCentre[] = {
 static const ParamMapping *const paramsLongNatOriginLongitudeCentre[] = {
     &paramLongNatLongCenter, &paramFalseEasting, &paramFalseNorthing, nullptr};
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2398,6 +2504,8 @@ static const ParamMapping *const paramsLongNatOriginLongitudeCentre[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 
 static const ParamMapping paramLatTrueScaleWag3 = {
     "Latitude of true scale", 0, WKT1_LATITUDE_OF_ORIGIN,
@@ -2431,6 +2539,7 @@ static const ParamMapping paramPegLat = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2445,6 +2554,8 @@ static const ParamMapping paramPegLat = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 static const ParamMapping paramPegLong = {
 =======
 static const ParamMapping paramPegLon = {
@@ -2489,6 +2600,7 @@ static const ParamMapping paramPegLon = {
 =======
 static const ParamMapping paramPegLon = {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 static const ParamMapping paramPegLong = {
@@ -2557,6 +2669,11 @@ static const ParamMapping paramPegLon = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+static const ParamMapping paramPegLong = {
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     "Peg point longitude", 0, "peg_point_longitude",
     common::UnitOfMeasure::Type::ANGULAR, "plon_0"};
 
@@ -2589,6 +2706,7 @@ static const ParamMapping *const paramsSch[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2603,6 +2721,8 @@ static const ParamMapping *const paramsSch[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     &paramPegLat, &paramPegLong, &paramPegHeading, &paramPegHeight, nullptr};
 =======
     &paramPegLat, &paramPegLon, &paramPegHeading, &paramPegHeight, nullptr};
@@ -2647,6 +2767,7 @@ static const ParamMapping *const paramsSch[] = {
 =======
     &paramPegLat, &paramPegLon, &paramPegHeading, &paramPegHeight, nullptr};
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     &paramPegLat, &paramPegLong, &paramPegHeading, &paramPegHeight, nullptr};
@@ -2715,6 +2836,11 @@ static const ParamMapping *const paramsSch[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    &paramPegLat, &paramPegLong, &paramPegHeading, &paramPegHeight, nullptr};
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
 static const ParamMapping *const paramsWink1[] = {
     &paramLongitudeNatOrigin, &paramLat1stParallelLatTs, &paramFalseEasting,
@@ -2753,6 +2879,7 @@ static const ParamMapping *const paramsLoxim[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2767,6 +2894,8 @@ static const ParamMapping *const paramsLoxim[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 static const ParamMapping paramLongCentre = {
 =======
 static const ParamMapping paramLonCentre = {
@@ -2811,6 +2940,7 @@ static const ParamMapping paramLonCentre = {
 =======
 static const ParamMapping paramLonCentre = {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 static const ParamMapping paramLongCentre = {
@@ -2879,6 +3009,11 @@ static const ParamMapping paramLonCentre = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+static const ParamMapping paramLongCentre = {
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     EPSG_NAME_PARAMETER_LONGITUDE_PROJECTION_CENTRE,
     EPSG_CODE_PARAMETER_LONGITUDE_PROJECTION_CENTRE, WKT1_LONGITUDE_OF_CENTER,
     common::UnitOfMeasure::Type::ANGULAR, lon_0};
@@ -2910,6 +3045,7 @@ static const ParamMapping *const paramsLabordeObliqueMercator[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2924,6 +3060,8 @@ static const ParamMapping *const paramsLabordeObliqueMercator[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     &paramLongCentre,
 =======
     &paramLonCentre,
@@ -2968,6 +3106,7 @@ static const ParamMapping *const paramsLabordeObliqueMercator[] = {
 =======
     &paramLonCentre,
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     &paramLongCentre,
@@ -3036,6 +3175,11 @@ static const ParamMapping *const paramsLabordeObliqueMercator[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    &paramLongCentre,
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     &paramLabordeObliqueMercatorAzimuth,
     &paramScaleFactorInitialLine,
     &paramFalseEasting,
@@ -3067,6 +3211,7 @@ static const ParamMapping paramLatTopoOrigin = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3081,6 +3226,8 @@ static const ParamMapping paramLatTopoOrigin = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 static const ParamMapping paramLongTopoOrigin = {
 =======
 static const ParamMapping paramLonTopoOrigin = {
@@ -3125,6 +3272,7 @@ static const ParamMapping paramLonTopoOrigin = {
 =======
 static const ParamMapping paramLonTopoOrigin = {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 static const ParamMapping paramLongTopoOrigin = {
@@ -3193,6 +3341,11 @@ static const ParamMapping paramLonTopoOrigin = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+static const ParamMapping paramLongTopoOrigin = {
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     EPSG_NAME_PARAMETER_LONGITUDE_TOPOGRAPHIC_ORIGIN,
     EPSG_CODE_PARAMETER_LONGITUDE_TOPOGRAPHIC_ORIGIN, nullptr,
     common::UnitOfMeasure::Type::ANGULAR, lon_0};
@@ -3229,6 +3382,7 @@ static const ParamMapping *const paramsVerticalPerspective[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3243,6 +3397,8 @@ static const ParamMapping *const paramsVerticalPerspective[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     &paramLongTopoOrigin,
 =======
     &paramLonTopoOrigin,
@@ -3287,6 +3443,7 @@ static const ParamMapping *const paramsVerticalPerspective[] = {
 =======
     &paramLonTopoOrigin,
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     &paramLongTopoOrigin,
@@ -3355,6 +3512,11 @@ static const ParamMapping *const paramsVerticalPerspective[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    &paramLongTopoOrigin,
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     &paramHeightTopoOrigin, // unsupported by PROJ right now
     &paramViewpointHeight,
     &paramFalseEasting,  // PROJ addition
@@ -3419,6 +3581,7 @@ static const ParamMapping *const paramsGeographicTopocentric[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3433,6 +3596,8 @@ static const ParamMapping *const paramsGeographicTopocentric[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     &paramLatTopoOrigin, &paramLongTopoOrigin, &paramHeightTopoOriginWithH0,
 =======
     &paramLatTopoOrigin, &paramLonTopoOrigin, &paramHeightTopoOriginWithH0,
@@ -3477,6 +3642,7 @@ static const ParamMapping *const paramsGeographicTopocentric[] = {
 =======
     &paramLatTopoOrigin, &paramLonTopoOrigin, &paramHeightTopoOriginWithH0,
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     &paramLatTopoOrigin, &paramLongTopoOrigin, &paramHeightTopoOriginWithH0,
@@ -3545,6 +3711,11 @@ static const ParamMapping *const paramsGeographicTopocentric[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    &paramLatTopoOrigin, &paramLongTopoOrigin, &paramHeightTopoOriginWithH0,
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     nullptr};
 
 static const MethodMapping projectionMethodMappings[] = {
@@ -3583,6 +3754,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3594,9 +3766,12 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> d8e8090c80 (typo fixes)
+=======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3623,12 +3798,17 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     {EPSG_NAME_METHOD_TUNISIA_MINING_GRID, EPSG_CODE_METHOD_TUNISIA_MINING_GRID,
      "Tunisia_Mining_Grid", nullptr,
      nullptr, // no proj equivalent
      paramsTMG},
 
     // Deprecated. Use EPSG_NAME_METHOD_TUNISIA_MINING_GRID instead
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3647,6 +3827,8 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3683,6 +3865,7 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
@@ -3736,6 +3919,10 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     {EPSG_NAME_METHOD_TUNISIA_MAPPING_GRID,
      EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID, "Tunisia_Mapping_Grid", nullptr,
      nullptr, // no proj equivalent
@@ -3811,12 +3998,15 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4738,12 +4928,15 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5017,20 +5210,24 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
      paramsLonNatOrigin},
+=======
+     paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
 
     {PROJ_WKT2_NAME_METHOD_ECKERT_II, 0, "Eckert_II", "eck2", nullptr,
-     paramsLonNatOrigin},
+     paramsLongNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_ECKERT_III, 0, "Eckert_III", "eck3", nullptr,
-     paramsLonNatOrigin},
+     paramsLongNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_ECKERT_IV, 0, "Eckert_IV", "eck4", nullptr,
-     paramsLonNatOrigin},
+     paramsLongNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_ECKERT_V, 0, "Eckert_V", "eck5", nullptr,
-     paramsLonNatOrigin},
+     paramsLongNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_ECKERT_VI, 0, "Eckert_VI", "eck6", nullptr,
+<<<<<<< HEAD
      paramsLonNatOrigin},
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5047,7 +5244,13 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+     paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
     {EPSG_NAME_METHOD_EQUIDISTANT_CYLINDRICAL,
      EPSG_CODE_METHOD_EQUIDISTANT_CYLINDRICAL, "Equirectangular", "eqc",
@@ -5078,12 +5281,15 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5339,17 +5545,21 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
      "mbtfpq", nullptr, paramsLonNatOrigin},
+=======
+     "mbtfpq", nullptr, paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
 
     {PROJ_WKT2_NAME_METHOD_GALL_STEREOGRAPHIC, 0, "Gall_Stereographic", "gall",
-     nullptr, paramsLonNatOrigin},
+     nullptr, paramsLongNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_GOODE_HOMOLOSINE, 0, "Goode_Homolosine", "goode",
-     nullptr, paramsLonNatOrigin},
+     nullptr, paramsLongNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_INTERRUPTED_GOODE_HOMOLOSINE, 0,
-     "Interrupted_Goode_Homolosine", "igh", nullptr, paramsLonNatOrigin},
+     "Interrupted_Goode_Homolosine", "igh", nullptr, paramsLongNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_INTERRUPTED_GOODE_HOMOLOSINE_OCEAN, 0, nullptr,
+<<<<<<< HEAD
      "igh_o", nullptr, paramsLonNatOrigin},
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5366,7 +5576,13 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+     "igh_o", nullptr, paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
     // No proper WKT1 representation fr sweep=x
     {PROJ_WKT2_NAME_METHOD_GEOSTATIONARY_SATELLITE_SWEEP_X, 0, nullptr, "geos",
@@ -5840,12 +6056,15 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6065,11 +6284,15 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
      paramsLonNatOrigin},
+=======
+     paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
 
     {PROJ_WKT2_NAME_METHOD_NATURAL_EARTH, 0, "Natural_Earth", "natearth",
-     nullptr, paramsLonNatOrigin},
+     nullptr, paramsLongNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_NATURAL_EARTH_II, 0, "Natural_Earth_II", "natearth2",
+<<<<<<< HEAD
      nullptr, paramsLonNatOrigin},
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6086,7 +6309,13 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+     nullptr, paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
     {EPSG_NAME_METHOD_NZMG, EPSG_CODE_METHOD_NZMG, "New_Zealand_Map_Grid",
      "nzmg", nullptr, paramsNatOrigin},
@@ -6127,6 +6356,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -6141,6 +6371,8 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
      paramsLongNatOrigin},
 =======
      paramsLonNatOrigin},
@@ -6185,6 +6417,7 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      paramsLonNatOrigin},
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
      paramsLongNatOrigin},
@@ -6253,6 +6486,11 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+     paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
     {EPSG_NAME_METHOD_AMERICAN_POLYCONIC, EPSG_CODE_METHOD_AMERICAN_POLYCONIC,
      "Polyconic", "poly", nullptr, paramsNatOrigin},
@@ -6286,6 +6524,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -6300,6 +6539,8 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
      paramsLongNatOriginLongitudeCentre},
 =======
      paramsLonNatOriginLongitudeCentre},
@@ -6344,6 +6585,7 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      paramsLonNatOriginLongitudeCentre},
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
      paramsLongNatOriginLongitudeCentre},
@@ -6412,6 +6654,11 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+     paramsLongNatOriginLongitudeCentre},
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
     {PROJ_WKT2_NAME_METHOD_PEIRCE_QUINCUNCIAL_SQUARE, 0, nullptr, "peirce_q",
      "shape=square", paramsNatOriginScale},
@@ -6440,6 +6687,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -6454,6 +6702,8 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
      paramsLongNatOriginLongitudeCentre},
 =======
      paramsLonNatOriginLongitudeCentre},
@@ -6498,6 +6748,7 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      paramsLonNatOriginLongitudeCentre},
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
      paramsLongNatOriginLongitudeCentre},
@@ -6566,6 +6817,11 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+     paramsLongNatOriginLongitudeCentre},
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
     {PROJ_WKT2_NAME_METHOD_STEREOGRAPHIC, 0, "Stereographic", "stere", nullptr,
      paramsObliqueStereo},
@@ -6591,12 +6847,15 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6834,14 +7093,18 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
      paramsLonNatOrigin},
+=======
+     paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
 
     {PROJ_WKT2_NAME_METHOD_VAN_DER_GRINTEN, 0, "VanDerGrinten", "vandg", "R_A",
-     paramsLonNatOrigin},
+     paramsLongNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_WAGNER_I, 0, "Wagner_I", "wag1", nullptr,
-     paramsLonNatOrigin},
+     paramsLongNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_WAGNER_II, 0, "Wagner_II", "wag2", nullptr,
+<<<<<<< HEAD
      paramsLonNatOrigin},
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6858,7 +7121,13 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+     paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
     {PROJ_WKT2_NAME_METHOD_WAGNER_III, 0, "Wagner_III", "wag3", nullptr,
      paramsWag3},
@@ -6884,12 +7153,15 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7127,14 +7399,18 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
      paramsLonNatOrigin},
+=======
+     paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
 
     {PROJ_WKT2_NAME_METHOD_WAGNER_V, 0, "Wagner_V", "wag5", nullptr,
-     paramsLonNatOrigin},
+     paramsLongNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_WAGNER_VI, 0, "Wagner_VI", "wag6", nullptr,
-     paramsLonNatOrigin},
+     paramsLongNatOrigin},
 
     {PROJ_WKT2_NAME_METHOD_WAGNER_VII, 0, "Wagner_VII", "wag7", nullptr,
+<<<<<<< HEAD
      paramsLonNatOrigin},
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7151,7 +7427,13 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+     paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
     {PROJ_WKT2_NAME_METHOD_QUADRILATERALIZED_SPHERICAL_CUBE, 0,
      "Quadrilateralized_Spherical_Cube", "qsc", nullptr, paramsNatOrigin},
@@ -7182,6 +7464,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -7196,6 +7479,8 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     {"Aitoff", 0, "Aitoff", "aitoff", nullptr, paramsLongNatOrigin},
 =======
     {"Aitoff", 0, "Aitoff", "aitoff", nullptr, paramsLonNatOrigin},
@@ -7240,6 +7525,7 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
     {"Aitoff", 0, "Aitoff", "aitoff", nullptr, paramsLonNatOrigin},
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     {"Aitoff", 0, "Aitoff", "aitoff", nullptr, paramsLongNatOrigin},
@@ -7308,6 +7594,11 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    {"Aitoff", 0, "Aitoff", "aitoff", nullptr, paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
     {"Winkel I", 0, "Winkel_I", "wink1", nullptr, paramsWink1},
 
@@ -7336,6 +7627,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7358,6 +7650,8 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
      paramsLongNatOrigin},
 =======
      paramsLonNatOrigin},
@@ -7372,6 +7666,7 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      paramsLonNatOrigin},
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
      paramsLongNatOrigin},
@@ -7398,10 +7693,16 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+     paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
     {"Loximuthal", 0, "Loximuthal", "loxim", nullptr, paramsLoxim},
 
     {"Quartic Authalic", 0, "Quartic_Authalic", "qua_aut", nullptr,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -7491,6 +7792,7 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      paramsLongNatOrigin},
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
      paramsLongNatOrigin},
 =======
@@ -7618,6 +7920,8 @@ static const MethodMapping projectionMethodMappings[] = {
      paramsLonNatOrigin},
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 
     {"Transverse Cylindrical Equal Area", 0,
      "Transverse_Cylindrical_Equal_Area", "tcea", nullptr, paramsObliqueStereo},
@@ -7643,6 +7947,7 @@ static const MethodMapping projectionMethodMappings[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -7657,6 +7962,8 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
      "eqearth", nullptr, paramsLongNatOrigin},
 =======
      "eqearth", nullptr, paramsLonNatOrigin},
@@ -7701,6 +8008,7 @@ static const MethodMapping projectionMethodMappings[] = {
 =======
      "eqearth", nullptr, paramsLonNatOrigin},
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
      "eqearth", nullptr, paramsLongNatOrigin},
@@ -7769,6 +8077,11 @@ static const MethodMapping projectionMethodMappings[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+     "eqearth", nullptr, paramsLongNatOrigin},
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
     {EPSG_NAME_METHOD_LABORDE_OBLIQUE_MERCATOR,
      EPSG_CODE_METHOD_LABORDE_OBLIQUE_MERCATOR, "Laborde_Oblique_Mercator",
@@ -7825,6 +8138,7 @@ const struct MethodNameCode methodNameCodes[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -7839,6 +8153,8 @@ const struct MethodNameCode methodNameCodes[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     METHOD_NAME_CODE(TUNISIA_MINING_GRID),
 =======
     METHOD_NAME_CODE(TUNISIA_MAPPING_GRID),
@@ -7883,6 +8199,7 @@ const struct MethodNameCode methodNameCodes[] = {
 =======
     METHOD_NAME_CODE(TUNISIA_MAPPING_GRID),
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     METHOD_NAME_CODE(TUNISIA_MINING_GRID),
@@ -7951,6 +8268,11 @@ const struct MethodNameCode methodNameCodes[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    METHOD_NAME_CODE(TUNISIA_MINING_GRID),
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     METHOD_NAME_CODE(ALBERS_EQUAL_AREA),
     METHOD_NAME_CODE(LAMBERT_CONIC_CONFORMAL_2SP),
     METHOD_NAME_CODE(LAMBERT_CONIC_CONFORMAL_2SP_BELGIUM),
@@ -8404,6 +8726,7 @@ static const ParamMapping paramSouthPoleLatGRIB = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -8418,6 +8741,8 @@ static const ParamMapping paramSouthPoleLatGRIB = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 static const ParamMapping paramSouthPoleLongGRIB = {
 =======
 static const ParamMapping paramSouthPoleLonGRIB = {
@@ -8462,6 +8787,7 @@ static const ParamMapping paramSouthPoleLonGRIB = {
 =======
 static const ParamMapping paramSouthPoleLonGRIB = {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 static const ParamMapping paramSouthPoleLongGRIB = {
@@ -8530,6 +8856,11 @@ static const ParamMapping paramSouthPoleLonGRIB = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+static const ParamMapping paramSouthPoleLongGRIB = {
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     PROJ_WKT2_NAME_PARAMETER_SOUTH_POLE_LONGITUDE_GRIB_CONVENTION, 0, nullptr,
     common::UnitOfMeasure::Type::ANGULAR, nullptr};
 
@@ -8558,6 +8889,7 @@ static const ParamMapping *const paramsPoleRotationGRIBConvention[] = {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -8572,6 +8904,8 @@ static const ParamMapping *const paramsPoleRotationGRIBConvention[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     &paramSouthPoleLatGRIB, &paramSouthPoleLongGRIB, &paramAxisRotationGRIB,
 =======
     &paramSouthPoleLatGRIB, &paramSouthPoleLonGRIB, &paramAxisRotationGRIB,
@@ -8616,6 +8950,7 @@ static const ParamMapping *const paramsPoleRotationGRIBConvention[] = {
 =======
     &paramSouthPoleLatGRIB, &paramSouthPoleLonGRIB, &paramAxisRotationGRIB,
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     &paramSouthPoleLatGRIB, &paramSouthPoleLongGRIB, &paramAxisRotationGRIB,
@@ -8684,6 +9019,11 @@ static const ParamMapping *const paramsPoleRotationGRIBConvention[] = {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    &paramSouthPoleLatGRIB, &paramSouthPoleLongGRIB, &paramAxisRotationGRIB,
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     nullptr};
 
 static const ParamMapping paramGridNorthPoleLatitudeNetCDF = {
