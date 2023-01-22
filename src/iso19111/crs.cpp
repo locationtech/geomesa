@@ -192,6 +192,7 @@ const BoundCRSPtr &CRS::canonicalBoundCRS() PROJ_PURE_DEFN {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -213,6 +214,8 @@ const BoundCRSPtr &CRS::canonicalBoundCRS() PROJ_PURE_DEFN {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 /** \brief Return whether a CRS is a dynamic CRS.
  *
  * A dynamic CRS is a CRS that contains a geodetic CRS whose geodetic reference
@@ -258,6 +261,7 @@ bool CRS::isDynamic(bool considerWGS84AsDynamic) const {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -324,6 +328,8 @@ bool CRS::isDynamic(bool considerWGS84AsDynamic) const {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 /** \brief Return the GeodeticCRS of the CRS.
  *
  * Returns the GeodeticCRS contained in a CRS. This works currently with
@@ -776,6 +782,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -854,6 +861,9 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
             bool candidateHasExactlyMachingExtent = false;
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            bool candidateHasExactlyMatchingExtent = false;
+>>>>>>> bf1dfe8af6 (typo fixes)
             for (const auto &op : list) {
                 auto transf =
                     util::nn_dynamic_pointer_cast<operation::Transformation>(
@@ -873,6 +883,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
                         extentResolved->contains(NN_NO_CHECK(opExtent));
                     if (candidateBoundCRS) {
                         if (exactlyMatchingExtent &&
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1020,11 +1031,18 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                            !candidateHasExactlyMatchingExtent) {
+                            candidateBoundCRS = nullptr;
+                        } else if (exactlyMatchingExtent ==
+                                   candidateHasExactlyMatchingExtent) {
+>>>>>>> bf1dfe8af6 (typo fixes)
                             candidateCount++;
                         }
                     }
                     if (candidateBoundCRS == nullptr) {
                         candidateCount = 1;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1116,6 +1134,9 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
                         candidateHasExactlyMachingExtent =
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                        candidateHasExactlyMatchingExtent =
+>>>>>>> bf1dfe8af6 (typo fixes)
                             exactlyMatchingExtent;
                         candidateBoundCRS =
                             BoundCRS::create(thisAsCRS, hubCRS,
@@ -1163,6 +1184,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
                                             NN_NO_CHECK(opExtent));
                                     if (candidateBoundCRS) {
                                         if (exactlyMatchingExtent &&
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1314,11 +1336,19 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                            !candidateHasExactlyMatchingExtent) {
+                                            candidateBoundCRS = nullptr;
+                                        } else if (
+                                            exactlyMatchingExtent ==
+                                            candidateHasExactlyMatchingExtent) {
+>>>>>>> bf1dfe8af6 (typo fixes)
                                             candidateCount++;
                                         }
                                     }
                                     if (candidateBoundCRS == nullptr) {
                                         candidateCount = 1;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1410,6 +1440,9 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
                                         candidateHasExactlyMachingExtent =
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                        candidateHasExactlyMatchingExtent =
+>>>>>>> bf1dfe8af6 (typo fixes)
                                             exactlyMatchingExtent;
                                         candidateBoundCRS =
                                             BoundCRS::create(
@@ -5000,6 +5033,7 @@ void ProjectedCRS::_exportToWKT(io::WKTFormatter *formatter) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -5078,6 +5112,9 @@ void ProjectedCRS::_exportToWKT(io::WKTFormatter *formatter) const {
 =======
                 // If the id of the objet is in the ESRI namespace, then
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                // If the id of the object is in the ESRI namespace, then
+>>>>>>> bf1dfe8af6 (typo fixes)
                 // try to find the full ESRI WKT from the database
                 const auto definition = dbContext->getTextDefinition(
                     "projected_crs", "ESRI", l_identifiers[0]->code());

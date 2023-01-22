@@ -813,6 +813,7 @@ INSERT INTO "usage" VALUES('EPSG','18606','compound_crs','EPSG','10174','EPSG','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -834,6 +835,8 @@ INSERT INTO "usage" VALUES('EPSG','18606','compound_crs','EPSG','10174','EPSG','
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 INSERT INTO "compound_crs" VALUES('EPSG','10184','DoPw22 Grid + ODN height',NULL,'EPSG','10183','EPSG','5701',0);
 INSERT INTO "usage" VALUES('EPSG','18669','compound_crs','EPSG','10184','EPSG','4686','EPSG','1141');
 INSERT INTO "compound_crs" VALUES('EPSG','10189','ShAb07 Grid + ODN height',NULL,'EPSG','10188','EPSG','5701',0);
@@ -864,6 +867,7 @@ INSERT INTO "compound_crs" VALUES('EPSG','10276','SMITB20 Grid + ODN height',NUL
 INSERT INTO "usage" VALUES('EPSG','19179','compound_crs','EPSG','10276','EPSG','4688','EPSG','1141');
 INSERT INTO "compound_crs" VALUES('EPSG','10281','RBEPP12 Grid + ODN height',NULL,'EPSG','10280','EPSG','5701',0);
 INSERT INTO "usage" VALUES('EPSG','19185','compound_crs','EPSG','10281','EPSG','4689','EPSG','1141');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -930,6 +934,8 @@ INSERT INTO "usage" VALUES('EPSG','19185','compound_crs','EPSG','10281','EPSG','
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 INSERT INTO "compound_crs" VALUES('EPSG','20001','ETRS89 + SVD2006 height',NULL,'EPSG','4258','EPSG','20000',0);
 INSERT INTO "usage" VALUES('EPSG','17956','compound_crs','EPSG','20001','EPSG','4058','EPSG','1026');
 INSERT INTO "compound_crs" VALUES('EPSG','20003','MWC18 Grid + ODN height',NULL,'EPSG','20002','EPSG','5701',0);
