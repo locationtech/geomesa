@@ -238,6 +238,7 @@ Optional
     Without this option iterative polynomial evaluation is used for
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -248,7 +249,13 @@ Optional
 =======
     the inverse tranformation.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    the inverse transformation.
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 
 .. option:: +inv_u=<u_11,u_12,...,u_ij,..,u_mn>
 
@@ -259,6 +266,7 @@ Optional
     Without this option iterative polynomial evaluation is used for
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -269,7 +277,13 @@ Optional
 =======
     the inverse tranformation.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    the inverse transformation.
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 
 .. option:: +inv_v=<v_11,v_12,...,v_ij,..,v_mn>
 
@@ -280,6 +294,7 @@ Optional
     Without this option iterative polynomial evaluation is used for
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -290,7 +305,13 @@ Optional
 =======
     the inverse tranformation.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    the inverse transformation.
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 
 .. option:: +inv_c=<c_1,c_2,...,c_N>
 
@@ -301,6 +322,7 @@ Optional
     Without this option iterative polynomial evaluation is used for
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -311,7 +333,13 @@ Optional
 =======
     the inverse tranformation.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    the inverse transformation.
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 
 .. option:: +range=<value>
 
