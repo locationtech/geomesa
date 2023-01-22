@@ -6,6 +6,7 @@ and others are GIS users. All users, regardless of the profession or skill level
 has the ability to contribute to PROJ. Here's a few suggestion on how:
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
 computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
@@ -14,6 +15,8 @@ GeoMesa facilitates integration with a wide range of existing mapping clients ov
 Consortium) APIs and protocols such as WFS and WMS. GeoMesa supports Apache Spark for custom distributed
 geospatial analytics.
 =======
+=======
+>>>>>>> e771dc363a (typo fixes)
 * Help PROJ-users that is less experienced than yourself.
 * Write a bug report
 * Request a new feature
@@ -21,10 +24,13 @@ geospatial analytics.
 * Fix a bug
 * Implement a new feature
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 73e3ca4b45 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e771dc363a (typo fixes)
 
 In the following sections you can find some guidelines on how to contribute.
 As PROJ is managed on GitHub most contributions require that you have a GitHub
