@@ -139,6 +139,9 @@ paragraph for more details.
         - more generally any string accepted by :c:func:`proj_create` representing
           a CRS
 
+    Starting with PROJ 9.2, source_crs or target_crs can be a CoordinateMetadata
+    with an associated coordinate epoch (but only one of them, not both).
+
     An "area of use" can be specified in area. When it is supplied, the more
     accurate transformation between two given systems can be chosen.
 
@@ -164,9 +167,9 @@ paragraph for more details.
 
     :param ctx: Threading context.
     :type ctx: :c:type:`PJ_CONTEXT` *
-    :param `source_crs`: Source CRS.
+    :param `source_crs`: Source CRS or CoordinateMetadata.
     :type `source_crs`: `const char*`
-    :param `target_crs`: Destination SRS.
+    :param `target_crs`: Destination SRS or CoordinateMetadata
     :type `target_crs`: `const char*`
     :param `area`: Descriptor of the desired area for the transformation.
     :type `area`: :c:type:`PJ_AREA` *
@@ -181,6 +184,9 @@ paragraph for more details.
 
     This is the same as :c:func:`proj_create_crs_to_crs` except that the source and
     target CRS are passed as PJ* objects which must be of the CRS variety.
+
+    Starting with PROJ 9.2, source_crs or target_crs can be a CoordinateMetadata
+    with an associated coordinate epoch (but only one of them, not both).
 
     :param `options`: a list of NUL terminated options, or NULL.
 
@@ -200,6 +206,18 @@ paragraph for more details.
 
     - ALLOW_BALLPARK=YES/NO: can be set to NO to disallow the use of
       :term:`Ballpark transformation` in the candidate coordinate operations.
+
+    - ONLY_BEST=YES/NO: (PROJ >= 9.2)
+      Can be set to YES to cause PROJ to error out if the best
+      transformation, known of PROJ, and usable by PROJ if all grids known and
+      usable by PROJ were accessible, cannot be used. Best transformation should
+      be understood as the transformation returned by
+      :cpp:func:`proj_get_suggested_operation` if all known grids were
+      accessible (either locally or through network).
+      Note that the default value for this option can be also set with the
+      :envvar:`PROJ_ONLY_BEST_DEFAULT` environment variable, or with the
+      ``only_best_default`` setting of :ref:`proj-ini` (the ONLY_BEST option
+      when specified overrides such default value).
 
     - FORCE_OVER=YES/NO: can be set to YES to force the ``+over`` flag on the transformation
       returned by this function. See :ref:`longitude_wrapping`
@@ -278,7 +296,7 @@ Coordinate transformation
 
     .. versionadded:: 9.1.0
 
-    Return the operation used during the last invokation of proj_trans().
+    Return the operation used during the last invocation of proj_trans().
     This is especially useful when P has been created with proj_create_crs_to_crs()
     and has several alternative operations.
     The returned object must be freed with proj_destroy().
