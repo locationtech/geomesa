@@ -173,6 +173,7 @@ fallback_strategy
   default is ``none`` and signifies, that points that fall outside the
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   specified triangles are not transformed. This is also the behavior for
 =======
   specified triangles are not transformed. This is also the behaviour for
@@ -183,7 +184,13 @@ fallback_strategy
 =======
   specified triangles are not transformed. This is also the behaviour for
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+  specified triangles are not transformed. This is also the behavior for
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
   ``format_version`` before 1.1. If ``fallback_strategy`` is set to
   ``nearest_side``, then points that do not fall into any triangle are 
   transformed according to the triangle closest to them by euclidean distance.
