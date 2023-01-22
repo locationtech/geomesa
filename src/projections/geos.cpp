@@ -74,12 +74,15 @@ static PJ_XY geos_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
     ** position on earth surface (long,lat).*/
 =======
     ** position on earth surface (lon,lat).*/
@@ -96,6 +99,7 @@ static PJ_XY geos_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 =======
     ** position on earth surface (long,lat).*/
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -173,6 +177,9 @@ static PJ_XY geos_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     tmp = cos(lp.phi);
     Vx = cos (lp.lam) * tmp;
     Vy = sin (lp.lam) * tmp;
@@ -221,12 +228,15 @@ static PJ_XY geos_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
     ** position on earth surface (long,lat).*/
 =======
     ** position on earth surface (lon,lat).*/
@@ -243,6 +253,7 @@ static PJ_XY geos_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 =======
     ** position on earth surface (long,lat).*/
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -320,6 +331,9 @@ static PJ_XY geos_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     r = (Q->radius_p) / hypot(Q->radius_p * cos (lp.phi), sin (lp.phi));
     Vx = r * cos (lp.lam) * cos (lp.phi);
     Vy = r * sin (lp.lam) * cos (lp.phi);
