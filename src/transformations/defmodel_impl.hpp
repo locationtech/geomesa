@@ -999,10 +999,14 @@ bool Evaluator<Grid, GridSet, EvaluatorIface>::forward(
             if (compEx->displacementType == DisplacementType::HORIZONTAL) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
                 if (!grid->getLongLatOffset(ix0, iy0, dx00, dy00) ||
                     !grid->getLongLatOffset(ix1, iy0, dx10, dy10) ||
                     !grid->getLongLatOffset(ix0, iy1, dx01, dy01) ||
                     !grid->getLongLatOffset(ix1, iy1, dx11, dy11)) {
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1017,7 +1021,12 @@ bool Evaluator<Grid, GridSet, EvaluatorIface>::forward(
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
                     return false;
                 }
             } else /* if (compEx->displacementType == DisplacementType::THREE_D)
@@ -1029,10 +1038,14 @@ bool Evaluator<Grid, GridSet, EvaluatorIface>::forward(
                 double dz11 = 0;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
                 if (!grid->getLongLatZOffset(ix0, iy0, dx00, dy00, dz00) ||
                     !grid->getLongLatZOffset(ix1, iy0, dx10, dy10, dz10) ||
                     !grid->getLongLatZOffset(ix0, iy1, dx01, dy01, dz01) ||
                     !grid->getLongLatZOffset(ix1, iy1, dx11, dy11, dz11)) {
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1047,7 +1060,12 @@ bool Evaluator<Grid, GridSet, EvaluatorIface>::forward(
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
                     return false;
                 }
                 const double dzInterp =
