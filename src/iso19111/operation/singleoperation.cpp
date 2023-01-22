@@ -200,7 +200,7 @@ const crs::CRSPtr &CoordinateOperation::interpolationCRS() const {
  */
 const util::optional<common::DataEpoch> &
 CoordinateOperation::sourceCoordinateEpoch() const {
-    return d->sourceCoordinateEpoch_;
+    return *(d->sourceCoordinateEpoch_);
 }
 
 // ---------------------------------------------------------------------------
@@ -211,7 +211,7 @@ CoordinateOperation::sourceCoordinateEpoch() const {
  */
 const util::optional<common::DataEpoch> &
 CoordinateOperation::targetCoordinateEpoch() const {
-    return d->targetCoordinateEpoch_;
+    return *(d->targetCoordinateEpoch_);
 }
 
 // ---------------------------------------------------------------------------
@@ -256,6 +256,22 @@ void CoordinateOperation::setCRSs(const CoordinateOperation *in,
             setCRSs(nn_sourceCRS, nn_targetCRS, in->interpolationCRS());
         }
     }
+}
+
+// ---------------------------------------------------------------------------
+
+void CoordinateOperation::setSourceCoordinateEpoch(
+    const util::optional<common::DataEpoch> &epoch) {
+    d->sourceCoordinateEpoch_ =
+        std::make_shared<util::optional<common::DataEpoch>>(epoch);
+}
+
+// ---------------------------------------------------------------------------
+
+void CoordinateOperation::setTargetCoordinateEpoch(
+    const util::optional<common::DataEpoch> &epoch) {
+    d->targetCoordinateEpoch_ =
+        std::make_shared<util::optional<common::DataEpoch>>(epoch);
 }
 
 // ---------------------------------------------------------------------------
@@ -1890,6 +1906,7 @@ bool Transformation::isGeographic3DToGravityRelatedHeight(
         "1109", // Geographic3D to Depth (Gravsoft)
         "1110", // Geog3D to Geog2D+Depth (Gravsoft)
         "1115", // Geog3D to Geog2D+Depth (txt)
+        "1118", // Geog3D to Geog2D+GravityRelatedHeight (ISG)
         "9661", // Geographic3D to GravityRelatedHeight (EGM)
         "9662", // Geographic3D to GravityRelatedHeight (Ausgeoid98)
         "9663", // Geographic3D to GravityRelatedHeight (OSGM-GB)
