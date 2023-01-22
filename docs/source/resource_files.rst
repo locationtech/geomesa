@@ -123,6 +123,7 @@ Its default content is:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 .. literalinclude:: ../../data/proj.ini
 =======
 =======
@@ -195,6 +196,9 @@ Its default content is:
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+.. literalinclude:: ../../data/proj.ini
+>>>>>>> 86ade66356 (typo fixes)
 
 
 Transformation grids
