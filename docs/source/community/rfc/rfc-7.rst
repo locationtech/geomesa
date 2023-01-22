@@ -85,12 +85,15 @@ developed with backwards-compatible policies that aim to provide consistent
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 behavior across different versions. CMake is currently the preferred build
 =======
 behaviour across different versions. CMake is currently the preferred build
@@ -107,6 +110,7 @@ behaviour across different versions. CMake is currently the preferred build
 =======
 behavior across different versions. CMake is currently the preferred build
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -184,6 +188,9 @@ behaviour across different versions. CMake is currently the preferred build
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 tool for PROJ for the following reasons:
 
 - It has existed in the PROJ code base since 2014, and is familiar to active
