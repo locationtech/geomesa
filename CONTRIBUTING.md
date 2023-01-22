@@ -22,6 +22,7 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -82,6 +83,8 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
 computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
@@ -103,6 +106,7 @@ geospatial analytics.
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -169,12 +173,17 @@ geospatial analytics.
 =======
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e771dc363a (typo fixes)
+>>>>>>> bf1dfe8af6 (typo fixes)
 * Help PROJ-users that is less experienced than yourself.
 * Write a bug report
 * Request a new feature
 * Write documentation for your favorite map projection
 * Fix a bug
 * Implement a new feature
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -204,10 +213,13 @@ geospatial analytics.
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 >>>>>>> 73e3ca4b45 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -289,6 +301,10 @@ geospatial analytics.
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e771dc363a (typo fixes)
+>>>>>>> bf1dfe8af6 (typo fixes)
 
 In the following sections you can find some guidelines on how to contribute.
 As PROJ is managed on GitHub most contributions require that you have a GitHub
