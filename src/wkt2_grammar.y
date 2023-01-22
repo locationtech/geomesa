@@ -74,6 +74,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -143,6 +144,9 @@
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+%token T_ANCHOREPOCH            "ANCHOREPOCH";
+>>>>>>> bf1dfe8af6 (typo fixes)
 %token T_CONVERSION             "CONVERSION";
 %token T_METHOD                 "METHOD";
 %token T_REMARK                 "REMARK";
@@ -211,6 +215,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -232,11 +237,14 @@
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 %token T_AXISMINVALUE           "AXISMINVALUE"
 %token T_AXISMAXVALUE           "AXISMAXVALUE"
 %token T_RANGEMEANING           "RANGEMEANING"
 %token T_exact                  "exact"
 %token T_wraparound             "wraparound"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -303,6 +311,8 @@
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 
 /* WKT2 alternate (longer or shorter) */
 %token T_GEODETICCRS            "GEODETICCRS";
@@ -873,6 +883,7 @@ axis_direction_except_n_s_cw_ccw_opt_axis_spatial_unit_identifier_list_options:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -894,10 +905,13 @@ axis_direction_except_n_s_cw_ccw_opt_axis_spatial_unit_identifier_list_options:
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     | axis_range_opt_separator_identifier_list
     | axis_order opt_separator_axis_range_opt_separator_identifier_list
     | axis_order wkt_separator spatial_unit opt_separator_axis_range_opt_separator_identifier_list
     | spatial_unit opt_separator_axis_range_opt_separator_identifier_list
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1014,6 +1028,8 @@ axis_direction_except_n_s_cw_ccw_opt_axis_spatial_unit_identifier_list_options:
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 
 
 axis_direction_opt_axis_order_identifier_list:
@@ -1058,6 +1074,7 @@ axis_direction_except_n_s_cw_ccw_opt_axis_identifier_list_options:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1151,6 +1168,10 @@ axis_direction_except_n_s_cw_ccw_opt_axis_identifier_list_options:
 =======
     | axis_order opt_separator_identifier_list
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    | axis_order opt_separator_axis_range_opt_separator_identifier_list
+    | axis_range_opt_separator_identifier_list
+>>>>>>> bf1dfe8af6 (typo fixes)
 
 
 
@@ -1173,6 +1194,7 @@ axis_direction_except_n_s_cw_ccw_opt_axis_time_unit_identifier_list_options:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1194,10 +1216,13 @@ axis_direction_except_n_s_cw_ccw_opt_axis_time_unit_identifier_list_options:
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     | axis_range_opt_separator_identifier_list
     | axis_order opt_separator_axis_range_opt_separator_identifier_list
     | axis_order wkt_separator time_unit opt_separator_axis_range_opt_separator_identifier_list
     | time_unit opt_separator_axis_range_opt_separator_identifier_list
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1297,6 +1322,8 @@ axis_direction_except_n_s_cw_ccw_opt_axis_time_unit_identifier_list_options:
     | axis_order wkt_separator time_unit opt_separator_identifier_list
     | time_unit opt_separator_identifier_list
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 
 axis_direction_except_n_s_cw_ccw:
                   T_NORTHNORTHEAST
@@ -1362,6 +1389,7 @@ axis_order_keyword: T_ORDER
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1383,6 +1411,8 @@ axis_order_keyword: T_ORDER
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 axis_range_opt_separator_identifier_list:
       axis_minimum_value opt_separator_identifier_list
     | axis_maximum_value opt_separator_identifier_list
@@ -1405,6 +1435,7 @@ axis_range_meaning: axis_range_meaning_keyword left_delimiter axis_range_meaning
 axis_range_meaning_keyword: T_RANGEMEANING
 axis_range_meaning_value: T_exact | T_wraparound
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1471,6 +1502,8 @@ axis_range_meaning_value: T_exact | T_wraparound
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 cs_unit: unit
 
 /*
@@ -1684,6 +1717,7 @@ geodetic_reference_frame_without_pm: geodetic_reference_frame_keyword
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1762,6 +1796,9 @@ geodetic_reference_frame_without_pm: geodetic_reference_frame_keyword
 =======
                           opt_separator_datum_anchor_identifier_list
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                          opt_separator_datum_anchor_anchor_epoch_identifier_list
+>>>>>>> bf1dfe8af6 (typo fixes)
                           right_delimiter
 
 geodetic_reference_frame_keyword: T_DATUM | T_TRF | T_GEODETICDATUM
@@ -1781,6 +1818,7 @@ datum_name: quoted_latin_text
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1918,9 +1956,16 @@ opt_separator_datum_anchor_identifier_list:
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 opt_separator_datum_anchor_identifier_list:
+=======
+opt_separator_datum_anchor_anchor_epoch_identifier_list:
+>>>>>>> bf1dfe8af6 (typo fixes)
     | wkt_separator datum_anchor
+    | wkt_separator datum_anchor_epoch
+    | wkt_separator datum_anchor wkt_separator datum_anchor_epoch
     | wkt_separator identifier opt_separator_identifier_list
+    | wkt_separator datum_anchor_epoch wkt_separator identifier opt_separator_identifier_list
     | wkt_separator datum_anchor wkt_separator identifier opt_separator_identifier_list
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1934,6 +1979,9 @@ opt_separator_datum_anchor_identifier_list:
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    | wkt_separator datum_anchor wkt_separator datum_anchor_epoch wkt_separator identifier opt_separator_identifier_list
+>>>>>>> bf1dfe8af6 (typo fixes)
 
 datum_anchor: datum_anchor_keyword left_delimiter
               datum_anchor_description right_delimiter
@@ -1955,6 +2003,7 @@ datum_anchor_description: quoted_latin_text
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1976,6 +2025,8 @@ datum_anchor_description: quoted_latin_text
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 datum_anchor_epoch: datum_anchor_epoch_keyword left_delimiter
                     anchor_epoch right_delimiter
 
@@ -1983,6 +2034,7 @@ datum_anchor_epoch_keyword: T_ANCHOREPOCH
 
 anchor_epoch: unsigned_integer | unsigned_integer period | unsigned_integer period unsigned_integer
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2049,6 +2101,8 @@ anchor_epoch: unsigned_integer | unsigned_integer period | unsigned_integer peri
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 // Projected CRS
 
 projected_crs: projected_crs_keyword left_delimiter crs_name
@@ -2205,6 +2259,7 @@ vertical_reference_frame: vertical_reference_frame_keyword left_delimiter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2283,6 +2338,9 @@ vertical_reference_frame: vertical_reference_frame_keyword left_delimiter
 =======
                           opt_separator_datum_anchor_identifier_list
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                          opt_separator_datum_anchor_anchor_epoch_identifier_list
+>>>>>>> bf1dfe8af6 (typo fixes)
                           right_delimiter
 
 vertical_reference_frame_keyword: T_VDATUM | T_VRF | T_VERTICALDATUM
@@ -2315,6 +2373,7 @@ engineering_datum_keyword: T_EDATUM | T_ENGINEERINGDATUM
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2336,11 +2395,14 @@ engineering_datum_keyword: T_EDATUM | T_ENGINEERINGDATUM
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 opt_separator_datum_anchor_identifier_list:
     | wkt_separator datum_anchor
     | wkt_separator identifier opt_separator_identifier_list
     | wkt_separator datum_anchor wkt_separator identifier opt_separator_identifier_list
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2407,6 +2469,8 @@ opt_separator_datum_anchor_identifier_list:
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 // Parametric CRS
 
 parametric_crs: parametric_crs_keyword left_delimiter crs_name

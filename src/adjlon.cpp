@@ -17,6 +17,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -38,10 +39,13 @@
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 double adjlon (double longitude) {
     /* Let longitude slightly overshoot, to avoid spurious sign switching at the date line */
     if (fabs (longitude) < M_PI + 1e-12)
         return longitude;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -213,16 +217,19 @@ double adjlon (double lon) {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 
     /* adjust to 0..2pi range */
-    lon += M_PI;
+    longitude += M_PI;
 
     /* remove integral # of 'revolutions'*/
-    lon -= M_TWOPI * floor(lon / M_TWOPI);
+    longitude -= M_TWOPI * floor(longitude / M_TWOPI);
 
     /* adjust back to -pi..pi range */
-    lon -= M_PI;
+    longitude -= M_PI;
 
+<<<<<<< HEAD
     return lon;
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -237,4 +244,7 @@ double adjlon (double lon) {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    return longitude;
+>>>>>>> bf1dfe8af6 (typo fixes)
 }
