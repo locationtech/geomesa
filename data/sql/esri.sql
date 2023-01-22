@@ -6,6 +6,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "metadata" VALUES('ESRI.VERSION', 'ArcGIS Pro 3.1');
@@ -46,6 +47,10 @@ INSERT INTO "metadata" VALUES('ESRI.DATE', '2022-07-09');
 INSERT INTO "metadata" VALUES('ESRI.VERSION', 'ArcGIS Pro 3.0');
 INSERT INTO "metadata" VALUES('ESRI.DATE', '2022-07-09');
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "metadata" VALUES('ESRI.VERSION', 'ArcGIS Pro 3.1');
+INSERT INTO "metadata" VALUES('ESRI.DATE', '2023-19-01');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('unit_of_measure','EPSG','1025','Millimeter','ESRI');
 INSERT INTO alias_name VALUES('unit_of_measure','EPSG','1033','Centimeter','ESRI');
 INSERT INTO alias_name VALUES('unit_of_measure','EPSG','9001','Meter','ESRI');
@@ -1794,10 +1799,13 @@ INSERT INTO alias_name VALUES('geodetic_crs','EPSG','9695','REDGEOMIN_(3D)','ESR
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('geodetic_crs','EPSG','9701','ETRF2000-PL_(3D)','ESRI');
 INSERT INTO alias_name VALUES('geodetic_crs','EPSG','9754','WGS_84_(G2139)_(3D)','ESRI');
 INSERT INTO "geodetic_datum" VALUES('ESRI','1309','WGS_1984_(G2139)','WGS 1984 (G2139)','EPSG','7030','EPSG','8901',NULL,NULL,NULL,NULL,0);
@@ -1816,6 +1824,7 @@ INSERT INTO alias_name VALUES('geodetic_crs','EPSG','9893','LUREF_(3D)','ESRI');
 INSERT INTO alias_name VALUES('geodetic_crs','EPSG','9989','ITRF2020_3D','ESRI');
 INSERT INTO alias_name VALUES('geodetic_crs','EPSG','20040','SIRGAS-Chile_2021_(3D)','ESRI');
 INSERT INTO alias_name VALUES('geodetic_crs','EPSG','20041','SIRGAS-Chile_2021','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1874,6 +1883,8 @@ INSERT INTO "usage" VALUES('ESRI', '9763_USAGE','geodetic_crs','ESRI','9763','EP
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "geodetic_datum" VALUES('ESRI','106001','D_WGS_1966','WGS 1966','ESRI','107001','EPSG','8901',NULL,NULL,NULL,NULL,1);
 INSERT INTO "usage" VALUES('ESRI', '106001_USAGE','geodetic_datum','ESRI','106001','EPSG','1262','EPSG','1024');
 INSERT INTO "geodetic_crs" VALUES('ESRI','37001','GCS_WGS_1966',NULL,'geographic 2D','EPSG','6422','ESRI','106001',NULL,1);
@@ -1927,6 +1938,7 @@ INSERT INTO "geodetic_datum" VALUES('ESRI','106204','D_Hjorsey_1955','Hjorsey 19
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('ESRI', '106204_USAGE','geodetic_datum','ESRI','106204','EPSG','3262','EPSG','1024');
@@ -1973,6 +1985,11 @@ INSERT INTO "usage" VALUES('ESRI', '106204_USAGE','geodetic_datum','ESRI','10620
 INSERT INTO "geodetic_crs" VALUES('ESRI','37204','GCS_Hjorsey_1955',NULL,'geographic 2D','EPSG','6422','ESRI','106204',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', '37204_USAGE','geodetic_crs','ESRI','37204','EPSG','4662','EPSG','1024');
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "usage" VALUES('ESRI', '106204_USAGE','geodetic_datum','ESRI','106204','EPSG','3262','EPSG','1024');
+INSERT INTO "geodetic_crs" VALUES('ESRI','37204','GCS_Hjorsey_1955',NULL,'geographic 2D','EPSG','6422','ESRI','106204',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', '37204_USAGE','geodetic_crs','ESRI','37204','EPSG','3262','EPSG','1024');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "supersession" VALUES('geodetic_crs','ESRI','37204','geodetic_crs','EPSG','4658','ESRI',1);
 INSERT INTO "geodetic_datum" VALUES('ESRI','106205','D_Hong_Kong_1963_67','Hong Kong 1963(67)','EPSG','7022','EPSG','8901',NULL,NULL,NULL,NULL,1);
 INSERT INTO "usage" VALUES('ESRI', '106205_USAGE','geodetic_datum','ESRI','106205','EPSG','1118','EPSG','1024');
@@ -2259,6 +2276,7 @@ INSERT INTO "usage" VALUES('ESRI', '104023_USAGE','geodetic_crs','ESRI','104023'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "extent" VALUES('ESRI','1','USA - California and borders of NV, AZ, OR and MX','USA - California and borders of NV, AZ, OR and MX',32.25,42.53,-124.45,-113.6,0);
 =======
 INSERT INTO "extent" VALUES('ESRI','1','USA - California and borders of NV, AZ, OR and MX','USA - California and borders of NV, AZ, OR and MX',32.25,42.53,-124.44,-113.6,0);
@@ -2291,6 +2309,9 @@ INSERT INTO "extent" VALUES('ESRI','1','USA - California and borders of NV, AZ, 
 =======
 INSERT INTO "extent" VALUES('ESRI','1','USA - California and borders of NV, AZ, OR and MX','USA - California and borders of NV, AZ, OR and MX',32.25,42.53,-124.44,-113.6,0);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "extent" VALUES('ESRI','1','USA - California and borders of NV, AZ, OR and MX','USA - California and borders of NV, AZ, OR and MX',32.25,42.53,-124.45,-113.6,0);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "geodetic_datum" VALUES('ESRI','106012','California_SRS_Epoch_2017.50_(NAD83)','California SRS Epoch 2017.5 (NAD83)','EPSG','7019','EPSG','8901',NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '106012_USAGE','geodetic_datum','ESRI','106012','ESRI','1','EPSG','1024');
 INSERT INTO "geodetic_crs" VALUES('ESRI','104024','California_SRS_Epoch_2017.50_(NAD83)',NULL,'geographic 2D','EPSG','6422','ESRI','106012',NULL,0);
@@ -2593,14 +2614,18 @@ INSERT INTO "usage" VALUES('ESRI', '104645_USAGE','geodetic_crs','ESRI','104645'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "geodetic_datum" VALUES('ESRI','106272','PANAMA08_2011','Panama - ITRF_2008 epoch 2011','EPSG','7019','EPSG','8901',NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '106272_USAGE','geodetic_datum','ESRI','106272','EPSG','1186','EPSG','1024');
 INSERT INTO "geodetic_crs" VALUES('ESRI','104646','GCS_PANAMA08_2011',NULL,'geographic 2D','EPSG','6422','ESRI','106272',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '104646_USAGE','geodetic_crs','ESRI','104646','EPSG','1186','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2627,6 +2652,8 @@ INSERT INTO "usage" VALUES('ESRI', '104646_USAGE','geodetic_crs','ESRI','104646'
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "geodetic_crs" VALUES('ESRI','104647','ONGD17_3D',NULL,'geographic 2D','EPSG','6422','ESRI','106027',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', '104647_USAGE','geodetic_crs','ESRI','104647','EPSG','1183','EPSG','1024');
 INSERT INTO "supersession" VALUES('geodetic_crs','ESRI','104647','geodetic_crs','EPSG','9293','ESRI',1);
@@ -5683,6 +5710,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','5018','Lisbon_Portuguese_G
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO alias_name VALUES('projected_crs','EPSG','5041','WGS_1984_UPS_North_(E-N)','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','5042','WGS_1984_UPS_South_(E-N)','ESRI');
 =======
@@ -5713,6 +5741,10 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','5042','WGS_1984_UPS_South_
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO alias_name VALUES('projected_crs','EPSG','5041','WGS_1984_UPS_North_(E-N)','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','5042','WGS_1984_UPS_South_(E-N)','ESRI');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','5048','ETRS_1989_TM35FIN_NE','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','5069','NAD_1927_Contiguous_USA_Albers','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','5070','NAD_1983_Contiguous_USA_Albers','ESRI');
@@ -7223,6 +7255,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_9713_USAGE','projected_crs','ESRI','971
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO alias_name VALUES('projected_crs','EPSG','9716','IGM95_UTM_Zone_34N','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','9741','EOS21_Grid','ESRI');
 =======
@@ -7273,6 +7306,10 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','9741','EOS21_Grid','ESRI')
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO alias_name VALUES('projected_crs','EPSG','9716','IGM95_UTM_Zone_34N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','9741','EOS21_Grid','ESRI');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "conversion" VALUES('ESRI','9748','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',30.5,'EPSG','9102','EPSG','8802','Longitude of natural origin',-85.83333333333333,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99996,'EPSG','9201','EPSG','8806','False easting',656166.667,'EPSG','9003','EPSG','8807','False northing',0.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_9748_USAGE','conversion','ESRI','9748','EPSG','2154','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','9748','NAD_1983_2011_StatePlane_Alabama_East_(ftUS)',NULL,'EPSG','4497','EPSG','6318','ESRI','9748',NULL,0);
@@ -7287,10 +7324,13 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_9749_USAGE','projected_crs','ESRI','974
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','9761','ECML14_NB_Grid','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','9766','EWR2_Grid','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','9793','RGF93_v2_Lambert-93','ESRI');
@@ -7352,6 +7392,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','9972','SCM22_Grid','ESRI')
 INSERT INTO alias_name VALUES('projected_crs','EPSG','9977','FNL22_Grid','ESRI');
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7398,6 +7439,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_9766_USAGE','projected_crs','ESRI','976
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "projected_crs" VALUES('ESRI','20002','Pulkovo_1995_GK_Zone_2',NULL,'EPSG','4400','EPSG','4200','EPSG','16202',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_20002_USAGE','projected_crs','ESRI','20002','EPSG','1805','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','20003','Pulkovo_1995_GK_Zone_3',NULL,'EPSG','4400','EPSG','4200','EPSG','16203',NULL,0);
@@ -7437,16 +7480,20 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','20032','Pulkovo_1995_GK_Zo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20042','SIRGAS-Chile_2021_UTM_Zone_12S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20047','GDA2020_BCSG2020','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20048','SIRGAS-Chile_2021_UTM_Zone_18S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20049','SIRGAS-Chile_2021_UTM_Zone_19S','ESRI');
 INSERT INTO "projected_crs" VALUES('ESRI','20050','NAD_1983_(2011)_Amtrak_NECCS21_(ft)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_Amtrak_NECCS21_(ft)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Hotine_Oblique_Mercator_Azimuth_Center"],PARAMETER["False_Easting",1500000.0],PARAMETER["False_Northing",1500000.0],PARAMETER["Scale_Factor",0.99999],PARAMETER["Azimuth",58.0],PARAMETER["Longitude_Of_Center",-74.0],PARAMETER["Latitude_Of_Center",40.83333333333334],UNIT["Foot",0.3048]]',0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_20050_USAGE','projected_crs','ESRI','20050','EPSG','4669','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -7473,6 +7520,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_20050_USAGE','projected_crs','ESRI','20
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "projected_crs" VALUES('ESRI','20062','Pulkovo_1995_GK_Zone_2N',NULL,'EPSG','4400','EPSG','4200','EPSG','16302',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_20062_USAGE','projected_crs','ESRI','20062','EPSG','1805','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','20063','Pulkovo_1995_GK_Zone_3N',NULL,'EPSG','4400','EPSG','4200','EPSG','16303',NULL,0);
@@ -7551,10 +7600,13 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','20824','Aratu_UTM_Zone_24S
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20904','GSK-2011_Gauss-Kruger_zone_4','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20905','GSK-2011_Gauss-Kruger_zone_5','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20906','GSK-2011_Gauss-Kruger_zone_6','ESRI');
@@ -7584,6 +7636,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','20929','GSK-2011_Gauss-Kru
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20930','GSK-2011_Gauss-Kruger_zone_30','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20931','GSK-2011_Gauss-Kruger_zone_31','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20932','GSK-2011_Gauss-Kruger_zone_32','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20934','Arc_1950_UTM_Zone_34S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20935','Arc_1950_UTM_Zone_35S','ESRI');
@@ -7765,6 +7818,11 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_21032_USAGE','projected_crs','ESRI','21
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20934','Arc_1950_UTM_Zone_34S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20935','Arc_1950_UTM_Zone_35S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20936','Arc_1950_UTM_Zone_36S','ESRI');
+=======
+INSERT INTO alias_name VALUES('projected_crs','EPSG','20934','Arc_1950_UTM_Zone_34S','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','20935','Arc_1950_UTM_Zone_35S','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','20936','Arc_1950_UTM_Zone_36S','ESRI');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21004','GSK-2011_Gauss-Kruger_CM_21E','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21005','GSK-2011_Gauss-Kruger_CM_27E','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21006','GSK-2011_Gauss-Kruger_CM_33E','ESRI');
@@ -7794,6 +7852,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','21029','GSK-2011_Gauss-Kru
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21030','GSK-2011_Gauss-Kruger_CM_177E','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21031','GSK-2011_Gauss-Kruger_CM_177W','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21032','GSK-2011_Gauss-Kruger_CM_171W','ESRI');
+<<<<<<< HEAD
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
@@ -7806,6 +7865,8 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','21032','GSK-2011_Gauss-Kru
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21035','Arc_1960_UTM_Zone_35S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21036','Arc_1960_UTM_Zone_36S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21037','Arc_1960_UTM_Zone_37S','ESRI');
@@ -7821,10 +7882,13 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','21150','Batavia_UTM_Zone_5
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21207','GSK-2011_GSK_3GK_zone_7','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21208','GSK-2011_GSK_3GK_zone_8','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21209','GSK-2011_GSK_3GK_zone_9','ESRI');
@@ -7883,6 +7947,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','21261','GSK-2011_GSK_3GK_z
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21262','GSK-2011_GSK_3GK_zone_62','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21263','GSK-2011_GSK_3GK_zone_63','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21264','GSK-2011_GSK_3GK_zone_64','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21291','Barbados_1938_British_West_Indies_Grid','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21292','Barbados_1938_Barbados_Grid','ESRI');
@@ -8206,6 +8271,10 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_21364_USAGE','projected_crs','ESRI','21
 =======
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21291','Barbados_1938_British_West_Indies_Grid','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21292','Barbados_1938_Barbados_Grid','ESRI');
+=======
+INSERT INTO alias_name VALUES('projected_crs','EPSG','21291','Barbados_1938_British_West_Indies_Grid','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','21292','Barbados_1938_Barbados_Grid','ESRI');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21307','GSK-2011_GSK_3GK_CM_21E','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21308','GSK-2011_GSK_3GK_CM_24E','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21309','GSK-2011_GSK_3GK_CM_27E','ESRI');
@@ -8264,6 +8333,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','21361','GSK-2011_GSK_3GK_C
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21362','GSK-2011_GSK_3GK_CM_174W','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21363','GSK-2011_GSK_3GK_CM_171W','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21364','GSK-2011_GSK_3GK_CM_168W','ESRI');
+<<<<<<< HEAD
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
@@ -8276,6 +8346,8 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','21364','GSK-2011_GSK_3GK_C
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21413','Beijing_1954_GK_Zone_13','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21414','Beijing_1954_GK_Zone_14','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21415','Beijing_1954_GK_Zone_15','ESRI');
@@ -8354,10 +8426,13 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','22197','Argentina_Zone_7',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22207','NAD83(CSRS)v2_UTM_Zone_7N','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22208','NAD83(CSRS)v2_UTM_Zone_8N','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22209','NAD83(CSRS)v2_UTM_Zone_9N','ESRI');
@@ -8374,6 +8449,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','22219','NAD83(CSRS)v2_UTM_
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22220','NAD83(CSRS)v2_UTM_Zone_20N','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22221','NAD83(CSRS)v2_UTM_Zone_21N','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22222','NAD83(CSRS)v2_UTM_Zone_22N','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22234','Cape_UTM_Zone_34S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22235','Cape_UTM_Zone_35S','ESRI');
@@ -8540,12 +8616,57 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','22465','NAD83(CSRS)v4_Albe
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22234','Cape_UTM_Zone_34S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22235','Cape_UTM_Zone_35S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22236','Cape_UTM_Zone_36S','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22239','NAD83(CSRS)v2_PEI_Stereographic','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22240','NAD83(CSRS)v2_NB_Stereographic','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22243','NAD83(CSRS)v2_SCoPQ_zone_3','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22244','NAD83(CSRS)v2_SCoPQ_zone_4','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22245','NAD83(CSRS)v2_SCoPQ_zone_5','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22246','NAD83(CSRS)v2_SCoPQ_zone_6','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22247','NAD83(CSRS)v2_SCoPQ_zone_7','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22248','NAD83(CSRS)v2_SCoPQ_zone_8','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22249','NAD83(CSRS)v2_SCoPQ_zone_9','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22250','NAD83(CSRS)v2_SCoPQ_zone_10','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22262','NAD83(CSRS)v2_Alberta_3TM_ref_merid_111_W','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22263','NAD83(CSRS)v2_Alberta_3TM_ref_merid_114_W','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22264','NAD83(CSRS)v2_Alberta_3TM_ref_merid_117_W','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22265','NAD83(CSRS)v2_Alberta_3TM_ref_merid_120_W','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22307','NAD83(CSRS)v3_UTM_Zone_7N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22308','NAD83(CSRS)v3_UTM_Zone_8N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22309','NAD83(CSRS)v3_UTM_Zone_9N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22310','NAD83(CSRS)v3_UTM_Zone_10N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22311','NAD83(CSRS)v3_UTM_Zone_11N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22312','NAD83(CSRS)v3_UTM_Zone_12N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22313','NAD83(CSRS)v3_UTM_Zone_13N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22314','NAD83(CSRS)v3_UTM_Zone_14N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22315','NAD83(CSRS)v3_UTM_Zone_15N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22316','NAD83(CSRS)v3_UTM_Zone_16N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22317','NAD83(CSRS)v3_UTM_Zone_17N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22318','NAD83(CSRS)v3_UTM_Zone_18N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22319','NAD83(CSRS)v3_UTM_Zone_19N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22320','NAD83(CSRS)v3_UTM_Zone_20N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22321','NAD83(CSRS)v3_UTM_Zone_21N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22322','NAD83(CSRS)v3_UTM_Zone_22N','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22332','Carthage_UTM_Zone_32N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22337','NAD83(CSRS)v3_MTM_NS_1997_Zone_5','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22338','NAD83(CSRS)v3_MTM_NS_1997_Zone_4','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22348','NAD83(CSRS)v3_MTM_Zone_8','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22349','NAD83(CSRS)v3_MTM_Zone_9','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22350','NAD83(CSRS)v3_MTM_Zone_10','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22351','NAD83(CSRS)v3_MTM_Zone_11','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22352','NAD83(CSRS)v3_MTM_Zone_12','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22353','NAD83(CSRS)v3_MTM_Zone_13','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22354','NAD83(CSRS)v3_MTM_Zone_14','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22355','NAD83(CSRS)v3_MTM_Zone_15','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22356','NAD83(CSRS)v3_MTM_Zone_16','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22357','NAD83(CSRS)v3_MTM_Zone_17','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22391','Nord_Tunisie','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22392','Sud_Tunisie','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8555,6 +8676,28 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','22392','Sud_Tunisie','ESRI
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22407','NAD83(CSRS)v4_UTM_Zone_7N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22408','NAD83(CSRS)v4_UTM_Zone_8N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22409','NAD83(CSRS)v4_UTM_Zone_9N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22410','NAD83(CSRS)v4_UTM_Zone_10N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22411','NAD83(CSRS)v4_UTM_Zone_11N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22412','NAD83(CSRS)v4_UTM_Zone_12N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22413','NAD83(CSRS)v4_UTM_Zone_13N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22414','NAD83(CSRS)v4_UTM_Zone_14N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22415','NAD83(CSRS)v4_UTM_Zone_15N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22416','NAD83(CSRS)v4_UTM_Zone_16N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22417','NAD83(CSRS)v4_UTM_Zone_17N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22418','NAD83(CSRS)v4_UTM_Zone_18N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22419','NAD83(CSRS)v4_UTM_Zone_19N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22420','NAD83(CSRS)v4_UTM_Zone_20N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22421','NAD83(CSRS)v4_UTM_Zone_21N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22422','NAD83(CSRS)v4_UTM_Zone_22N','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22462','NAD83(CSRS)v4_Alberta_3TM_ref_merid_111_W','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22463','NAD83(CSRS)v4_Alberta_3TM_ref_merid_114_W','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22464','NAD83(CSRS)v4_Alberta_3TM_ref_merid_117_W','ESRI');
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22465','NAD83(CSRS)v4_Alberta_3TM_ref_merid_120_W','ESRI');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22521','Corrego_Alegre_UTM_Zone_21S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22522','Corrego_Alegre_UTM_Zone_22S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22523','Corrego_Alegre_UTM_Zone_23S','ESRI');
@@ -8566,10 +8709,13 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','22525','Corrego_Alegre_UTM
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22607','NAD83(CSRS)v6_UTM_Zone_7N','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22608','NAD83(CSRS)v6_UTM_Zone_8N','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22609','NAD83(CSRS)v6_UTM_Zone_9N','ESRI');
@@ -8634,6 +8780,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','22764','NAD83(CSRS)v7_Albe
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22765','NAD83(CSRS)v7_Alberta_3TM_ref_merid_120_W','ESRI');
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22700','Deir_ez_Zor_Levant_Zone','ESRI');
 <<<<<<< HEAD
@@ -8663,6 +8810,8 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','22700','Deir_ez_Zor_Levant
 =======
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22700','Deir_ez_Zor_Levant_Zone','ESRI');
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22770','Deir_ez_Zor_Syria_Lambert','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22780','Deir_ez_Zor_Levant_Stereographic','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22832','Douala_UTM_Zone_32N','ESRI');
@@ -9369,6 +9518,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','31469','DHDN_3_Degree_Gaus
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "projected_crs" VALUES('ESRI','31491','Germany_Zone_1',NULL,'EPSG','4400','EPSG','4314','EPSG','16201',NULL,1);
@@ -9419,13 +9569,17 @@ INSERT INTO "projected_crs" VALUES('ESRI','31495','Germany_Zone_5',NULL,'EPSG','
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "projected_crs" VALUES('ESRI','31491','Germany_Zone_1',NULL,'EPSG','4400','EPSG','4314','EPSG','16201',NULL,0);
+=======
+INSERT INTO "projected_crs" VALUES('ESRI','31491','Germany_Zone_1',NULL,'EPSG','4400','EPSG','4314','EPSG','16201',NULL,1);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_31491_USAGE','projected_crs','ESRI','31491','EPSG','3892','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','31492','Germany_Zone_2',NULL,'EPSG','4400','EPSG','4314','EPSG','16262',NULL,0);
+INSERT INTO "projected_crs" VALUES('ESRI','31492','Germany_Zone_2',NULL,'EPSG','4400','EPSG','4314','EPSG','16262',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_31492_USAGE','projected_crs','ESRI','31492','EPSG','1624','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','31493','Germany_Zone_3',NULL,'EPSG','4400','EPSG','4314','EPSG','16263',NULL,0);
+INSERT INTO "projected_crs" VALUES('ESRI','31493','Germany_Zone_3',NULL,'EPSG','4400','EPSG','4314','EPSG','16263',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_31493_USAGE','projected_crs','ESRI','31493','EPSG','1625','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','31494','Germany_Zone_4',NULL,'EPSG','4400','EPSG','4314','EPSG','16264',NULL,0);
+INSERT INTO "projected_crs" VALUES('ESRI','31494','Germany_Zone_4',NULL,'EPSG','4400','EPSG','4314','EPSG','16264',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_31494_USAGE','projected_crs','ESRI','31494','EPSG','1626','EPSG','1024');
+<<<<<<< HEAD
 INSERT INTO "projected_crs" VALUES('ESRI','31495','Germany_Zone_5',NULL,'EPSG','4400','EPSG','4314','EPSG','16265',NULL,0);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9436,6 +9590,9 @@ INSERT INTO "projected_crs" VALUES('ESRI','31495','Germany_Zone_5',NULL,'EPSG','
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "projected_crs" VALUES('ESRI','31495','Germany_Zone_5',NULL,'EPSG','4400','EPSG','4314','EPSG','16265',NULL,1);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_31495_USAGE','projected_crs','ESRI','31495','EPSG','1627','EPSG','1024');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','31528','Conakry_1905_UTM_Zone_28N','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','31529','Conakry_1905_UTM_Zone_29N','ESRI');
@@ -9632,14 +9789,18 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','32158','NAD_1983_StatePlan
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "conversion" VALUES('ESRI','32159','unnamed',NULL,'EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',41.0,'EPSG','9102','EPSG','8822','Longitude of false origin',-107.5,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',41.0,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',45.0,'EPSG','9102','EPSG','8826','Easting at false origin',500000.0,'EPSG','9001','EPSG','8827','Northing at false origin',200000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_32159_USAGE','conversion','ESRI','32159','EPSG','1419','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','32159','NAD_1983_WyLAM',NULL,'EPSG','4400','EPSG','4269','ESRI','32159',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_32159_USAGE','projected_crs','ESRI','32159','EPSG','1419','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -9666,6 +9827,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_32159_USAGE','projected_crs','ESRI','32
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('projected_crs','EPSG','32161','NAD_1983_StatePlane_Puerto_Rico_Virgin_Islands_FIPS_5200','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','32164','NAD_1983_BLM_Zone_14N_ftUS','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','32165','NAD_1983_BLM_Zone_15N_ftUS','ESRI');
@@ -10813,6 +10976,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102211_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "conversion" VALUES('ESRI','102212','unnamed',NULL,'EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',41.0,'EPSG','9102','EPSG','8822','Longitude of false origin',-107.5,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',41.0,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',45.0,'EPSG','9102','EPSG','8826','Easting at false origin',500000.0,'EPSG','9001','EPSG','8827','Northing at false origin',200000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,1);
@@ -10859,6 +11023,11 @@ INSERT INTO "conversion" VALUES('ESRI','102212','unnamed',NULL,'EPSG','9802','La
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102212_USAGE','conversion','ESRI','102212','EPSG','1419','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102212','NAD_1983_WyLAM',NULL,'EPSG','4400','EPSG','4269','ESRI','102212',NULL,0);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "conversion" VALUES('ESRI','102212','unnamed',NULL,'EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',41.0,'EPSG','9102','EPSG','8822','Longitude of false origin',-107.5,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',41.0,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',45.0,'EPSG','9102','EPSG','8826','Easting at false origin',500000.0,'EPSG','9001','EPSG','8827','Northing at false origin',200000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102212_USAGE','conversion','ESRI','102212','EPSG','1419','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102212','NAD_1983_WyLAM',NULL,'EPSG','4400','EPSG','4269','ESRI','102212',NULL,1);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_102212_USAGE','projected_crs','ESRI','102212','EPSG','1419','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102213','NAD_1983_UTM_Zone_58N',NULL,'EPSG','4400','EPSG','4269','EPSG','16058',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_102213_USAGE','projected_crs','ESRI','102213','EPSG','2116','EPSG','1024');
@@ -12641,16 +12810,20 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102730_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "extent" VALUES('ESRI','64','Panama - UTM Zone 17N','Panama - UTM Zone 17N',5.0,12.51,-84.32,-77.99,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102731','PANAMA_ITRF08_UTM_17N',NULL,'EPSG','4400','ESRI','104646','EPSG','16017',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_102731_USAGE','projected_crs','ESRI','102731','ESRI','64','EPSG','1024');
 INSERT INTO "extent" VALUES('ESRI','65','Panama - UTM Zone 18N','Panama - UTM Zone 18N',5.0,12.51,-78.0,-77.04,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102732','PANAMA_ITRF08_UTM_18N',NULL,'EPSG','4400','ESRI','104646','EPSG','16018',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_102732_USAGE','projected_crs','ESRI','102732','ESRI','65','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -12677,6 +12850,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102732_USAGE','projected_crs','ESRI','1
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "conversion" VALUES('ESRI','102733','unnamed',NULL,'EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',31.83333333333333,'EPSG','9102','EPSG','8822','Longitude of false origin',-81.0,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',32.5,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',34.83333333333334,'EPSG','9102','EPSG','8826','Easting at false origin',1999996.0,'EPSG','9003','EPSG','8827','Northing at false origin',0.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102733_USAGE','conversion','ESRI','102733','EPSG','1409','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102733','NAD_1983_StatePlane_South_Carolina_FIPS_3900_Feet',NULL,'EPSG','4497','EPSG','4269','ESRI','102733',NULL,0);
@@ -12813,6 +12988,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102766_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('ESRI','66','Colombia - Leticia - Amazonas','Colombia - Leticia - Amazonas',-4.7,-3.683333333333334,-70.45,-69.43333333333334,0);
@@ -14348,754 +14524,758 @@ INSERT INTO "extent" VALUES('ESRI','186','Bangladesh - Dinajpur','Bangladesh - D
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('ESRI','64','Colombia - Leticia - Amazonas','Colombia - Leticia - Amazonas',-4.7,-3.683333333333334,-70.45,-69.43333333333334,0);
+=======
+INSERT INTO "extent" VALUES('ESRI','66','Colombia - Leticia - Amazonas','Colombia - Leticia - Amazonas',-4.7,-3.683333333333334,-70.45,-69.43333333333334,0);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "conversion" VALUES('ESRI','102767','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',-4.197684047222222,'EPSG','9102','EPSG','8802','Longitude of natural origin',-69.94281105833333,'EPSG','9102','EPSG','8806','False easting',25978.217,'EPSG','9001','EPSG','8807','False northing',27501.365,'EPSG','9001','EPSG','1039','Projection plane origin height',89.7,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102767_USAGE','conversion','ESRI','102767','ESRI','64','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102767_USAGE','conversion','ESRI','102767','ESRI','66','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102767','MAGNA_Leticia_Amazonas_1994',NULL,'EPSG','4400','EPSG','4686','ESRI','102767',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102767_USAGE','projected_crs','ESRI','102767','ESRI','64','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','65','Colombia - Medellin - Antioquia','Colombia - Medellin - Antioquia',5.716666666666667,6.733333333333333,-76.06666666666666,-75.05,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102767_USAGE','projected_crs','ESRI','102767','ESRI','66','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','67','Colombia - Medellin - Antioquia','Colombia - Medellin - Antioquia',5.716666666666667,6.733333333333333,-76.06666666666666,-75.05,0);
 INSERT INTO "conversion" VALUES('ESRI','102768','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',6.229208888888889,'EPSG','9102','EPSG','8802','Longitude of natural origin',-75.56488694444444,'EPSG','9102','EPSG','8806','False easting',835378.647,'EPSG','9001','EPSG','8807','False northing',1180816.875,'EPSG','9001','EPSG','1039','Projection plane origin height',1510.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102768_USAGE','conversion','ESRI','102768','ESRI','65','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102768_USAGE','conversion','ESRI','102768','ESRI','67','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102768','MAGNA_Medellin_Antioquia_2010',NULL,'EPSG','4400','EPSG','4686','ESRI','102768',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102768_USAGE','projected_crs','ESRI','102768','ESRI','65','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','66','Colombia - Arauca - Arauca','Colombia - Arauca - Arauca',6.583333333333333,7.6,-71.26666666666667,-70.25,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102768_USAGE','projected_crs','ESRI','102768','ESRI','67','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','68','Colombia - Arauca - Arauca','Colombia - Arauca - Arauca',6.583333333333333,7.6,-71.26666666666667,-70.25,0);
 INSERT INTO "conversion" VALUES('ESRI','102769','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',7.087606391666666,'EPSG','9102','EPSG','8802','Longitude of natural origin',-70.75830965555555,'EPSG','9102','EPSG','8806','False easting',1035263.443,'EPSG','9001','EPSG','8807','False northing',1275526.621,'EPSG','9001','EPSG','1039','Projection plane origin height',100.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102769_USAGE','conversion','ESRI','102769','ESRI','66','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102769_USAGE','conversion','ESRI','102769','ESRI','68','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102769','MAGNA_Arauca_2007',NULL,'EPSG','4400','EPSG','4686','ESRI','102769',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102769_USAGE','projected_crs','ESRI','102769','ESRI','66','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','67','Colombia - Barranquilla - Atlantico','Colombia - Barranquilla - Atlantico',10.41666666666667,11.43333333333333,-75.35,-74.33333333333333,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102769_USAGE','projected_crs','ESRI','102769','ESRI','68','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','69','Colombia - Barranquilla - Atlantico','Colombia - Barranquilla - Atlantico',10.41666666666667,11.43333333333333,-75.35,-74.33333333333333,0);
 INSERT INTO "conversion" VALUES('ESRI','102770','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',10.92318308333333,'EPSG','9102','EPSG','8802','Longitude of natural origin',-74.83433133333332,'EPSG','9102','EPSG','8806','False easting',917264.406,'EPSG','9001','EPSG','8807','False northing',1699839.935,'EPSG','9001','EPSG','1039','Projection plane origin height',100.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102770_USAGE','conversion','ESRI','102770','ESRI','67','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102770_USAGE','conversion','ESRI','102770','ESRI','69','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102770','MAGNA_Barranquilla_Atlantico_1997',NULL,'EPSG','4400','EPSG','4686','ESRI','102770',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102770_USAGE','projected_crs','ESRI','102770','ESRI','67','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','68','Colombia - Bogota D.C. - Bogota D.C.','Colombia - Bogota D.C. - Bogota D.C.',4.166666666666667,5.183333333333334,-74.65,-73.63333333333334,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102770_USAGE','projected_crs','ESRI','102770','ESRI','69','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','70','Colombia - Bogota D.C. - Bogota D.C.','Colombia - Bogota D.C. - Bogota D.C.',4.166666666666667,5.183333333333334,-74.65,-73.63333333333334,0);
 INSERT INTO "conversion" VALUES('ESRI','102771','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',4.680486111111112,'EPSG','9102','EPSG','8802','Longitude of natural origin',-74.14659166666668,'EPSG','9102','EPSG','8806','False easting',92334.879,'EPSG','9001','EPSG','8807','False northing',109320.965,'EPSG','9001','EPSG','1039','Projection plane origin height',2550.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102771_USAGE','conversion','ESRI','102771','ESRI','68','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102771_USAGE','conversion','ESRI','102771','ESRI','70','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102771','MAGNA_Bogota_DC_2005',NULL,'EPSG','4400','EPSG','4686','ESRI','102771',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102771_USAGE','projected_crs','ESRI','102771','ESRI','68','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','69','Colombia - Cartagena_Bolivar','Colombia - Cartagena_Bolivar',9.883333333333333,10.9,-76.01666666666667,-75.0,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102771_USAGE','projected_crs','ESRI','102771','ESRI','70','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','71','Colombia - Cartagena_Bolivar','Colombia - Cartagena_Bolivar',9.883333333333333,10.9,-76.01666666666667,-75.0,0);
 INSERT INTO "conversion" VALUES('ESRI','102772','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',10.3970475,'EPSG','9102','EPSG','8802','Longitude of natural origin',-75.51120694444444,'EPSG','9102','EPSG','8806','False easting',842981.41,'EPSG','9001','EPSG','8807','False northing',1641887.09,'EPSG','9001','EPSG','1039','Projection plane origin height',0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102772_USAGE','conversion','ESRI','102772','ESRI','69','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102772_USAGE','conversion','ESRI','102772','ESRI','71','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102772','MAGNA_Cartagena_Bolivar_2005',NULL,'EPSG','4400','EPSG','4686','ESRI','102772',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102772_USAGE','projected_crs','ESRI','102772','ESRI','69','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','70','Colombia - Tunja - Boyaca','Colombia - Tunja - Boyaca',5.033333333333333,6.05,-73.86666666666666,-72.85,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102772_USAGE','projected_crs','ESRI','102772','ESRI','71','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','72','Colombia - Tunja - Boyaca','Colombia - Tunja - Boyaca',5.033333333333333,6.05,-73.86666666666666,-72.85,0);
 INSERT INTO "conversion" VALUES('ESRI','102773','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',5.534194738888889,'EPSG','9102','EPSG','8802','Longitude of natural origin',-73.3519389,'EPSG','9102','EPSG','8806','False easting',1080514.91,'EPSG','9001','EPSG','8807','False northing',1103772.028,'EPSG','9001','EPSG','1039','Projection plane origin height',2800.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102773_USAGE','conversion','ESRI','102773','ESRI','70','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102773_USAGE','conversion','ESRI','102773','ESRI','72','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102773','MAGNA_Tunja_Boyaca_1997',NULL,'EPSG','4400','EPSG','4686','ESRI','102773',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102773_USAGE','projected_crs','ESRI','102773','ESRI','70','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','71','Colombia - Manizales - Caldas','Colombia - Manizales - Caldas',4.566666666666666,5.583333333333333,-76.01666666666667,-75.0,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102773_USAGE','projected_crs','ESRI','102773','ESRI','72','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','73','Colombia - Manizales - Caldas','Colombia - Manizales - Caldas',4.566666666666666,5.583333333333333,-76.01666666666667,-75.0,0);
 INSERT INTO "conversion" VALUES('ESRI','102774','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',5.068153888888888,'EPSG','9102','EPSG','8802','Longitude of natural origin',-75.51109472222223,'EPSG','9102','EPSG','8806','False easting',1173727.04,'EPSG','9001','EPSG','8807','False northing',1052391.13,'EPSG','9001','EPSG','1039','Projection plane origin height',2100.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102774_USAGE','conversion','ESRI','102774','ESRI','71','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102774_USAGE','conversion','ESRI','102774','ESRI','73','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102774','MAGNA_Manizales_Caldas_2011',NULL,'EPSG','4400','EPSG','4686','ESRI','102774',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102774_USAGE','projected_crs','ESRI','102774','ESRI','71','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','72','Colombia - Florencia - Caqueta','Colombia - Florencia - Caqueta',1.116666666666667,2.133333333333333,-76.13333333333334,-75.11666666666666,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102774_USAGE','projected_crs','ESRI','102774','ESRI','73','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','74','Colombia - Florencia - Caqueta','Colombia - Florencia - Caqueta',1.116666666666667,2.133333333333333,-76.13333333333334,-75.11666666666666,0);
 INSERT INTO "conversion" VALUES('ESRI','102775','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',1.621012294444445,'EPSG','9102','EPSG','8802','Longitude of natural origin',-75.61911760277778,'EPSG','9102','EPSG','8806','False easting',1162300.348,'EPSG','9001','EPSG','8807','False northing',671068.716,'EPSG','9001','EPSG','1039','Projection plane origin height',300.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102775_USAGE','conversion','ESRI','102775','ESRI','72','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102775_USAGE','conversion','ESRI','102775','ESRI','74','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102775','MAGNA_Florencia_Caqueta_2007',NULL,'EPSG','4400','EPSG','4686','ESRI','102775',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102775_USAGE','projected_crs','ESRI','102775','ESRI','72','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','73','Colombia - Yopal - Casanare','Colombia - Yopal - Casanare',4.85,5.866666666666667,-72.93333333333334,-71.91666666666667,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102775_USAGE','projected_crs','ESRI','102775','ESRI','74','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','75','Colombia - Yopal - Casanare','Colombia - Yopal - Casanare',4.85,5.866666666666667,-72.93333333333334,-71.91666666666667,0);
 INSERT INTO "conversion" VALUES('ESRI','102776','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',5.353927222222222,'EPSG','9102','EPSG','8802','Longitude of natural origin',-72.42004027777779,'EPSG','9102','EPSG','8806','False easting',851184.177,'EPSG','9001','EPSG','8807','False northing',1083954.137,'EPSG','9001','EPSG','1039','Projection plane origin height',300.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102776_USAGE','conversion','ESRI','102776','ESRI','73','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102776_USAGE','conversion','ESRI','102776','ESRI','75','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102776','MAGNA_Yopal_Casanare_2006',NULL,'EPSG','4400','EPSG','4686','ESRI','102776',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102776_USAGE','projected_crs','ESRI','102776','ESRI','73','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','74','Colombia - Popayan - Cauca','Colombia - Popayan - Cauca',2.95,2.966666666666667,-77.11666666666666,-76.1,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102776_USAGE','projected_crs','ESRI','102776','ESRI','75','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','76','Colombia - Popayan - Cauca','Colombia - Popayan - Cauca',2.95,2.966666666666667,-77.11666666666666,-76.1,0);
 INSERT INTO "conversion" VALUES('ESRI','102777','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',2.456159883333334,'EPSG','9102','EPSG','8802','Longitude of natural origin',-76.6060916361111,'EPSG','9102','EPSG','8806','False easting',1052430.525,'EPSG','9001','EPSG','8807','False northing',763366.548,'EPSG','9001','EPSG','1039','Projection plane origin height',1740.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102777_USAGE','conversion','ESRI','102777','ESRI','74','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102777_USAGE','conversion','ESRI','102777','ESRI','76','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102777','MAGNA_Popayan_Cauca_2006',NULL,'EPSG','4400','EPSG','4686','ESRI','102777',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102777_USAGE','projected_crs','ESRI','102777','ESRI','74','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','75','Colombia - Valledupar - Cesar','Colombia - Valledupar - Cesar',9.933333333333334,10.95,-73.58333333333333,-73.56666666666666,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102777_USAGE','projected_crs','ESRI','102777','ESRI','76','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','77','Colombia - Valledupar - Cesar','Colombia - Valledupar - Cesar',9.933333333333334,10.95,-73.58333333333333,-73.56666666666666,0);
 INSERT INTO "conversion" VALUES('ESRI','102778','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',10.44726111111111,'EPSG','9102','EPSG','8802','Longitude of natural origin',-73.2465713888889,'EPSG','9102','EPSG','8806','False easting',1090979.66,'EPSG','9001','EPSG','8807','False northing',1647208.93,'EPSG','9001','EPSG','1039','Projection plane origin height',200.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102778_USAGE','conversion','ESRI','102778','ESRI','75','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102778_USAGE','conversion','ESRI','102778','ESRI','77','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102778','MAGNA_Valledupar_Cesar_2011',NULL,'EPSG','4400','EPSG','4686','ESRI','102778',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102778_USAGE','projected_crs','ESRI','102778','ESRI','75','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','76','Colombia - Quibdo - Choco','Colombia - Quibdo - Choco',5.183333333333334,6.2,-77.16666666666667,-76.15,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102778_USAGE','projected_crs','ESRI','102778','ESRI','77','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','78','Colombia - Quibdo - Choco','Colombia - Quibdo - Choco',5.183333333333334,6.2,-77.16666666666667,-76.15,0);
 INSERT INTO "conversion" VALUES('ESRI','102779','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',5.694247661111111,'EPSG','9102','EPSG','8802','Longitude of natural origin',-76.65075385833335,'EPSG','9102','EPSG','8806','False easting',1047273.617,'EPSG','9001','EPSG','8807','False northing',1121443.09,'EPSG','9001','EPSG','1039','Projection plane origin height',44.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102779_USAGE','conversion','ESRI','102779','ESRI','76','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102779_USAGE','conversion','ESRI','102779','ESRI','78','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102779','MAGNA_Quibdo_Choco_2011',NULL,'EPSG','4400','EPSG','4686','ESRI','102779',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102779_USAGE','projected_crs','ESRI','102779','ESRI','76','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','77','Colombia - Monteria - Cordoba','Colombia - Monteria - Cordoba',8.266666666666667,9.283333333333333,-76.38333333333334,-75.36666666666666,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102779_USAGE','projected_crs','ESRI','102779','ESRI','78','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','79','Colombia - Monteria - Cordoba','Colombia - Monteria - Cordoba',8.266666666666667,9.283333333333333,-76.38333333333334,-75.36666666666666,0);
 INSERT INTO "conversion" VALUES('ESRI','102780','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',8.773085755555556,'EPSG','9102','EPSG','8802','Longitude of natural origin',-75.87955333055555,'EPSG','9102','EPSG','8806','False easting',1131814.934,'EPSG','9001','EPSG','8807','False northing',1462131.119,'EPSG','9001','EPSG','1039','Projection plane origin height',15.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102780_USAGE','conversion','ESRI','102780','ESRI','77','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102780_USAGE','conversion','ESRI','102780','ESRI','79','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102780','MAGNA_Monteria_Cordoba_2006',NULL,'EPSG','4400','EPSG','4686','ESRI','102780',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102780_USAGE','projected_crs','ESRI','102780','ESRI','77','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','78','Colombia - Inirida - Guainia','Colombia - Inirida - Guainia',3.333333333333333,4.35,-68.41666666666667,-67.4,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102780_USAGE','projected_crs','ESRI','102780','ESRI','79','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','80','Colombia - Inirida - Guainia','Colombia - Inirida - Guainia',3.333333333333333,4.35,-68.41666666666667,-67.4,0);
 INSERT INTO "conversion" VALUES('ESRI','102781','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',3.845438183333334,'EPSG','9102','EPSG','8802','Longitude of natural origin',-67.90523208888889,'EPSG','9102','EPSG','8806','False easting',1019177.687,'EPSG','9001','EPSG','8807','False northing',491791.326,'EPSG','9001','EPSG','1039','Projection plane origin height',96.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102781_USAGE','conversion','ESRI','102781','ESRI','78','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102781_USAGE','conversion','ESRI','102781','ESRI','80','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102781','MAGNA_Inirida_Guainia_2008',NULL,'EPSG','4400','EPSG','4686','ESRI','102781',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102781_USAGE','projected_crs','ESRI','102781','ESRI','78','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','79','Colombia - San Jose del Guaviare - Guaviare','Colombia - San Jose del Guaviare - Guaviare',2.05,3.066666666666667,-73.15,-72.13333333333334,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102781_USAGE','projected_crs','ESRI','102781','ESRI','80','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','81','Colombia - San Jose del Guaviare - Guaviare','Colombia - San Jose del Guaviare - Guaviare',2.05,3.066666666666667,-73.15,-72.13333333333334,0);
 INSERT INTO "conversion" VALUES('ESRI','102782','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',2.564078941666666,'EPSG','9102','EPSG','8802','Longitude of natural origin',-72.640033325,'EPSG','9102','EPSG','8806','False easting',1159876.62,'EPSG','9001','EPSG','8807','False northing',775380.342,'EPSG','9001','EPSG','1039','Projection plane origin height',185.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102782_USAGE','conversion','ESRI','102782','ESRI','79','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102782_USAGE','conversion','ESRI','102782','ESRI','81','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102782','MAGNA_San_Jose_del_Guaviare_2011',NULL,'EPSG','4400','EPSG','4686','ESRI','102782',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102782_USAGE','projected_crs','ESRI','102782','ESRI','79','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','80','Colombia - Neiva - Huila','Colombia - Neiva - Huila',2.433333333333334,3.45,-75.8,-74.78333333333333,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102782_USAGE','projected_crs','ESRI','102782','ESRI','81','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','82','Colombia - Neiva - Huila','Colombia - Neiva - Huila',2.433333333333334,3.45,-75.8,-74.78333333333333,0);
 INSERT INTO "conversion" VALUES('ESRI','102783','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',2.942415055555556,'EPSG','9102','EPSG','8802','Longitude of natural origin',-75.29643672222223,'EPSG','9102','EPSG','8806','False easting',864476.923,'EPSG','9001','EPSG','8807','False northing',817199.827,'EPSG','9001','EPSG','1039','Projection plane origin height',430.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102783_USAGE','conversion','ESRI','102783','ESRI','80','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102783_USAGE','conversion','ESRI','102783','ESRI','82','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102783','MAGNA_Neiva_Huila_2006',NULL,'EPSG','4400','EPSG','4686','ESRI','102783',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102783_USAGE','projected_crs','ESRI','102783','ESRI','80','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','81','Colombia - Riohacha - La Guajira','Colombia - Riohacha - La Guajira',11.03333333333333,12.05,-73.41666666666667,-72.4,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102783_USAGE','projected_crs','ESRI','102783','ESRI','82','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','83','Colombia - Riohacha - La Guajira','Colombia - Riohacha - La Guajira',11.03333333333333,12.05,-73.41666666666667,-72.4,0);
 INSERT INTO "conversion" VALUES('ESRI','102784','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',11.53691332777778,'EPSG','9102','EPSG','8802','Longitude of natural origin',-72.90276886944444,'EPSG','9102','EPSG','8806','False easting',1128154.73,'EPSG','9001','EPSG','8807','False northing',1767887.914,'EPSG','9001','EPSG','1039','Projection plane origin height',6.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102784_USAGE','conversion','ESRI','102784','ESRI','81','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102784_USAGE','conversion','ESRI','102784','ESRI','83','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102784','MAGNA_Riohacha_La_Guajira_2006',NULL,'EPSG','4400','EPSG','4686','ESRI','102784',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102784_USAGE','projected_crs','ESRI','102784','ESRI','81','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','82','Colombia - Santa Marta - Magdalena','Colombia - Santa Marta - Magdalena',10.71666666666667,11.73333333333333,-74.73333333333333,-73.71666666666667,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102784_USAGE','projected_crs','ESRI','102784','ESRI','83','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','84','Colombia - Santa Marta - Magdalena','Colombia - Santa Marta - Magdalena',10.71666666666667,11.73333333333333,-74.73333333333333,-73.71666666666667,0);
 INSERT INTO "conversion" VALUES('ESRI','102785','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',11.21964305555556,'EPSG','9102','EPSG','8802','Longitude of natural origin',-74.22500527777778,'EPSG','9102','EPSG','8806','False easting',983892.409,'EPSG','9001','EPSG','8807','False northing',1732533.518,'EPSG','9001','EPSG','1039','Projection plane origin height',29.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102785_USAGE','conversion','ESRI','102785','ESRI','82','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102785_USAGE','conversion','ESRI','102785','ESRI','84','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102785','MAGNA_Santa_Marta_Magdalena_2007',NULL,'EPSG','4400','EPSG','4686','ESRI','102785',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102785_USAGE','projected_crs','ESRI','102785','ESRI','82','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','83','Colombia - Villavicencio - Meta','Colombia - Villavicencio - Meta',3.65,4.666666666666667,-74.13333333333334,-73.11666666666666,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102785_USAGE','projected_crs','ESRI','102785','ESRI','84','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','85','Colombia - Villavicencio - Meta','Colombia - Villavicencio - Meta',3.65,4.666666666666667,-74.13333333333334,-73.11666666666666,0);
 INSERT INTO "conversion" VALUES('ESRI','102786','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',4.1553751,'EPSG','9102','EPSG','8802','Longitude of natural origin',-73.62448598611111,'EPSG','9102','EPSG','8806','False easting',1050678.757,'EPSG','9001','EPSG','8807','False northing',950952.124,'EPSG','9001','EPSG','1039','Projection plane origin height',427.19,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102786_USAGE','conversion','ESRI','102786','ESRI','83','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102786_USAGE','conversion','ESRI','102786','ESRI','85','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102786','MAGNA_Villavicencio_Meta_2011',NULL,'EPSG','4400','EPSG','4686','ESRI','102786',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102786_USAGE','projected_crs','ESRI','102786','ESRI','83','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','84','Colombia - Pasto - Narino','Colombia - Pasto - Narino',0.7,1.716666666666667,-77.76666666666667,-76.75,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102786_USAGE','projected_crs','ESRI','102786','ESRI','85','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','86','Colombia - Pasto - Narino','Colombia - Pasto - Narino',0.7,1.716666666666667,-77.76666666666667,-76.75,0);
 INSERT INTO "conversion" VALUES('ESRI','102787','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',1.200989513888889,'EPSG','9102','EPSG','8802','Longitude of natural origin',-77.25312563333334,'EPSG','9102','EPSG','8806','False easting',980469.695,'EPSG','9001','EPSG','8807','False northing',624555.332,'EPSG','9001','EPSG','1039','Projection plane origin height',2530.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102787_USAGE','conversion','ESRI','102787','ESRI','84','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102787_USAGE','conversion','ESRI','102787','ESRI','86','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102787','MAGNA_Pasto_Narino_2008',NULL,'EPSG','4400','EPSG','4686','ESRI','102787',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102787_USAGE','projected_crs','ESRI','102787','ESRI','84','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','85','Colombia - Cucuta - Norte de Santander','Colombia - Cucuta - Norte de Santander',7.383333333333334,8.4,-73.01666666666667,-72.0,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102787_USAGE','projected_crs','ESRI','102787','ESRI','86','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','87','Colombia - Cucuta - Norte de Santander','Colombia - Cucuta - Norte de Santander',7.383333333333334,8.4,-73.01666666666667,-72.0,0);
 INSERT INTO "conversion" VALUES('ESRI','102788','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',7.888936736111111,'EPSG','9102','EPSG','8802','Longitude of natural origin',-72.50287095,'EPSG','9102','EPSG','8806','False easting',842805.406,'EPSG','9001','EPSG','8807','False northing',1364404.57,'EPSG','9001','EPSG','1039','Projection plane origin height',308.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102788_USAGE','conversion','ESRI','102788','ESRI','85','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102788_USAGE','conversion','ESRI','102788','ESRI','87','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102788','MAGNA_Cucuta_Norte_de_Santander_2011',NULL,'EPSG','4400','EPSG','4686','ESRI','102788',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102788_USAGE','projected_crs','ESRI','102788','ESRI','85','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','86','Colombia - Mocoa - Putumayo','Colombia - Mocoa - Putumayo',0.6333333333333333,1.65,-77.16666666666667,-76.15,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102788_USAGE','projected_crs','ESRI','102788','ESRI','87','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','88','Colombia - Mocoa - Putumayo','Colombia - Mocoa - Putumayo',0.6333333333333333,1.65,-77.16666666666667,-76.15,0);
 INSERT INTO "conversion" VALUES('ESRI','102789','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',1.140023358333333,'EPSG','9102','EPSG','8802','Longitude of natural origin',-76.65102121944444,'EPSG','9102','EPSG','8806','False easting',1047467.388,'EPSG','9001','EPSG','8807','False northing',617828.474,'EPSG','9001','EPSG','1039','Projection plane origin height',655.2,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102789_USAGE','conversion','ESRI','102789','ESRI','86','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102789_USAGE','conversion','ESRI','102789','ESRI','88','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102789','MAGNA_Mocoa_Putumayo_2011',NULL,'EPSG','4400','EPSG','4686','ESRI','102789',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102789_USAGE','projected_crs','ESRI','102789','ESRI','86','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','87','Colombia - Armenia - Quindio','Colombia - Armenia - Quindio',4.016666666666667,5.033333333333333,-76.18333333333334,-75.16666666666667,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102789_USAGE','projected_crs','ESRI','102789','ESRI','88','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','89','Colombia - Armenia - Quindio','Colombia - Armenia - Quindio',4.016666666666667,5.033333333333333,-76.18333333333334,-75.16666666666667,0);
 INSERT INTO "conversion" VALUES('ESRI','102790','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',4.532325,'EPSG','9102','EPSG','8802','Longitude of natural origin',-75.67348916666667,'EPSG','9102','EPSG','8806','False easting',1155824.666,'EPSG','9001','EPSG','8807','False northing',993087.465,'EPSG','9001','EPSG','1039','Projection plane origin height',1470.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102790_USAGE','conversion','ESRI','102790','ESRI','87','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102790_USAGE','conversion','ESRI','102790','ESRI','89','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102790','MAGNA_Armenia_Quindio_2006',NULL,'EPSG','4400','EPSG','4686','ESRI','102790',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102790_USAGE','projected_crs','ESRI','102790','ESRI','87','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','88','Colombia - Pereira - Risaralda','Colombia - Pereira - Risaralda',4.3,5.316666666666666,-76.2,-75.18333333333334,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102790_USAGE','projected_crs','ESRI','102790','ESRI','89','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','90','Colombia - Pereira - Risaralda','Colombia - Pereira - Risaralda',4.3,5.316666666666666,-76.2,-75.18333333333334,0);
 INSERT INTO "conversion" VALUES('ESRI','102791','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',4.813593611111111,'EPSG','9102','EPSG','8802','Longitude of natural origin',-75.69395138888889,'EPSG','9102','EPSG','8806','False easting',1153492.012,'EPSG','9001','EPSG','8807','False northing',1024195.255,'EPSG','9001','EPSG','1039','Projection plane origin height',1500.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102791_USAGE','conversion','ESRI','102791','ESRI','88','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102791_USAGE','conversion','ESRI','102791','ESRI','90','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102791','MAGNA_Pereira_Risaralda_2007',NULL,'EPSG','4400','EPSG','4686','ESRI','102791',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102791_USAGE','projected_crs','ESRI','102791','ESRI','88','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','89','Colombia - San_Andres - San_Andres','Colombia - San_Andres - San_Andres',12.01666666666667,13.03333333333333,-82.23333333333333,-81.21666666666667,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102791_USAGE','projected_crs','ESRI','102791','ESRI','90','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','91','Colombia - San_Andres - San_Andres','Colombia - San_Andres - San_Andres',12.01666666666667,13.03333333333333,-82.23333333333333,-81.21666666666667,0);
 INSERT INTO "conversion" VALUES('ESRI','102792','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',12.523794325,'EPSG','9102','EPSG','8802','Longitude of natural origin',-81.72937595,'EPSG','9102','EPSG','8806','False easting',820439.298,'EPSG','9001','EPSG','8807','False northing',1877357.828,'EPSG','9001','EPSG','1039','Projection plane origin height',6.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102792_USAGE','conversion','ESRI','102792','ESRI','89','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102792_USAGE','conversion','ESRI','102792','ESRI','91','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102792','MAGNA_San_Andres_2007',NULL,'EPSG','4400','EPSG','4686','ESRI','102792',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102792_USAGE','projected_crs','ESRI','102792','ESRI','89','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','90','Colombia - Bucaramanga - Santander','Colombia - Bucaramanga - Santander',6.566666666666666,7.583333333333333,-73.7,-72.68333333333334,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102792_USAGE','projected_crs','ESRI','102792','ESRI','91','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','92','Colombia - Bucaramanga - Santander','Colombia - Bucaramanga - Santander',6.566666666666666,7.583333333333333,-73.7,-72.68333333333334,0);
 INSERT INTO "conversion" VALUES('ESRI','102793','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',7.078887141666667,'EPSG','9102','EPSG','8802','Longitude of natural origin',-73.19734322222223,'EPSG','9102','EPSG','8806','False easting',1097241.305,'EPSG','9001','EPSG','8807','False northing',1274642.278,'EPSG','9001','EPSG','1039','Projection plane origin height',931.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102793_USAGE','conversion','ESRI','102793','ESRI','90','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102793_USAGE','conversion','ESRI','102793','ESRI','92','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102793','MAGNA_Bucaramanga_Santander_2008',NULL,'EPSG','4400','EPSG','4686','ESRI','102793',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102793_USAGE','projected_crs','ESRI','102793','ESRI','90','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','91','Colombia - Sucre - Sucre','Colombia - Sucre - Sucre',8.3,9.316666666666666,-75.23333333333333,-74.21666666666667,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102793_USAGE','projected_crs','ESRI','102793','ESRI','92','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','93','Colombia - Sucre - Sucre','Colombia - Sucre - Sucre',8.3,9.316666666666666,-75.23333333333333,-74.21666666666667,0);
 INSERT INTO "conversion" VALUES('ESRI','102794','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',8.810550366666668,'EPSG','9102','EPSG','8802','Longitude of natural origin',-74.722466825,'EPSG','9102','EPSG','8806','False easting',929043.607,'EPSG','9001','EPSG','8807','False northing',1466125.658,'EPSG','9001','EPSG','1039','Projection plane origin height',20.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102794_USAGE','conversion','ESRI','102794','ESRI','91','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102794_USAGE','conversion','ESRI','102794','ESRI','93','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102794','MAGNA_Sucre_2006',NULL,'EPSG','4400','EPSG','4686','ESRI','102794',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102794_USAGE','projected_crs','ESRI','102794','ESRI','91','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','92','Colombia - Ibague - Tolima','Colombia - Ibague - Tolima',3.916666666666667,4.933333333333334,-75.68333333333334,-74.66666666666667,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102794_USAGE','projected_crs','ESRI','102794','ESRI','93','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','94','Colombia - Ibague - Tolima','Colombia - Ibague - Tolima',3.916666666666667,4.933333333333334,-75.68333333333334,-74.66666666666667,0);
 INSERT INTO "conversion" VALUES('ESRI','102795','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',4.419412827777778,'EPSG','9102','EPSG','8802','Longitude of natural origin',-75.17992593333334,'EPSG','9102','EPSG','8806','False easting',877634.33,'EPSG','9001','EPSG','8807','False northing',980541.348,'EPSG','9001','EPSG','1039','Projection plane origin height',1100.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102795_USAGE','conversion','ESRI','102795','ESRI','92','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102795_USAGE','conversion','ESRI','102795','ESRI','94','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102795','MAGNA_Ibague_Tolima_2007',NULL,'EPSG','4400','EPSG','4686','ESRI','102795',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102795_USAGE','projected_crs','ESRI','102795','ESRI','92','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','93','Colombia - Cali - Valle del Cauca','Colombia - Cali - Valle del Cauca',2.933333333333334,3.95,-77.03333333333333,-76.01666666666667,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102795_USAGE','projected_crs','ESRI','102795','ESRI','94','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','95','Colombia - Cali - Valle del Cauca','Colombia - Cali - Valle del Cauca',2.933333333333334,3.95,-77.03333333333333,-76.01666666666667,0);
 INSERT INTO "conversion" VALUES('ESRI','102796','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',3.441883333333334,'EPSG','9102','EPSG','8802','Longitude of natural origin',-76.5205625,'EPSG','9102','EPSG','8806','False easting',1061900.18,'EPSG','9001','EPSG','8807','False northing',872364.63,'EPSG','9001','EPSG','1039','Projection plane origin height',1000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102796_USAGE','conversion','ESRI','102796','ESRI','93','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102796_USAGE','conversion','ESRI','102796','ESRI','95','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102796','MAGNA_Cali_Valle_del_Cauca_2009',NULL,'EPSG','4400','EPSG','4686','ESRI','102796',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102796_USAGE','projected_crs','ESRI','102796','ESRI','93','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','94','Colombia - Mitu - Vaupes','Colombia - Mitu - Vaupes',0.7333333333333333,1.75,-70.75,-69.73333333333333,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102796_USAGE','projected_crs','ESRI','102796','ESRI','95','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','96','Colombia - Mitu - Vaupes','Colombia - Mitu - Vaupes',0.7333333333333333,1.75,-70.75,-69.73333333333333,0);
 INSERT INTO "conversion" VALUES('ESRI','102797','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',1.249969366666667,'EPSG','9102','EPSG','8802','Longitude of natural origin',-70.23546165555555,'EPSG','9102','EPSG','8806','False easting',1093717.398,'EPSG','9001','EPSG','8807','False northing',629997.236,'EPSG','9001','EPSG','1039','Projection plane origin height',170.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102797_USAGE','conversion','ESRI','102797','ESRI','94','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102797_USAGE','conversion','ESRI','102797','ESRI','96','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102797','MAGNA_Mitu_Vaupes_2011',NULL,'EPSG','4400','EPSG','4686','ESRI','102797',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102797_USAGE','projected_crs','ESRI','102797','ESRI','94','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','95','Colombia - Puerto - Carreno - Vichada','Colombia - Puerto - Carreno - Vichada',5.666666666666667,6.683333333333334,-68.01666666666667,-67.0,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102797_USAGE','projected_crs','ESRI','102797','ESRI','96','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','97','Colombia - Puerto - Carreno - Vichada','Colombia - Puerto - Carreno - Vichada',5.666666666666667,6.683333333333334,-68.01666666666667,-67.0,0);
 INSERT INTO "conversion" VALUES('ESRI','102798','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',6.18072141388889,'EPSG','9102','EPSG','8802','Longitude of natural origin',-67.50075024722223,'EPSG','9102','EPSG','8806','False easting',1063834.703,'EPSG','9001','EPSG','8807','False northing',1175257.481,'EPSG','9001','EPSG','1039','Projection plane origin height',51.58,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102798_USAGE','conversion','ESRI','102798','ESRI','95','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102798_USAGE','conversion','ESRI','102798','ESRI','97','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102798','MAGNA_Puerto_Carreno_Vichada_2011',NULL,'EPSG','4400','EPSG','4686','ESRI','102798',NULL,1);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102798_USAGE','projected_crs','ESRI','102798','ESRI','95','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','96','UK - Highways England - A1','UK - Highways England - A1',50.1068,50.4249,-5.5482,-5.3991,0);
-INSERT INTO "conversion" VALUES('ESRI','102799','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99926,'EPSG','9201','EPSG','8806','False easting',261910.5587,'EPSG','9001','EPSG','8807','False northing',70975.76209,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102799_USAGE','conversion','ESRI','102799','ESRI','96','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102799','OSGB36_Highways_England_A1H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102799',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102799_USAGE','projected_crs','ESRI','102799','ESRI','96','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','97','UK - Highways England - A2','UK - Highways England - A2',50.1106,50.4286,-5.4217,-5.2734,0);
-INSERT INTO "conversion" VALUES('ESRI','102800','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999314,'EPSG','9201','EPSG','8806','False easting',252927.2844,'EPSG','9001','EPSG','8807','False northing',70979.59363,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102800_USAGE','conversion','ESRI','102800','ESRI','97','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102800','OSGB36_Highways_England_A2H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102800',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102800_USAGE','projected_crs','ESRI','102800','ESRI','97','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','98','UK - Highways England - A3','UK - Highways England - A3',50.1142,50.4321,-5.2952,-5.1477,0);
-INSERT INTO "conversion" VALUES('ESRI','102801','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999365,'EPSG','9201','EPSG','8806','False easting',243942.3084,'EPSG','9001','EPSG','8807','False northing',70983.21269,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102801_USAGE','conversion','ESRI','102801','ESRI','98','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102801','OSGB36_Highways_England_A3H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102801',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102801_USAGE','projected_crs','ESRI','102801','ESRI','98','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102802','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99939,'EPSG','9201','EPSG','8806','False easting',243948.4072,'EPSG','9001','EPSG','8807','False northing',70984.98734,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102802_USAGE','conversion','ESRI','102802','ESRI','98','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102802','OSGB36_Highways_England_A3H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102802',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102802_USAGE','projected_crs','ESRI','102802','ESRI','98','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','99','UK - Highways England - A4','UK - Highways England - A4',50.2075,50.5253,-5.1747,-5.0277,0);
-INSERT INTO "conversion" VALUES('ESRI','102803','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999415,'EPSG','9201','EPSG','8806','False easting',234956.1813,'EPSG','9001','EPSG','8807','False northing',70986.76115,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102803_USAGE','conversion','ESRI','102803','ESRI','99','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102803','OSGB36_Highways_England_A4H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102803',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102803_USAGE','projected_crs','ESRI','102803','ESRI','99','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','100','UK - Highways England - A5','UK - Highways England - A5',50.2109,50.5289,-5.0479,-4.8877,0);
-INSERT INTO "conversion" VALUES('ESRI','102804','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999465,'EPSG','9201','EPSG','8806','False easting',225969.1556,'EPSG','9001','EPSG','8807','False northing',70990.30995,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102804_USAGE','conversion','ESRI','102804','ESRI','100','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102804','OSGB36_Highways_England_A5H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102804',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102804_USAGE','projected_crs','ESRI','102804','ESRI','100','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102805','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99949,'EPSG','9201','EPSG','8806','False easting',225974.8051,'EPSG','9001','EPSG','8807','False northing',70992.08478,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102805_USAGE','conversion','ESRI','102805','ESRI','100','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102805','OSGB36_Highways_England_A5H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102805',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102805_USAGE','projected_crs','ESRI','102805','ESRI','100','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','101','UK - Highways England - A6','UK - Highways England - A6',50.2144,50.5323,-4.907,-4.7477,0);
-INSERT INTO "conversion" VALUES('ESRI','102806','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999516,'EPSG','9201','EPSG','8806','False easting',215981.5338,'EPSG','9001','EPSG','8807','False northing',70993.93011,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102806_USAGE','conversion','ESRI','102806','ESRI','101','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102806','OSGB36_Highways_England_A6H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102806',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102806_USAGE','projected_crs','ESRI','102806','ESRI','101','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102807','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999541,'EPSG','9201','EPSG','8806','False easting',215986.9336,'EPSG','9001','EPSG','8807','False northing',70995.70502,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102807_USAGE','conversion','ESRI','102807','ESRI','101','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102807','OSGB36_Highways_England_A6H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102807',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102807_USAGE','projected_crs','ESRI','102807','ESRI','101','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','102','UK - Highways England - A7','UK - Highways England - A7',50.3975,50.5356,-4.766,-4.6175,0);
-INSERT INTO "conversion" VALUES('ESRI','102808','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999564,'EPSG','9201','EPSG','8806','False easting',205992.2754,'EPSG','9001','EPSG','8807','False northing',70997.33764,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102808_USAGE','conversion','ESRI','102808','ESRI','102','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102808','OSGB36_Highways_England_A7H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102808',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102808_USAGE','projected_crs','ESRI','102808','ESRI','102','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102809','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999589,'EPSG','9201','EPSG','8806','False easting',205997.4254,'EPSG','9001','EPSG','8807','False northing',70999.11264,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102809_USAGE','conversion','ESRI','102809','ESRI','102','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102809','OSGB36_Highways_England_A7H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102809',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102809_USAGE','projected_crs','ESRI','102809','ESRI','102','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','103','UK - Highways England - A8','UK - Highways England - A8',50.221,50.7996,-4.6397,-4.4536,0);
-INSERT INTO "conversion" VALUES('ESRI','102810','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999613,'EPSG','9201','EPSG','8806','False easting',196002.254,'EPSG','9001','EPSG','8807','False northing',71000.81651,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102810_USAGE','conversion','ESRI','102810','ESRI','103','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102810','OSGB36_Highways_England_A8H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102810',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102810_USAGE','projected_crs','ESRI','102810','ESRI','103','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102811','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999638,'EPSG','9201','EPSG','8806','False easting',196007.1543,'EPSG','9001','EPSG','8807','False northing',71002.5916,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102811_USAGE','conversion','ESRI','102811','ESRI','103','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102811','OSGB36_Highways_England_A8H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102811',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102811_USAGE','projected_crs','ESRI','102811','ESRI','103','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','104','UK - Highways England - A9','UK - Highways England - A9',50.2244,50.8031,-4.4837,-4.2855,0);
-INSERT INTO "conversion" VALUES('ESRI','102812','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999662,'EPSG','9201','EPSG','8806','False easting',185011.1931,'EPSG','9001','EPSG','8807','False northing',71004.29572,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102812_USAGE','conversion','ESRI','102812','ESRI','104','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102812','OSGB36_Highways_England_A9H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102812',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102812_USAGE','projected_crs','ESRI','102812','ESRI','104','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102813','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999687,'EPSG','9201','EPSG','8806','False easting',185015.8185,'EPSG','9001','EPSG','8807','False northing',71006.07089,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102813_USAGE','conversion','ESRI','102813','ESRI','104','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102813','OSGB36_Highways_England_A9H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102813',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102813_USAGE','projected_crs','ESRI','102813','ESRI','104','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','105','UK - Highways England - A10','UK - Highways England - A10',50.2278,50.8069,-4.3136,-4.0893,0);
-INSERT INTO "conversion" VALUES('ESRI','102814','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999713,'EPSG','9201','EPSG','8806','False easting',173019.2914,'EPSG','9001','EPSG','8807','False northing',71007.91729,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102814_USAGE','conversion','ESRI','102814','ESRI','105','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102814','OSGB36_Highways_England_A10H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102814',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102814_USAGE','projected_crs','ESRI','102814','ESRI','105','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102815','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999738,'EPSG','9201','EPSG','8806','False easting',173023.6171,'EPSG','9001','EPSG','8807','False northing',71009.69256,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102815_USAGE','conversion','ESRI','102815','ESRI','105','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102815','OSGB36_Highways_England_A10H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102815',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102815_USAGE','projected_crs','ESRI','102815','ESRI','105','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','106','UK - Highways England - A11','UK - Highways England - A11',50.2315,50.8105,-4.115,-3.8791,0);
-INSERT INTO "conversion" VALUES('ESRI','102816','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999767,'EPSG','9201','EPSG','8806','False easting',159026.3186,'EPSG','9001','EPSG','8807','False northing',71011.75231,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102816_USAGE','conversion','ESRI','102816','ESRI','106','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102816','OSGB36_Highways_England_A11H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102816',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102816_USAGE','projected_crs','ESRI','102816','ESRI','106','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102817','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999792,'EPSG','9201','EPSG','8806','False easting',159030.2944,'EPSG','9001','EPSG','8807','False northing',71013.52767,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102817_USAGE','conversion','ESRI','102817','ESRI','106','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102817','OSGB36_Highways_England_A11H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102817',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102817_USAGE','projected_crs','ESRI','102817','ESRI','106','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102818','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999817,'EPSG','9201','EPSG','8806','False easting',159034.2704,'EPSG','9001','EPSG','8807','False northing',71015.30312,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102818_USAGE','conversion','ESRI','102818','ESRI','106','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102818','OSGB36_Highways_England_A11H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102818',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102818_USAGE','projected_crs','ESRI','102818','ESRI','106','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','107','UK - Highways England - A12','UK - Highways England - A12',50.2351,50.814,-3.9022,-3.6549,0);
-INSERT INTO "conversion" VALUES('ESRI','102819','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999817,'EPSG','9201','EPSG','8806','False easting',144031.0383,'EPSG','9001','EPSG','8807','False northing',71015.30362,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102819_USAGE','conversion','ESRI','102819','ESRI','107','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102819','OSGB36_Highways_England_A12H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102819',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102819_USAGE','projected_crs','ESRI','102819','ESRI','107','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102820','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999842,'EPSG','9201','EPSG','8806','False easting',144034.6392,'EPSG','9001','EPSG','8807','False northing',71017.07907,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102820_USAGE','conversion','ESRI','102820','ESRI','107','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102820','OSGB36_Highways_England_A12H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102820',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102820_USAGE','projected_crs','ESRI','102820','ESRI','107','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102821','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999867,'EPSG','9201','EPSG','8806','False easting',144038.2403,'EPSG','9001','EPSG','8807','False northing',71018.8546,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102821_USAGE','conversion','ESRI','102821','ESRI','107','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102821','OSGB36_Highways_England_A12H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102821',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102821_USAGE','projected_crs','ESRI','102821','ESRI','107','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','108','UK - Highways England - A13','UK - Highways England - A13',50.4183,50.8981,-3.6781,-3.4219,0);
-INSERT INTO "conversion" VALUES('ESRI','102822','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999865,'EPSG','9201','EPSG','8806','False easting',128033.7365,'EPSG','9001','EPSG','8807','False northing',71018.71321,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102822_USAGE','conversion','ESRI','102822','ESRI','108','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102822','OSGB36_Highways_England_A13H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102822',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102822_USAGE','projected_crs','ESRI','102822','ESRI','108','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102823','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99989,'EPSG','9201','EPSG','8806','False easting',128036.9375,'EPSG','9001','EPSG','8807','False northing',71020.48874,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102823_USAGE','conversion','ESRI','102823','ESRI','108','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102823','OSGB36_Highways_England_A13H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102823',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102823_USAGE','projected_crs','ESRI','102823','ESRI','108','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','109','UK - Highways England - A14','UK - Highways England - A14',50.585,51.1984,-4.4468,-3.1023,0);
-INSERT INTO "conversion" VALUES('ESRI','102824','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999914,'EPSG','9201','EPSG','8806','False easting',111034.6979,'EPSG','9001','EPSG','8807','False northing',71022.19417,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102824_USAGE','conversion','ESRI','102824','ESRI','109','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102824','OSGB36_Highways_England_A14H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102824',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102824_USAGE','projected_crs','ESRI','102824','ESRI','109','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102825','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999939,'EPSG','9201','EPSG','8806','False easting',111037.4739,'EPSG','9001','EPSG','8807','False northing',71023.96979,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102825_USAGE','conversion','ESRI','102825','ESRI','109','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102825','OSGB36_Highways_England_A14H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102825',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102825_USAGE','projected_crs','ESRI','102825','ESRI','109','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','110','UK - Highways England - A15','UK - Highways England - A15',50.6049,52.0473,-3.1375,-2.6218,0);
-INSERT INTO "conversion" VALUES('ESRI','102826','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999967,'EPSG','9201','EPSG','8806','False easting',88032.17537,'EPSG','9001','EPSG','8807','False northing',71025.95967,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102826_USAGE','conversion','ESRI','102826','ESRI','110','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102826','OSGB36_Highways_England_A15H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102826',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102826_USAGE','projected_crs','ESRI','102826','ESRI','110','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102827','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999992,'EPSG','9201','EPSG','8806','False easting',88034.37626,'EPSG','9001','EPSG','8807','False northing',71027.73539,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102827_USAGE','conversion','ESRI','102827','ESRI','110','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102827','OSGB36_Highways_England_A15H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102827',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102827_USAGE','projected_crs','ESRI','102827','ESRI','110','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','111','UK - Highways England - A16','UK - Highways England - A16',50.6084,52.048,-2.6417,-1.5041,0);
-INSERT INTO "conversion" VALUES('ESRI','102828','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000012,'EPSG','9201','EPSG','8806','False easting',54022.17583,'EPSG','9001','EPSG','8807','False northing',71029.15712,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102828_USAGE','conversion','ESRI','102828','ESRI','111','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102828','OSGB36_Highways_England_A16H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102828',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102828_USAGE','projected_crs','ESRI','102828','ESRI','111','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102829','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000037,'EPSG','9201','EPSG','8806','False easting',54023.52644,'EPSG','9001','EPSG','8807','False northing',71030.93291,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102829_USAGE','conversion','ESRI','102829','ESRI','111','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102829','OSGB36_Highways_England_A16H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102829',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102829_USAGE','projected_crs','ESRI','102829','ESRI','111','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','112','UK - Highways England - A17','UK - Highways England - A17',50.777,52.048,-1.5177,-1.0083,0);
-INSERT INTO "conversion" VALUES('ESRI','102830','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999981,'EPSG','9201','EPSG','8806','False easting',-24009.11135,'EPSG','9001','EPSG','8807','False northing',71026.9544,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102830_USAGE','conversion','ESRI','102830','ESRI','112','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102830','OSGB36_Highways_England_A17H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102830',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102830_USAGE','projected_crs','ESRI','102830','ESRI','112','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102831','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000006,'EPSG','9201','EPSG','8806','False easting',-24009.7116,'EPSG','9001','EPSG','8807','False northing',71028.73014,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102831_USAGE','conversion','ESRI','102831','ESRI','112','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102831','OSGB36_Highways_England_A17H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102831',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102831_USAGE','projected_crs','ESRI','102831','ESRI','112','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','113','UK - Highways England - A18','UK - Highways England - A18',50.7727,52.0448,-1.0355,-0.571,0);
-INSERT INTO "conversion" VALUES('ESRI','102832','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999928,'EPSG','9201','EPSG','8806','False easting',-58018.94296,'EPSG','9001','EPSG','8807','False northing',71023.18879,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102832_USAGE','conversion','ESRI','102832','ESRI','113','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102832','OSGB36_Highways_England_A18H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102832',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102832_USAGE','projected_crs','ESRI','102832','ESRI','113','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102833','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999953,'EPSG','9201','EPSG','8806','False easting',-58020.39349,'EPSG','9001','EPSG','8807','False northing',71024.96444,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102833_USAGE','conversion','ESRI','102833','ESRI','113','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102833','OSGB36_Highways_England_A18H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102833',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102833_USAGE','projected_crs','ESRI','102833','ESRI','113','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','114','UK - Highways England - A19','UK - Highways England - A19',50.7696,52.0404,-0.6101,-0.3232,0);
-INSERT INTO "conversion" VALUES('ESRI','102834','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999874,'EPSG','9201','EPSG','8806','False easting',-88023.98625,'EPSG','9001','EPSG','8807','False northing',71019.35254,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102834_USAGE','conversion','ESRI','102834','ESRI','114','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102834','OSGB36_Highways_England_A19H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102834',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102834_USAGE','projected_crs','ESRI','102834','ESRI','114','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102835','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999899,'EPSG','9201','EPSG','8806','False easting',-88026.18693,'EPSG','9001','EPSG','8807','False northing',71021.12809,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102835_USAGE','conversion','ESRI','102835','ESRI','114','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102835','OSGB36_Highways_England_A19H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102835',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102835_USAGE','projected_crs','ESRI','102835','ESRI','114','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','115','UK - Highways England - A20','UK - Highways England - A20',50.7659,52.0371,-0.369,-0.0755,0);
-INSERT INTO "conversion" VALUES('ESRI','102836','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999826,'EPSG','9201','EPSG','8806','False easting',-105023.5775,'EPSG','9001','EPSG','8807','False northing',71015.94289,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102836_USAGE','conversion','ESRI','102836','ESRI','115','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102836','OSGB36_Highways_England_A20H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102836',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102836_USAGE','projected_crs','ESRI','102836','ESRI','115','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102837','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999851,'EPSG','9201','EPSG','8806','False easting',-105026.2032,'EPSG','9001','EPSG','8807','False northing',71017.71836,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102837_USAGE','conversion','ESRI','102837','ESRI','115','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102837','OSGB36_Highways_England_A20H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102837',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102837_USAGE','projected_crs','ESRI','102837','ESRI','115','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','116','UK - Highways England - A21','UK - Highways England - A21',50.7618,52.0333,-0.128,0.1722,0);
-INSERT INTO "conversion" VALUES('ESRI','102838','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999771,'EPSG','9201','EPSG','8806','False easting',-122020.6823,'EPSG','9001','EPSG','8807','False northing',71012.0364,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102838_USAGE','conversion','ESRI','102838','ESRI','116','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102838','OSGB36_Highways_England_A21H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102838',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102838_USAGE','projected_crs','ESRI','102838','ESRI','116','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102839','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999796,'EPSG','9201','EPSG','8806','False easting',-122023.7329,'EPSG','9001','EPSG','8807','False northing',71013.81177,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102839_USAGE','conversion','ESRI','102839','ESRI','116','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102839','OSGB36_Highways_England_A21H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102839',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102839_USAGE','projected_crs','ESRI','102839','ESRI','116','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','117','UK - Highways England - A22','UK - Highways England - A22',50.7572,52.029,0.1129,0.4198,0);
-INSERT INTO "conversion" VALUES('ESRI','102840','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999708,'EPSG','9201','EPSG','8806','False easting',-139014.8049,'EPSG','9001','EPSG','8807','False northing',71007.56222,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102840_USAGE','conversion','ESRI','102840','ESRI','117','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102840','OSGB36_Highways_England_A22H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102840',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102840_USAGE','projected_crs','ESRI','102840','ESRI','117','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102841','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999733,'EPSG','9201','EPSG','8806','False easting',-139018.2804,'EPSG','9001','EPSG','8807','False northing',71009.33748,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102841_USAGE','conversion','ESRI','102841','ESRI','117','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102841','OSGB36_Highways_England_A22H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102841',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102841_USAGE','projected_crs','ESRI','102841','ESRI','117','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','118','UK - Highways England - A23','UK - Highways England - A23',50.7546,52.0242,0.3537,0.5509,0);
-INSERT INTO "conversion" VALUES('ESRI','102842','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999656,'EPSG','9201','EPSG','8806','False easting',-156008.5024,'EPSG','9001','EPSG','8807','False northing',71003.86967,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102842_USAGE','conversion','ESRI','102842','ESRI','118','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102842','OSGB36_Highways_England_A23H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102842',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102842_USAGE','projected_crs','ESRI','102842','ESRI','118','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102843','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999681,'EPSG','9201','EPSG','8806','False easting',-156012.4027,'EPSG','9001','EPSG','8807','False northing',71005.64484,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102843_USAGE','conversion','ESRI','102843','ESRI','118','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102843','OSGB36_Highways_England_A23H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102843',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102843_USAGE','projected_crs','ESRI','102843','ESRI','118','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','119','UK - Highways England - A24','UK - Highways England - A24',50.7511,52.0214,0.4812,0.711,0);
-INSERT INTO "conversion" VALUES('ESRI','102844','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999613,'EPSG','9201','EPSG','8806','False easting',-165001.8975,'EPSG','9001','EPSG','8807','False northing',71000.81651,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102844_USAGE','conversion','ESRI','102844','ESRI','119','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102844','OSGB36_Highways_England_A24H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102844',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102844_USAGE','projected_crs','ESRI','102844','ESRI','119','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102845','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999638,'EPSG','9201','EPSG','8806','False easting',-165006.0227,'EPSG','9001','EPSG','8807','False northing',71002.5916,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102845_USAGE','conversion','ESRI','102845','ESRI','119','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102845','OSGB36_Highways_England_A24H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102845',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102845_USAGE','projected_crs','ESRI','102845','ESRI','119','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','120','UK - Highways England - A25','UK - Highways England - A25',50.7478,52.0178,0.637,0.8566,0);
-INSERT INTO "conversion" VALUES('ESRI','102846','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999565,'EPSG','9201','EPSG','8806','False easting',-175993.5763,'EPSG','9001','EPSG','8807','False northing',70997.40864,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102846_USAGE','conversion','ESRI','102846','ESRI','120','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102846','OSGB36_Highways_England_A25H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102846',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102846_USAGE','projected_crs','ESRI','102846','ESRI','120','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102847','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99959,'EPSG','9201','EPSG','8806','False easting',-175997.9763,'EPSG','9001','EPSG','8807','False northing',70999.18364,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102847_USAGE','conversion','ESRI','102847','ESRI','120','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102847','OSGB36_Highways_England_A25H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102847',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102847_USAGE','projected_crs','ESRI','102847','ESRI','120','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','121','UK - Highways England - A26','UK - Highways England - A26',50.7444,52.0144,0.7786,1.0021,0);
-INSERT INTO "conversion" VALUES('ESRI','102848','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999517,'EPSG','9201','EPSG','8806','False easting',-185984.2846,'EPSG','9001','EPSG','8807','False northing',70994.00109,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102848_USAGE','conversion','ESRI','102848','ESRI','121','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102848','OSGB36_Highways_England_A26H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102848',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102848_USAGE','projected_crs','ESRI','102848','ESRI','121','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102849','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999542,'EPSG','9201','EPSG','8806','False easting',-185988.9343,'EPSG','9001','EPSG','8807','False northing',70995.77601,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102849_USAGE','conversion','ESRI','102849','ESRI','121','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102849','OSGB36_Highways_England_A26H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102849',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102849_USAGE','projected_crs','ESRI','102849','ESRI','121','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','122','UK - Highways England - A27','UK - Highways England - A27',50.9293,52.0108,0.932,1.1476,0);
-INSERT INTO "conversion" VALUES('ESRI','102850','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999467,'EPSG','9201','EPSG','8806','False easting',-195973.6419,'EPSG','9001','EPSG','8807','False northing',70990.45191,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102850_USAGE','conversion','ESRI','102850','ESRI','122','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102850','OSGB36_Highways_England_A27H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102850',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102850_USAGE','projected_crs','ESRI','102850','ESRI','122','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102851','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999492,'EPSG','9201','EPSG','8806','False easting',-195978.5414,'EPSG','9001','EPSG','8807','False northing',70992.22674,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102851_USAGE','conversion','ESRI','102851','ESRI','122','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102851','OSGB36_Highways_England_A27H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102851',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102851_USAGE','projected_crs','ESRI','102851','ESRI','122','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','123','UK - Highways England - A28','UK - Highways England - A28',50.9259,52.007,1.0741,1.2785,0);
-INSERT INTO "conversion" VALUES('ESRI','102852','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999416,'EPSG','9201','EPSG','8806','False easting',-205961.7946,'EPSG','9001','EPSG','8807','False northing',70986.83212,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102852_USAGE','conversion','ESRI','102852','ESRI','123','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102852','OSGB36_Highways_England_A28H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102852',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102852_USAGE','projected_crs','ESRI','102852','ESRI','123','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102853','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999441,'EPSG','9201','EPSG','8806','False easting',-205966.9438,'EPSG','9001','EPSG','8807','False northing',70988.60686,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102853_USAGE','conversion','ESRI','102853','ESRI','123','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102853','OSGB36_Highways_England_A28H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102853',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102853_USAGE','projected_crs','ESRI','102853','ESRI','123','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','124','UK - Highways England - A29','UK - Highways England - A29',50.9223,52.0034,1.202,1.4094,0);
-INSERT INTO "conversion" VALUES('ESRI','102854','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999366,'EPSG','9201','EPSG','8806','False easting',-214949.3801,'EPSG','9001','EPSG','8807','False northing',70983.28366,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102854_USAGE','conversion','ESRI','102854','ESRI','124','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102854','OSGB36_Highways_England_A29H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102854',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102854_USAGE','projected_crs','ESRI','102854','ESRI','124','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','125','UK - Highways England - A30','UK - Highways England - A30',50.9186,51.9997,1.3299,1.5403,0);
-INSERT INTO "conversion" VALUES('ESRI','102855','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999314,'EPSG','9201','EPSG','8806','False easting',-223935.6193,'EPSG','9001','EPSG','8807','False northing',70979.59363,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102855_USAGE','conversion','ESRI','102855','ESRI','125','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102855','OSGB36_Highways_England_A30H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102855',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102855_USAGE','projected_crs','ESRI','102855','ESRI','125','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','126','UK - Highways England - B15','UK - Highways England - B15',52.0434,53.9351,-3.1882,-2.6416,0);
-INSERT INTO "conversion" VALUES('ESRI','102856','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999967,'EPSG','9201','EPSG','8806','False easting',88032.17537,'EPSG','9001','EPSG','8807','False northing',111040.5848,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102856_USAGE','conversion','ESRI','102856','ESRI','126','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102856','OSGB36_Highways_England_B15H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102856',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102856_USAGE','projected_crs','ESRI','102856','ESRI','126','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102857','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999992,'EPSG','9201','EPSG','8806','False easting',88034.37626,'EPSG','9001','EPSG','8807','False northing',111043.361,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102857_USAGE','conversion','ESRI','102857','ESRI','126','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102857','OSGB36_Highways_England_B15H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102857',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102857_USAGE','projected_crs','ESRI','102857','ESRI','126','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102858','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000017,'EPSG','9201','EPSG','8806','False easting',88036.57726,'EPSG','9001','EPSG','8807','False northing',111046.1372,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102858_USAGE','conversion','ESRI','102858','ESRI','126','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102858','OSGB36_Highways_England_B15H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102858',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102858_USAGE','projected_crs','ESRI','102858','ESRI','126','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','127','UK - Highways England - B16','UK - Highways England - B16',52.0472,53.9359,-2.6703,-1.482,0);
-INSERT INTO "conversion" VALUES('ESRI','102859','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000012,'EPSG','9201','EPSG','8806','False easting',54022.17583,'EPSG','9001','EPSG','8807','False northing',111045.5837,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102859_USAGE','conversion','ESRI','102859','ESRI','127','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102859','OSGB36_Highways_England_B16H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102859',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102859_USAGE','projected_crs','ESRI','102859','ESRI','127','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102860','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000037,'EPSG','9201','EPSG','8806','False easting',54023.52644,'EPSG','9001','EPSG','8807','False northing',111048.3599,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102860_USAGE','conversion','ESRI','102860','ESRI','127','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102860','OSGB36_Highways_England_B16H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102860',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102860_USAGE','projected_crs','ESRI','102860','ESRI','127','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102861','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000062,'EPSG','9201','EPSG','8806','False easting',54024.87711,'EPSG','9001','EPSG','8807','False northing',111051.1363,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102861_USAGE','conversion','ESRI','102861','ESRI','127','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102861','OSGB36_Highways_England_B16H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102861',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102861_USAGE','projected_crs','ESRI','102861','ESRI','127','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102862','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000087,'EPSG','9201','EPSG','8806','False easting',54026.22785,'EPSG','9001','EPSG','8807','False northing',111053.9128,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102862_USAGE','conversion','ESRI','102862','ESRI','127','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102862','OSGB36_Highways_England_B16H4',NULL,'EPSG','4400','EPSG','4277','ESRI','102862',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102862_USAGE','projected_crs','ESRI','102862','ESRI','127','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','128','UK - Highways England - B17','UK - Highways England - B17',52.0447,53.9359,-1.5042,-0.9641,0);
-INSERT INTO "conversion" VALUES('ESRI','102863','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999981,'EPSG','9201','EPSG','8806','False easting',-24009.11135,'EPSG','9001','EPSG','8807','False northing',111042.14,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102863_USAGE','conversion','ESRI','102863','ESRI','128','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102863','OSGB36_Highways_England_B17H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102863',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102863_USAGE','projected_crs','ESRI','102863','ESRI','128','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102864','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000006,'EPSG','9201','EPSG','8806','False easting',-24009.7116,'EPSG','9001','EPSG','8807','False northing',111044.9161,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102864_USAGE','conversion','ESRI','102864','ESRI','128','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102864','OSGB36_Highways_England_B17H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102864',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102864_USAGE','projected_crs','ESRI','102864','ESRI','128','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','129','UK - Highways England - B18','UK - Highways England - B18',52.0403,53.9325,-1.0084,-0.5073,0);
-INSERT INTO "conversion" VALUES('ESRI','102865','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999928,'EPSG','9201','EPSG','8806','False easting',-58018.94296,'EPSG','9001','EPSG','8807','False northing',111036.2529,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102865_USAGE','conversion','ESRI','102865','ESRI','129','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102865','OSGB36_Highways_England_B18H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102865',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102865_USAGE','projected_crs','ESRI','102865','ESRI','129','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102866','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999953,'EPSG','9201','EPSG','8806','False easting',-58020.39349,'EPSG','9001','EPSG','8807','False northing',111039.0289,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102866_USAGE','conversion','ESRI','102866','ESRI','129','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102866','OSGB36_Highways_England_B18H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102866',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102866_USAGE','projected_crs','ESRI','102866','ESRI','129','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','130','UK - Highways England - B19','UK - Highways England - B19',52.037,53.9277,-0.5711,-0.2485,0);
-INSERT INTO "conversion" VALUES('ESRI','102867','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999874,'EPSG','9201','EPSG','8806','False easting',-88023.98625,'EPSG','9001','EPSG','8807','False northing',111030.2554,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102867_USAGE','conversion','ESRI','102867','ESRI','130','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102867','OSGB36_Highways_England_B19H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102867',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102867_USAGE','projected_crs','ESRI','102867','ESRI','130','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','131','UK - Highways England - B20','UK - Highways England - B20',52.0332,53.9242,-0.3233,0.0103,0);
-INSERT INTO "conversion" VALUES('ESRI','102868','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999826,'EPSG','9201','EPSG','8806','False easting',-105023.5775,'EPSG','9001','EPSG','8807','False northing',111024.9248,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102868_USAGE','conversion','ESRI','102868','ESRI','131','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102868','OSGB36_Highways_England_B20H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102868',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102868_USAGE','projected_crs','ESRI','102868','ESRI','131','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','132','UK - Highways England - B21','UK - Highways England - B21',52.0289,52.8061,-0.0756,0.2105,0);
-INSERT INTO "conversion" VALUES('ESRI','102869','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999771,'EPSG','9201','EPSG','8806','False easting',-122020.6823,'EPSG','9001','EPSG','8807','False northing',111018.8175,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102869_USAGE','conversion','ESRI','102869','ESRI','132','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102869','OSGB36_Highways_England_B21H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102869',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102869_USAGE','projected_crs','ESRI','102869','ESRI','132','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','133','UK - Highways England - B22','UK - Highways England - B22',52.0241,52.8017,0.1721,0.4625,0);
-INSERT INTO "conversion" VALUES('ESRI','102870','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999709,'EPSG','9201','EPSG','8806','False easting',-139014.9439,'EPSG','9001','EPSG','8807','False northing',111011.9337,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102870_USAGE','conversion','ESRI','102870','ESRI','133','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102870','OSGB36_Highways_England_B22H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102870',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102870_USAGE','projected_crs','ESRI','102870','ESRI','133','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','134','UK - Highways England - B23','UK - Highways England - B23',52.0213,52.7967,0.4197,0.5958,0);
-INSERT INTO "conversion" VALUES('ESRI','102871','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999656,'EPSG','9201','EPSG','8806','False easting',-156008.5024,'EPSG','9001','EPSG','8807','False northing',111006.0498,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102871_USAGE','conversion','ESRI','102871','ESRI','134','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102871','OSGB36_Highways_England_B23H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102871',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102871_USAGE','projected_crs','ESRI','102871','ESRI','134','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','135','UK - Highways England - B24','UK - Highways England - B24',52.0177,52.7939,0.5508,0.7588,0);
-INSERT INTO "conversion" VALUES('ESRI','102872','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999614,'EPSG','9201','EPSG','8806','False easting',-165002.0625,'EPSG','9001','EPSG','8807','False northing',111001.3875,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102872_USAGE','conversion','ESRI','102872','ESRI','135','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102872','OSGB36_Highways_England_B24H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102872',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102872_USAGE','projected_crs','ESRI','102872','ESRI','135','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','136','UK - Highways England - B25','UK - Highways England - B25',52.0143,52.7902,0.7109,0.9069,0);
-INSERT INTO "conversion" VALUES('ESRI','102873','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999565,'EPSG','9201','EPSG','8806','False easting',-175993.5763,'EPSG','9001','EPSG','8807','False northing',110995.9487,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102873_USAGE','conversion','ESRI','102873','ESRI','136','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102873','OSGB36_Highways_England_B25H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102873',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102873_USAGE','projected_crs','ESRI','102873','ESRI','136','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','137','UK - Highways England - B26','UK - Highways England - B26',52.0107,52.7866,0.8565,1.055,0);
-INSERT INTO "conversion" VALUES('ESRI','102874','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999517,'EPSG','9201','EPSG','8806','False easting',-185984.2846,'EPSG','9001','EPSG','8807','False northing',110990.6214,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102874_USAGE','conversion','ESRI','102874','ESRI','137','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102874','OSGB36_Highways_England_B26H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102874',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102874_USAGE','projected_crs','ESRI','102874','ESRI','137','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','138','UK - Highways England - B27','UK - Highways England - B27',52.0069,52.7829,1.002,1.2031,0);
-INSERT INTO "conversion" VALUES('ESRI','102875','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999467,'EPSG','9201','EPSG','8806','False easting',-195973.6419,'EPSG','9001','EPSG','8807','False northing',110985.0727,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102875_USAGE','conversion','ESRI','102875','ESRI','138','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102875','OSGB36_Highways_England_B27H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102875',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102875_USAGE','projected_crs','ESRI','102875','ESRI','138','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','139','UK - Highways England - B28','UK - Highways England - B28',52.0033,52.779,1.1475,1.3363,0);
-INSERT INTO "conversion" VALUES('ESRI','102876','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999416,'EPSG','9201','EPSG','8806','False easting',-205961.7946,'EPSG','9001','EPSG','8807','False northing',110979.4136,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102876_USAGE','conversion','ESRI','102876','ESRI','139','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102876','OSGB36_Highways_England_B28H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102876',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102876_USAGE','projected_crs','ESRI','102876','ESRI','139','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','140','UK - Highways England - B29','UK - Highways England - B29',51.9996,52.7753,1.2784,1.4695,0);
-INSERT INTO "conversion" VALUES('ESRI','102877','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999367,'EPSG','9201','EPSG','8806','False easting',-214949.595,'EPSG','9001','EPSG','8807','False northing',110973.9769,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102877_USAGE','conversion','ESRI','102877','ESRI','140','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102877','OSGB36_Highways_England_B29H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102877',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102877_USAGE','projected_crs','ESRI','102877','ESRI','140','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','141','UK - Highways England - B30','UK - Highways England - B30',51.9957,52.7715,1.4093,1.6026,0);
-INSERT INTO "conversion" VALUES('ESRI','102878','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999315,'EPSG','9201','EPSG','8806','False easting',-223935.8432,'EPSG','9001','EPSG','8807','False northing',110968.208,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102878_USAGE','conversion','ESRI','102878','ESRI','141','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102878','OSGB36_Highways_England_B30H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102878',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102878_USAGE','projected_crs','ESRI','102878','ESRI','141','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','142','UK - Highways England - B31','UK - Highways England - B31',52.3416,52.7675,1.5681,1.7357,0);
-INSERT INTO "conversion" VALUES('ESRI','102879','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999261,'EPSG','9201','EPSG','8806','False easting',-232920.6915,'EPSG','9001','EPSG','8807','False northing',110962.2179,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102879_USAGE','conversion','ESRI','102879','ESRI','142','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102879','OSGB36_Highways_England_B31H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102879',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102879_USAGE','projected_crs','ESRI','102879','ESRI','142','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','143','UK - Highways England - B32','UK - Highways England - B32',52.3374,52.7634,1.6999,1.8688,0);
-INSERT INTO "conversion" VALUES('ESRI','102880','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999206,'EPSG','9201','EPSG','8806','False easting',-241904.3281,'EPSG','9001','EPSG','8807','False northing',110956.1174,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102880_USAGE','conversion','ESRI','102880','ESRI','143','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102880','OSGB36_Highways_England_B32H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102880',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102880_USAGE','projected_crs','ESRI','102880','ESRI','143','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','144','UK - Highways England - C13','UK - Highways England - C13',54.3636,54.7717,-3.8344,-3.5547,0);
-INSERT INTO "conversion" VALUES('ESRI','102881','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999866,'EPSG','9201','EPSG','8806','False easting',128033.8646,'EPSG','9001','EPSG','8807','False northing',126033.3354,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102881_USAGE','conversion','ESRI','102881','ESRI','144','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102881','OSGB36_Highways_England_C13H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102881',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102881_USAGE','projected_crs','ESRI','102881','ESRI','144','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','145','UK - Highways England - C14','UK - Highways England - C14',54.0079,54.7758,-3.5703,-3.1904,0);
-INSERT INTO "conversion" VALUES('ESRI','102882','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999914,'EPSG','9201','EPSG','8806','False easting',111034.6979,'EPSG','9001','EPSG','8807','False northing',126039.3868,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102882_USAGE','conversion','ESRI','102882','ESRI','145','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102882','OSGB36_Highways_England_C14H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102882',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102882_USAGE','projected_crs','ESRI','102882','ESRI','145','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102883','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999939,'EPSG','9201','EPSG','8806','False easting',111037.4739,'EPSG','9001','EPSG','8807','False northing',126042.5379,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102883_USAGE','conversion','ESRI','102883','ESRI','145','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102883','OSGB36_Highways_England_C14H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102883',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102883_USAGE','projected_crs','ESRI','102883','ESRI','145','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102884','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999964,'EPSG','9201','EPSG','8806','False easting',111040.25,'EPSG','9001','EPSG','8807','False northing',126045.6892,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102884_USAGE','conversion','ESRI','102884','ESRI','145','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102884','OSGB36_Highways_England_C14H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102884',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102884_USAGE','projected_crs','ESRI','102884','ESRI','145','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102885','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999989,'EPSG','9201','EPSG','8806','False easting',111043.0263,'EPSG','9001','EPSG','8807','False northing',126048.8406,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102885_USAGE','conversion','ESRI','102885','ESRI','145','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102885','OSGB36_Highways_England_C14H4',NULL,'EPSG','4400','EPSG','4277','ESRI','102885',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102885_USAGE','projected_crs','ESRI','102885','ESRI','145','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','146','UK - Highways England - C15','UK - Highways England - C15',53.931,55.1394,-3.2237,-2.6702,0);
-INSERT INTO "conversion" VALUES('ESRI','102886','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999967,'EPSG','9201','EPSG','8806','False easting',88032.17537,'EPSG','9001','EPSG','8807','False northing',126046.0693,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102886_USAGE','conversion','ESRI','102886','ESRI','146','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102886','OSGB36_Highways_England_C15H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102886',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102886_USAGE','projected_crs','ESRI','102886','ESRI','146','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102887','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999992,'EPSG','9201','EPSG','8806','False easting',88034.37626,'EPSG','9001','EPSG','8807','False northing',126049.2206,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102887_USAGE','conversion','ESRI','102887','ESRI','146','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102887','OSGB36_Highways_England_C15H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102887',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102887_USAGE','projected_crs','ESRI','102887','ESRI','146','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102888','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000017,'EPSG','9201','EPSG','8806','False easting',88036.57726,'EPSG','9001','EPSG','8807','False northing',126052.372,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102888_USAGE','conversion','ESRI','102888','ESRI','146','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102888','OSGB36_Highways_England_C15H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102888',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102888_USAGE','projected_crs','ESRI','102888','ESRI','146','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102889','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000042,'EPSG','9201','EPSG','8806','False easting',88038.77836,'EPSG','9001','EPSG','8807','False northing',126055.5236,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102889_USAGE','conversion','ESRI','102889','ESRI','146','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102889','OSGB36_Highways_England_C15H4',NULL,'EPSG','4400','EPSG','4277','ESRI','102889',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102889_USAGE','projected_crs','ESRI','102889','ESRI','146','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102890','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000067,'EPSG','9201','EPSG','8806','False easting',88040.97958,'EPSG','9001','EPSG','8807','False northing',126058.6753,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102890_USAGE','conversion','ESRI','102890','ESRI','146','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102890','OSGB36_Highways_England_C15H5',NULL,'EPSG','4400','EPSG','4277','ESRI','102890',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102890_USAGE','projected_crs','ESRI','102890','ESRI','146','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','147','UK - Highways England - C16','UK - Highways England - C16',53.935,55.8321,-2.7026,-1.4571,0);
-INSERT INTO "conversion" VALUES('ESRI','102891','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000012,'EPSG','9201','EPSG','8806','False easting',54022.17583,'EPSG','9001','EPSG','8807','False northing',126051.7436,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102891_USAGE','conversion','ESRI','102891','ESRI','147','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102891','OSGB36_Highways_England_C16H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102891',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102891_USAGE','projected_crs','ESRI','102891','ESRI','147','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102892','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000037,'EPSG','9201','EPSG','8806','False easting',54023.52644,'EPSG','9001','EPSG','8807','False northing',126054.895,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102892_USAGE','conversion','ESRI','102892','ESRI','147','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102892','OSGB36_Highways_England_C16H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102892',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102892_USAGE','projected_crs','ESRI','102892','ESRI','147','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102893','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000062,'EPSG','9201','EPSG','8806','False easting',54024.87711,'EPSG','9001','EPSG','8807','False northing',126058.0466,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102893_USAGE','conversion','ESRI','102893','ESRI','147','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102893','OSGB36_Highways_England_C16H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102893',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102893_USAGE','projected_crs','ESRI','102893','ESRI','147','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102894','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000087,'EPSG','9201','EPSG','8806','False easting',54026.22785,'EPSG','9001','EPSG','8807','False northing',126061.1983,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102894_USAGE','conversion','ESRI','102894','ESRI','147','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102894','OSGB36_Highways_England_C16H4',NULL,'EPSG','4400','EPSG','4277','ESRI','102894',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102894_USAGE','projected_crs','ESRI','102894','ESRI','147','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','148','UK - Highways England - C17','UK - Highways England - C17',53.9324,55.5176,-1.4821,-0.923,0);
-INSERT INTO "conversion" VALUES('ESRI','102895','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999981,'EPSG','9201','EPSG','8806','False easting',-24009.11135,'EPSG','9001','EPSG','8807','False northing',126047.8346,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102895_USAGE','conversion','ESRI','102895','ESRI','148','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102895','OSGB36_Highways_England_C17H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102895',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102895_USAGE','projected_crs','ESRI','102895','ESRI','148','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102896','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000006,'EPSG','9201','EPSG','8806','False easting',-24009.7116,'EPSG','9001','EPSG','8807','False northing',126050.9859,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102896_USAGE','conversion','ESRI','102896','ESRI','148','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102896','OSGB36_Highways_England_C17H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102896',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102896_USAGE','projected_crs','ESRI','102896','ESRI','148','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','149','UK - Highways England - C18','UK - Highways England - C18',53.9276,54.3908,-0.9642,-0.4907,0);
-INSERT INTO "conversion" VALUES('ESRI','102897','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999928,'EPSG','9201','EPSG','8806','False easting',-58018.94296,'EPSG','9001','EPSG','8807','False northing',126041.1519,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102897_USAGE','conversion','ESRI','102897','ESRI','149','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102897','OSGB36_Highways_England_C18H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102897',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102897_USAGE','projected_crs','ESRI','102897','ESRI','149','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102898','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999953,'EPSG','9201','EPSG','8806','False easting',-58020.39349,'EPSG','9001','EPSG','8807','False northing',126044.3031,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102898_USAGE','conversion','ESRI','102898','ESRI','149','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102898','OSGB36_Highways_England_C18H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102898',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102898_USAGE','projected_crs','ESRI','102898','ESRI','149','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','150','UK - Highways England - C19','UK - Highways England - C19',53.9241,54.3859,-0.5074,-0.229,0);
-INSERT INTO "conversion" VALUES('ESRI','102899','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999874,'EPSG','9201','EPSG','8806','False easting',-88023.98625,'EPSG','9001','EPSG','8807','False northing',126034.3439,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102899_USAGE','conversion','ESRI','102899','ESRI','150','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102899','OSGB36_Highways_England_C19H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102899',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102899_USAGE','projected_crs','ESRI','102899','ESRI','150','EPSG','1024');
-INSERT INTO "conversion" VALUES('ESRI','102900','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999899,'EPSG','9201','EPSG','8806','False easting',-88026.18693,'EPSG','9001','EPSG','8807','False northing',126037.4949,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102900_USAGE','conversion','ESRI','102900','ESRI','150','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','102900','OSGB36_Highways_England_C19H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102900',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102900_USAGE','projected_crs','ESRI','102900','ESRI','150','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','151','Illinois - Aurora','Illinois - Aurora',41.45,42.5,-88.95,-88.19,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102798_USAGE','projected_crs','ESRI','102798','ESRI','97','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','98','UK - Highways England - A1','UK - Highways England - A1',50.1068,50.4249,-5.5482,-5.3991,0);
+INSERT INTO "conversion" VALUES('ESRI','102799','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99926,'EPSG','9201','EPSG','8806','False easting',261910.5587,'EPSG','9001','EPSG','8807','False northing',70975.76209,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102799_USAGE','conversion','ESRI','102799','ESRI','98','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102799','OSGB36_Highways_England_A1H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102799',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102799_USAGE','projected_crs','ESRI','102799','ESRI','98','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','99','UK - Highways England - A2','UK - Highways England - A2',50.1106,50.4286,-5.4217,-5.2734,0);
+INSERT INTO "conversion" VALUES('ESRI','102800','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999314,'EPSG','9201','EPSG','8806','False easting',252927.2844,'EPSG','9001','EPSG','8807','False northing',70979.59363,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102800_USAGE','conversion','ESRI','102800','ESRI','99','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102800','OSGB36_Highways_England_A2H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102800',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102800_USAGE','projected_crs','ESRI','102800','ESRI','99','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','100','UK - Highways England - A3','UK - Highways England - A3',50.1142,50.4321,-5.2952,-5.1477,0);
+INSERT INTO "conversion" VALUES('ESRI','102801','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999365,'EPSG','9201','EPSG','8806','False easting',243942.3084,'EPSG','9001','EPSG','8807','False northing',70983.21269,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102801_USAGE','conversion','ESRI','102801','ESRI','100','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102801','OSGB36_Highways_England_A3H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102801',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102801_USAGE','projected_crs','ESRI','102801','ESRI','100','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102802','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99939,'EPSG','9201','EPSG','8806','False easting',243948.4072,'EPSG','9001','EPSG','8807','False northing',70984.98734,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102802_USAGE','conversion','ESRI','102802','ESRI','100','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102802','OSGB36_Highways_England_A3H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102802',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102802_USAGE','projected_crs','ESRI','102802','ESRI','100','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','101','UK - Highways England - A4','UK - Highways England - A4',50.2075,50.5253,-5.1747,-5.0277,0);
+INSERT INTO "conversion" VALUES('ESRI','102803','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999415,'EPSG','9201','EPSG','8806','False easting',234956.1813,'EPSG','9001','EPSG','8807','False northing',70986.76115,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102803_USAGE','conversion','ESRI','102803','ESRI','101','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102803','OSGB36_Highways_England_A4H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102803',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102803_USAGE','projected_crs','ESRI','102803','ESRI','101','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','102','UK - Highways England - A5','UK - Highways England - A5',50.2109,50.5289,-5.0479,-4.8877,0);
+INSERT INTO "conversion" VALUES('ESRI','102804','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999465,'EPSG','9201','EPSG','8806','False easting',225969.1556,'EPSG','9001','EPSG','8807','False northing',70990.30995,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102804_USAGE','conversion','ESRI','102804','ESRI','102','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102804','OSGB36_Highways_England_A5H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102804',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102804_USAGE','projected_crs','ESRI','102804','ESRI','102','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102805','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99949,'EPSG','9201','EPSG','8806','False easting',225974.8051,'EPSG','9001','EPSG','8807','False northing',70992.08478,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102805_USAGE','conversion','ESRI','102805','ESRI','102','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102805','OSGB36_Highways_England_A5H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102805',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102805_USAGE','projected_crs','ESRI','102805','ESRI','102','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','103','UK - Highways England - A6','UK - Highways England - A6',50.2144,50.5323,-4.907,-4.7477,0);
+INSERT INTO "conversion" VALUES('ESRI','102806','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999516,'EPSG','9201','EPSG','8806','False easting',215981.5338,'EPSG','9001','EPSG','8807','False northing',70993.93011,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102806_USAGE','conversion','ESRI','102806','ESRI','103','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102806','OSGB36_Highways_England_A6H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102806',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102806_USAGE','projected_crs','ESRI','102806','ESRI','103','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102807','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999541,'EPSG','9201','EPSG','8806','False easting',215986.9336,'EPSG','9001','EPSG','8807','False northing',70995.70502,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102807_USAGE','conversion','ESRI','102807','ESRI','103','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102807','OSGB36_Highways_England_A6H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102807',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102807_USAGE','projected_crs','ESRI','102807','ESRI','103','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','104','UK - Highways England - A7','UK - Highways England - A7',50.3975,50.5356,-4.766,-4.6175,0);
+INSERT INTO "conversion" VALUES('ESRI','102808','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999564,'EPSG','9201','EPSG','8806','False easting',205992.2754,'EPSG','9001','EPSG','8807','False northing',70997.33764,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102808_USAGE','conversion','ESRI','102808','ESRI','104','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102808','OSGB36_Highways_England_A7H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102808',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102808_USAGE','projected_crs','ESRI','102808','ESRI','104','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102809','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999589,'EPSG','9201','EPSG','8806','False easting',205997.4254,'EPSG','9001','EPSG','8807','False northing',70999.11264,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102809_USAGE','conversion','ESRI','102809','ESRI','104','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102809','OSGB36_Highways_England_A7H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102809',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102809_USAGE','projected_crs','ESRI','102809','ESRI','104','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','105','UK - Highways England - A8','UK - Highways England - A8',50.221,50.7996,-4.6397,-4.4536,0);
+INSERT INTO "conversion" VALUES('ESRI','102810','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999613,'EPSG','9201','EPSG','8806','False easting',196002.254,'EPSG','9001','EPSG','8807','False northing',71000.81651,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102810_USAGE','conversion','ESRI','102810','ESRI','105','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102810','OSGB36_Highways_England_A8H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102810',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102810_USAGE','projected_crs','ESRI','102810','ESRI','105','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102811','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999638,'EPSG','9201','EPSG','8806','False easting',196007.1543,'EPSG','9001','EPSG','8807','False northing',71002.5916,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102811_USAGE','conversion','ESRI','102811','ESRI','105','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102811','OSGB36_Highways_England_A8H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102811',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102811_USAGE','projected_crs','ESRI','102811','ESRI','105','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','106','UK - Highways England - A9','UK - Highways England - A9',50.2244,50.8031,-4.4837,-4.2855,0);
+INSERT INTO "conversion" VALUES('ESRI','102812','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999662,'EPSG','9201','EPSG','8806','False easting',185011.1931,'EPSG','9001','EPSG','8807','False northing',71004.29572,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102812_USAGE','conversion','ESRI','102812','ESRI','106','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102812','OSGB36_Highways_England_A9H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102812',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102812_USAGE','projected_crs','ESRI','102812','ESRI','106','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102813','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999687,'EPSG','9201','EPSG','8806','False easting',185015.8185,'EPSG','9001','EPSG','8807','False northing',71006.07089,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102813_USAGE','conversion','ESRI','102813','ESRI','106','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102813','OSGB36_Highways_England_A9H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102813',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102813_USAGE','projected_crs','ESRI','102813','ESRI','106','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','107','UK - Highways England - A10','UK - Highways England - A10',50.2278,50.8069,-4.3136,-4.0893,0);
+INSERT INTO "conversion" VALUES('ESRI','102814','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999713,'EPSG','9201','EPSG','8806','False easting',173019.2914,'EPSG','9001','EPSG','8807','False northing',71007.91729,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102814_USAGE','conversion','ESRI','102814','ESRI','107','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102814','OSGB36_Highways_England_A10H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102814',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102814_USAGE','projected_crs','ESRI','102814','ESRI','107','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102815','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999738,'EPSG','9201','EPSG','8806','False easting',173023.6171,'EPSG','9001','EPSG','8807','False northing',71009.69256,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102815_USAGE','conversion','ESRI','102815','ESRI','107','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102815','OSGB36_Highways_England_A10H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102815',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102815_USAGE','projected_crs','ESRI','102815','ESRI','107','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','108','UK - Highways England - A11','UK - Highways England - A11',50.2315,50.8105,-4.115,-3.8791,0);
+INSERT INTO "conversion" VALUES('ESRI','102816','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999767,'EPSG','9201','EPSG','8806','False easting',159026.3186,'EPSG','9001','EPSG','8807','False northing',71011.75231,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102816_USAGE','conversion','ESRI','102816','ESRI','108','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102816','OSGB36_Highways_England_A11H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102816',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102816_USAGE','projected_crs','ESRI','102816','ESRI','108','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102817','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999792,'EPSG','9201','EPSG','8806','False easting',159030.2944,'EPSG','9001','EPSG','8807','False northing',71013.52767,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102817_USAGE','conversion','ESRI','102817','ESRI','108','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102817','OSGB36_Highways_England_A11H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102817',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102817_USAGE','projected_crs','ESRI','102817','ESRI','108','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102818','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999817,'EPSG','9201','EPSG','8806','False easting',159034.2704,'EPSG','9001','EPSG','8807','False northing',71015.30312,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102818_USAGE','conversion','ESRI','102818','ESRI','108','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102818','OSGB36_Highways_England_A11H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102818',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102818_USAGE','projected_crs','ESRI','102818','ESRI','108','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','109','UK - Highways England - A12','UK - Highways England - A12',50.2351,50.814,-3.9022,-3.6549,0);
+INSERT INTO "conversion" VALUES('ESRI','102819','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999817,'EPSG','9201','EPSG','8806','False easting',144031.0383,'EPSG','9001','EPSG','8807','False northing',71015.30362,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102819_USAGE','conversion','ESRI','102819','ESRI','109','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102819','OSGB36_Highways_England_A12H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102819',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102819_USAGE','projected_crs','ESRI','102819','ESRI','109','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102820','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999842,'EPSG','9201','EPSG','8806','False easting',144034.6392,'EPSG','9001','EPSG','8807','False northing',71017.07907,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102820_USAGE','conversion','ESRI','102820','ESRI','109','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102820','OSGB36_Highways_England_A12H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102820',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102820_USAGE','projected_crs','ESRI','102820','ESRI','109','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102821','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999867,'EPSG','9201','EPSG','8806','False easting',144038.2403,'EPSG','9001','EPSG','8807','False northing',71018.8546,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102821_USAGE','conversion','ESRI','102821','ESRI','109','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102821','OSGB36_Highways_England_A12H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102821',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102821_USAGE','projected_crs','ESRI','102821','ESRI','109','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','110','UK - Highways England - A13','UK - Highways England - A13',50.4183,50.8981,-3.6781,-3.4219,0);
+INSERT INTO "conversion" VALUES('ESRI','102822','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999865,'EPSG','9201','EPSG','8806','False easting',128033.7365,'EPSG','9001','EPSG','8807','False northing',71018.71321,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102822_USAGE','conversion','ESRI','102822','ESRI','110','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102822','OSGB36_Highways_England_A13H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102822',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102822_USAGE','projected_crs','ESRI','102822','ESRI','110','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102823','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99989,'EPSG','9201','EPSG','8806','False easting',128036.9375,'EPSG','9001','EPSG','8807','False northing',71020.48874,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102823_USAGE','conversion','ESRI','102823','ESRI','110','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102823','OSGB36_Highways_England_A13H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102823',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102823_USAGE','projected_crs','ESRI','102823','ESRI','110','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','111','UK - Highways England - A14','UK - Highways England - A14',50.585,51.1984,-4.4468,-3.1023,0);
+INSERT INTO "conversion" VALUES('ESRI','102824','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999914,'EPSG','9201','EPSG','8806','False easting',111034.6979,'EPSG','9001','EPSG','8807','False northing',71022.19417,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102824_USAGE','conversion','ESRI','102824','ESRI','111','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102824','OSGB36_Highways_England_A14H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102824',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102824_USAGE','projected_crs','ESRI','102824','ESRI','111','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102825','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999939,'EPSG','9201','EPSG','8806','False easting',111037.4739,'EPSG','9001','EPSG','8807','False northing',71023.96979,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102825_USAGE','conversion','ESRI','102825','ESRI','111','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102825','OSGB36_Highways_England_A14H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102825',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102825_USAGE','projected_crs','ESRI','102825','ESRI','111','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','112','UK - Highways England - A15','UK - Highways England - A15',50.6049,52.0473,-3.1375,-2.6218,0);
+INSERT INTO "conversion" VALUES('ESRI','102826','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999967,'EPSG','9201','EPSG','8806','False easting',88032.17537,'EPSG','9001','EPSG','8807','False northing',71025.95967,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102826_USAGE','conversion','ESRI','102826','ESRI','112','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102826','OSGB36_Highways_England_A15H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102826',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102826_USAGE','projected_crs','ESRI','102826','ESRI','112','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102827','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999992,'EPSG','9201','EPSG','8806','False easting',88034.37626,'EPSG','9001','EPSG','8807','False northing',71027.73539,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102827_USAGE','conversion','ESRI','102827','ESRI','112','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102827','OSGB36_Highways_England_A15H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102827',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102827_USAGE','projected_crs','ESRI','102827','ESRI','112','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','113','UK - Highways England - A16','UK - Highways England - A16',50.6084,52.048,-2.6417,-1.5041,0);
+INSERT INTO "conversion" VALUES('ESRI','102828','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000012,'EPSG','9201','EPSG','8806','False easting',54022.17583,'EPSG','9001','EPSG','8807','False northing',71029.15712,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102828_USAGE','conversion','ESRI','102828','ESRI','113','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102828','OSGB36_Highways_England_A16H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102828',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102828_USAGE','projected_crs','ESRI','102828','ESRI','113','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102829','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000037,'EPSG','9201','EPSG','8806','False easting',54023.52644,'EPSG','9001','EPSG','8807','False northing',71030.93291,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102829_USAGE','conversion','ESRI','102829','ESRI','113','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102829','OSGB36_Highways_England_A16H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102829',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102829_USAGE','projected_crs','ESRI','102829','ESRI','113','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','114','UK - Highways England - A17','UK - Highways England - A17',50.777,52.048,-1.5177,-1.0083,0);
+INSERT INTO "conversion" VALUES('ESRI','102830','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999981,'EPSG','9201','EPSG','8806','False easting',-24009.11135,'EPSG','9001','EPSG','8807','False northing',71026.9544,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102830_USAGE','conversion','ESRI','102830','ESRI','114','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102830','OSGB36_Highways_England_A17H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102830',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102830_USAGE','projected_crs','ESRI','102830','ESRI','114','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102831','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000006,'EPSG','9201','EPSG','8806','False easting',-24009.7116,'EPSG','9001','EPSG','8807','False northing',71028.73014,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102831_USAGE','conversion','ESRI','102831','ESRI','114','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102831','OSGB36_Highways_England_A17H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102831',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102831_USAGE','projected_crs','ESRI','102831','ESRI','114','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','115','UK - Highways England - A18','UK - Highways England - A18',50.7727,52.0448,-1.0355,-0.571,0);
+INSERT INTO "conversion" VALUES('ESRI','102832','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999928,'EPSG','9201','EPSG','8806','False easting',-58018.94296,'EPSG','9001','EPSG','8807','False northing',71023.18879,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102832_USAGE','conversion','ESRI','102832','ESRI','115','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102832','OSGB36_Highways_England_A18H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102832',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102832_USAGE','projected_crs','ESRI','102832','ESRI','115','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102833','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999953,'EPSG','9201','EPSG','8806','False easting',-58020.39349,'EPSG','9001','EPSG','8807','False northing',71024.96444,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102833_USAGE','conversion','ESRI','102833','ESRI','115','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102833','OSGB36_Highways_England_A18H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102833',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102833_USAGE','projected_crs','ESRI','102833','ESRI','115','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','116','UK - Highways England - A19','UK - Highways England - A19',50.7696,52.0404,-0.6101,-0.3232,0);
+INSERT INTO "conversion" VALUES('ESRI','102834','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999874,'EPSG','9201','EPSG','8806','False easting',-88023.98625,'EPSG','9001','EPSG','8807','False northing',71019.35254,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102834_USAGE','conversion','ESRI','102834','ESRI','116','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102834','OSGB36_Highways_England_A19H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102834',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102834_USAGE','projected_crs','ESRI','102834','ESRI','116','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102835','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999899,'EPSG','9201','EPSG','8806','False easting',-88026.18693,'EPSG','9001','EPSG','8807','False northing',71021.12809,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102835_USAGE','conversion','ESRI','102835','ESRI','116','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102835','OSGB36_Highways_England_A19H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102835',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102835_USAGE','projected_crs','ESRI','102835','ESRI','116','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','117','UK - Highways England - A20','UK - Highways England - A20',50.7659,52.0371,-0.369,-0.0755,0);
+INSERT INTO "conversion" VALUES('ESRI','102836','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999826,'EPSG','9201','EPSG','8806','False easting',-105023.5775,'EPSG','9001','EPSG','8807','False northing',71015.94289,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102836_USAGE','conversion','ESRI','102836','ESRI','117','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102836','OSGB36_Highways_England_A20H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102836',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102836_USAGE','projected_crs','ESRI','102836','ESRI','117','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102837','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999851,'EPSG','9201','EPSG','8806','False easting',-105026.2032,'EPSG','9001','EPSG','8807','False northing',71017.71836,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102837_USAGE','conversion','ESRI','102837','ESRI','117','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102837','OSGB36_Highways_England_A20H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102837',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102837_USAGE','projected_crs','ESRI','102837','ESRI','117','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','118','UK - Highways England - A21','UK - Highways England - A21',50.7618,52.0333,-0.128,0.1722,0);
+INSERT INTO "conversion" VALUES('ESRI','102838','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999771,'EPSG','9201','EPSG','8806','False easting',-122020.6823,'EPSG','9001','EPSG','8807','False northing',71012.0364,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102838_USAGE','conversion','ESRI','102838','ESRI','118','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102838','OSGB36_Highways_England_A21H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102838',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102838_USAGE','projected_crs','ESRI','102838','ESRI','118','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102839','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999796,'EPSG','9201','EPSG','8806','False easting',-122023.7329,'EPSG','9001','EPSG','8807','False northing',71013.81177,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102839_USAGE','conversion','ESRI','102839','ESRI','118','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102839','OSGB36_Highways_England_A21H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102839',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102839_USAGE','projected_crs','ESRI','102839','ESRI','118','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','119','UK - Highways England - A22','UK - Highways England - A22',50.7572,52.029,0.1129,0.4198,0);
+INSERT INTO "conversion" VALUES('ESRI','102840','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999708,'EPSG','9201','EPSG','8806','False easting',-139014.8049,'EPSG','9001','EPSG','8807','False northing',71007.56222,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102840_USAGE','conversion','ESRI','102840','ESRI','119','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102840','OSGB36_Highways_England_A22H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102840',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102840_USAGE','projected_crs','ESRI','102840','ESRI','119','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102841','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999733,'EPSG','9201','EPSG','8806','False easting',-139018.2804,'EPSG','9001','EPSG','8807','False northing',71009.33748,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102841_USAGE','conversion','ESRI','102841','ESRI','119','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102841','OSGB36_Highways_England_A22H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102841',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102841_USAGE','projected_crs','ESRI','102841','ESRI','119','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','120','UK - Highways England - A23','UK - Highways England - A23',50.7546,52.0242,0.3537,0.5509,0);
+INSERT INTO "conversion" VALUES('ESRI','102842','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999656,'EPSG','9201','EPSG','8806','False easting',-156008.5024,'EPSG','9001','EPSG','8807','False northing',71003.86967,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102842_USAGE','conversion','ESRI','102842','ESRI','120','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102842','OSGB36_Highways_England_A23H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102842',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102842_USAGE','projected_crs','ESRI','102842','ESRI','120','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102843','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999681,'EPSG','9201','EPSG','8806','False easting',-156012.4027,'EPSG','9001','EPSG','8807','False northing',71005.64484,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102843_USAGE','conversion','ESRI','102843','ESRI','120','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102843','OSGB36_Highways_England_A23H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102843',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102843_USAGE','projected_crs','ESRI','102843','ESRI','120','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','121','UK - Highways England - A24','UK - Highways England - A24',50.7511,52.0214,0.4812,0.711,0);
+INSERT INTO "conversion" VALUES('ESRI','102844','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999613,'EPSG','9201','EPSG','8806','False easting',-165001.8975,'EPSG','9001','EPSG','8807','False northing',71000.81651,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102844_USAGE','conversion','ESRI','102844','ESRI','121','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102844','OSGB36_Highways_England_A24H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102844',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102844_USAGE','projected_crs','ESRI','102844','ESRI','121','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102845','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999638,'EPSG','9201','EPSG','8806','False easting',-165006.0227,'EPSG','9001','EPSG','8807','False northing',71002.5916,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102845_USAGE','conversion','ESRI','102845','ESRI','121','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102845','OSGB36_Highways_England_A24H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102845',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102845_USAGE','projected_crs','ESRI','102845','ESRI','121','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','122','UK - Highways England - A25','UK - Highways England - A25',50.7478,52.0178,0.637,0.8566,0);
+INSERT INTO "conversion" VALUES('ESRI','102846','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999565,'EPSG','9201','EPSG','8806','False easting',-175993.5763,'EPSG','9001','EPSG','8807','False northing',70997.40864,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102846_USAGE','conversion','ESRI','102846','ESRI','122','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102846','OSGB36_Highways_England_A25H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102846',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102846_USAGE','projected_crs','ESRI','102846','ESRI','122','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102847','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99959,'EPSG','9201','EPSG','8806','False easting',-175997.9763,'EPSG','9001','EPSG','8807','False northing',70999.18364,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102847_USAGE','conversion','ESRI','102847','ESRI','122','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102847','OSGB36_Highways_England_A25H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102847',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102847_USAGE','projected_crs','ESRI','102847','ESRI','122','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','123','UK - Highways England - A26','UK - Highways England - A26',50.7444,52.0144,0.7786,1.0021,0);
+INSERT INTO "conversion" VALUES('ESRI','102848','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999517,'EPSG','9201','EPSG','8806','False easting',-185984.2846,'EPSG','9001','EPSG','8807','False northing',70994.00109,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102848_USAGE','conversion','ESRI','102848','ESRI','123','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102848','OSGB36_Highways_England_A26H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102848',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102848_USAGE','projected_crs','ESRI','102848','ESRI','123','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102849','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999542,'EPSG','9201','EPSG','8806','False easting',-185988.9343,'EPSG','9001','EPSG','8807','False northing',70995.77601,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102849_USAGE','conversion','ESRI','102849','ESRI','123','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102849','OSGB36_Highways_England_A26H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102849',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102849_USAGE','projected_crs','ESRI','102849','ESRI','123','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','124','UK - Highways England - A27','UK - Highways England - A27',50.9293,52.0108,0.932,1.1476,0);
+INSERT INTO "conversion" VALUES('ESRI','102850','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999467,'EPSG','9201','EPSG','8806','False easting',-195973.6419,'EPSG','9001','EPSG','8807','False northing',70990.45191,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102850_USAGE','conversion','ESRI','102850','ESRI','124','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102850','OSGB36_Highways_England_A27H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102850',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102850_USAGE','projected_crs','ESRI','102850','ESRI','124','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102851','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999492,'EPSG','9201','EPSG','8806','False easting',-195978.5414,'EPSG','9001','EPSG','8807','False northing',70992.22674,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102851_USAGE','conversion','ESRI','102851','ESRI','124','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102851','OSGB36_Highways_England_A27H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102851',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102851_USAGE','projected_crs','ESRI','102851','ESRI','124','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','125','UK - Highways England - A28','UK - Highways England - A28',50.9259,52.007,1.0741,1.2785,0);
+INSERT INTO "conversion" VALUES('ESRI','102852','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999416,'EPSG','9201','EPSG','8806','False easting',-205961.7946,'EPSG','9001','EPSG','8807','False northing',70986.83212,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102852_USAGE','conversion','ESRI','102852','ESRI','125','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102852','OSGB36_Highways_England_A28H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102852',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102852_USAGE','projected_crs','ESRI','102852','ESRI','125','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102853','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999441,'EPSG','9201','EPSG','8806','False easting',-205966.9438,'EPSG','9001','EPSG','8807','False northing',70988.60686,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102853_USAGE','conversion','ESRI','102853','ESRI','125','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102853','OSGB36_Highways_England_A28H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102853',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102853_USAGE','projected_crs','ESRI','102853','ESRI','125','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','126','UK - Highways England - A29','UK - Highways England - A29',50.9223,52.0034,1.202,1.4094,0);
+INSERT INTO "conversion" VALUES('ESRI','102854','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999366,'EPSG','9201','EPSG','8806','False easting',-214949.3801,'EPSG','9001','EPSG','8807','False northing',70983.28366,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102854_USAGE','conversion','ESRI','102854','ESRI','126','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102854','OSGB36_Highways_England_A29H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102854',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102854_USAGE','projected_crs','ESRI','102854','ESRI','126','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','127','UK - Highways England - A30','UK - Highways England - A30',50.9186,51.9997,1.3299,1.5403,0);
+INSERT INTO "conversion" VALUES('ESRI','102855','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999314,'EPSG','9201','EPSG','8806','False easting',-223935.6193,'EPSG','9001','EPSG','8807','False northing',70979.59363,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102855_USAGE','conversion','ESRI','102855','ESRI','127','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102855','OSGB36_Highways_England_A30H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102855',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102855_USAGE','projected_crs','ESRI','102855','ESRI','127','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','128','UK - Highways England - B15','UK - Highways England - B15',52.0434,53.9351,-3.1882,-2.6416,0);
+INSERT INTO "conversion" VALUES('ESRI','102856','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999967,'EPSG','9201','EPSG','8806','False easting',88032.17537,'EPSG','9001','EPSG','8807','False northing',111040.5848,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102856_USAGE','conversion','ESRI','102856','ESRI','128','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102856','OSGB36_Highways_England_B15H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102856',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102856_USAGE','projected_crs','ESRI','102856','ESRI','128','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102857','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999992,'EPSG','9201','EPSG','8806','False easting',88034.37626,'EPSG','9001','EPSG','8807','False northing',111043.361,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102857_USAGE','conversion','ESRI','102857','ESRI','128','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102857','OSGB36_Highways_England_B15H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102857',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102857_USAGE','projected_crs','ESRI','102857','ESRI','128','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102858','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000017,'EPSG','9201','EPSG','8806','False easting',88036.57726,'EPSG','9001','EPSG','8807','False northing',111046.1372,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102858_USAGE','conversion','ESRI','102858','ESRI','128','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102858','OSGB36_Highways_England_B15H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102858',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102858_USAGE','projected_crs','ESRI','102858','ESRI','128','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','129','UK - Highways England - B16','UK - Highways England - B16',52.0472,53.9359,-2.6703,-1.482,0);
+INSERT INTO "conversion" VALUES('ESRI','102859','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000012,'EPSG','9201','EPSG','8806','False easting',54022.17583,'EPSG','9001','EPSG','8807','False northing',111045.5837,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102859_USAGE','conversion','ESRI','102859','ESRI','129','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102859','OSGB36_Highways_England_B16H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102859',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102859_USAGE','projected_crs','ESRI','102859','ESRI','129','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102860','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000037,'EPSG','9201','EPSG','8806','False easting',54023.52644,'EPSG','9001','EPSG','8807','False northing',111048.3599,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102860_USAGE','conversion','ESRI','102860','ESRI','129','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102860','OSGB36_Highways_England_B16H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102860',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102860_USAGE','projected_crs','ESRI','102860','ESRI','129','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102861','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000062,'EPSG','9201','EPSG','8806','False easting',54024.87711,'EPSG','9001','EPSG','8807','False northing',111051.1363,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102861_USAGE','conversion','ESRI','102861','ESRI','129','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102861','OSGB36_Highways_England_B16H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102861',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102861_USAGE','projected_crs','ESRI','102861','ESRI','129','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102862','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000087,'EPSG','9201','EPSG','8806','False easting',54026.22785,'EPSG','9001','EPSG','8807','False northing',111053.9128,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102862_USAGE','conversion','ESRI','102862','ESRI','129','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102862','OSGB36_Highways_England_B16H4',NULL,'EPSG','4400','EPSG','4277','ESRI','102862',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102862_USAGE','projected_crs','ESRI','102862','ESRI','129','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','130','UK - Highways England - B17','UK - Highways England - B17',52.0447,53.9359,-1.5042,-0.9641,0);
+INSERT INTO "conversion" VALUES('ESRI','102863','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999981,'EPSG','9201','EPSG','8806','False easting',-24009.11135,'EPSG','9001','EPSG','8807','False northing',111042.14,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102863_USAGE','conversion','ESRI','102863','ESRI','130','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102863','OSGB36_Highways_England_B17H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102863',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102863_USAGE','projected_crs','ESRI','102863','ESRI','130','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102864','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000006,'EPSG','9201','EPSG','8806','False easting',-24009.7116,'EPSG','9001','EPSG','8807','False northing',111044.9161,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102864_USAGE','conversion','ESRI','102864','ESRI','130','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102864','OSGB36_Highways_England_B17H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102864',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102864_USAGE','projected_crs','ESRI','102864','ESRI','130','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','131','UK - Highways England - B18','UK - Highways England - B18',52.0403,53.9325,-1.0084,-0.5073,0);
+INSERT INTO "conversion" VALUES('ESRI','102865','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999928,'EPSG','9201','EPSG','8806','False easting',-58018.94296,'EPSG','9001','EPSG','8807','False northing',111036.2529,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102865_USAGE','conversion','ESRI','102865','ESRI','131','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102865','OSGB36_Highways_England_B18H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102865',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102865_USAGE','projected_crs','ESRI','102865','ESRI','131','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102866','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999953,'EPSG','9201','EPSG','8806','False easting',-58020.39349,'EPSG','9001','EPSG','8807','False northing',111039.0289,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102866_USAGE','conversion','ESRI','102866','ESRI','131','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102866','OSGB36_Highways_England_B18H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102866',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102866_USAGE','projected_crs','ESRI','102866','ESRI','131','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','132','UK - Highways England - B19','UK - Highways England - B19',52.037,53.9277,-0.5711,-0.2485,0);
+INSERT INTO "conversion" VALUES('ESRI','102867','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999874,'EPSG','9201','EPSG','8806','False easting',-88023.98625,'EPSG','9001','EPSG','8807','False northing',111030.2554,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102867_USAGE','conversion','ESRI','102867','ESRI','132','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102867','OSGB36_Highways_England_B19H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102867',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102867_USAGE','projected_crs','ESRI','102867','ESRI','132','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','133','UK - Highways England - B20','UK - Highways England - B20',52.0332,53.9242,-0.3233,0.0103,0);
+INSERT INTO "conversion" VALUES('ESRI','102868','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999826,'EPSG','9201','EPSG','8806','False easting',-105023.5775,'EPSG','9001','EPSG','8807','False northing',111024.9248,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102868_USAGE','conversion','ESRI','102868','ESRI','133','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102868','OSGB36_Highways_England_B20H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102868',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102868_USAGE','projected_crs','ESRI','102868','ESRI','133','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','134','UK - Highways England - B21','UK - Highways England - B21',52.0289,52.8061,-0.0756,0.2105,0);
+INSERT INTO "conversion" VALUES('ESRI','102869','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999771,'EPSG','9201','EPSG','8806','False easting',-122020.6823,'EPSG','9001','EPSG','8807','False northing',111018.8175,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102869_USAGE','conversion','ESRI','102869','ESRI','134','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102869','OSGB36_Highways_England_B21H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102869',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102869_USAGE','projected_crs','ESRI','102869','ESRI','134','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','135','UK - Highways England - B22','UK - Highways England - B22',52.0241,52.8017,0.1721,0.4625,0);
+INSERT INTO "conversion" VALUES('ESRI','102870','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999709,'EPSG','9201','EPSG','8806','False easting',-139014.9439,'EPSG','9001','EPSG','8807','False northing',111011.9337,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102870_USAGE','conversion','ESRI','102870','ESRI','135','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102870','OSGB36_Highways_England_B22H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102870',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102870_USAGE','projected_crs','ESRI','102870','ESRI','135','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','136','UK - Highways England - B23','UK - Highways England - B23',52.0213,52.7967,0.4197,0.5958,0);
+INSERT INTO "conversion" VALUES('ESRI','102871','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999656,'EPSG','9201','EPSG','8806','False easting',-156008.5024,'EPSG','9001','EPSG','8807','False northing',111006.0498,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102871_USAGE','conversion','ESRI','102871','ESRI','136','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102871','OSGB36_Highways_England_B23H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102871',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102871_USAGE','projected_crs','ESRI','102871','ESRI','136','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','137','UK - Highways England - B24','UK - Highways England - B24',52.0177,52.7939,0.5508,0.7588,0);
+INSERT INTO "conversion" VALUES('ESRI','102872','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999614,'EPSG','9201','EPSG','8806','False easting',-165002.0625,'EPSG','9001','EPSG','8807','False northing',111001.3875,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102872_USAGE','conversion','ESRI','102872','ESRI','137','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102872','OSGB36_Highways_England_B24H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102872',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102872_USAGE','projected_crs','ESRI','102872','ESRI','137','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','138','UK - Highways England - B25','UK - Highways England - B25',52.0143,52.7902,0.7109,0.9069,0);
+INSERT INTO "conversion" VALUES('ESRI','102873','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999565,'EPSG','9201','EPSG','8806','False easting',-175993.5763,'EPSG','9001','EPSG','8807','False northing',110995.9487,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102873_USAGE','conversion','ESRI','102873','ESRI','138','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102873','OSGB36_Highways_England_B25H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102873',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102873_USAGE','projected_crs','ESRI','102873','ESRI','138','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','139','UK - Highways England - B26','UK - Highways England - B26',52.0107,52.7866,0.8565,1.055,0);
+INSERT INTO "conversion" VALUES('ESRI','102874','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999517,'EPSG','9201','EPSG','8806','False easting',-185984.2846,'EPSG','9001','EPSG','8807','False northing',110990.6214,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102874_USAGE','conversion','ESRI','102874','ESRI','139','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102874','OSGB36_Highways_England_B26H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102874',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102874_USAGE','projected_crs','ESRI','102874','ESRI','139','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','140','UK - Highways England - B27','UK - Highways England - B27',52.0069,52.7829,1.002,1.2031,0);
+INSERT INTO "conversion" VALUES('ESRI','102875','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999467,'EPSG','9201','EPSG','8806','False easting',-195973.6419,'EPSG','9001','EPSG','8807','False northing',110985.0727,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102875_USAGE','conversion','ESRI','102875','ESRI','140','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102875','OSGB36_Highways_England_B27H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102875',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102875_USAGE','projected_crs','ESRI','102875','ESRI','140','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','141','UK - Highways England - B28','UK - Highways England - B28',52.0033,52.779,1.1475,1.3363,0);
+INSERT INTO "conversion" VALUES('ESRI','102876','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999416,'EPSG','9201','EPSG','8806','False easting',-205961.7946,'EPSG','9001','EPSG','8807','False northing',110979.4136,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102876_USAGE','conversion','ESRI','102876','ESRI','141','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102876','OSGB36_Highways_England_B28H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102876',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102876_USAGE','projected_crs','ESRI','102876','ESRI','141','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','142','UK - Highways England - B29','UK - Highways England - B29',51.9996,52.7753,1.2784,1.4695,0);
+INSERT INTO "conversion" VALUES('ESRI','102877','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999367,'EPSG','9201','EPSG','8806','False easting',-214949.595,'EPSG','9001','EPSG','8807','False northing',110973.9769,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102877_USAGE','conversion','ESRI','102877','ESRI','142','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102877','OSGB36_Highways_England_B29H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102877',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102877_USAGE','projected_crs','ESRI','102877','ESRI','142','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','143','UK - Highways England - B30','UK - Highways England - B30',51.9957,52.7715,1.4093,1.6026,0);
+INSERT INTO "conversion" VALUES('ESRI','102878','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999315,'EPSG','9201','EPSG','8806','False easting',-223935.8432,'EPSG','9001','EPSG','8807','False northing',110968.208,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102878_USAGE','conversion','ESRI','102878','ESRI','143','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102878','OSGB36_Highways_England_B30H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102878',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102878_USAGE','projected_crs','ESRI','102878','ESRI','143','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','144','UK - Highways England - B31','UK - Highways England - B31',52.3416,52.7675,1.5681,1.7357,0);
+INSERT INTO "conversion" VALUES('ESRI','102879','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999261,'EPSG','9201','EPSG','8806','False easting',-232920.6915,'EPSG','9001','EPSG','8807','False northing',110962.2179,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102879_USAGE','conversion','ESRI','102879','ESRI','144','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102879','OSGB36_Highways_England_B31H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102879',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102879_USAGE','projected_crs','ESRI','102879','ESRI','144','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','145','UK - Highways England - B32','UK - Highways England - B32',52.3374,52.7634,1.6999,1.8688,0);
+INSERT INTO "conversion" VALUES('ESRI','102880','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999206,'EPSG','9201','EPSG','8806','False easting',-241904.3281,'EPSG','9001','EPSG','8807','False northing',110956.1174,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102880_USAGE','conversion','ESRI','102880','ESRI','145','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102880','OSGB36_Highways_England_B32H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102880',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102880_USAGE','projected_crs','ESRI','102880','ESRI','145','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','146','UK - Highways England - C13','UK - Highways England - C13',54.3636,54.7717,-3.8344,-3.5547,0);
+INSERT INTO "conversion" VALUES('ESRI','102881','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999866,'EPSG','9201','EPSG','8806','False easting',128033.8646,'EPSG','9001','EPSG','8807','False northing',126033.3354,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102881_USAGE','conversion','ESRI','102881','ESRI','146','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102881','OSGB36_Highways_England_C13H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102881',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102881_USAGE','projected_crs','ESRI','102881','ESRI','146','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','147','UK - Highways England - C14','UK - Highways England - C14',54.0079,54.7758,-3.5703,-3.1904,0);
+INSERT INTO "conversion" VALUES('ESRI','102882','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999914,'EPSG','9201','EPSG','8806','False easting',111034.6979,'EPSG','9001','EPSG','8807','False northing',126039.3868,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102882_USAGE','conversion','ESRI','102882','ESRI','147','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102882','OSGB36_Highways_England_C14H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102882',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102882_USAGE','projected_crs','ESRI','102882','ESRI','147','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102883','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999939,'EPSG','9201','EPSG','8806','False easting',111037.4739,'EPSG','9001','EPSG','8807','False northing',126042.5379,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102883_USAGE','conversion','ESRI','102883','ESRI','147','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102883','OSGB36_Highways_England_C14H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102883',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102883_USAGE','projected_crs','ESRI','102883','ESRI','147','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102884','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999964,'EPSG','9201','EPSG','8806','False easting',111040.25,'EPSG','9001','EPSG','8807','False northing',126045.6892,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102884_USAGE','conversion','ESRI','102884','ESRI','147','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102884','OSGB36_Highways_England_C14H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102884',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102884_USAGE','projected_crs','ESRI','102884','ESRI','147','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102885','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999989,'EPSG','9201','EPSG','8806','False easting',111043.0263,'EPSG','9001','EPSG','8807','False northing',126048.8406,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102885_USAGE','conversion','ESRI','102885','ESRI','147','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102885','OSGB36_Highways_England_C14H4',NULL,'EPSG','4400','EPSG','4277','ESRI','102885',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102885_USAGE','projected_crs','ESRI','102885','ESRI','147','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','148','UK - Highways England - C15','UK - Highways England - C15',53.931,55.1394,-3.2237,-2.6702,0);
+INSERT INTO "conversion" VALUES('ESRI','102886','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999967,'EPSG','9201','EPSG','8806','False easting',88032.17537,'EPSG','9001','EPSG','8807','False northing',126046.0693,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102886_USAGE','conversion','ESRI','102886','ESRI','148','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102886','OSGB36_Highways_England_C15H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102886',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102886_USAGE','projected_crs','ESRI','102886','ESRI','148','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102887','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999992,'EPSG','9201','EPSG','8806','False easting',88034.37626,'EPSG','9001','EPSG','8807','False northing',126049.2206,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102887_USAGE','conversion','ESRI','102887','ESRI','148','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102887','OSGB36_Highways_England_C15H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102887',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102887_USAGE','projected_crs','ESRI','102887','ESRI','148','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102888','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000017,'EPSG','9201','EPSG','8806','False easting',88036.57726,'EPSG','9001','EPSG','8807','False northing',126052.372,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102888_USAGE','conversion','ESRI','102888','ESRI','148','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102888','OSGB36_Highways_England_C15H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102888',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102888_USAGE','projected_crs','ESRI','102888','ESRI','148','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102889','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000042,'EPSG','9201','EPSG','8806','False easting',88038.77836,'EPSG','9001','EPSG','8807','False northing',126055.5236,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102889_USAGE','conversion','ESRI','102889','ESRI','148','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102889','OSGB36_Highways_England_C15H4',NULL,'EPSG','4400','EPSG','4277','ESRI','102889',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102889_USAGE','projected_crs','ESRI','102889','ESRI','148','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102890','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000067,'EPSG','9201','EPSG','8806','False easting',88040.97958,'EPSG','9001','EPSG','8807','False northing',126058.6753,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102890_USAGE','conversion','ESRI','102890','ESRI','148','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102890','OSGB36_Highways_England_C15H5',NULL,'EPSG','4400','EPSG','4277','ESRI','102890',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102890_USAGE','projected_crs','ESRI','102890','ESRI','148','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','149','UK - Highways England - C16','UK - Highways England - C16',53.935,55.8321,-2.7026,-1.4571,0);
+INSERT INTO "conversion" VALUES('ESRI','102891','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000012,'EPSG','9201','EPSG','8806','False easting',54022.17583,'EPSG','9001','EPSG','8807','False northing',126051.7436,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102891_USAGE','conversion','ESRI','102891','ESRI','149','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102891','OSGB36_Highways_England_C16H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102891',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102891_USAGE','projected_crs','ESRI','102891','ESRI','149','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102892','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000037,'EPSG','9201','EPSG','8806','False easting',54023.52644,'EPSG','9001','EPSG','8807','False northing',126054.895,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102892_USAGE','conversion','ESRI','102892','ESRI','149','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102892','OSGB36_Highways_England_C16H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102892',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102892_USAGE','projected_crs','ESRI','102892','ESRI','149','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102893','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000062,'EPSG','9201','EPSG','8806','False easting',54024.87711,'EPSG','9001','EPSG','8807','False northing',126058.0466,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102893_USAGE','conversion','ESRI','102893','ESRI','149','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102893','OSGB36_Highways_England_C16H3',NULL,'EPSG','4400','EPSG','4277','ESRI','102893',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102893_USAGE','projected_crs','ESRI','102893','ESRI','149','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102894','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000087,'EPSG','9201','EPSG','8806','False easting',54026.22785,'EPSG','9001','EPSG','8807','False northing',126061.1983,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102894_USAGE','conversion','ESRI','102894','ESRI','149','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102894','OSGB36_Highways_England_C16H4',NULL,'EPSG','4400','EPSG','4277','ESRI','102894',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102894_USAGE','projected_crs','ESRI','102894','ESRI','149','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','150','UK - Highways England - C17','UK - Highways England - C17',53.9324,55.5176,-1.4821,-0.923,0);
+INSERT INTO "conversion" VALUES('ESRI','102895','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999981,'EPSG','9201','EPSG','8806','False easting',-24009.11135,'EPSG','9001','EPSG','8807','False northing',126047.8346,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102895_USAGE','conversion','ESRI','102895','ESRI','150','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102895','OSGB36_Highways_England_C17H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102895',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102895_USAGE','projected_crs','ESRI','102895','ESRI','150','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102896','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000006,'EPSG','9201','EPSG','8806','False easting',-24009.7116,'EPSG','9001','EPSG','8807','False northing',126050.9859,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102896_USAGE','conversion','ESRI','102896','ESRI','150','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102896','OSGB36_Highways_England_C17H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102896',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102896_USAGE','projected_crs','ESRI','102896','ESRI','150','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','151','UK - Highways England - C18','UK - Highways England - C18',53.9276,54.3908,-0.9642,-0.4907,0);
+INSERT INTO "conversion" VALUES('ESRI','102897','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999928,'EPSG','9201','EPSG','8806','False easting',-58018.94296,'EPSG','9001','EPSG','8807','False northing',126041.1519,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102897_USAGE','conversion','ESRI','102897','ESRI','151','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102897','OSGB36_Highways_England_C18H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102897',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102897_USAGE','projected_crs','ESRI','102897','ESRI','151','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102898','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999953,'EPSG','9201','EPSG','8806','False easting',-58020.39349,'EPSG','9001','EPSG','8807','False northing',126044.3031,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102898_USAGE','conversion','ESRI','102898','ESRI','151','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102898','OSGB36_Highways_England_C18H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102898',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102898_USAGE','projected_crs','ESRI','102898','ESRI','151','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','152','UK - Highways England - C19','UK - Highways England - C19',53.9241,54.3859,-0.5074,-0.229,0);
+INSERT INTO "conversion" VALUES('ESRI','102899','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999874,'EPSG','9201','EPSG','8806','False easting',-88023.98625,'EPSG','9001','EPSG','8807','False northing',126034.3439,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102899_USAGE','conversion','ESRI','102899','ESRI','152','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102899','OSGB36_Highways_England_C19H1',NULL,'EPSG','4400','EPSG','4277','ESRI','102899',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102899_USAGE','projected_crs','ESRI','102899','ESRI','152','EPSG','1024');
+INSERT INTO "conversion" VALUES('ESRI','102900','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',49.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999899,'EPSG','9201','EPSG','8806','False easting',-88026.18693,'EPSG','9001','EPSG','8807','False northing',126037.4949,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102900_USAGE','conversion','ESRI','102900','ESRI','152','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102900','OSGB36_Highways_England_C19H2',NULL,'EPSG','4400','EPSG','4277','ESRI','102900',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102900_USAGE','projected_crs','ESRI','102900','ESRI','152','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','153','Illinois - Aurora','Illinois - Aurora',41.45,42.5,-88.95,-88.19,0);
 INSERT INTO "conversion" VALUES('ESRI','102901','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',41.25,'EPSG','9102','EPSG','8802','Longitude of natural origin',-88.5,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.00003,'EPSG','9201','EPSG','8806','False easting',3773000.0,'EPSG','9003','EPSG','8807','False northing',492000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102901_USAGE','conversion','ESRI','102901','ESRI','151','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102901_USAGE','conversion','ESRI','102901','ESRI','153','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102901','NAD_1983_(2011)_ICS_Aurora_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102901',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102901_USAGE','projected_crs','ESRI','102901','ESRI','151','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','152','Illinois - Freeport','Illinois - Freeport',41.92,42.51,-90.66,-89.39,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102901_USAGE','projected_crs','ESRI','102901','ESRI','153','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','154','Illinois - Freeport','Illinois - Freeport',41.92,42.51,-90.66,-89.39,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102902','NAD_1983_(2011)_ICS_Freeport_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Freeport_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",1804000.0],PARAMETER["False_Northing",755000.0],PARAMETER["Central_Meridian",-89.95],PARAMETER["Scale_Factor",1.000029],PARAMETER["Latitude_Of_Origin",42.2],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102902_USAGE','projected_crs','ESRI','102902','ESRI','152','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','153','Illinois - Chicago','Illinois - Chicago',41.46,42.5,-88.27,-87.52,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102902_USAGE','projected_crs','ESRI','102902','ESRI','154','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','155','Illinois - Chicago','Illinois - Chicago',41.46,42.5,-88.27,-87.52,0);
 INSERT INTO "conversion" VALUES('ESRI','102903','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',41.25,'EPSG','9102','EPSG','8802','Longitude of natural origin',-87.8,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000023,'EPSG','9201','EPSG','8806','False easting',4757000.0,'EPSG','9003','EPSG','8807','False northing',492000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102903_USAGE','conversion','ESRI','102903','ESRI','153','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102903_USAGE','conversion','ESRI','102903','ESRI','155','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102903','NAD_1983_(2011)_ICS_Chicago_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102903',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102903_USAGE','projected_crs','ESRI','102903','ESRI','153','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','154','Illinois - Rockford','Illinois - Rockford',41.58,42.51,-89.69,-88.93,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102903_USAGE','projected_crs','ESRI','102903','ESRI','155','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','156','Illinois - Rockford','Illinois - Rockford',41.58,42.51,-89.69,-88.93,0);
 INSERT INTO "conversion" VALUES('ESRI','102904','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',41.25,'EPSG','9102','EPSG','8802','Longitude of natural origin',-89.25,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000029,'EPSG','9201','EPSG','8806','False easting',2822000.0,'EPSG','9003','EPSG','8807','False northing',492000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102904_USAGE','conversion','ESRI','102904','ESRI','154','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102904_USAGE','conversion','ESRI','102904','ESRI','156','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102904','NAD_1983_(2011)_ICS_Rockford_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102904',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102904_USAGE','projected_crs','ESRI','102904','ESRI','154','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','155','Illinois - Moline','Illinois - Moline',41.32,41.79,-91.08,-90.15,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102904_USAGE','projected_crs','ESRI','102904','ESRI','156','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','157','Illinois - Moline','Illinois - Moline',41.32,41.79,-91.08,-90.15,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102905','NAD_1983_(2011)_ICS_Moline_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Moline_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",5741000.0],PARAMETER["False_Northing",755000.0],PARAMETER["Central_Meridian",-90.6],PARAMETER["Scale_Factor",1.000024],PARAMETER["Latitude_Of_Origin",41.55],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102905_USAGE','projected_crs','ESRI','102905','ESRI','155','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','156','Illinois - Ottawa','Illinois - Ottawa',40.92,41.64,-89.87,-88.24,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102905_USAGE','projected_crs','ESRI','102905','ESRI','157','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','158','Illinois - Ottawa','Illinois - Ottawa',40.92,41.64,-89.87,-88.24,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102906','NAD_1983_(2011)_ICS_Ottawa_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Ottawa_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",7743000.0],PARAMETER["False_Northing",755000.0],PARAMETER["Central_Meridian",-89.05],PARAMETER["Scale_Factor",1.000023],PARAMETER["Latitude_Of_Origin",41.3],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102906_USAGE','projected_crs','ESRI','102906','ESRI','156','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','157','Illinois - Sterling','Illinois - Sterling',41.14,41.94,-90.44,-89.62,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102906_USAGE','projected_crs','ESRI','102906','ESRI','158','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','159','Illinois - Sterling','Illinois - Sterling',41.14,41.94,-90.44,-89.62,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102907','NAD_1983_(2011)_ICS_Sterling_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Sterling_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",6726000.0],PARAMETER["False_Northing",755000.0],PARAMETER["Central_Meridian",-90.05],PARAMETER["Scale_Factor",1.00002],PARAMETER["Latitude_Of_Origin",41.55],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102907_USAGE','projected_crs','ESRI','102907','ESRI','157','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','158','Illinois - Joliet','Illinois - Joliet',40.99,41.73,-88.27,-87.52,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102907_USAGE','projected_crs','ESRI','102907','ESRI','159','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','160','Illinois - Joliet','Illinois - Joliet',40.99,41.73,-88.27,-87.52,0);
 INSERT INTO "conversion" VALUES('ESRI','102908','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',40.55,'EPSG','9102','EPSG','8802','Longitude of natural origin',-88.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000022,'EPSG','9201','EPSG','8806','False easting',8694000.0,'EPSG','9003','EPSG','8807','False northing',492000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102908_USAGE','conversion','ESRI','102908','ESRI','158','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102908_USAGE','conversion','ESRI','102908','ESRI','160','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102908','NAD_1983_(2011)_ICS_Joliet_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102908',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102908_USAGE','projected_crs','ESRI','102908','ESRI','158','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','159','Illinois - Eureka','Illinois - Eureka',40.59,41.15,-89.64,-88.92,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102908_USAGE','projected_crs','ESRI','102908','ESRI','160','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','161','Illinois - Eureka','Illinois - Eureka',40.59,41.15,-89.64,-88.92,0);
 INSERT INTO "conversion" VALUES('ESRI','102909','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',37.45,'EPSG','9102','EPSG','8802','Longitude of natural origin',-89.3,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000025,'EPSG','9201','EPSG','8806','False easting',2756000.0,'EPSG','9003','EPSG','8807','False northing',427000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102909_USAGE','conversion','ESRI','102909','ESRI','159','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102909_USAGE','conversion','ESRI','102909','ESRI','161','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102909','NAD_1983_(2011)_ICS_Eureka_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102909',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102909_USAGE','projected_crs','ESRI','102909','ESRI','159','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','160','Illinois - Pontiac','Illinois - Pontiac',40.61,41.12,-88.94,-88.23,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102909_USAGE','projected_crs','ESRI','102909','ESRI','161','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','162','Illinois - Pontiac','Illinois - Pontiac',40.61,41.12,-88.94,-88.23,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102910','NAD_1983_(2011)_ICS_Pontiac_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Pontiac_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",4757000.0],PARAMETER["False_Northing",1739000.0],PARAMETER["Central_Meridian",-88.55],PARAMETER["Scale_Factor",1.000025],PARAMETER["Latitude_Of_Origin",40.9],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102910_USAGE','projected_crs','ESRI','102910','ESRI','160','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','161','Illinois - Monmouth','Illinois - Monmouth',40.62,41.34,-91.19,-90.43,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102910_USAGE','projected_crs','ESRI','102910','ESRI','162','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','163','Illinois - Monmouth','Illinois - Monmouth',40.62,41.34,-91.19,-90.43,0);
 INSERT INTO "conversion" VALUES('ESRI','102911','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',40.2,'EPSG','9102','EPSG','8802','Longitude of natural origin',-90.85,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000024,'EPSG','9201','EPSG','8806','False easting',9678000.0,'EPSG','9003','EPSG','8807','False northing',492000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102911_USAGE','conversion','ESRI','102911','ESRI','161','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102911_USAGE','conversion','ESRI','102911','ESRI','163','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102911','NAD_1983_(2011)_ICS_Monmouth_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102911',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102911_USAGE','projected_crs','ESRI','102911','ESRI','161','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','162','Illinois - Watseka','Illinois - Watseka',40.39,41.02,-88.47,-87.52,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102911_USAGE','projected_crs','ESRI','102911','ESRI','163','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','164','Illinois - Watseka','Illinois - Watseka',40.39,41.02,-88.47,-87.52,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102912','NAD_1983_(2011)_ICS_Watseka_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Watseka_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",5741000.0],PARAMETER["False_Northing",1739000.0],PARAMETER["Central_Meridian",-87.95],PARAMETER["Scale_Factor",1.000024],PARAMETER["Latitude_Of_Origin",40.75],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102912_USAGE','projected_crs','ESRI','102912','ESRI','162','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','163','Illinois - Peoria','Illinois - Peoria',40.31,40.98,-90.01,-89.26,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102912_USAGE','projected_crs','ESRI','102912','ESRI','164','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','165','Illinois - Peoria','Illinois - Peoria',40.31,40.98,-90.01,-89.26,0);
 INSERT INTO "conversion" VALUES('ESRI','102913','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',37.4,'EPSG','9102','EPSG','8802','Longitude of natural origin',-89.65,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000023,'EPSG','9201','EPSG','8806','False easting',1378000.0,'EPSG','9003','EPSG','8807','False northing',622000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102913_USAGE','conversion','ESRI','102913','ESRI','163','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102913_USAGE','conversion','ESRI','102913','ESRI','165','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102913','NAD_1983_(2011)_ICS_Peoria_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102913',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102913_USAGE','projected_crs','ESRI','102913','ESRI','163','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','164','Illinois - Bloomington','Illinois - Bloomington',40.28,40.76,-89.27,-88.45,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102913_USAGE','projected_crs','ESRI','102913','ESRI','165','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','166','Illinois - Bloomington','Illinois - Bloomington',40.28,40.76,-89.27,-88.45,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102914','NAD_1983_(2011)_ICS_Bloomington_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Bloomington_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",3773000.0],PARAMETER["False_Northing",1739000.0],PARAMETER["Central_Meridian",-88.85],PARAMETER["Scale_Factor",1.000031],PARAMETER["Latitude_Of_Origin",40.5],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102914_USAGE','projected_crs','ESRI','102914','ESRI','164','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','165','Illinois - Galesburg','Illinois - Galesburg',40.18,41.24,-90.46,-89.63,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102914_USAGE','projected_crs','ESRI','102914','ESRI','166','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','167','Illinois - Galesburg','Illinois - Galesburg',40.18,41.24,-90.46,-89.63,0);
 INSERT INTO "conversion" VALUES('ESRI','102915','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',37.25,'EPSG','9102','EPSG','8802','Longitude of natural origin',-90.1,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000023,'EPSG','9201','EPSG','8806','False easting',230000.0,'EPSG','9003','EPSG','8807','False northing',492000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102915_USAGE','conversion','ESRI','102915','ESRI','165','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102915_USAGE','conversion','ESRI','102915','ESRI','167','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102915','NAD_1983_(2011)_ICS_Galesburg_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102915',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102915_USAGE','projected_crs','ESRI','102915','ESRI','165','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','166','Illinois - Champaign','Illinois - Champaign',39.86,40.5,-88.47,-87.52,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102915_USAGE','projected_crs','ESRI','102915','ESRI','167','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','168','Illinois - Champaign','Illinois - Champaign',39.86,40.5,-88.47,-87.52,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102916','NAD_1983_(2011)_ICS_Champaign_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Champaign_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",328000.0],PARAMETER["False_Northing",2822000.0],PARAMETER["Central_Meridian",-88.0],PARAMETER["Scale_Factor",1.000026],PARAMETER["Latitude_Of_Origin",40.15],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102916_USAGE','projected_crs','ESRI','102916','ESRI','166','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','167','Illinois - Decatur','Illinois - Decatur',39.21,40.29,-89.22,-88.46,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102916_USAGE','projected_crs','ESRI','102916','ESRI','168','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','169','Illinois - Decatur','Illinois - Decatur',39.21,40.29,-89.22,-88.46,0);
 INSERT INTO "conversion" VALUES('ESRI','102917','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',36.3,'EPSG','9102','EPSG','8802','Longitude of natural origin',-88.8,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000024,'EPSG','9201','EPSG','8806','False easting',9678000.0,'EPSG','9003','EPSG','8807','False northing',492000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102917_USAGE','conversion','ESRI','102917','ESRI','167','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102917_USAGE','conversion','ESRI','102917','ESRI','169','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102917','NAD_1983_(2011)_ICS_Decatur_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102917',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102917_USAGE','projected_crs','ESRI','102917','ESRI','167','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','168','Illinois - Quincy','Illinois - Quincy',39.75,40.64,-91.52,-90.9,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102917_USAGE','projected_crs','ESRI','102917','ESRI','169','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','170','Illinois - Quincy','Illinois - Quincy',39.75,40.64,-91.52,-90.9,0);
 INSERT INTO "conversion" VALUES('ESRI','102918','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',36.75,'EPSG','9102','EPSG','8802','Longitude of natural origin',-91.25,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000023,'EPSG','9201','EPSG','8806','False easting',6726000.0,'EPSG','9003','EPSG','8807','False northing',492000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102918_USAGE','conversion','ESRI','102918','ESRI','168','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102918_USAGE','conversion','ESRI','102918','ESRI','170','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102918','NAD_1983_(2011)_ICS_Quincy_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102918',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102918_USAGE','projected_crs','ESRI','102918','ESRI','168','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','169','Illinois - Lincoln','Illinois - Lincoln',39.87,40.44,-90.59,-89.14,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102918_USAGE','projected_crs','ESRI','102918','ESRI','170','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','171','Illinois - Lincoln','Illinois - Lincoln',39.87,40.44,-90.59,-89.14,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102919','NAD_1983_(2011)_ICS_Lincoln_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Lincoln_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",8760000.0],PARAMETER["False_Northing",1739000.0],PARAMETER["Central_Meridian",-89.8],PARAMETER["Scale_Factor",1.000018],PARAMETER["Latitude_Of_Origin",40.15],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102919_USAGE','projected_crs','ESRI','102919','ESRI','169','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','170','Illinois - Macomb','Illinois - Macomb',39.83,40.64,-90.92,-90.18,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102919_USAGE','projected_crs','ESRI','102919','ESRI','171','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','172','Illinois - Macomb','Illinois - Macomb',39.83,40.64,-90.92,-90.18,0);
 INSERT INTO "conversion" VALUES('ESRI','102920','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',36.8,'EPSG','9102','EPSG','8802','Longitude of natural origin',-90.6,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000024,'EPSG','9201','EPSG','8806','False easting',7710000.0,'EPSG','9003','EPSG','8807','False northing',492000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102920_USAGE','conversion','ESRI','102920','ESRI','170','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102920_USAGE','conversion','ESRI','102920','ESRI','172','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102920','NAD_1983_(2011)_ICS_Macomb_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102920',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102920_USAGE','projected_crs','ESRI','102920','ESRI','170','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','171','Illinois - Springfield','Illinois - Springfield',39.52,39.98,-90.01,-89.21,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102920_USAGE','projected_crs','ESRI','102920','ESRI','172','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','173','Illinois - Springfield','Illinois - Springfield',39.52,39.98,-90.01,-89.21,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102921','NAD_1983_(2011)_ICS_Springfield_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Springfield_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",2329000.0],PARAMETER["False_Northing",2887000.0],PARAMETER["Central_Meridian",-89.65],PARAMETER["Scale_Factor",1.000022],PARAMETER["Latitude_Of_Origin",39.75],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102921_USAGE','projected_crs','ESRI','102921','ESRI','171','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','172','Illinois - Jacksonville','Illinois - Jacksonville',39.39,39.88,-91.38,-89.92,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102921_USAGE','projected_crs','ESRI','102921','ESRI','173','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','174','Illinois - Jacksonville','Illinois - Jacksonville',39.39,39.88,-91.38,-89.92,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102922','NAD_1983_(2011)_ICS_Jacksonville_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Jacksonville_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",1247000.0],PARAMETER["False_Northing",2822000.0],PARAMETER["Central_Meridian",-90.6],PARAMETER["Scale_Factor",1.000023],PARAMETER["Latitude_Of_Origin",39.65],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102922_USAGE','projected_crs','ESRI','102922','ESRI','172','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','173','Illinois - Taylorville','Illinois - Taylorville',38.99,39.83,-89.71,-89.02,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102922_USAGE','projected_crs','ESRI','102922','ESRI','174','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','175','Illinois - Taylorville','Illinois - Taylorville',38.99,39.83,-89.71,-89.02,0);
 INSERT INTO "conversion" VALUES('ESRI','102923','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',33.15,'EPSG','9102','EPSG','8802','Longitude of natural origin',-89.4,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000023,'EPSG','9201','EPSG','8806','False easting',6726000.0,'EPSG','9003','EPSG','8807','False northing',492000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102923_USAGE','conversion','ESRI','102923','ESRI','173','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102923_USAGE','conversion','ESRI','102923','ESRI','175','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102923','NAD_1983_(2011)_ICS_Taylorville_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102923',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102923_USAGE','projected_crs','ESRI','102923','ESRI','173','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','174','Illinois - Charleston','Illinois - Charleston',39.37,39.89,-88.48,-87.53,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102923_USAGE','projected_crs','ESRI','102923','ESRI','175','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','176','Illinois - Charleston','Illinois - Charleston',39.37,39.89,-88.48,-87.53,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102924','NAD_1983_(2011)_ICS_Charleston_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Charleston_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",3773000.0],PARAMETER["False_Northing",2756000.0],PARAMETER["Central_Meridian",-88.0],PARAMETER["Scale_Factor",1.000024],PARAMETER["Latitude_Of_Origin",39.65],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102924_USAGE','projected_crs','ESRI','102924','ESRI','174','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','175','Illinois - Carlinville','Illinois - Carlinville',38.99,39.53,-90.63,-89.69,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102924_USAGE','projected_crs','ESRI','102924','ESRI','176','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','177','Illinois - Carlinville','Illinois - Carlinville',38.99,39.53,-90.63,-89.69,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102925','NAD_1983_(2011)_ICS_Carlinville_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Carlinville_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",5741000.0],PARAMETER["False_Northing",2756000.0],PARAMETER["Central_Meridian",-90.15],PARAMETER["Scale_Factor",1.00002],PARAMETER["Latitude_Of_Origin",39.3],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102925_USAGE','projected_crs','ESRI','102925','ESRI','175','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','176','Illinois - Robinson','Illinois - Robinson',38.84,39.49,-88.48,-87.51,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102925_USAGE','projected_crs','ESRI','102925','ESRI','177','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','178','Illinois - Robinson','Illinois - Robinson',38.84,39.49,-88.48,-87.51,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102926','NAD_1983_(2011)_ICS_Robinson_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Robinson_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",8694000.0],PARAMETER["False_Northing",2756000.0],PARAMETER["Central_Meridian",-88.0],PARAMETER["Scale_Factor",1.000017],PARAMETER["Latitude_Of_Origin",39.1],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102926_USAGE','projected_crs','ESRI','102926','ESRI','176','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','177','Illinois - Jerseyville','Illinois - Jerseyville',38.86,39.41,-90.94,-90.14,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102926_USAGE','projected_crs','ESRI','102926','ESRI','178','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','179','Illinois - Jerseyville','Illinois - Jerseyville',38.86,39.41,-90.94,-90.14,0);
 INSERT INTO "conversion" VALUES('ESRI','102927','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',32.85,'EPSG','9102','EPSG','8802','Longitude of natural origin',-90.5,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000019,'EPSG','9201','EPSG','8806','False easting',4757000.0,'EPSG','9003','EPSG','8807','False northing',492000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102927_USAGE','conversion','ESRI','102927','ESRI','177','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102927_USAGE','conversion','ESRI','102927','ESRI','179','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102927','NAD_1983_(2011)_ICS_Jerseyville_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102927',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102927_USAGE','projected_crs','ESRI','102927','ESRI','177','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','178','Illinois - Effingham','Illinois - Effingham',38.73,39.22,-89.64,-88.36,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102927_USAGE','projected_crs','ESRI','102927','ESRI','179','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','180','Illinois - Effingham','Illinois - Effingham',38.73,39.22,-89.64,-88.36,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102928','NAD_1983_(2011)_ICS_Effingham_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Effingham_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",7710000.0],PARAMETER["False_Northing",2756000.0],PARAMETER["Central_Meridian",-89.0],PARAMETER["Scale_Factor",1.000019],PARAMETER["Latitude_Of_Origin",38.95],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102928_USAGE','projected_crs','ESRI','102928','ESRI','178','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','179','Illinois - Belleville','Illinois - Belleville',38.08,39.01,-90.38,-89.59,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102928_USAGE','projected_crs','ESRI','102928','ESRI','180','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','181','Illinois - Belleville','Illinois - Belleville',38.08,39.01,-90.38,-89.59,0);
 INSERT INTO "conversion" VALUES('ESRI','102929','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',32.35,'EPSG','9102','EPSG','8802','Longitude of natural origin',-90.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.000016,'EPSG','9201','EPSG','8806','False easting',9678000.0,'EPSG','9003','EPSG','8807','False northing',492000.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102929_USAGE','conversion','ESRI','102929','ESRI','179','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102929_USAGE','conversion','ESRI','102929','ESRI','181','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102929','NAD_1983_(2011)_ICS_Belleville_(US_Feet)',NULL,'EPSG','4497','EPSG','6318','ESRI','102929',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102929_USAGE','projected_crs','ESRI','102929','ESRI','179','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','180','Illinois - Olney','Illinois - Olney',38.23,38.92,-88.71,-87.49,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102929_USAGE','projected_crs','ESRI','102929','ESRI','181','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','182','Illinois - Olney','Illinois - Olney',38.23,38.92,-88.71,-87.49,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102930','NAD_1983_(2011)_ICS_Olney_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Olney_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",1247000.0],PARAMETER["False_Northing",3773000.0],PARAMETER["Central_Meridian",-88.15],PARAMETER["Scale_Factor",1.000013],PARAMETER["Latitude_Of_Origin",38.55],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102930_USAGE','projected_crs','ESRI','102930','ESRI','180','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','181','Illinois - Mount Vernon','Illinois - Mount Vernon',38.12,38.83,-89.71,-88.69,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102930_USAGE','projected_crs','ESRI','102930','ESRI','182','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','183','Illinois - Mount Vernon','Illinois - Mount Vernon',38.12,38.83,-89.71,-88.69,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102931','NAD_1983_(2011)_ICS_Mount_Vernon_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Mount_Vernon_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",328000.0],PARAMETER["False_Northing",3773000.0],PARAMETER["Central_Meridian",-89.15],PARAMETER["Scale_Factor",1.000015],PARAMETER["Latitude_Of_Origin",38.45],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102931_USAGE','projected_crs','ESRI','102931','ESRI','181','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','182','Illinois - Carbondale','Illinois - Carbondale',37.56,38.26,-90.21,-87.91,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102931_USAGE','projected_crs','ESRI','102931','ESRI','183','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','184','Illinois - Carbondale','Illinois - Carbondale',37.56,38.26,-90.21,-87.91,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102932','NAD_1983_(2011)_ICS_Carbondale_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Carbondale_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",2395000.0],PARAMETER["False_Northing",3773000.0],PARAMETER["Central_Meridian",-88.95],PARAMETER["Scale_Factor",1.000012],PARAMETER["Latitude_Of_Origin",37.9],UNIT["Foot_US",0.3048006096012192]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102932_USAGE','projected_crs','ESRI','102932','ESRI','182','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','183','Illinois - Metropolis','Illinois - Metropolis',36.97,37.61,-89.53,-88.05,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102932_USAGE','projected_crs','ESRI','102932','ESRI','184','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','185','Illinois - Metropolis','Illinois - Metropolis',36.97,37.61,-89.53,-88.05,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102933','NAD_1983_(2011)_ICS_Metropolis_(US_Feet)',NULL,NULL,NULL,'EPSG','6318',NULL,NULL,'PROJCS["NAD_1983_(2011)_ICS_Metropolis_(US_Feet)",GEOGCS["GCS_NAD_1983_2011",DATUM["D_NAD_1983_2011",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_1SP"],PARAMETER["False_Easting",3642000.0],PARAMETER["False_Northing",3839000.0],PARAMETER["Central_Meridian",-88.9],PARAMETER["Scale_Factor",1.00001],PARAMETER["Latitude_Of_Origin",37.2],UNIT["Foot_US",0.3048006096012192]]',0);
+<<<<<<< HEAD
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_102933_USAGE','projected_crs','ESRI','102933','ESRI','183','EPSG','1024');
 INSERT INTO "extent" VALUES('ESRI','184','Bangladesh - Dinajpur','Bangladesh - Dinajpur',25.2166,26.6334,88.0833,89.3,0);
 <<<<<<< HEAD
@@ -15107,6 +15287,10 @@ INSERT INTO "extent" VALUES('ESRI','184','Bangladesh - Dinajpur','Bangladesh - D
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102933_USAGE','projected_crs','ESRI','102933','ESRI','185','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','186','Bangladesh - Dinajpur','Bangladesh - Dinajpur',25.2166,26.6334,88.0833,89.3,0);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "coordinate_system" VALUES('ESRI','Chain','Cartesian',2);
 INSERT INTO "axis" VALUES('ESRI','3','Easting','E','east','ESRI','Chain',1,'EPSG','9097');
 INSERT INTO "axis" VALUES('ESRI','4','Northing','N','north','ESRI','Chain',2,'EPSG','9097');
@@ -15117,6 +15301,7 @@ INSERT INTO "conversion" VALUES('ESRI','102934','unnamed',NULL,'EPSG','9806','Ca
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102934_USAGE','conversion','ESRI','102934','ESRI','186','EPSG','1024');
@@ -15299,79 +15484,83 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102950_USAGE','projected_crs','ESRI','1
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102934_USAGE','conversion','ESRI','102934','ESRI','184','EPSG','1024');
+=======
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102934_USAGE','conversion','ESRI','102934','ESRI','186','EPSG','1024');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "projected_crs" VALUES('ESRI','102934','Cassini_Bangladesh_Zone_01_Dinajpur',NULL,'ESRI','Chain','EPSG','4042','ESRI','102934',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102934_USAGE','projected_crs','ESRI','102934','ESRI','184','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','185','Bangladesh - Rangpur','Bangladesh - Rangpur',25.0333,26.45,88.9,89.8834,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102934_USAGE','projected_crs','ESRI','102934','ESRI','186','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','187','Bangladesh - Rangpur','Bangladesh - Rangpur',25.0333,26.45,88.9,89.8834,0);
 INSERT INTO "conversion" VALUES('ESRI','102935','unnamed',NULL,'EPSG','9806','Cassini-Soldner','EPSG','8801','Latitude of natural origin',25.5,'EPSG','9102','EPSG','8802','Longitude of natural origin',89.5,'EPSG','9102','EPSG','8806','False easting',0.0,'EPSG','9097','EPSG','8807','False northing',0.0,'EPSG','9097',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102935_USAGE','conversion','ESRI','102935','ESRI','185','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102935_USAGE','conversion','ESRI','102935','ESRI','187','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102935','Cassini_Bangladesh_Zone_02_Rangpur',NULL,'ESRI','Chain','EPSG','4042','ESRI','102935',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102935_USAGE','projected_crs','ESRI','102935','ESRI','185','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','186','Bangladesh - Rajshahi','Bangladesh - Rajshahi',24.1,25.2,88.0,89.3334,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102935_USAGE','projected_crs','ESRI','102935','ESRI','187','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','188','Bangladesh - Rajshahi','Bangladesh - Rajshahi',24.1,25.2,88.0,89.3334,0);
 INSERT INTO "conversion" VALUES('ESRI','102936','unnamed',NULL,'EPSG','9806','Cassini-Soldner','EPSG','8801','Latitude of natural origin',24.5,'EPSG','9102','EPSG','8802','Longitude of natural origin',88.5,'EPSG','9102','EPSG','8806','False easting',0.0,'EPSG','9097','EPSG','8807','False northing',0.0,'EPSG','9097',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102936_USAGE','conversion','ESRI','102936','ESRI','186','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102936_USAGE','conversion','ESRI','102936','ESRI','188','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102936','Cassini_Bangladesh_Zone_03_Rajshahi',NULL,'ESRI','Chain','EPSG','4042','ESRI','102936',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102936_USAGE','projected_crs','ESRI','102936','ESRI','186','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','187','Bangladesh - Bogura','Bangladesh - Bogura',24.5333,25.2667,88.9166,89.75,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102936_USAGE','projected_crs','ESRI','102936','ESRI','188','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','189','Bangladesh - Bogura','Bangladesh - Bogura',24.5333,25.2667,88.9166,89.75,0);
 INSERT INTO "conversion" VALUES('ESRI','102937','unnamed',NULL,'EPSG','9806','Cassini-Soldner','EPSG','8801','Latitude of natural origin',24.5,'EPSG','9102','EPSG','8802','Longitude of natural origin',89.5,'EPSG','9102','EPSG','8806','False easting',0.0,'EPSG','9097','EPSG','8807','False northing',0.0,'EPSG','9097',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102937_USAGE','conversion','ESRI','102937','ESRI','187','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102937_USAGE','conversion','ESRI','102937','ESRI','189','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102937','Cassini_Bangladesh_Zone_04_Bogura',NULL,'ESRI','Chain','EPSG','4042','ESRI','102937',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102937_USAGE','projected_crs','ESRI','102937','ESRI','187','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','188','Bangladesh - Pabna','Bangladesh - Pabna',23.8,24.7667,88.9833,89.8167,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102937_USAGE','projected_crs','ESRI','102937','ESRI','189','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','190','Bangladesh - Pabna','Bangladesh - Pabna',23.8,24.7667,88.9833,89.8167,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102938','Cassini_Bangladesh_Zone_05_Pabna',NULL,'ESRI','Chain','EPSG','4042','ESRI','102937',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102938_USAGE','projected_crs','ESRI','102938','ESRI','188','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','189','Bangladesh - Mymensingh','Bangladesh - Mymensingh',23.95,24.4334,89.6333,91.25,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102938_USAGE','projected_crs','ESRI','102938','ESRI','190','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','191','Bangladesh - Mymensingh','Bangladesh - Mymensingh',23.95,24.4334,89.6333,91.25,0);
 INSERT INTO "conversion" VALUES('ESRI','102939','unnamed',NULL,'EPSG','9806','Cassini-Soldner','EPSG','8801','Latitude of natural origin',24.5,'EPSG','9102','EPSG','8802','Longitude of natural origin',90.5,'EPSG','9102','EPSG','8806','False easting',0.0,'EPSG','9097','EPSG','8807','False northing',0.0,'EPSG','9097',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102939_USAGE','conversion','ESRI','102939','ESRI','189','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102939_USAGE','conversion','ESRI','102939','ESRI','191','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102939','Cassini_Bangladesh_Zone_06_Mymensingh',NULL,'ESRI','Chain','EPSG','4042','ESRI','102939',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102939_USAGE','projected_crs','ESRI','102939','ESRI','189','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','190','Bangladesh - Dhaka','Bangladesh - Dhaka',23.3666,24.3334,89.6833,90.9834,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102939_USAGE','projected_crs','ESRI','102939','ESRI','191','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','192','Bangladesh - Dhaka','Bangladesh - Dhaka',23.3666,24.3334,89.6833,90.9834,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102940','Cassini_Bangladesh_Zone_07_Dhaka',NULL,'ESRI','Chain','EPSG','4042','ESRI','102939',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102940_USAGE','projected_crs','ESRI','102940','ESRI','190','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','191','Bangladesh - Faridpur','Bangladesh - Faridpur',22.8333,23.9,89.2833,89.5834,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102940_USAGE','projected_crs','ESRI','102940','ESRI','192','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','193','Bangladesh - Faridpur','Bangladesh - Faridpur',22.8333,23.9,89.2833,89.5834,0);
 INSERT INTO "conversion" VALUES('ESRI','102941','unnamed',NULL,'EPSG','9806','Cassini-Soldner','EPSG','8801','Latitude of natural origin',23.5,'EPSG','9102','EPSG','8802','Longitude of natural origin',90.0,'EPSG','9102','EPSG','8806','False easting',0.0,'EPSG','9097','EPSG','8807','False northing',0.0,'EPSG','9097',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102941_USAGE','conversion','ESRI','102941','ESRI','191','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102941_USAGE','conversion','ESRI','102941','ESRI','193','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102941','Cassini_Bangladesh_Zone_08_Faridpur',NULL,'ESRI','Chain','EPSG','4042','ESRI','102941',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102941_USAGE','projected_crs','ESRI','102941','ESRI','191','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','192','Bangladesh - Sylhet','Bangladesh - Sylhet',23.9666,25.2,90.9166,92.4834,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102941_USAGE','projected_crs','ESRI','102941','ESRI','193','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','194','Bangladesh - Sylhet','Bangladesh - Sylhet',23.9666,25.2,90.9166,92.4834,0);
 INSERT INTO "conversion" VALUES('ESRI','102942','unnamed',NULL,'EPSG','9806','Cassini-Soldner','EPSG','8801','Latitude of natural origin',24.5,'EPSG','9102','EPSG','8802','Longitude of natural origin',92.0,'EPSG','9102','EPSG','8806','False easting',0.0,'EPSG','9097','EPSG','8807','False northing',0.0,'EPSG','9097',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102942_USAGE','conversion','ESRI','102942','ESRI','192','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102942_USAGE','conversion','ESRI','102942','ESRI','194','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102942','Cassini_Bangladesh_Zone_09_Sylhet',NULL,'ESRI','Chain','EPSG','4042','ESRI','102942',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102942_USAGE','projected_crs','ESRI','102942','ESRI','192','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','193','Bangladesh - Kushtia','Bangladesh - Kushtia',23.3666,24.2167,88.55,89.35,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102942_USAGE','projected_crs','ESRI','102942','ESRI','194','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','195','Bangladesh - Kushtia','Bangladesh - Kushtia',23.3666,24.2167,88.55,89.35,0);
 INSERT INTO "conversion" VALUES('ESRI','102943','unnamed',NULL,'EPSG','9806','Cassini-Soldner','EPSG','8801','Latitude of natural origin',23.5,'EPSG','9102','EPSG','8802','Longitude of natural origin',89.5,'EPSG','9102','EPSG','8806','False easting',0.0,'EPSG','9097','EPSG','8807','False northing',0.0,'EPSG','9097',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102943_USAGE','conversion','ESRI','102943','ESRI','193','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102943_USAGE','conversion','ESRI','102943','ESRI','195','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102943','Cassini_Bangladesh_Zone_10_Kushtia',NULL,'ESRI','Chain','EPSG','4042','ESRI','102943',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102943_USAGE','projected_crs','ESRI','102943','ESRI','193','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','194','Bangladesh - Joshore','Bangladesh - Joshore',22.7833,23.7667,88.6833,89.8,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102943_USAGE','projected_crs','ESRI','102943','ESRI','195','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','196','Bangladesh - Joshore','Bangladesh - Joshore',22.7833,23.7667,88.6833,89.8,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102944','Cassini_Bangladesh_Zone_11_Joshore',NULL,'ESRI','Chain','EPSG','4042','ESRI','102943',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102944_USAGE','projected_crs','ESRI','102944','ESRI','194','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','195','Bangladesh - Khulna','Bangladesh - Khulna',21.6333,23.0,88.8833,89.95,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102944_USAGE','projected_crs','ESRI','102944','ESRI','196','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','197','Bangladesh - Khulna','Bangladesh - Khulna',21.6333,23.0,88.8833,89.95,0);
 INSERT INTO "conversion" VALUES('ESRI','102945','unnamed',NULL,'EPSG','9806','Cassini-Soldner','EPSG','8801','Latitude of natural origin',22.5,'EPSG','9102','EPSG','8802','Longitude of natural origin',89.5,'EPSG','9102','EPSG','8806','False easting',0.0,'EPSG','9097','EPSG','8807','False northing',0.0,'EPSG','9097',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102945_USAGE','conversion','ESRI','102945','ESRI','195','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102945_USAGE','conversion','ESRI','102945','ESRI','197','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102945','Cassini_Bangladesh_Zone_12_Khulna',NULL,'ESRI','Chain','EPSG','4042','ESRI','102945',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102945_USAGE','projected_crs','ESRI','102945','ESRI','195','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','196','Bangladesh - Barishal','Bangladesh - Barishal',21.7833,23.0667,89.85,91.0334,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102945_USAGE','projected_crs','ESRI','102945','ESRI','197','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','198','Bangladesh - Barishal','Bangladesh - Barishal',21.7833,23.0667,89.85,91.0334,0);
 INSERT INTO "conversion" VALUES('ESRI','102946','unnamed',NULL,'EPSG','9806','Cassini-Soldner','EPSG','8801','Latitude of natural origin',22.5,'EPSG','9102','EPSG','8802','Longitude of natural origin',90.5,'EPSG','9102','EPSG','8806','False easting',0.0,'EPSG','9097','EPSG','8807','False northing',0.0,'EPSG','9097',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102946_USAGE','conversion','ESRI','102946','ESRI','196','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102946_USAGE','conversion','ESRI','102946','ESRI','198','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102946','Cassini_Bangladesh_Zone_13_Barishal',NULL,'ESRI','Chain','EPSG','4042','ESRI','102946',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102946_USAGE','projected_crs','ESRI','102946','ESRI','196','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','197','Bangladesh - Cumilla','Bangladesh - Cumilla',22.9666,24.2667,90.5166,91.3667,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102946_USAGE','projected_crs','ESRI','102946','ESRI','198','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','199','Bangladesh - Cumilla','Bangladesh - Cumilla',22.9666,24.2667,90.5166,91.3667,0);
 INSERT INTO "conversion" VALUES('ESRI','102947','unnamed',NULL,'EPSG','9806','Cassini-Soldner','EPSG','8801','Latitude of natural origin',23.5,'EPSG','9102','EPSG','8802','Longitude of natural origin',91.0,'EPSG','9102','EPSG','8806','False easting',0.0,'EPSG','9097','EPSG','8807','False northing',0.0,'EPSG','9097',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102947_USAGE','conversion','ESRI','102947','ESRI','197','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102947_USAGE','conversion','ESRI','102947','ESRI','199','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102947','Cassini_Bangladesh_Zone_14_Cumilla',NULL,'ESRI','Chain','EPSG','4042','ESRI','102947',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102947_USAGE','projected_crs','ESRI','102947','ESRI','197','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','198','Bangladesh - Noakhali','Bangladesh - Noakhali',22.0166,23.2834,90.65,91.5667,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102947_USAGE','projected_crs','ESRI','102947','ESRI','199','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','200','Bangladesh - Noakhali','Bangladesh - Noakhali',22.0166,23.2834,90.65,91.5667,0);
 INSERT INTO "projected_crs" VALUES('ESRI','102948','Cassini_Bangladesh_Zone_15_Noakhali',NULL,'ESRI','Chain','EPSG','4042','ESRI','102947',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102948_USAGE','projected_crs','ESRI','102948','ESRI','198','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','199','Bangladesh - Chottogram','Bangladesh - Chottogram',20.5833,22.9834,91.3,92.3667,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102948_USAGE','projected_crs','ESRI','102948','ESRI','200','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','201','Bangladesh - Chottogram','Bangladesh - Chottogram',20.5833,22.9834,91.3,92.3667,0);
 INSERT INTO "conversion" VALUES('ESRI','102949','unnamed',NULL,'EPSG','9806','Cassini-Soldner','EPSG','8801','Latitude of natural origin',22.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',92.0,'EPSG','9102','EPSG','8806','False easting',0.0,'EPSG','9097','EPSG','8807','False northing',0.0,'EPSG','9097',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102949_USAGE','conversion','ESRI','102949','ESRI','199','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102949_USAGE','conversion','ESRI','102949','ESRI','201','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102949','Cassini_Bangladesh_Zone_16_Chottogram',NULL,'ESRI','Chain','EPSG','4042','ESRI','102949',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_102949_USAGE','projected_crs','ESRI','102949','ESRI','199','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','200','Bangladesh - CHT','Bangladesh - CHT',21.1833,23.7334,91.7,92.6667,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102949_USAGE','projected_crs','ESRI','102949','ESRI','201','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','202','Bangladesh - CHT','Bangladesh - CHT',21.1833,23.7334,91.7,92.6667,0);
 INSERT INTO "conversion" VALUES('ESRI','102950','unnamed',NULL,'EPSG','9806','Cassini-Soldner','EPSG','8801','Latitude of natural origin',22.75,'EPSG','9102','EPSG','8802','Longitude of natural origin',92.25,'EPSG','9102','EPSG','8806','False easting',0.0,'EPSG','9097','EPSG','8807','False northing',0.0,'EPSG','9097',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102950_USAGE','conversion','ESRI','102950','ESRI','200','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102950_USAGE','conversion','ESRI','102950','ESRI','202','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102950','Cassini_Bangladesh_Zone_17_CHT',NULL,'ESRI','Chain','EPSG','4042','ESRI','102950',NULL,0);
+<<<<<<< HEAD
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_102950_USAGE','projected_crs','ESRI','102950','ESRI','200','EPSG','1024');
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15382,6 +15571,9 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102950_USAGE','projected_crs','ESRI','1
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102950_USAGE','projected_crs','ESRI','102950','ESRI','202','EPSG','1024');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "conversion" VALUES('ESRI','102951','unnamed',NULL,'EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',26.0,'EPSG','9102','EPSG','8822','Longitude of false origin',90.0,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',23.15,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',28.8,'EPSG','9102','EPSG','8826','Easting at false origin',2743183.6991,'EPSG','9001','EPSG','8827','Northing at false origin',914395.233,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102951_USAGE','conversion','ESRI','102951','EPSG','1041','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102951','LCC_Bangladesh',NULL,'EPSG','4400','EPSG','4326','ESRI','102951',NULL,0);
@@ -15400,6 +15592,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102955_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('ESRI','203','Australia - Lord Howe Island - 158~E to 160~E (ISG 57/2)','Australia - Lord Howe Island - 158~E to 160~E (ISG 57/2)',-47.2,-28.15,158.0,160.0,0);
@@ -15442,9 +15635,13 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102961_USAGE','projected_crs','ESRI','1
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('ESRI','201','Australia - Lord Howe Island - 158~E to 160~E (ISG 57/2)','Australia - Lord Howe Island - 158~E to 160~E (ISG 57/2)',-47.2,-28.15,158.0,160.0,0);
+=======
+INSERT INTO "extent" VALUES('ESRI','203','Australia - Lord Howe Island - 158~E to 160~E (ISG 57/2)','Australia - Lord Howe Island - 158~E to 160~E (ISG 57/2)',-47.2,-28.15,158.0,160.0,0);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "conversion" VALUES('ESRI','102961','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',0.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',159.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99994,'EPSG','9201','EPSG','8806','False easting',300000.0,'EPSG','9001','EPSG','8807','False northing',5000000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_102961_USAGE','conversion','ESRI','102961','ESRI','201','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102961_USAGE','conversion','ESRI','102961','ESRI','203','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102961','AGD_1966_ISG_57_2',NULL,'EPSG','4400','EPSG','4202','ESRI','102961',NULL,0);
+<<<<<<< HEAD
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_102961_USAGE','projected_crs','ESRI','102961','ESRI','201','EPSG','1024');
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15455,6 +15652,9 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102961_USAGE','projected_crs','ESRI','1
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_102961_USAGE','projected_crs','ESRI','102961','ESRI','203','EPSG','1024');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "conversion" VALUES('ESRI','102962','unnamed',NULL,'EPSG','9822','Albers Equal Area','EPSG','8821','Latitude of false origin',0.0,'EPSG','9102','EPSG','8822','Longitude of false origin',-120.0,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',34.0,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',40.5,'EPSG','9102','EPSG','8826','Easting at false origin',0.0,'EPSG','9001','EPSG','8827','Northing at false origin',-4000000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102962_USAGE','conversion','ESRI','102962','EPSG','1375','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102962','NAD_1983_2011_California_Teale_Albers',NULL,'EPSG','4400','EPSG','6318','ESRI','102962',NULL,1);
@@ -17397,6 +17597,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103585_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('ESRI','204','Navajo Nation','Navajo Nation',32.8,37.75,-114.04,-106.17,0);
@@ -17479,29 +17680,33 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103594_USAGE','projected_crs','ESRI','1
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('ESRI','202','Navajo Nation','Navajo Nation',32.8,37.75,-114.04,-106.17,0);
+=======
+INSERT INTO "extent" VALUES('ESRI','204','Navajo Nation','Navajo Nation',32.8,37.75,-114.04,-106.17,0);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "conversion" VALUES('ESRI','103586','unnamed',NULL,'EPSG','9801','Lambert Conic Conformal (1SP)','EPSG','8801','Latitude of natural origin',36.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-109.5,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.00023,'EPSG','9201','EPSG','8806','False easting',300000.0,'EPSG','9001','EPSG','8807','False northing',600000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_103586_USAGE','conversion','ESRI','103586','ESRI','202','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_103586_USAGE','conversion','ESRI','103586','ESRI','204','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103586','NAD_1983_HARN_Navajo_Nation_Coordinate_System_Meters',NULL,'EPSG','4400','EPSG','4152','ESRI','103586',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_103586_USAGE','projected_crs','ESRI','103586','ESRI','202','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_103586_USAGE','projected_crs','ESRI','103586','ESRI','204','EPSG','1024');
 INSERT INTO "conversion" VALUES('ESRI','103587','unnamed',NULL,'EPSG','9801','Lambert Conic Conformal (1SP)','EPSG','8801','Latitude of natural origin',36.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-109.5,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.00023,'EPSG','9201','EPSG','8806','False easting',984250.0,'EPSG','9003','EPSG','8807','False northing',1968500.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_103587_USAGE','conversion','ESRI','103587','ESRI','202','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_103587_USAGE','conversion','ESRI','103587','ESRI','204','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103587','NAD_1983_HARN_Navajo_Nation_Coordinate_System_US_Feet',NULL,'EPSG','4497','EPSG','4152','ESRI','103587',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_103587_USAGE','projected_crs','ESRI','103587','ESRI','202','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_103587_USAGE','projected_crs','ESRI','103587','ESRI','204','EPSG','1024');
 INSERT INTO "conversion" VALUES('ESRI','103588','unnamed',NULL,'EPSG','9801','Lambert Conic Conformal (1SP)','EPSG','8801','Latitude of natural origin',36.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-109.5,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.00023,'EPSG','9201','EPSG','8806','False easting',984251.968503937,'EPSG','9002','EPSG','8807','False northing',1968503.937007874,'EPSG','9002',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'CONV_103588_USAGE','conversion','ESRI','103588','ESRI','202','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'CONV_103588_USAGE','conversion','ESRI','103588','ESRI','204','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103588','NAD_1983_HARN_Navajo_Nation_Coordinate_System_Intl_Feet',NULL,'EPSG','4495','EPSG','4152','ESRI','103588',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_103588_USAGE','projected_crs','ESRI','103588','ESRI','202','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_103588_USAGE','projected_crs','ESRI','103588','ESRI','204','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103589','NAD_1983_NSRS2007_Navajo_Nation_Coordinate_System_Meters',NULL,'EPSG','4400','EPSG','4759','ESRI','103586',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_103589_USAGE','projected_crs','ESRI','103589','ESRI','202','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_103589_USAGE','projected_crs','ESRI','103589','ESRI','204','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103590','NAD_1983_NSRS2007_Navajo_Nation_Coordinate_System_US_Feet',NULL,'EPSG','4497','EPSG','4759','ESRI','103587',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_103590_USAGE','projected_crs','ESRI','103590','ESRI','202','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_103590_USAGE','projected_crs','ESRI','103590','ESRI','204','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103591','NAD_1983_NSRS2007_Navajo_Nation_Coordinate_System_Intl_Feet',NULL,'EPSG','4495','EPSG','4759','ESRI','103588',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_103591_USAGE','projected_crs','ESRI','103591','ESRI','202','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_103591_USAGE','projected_crs','ESRI','103591','ESRI','204','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103592','NAD_1983_(2011)_Navajo_Nation_Coordinate_System_Meters',NULL,'EPSG','4400','EPSG','6318','ESRI','103586',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_103592_USAGE','projected_crs','ESRI','103592','ESRI','202','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_103592_USAGE','projected_crs','ESRI','103592','ESRI','204','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103593','NAD_1983_(2011)_Navajo_Nation_Coordinate_System_US_Feet',NULL,'EPSG','4497','EPSG','6318','ESRI','103587',NULL,0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_103593_USAGE','projected_crs','ESRI','103593','ESRI','202','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_103593_USAGE','projected_crs','ESRI','103593','ESRI','204','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103594','NAD_1983_(2011)_Navajo_Nation_Coordinate_System_Intl_Feet',NULL,'EPSG','4495','EPSG','6318','ESRI','103588',NULL,0);
+<<<<<<< HEAD
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103594_USAGE','projected_crs','ESRI','103594','ESRI','202','EPSG','1024');
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17512,6 +17717,9 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103594_USAGE','projected_crs','ESRI','1
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_103594_USAGE','projected_crs','ESRI','103594','ESRI','204','EPSG','1024');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "projected_crs" VALUES('ESRI','103595','ONGD17_UTM_Zone_39N',NULL,'EPSG','4400','EPSG','9294','EPSG','16039',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103595_USAGE','projected_crs','ESRI','103595','EPSG','4322','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103596','ONGD17_UTM_Zone_40N',NULL,'EPSG','4400','EPSG','9294','EPSG','16040',NULL,1);
@@ -17854,6 +18062,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103695_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "projected_crs" VALUES('ESRI','103696','NAD_1983_(CSRS)_v6_UTM_Zone_19N',NULL,'EPSG','4400','EPSG','8252','EPSG','16019',NULL,1);
@@ -17896,9 +18105,13 @@ INSERT INTO "projected_crs" VALUES('ESRI','103698','NAD_1983_(CSRS)_v6_UTM_Zone_
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "projected_crs" VALUES('ESRI','103696','NAD_1983_(CSRS)_v6_UTM_Zone_19N',NULL,'EPSG','4400','EPSG','8252','EPSG','16019',NULL,0);
+=======
+INSERT INTO "projected_crs" VALUES('ESRI','103696','NAD_1983_(CSRS)_v6_UTM_Zone_19N',NULL,'EPSG','4400','EPSG','8252','EPSG','16019',NULL,1);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103696_USAGE','projected_crs','ESRI','103696','EPSG','3524','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','103697','NAD_1983_(CSRS)_v6_UTM_Zone_20N',NULL,'EPSG','4400','EPSG','8252','EPSG','16020',NULL,0);
+INSERT INTO "projected_crs" VALUES('ESRI','103697','NAD_1983_(CSRS)_v6_UTM_Zone_20N',NULL,'EPSG','4400','EPSG','8252','EPSG','16020',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103697_USAGE','projected_crs','ESRI','103697','EPSG','3525','EPSG','1024');
+<<<<<<< HEAD
 INSERT INTO "projected_crs" VALUES('ESRI','103698','NAD_1983_(CSRS)_v6_UTM_Zone_21N',NULL,'EPSG','4400','EPSG','8252','EPSG','16021',NULL,0);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17909,6 +18122,9 @@ INSERT INTO "projected_crs" VALUES('ESRI','103698','NAD_1983_(CSRS)_v6_UTM_Zone_
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "projected_crs" VALUES('ESRI','103698','NAD_1983_(CSRS)_v6_UTM_Zone_21N',NULL,'EPSG','4400','EPSG','8252','EPSG','16021',NULL,1);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103698_USAGE','projected_crs','ESRI','103698','EPSG','2151','EPSG','1024');
 INSERT INTO "conversion" VALUES('ESRI','103699','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',31.73439361111111,'EPSG','9102','EPSG','8802','Longitude of natural origin',35.20451694444445,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.0000067,'EPSG','9201','EPSG','8806','False easting',169529.584,'EPSG','9001','EPSG','8807','False northing',126907.39,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_103699_USAGE','conversion','ESRI','103699','EPSG','2602','EPSG','1024');
@@ -18514,6 +18730,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103872_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "projected_crs" VALUES('ESRI','103873','NAD_1983_(CSRS)_v6_UTM_Zone_15N',NULL,'EPSG','4400','EPSG','8252','EPSG','16015',NULL,1);
@@ -18560,11 +18777,15 @@ INSERT INTO "projected_crs" VALUES('ESRI','103876','NAD_1983_(CSRS)_v6_UTM_Zone_
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "projected_crs" VALUES('ESRI','103873','NAD_1983_(CSRS)_v6_UTM_Zone_15N',NULL,'EPSG','4400','EPSG','8252','EPSG','16015',NULL,0);
+=======
+INSERT INTO "projected_crs" VALUES('ESRI','103873','NAD_1983_(CSRS)_v6_UTM_Zone_15N',NULL,'EPSG','4400','EPSG','8252','EPSG','16015',NULL,1);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103873_USAGE','projected_crs','ESRI','103873','EPSG','3414','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','103874','NAD_1983_(CSRS)_v6_UTM_Zone_16N',NULL,'EPSG','4400','EPSG','8252','EPSG','16016',NULL,0);
+INSERT INTO "projected_crs" VALUES('ESRI','103874','NAD_1983_(CSRS)_v6_UTM_Zone_16N',NULL,'EPSG','4400','EPSG','8252','EPSG','16016',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103874_USAGE','projected_crs','ESRI','103874','EPSG','3415','EPSG','1024');
-INSERT INTO "projected_crs" VALUES('ESRI','103875','NAD_1983_(CSRS)_v6_UTM_Zone_17N',NULL,'EPSG','4400','EPSG','8252','EPSG','16017',NULL,0);
+INSERT INTO "projected_crs" VALUES('ESRI','103875','NAD_1983_(CSRS)_v6_UTM_Zone_17N',NULL,'EPSG','4400','EPSG','8252','EPSG','16017',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103875_USAGE','projected_crs','ESRI','103875','EPSG','3416','EPSG','1024');
+<<<<<<< HEAD
 INSERT INTO "projected_crs" VALUES('ESRI','103876','NAD_1983_(CSRS)_v6_UTM_Zone_18N',NULL,'EPSG','4400','EPSG','8252','EPSG','16018',NULL,0);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18575,6 +18796,9 @@ INSERT INTO "projected_crs" VALUES('ESRI','103876','NAD_1983_(CSRS)_v6_UTM_Zone_
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "projected_crs" VALUES('ESRI','103876','NAD_1983_(CSRS)_v6_UTM_Zone_18N',NULL,'EPSG','4400','EPSG','8252','EPSG','16018',NULL,1);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103876_USAGE','projected_crs','ESRI','103876','EPSG','3417','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103877','Moon_2000_North_Pole_Stereographic',NULL,NULL,NULL,'ESRI','104903',NULL,NULL,'PROJCS["Moon_2000_North_Pole_Stereographic",GEOGCS["GCS_Moon_2000",DATUM["D_Moon_2000",SPHEROID["Moon_2000_IAU_IAG",1737400.0,0.0]],PRIMEM["Reference_Meridian",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Stereographic"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",0.0],PARAMETER["Scale_Factor",1.0],PARAMETER["Latitude_Of_Origin",90.0],UNIT["Meter",1.0]]',0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103877_USAGE','projected_crs','ESRI','103877','EPSG','1996','EPSG','1024');
@@ -18586,6 +18810,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103878_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('ESRI','205','Moon - Far Side','Moon - Far Side',-90.0,90.0,90.0,-90.0,0);
@@ -18630,10 +18855,14 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103880_USAGE','projected_crs','ESRI','1
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('ESRI','203','Moon - Far Side','Moon - Far Side',-90.0,90.0,90.0,-90.0,0);
+=======
+INSERT INTO "extent" VALUES('ESRI','205','Moon - Far Side','Moon - Far Side',-90.0,90.0,90.0,-90.0,0);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "projected_crs" VALUES('ESRI','103879','Moon_2000_Far_Side_Lambert_Azimuthal_Equal_Area',NULL,NULL,NULL,'ESRI','104903',NULL,NULL,'PROJCS["Moon_2000_Far_Side_Lambert_Azimuthal_Equal_Area",GEOGCS["GCS_Moon_2000",DATUM["D_Moon_2000",SPHEROID["Moon_2000_IAU_IAG",1737400.0,0.0]],PRIMEM["Reference_Meridian",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Azimuthal_Equal_Area"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",180.0],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',0);
-INSERT INTO "usage" VALUES('ESRI', 'PCRS_103879_USAGE','projected_crs','ESRI','103879','ESRI','203','EPSG','1024');
-INSERT INTO "extent" VALUES('ESRI','204','Moon - Near Side','Moon - Near Side',-90.0,90.0,-90.0,90.0,0);
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_103879_USAGE','projected_crs','ESRI','103879','ESRI','205','EPSG','1024');
+INSERT INTO "extent" VALUES('ESRI','206','Moon - Near Side','Moon - Near Side',-90.0,90.0,-90.0,90.0,0);
 INSERT INTO "projected_crs" VALUES('ESRI','103880','Moon_2000_Near_Side_Lambert_Azimuthal_Equal_Area',NULL,NULL,NULL,'ESRI','104903',NULL,NULL,'PROJCS["Moon_2000_Near_Side_Lambert_Azimuthal_Equal_Area",GEOGCS["GCS_Moon_2000",DATUM["D_Moon_2000",SPHEROID["Moon_2000_IAU_IAG",1737400.0,0.0]],PRIMEM["Reference_Meridian",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Azimuthal_Equal_Area"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",0.0],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',0);
+<<<<<<< HEAD
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103880_USAGE','projected_crs','ESRI','103880','ESRI','204','EPSG','1024');
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18644,6 +18873,9 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103880_USAGE','projected_crs','ESRI','1
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "usage" VALUES('ESRI', 'PCRS_103880_USAGE','projected_crs','ESRI','103880','ESRI','206','EPSG','1024');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "projected_crs" VALUES('ESRI','103881','Moon_2000_Equidistant_Cylindrical',NULL,NULL,NULL,'ESRI','104903',NULL,NULL,'PROJCS["Moon_2000_Equidistant_Cylindrical",GEOGCS["GCS_Moon_2000",DATUM["D_Moon_2000",SPHEROID["Moon_2000_IAU_IAG",1737400.0,0.0]],PRIMEM["Reference_Meridian",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Equidistant_Cylindrical_Ellipsoidal"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",0.0],PARAMETER["Standard_Parallel_1",0.0],UNIT["Meter",1.0]]',0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103881_USAGE','projected_crs','ESRI','103881','EPSG','1262','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103882','Moon_2000_Sinusoidal',NULL,NULL,NULL,'ESRI','104903',NULL,NULL,'PROJCS["Moon_2000_Sinusoidal",GEOGCS["GCS_Moon_2000",DATUM["D_Moon_2000",SPHEROID["Moon_2000_IAU_IAG",1737400.0,0.0]],PRIMEM["Reference_Meridian",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Sinusoidal"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",0.0],UNIT["Meter",1.0]]',0);
@@ -18664,10 +18896,13 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103887_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "conversion" VALUES('ESRI','103888','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',0.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',15.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.0,'EPSG','9201','EPSG','8806','False easting',0.0,'EPSG','9001','EPSG','8807','False northing',0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_103888_USAGE','conversion','ESRI','103888','EPSG','1454','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103888','Hartebeesthoek94_Lo15_(E-N)',NULL,'EPSG','4400','EPSG','4148','ESRI','103888',NULL,0);
@@ -18694,6 +18929,7 @@ INSERT INTO "projected_crs" VALUES('ESRI','103896','California_SRS_Epoch_2017.50
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103896_USAGE','projected_crs','ESRI','103896','EPSG','2180','EPSG','1024');
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -18718,6 +18954,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103896_USAGE','projected_crs','ESRI','1
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "conversion" VALUES('ESRI','103900','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',43.36666666666667,'EPSG','9102','EPSG','8802','Longitude of natural origin',-90.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999999,'EPSG','9201','EPSG','8806','False easting',483000.0,'EPSG','9003','EPSG','8807','False northing',0.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_103900_USAGE','conversion','ESRI','103900','EPSG','1418','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103900','NAD_1983_HARN_Adj_WI_Adams_Feet',NULL,'EPSG','4497','ESRI','104800','ESRI','103900',NULL,1);
@@ -18986,10 +19224,13 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103971_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "projected_crs" VALUES('ESRI','103972','Germany_Zone_1',NULL,'EPSG','4400','EPSG','4314','EPSG','16201',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103972_USAGE','projected_crs','ESRI','103972','EPSG','3892','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103973','Germany_Zone_2',NULL,'EPSG','4400','EPSG','4314','EPSG','16262',NULL,0);
@@ -19412,6 +19653,7 @@ INSERT INTO "projected_crs" VALUES('ESRI','112101','OSGB36_National_Highways_C19
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_112101_USAGE','projected_crs','ESRI','112101','ESRI','152','EPSG','1024');
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -19436,6 +19678,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_112101_USAGE','projected_crs','ESRI','1
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','2181','projected_crs','ESRI','102550','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','2182','projected_crs','ESRI','102551','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','2183','projected_crs','ESRI','102552','ESRI',1);
@@ -19449,15 +19693,19 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','2187','projected_crs',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','31491','projected_crs','ESRI','103972','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','31492','projected_crs','ESRI','103973','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','31493','projected_crs','ESRI','103974','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','31494','projected_crs','ESRI','103975','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','31495','projected_crs','ESRI','103976','ESRI',1);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -19484,6 +19732,8 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','31495','projected_crs'
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','31917','projected_crs','EPSG','31986','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','31918','projected_crs','EPSG','31987','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','31919','projected_crs','EPSG','31988','ESRI',1);
@@ -19588,6 +19838,7 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','102211','projected_crs
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','102212','projected_crs','ESRI','32159','ESRI',1);
 =======
 <<<<<<< HEAD
@@ -19615,6 +19866,9 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','102212','projected_crs
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "supersession" VALUES('projected_crs','ESRI','102212','projected_crs','ESRI','32159','ESRI',1);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','102214','projected_crs','EPSG','4826','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','102218','projected_crs','EPSG','9674','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','102229','projected_crs','EPSG','2759','ESRI',1);
@@ -20340,6 +20594,7 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','103597','projected_crs
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103696','projected_crs','ESRI','22619','ESRI',1);
@@ -20374,6 +20629,11 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','103698','projected_crs
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "supersession" VALUES('projected_crs','ESRI','103696','projected_crs','ESRI','22619','ESRI',1);
+INSERT INTO "supersession" VALUES('projected_crs','ESRI','103697','projected_crs','ESRI','22620','ESRI',1);
+INSERT INTO "supersession" VALUES('projected_crs','ESRI','103698','projected_crs','ESRI','22621','ESRI',1);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103794','projected_crs','EPSG','4484','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103795','projected_crs','EPSG','4485','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103796','projected_crs','EPSG','4486','ESRI',1);
@@ -20386,14 +20646,18 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','103799','projected_crs
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103873','projected_crs','ESRI','22615','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103874','projected_crs','ESRI','22616','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103875','projected_crs','ESRI','22617','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103876','projected_crs','ESRI','22618','ESRI',1);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -20420,6 +20684,8 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','103876','projected_crs
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1027','EGM2008_Geoid','ESRI');
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1028','Fao_1979','ESRI');
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1039','New_Zealand_Vertical_Datum_2009','ESRI');
@@ -20491,6 +20757,7 @@ INSERT INTO alias_name VALUES('vertical_datum','EPSG','1202','Baltic_1957','ESRI
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1205','EPSG_example_wellbore_vertical_datum','ESRI');
 =======
 <<<<<<< HEAD
@@ -20518,6 +20785,9 @@ INSERT INTO alias_name VALUES('vertical_datum','EPSG','1205','EPSG_example_wellb
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO alias_name VALUES('vertical_datum','EPSG','1205','EPSG_example_wellbore_vertical_datum','ESRI');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1210','Macao_Height_Datum','ESRI');
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1213','Helsinki_1943','ESRI');
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1215','Slovenian_Vertical_System_2010','ESRI');
@@ -20903,6 +21173,7 @@ INSERT INTO alias_name VALUES('vertical_crs','EPSG','9471','INAGeoid2020_height'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO alias_name VALUES('vertical_crs','EPSG','9650','Baltic_1986_height','ESRI');
 =======
 =======
@@ -20948,6 +21219,9 @@ INSERT INTO alias_name VALUES('vertical_crs','EPSG','9650','Baltic_1986_height',
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO alias_name VALUES('vertical_crs','EPSG','9650','Baltic_1986_height','ESRI');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "vertical_datum" VALUES('ESRI','1297','European_Vertical_Reference_Frame_2007_Poland',NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '1297_USAGE','vertical_datum','ESRI','1297','EPSG','3293','EPSG','1024');
 INSERT INTO "vertical_crs" VALUES('ESRI','9651','EVRF_2007_PL_height',NULL,'EPSG','6499','ESRI','1297',0);
@@ -20964,10 +21238,13 @@ INSERT INTO alias_name VALUES('vertical_crs','EPSG','9681','NVD_1992_height','ES
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('vertical_crs','EPSG','9721','Catania_1965_height','ESRI');
 INSERT INTO alias_name VALUES('vertical_crs','EPSG','9722','Cagliari_1956_height','ESRI');
 INSERT INTO alias_name VALUES('vertical_crs','EPSG','9923','GNTRANS_height','ESRI');
@@ -20976,6 +21253,7 @@ INSERT INTO alias_name VALUES('vertical_crs','EPSG','20000','SVD2006_height','ES
 INSERT INTO alias_name VALUES('vertical_crs','EPSG','20034','CGVD2013a(2002)_height','ESRI');
 INSERT INTO alias_name VALUES('vertical_crs','EPSG','20035','CGVD2013a(1997)_height','ESRI');
 INSERT INTO alias_name VALUES('vertical_crs','EPSG','20036','INAGeoid2020_v2_height','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -21024,6 +21302,8 @@ INSERT INTO "usage" VALUES('ESRI', '9722_USAGE','vertical_crs','ESRI','9722','EP
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "vertical_datum" VALUES('ESRI','105103','Red_Espanola_de_Nivelacion_de_Alta_Precision',NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '105103_USAGE','vertical_datum','ESRI','105103','EPSG','3429','EPSG','1024');
 INSERT INTO "vertical_crs" VALUES('ESRI','105603','REDNAP_height',NULL,'EPSG','6499','ESRI','105103',0);
@@ -21795,10 +22075,13 @@ INSERT INTO "usage" VALUES('ESRI', '115879_USAGE','vertical_crs','ESRI','115879'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "vertical_datum" VALUES('ESRI','from_geogdatum_EPSG_1062','D_POSGAR_2007',NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'from_geogdatum_EPSG_1062_USAGE','vertical_datum','ESRI','from_geogdatum_EPSG_1062','EPSG','1033','EPSG','1024');
 INSERT INTO "vertical_crs" VALUES('ESRI','115880','POSGAR_2007',NULL,'ESRI','ELLPS_HEIGHT_METRE','ESRI','from_geogdatum_EPSG_1062',0);
@@ -21825,6 +22108,7 @@ INSERT INTO "vertical_crs" VALUES('ESRI','115885','WGS_1984_(G2139)_height',NULL
 INSERT INTO "usage" VALUES('ESRI', '115885_USAGE','vertical_crs','ESRI','115885','EPSG','1262','EPSG','1024');
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -21849,6 +22133,8 @@ INSERT INTO "usage" VALUES('ESRI', '115885_USAGE','vertical_crs','ESRI','115885'
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO alias_name VALUES('compound_crs','EPSG','3901','KKJ_Finland_Uniform_Coordinate_System_and_N60_height','ESRI');
 INSERT INTO alias_name VALUES('compound_crs','EPSG','3902','ETRS_1989_TM35FIN_and_N60_height','ESRI');
 INSERT INTO alias_name VALUES('compound_crs','EPSG','3903','ETRS_1989_TM35FIN_and_N2000_height','ESRI');
@@ -23211,15 +23497,19 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8550,'NAD_1983_To_N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8551,'NAD_1983_HARN_TO_NAD_1983_NSRS2007_2','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8552,'NAD_1983_NSRS2007_TO_NAD_1983_2011_2','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8555,'NAD_1927_To_NAD_1983_7','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8556,'NAD_1983_To_NAD_1983_HARN_47','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8559,'NAD_1983_NSRS2007_To_2011_NADCON5_3D_CONUS_1','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -23256,6 +23546,8 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8556,'NAD_1983_To_N
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8555,'NAD_1927_To_NAD_1983_7','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8556,'NAD_1983_To_NAD_1983_HARN_47','ESRI');
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8561,'Old_Hawaiian_To_NAD_1983_2','ESRI');
 INSERT INTO "alias_name" VALUES('concatenated_operation','EPSG',8562,'Nord_Sahara_1959_To_WGS_1984_3','ESRI');
 INSERT INTO "alias_name" VALUES('concatenated_operation','EPSG',8639,'Belge_1972_To_ETRS_1989_3','ESRI');
@@ -23267,6 +23559,7 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8660,'NAD_1983_To_N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8661,'NAD_1983_HARN_To_PA11_NADCON5_3D_Hawaii_1','ESRI');
 =======
 <<<<<<< HEAD
@@ -23294,6 +23587,9 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8661,'NAD_1983_HARN
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8661,'NAD_1983_HARN_To_PA11_NADCON5_3D_Hawaii_1','ESRI');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8662,'American_Samoa_1962_To_NAD_1983_HARN_3','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8665,'Guam_1963_To_NAD_1983_HARN_2','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8668,'Puerto_Rico_To_NAD_1983_2','ESRI');
@@ -23304,6 +23600,7 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8669,'NAD_1983_To_N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8673,'NAD_1983_NSRS2007_To_2011_NADCON5_3D_PRVI_3','ESRI');
 =======
 <<<<<<< HEAD
@@ -23331,6 +23628,9 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8673,'NAD_1983_NSRS
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8673,'NAD_1983_NSRS2007_To_2011_NADCON5_3D_PRVI_3','ESRI');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8674,'La_Canoa_To_PSAD56_1','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8680,'MGI_1901_To_ETRS_1989_7','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8681,'MGI_1901_To_WGS_1984_12','ESRI');
@@ -23369,10 +23669,13 @@ INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8853,'Maupiti_19
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8861,'NAD_1983_HARN_To_FBN_NADCON5_3D_CONUS_1','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8862,'NAD_1983_FBN_To_NSRS2007_NADCON5_3D_CONUS_1','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8863,'NAD_1983_HARN_To_FBN_NADCON5_3D_American_Samoa_2','ESRI');
@@ -23381,6 +23684,7 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8865,'NAD_1983_HARN
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8866,'NAD_1983_FBN_To_MA11_NADCON5_3D_Guam_CNMI_1','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8867,'NAD_1983_HARN_Corrected_To_FBN_NADCON5_3D_PRVI_1','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8868,'NAD_1983_FBN_To_NSRS2007_NADCON5_3D_PRVI_2','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -23407,6 +23711,8 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8868,'NAD_1983_FBN_
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8882,'Camacupa_2015_To_WGS_1984_11','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8883,'Camacupa_To_RSAO13_1','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8884,'Camacupa_To_RSAO13_2','ESRI');
@@ -23449,6 +23755,7 @@ INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',9144,'KOSOVAREF0
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',9181,'NAD_1983_HARN_To_HARN_Corrected_NADCON5_3D_PRVI_1','ESRI');
 =======
 <<<<<<< HEAD
@@ -23476,6 +23783,9 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',9181,'NAD_1983_HARN
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',9181,'NAD_1983_HARN_To_HARN_Corrected_NADCON5_3D_PRVI_1','ESRI');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',9185,'AGD_1966_To_GDA2020_1','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',9186,'ITRF_2008_To_IG05(2012)_Intermediate_CRS','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',9189,'WGS_1984_To_IG05(2012)_Intermediate_CRS','ESRI');
@@ -23554,6 +23864,7 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',9691,'WGS_1984_To_G
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "helmert_transformation" VALUES('ESRI','9703','ETRF2000-PL_to_ETRS89_1',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','EPSG','9702','EPSG','4258',0.0,0.0,0.0,0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9703_USAGE','helmert_transformation','ESRI','9703','EPSG','1192','EPSG','1024');
 =======
@@ -23602,6 +23913,10 @@ INSERT INTO "usage" VALUES('ESRI', '9703_USAGE','helmert_transformation','ESRI',
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "helmert_transformation" VALUES('ESRI','9703','ETRF2000-PL_to_ETRS89_1',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','EPSG','9702','EPSG','4258',0.0,0.0,0.0,0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
+INSERT INTO "usage" VALUES('ESRI', '9703_USAGE','helmert_transformation','ESRI','9703','EPSG','1192','EPSG','1024');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "helmert_transformation" VALUES('ESRI','9743','PN68_to_WGS_1984_1',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','EPSG','9403','EPSG','4326',44.0,-307.0,-92.0,127.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9743_USAGE','helmert_transformation','ESRI','9743','EPSG','3873','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','9751','CR05_to_CR-SIRGAS_1',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','5365','EPSG','8907',0.5,-0.16959,0.35312,0.51846,'EPSG','9001',-0.03385,0.16325,-0.03446,'EPSG','9104',0.03693,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -23614,10 +23929,13 @@ INSERT INTO "usage" VALUES('ESRI', '9752_USAGE','helmert_transformation','ESRI',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "helmert_transformation" VALUES('ESRI','9769','RGWF96_To_WGS_1984_1',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','EPSG','8900','EPSG','4326',1.0,0.0,0.0,0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9769_USAGE','helmert_transformation','ESRI','9769','EPSG','1255','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','9770','RGTAAF07_to_WGS_1984_1',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','EPSG','7073','EPSG','4326',1.0,0.0,0.0,0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -23642,6 +23960,7 @@ INSERT INTO "helmert_transformation" VALUES('ESRI','9792','RGF93_v2b_to_WGS_1984
 INSERT INTO "usage" VALUES('ESRI', '9792_USAGE','helmert_transformation','ESRI','9792','EPSG','1096','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','9882','RGF93_v1_to_RGF93_v2_1',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4171','EPSG','9777',0.05,0.0,0.0,0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9882_USAGE','helmert_transformation','ESRI','9882','EPSG','1096','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -23686,6 +24005,8 @@ INSERT INTO "usage" VALUES('ESRI', '9764_USAGE','grid_transformation','ESRI','97
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "helmert_transformation" VALUES('ESRI','9898','LUREF_To_ETRS_1989_5',NULL,'EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4181','EPSG','4258',0.0,-265.8979,76.9761,20.2504,'EPSG','9001',0.43335,3.11447,-2.63637,'EPSG','9104',0.4752,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,4103620.3891,440486.4152,4846923.4466,'EPSG','9001',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9898_USAGE','helmert_transformation','ESRI','9898','EPSG','1146','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','9899','LUREF_To_ETRS_1989_6',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4181','EPSG','4258',0.0,-189.033,14.1335,-43.0901,'EPSG','9001',0.43331,3.11448,-2.63636,'EPSG','9104',0.4752,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -23696,10 +24017,13 @@ INSERT INTO "usage" VALUES('ESRI', '9899_USAGE','helmert_transformation','ESRI',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "helmert_transformation" VALUES('ESRI','9901','UCS-2000_to_ETRS_1989_1',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','EPSG','5561','EPSG','4258',1.0,24.0,-121.0,-76.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9901_USAGE','helmert_transformation','ESRI','9901','EPSG','1242','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','9904','Camacupa_1948_to_RSAO13_3',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4220','EPSG','8699',8.0,-43.0,-337.0,-233.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -23710,6 +24034,7 @@ INSERT INTO "helmert_transformation" VALUES('ESRI','9906','Malongo_1987_to_RSAO1
 INSERT INTO "usage" VALUES('ESRI', '9906_USAGE','helmert_transformation','ESRI','9906','EPSG','3180','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','9936','JGD2011_to_WGS_1984_1',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','EPSG','6668','EPSG','4326',1.0,0.0,0.0,0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9936_USAGE','helmert_transformation','ESRI','9936','EPSG','1129','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -23736,6 +24061,8 @@ INSERT INTO "usage" VALUES('ESRI', '9936_USAGE','helmert_transformation','ESRI',
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "helmert_transformation" VALUES('ESRI','9937','LUREF_To_ETRS_1989_7',NULL,'EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4181','EPSG','4258',0.0,-265.9196,76.9506,20.2222,'EPSG','9001',0.48171,3.09948,-2.68639,'EPSG','9104',0.46346,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,4101567.0943,440245.0881,4848681.4115,'EPSG','9001',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9937_USAGE','helmert_transformation','ESRI','9937','EPSG','1146','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','9938','LUREF_To_ETRS_1989_8',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4181','EPSG','4258',0.0,-189.228,12.0035,-42.6303,'EPSG','9001',0.48171,3.09948,-2.68639,'EPSG','9104',0.46346,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -23746,10 +24073,13 @@ INSERT INTO "usage" VALUES('ESRI', '9938_USAGE','helmert_transformation','ESRI',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "helmert_transformation" VALUES('ESRI','9991','ITRF2014_TO_ITRF2020_AT2015_1',NULL,'EPSG','1054','Time-dependent Position Vector tfm (geog2D)','EPSG','9000','EPSG','9990',0.001,0.0014,0.0009,-0.0014,'EPSG','9001',0.0,0.0,0.0,'EPSG','9104',0.00042,'EPSG','9202',0.0,0.0001,-0.0002,'EPSG','1042',0.0,0.0,0.0,'EPSG','1043',0.0,'EPSG','1041',2015.0,'EPSG','1029',NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9991_USAGE','helmert_transformation','ESRI','9991','EPSG','1262','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','9992','ITRF_2008_TO_ITRF2020_AT2015_1',NULL,'EPSG','1054','Time-dependent Position Vector tfm (geog2D)','EPSG','8999','EPSG','9990',0.01,-0.0002,-0.001,-0.0033,'EPSG','9001',0.0,0.0,0.0,'EPSG','9104',0.00029,'EPSG','9202',0.0,0.0001,-0.0001,'EPSG','1042',0.0,0.0,0.0,'EPSG','1043',-0.00003,'EPSG','1041',2015.0,'EPSG','1029',NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -23770,6 +24100,7 @@ INSERT INTO "helmert_transformation" VALUES('ESRI','9999','ITRF_1992_TO_ITRF2020
 INSERT INTO "usage" VALUES('ESRI', '9999_USAGE','helmert_transformation','ESRI','9999','EPSG','1262','EPSG','1024');
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -23794,6 +24125,8 @@ INSERT INTO "usage" VALUES('ESRI', '9999_USAGE','helmert_transformation','ESRI',
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',10085,'Trinidad_1903_To_WGS_1984_2','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',10086,'Jamaica_1969_To_WGS_1972_1','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',10089,'Aratu_To_WGS_1984_5','ESRI');
@@ -23809,10 +24142,13 @@ INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',10099,'KKJ_To_WG
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "helmert_transformation" VALUES('ESRI','10100','ITRF_1991_TO_ITRF2020_AT2015_1',NULL,'EPSG','1054','Time-dependent Position Vector tfm (geog2D)','EPSG','8991','EPSG','9990',0.01,-0.0265,-0.0121,0.0919,'EPSG','9001',0.0,0.0,-0.00036,'EPSG','9104',-0.00467,'EPSG','9202',-0.0001,0.0006,0.0031,'EPSG','1042',0.0,0.0,-0.00002,'EPSG','1043',-0.00012,'EPSG','1041',2015.0,'EPSG','1029',NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '10100_USAGE','helmert_transformation','ESRI','10100','EPSG','1262','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','10103','ITRF_1990_TO_ITRF2020_AT2015_1',NULL,'EPSG','1054','Time-dependent Position Vector tfm (geog2D)','EPSG','8990','EPSG','9990',0.01,-0.0245,-0.0081,0.1079,'EPSG','9001',0.0,0.0,-0.00036,'EPSG','9104',-0.00497,'EPSG','9202',-0.0001,0.0006,0.0031,'EPSG','1042',0.0,0.0,-0.00002,'EPSG','1043',-0.00012,'EPSG','1041',2015.0,'EPSG','1029',NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -23831,6 +24167,7 @@ INSERT INTO "helmert_transformation" VALUES('ESRI','10138','SAD69_to_SIRGAS-Chil
 INSERT INTO "usage" VALUES('ESRI', '10138_USAGE','helmert_transformation','ESRI','10138','EPSG','2805','EPSG','1024');
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -23855,6 +24192,8 @@ INSERT INTO "usage" VALUES('ESRI', '10138_USAGE','helmert_transformation','ESRI'
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',15483,'Tokyo_To_JGD_2000_1','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',15484,'Tokyo_To_WGS_1984_108','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',15485,'SAD_1969_To_SIRGAS_2000_1','ESRI');
@@ -24126,6 +24465,7 @@ INSERT INTO "usage" VALUES('ESRI', '108018_USAGE','helmert_transformation','ESRI
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "extent" VALUES('ESRI','207','Israel, Palestine Territory, and Jordan','Israel, Palestine Territory, and Jordan',29.19,33.53,32.99,39.3,0);
@@ -24177,6 +24517,11 @@ INSERT INTO "usage" VALUES('ESRI', '108021_USAGE','helmert_transformation','ESRI
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "extent" VALUES('ESRI','207','Israel, Palestine Territory, and Jordan','Israel, Palestine Territory, and Jordan',29.19,33.53,32.99,39.3,0);
+INSERT INTO "helmert_transformation" VALUES('ESRI','108021','WGS_1984_To_Israel_CoordFrame',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4326','EPSG','4141',1.0,-24.0024,-17.1032,-17.8444,'EPSG','9001',-0.33009,-1.85269,1.66969,'EPSG','9104',5.4248,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
+INSERT INTO "usage" VALUES('ESRI', '108021_USAGE','helmert_transformation','ESRI','108021','ESRI','207','EPSG','1024');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "grid_transformation" VALUES('ESRI','108023','Datum_Lisboa_Hayford_To_WGS_1984_NTv2',NULL,'EPSG','9615','NTv2','ESRI','104106','EPSG','4326',0.1,'EPSG','8656','Latitude and longitude difference file','portugal/DLX_ETRS89_geo',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108023_USAGE','grid_transformation','ESRI','108023','EPSG','1294','EPSG','1024');
 INSERT INTO "grid_transformation" VALUES('ESRI','108024','Datum_Lisboa_Hayford_To_ETRS_1989_NTv2',NULL,'EPSG','9615','NTv2','ESRI','104106','EPSG','4258',0.1,'EPSG','8656','Latitude and longitude difference file','portugal/DLX_ETRS89_geo',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -24229,6 +24574,7 @@ INSERT INTO "usage" VALUES('ESRI', '108047_USAGE','grid_transformation','ESRI','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -24271,6 +24617,8 @@ INSERT INTO "usage" VALUES('ESRI', '108049_USAGE','grid_transformation','ESRI','
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "helmert_transformation" VALUES('ESRI','108050','ETRS_1989_To_Xrail84_1',NULL,'EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4258','ESRI','104050',0.5,19.019,115.122,-97.287,'EPSG','9001',3.577824,-3.484437,-2.767646,'EPSG','9104',18.6084754,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108050_USAGE','helmert_transformation','ESRI','108050','ESRI','2','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','108051','WGS_1984_To_Xrail84_1',NULL,'EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4326','ESRI','104050',0.5,19.019,115.122,-97.287,'EPSG','9001',3.577824,-3.484437,-2.767646,'EPSG','9104',18.6084754,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -24297,6 +24645,7 @@ INSERT INTO "helmert_transformation" VALUES('ESRI','108062','NAD_1927_To_SIRGAS_
 INSERT INTO "usage" VALUES('ESRI', '108062_USAGE','helmert_transformation','ESRI','108062','EPSG','3290','EPSG','1024');
 INSERT INTO "other_transformation" VALUES('ESRI','108063','NAD_1983_HARN_To_HARN_Adjusted_WCCS_Chippewa',NULL,'EPSG','9619','Geographic2D offsets','EPSG','4152','ESRI','104808',0.0,'EPSG','8601','Latitude offset',0,'EPSG','9104','EPSG','8602','Longitude offset',0,'EPSG','9104',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108063_USAGE','other_transformation','ESRI','108063','EPSG','1418','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -24356,9 +24705,12 @@ INSERT INTO "usage" VALUES('ESRI', '108069_USAGE','grid_transformation','ESRI','
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "grid_transformation" VALUES('ESRI','108068','ED_1950_To_WGS_1984_NTv2_PENR2009',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4326',0.9,'EPSG','8656','Latitude and longitude difference file','spain/PENR2009',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
-INSERT INTO "usage" VALUES('ESRI', '108068_USAGE','grid_transformation','ESRI','108068','ESRI','206','EPSG','1024');
+INSERT INTO "usage" VALUES('ESRI', '108068_USAGE','grid_transformation','ESRI','108068','EPSG','4605','EPSG','1024');
 INSERT INTO "grid_transformation" VALUES('ESRI','108069','ED_1950_To_WGS_1984_NTv2_BALR2009',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4326',0.9,'EPSG','8656','Latitude and longitude difference file','spain/BALR2009',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
+<<<<<<< HEAD
 INSERT INTO "usage" VALUES('ESRI', '108069_USAGE','grid_transformation','ESRI','108069','ESRI','207','EPSG','1024');
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -24369,6 +24721,9 @@ INSERT INTO "usage" VALUES('ESRI', '108069_USAGE','grid_transformation','ESRI','
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "usage" VALUES('ESRI', '108069_USAGE','grid_transformation','ESRI','108069','EPSG','2335','EPSG','1024');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "helmert_transformation" VALUES('ESRI','108070','PD/83_To_WGS_1984_7PAR',NULL,'EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4746','EPSG','4326',0.5,599.4,72.4,419.2,'EPSG','9001',-0.062,-0.022,-2.723,'EPSG','9104',6.46,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108070_USAGE','helmert_transformation','ESRI','108070','EPSG','2544','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','108071','RD/83_To_WGS_1984_7PAR',NULL,'EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4745','EPSG','4326',0.5,612.4,77.0,440.2,'EPSG','9001',-0.054,0.057,-2.797,'EPSG','9104',2.55,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -24450,6 +24805,7 @@ INSERT INTO "usage" VALUES('ESRI', '108117_USAGE','helmert_transformation','ESRI
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "grid_transformation" VALUES('ESRI','108119','ED_1950_To_WGS_1984_NTv2_Baleares',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4326',1.0,'EPSG','8656','Latitude and longitude difference file','spain/baleares',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108119_USAGE','grid_transformation','ESRI','108119','EPSG','2335','EPSG','1024');
 =======
@@ -24498,6 +24854,10 @@ INSERT INTO "usage" VALUES('ESRI', '108119_USAGE','grid_transformation','ESRI','
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "grid_transformation" VALUES('ESRI','108119','ED_1950_To_WGS_1984_NTv2_Baleares',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4326',1.0,'EPSG','8656','Latitude and longitude difference file','spain/baleares',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
+INSERT INTO "usage" VALUES('ESRI', '108119_USAGE','grid_transformation','ESRI','108119','EPSG','2335','EPSG','1024');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "helmert_transformation" VALUES('ESRI','108120','Datum_73_To_WGS_1984_2',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4274','EPSG','4326',1.0,-239.749,88.181,30.488,'EPSG','9001',-0.26,-0.08,-1.21,'EPSG','9104',2.23,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108120_USAGE','helmert_transformation','ESRI','108120','EPSG','1294','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','108121','ED_1950_To_WGS_1984_PT7',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4230','EPSG','4326',NULL,-68.863,-134.888,-111.49,'EPSG','9001',0.53,0.14,-0.57,'EPSG','9104',-3.4,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -24516,6 +24876,7 @@ INSERT INTO "usage" VALUES('ESRI', '108125_USAGE','helmert_transformation','ESRI
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('ESRI','108126','ED_1950_To_ETRS_1989_NTv2_Peninsula',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4258',0.5,'EPSG','8656','Latitude and longitude difference file','spain/peninsula',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108126_USAGE','grid_transformation','ESRI','108126','ESRI','206','EPSG','1024');
@@ -24550,6 +24911,8 @@ INSERT INTO "usage" VALUES('ESRI', '108126_USAGE','grid_transformation','ESRI','
 INSERT INTO "grid_transformation" VALUES('ESRI','108126','ED_1950_To_ETRS_1989_NTv2_Peninsula',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4258',0.5,'EPSG','8656','Latitude and longitude difference file','spain/peninsula',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108126_USAGE','grid_transformation','ESRI','108126','ESRI','206','EPSG','1024');
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "helmert_transformation" VALUES('ESRI','108127','Sao_Braz_To_WGS_1984_2',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','ESRI','37249','EPSG','4326',1.0,-208.719,129.685,52.092,'EPSG','9001',0.2,0.01,-0.33,'EPSG','9104',0.2,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108127_USAGE','helmert_transformation','ESRI','108127','EPSG','1345','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','108128','CGRS_1993_To_ETRS_1989',NULL,'EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','6311','EPSG','4258',0.5,8.846,-4.394,-1.122,'EPSG','9001',-0.00237,-0.146528,0.130428,'EPSG','9104',0.783926,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -24565,6 +24928,7 @@ INSERT INTO "grid_transformation" VALUES('ESRI','108136','ED_1950_To_WGS_1984_NT
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "usage" VALUES('ESRI', '108136_USAGE','grid_transformation','ESRI','108136','EPSG','4605','EPSG','1024');
 =======
 INSERT INTO "usage" VALUES('ESRI', '108136_USAGE','grid_transformation','ESRI','108136','ESRI','206','EPSG','1024');
@@ -24597,6 +24961,9 @@ INSERT INTO "usage" VALUES('ESRI', '108136_USAGE','grid_transformation','ESRI','
 =======
 INSERT INTO "usage" VALUES('ESRI', '108136_USAGE','grid_transformation','ESRI','108136','ESRI','206','EPSG','1024');
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "usage" VALUES('ESRI', '108136_USAGE','grid_transformation','ESRI','108136','EPSG','4605','EPSG','1024');
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "extent" VALUES('ESRI','209','Northern Marianas - Rota','Northern Marianas - Rota',14.0,14.75,145.0,146.0,0);
 INSERT INTO "helmert_transformation" VALUES('ESRI','108137','Guam_1963_To_HARN_Marianas_Rota',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4675','EPSG','4152',NULL,-96.234,-252.601,258.222,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108137_USAGE','helmert_transformation','ESRI','108137','ESRI','209','EPSG','1024');
@@ -25163,6 +25530,7 @@ VALUES
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -25203,6 +25571,8 @@ VALUES
 -- 'uk/TN15-ETRS89-to-ECML14_NB-IRF': no mapping
 -- 'uk/TN15-ETRS89-to-EWR2-IRF': no mapping
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 -- 'gc_nad83_harn_2007_conus_shifts': no mapping
 -- 'gc_nad83_harn_2007_alaska_shifts': no mapping
 -- 'gc_nad83_harn_2007_prvi_shifts': no mapping
@@ -25213,6 +25583,7 @@ VALUES
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 -- 'gc_nad83_2007_2011_alaska_shifts': no mapping
 -- 'gc_nad83_2007_2011_prvi_shifts': no mapping
@@ -25247,6 +25618,8 @@ VALUES
 -- 'gc_nad83_2007_2011_alaska_shifts': no mapping
 -- 'gc_nad83_2007_2011_prvi_shifts': no mapping
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 -- 'uk/osgb36_xrail84': no mapping
 -- 'japan/tky2jgd': no mapping
 -- 'icegrid2004': no mapping

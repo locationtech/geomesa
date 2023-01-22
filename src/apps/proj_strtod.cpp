@@ -106,6 +106,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const char *p = str;
 =======
     char *p = (char *) str;
@@ -138,6 +139,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
     char *p = (char *) str;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    const char *p = str;
+>>>>>>> 86ade66356 (typo fixes)
     int n = 0;
     int num_digits_total        = 0;
     int num_digits_after_comma  = 0;
@@ -152,6 +156,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = nullptr;
 =======
             *endptr = p;
@@ -184,6 +189,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = nullptr;
+>>>>>>> 86ade66356 (typo fixes)
         return HUGE_VAL;
     }
 
@@ -200,6 +208,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = const_cast<char*>(str);
 =======
             *endptr = (char *) str;
@@ -232,6 +241,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = (char *) str;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = const_cast<char*>(str);
+>>>>>>> 86ade66356 (typo fixes)
         return 0;
     }
 
@@ -244,6 +256,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = const_cast<char*>(str);
 =======
             *endptr = (char *) str;
@@ -276,6 +289,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = (char *) str;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = const_cast<char*>(str);
+>>>>>>> 86ade66356 (typo fixes)
         return 0;
     }
 
@@ -299,6 +315,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 *endptr = const_cast<char*>(str);
 =======
                 *endptr = (char *) str;
@@ -331,6 +348,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
                 *endptr = (char *) str;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                *endptr = const_cast<char*>(str);
+>>>>>>> 86ade66356 (typo fixes)
             return 0;
     }
 
@@ -343,6 +363,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = const_cast<char*>(str);
 =======
             *endptr = (char *) str;
@@ -375,6 +396,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = (char *) str;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = const_cast<char*>(str);
+>>>>>>> 86ade66356 (typo fixes)
         return 0;
     }
 
@@ -391,6 +415,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = const_cast<char*>(p);
 =======
             *endptr = p;
@@ -423,6 +448,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = const_cast<char*>(p);
+>>>>>>> 86ade66356 (typo fixes)
         return sign==-1? -0: 0;
     }
 
@@ -447,6 +475,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = const_cast<char*>(p);
 =======
             *endptr = p;
@@ -479,6 +508,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = const_cast<char*>(p);
+>>>>>>> 86ade66356 (typo fixes)
         if (sign==-1)
             return -number;
         return number;
@@ -506,6 +538,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 *endptr = const_cast<char*>(p);
 =======
                 *endptr = p;
@@ -538,6 +571,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
                 *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                *endptr = const_cast<char*>(p);
+>>>>>>> 86ade66356 (typo fixes)
             if (sign==-1)
                 return -number;
             return number;
@@ -576,6 +612,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             *endptr = const_cast<char*>(p);
 =======
             *endptr = p;
@@ -608,6 +645,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = const_cast<char*>(p);
+>>>>>>> 86ade66356 (typo fixes)
         return HUGE_VAL;
     }
 
@@ -641,6 +681,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     *endptr = const_cast<char*>(p);
 =======
                     *endptr = p;
@@ -673,6 +714,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
                     *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                    *endptr = const_cast<char*>(p);
+>>>>>>> 86ade66356 (typo fixes)
                 return HUGE_VAL;
             }
         }
@@ -704,6 +748,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         *endptr = const_cast<char*>(p);
 =======
         *endptr = p;
@@ -736,6 +781,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
         *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        *endptr = const_cast<char*>(p);
+>>>>>>> 86ade66356 (typo fixes)
 
     if ((exponent < DBL_MIN_EXP) || (exponent > DBL_MAX_EXP)) {
         errno = ERANGE;

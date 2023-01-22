@@ -7507,10 +7507,13 @@ TEST(crs, projected_is_equivalent_to_with_proj4_extension) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 
 // ---------------------------------------------------------------------------
 
@@ -7558,6 +7561,7 @@ TEST(crs, is_dynamic) {
 }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7582,3 +7586,5 @@ TEST(crs, is_dynamic) {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)

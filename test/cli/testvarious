@@ -939,16 +939,20 @@ EOF
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 echo  "##############################################################" >> ${OUT}
 echo  "Check we allow ellipsoids up to a 0.59% relative difference in size" >> ${OUT}
 
 $EXE +proj=longlat +R=3376200 +to IAU_2015:49935 -E >> ${OUT} <<EOF
 0 -90
 EOF
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -975,6 +979,8 @@ EOF
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 
 echo  "##############################################################" >> ${OUT}
 echo  "Test EPSG:4896 to EPSG:7930" >> ${OUT}
@@ -1130,10 +1136,13 @@ EOF
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 echo "##############################################################" >> ${OUT}
 echo "Test cs2cs --only-best (working)" >> ${OUT}
 #
@@ -1204,6 +1213,7 @@ EOF
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1228,6 +1238,8 @@ EOF
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 
 # Done!
 # do 'diff' with distribution results
