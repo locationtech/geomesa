@@ -78,6 +78,9 @@ radians are interpreted to be decimal degrees by convention.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 Explicit specification of input units can be accomplished by adding the appropriate
 =======
 Explict specification of input units can be accomplished by adding the appropriate
@@ -94,6 +97,7 @@ Explict specification of input units can be accomplished by adding the appropria
 =======
 Explicit specification of input units can be accomplished by adding the appropriate
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -131,6 +135,9 @@ Explict specification of input units can be accomplished by adding the appropria
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
 suffix to input values.
 
 
@@ -157,6 +164,9 @@ suffix to input values.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explicitly
 =======
 Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explictly
@@ -173,6 +183,7 @@ Example of use.  The longitude of the central meridian ``+lon_0=90``, can also b
 =======
 Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explicitly
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -210,6 +221,9 @@ Example of use.  The longitude of the central meridian ``+lon_0=90``, can also b
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
 with units of decimal degrees as ``+lon_0=90d`` or in radian
 units as ``+lon_0=1.570796r`` (approximately).
 
