@@ -202,6 +202,7 @@ const BoundCRSPtr &CRS::canonicalBoundCRS() PROJ_PURE_DEFN {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -218,6 +219,8 @@ const BoundCRSPtr &CRS::canonicalBoundCRS() PROJ_PURE_DEFN {
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -237,6 +240,7 @@ const BoundCRSPtr &CRS::canonicalBoundCRS() PROJ_PURE_DEFN {
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -261,6 +265,8 @@ const BoundCRSPtr &CRS::canonicalBoundCRS() PROJ_PURE_DEFN {
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 /** \brief Return whether a CRS is a dynamic CRS.
  *
  * A dynamic CRS is a CRS that contains a geodetic CRS whose geodetic reference
@@ -318,6 +324,7 @@ bool CRS::isDynamic(bool considerWGS84AsDynamic) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -330,6 +337,10 @@ bool CRS::isDynamic(bool considerWGS84AsDynamic) const {
 >>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -347,10 +358,13 @@ bool CRS::isDynamic(bool considerWGS84AsDynamic) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -388,6 +402,7 @@ bool CRS::isDynamic(bool considerWGS84AsDynamic) const {
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -443,6 +458,8 @@ bool CRS::isDynamic(bool considerWGS84AsDynamic) const {
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 /** \brief Return the GeodeticCRS of the CRS.
  *
  * Returns the GeodeticCRS contained in a CRS. This works currently with
@@ -905,6 +922,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -925,6 +943,10 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
             bool candidateHasExactlyMatchingExtent = false;
 =======
             bool candidateHasExactlyMachingExtent = false;
@@ -946,10 +968,13 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -997,6 +1022,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1069,6 +1095,8 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
             for (const auto &op : list) {
                 auto transf =
                     util::nn_dynamic_pointer_cast<operation::Transformation>(
@@ -1111,6 +1139,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1124,6 +1153,8 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 48ae38528d (typo fixes)
+=======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1133,6 +1164,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1153,6 +1185,8 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
                             !candidateHasExactlyMatchingExtent) {
                             candidateBoundCRS = nullptr;
                         } else if (exactlyMatchingExtent ==
@@ -1290,12 +1324,17 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -1309,10 +1348,13 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -1345,6 +1387,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
@@ -1389,6 +1432,11 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
                             candidateCount++;
                         }
                     }
@@ -1417,6 +1465,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1437,6 +1486,10 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
                         candidateHasExactlyMatchingExtent =
 =======
                         candidateHasExactlyMachingExtent =
@@ -1458,10 +1511,13 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -1509,6 +1565,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1581,6 +1638,8 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
                             exactlyMatchingExtent;
                         candidateBoundCRS =
                             BoundCRS::create(thisAsCRS, hubCRS,
@@ -1651,6 +1710,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1664,6 +1724,8 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 48ae38528d (typo fixes)
+=======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1673,6 +1735,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1693,6 +1756,8 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
                                             !candidateHasExactlyMatchingExtent) {
                                             candidateBoundCRS = nullptr;
                                         } else if (
@@ -1832,12 +1897,17 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -1852,10 +1922,13 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -1889,6 +1962,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
@@ -1934,6 +2008,11 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
                                             candidateCount++;
                                         }
                                     }
@@ -1962,6 +2041,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1982,6 +2062,10 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
                                         candidateHasExactlyMatchingExtent =
 =======
                                         candidateHasExactlyMachingExtent =
@@ -2003,10 +2087,13 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -2054,6 +2141,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2126,6 +2214,8 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
                                             exactlyMatchingExtent;
                                         candidateBoundCRS =
                                             BoundCRS::create(
@@ -5726,6 +5816,7 @@ void ProjectedCRS::_exportToWKT(io::WKTFormatter *formatter) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -5746,6 +5837,10 @@ void ProjectedCRS::_exportToWKT(io::WKTFormatter *formatter) const {
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
                 // If the id of the object is in the ESRI namespace, then
 =======
                 // If the id of the objet is in the ESRI namespace, then
@@ -5767,10 +5862,13 @@ void ProjectedCRS::_exportToWKT(io::WKTFormatter *formatter) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -5818,6 +5916,7 @@ void ProjectedCRS::_exportToWKT(io::WKTFormatter *formatter) const {
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5890,6 +5989,8 @@ void ProjectedCRS::_exportToWKT(io::WKTFormatter *formatter) const {
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
                 // try to find the full ESRI WKT from the database
                 const auto definition = dbContext->getTextDefinition(
                     "projected_crs", "ESRI", l_identifiers[0]->code());
