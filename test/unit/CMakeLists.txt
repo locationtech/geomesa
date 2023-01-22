@@ -142,6 +142,7 @@ add_executable(proj_test_cpp_api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -211,6 +212,9 @@ add_executable(proj_test_cpp_api
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  test_coordinates.cpp
+>>>>>>> bf1dfe8af6 (typo fixes)
   test_crs.cpp
   test_metadata.cpp
   test_io.cpp
