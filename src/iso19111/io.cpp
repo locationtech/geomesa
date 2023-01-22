@@ -47,6 +47,7 @@
 
 #include "proj/common.hpp"
 #include "proj/coordinateoperation.hpp"
+#include "proj/coordinates.hpp"
 #include "proj/coordinatesystem.hpp"
 #include "proj/crs.hpp"
 #include "proj/datum.hpp"
@@ -78,6 +79,7 @@
 // clang-format on
 
 using namespace NS_PROJ::common;
+using namespace NS_PROJ::coordinates;
 using namespace NS_PROJ::crs;
 using namespace NS_PROJ::cs;
 using namespace NS_PROJ::datum;
@@ -1337,6 +1339,8 @@ struct WKTParser::Private {
 
     static optional<std::string> getAnchor(const WKTNodeNNPtr &node);
 
+    static optional<common::Measure> getAnchorEpoch(const WKTNodeNNPtr &node);
+
     static void parseDynamic(const WKTNodeNNPtr &dynamicNode,
                              double &frameReferenceEpoch,
                              util::optional<std::string> &modelName);
@@ -1476,6 +1480,8 @@ struct WKTParser::Private {
 
     ConcatenatedOperationNNPtr
     buildConcatenatedOperation(const WKTNodeNNPtr &node);
+
+    CoordinateMetadataNNPtr buildCoordinateMetadata(const WKTNodeNNPtr &node);
 };
 //! @endcond
 
@@ -2205,6 +2211,23 @@ optional<std::string> WKTParser::Private::getAnchor(const WKTNodeNNPtr &node) {
 
 // ---------------------------------------------------------------------------
 
+optional<common::Measure>
+WKTParser::Private::getAnchorEpoch(const WKTNodeNNPtr &node) {
+
+    auto &anchorEpochNode = node->GP()->lookForChild(WKTConstants::ANCHOREPOCH);
+    if (anchorEpochNode->GP()->childrenSize() == 1) {
+        try {
+            double value = asDouble(anchorEpochNode->GP()->children()[0]);
+            return optional<common::Measure>(
+                common::Measure(value, common::UnitOfMeasure::YEAR));
+        } catch (const std::exception &e) {
+            throw buildRethrow(__FUNCTION__, e);
+        }
+    }
+    return optional<common::Measure>();
+}
+// ---------------------------------------------------------------------------
+
 static const PrimeMeridianNNPtr &
 fixupPrimeMeridan(const EllipsoidNNPtr &ellipsoid,
                   const PrimeMeridianNNPtr &pm) {
@@ -2437,8 +2460,9 @@ GeodeticReferenceFrameNNPtr WKTParser::Private::buildGeodeticReferenceFrame(
             modelName);
     }
 
-    return GeodeticReferenceFrame::create(
-        properties, ellipsoid, getAnchor(node), primeMeridianModified);
+    return GeodeticReferenceFrame::create(properties, ellipsoid,
+                                          getAnchor(node), getAnchorEpoch(node),
+                                          primeMeridianModified);
 }
 
 // ---------------------------------------------------------------------------
@@ -2610,9 +2634,6 @@ WKTParser::Private::buildAxis(const WKTNodeNNPtr &node,
         direction = &AxisDirection::GEOCENTRIC_Z;
     } else if (dirString == AxisDirectionWKT1::OTHER.toString()) {
         direction = &AxisDirection::UNSPECIFIED;
-    } else if (!direction &&
-               AxisDirectionWKT1::valueOf(toupper(dirString)) != nullptr) {
-        direction = AxisDirection::valueOf(tolower(dirString));
     }
 
     if (!direction) {
@@ -2633,9 +2654,60 @@ WKTParser::Private::buildAxis(const WKTNodeNNPtr &node,
 
     auto &meridianNode = nodeP->lookForChild(WKTConstants::MERIDIAN);
 
+    util::optional<double> minVal;
+    auto &axisMinValueNode = nodeP->lookForChild(WKTConstants::AXISMINVALUE);
+    if (!isNull(axisMinValueNode)) {
+        const auto &axisMinValueNodeChildren =
+            axisMinValueNode->GP()->children();
+        if (axisMinValueNodeChildren.size() != 1) {
+            ThrowNotEnoughChildren(WKTConstants::AXISMINVALUE);
+        }
+        const auto &val = axisMinValueNodeChildren[0];
+        try {
+            minVal = asDouble(val);
+        } catch (const std::exception &) {
+            throw ParsingException(concat(
+                "buildAxis: invalid AXISMINVALUE value: ", val->GP()->value()));
+        }
+    }
+
+    util::optional<double> maxVal;
+    auto &axisMaxValueNode = nodeP->lookForChild(WKTConstants::AXISMAXVALUE);
+    if (!isNull(axisMaxValueNode)) {
+        const auto &axisMaxValueNodeChildren =
+            axisMaxValueNode->GP()->children();
+        if (axisMaxValueNodeChildren.size() != 1) {
+            ThrowNotEnoughChildren(WKTConstants::AXISMAXVALUE);
+        }
+        const auto &val = axisMaxValueNodeChildren[0];
+        try {
+            maxVal = asDouble(val);
+        } catch (const std::exception &) {
+            throw ParsingException(concat(
+                "buildAxis: invalid AXISMAXVALUE value: ", val->GP()->value()));
+        }
+    }
+
+    util::optional<RangeMeaning> rangeMeaning;
+    auto &rangeMeaningNode = nodeP->lookForChild(WKTConstants::RANGEMEANING);
+    if (!isNull(rangeMeaningNode)) {
+        const auto &rangeMeaningNodeChildren =
+            rangeMeaningNode->GP()->children();
+        if (rangeMeaningNodeChildren.size() != 1) {
+            ThrowNotEnoughChildren(WKTConstants::RANGEMEANING);
+        }
+        const std::string &val = rangeMeaningNodeChildren[0]->GP()->value();
+        const RangeMeaning *meaning = RangeMeaning::valueOf(val);
+        if (meaning == nullptr) {
+            throw ParsingException(
+                concat("buildAxis: invalid RANGEMEANING value: ", val));
+        }
+        rangeMeaning = util::optional<RangeMeaning>(*meaning);
+    }
+
     return CoordinateSystemAxis::create(
         buildProperties(node).set(IdentifiedObject::NAME_KEY, axisName),
-        abbreviation, *direction, unit,
+        abbreviation, *direction, unit, minVal, maxVal, rangeMeaning,
         !isNull(meridianNode) ? buildMeridian(meridianNode).as_nullable()
                               : nullptr);
 }
@@ -4496,7 +4568,8 @@ VerticalReferenceFrameNNPtr WKTParser::Private::buildVerticalReferenceFrame(
         }
     }
 
-    return VerticalReferenceFrame::create(props, getAnchor(node));
+    return VerticalReferenceFrame::create(props, getAnchor(node),
+                                          getAnchorEpoch(node));
 }
 
 // ---------------------------------------------------------------------------
@@ -5214,6 +5287,40 @@ WKTParser::Private::buildDerivedProjectedCRS(const WKTNodeNNPtr &node) {
 
 // ---------------------------------------------------------------------------
 
+CoordinateMetadataNNPtr
+WKTParser::Private::buildCoordinateMetadata(const WKTNodeNNPtr &node) {
+    const auto *nodeP = node->GP();
+
+    const auto &l_children = nodeP->children();
+    if (l_children.empty()) {
+        ThrowNotEnoughChildren(WKTConstants::COORDINATEMETADATA);
+    }
+
+    auto crs = buildCRS(l_children[0]);
+    if (!crs) {
+        throw ParsingException("Invalid content in CRS node");
+    }
+
+    auto &epochNode = nodeP->lookForChild(WKTConstants::EPOCH);
+    if (!isNull(epochNode)) {
+        const auto &epochChildren = epochNode->GP()->children();
+        if (epochChildren.empty()) {
+            ThrowMissing(WKTConstants::EPOCH);
+        }
+        try {
+            const double coordinateEpoch = asDouble(epochChildren[0]);
+            return CoordinateMetadata::create(NN_NO_CHECK(crs),
+                                              coordinateEpoch);
+        } catch (const std::exception &) {
+            throw ParsingException("Invalid EPOCH node");
+        }
+    }
+
+    return CoordinateMetadata::create(NN_NO_CHECK(crs));
+}
+
+// ---------------------------------------------------------------------------
+
 static bool isGeodeticCRS(const std::string &name) {
     return ci_equal(name, WKTConstants::GEODCRS) ||       // WKT2
            ci_equal(name, WKTConstants::GEODETICCRS) ||   // WKT2
@@ -5444,6 +5551,11 @@ BaseObjectNNPtr WKTParser::Private::build(const WKTNodeNNPtr &node) {
             NN_NO_CHECK(buildId(node, false, false)));
     }
 
+    if (ci_equal(name, WKTConstants::COORDINATEMETADATA)) {
+        return util::nn_static_pointer_cast<BaseObject>(
+            buildCoordinateMetadata(node));
+    }
+
     throw ParsingException(concat("unhandled keyword: ", name));
 }
 
@@ -5490,6 +5602,7 @@ class JSONParser {
     BoundCRSNNPtr buildBoundCRS(const json &j);
     TransformationNNPtr buildTransformation(const json &j);
     ConcatenatedOperationNNPtr buildConcatenatedOperation(const json &j);
+    CoordinateMetadataNNPtr buildCoordinateMetadata(const json &j);
 
     void buildGeodeticDatumOrDatumEnsemble(const json &j,
                                            GeodeticReferenceFramePtr &datum,
@@ -5501,6 +5614,14 @@ class JSONParser {
             anchor = getString(j, "anchor");
         }
         return anchor;
+    }
+
+    static util::optional<common::Measure> getAnchorEpoch(const json &j) {
+        if (j.contains("anchor_epoch")) {
+            return util::optional<common::Measure>(common::Measure(
+                getNumber(j, "anchor_epoch"), common::UnitOfMeasure::YEAR));
+        }
+        return util::optional<common::Measure>();
     }
 
     EngineeringDatumNNPtr buildEngineeringDatum(const json &j) {
@@ -6021,6 +6142,9 @@ BaseObjectNNPtr JSONParser::create(const json &j)
     if (type == "ConcatenatedOperation") {
         return buildConcatenatedOperation(j);
     }
+    if (type == "CoordinateMetadata") {
+        return buildCoordinateMetadata(j);
+    }
     if (type == "Axis") {
         return buildAxis(j);
     }
@@ -6397,6 +6521,23 @@ JSONParser::buildConcatenatedOperation(const json &j) {
 
 // ---------------------------------------------------------------------------
 
+CoordinateMetadataNNPtr JSONParser::buildCoordinateMetadata(const json &j) {
+
+    auto crs = buildCRS(getObject(j, "crs"));
+    if (j.contains("coordinateEpoch")) {
+        auto jCoordinateEpoch = j["coordinateEpoch"];
+        if (jCoordinateEpoch.is_number()) {
+            return CoordinateMetadata::create(crs,
+                                              jCoordinateEpoch.get<double>());
+        }
+        throw ParsingException(
+            "Unexpected type for value of \"coordinateEpoch\"");
+    }
+    return CoordinateMetadata::create(crs);
+}
+
+// ---------------------------------------------------------------------------
+
 MeridianNNPtr JSONParser::buildMeridian(const json &j) {
     if (!j.contains("longitude")) {
         throw ParsingException("Missing \"longitude\" key");
@@ -6426,8 +6567,31 @@ CoordinateSystemAxisNNPtr JSONParser::buildAxis(const json &j) {
     auto meridian = j.contains("meridian")
                         ? buildMeridian(getObject(j, "meridian")).as_nullable()
                         : nullptr;
+
+    util::optional<double> minVal;
+    if (j.contains("minimum_value")) {
+        minVal = getNumber(j, "minimum_value");
+    }
+
+    util::optional<double> maxVal;
+    if (j.contains("maximum_value")) {
+        maxVal = getNumber(j, "maximum_value");
+    }
+
+    util::optional<RangeMeaning> rangeMeaning;
+    if (j.contains("range_meaning")) {
+        const auto val = getString(j, "range_meaning");
+        const RangeMeaning *meaning = RangeMeaning::valueOf(val);
+        if (meaning == nullptr) {
+            throw ParsingException(
+                concat("buildAxis: invalid range_meaning value: ", val));
+        }
+        rangeMeaning = util::optional<RangeMeaning>(*meaning);
+    }
+
     return CoordinateSystemAxis::create(buildProperties(j), abbreviation,
-                                        *direction, unit, meridian);
+                                        *direction, unit, minVal, maxVal,
+                                        rangeMeaning, meridian);
 }
 
 // ---------------------------------------------------------------------------
@@ -6598,8 +6762,9 @@ JSONParser::buildGeodeticReferenceFrame(const json &j) {
     auto pm = j.contains("prime_meridian")
                   ? buildPrimeMeridian(getObject(j, "prime_meridian"))
                   : PrimeMeridian::GREENWICH;
-    return GeodeticReferenceFrame::create(
-        buildProperties(j), buildEllipsoid(ellipsoidJ), getAnchor(j), pm);
+    return GeodeticReferenceFrame::create(buildProperties(j),
+                                          buildEllipsoid(ellipsoidJ),
+                                          getAnchor(j), getAnchorEpoch(j), pm);
 }
 
 // ---------------------------------------------------------------------------
@@ -6628,7 +6793,8 @@ JSONParser::buildDynamicGeodeticReferenceFrame(const json &j) {
 
 VerticalReferenceFrameNNPtr
 JSONParser::buildVerticalReferenceFrame(const json &j) {
-    return VerticalReferenceFrame::create(buildProperties(j), getAnchor(j));
+    return VerticalReferenceFrame::create(buildProperties(j), getAnchor(j),
+                                          getAnchorEpoch(j));
 }
 
 // ---------------------------------------------------------------------------
@@ -6766,8 +6932,34 @@ static CRSNNPtr importFromCRSURL(const std::string &text,
 
     const auto &auth_name = parts[1];
     const auto &code = parts[3];
-    auto factoryCRS = AuthorityFactory::create(dbContext, auth_name);
-    return factoryCRS->createCoordinateReferenceSystem(code, true);
+    try {
+        auto factoryCRS = AuthorityFactory::create(dbContext, auth_name);
+        return factoryCRS->createCoordinateReferenceSystem(code, true);
+    } catch (...) {
+        const auto &version = parts[2];
+        if (version.empty() || version == "0") {
+            const auto authoritiesFromAuthName =
+                dbContext->getVersionedAuthoritiesFromName(auth_name);
+            for (const auto &authNameVersioned : authoritiesFromAuthName) {
+                try {
+                    auto factoryCRS =
+                        AuthorityFactory::create(dbContext, authNameVersioned);
+                    return factoryCRS->createCoordinateReferenceSystem(code,
+                                                                       true);
+                } catch (...) {
+                }
+            }
+            throw;
+        }
+        std::string authNameWithVersion;
+        if (!dbContext->getVersionedAuthority(auth_name, version,
+                                              authNameWithVersion)) {
+            throw;
+        }
+        auto factoryCRS =
+            AuthorityFactory::create(dbContext, authNameWithVersion);
+        return factoryCRS->createCoordinateReferenceSystem(code, true);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -7471,6 +7663,36 @@ static BaseObjectNNPtr createFromUserInput(const std::string &text,
         }
     }
 
+    // Parse strings like "ITRF2014 @ 2025.0"
+    const auto posAt = text.find('@');
+    if (posAt != std::string::npos) {
+        std::string leftPart = text.substr(0, posAt);
+        while (!leftPart.empty() && leftPart.back() == ' ')
+            leftPart.resize(leftPart.size() - 1);
+        const auto nonSpacePos = text.find_first_not_of(' ', posAt + 1);
+        if (nonSpacePos != std::string::npos) {
+            auto obj = createFromUserInput(leftPart, dbContext,
+                                           usePROJ4InitRules, ctx);
+            auto crs = nn_dynamic_pointer_cast<CRS>(obj);
+            if (crs) {
+                double epoch;
+                try {
+                    epoch = c_locale_stod(text.substr(nonSpacePos));
+                } catch (const std::exception &) {
+                    throw ParsingException("non-numeric value after @");
+                }
+                try {
+                    return CoordinateMetadata::create(NN_NO_CHECK(crs), epoch);
+                } catch (const std::exception &e) {
+                    throw ParsingException(
+                        std::string(
+                            "CoordinateMetadata::create() failed with: ") +
+                        e.what());
+                }
+            }
+        }
+    }
+
     throw ParsingException("unrecognized format / unknown name");
 }
 //! @endcond
@@ -7502,12 +7724,15 @@ static BaseObjectNNPtr createFromUserInput(const std::string &text,
  *      e.g.
  * "urn:ogc:def:coordinateOperation,coordinateOperation:EPSG::3895,coordinateOperation:EPSG::1618"</li>
  * <li>OGC URL for a single CRS. e.g.
- * "http://www.opengis.net/def/crs/EPSG/0/4326</li> <li>OGC URL for a compound
+ * "http://www.opengis.net/def/crs/EPSG/0/4326"</li>
+ * <li>OGC URL for a compound
  * CRS. e.g
  * "http://www.opengis.net/def/crs-compound?1=http://www.opengis.net/def/crs/EPSG/0/4326&2=http://www.opengis.net/def/crs/EPSG/0/3855"</li>
  * <li>an Object name. e.g "WGS 84", "WGS 84 / UTM zone 31N". In that case as
  *     uniqueness is not guaranteed, the function may apply heuristics to
  *     determine the appropriate best match.</li>
+ * <li>a CRS name and a coordinate epoch, separated with '@'. For example
+ *     "ITRF2014@2025.0". (added in PROJ 9.2)</li>
  * <li>a compound CRS made from two object names separated with " + ".
  *     e.g. "WGS 84 + EGM96 height"</li>
  * <li>PROJJSON string</li>
@@ -7571,12 +7796,12 @@ BaseObjectNNPtr createFromUserInput(const std::string &text,
 BaseObjectNNPtr createFromUserInput(const std::string &text, PJ_CONTEXT *ctx) {
     DatabaseContextPtr dbContext;
     try {
-        if (ctx != nullptr && ctx->cpp_context) {
+        if (ctx != nullptr) {
             // Only connect to proj.db if needed
             if (text.find("proj=") == std::string::npos ||
                 text.find("init=") != std::string::npos) {
                 dbContext =
-                    ctx->cpp_context->getDatabaseContext().as_nullable();
+                    ctx->get_cpp_context()->getDatabaseContext().as_nullable();
             }
         }
     } catch (const std::exception &) {
@@ -9915,7 +10140,16 @@ PrimeMeridianNNPtr PROJStringParser::Private::buildPrimeMeridian(Step &step) {
 // ---------------------------------------------------------------------------
 
 std::string PROJStringParser::Private::guessBodyName(double a) {
-    return Ellipsoid::guessBodyName(dbContext_, a);
+
+    auto ret = Ellipsoid::guessBodyName(dbContext_, a);
+    if (ret == "Non-Earth body" && dbContext_ == nullptr && ctx_ != nullptr) {
+        dbContext_ =
+            ctx_->get_cpp_context()->getDatabaseContext().as_nullable();
+        if (dbContext_) {
+            ret = Ellipsoid::guessBodyName(dbContext_, a);
+        }
+    }
+    return ret;
 }
 
 // ---------------------------------------------------------------------------
