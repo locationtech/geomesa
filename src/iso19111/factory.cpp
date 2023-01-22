@@ -1813,12 +1813,15 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 74eac2217b (typo fixes)
                     // preferred coordinate system for geographic lat, long
                     return;
                 }
@@ -1867,6 +1870,9 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -1876,6 +1882,7 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
                 if (authName == metadata::Identifier::EPSG && code == "6423") {
                     // preferred coordinate system for geographic lat, long, h
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -1900,6 +1907,9 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
                     return;
                 }
             }
