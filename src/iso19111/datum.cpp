@@ -91,6 +91,7 @@ struct Datum::Private {
     util::optional<std::string> anchorDefinition{};
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     std::shared_ptr<util::optional<common::Measure>> anchorEpoch =
         std::make_shared<util::optional<common::Measure>>();
 =======
@@ -100,7 +101,14 @@ struct Datum::Private {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    std::shared_ptr<util::optional<common::Measure>> anchorEpoch =
+        std::make_shared<util::optional<common::Measure>>();
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     util::optional<common::DateTime> publicationDate{};
     common::IdentifiedObjectPtr conventionalRS{};
 
@@ -110,6 +118,9 @@ struct Datum::Private {
     // cppcheck-suppress functionStatic
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     void exportAnchorEpoch(io::WKTFormatter *formatter) const;
 
     // cppcheck-suppress functionStatic
@@ -117,6 +128,7 @@ struct Datum::Private {
 
     // cppcheck-suppress functionStatic
     void exportAnchorEpoch(io::JSONFormatter *formatter) const;
+<<<<<<< HEAD
 =======
     void exportAnchorDefinition(io::JSONFormatter *formatter) const;
 <<<<<<< HEAD
@@ -126,7 +138,12 @@ struct Datum::Private {
 =======
     void exportAnchorDefinition(io::JSONFormatter *formatter) const;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 };
 
 // ---------------------------------------------------------------------------
@@ -143,6 +160,9 @@ void Datum::Private::exportAnchorDefinition(io::WKTFormatter *formatter) const {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 void Datum::Private::exportAnchorEpoch(io::WKTFormatter *formatter) const {
     if (anchorEpoch->has_value()) {
         formatter->startNode(io::WKTConstants::ANCHOREPOCH, false);
@@ -154,6 +174,7 @@ void Datum::Private::exportAnchorEpoch(io::WKTFormatter *formatter) const {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -161,7 +182,12 @@ void Datum::Private::exportAnchorEpoch(io::WKTFormatter *formatter) const {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 void Datum::Private::exportAnchorDefinition(
     io::JSONFormatter *formatter) const {
     if (anchorDefinition) {
@@ -173,6 +199,9 @@ void Datum::Private::exportAnchorDefinition(
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 // ---------------------------------------------------------------------------
 
 void Datum::Private::exportAnchorEpoch(io::JSONFormatter *formatter) const {
@@ -183,6 +212,7 @@ void Datum::Private::exportAnchorEpoch(io::JSONFormatter *formatter) const {
     }
 }
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -190,7 +220,12 @@ void Datum::Private::exportAnchorEpoch(io::JSONFormatter *formatter) const {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 //! @endcond
 
 // ---------------------------------------------------------------------------
@@ -240,6 +275,9 @@ const util::optional<std::string> &Datum::anchorDefinition() const {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 /** \brief Return the anchor epoch.
  *
  * Epoch at which a static reference frame matches a dynamic reference frame
@@ -259,6 +297,7 @@ const util::optional<common::Measure> &Datum::anchorEpoch() const {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -266,7 +305,12 @@ const util::optional<common::Measure> &Datum::anchorEpoch() const {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 /** \brief Return the date on which the datum definition was published.
  *
  * \note Departure from \ref ISO_19111_2019 : we return a DateTime instead of
@@ -303,6 +347,9 @@ void Datum::setAnchor(const util::optional<std::string> &anchor) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 void Datum::setAnchorEpoch(const util::optional<common::Measure> &anchorEpoch) {
     d->anchorEpoch =
         std::make_shared<util::optional<common::Measure>>(anchorEpoch);
@@ -310,6 +357,7 @@ void Datum::setAnchorEpoch(const util::optional<common::Measure> &anchorEpoch) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -317,7 +365,12 @@ void Datum::setAnchorEpoch(const util::optional<common::Measure> &anchorEpoch) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 void Datum::setProperties(
     const util::PropertyMap &properties) // throw(InvalidValueTypeException)
 {
@@ -1230,10 +1283,14 @@ std::string Ellipsoid::guessBodyName(const io::DatabaseContextPtr &dbContext,
                                      double a) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     // Mars (2015) - Sphere uses R=3396190
     // and Mars polar radius (as used by HIRISE JPEG2000) is 3376200m
     // which is a 0.59% relative difference.
     constexpr double relError = 0.007;
+<<<<<<< HEAD
 =======
     constexpr double relError = 0.005;
 <<<<<<< HEAD
@@ -1243,7 +1300,12 @@ std::string Ellipsoid::guessBodyName(const io::DatabaseContextPtr &dbContext,
 =======
     constexpr double relError = 0.005;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     constexpr double earthMeanRadius = 6375000.0;
     if (std::fabs(a - earthMeanRadius) < relError * earthMeanRadius) {
         return Ellipsoid::EARTH;
@@ -1321,6 +1383,7 @@ const EllipsoidNNPtr &GeodeticReferenceFrame::ellipsoid() PROJ_PURE_DEFN {
 }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 <<<<<<< HEAD
@@ -1329,7 +1392,13 @@ const EllipsoidNNPtr &GeodeticReferenceFrame::ellipsoid() PROJ_PURE_DEFN {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 // ---------------------------------------------------------------------------
 
 /** \brief Instantiate a GeodeticReferenceFrame
@@ -1358,6 +1427,9 @@ GeodeticReferenceFrame::create(const util::PropertyMap &properties,
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 /** \brief Instantiate a GeodeticReferenceFrame
  *
  * @param properties See \ref general_properties.
@@ -1385,6 +1457,7 @@ GeodeticReferenceFrameNNPtr GeodeticReferenceFrame::create(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1392,7 +1465,12 @@ GeodeticReferenceFrameNNPtr GeodeticReferenceFrame::create(
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 const GeodeticReferenceFrameNNPtr GeodeticReferenceFrame::createEPSG_6267() {
     return create(createMapNameEPSGCode("North American Datum 1927", 6267),
                   Ellipsoid::CLARKE_1866, util::optional<std::string>(),
@@ -1512,6 +1590,7 @@ void GeodeticReferenceFrame::_exportToWKT(
         Datum::getPrivate()->exportAnchorDefinition(formatter);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (formatter->use2019Keywords()) {
             Datum::getPrivate()->exportAnchorEpoch(formatter);
         }
@@ -1522,7 +1601,15 @@ void GeodeticReferenceFrame::_exportToWKT(
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        if (formatter->use2019Keywords()) {
+            Datum::getPrivate()->exportAnchorEpoch(formatter);
+        }
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     } else {
         const auto &TOWGS84Params = formatter->getTOWGS84Parameters();
         if (TOWGS84Params.size() == 7) {
@@ -1579,6 +1666,7 @@ void GeodeticReferenceFrame::_exportToJSON(
     Datum::getPrivate()->exportAnchorDefinition(formatter);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     Datum::getPrivate()->exportAnchorEpoch(formatter);
 =======
 <<<<<<< HEAD
@@ -1587,7 +1675,13 @@ void GeodeticReferenceFrame::_exportToJSON(
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    Datum::getPrivate()->exportAnchorEpoch(formatter);
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 
     if (dynamicGRF) {
         writer->AddObjKey("frame_reference_epoch");
@@ -2213,6 +2307,9 @@ VerticalReferenceFrameNNPtr VerticalReferenceFrame::create(
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 /** \brief Instantiate a VerticalReferenceFrame
  *
  * @param properties See \ref general_properties.
@@ -2239,6 +2336,7 @@ VerticalReferenceFrameNNPtr VerticalReferenceFrame::create(
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2246,7 +2344,12 @@ VerticalReferenceFrameNNPtr VerticalReferenceFrame::create(
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 //! @cond Doxygen_Suppress
 const std::string &VerticalReferenceFrame::getWKT1DatumType() const {
     return d->wkt1DatumType_;
@@ -2302,6 +2405,7 @@ void VerticalReferenceFrame::_exportToWKT(
         Datum::getPrivate()->exportAnchorDefinition(formatter);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (formatter->use2019Keywords()) {
             Datum::getPrivate()->exportAnchorEpoch(formatter);
         }
@@ -2312,7 +2416,15 @@ void VerticalReferenceFrame::_exportToWKT(
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        if (formatter->use2019Keywords()) {
+            Datum::getPrivate()->exportAnchorEpoch(formatter);
+        }
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     } else if (!formatter->useESRIDialect()) {
         formatter->add(d->wkt1DatumType_);
         const auto &extension = formatter->getVDatumExtension();
@@ -2354,6 +2466,7 @@ void VerticalReferenceFrame::_exportToJSON(
     Datum::getPrivate()->exportAnchorDefinition(formatter);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     Datum::getPrivate()->exportAnchorEpoch(formatter);
 =======
 <<<<<<< HEAD
@@ -2362,7 +2475,13 @@ void VerticalReferenceFrame::_exportToJSON(
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    Datum::getPrivate()->exportAnchorEpoch(formatter);
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 
     if (dynamicGRF) {
         writer->AddObjKey("frame_reference_epoch");
