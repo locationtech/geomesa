@@ -18,6 +18,7 @@ and for testing purposes it doesn't really matter all that much...
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -96,6 +97,9 @@ The input coordinate is located at lon=60, lam=-160 - somewhere in Alaska.
 =======
 The input coordinate is located at lon=60, lam=-160 - somewhere in Alaska.
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+The input coordinate is located at long=60, lam=-160 - somewhere in Alaska.
+>>>>>>> bf1dfe8af6 (typo fixes)
 
 ===============================================================================
 

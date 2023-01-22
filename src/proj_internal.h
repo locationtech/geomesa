@@ -589,6 +589,7 @@ struct PJconsts {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -693,6 +694,12 @@ struct PJconsts {
     NS_PROJ::common::IdentifiedObjectPtr iso_obj{};
     bool                                 iso_obj_is_coordinate_operation = false;
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    NS_PROJ::util::BaseObjectPtr iso_obj{};
+    bool                                 iso_obj_is_coordinate_operation = false;
+    double coordinateEpoch = 0;
+    bool   hasCoordinateEpoch = false;
+>>>>>>> bf1dfe8af6 (typo fixes)
 
     // cached results
     mutable std::string lastWKT{};
@@ -722,6 +729,7 @@ struct PJconsts {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -796,6 +804,10 @@ struct PJconsts {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    bool errorIfBestTransformationNotAvailable = false;
+    bool warnIfBestTransformationNotAvailable = true; /* to remove in PROJ 10? */
+>>>>>>> bf1dfe8af6 (typo fixes)
 
     /*************************************************************************************
 
@@ -909,6 +921,7 @@ struct pj_ctx{
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -983,6 +996,10 @@ struct pj_ctx{
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    bool errorIfBestTransformationNotAvailableDefault = false;
+    bool warnIfBestTransformationNotAvailableDefault = true;
+>>>>>>> bf1dfe8af6 (typo fixes)
     void    (*logger)(void *, int, const char *) = nullptr;
     void    *logger_app_data = nullptr;
     struct projCppContext* cpp_context = nullptr; /* internal context for C++ code */
@@ -1029,6 +1046,7 @@ struct pj_ctx{
     static pj_ctx createDefault();
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1156,6 +1174,8 @@ C_NAMESPACE_VAR struct PJ_DATUMS pj_datums[];
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 
 
 #ifdef PJ_LIB_
@@ -1243,6 +1263,7 @@ double  pj_sinhpsi2tanphi(PJ_CONTEXT *, const double, const double);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1316,6 +1337,8 @@ double  pj_qsfn_(double, PJ *);
 =======
 double  pj_qsfn_(double, PJ *);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 double *pj_authset(double);
 double  pj_authlat(double, double *);
 
@@ -1345,6 +1368,7 @@ PJ_LP     pj_inv_gauss(PJ_CONTEXT *, PJ_LP, const void *);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1423,6 +1447,9 @@ struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
 =======
 struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+const struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
+>>>>>>> bf1dfe8af6 (typo fixes)
 
 PJ *pj_new(void);
 PJ *pj_default_destructor (PJ *P, int errlev);
