@@ -612,6 +612,7 @@ Weak points:
   the coordinate of the upper-left pixel and the resolution. The practice is
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   to write explicit long and lat variables with all values taken by the grid.
 =======
   to write explicit lon and lat variables with all values taken by the grid.
@@ -622,7 +623,13 @@ Weak points:
 =======
   to write explicit lon and lat variables with all values taken by the grid.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+  to write explicit long and lat variables with all values taken by the grid.
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
   GDAL has for many years supported a simpler syntax, using a GeoTransform
   attribute.
 
