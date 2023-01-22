@@ -7225,6 +7225,9 @@ TEST(crs, projected_is_equivalent_to_with_proj4_extension) {
 }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 
 // ---------------------------------------------------------------------------
 
@@ -7270,7 +7273,10 @@ TEST(crs, is_dynamic) {
 
     EXPECT_FALSE(createCompoundCRS()->isDynamic());
 }
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)

@@ -69,11 +69,15 @@ int pj_datum_set(PJ_CONTEXT *ctx, paralist *pl, PJ *projdef)
         /* find the datum definition */
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const struct PJ_DATUMS * pj_datums = pj_get_datums_ref();
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        const struct PJ_DATUMS * pj_datums = pj_get_datums_ref();
+>>>>>>> e4a6fd6d75 (typo fixes)
         for (i = 0; (s = pj_datums[i].id) && strcmp(name, s) ; ++i) {}
 
         if (!s) {

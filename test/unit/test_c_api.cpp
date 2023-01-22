@@ -934,6 +934,7 @@ TEST_F(CApi, proj_get_type) {
         ObjectKeeper keeper(obj);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         ASSERT_NE(obj, nullptr);
         EXPECT_EQ(proj_get_type(obj), PJ_TYPE_UNKNOWN);
 =======
@@ -942,6 +943,10 @@ TEST_F(CApi, proj_get_type) {
 =======
         ASSERT_EQ(obj, nullptr);
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        ASSERT_NE(obj, nullptr);
+        EXPECT_EQ(proj_get_type(obj), PJ_TYPE_UNKNOWN);
+>>>>>>> e4a6fd6d75 (typo fixes)
     }
 }
 
@@ -1843,6 +1848,7 @@ TEST_F(CApi, proj_create_operations_prime_meridian_non_greenwich) {
         PJ_COORD coord;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         // lat,long=49,-4 if using grid
 =======
         // lat,lon=49,-4 if using grid
@@ -1850,6 +1856,9 @@ TEST_F(CApi, proj_create_operations_prime_meridian_non_greenwich) {
 =======
         // lat,lon=49,-4 if using grid
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        // lat,long=49,-4 if using grid
+>>>>>>> e4a6fd6d75 (typo fixes)
         coord.xy.x = 136555.58288992;
         coord.xy.y = 463344.51894296;
         int idx = proj_get_suggested_operation(m_ctxt, res, PJ_FWD, coord);
@@ -2667,6 +2676,7 @@ TEST_F(CApi, proj_create_projections) {
     {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         auto projCRS = proj_create_conversion_tunisia_mining_grid(
 =======
         auto projCRS = proj_create_conversion_tunisia_mapping_grid(
@@ -2674,6 +2684,9 @@ TEST_F(CApi, proj_create_projections) {
 =======
         auto projCRS = proj_create_conversion_tunisia_mapping_grid(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        auto projCRS = proj_create_conversion_tunisia_mining_grid(
+>>>>>>> e4a6fd6d75 (typo fixes)
             m_ctxt, 0, 0, 0, 0, "Degree", 0.0174532925199433, "Metre", 1.0);
         ObjectKeeper keeper_projCRS(projCRS);
         ASSERT_NE(projCRS, nullptr);
@@ -4734,6 +4747,9 @@ TEST_F(CApi, proj_create_crs_to_crs_from_pj_ballpark_filter) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 TEST_F(CApi, proj_create_crs_to_crs_coordinate_metadata_in_src) {
 
     auto P =
@@ -4774,10 +4790,13 @@ TEST_F(CApi, proj_create_crs_to_crs_coordinate_metadata_in_target) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 static void
 check_axis_is_latitude(PJ_CONTEXT *ctx, PJ *cs, int axis_number,
                        const char *unit_name = "degree",
@@ -5420,6 +5439,7 @@ TEST_F(CApi, proj_create_vertical_crs_ex_implied_accuracy) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Check there's an associated area of use
 =======
     // Check there's an asssociated area of use
@@ -5427,6 +5447,9 @@ TEST_F(CApi, proj_create_vertical_crs_ex_implied_accuracy) {
 =======
     // Check there's an asssociated area of use
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    // Check there's an associated area of use
+>>>>>>> e4a6fd6d75 (typo fixes)
     double west_lon_degree = 0;
     double south_lat_degree = 0;
     double east_lon_degree = 0;
@@ -6197,16 +6220,21 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
     //
     // The boundary with ndiv = 21 then mapped into a line extending to ymin =
 <<<<<<< HEAD
+<<<<<<< HEAD
     // -89178007.2 which was the projection of lat = -90d/(ndiv+1), long = 180d.
 =======
     // -89178007.2 which was the projection of lat = -90d/(ndiv+1), lon = 180d.
 >>>>>>> locationtech-main
+=======
+    // -89178007.2 which was the projection of lat = -90d/(ndiv+1), long = 180d.
+>>>>>>> e4a6fd6d75 (typo fixes)
     //
     // With the implementation of the ellipsoidal gnonomic projection, the
     // horizon is now at lat = +0.3035d.
     //
     // We move the north edge of the box to lat = -90+4.15*(ndiv+1) = +1.3d.
     // The northernmost point on the boundary which is within the horizon is
+<<<<<<< HEAD
 <<<<<<< HEAD
     // now lat = -90+4.15*ndiv = -2.85d, long = 180d for which y = -116576598.5.
 =======
@@ -6216,6 +6244,13 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 =======
 <<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    // now lat = -90+4.15*ndiv = -2.85d, lon = 180d for which y = -116576598.5.
+<<<<<<< HEAD
+=======
+    // now lat = -90+4.15*ndiv = -2.85d, long = 180d for which y = -116576598.5.
+>>>>>>> e771dc363 (typo fixes)
+>>>>>>> e4a6fd6d75 (typo fixes)
     int success =
         proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
                           &out_left, &out_bottom, &out_right, &out_top, 21);

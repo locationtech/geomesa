@@ -77,6 +77,7 @@ static PJ_LPZ sch_inverse3d(PJ_XYZ xyz, PJ *P) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     /* Convert geocentric coordinates to lat long */
 =======
     /* Convert geocentric coordinates to lat lon */
@@ -84,12 +85,16 @@ static PJ_LPZ sch_inverse3d(PJ_XYZ xyz, PJ *P) {
 =======
     /* Convert geocentric coordinates to lat lon */
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    /* Convert geocentric coordinates to lat long */
+>>>>>>> e4a6fd6d75 (typo fixes)
     return Q->cart->inv3d (xyz, Q->cart);
 }
 
 static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
     struct pj_opaque *Q = static_cast<struct pj_opaque*>(P->opaque);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     /* Convert lat long to geocentric coordinates */
@@ -99,6 +104,9 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 =======
     /* Convert lat lon to geocentric coordinates */
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    /* Convert lat long to geocentric coordinates */
+>>>>>>> e4a6fd6d75 (typo fixes)
     PJ_XYZ xyz  =  Q->cart->fwd3d (lpz, Q->cart);
 
     /* Adjust for offset */
@@ -115,6 +123,7 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     /* Convert to local lat,long */
 =======
     /* Convert to local lat,lon */
@@ -122,6 +131,9 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 =======
     /* Convert to local lat,lon */
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    /* Convert to local lat,long */
+>>>>>>> e4a6fd6d75 (typo fixes)
     lpz  =  Q->cart_sph->inv3d (xyz, Q->cart_sph);
 
     /* Scale by radius */

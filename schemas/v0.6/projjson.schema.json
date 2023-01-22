@@ -13,6 +13,7 @@
     { "$ref": "#/definitions/single_operation" },
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     { "$ref": "#/definitions/concatenated_operation" },
     { "$ref": "#/definitions/coordinate_metadata" }
 =======
@@ -21,6 +22,10 @@
 =======
     { "$ref": "#/definitions/concatenated_operation" }
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    { "$ref": "#/definitions/concatenated_operation" },
+    { "$ref": "#/definitions/coordinate_metadata" }
+>>>>>>> e4a6fd6d75 (typo fixes)
   ],
 
   "definitions": {
@@ -102,6 +107,7 @@
         "unit": { "$ref": "#/definitions/unit" },
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "minimum_value": { "type": "number" },
         "maximum_value": { "type": "number" },
         "range_meaning": { "type": "string", "enum": [ "exact", "wraparound"] },
@@ -109,6 +115,11 @@
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        "minimum_value": { "type": "number" },
+        "maximum_value": { "type": "number" },
+        "range_meaning": { "type": "string", "enum": [ "exact", "wraparound"] },
+>>>>>>> e4a6fd6d75 (typo fixes)
         "id": { "$ref": "#/definitions/id" },
         "ids": { "$ref": "#/definitions/ids" }
       },
@@ -228,6 +239,9 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     "coordinate_metadata": {
       "type": "object",
       "properties": {
@@ -240,10 +254,13 @@
       "additionalProperties": false
     },
 
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     "coordinate_system": {
       "type": "object",
       "properties": {
@@ -504,11 +521,15 @@
         "anchor": {},
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "anchor_epoch": {},
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        "anchor_epoch": {},
+>>>>>>> e4a6fd6d75 (typo fixes)
         "ellipsoid": {},
         "prime_meridian": {},
         "frame_reference_epoch": { "type": "number" },
@@ -535,11 +556,15 @@
         "anchor": {},
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "anchor_epoch": {},
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        "anchor_epoch": {},
+>>>>>>> e4a6fd6d75 (typo fixes)
         "frame_reference_epoch": { "type": "number" },
         "$schema" : {},
         "scope": {},
@@ -690,11 +715,15 @@
         "anchor": { "type": "string" },
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "anchor_epoch": { "type": "number" },
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        "anchor_epoch": { "type": "number" },
+>>>>>>> e4a6fd6d75 (typo fixes)
         "ellipsoid": { "$ref": "#/definitions/ellipsoid" },
         "prime_meridian": { "$ref": "#/definitions/prime_meridian" },
         "$schema" : {},
@@ -1193,11 +1222,15 @@
         "anchor": { "type": "string" },
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "anchor_epoch": { "type": "number" },
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        "anchor_epoch": { "type": "number" },
+>>>>>>> e4a6fd6d75 (typo fixes)
         "$schema" : {},
         "scope": {},
         "area": {},

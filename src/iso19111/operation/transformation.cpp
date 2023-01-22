@@ -735,6 +735,7 @@ static TransformationNNPtr createFifteenParamsTransform(
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1053/index.html">
  * EPSG:1053</a>.
@@ -746,6 +747,11 @@ static TransformationNNPtr createFifteenParamsTransform(
  * This method is defined as [EPSG:1053]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1053)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as
+ * <a href="https://epsg.org/coord-operation-method_1053/index.html">
+ * EPSG:1053</a>.
+>>>>>>> e4a6fd6d75 (typo fixes)
  *
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
@@ -822,6 +828,7 @@ TransformationNNPtr Transformation::createTimeDependentPositionVector(
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1056/index.html">
  * EPSG:1056</a>.
@@ -833,6 +840,11 @@ TransformationNNPtr Transformation::createTimeDependentPositionVector(
  * This method is defined as [EPSG:1056]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1056)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as
+ * <a href="https://epsg.org/coord-operation-method_1056/index.html">
+ * EPSG:1056</a>.
+>>>>>>> e4a6fd6d75 (typo fixes)
  *
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
@@ -940,6 +952,7 @@ static TransformationNNPtr _createMolodensky(
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9604/index.html">
  * EPSG:9604</a>.
@@ -951,6 +964,11 @@ static TransformationNNPtr _createMolodensky(
  * This method is defined as [EPSG:9604]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9604)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as
+ * <a href="https://epsg.org/coord-operation-method_9604/index.html">
+ * EPSG:9604</a>.
+>>>>>>> e4a6fd6d75 (typo fixes)
  *
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
@@ -987,6 +1005,7 @@ TransformationNNPtr Transformation::createMolodensky(
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9605/index.html">
  * EPSG:9605</a>.
@@ -998,6 +1017,11 @@ TransformationNNPtr Transformation::createMolodensky(
  * This method is defined as [EPSG:9605]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9605)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as
+ * <a href="https://epsg.org/coord-operation-method_9605/index.html">
+ * EPSG:9605</a>.
+>>>>>>> e4a6fd6d75 (typo fixes)
  *
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
@@ -1193,10 +1217,14 @@ buildAccuracyZero() {
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9601/index.html">
  * EPSG:9601</a>.
  *
+<<<<<<< HEAD
 =======
  * This method is defined as [EPSG:9601]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9601)
@@ -1207,6 +1235,8 @@ buildAccuracyZero() {
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9601)
  * *
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
  * @param sourceCRSIn Source CRS.
@@ -1232,10 +1262,14 @@ TransformationNNPtr Transformation::createLongitudeRotation(
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9619/index.html">
  * EPSG:9619</a>.
  *
+<<<<<<< HEAD
 =======
  * This method is defined as [EPSG:9619]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9619)
@@ -1246,11 +1280,14 @@ TransformationNNPtr Transformation::createLongitudeRotation(
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9619)
  * *
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
  * @param sourceCRSIn Source CRS.
  * @param targetCRSIn Target CRS.
  * @param offsetLat Latitude offset to add.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
  * @param offsetLong Longitude offset to add.
@@ -1260,12 +1297,16 @@ TransformationNNPtr Transformation::createLongitudeRotation(
 =======
  * @param offsetLon Longitude offset to add.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * @param offsetLong Longitude offset to add.
+>>>>>>> e4a6fd6d75 (typo fixes)
  * @param accuracies Vector of positional accuracy (might be empty).
  * @return new Transformation.
  */
 TransformationNNPtr Transformation::createGeographic2DOffsets(
     const util::PropertyMap &properties, const crs::CRSNNPtr &sourceCRSIn,
     const crs::CRSNNPtr &targetCRSIn, const common::Angle &offsetLat,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     const common::Angle &offsetLong,
@@ -1275,6 +1316,9 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 =======
     const common::Angle &offsetLon,
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    const common::Angle &offsetLong,
+>>>>>>> e4a6fd6d75 (typo fixes)
     const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies) {
     return create(
         properties, sourceCRSIn, targetCRSIn, nullptr,
@@ -1284,6 +1328,7 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
             createOpParamNameEPSGCode(EPSG_CODE_PARAMETER_LONGITUDE_OFFSET)},
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         VectorOfValues{offsetLat, offsetLong}, accuracies);
 =======
         VectorOfValues{offsetLat, offsetLon}, accuracies);
@@ -1291,6 +1336,9 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 =======
         VectorOfValues{offsetLat, offsetLon}, accuracies);
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        VectorOfValues{offsetLat, offsetLong}, accuracies);
+>>>>>>> e4a6fd6d75 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -1299,10 +1347,14 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9660/index.html">
  * EPSG:9660</a>.
  *
+<<<<<<< HEAD
 =======
  * This method is defined as [EPSG:9660]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9660)
@@ -1313,11 +1365,14 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9660)
  * *
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
  * @param sourceCRSIn Source CRS.
  * @param targetCRSIn Target CRS.
  * @param offsetLat Latitude offset to add.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
  * @param offsetLong Longitude offset to add.
@@ -1327,6 +1382,9 @@ TransformationNNPtr Transformation::createGeographic2DOffsets(
 =======
  * @param offsetLon Longitude offset to add.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * @param offsetLong Longitude offset to add.
+>>>>>>> e4a6fd6d75 (typo fixes)
  * @param offsetHeight Height offset to add.
  * @param accuracies Vector of positional accuracy (might be empty).
  * @return new Transformation.
@@ -1336,6 +1394,7 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
     const crs::CRSNNPtr &targetCRSIn, const common::Angle &offsetLat,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const common::Angle &offsetLong, const common::Length &offsetHeight,
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight,
@@ -1343,6 +1402,9 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight,
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    const common::Angle &offsetLong, const common::Length &offsetHeight,
+>>>>>>> e4a6fd6d75 (typo fixes)
     const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies) {
     return create(
         properties, sourceCRSIn, targetCRSIn, nullptr,
@@ -1353,6 +1415,7 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
             createOpParamNameEPSGCode(EPSG_CODE_PARAMETER_VERTICAL_OFFSET)},
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         VectorOfValues{offsetLat, offsetLong, offsetHeight}, accuracies);
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight}, accuracies);
@@ -1360,6 +1423,9 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight}, accuracies);
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        VectorOfValues{offsetLat, offsetLong, offsetHeight}, accuracies);
+>>>>>>> e4a6fd6d75 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -1370,10 +1436,14 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9618/index.html">
  * EPSG:9618</a>.
  *
+<<<<<<< HEAD
 =======
  * This method is defined as [EPSG:9618]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9618)
@@ -1384,11 +1454,14 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9618)
  * *
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
  * @param sourceCRSIn Source CRS.
  * @param targetCRSIn Target CRS.
  * @param offsetLat Latitude offset to add.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
  * @param offsetLong Longitude offset to add.
@@ -1398,6 +1471,9 @@ TransformationNNPtr Transformation::createGeographic3DOffsets(
 =======
  * @param offsetLon Longitude offset to add.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * @param offsetLong Longitude offset to add.
+>>>>>>> e4a6fd6d75 (typo fixes)
  * @param offsetHeight Geoid undulation to add.
  * @param accuracies Vector of positional accuracy (might be empty).
  * @return new Transformation.
@@ -1407,6 +1483,7 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
     const crs::CRSNNPtr &targetCRSIn, const common::Angle &offsetLat,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const common::Angle &offsetLong, const common::Length &offsetHeight,
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight,
@@ -1414,6 +1491,9 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight,
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    const common::Angle &offsetLong, const common::Length &offsetHeight,
+>>>>>>> e4a6fd6d75 (typo fixes)
     const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies) {
     return create(
         properties, sourceCRSIn, targetCRSIn, nullptr,
@@ -1425,6 +1505,7 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
             createOpParamNameEPSGCode(EPSG_CODE_PARAMETER_GEOID_UNDULATION)},
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         VectorOfValues{offsetLat, offsetLong, offsetHeight}, accuracies);
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight}, accuracies);
@@ -1432,6 +1513,9 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight}, accuracies);
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        VectorOfValues{offsetLat, offsetLong, offsetHeight}, accuracies);
+>>>>>>> e4a6fd6d75 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -1440,10 +1524,14 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9616/index.html">
  * EPSG:9616</a>.
  *
+<<<<<<< HEAD
 =======
  * This method is defined as [EPSG:9616]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9616)
@@ -1454,6 +1542,8 @@ TransformationNNPtr Transformation::createGeographic2DWithHeightOffsets(
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9616)
  * *
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
  * @param properties See \ref general_properties of the Transformation.
  * At minimum the name should be defined.
  * @param sourceCRSIn Source CRS.
@@ -1480,6 +1570,7 @@ TransformationNNPtr Transformation::createVerticalOffset(
  *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1069/index.html">
  * EPSG:1069</a> [DEPRECATED].
@@ -1491,6 +1582,11 @@ TransformationNNPtr Transformation::createVerticalOffset(
  * This method is defined as [EPSG:1069]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1069)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as
+ * <a href="https://epsg.org/coord-operation-method_1069/index.html">
+ * EPSG:1069</a> [DEPRECATED].
+>>>>>>> e4a6fd6d75 (typo fixes)
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.

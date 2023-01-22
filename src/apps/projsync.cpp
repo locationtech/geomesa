@@ -291,6 +291,7 @@ int main(int argc, char *argv[]) {
     if (listFiles) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         std::cout << "filename,area_of_use,source_id,file_size" << std::endl;
 =======
         std::cout << "filename,source_id,area_of_use,file_size" << std::endl;
@@ -298,6 +299,9 @@ int main(int argc, char *argv[]) {
 =======
         std::cout << "filename,source_id,area_of_use,file_size" << std::endl;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        std::cout << "filename,area_of_use,source_id,file_size" << std::endl;
+>>>>>>> e4a6fd6d75 (typo fixes)
     }
 
     std::string proj_data_version_str;
@@ -372,6 +376,7 @@ int main(int argc, char *argv[]) {
                                           << version_added
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                                           << " and we are targeting "
 =======
                                           << " and we are targetting "
@@ -379,6 +384,9 @@ int main(int argc, char *argv[]) {
 =======
                                           << " and we are targetting "
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                          << " and we are targeting "
+>>>>>>> e4a6fd6d75 (typo fixes)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;
@@ -408,6 +416,7 @@ int main(int argc, char *argv[]) {
                                           << version_removed
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                                           << " and we are targeting "
 =======
                                           << " and we are targetting "
@@ -415,6 +424,9 @@ int main(int argc, char *argv[]) {
 =======
                                           << " and we are targetting "
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                          << " and we are targeting "
+>>>>>>> e4a6fd6d75 (typo fixes)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;

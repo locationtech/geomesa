@@ -557,6 +557,9 @@ def import_geogcs():
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
             if code == latestWkid and authority.upper() == 'ESRI':
                 cursor.execute(
                     "SELECT name FROM geodetic_crs WHERE auth_name = 'EPSG' AND code = ?", (latestWkid,))
@@ -568,10 +571,13 @@ def import_geogcs():
                         print("GeogCRS ESRI:%s (%s) has the same name as EPSG:%s. Fixing authority to be EPSG" % (latestWkid, esri_name, latestWkid))
                         authority = "EPSG"
 
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
             if authority == 'EPSG':
 
                 map_geogcs_esri_name_to_auth_code[esri_name] = [
@@ -1278,6 +1284,9 @@ def import_projcs():
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
             if code == latestWkid and authority.upper() == 'ESRI':
                 cursor.execute(
                     "SELECT name FROM projected_crs WHERE auth_name = 'EPSG' AND code = ?", (latestWkid,))
@@ -1289,10 +1298,13 @@ def import_projcs():
                         print("ProjCRS ESRI:%s (%s) has the same name as EPSG:%s. Fixing authority to be EPSG" % (latestWkid, esri_name, latestWkid))
                         authority = "EPSG"
 
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
             if authority == 'EPSG':
 
                 map_projcs_esri_name_to_auth_code[esri_name] = [
@@ -1635,6 +1647,9 @@ def import_vertcs():
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
             if code == latestWkid and authority.upper() == 'ESRI':
                 cursor.execute(
                     "SELECT name FROM vertical_crs WHERE auth_name = 'EPSG' AND code = ?", (latestWkid,))
@@ -1646,10 +1661,13 @@ def import_vertcs():
                         print("VertCRS ESRI:%s (%s) has the same name as EPSG:%s. Fixing authority to be EPSG" % (latestWkid, esri_name, latestWkid))
                         authority = "EPSG"
 
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
             if authority == 'EPSG':
 
                 map_vertcs_esri_name_to_auth_code[esri_name] = [
@@ -1745,6 +1763,7 @@ def import_vertcs():
                 assert parsed_wkt2['VERTCRS'][1]['CS'] == ['vertical', '1'], 'Unhandled vertcrs CS: {}'.format(parsed_wkt2['VERTCRS'][1]['CS'])
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 axis = parsed_wkt2['VERTCRS'][1]['AXIS']
                 is_ellipsoidal_height = (axis[:2] == ['Ellipsoidal height (h)', 'up'])
                 assert axis[:2] == ['Gravity-related height (H)', 'up'] or is_ellipsoidal_height, 'Unhandled vertcrs AXIS: {}'.format(axis)
@@ -1760,6 +1779,13 @@ def import_vertcs():
 
                 vertical_unit = parsed_wkt2['VERTCRS'][1]['AXIS'][2]['UNIT_NAME']
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                axis = parsed_wkt2['VERTCRS'][1]['AXIS']
+                is_ellipsoidal_height = (axis[:2] == ['Ellipsoidal height (h)', 'up'])
+                assert axis[:2] == ['Gravity-related height (H)', 'up'] or is_ellipsoidal_height, 'Unhandled vertcrs AXIS: {}'.format(axis)
+
+                vertical_unit = axis[2]['UNIT_NAME']
+>>>>>>> e4a6fd6d75 (typo fixes)
                 cs_auth = 'EPSG'
                 if vertical_unit == 'Meter':
                     cs_code = 6499
@@ -1772,6 +1798,7 @@ def import_vertcs():
                                    str(row))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 if is_ellipsoidal_height or not is_vdatum:
 =======
                 if not is_vdatum:
@@ -1779,6 +1806,9 @@ def import_vertcs():
 =======
                 if not is_vdatum:
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                if is_ellipsoidal_height or not is_vdatum:
+>>>>>>> e4a6fd6d75 (typo fixes)
                     assert cs_code == 6499
                     cs_auth = 'ESRI'
                     cs_code = 'ELLPS_HEIGHT_METRE'

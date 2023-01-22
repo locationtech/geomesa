@@ -1057,6 +1057,7 @@ TEST(gie, proj_trans_generic) {
     double lat = -60;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     double longitude = 120;
     proj_trans_generic(P, PJ_FWD, &lat, sizeof(double), 1, &longitude,
                        sizeof(double), 1, nullptr, 0, 0, nullptr, 0, 0);
@@ -1076,6 +1077,14 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    double longitude = 120;
+    proj_trans_generic(P, PJ_FWD, &lat, sizeof(double), 1, &longitude,
+                       sizeof(double), 1, nullptr, 0, 0, nullptr, 0, 0);
+    // Should be a no-op when the time is unknown (or equal to 2020)
+    EXPECT_NEAR(lat, -60, 1e-9);
+    EXPECT_NEAR(longitude, 120, 1e-9);
+>>>>>>> e4a6fd6d75 (typo fixes)
 
     proj_destroy(P);
 }
@@ -1165,6 +1174,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
         ASSERT_TRUE(Pnormalized->over);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 
         PJ_COORD input_over_normalized;
         input_over_normalized.xyz.x = -220; // Long in deg
@@ -1174,10 +1186,13 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
             proj_trans(Pnormalized, PJ_FWD, input_over_normalized);
         EXPECT_NEAR(output_over_normalized.xyz.x, -24490287.974520184, 1e-8);
 
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
         proj_destroy(Pnormalized);
 
         proj_destroy(P);
@@ -1278,6 +1293,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
         }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 
         PJ_COORD input_over_normalized;
         input_over_normalized.xyz.x = -220; // Long in deg
@@ -1288,10 +1306,13 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
         EXPECT_NEAR(output_over_normalized.xyz.x, 4980122.749364435, 1e-8);
         EXPECT_NEAR(output_over_normalized.xyz.y, 14467212.882603768, 1e-8);
 
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
         proj_destroy(Pnormalized);
 
         proj_destroy(P);

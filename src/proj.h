@@ -807,12 +807,17 @@ typedef enum
     PJ_TYPE_DERIVED_PROJECTED_CRS,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     PJ_TYPE_COORDINATE_METADATA,
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+
+    PJ_TYPE_COORDINATE_METADATA,
+>>>>>>> e4a6fd6d75 (typo fixes)
 } PJ_TYPE;
 
 /** Comparison criterion. */
@@ -1525,12 +1530,17 @@ PJ PROJ_DLL *proj_concatoperation_get_step(PJ_CONTEXT *ctx,
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 double PROJ_DLL proj_coordinate_metadata_get_epoch(PJ_CONTEXT *ctx, const PJ *obj);
 
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+double PROJ_DLL proj_coordinate_metadata_get_epoch(PJ_CONTEXT *ctx, const PJ *obj);
+
+>>>>>>> e4a6fd6d75 (typo fixes)
 /**@}*/
 
 #ifdef __cplusplus

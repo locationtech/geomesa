@@ -53,6 +53,7 @@ struct GridInfo {
     int idxSampleLat = -1;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     int idxSampleLong = -1;
     int idxSampleZ = -1;
     bool bilinearInterpolation = true;
@@ -70,6 +71,13 @@ struct GridInfo {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    int idxSampleLong = -1;
+    int idxSampleZ = -1;
+    bool bilinearInterpolation = true;
+    std::vector<float> shifts;
+    std::vector<int> idxSampleLatLongZ{-1, -1, -1};
+>>>>>>> e4a6fd6d75 (typo fixes)
     int lastIdxLam = -1;
     int lastIdxPhi = -1;
 };
@@ -206,6 +214,7 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
         int idxSampleLat = -1;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         int idxSampleLong = -1;
 =======
         int idxSampleLon = -1;
@@ -213,6 +222,9 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 =======
         int idxSampleLon = -1;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        int idxSampleLong = -1;
+>>>>>>> e4a6fd6d75 (typo fixes)
         int idxSampleZ = -1;
         for (int i = 0; i < samplesPerPixel; i++) {
             const auto desc = grid->description(i);
@@ -227,6 +239,7 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
             } else if (desc == "longitude_offset") {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 idxSampleLong = i;
                 const auto unit = grid->unit(idxSampleLong);
 =======
@@ -237,6 +250,10 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
                 idxSampleLon = i;
                 const auto unit = grid->unit(idxSampleLon);
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                idxSampleLong = i;
+                const auto unit = grid->unit(idxSampleLong);
+>>>>>>> e4a6fd6d75 (typo fixes)
                 if (!unit.empty() && unit != "arc-second") {
                     pj_log(ctx, PJ_LOG_ERROR,
                            "gridshift: Only unit=arc-second currently handled");
@@ -256,6 +273,7 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
         }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (samplesPerPixel >= 2 && idxSampleLat < 0 && idxSampleLong < 0 &&
             type == "HORIZONTAL_OFFSET") {
             idxSampleLat = 0;
@@ -267,16 +285,23 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
         if (samplesPerPixel >= 2 && idxSampleLat < 0 && idxSampleLon < 0 &&
+=======
+        if (samplesPerPixel >= 2 && idxSampleLat < 0 && idxSampleLong < 0 &&
+>>>>>>> e4a6fd6d75 (typo fixes)
             type == "HORIZONTAL_OFFSET") {
             idxSampleLat = 0;
-            idxSampleLon = 1;
+            idxSampleLong = 1;
         }
         if (type == "HORIZONTAL_OFFSET" || type == "GEOGRAPHIC_3D_OFFSET") {
+<<<<<<< HEAD
             if (idxSampleLat < 0 || idxSampleLon < 0) {
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            if (idxSampleLat < 0 || idxSampleLong < 0) {
+>>>>>>> e4a6fd6d75 (typo fixes)
                 pj_log(ctx, PJ_LOG_ERROR,
                        "gridshift: grid has not expected samples");
                 return val;
@@ -309,6 +334,7 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
         gridInfo.idxSampleLat = idxSampleLat;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         gridInfo.idxSampleLong = idxSampleLong;
 =======
         gridInfo.idxSampleLon = idxSampleLon;
@@ -316,11 +342,15 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 =======
         gridInfo.idxSampleLon = idxSampleLon;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        gridInfo.idxSampleLong = idxSampleLong;
+>>>>>>> e4a6fd6d75 (typo fixes)
         gridInfo.idxSampleZ = m_skip_z_transform ? -1 : idxSampleZ;
         gridInfo.bilinearInterpolation =
             (interpolation == "bilinear" || grid->width() < 3 ||
              grid->height() < 3);
         gridInfo.shifts.resize(3 * 3 * 3);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         gridInfo.idxSampleLatLongZ[0] = idxSampleLat;
@@ -336,11 +366,17 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
         gridInfo.idxSampleLatLonZ[1] = idxSampleLon;
         gridInfo.idxSampleLatLonZ[2] = idxSampleZ;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        gridInfo.idxSampleLatLongZ[0] = idxSampleLat;
+        gridInfo.idxSampleLatLongZ[1] = idxSampleLong;
+        gridInfo.idxSampleLatLongZ[2] = idxSampleZ;
+>>>>>>> e4a6fd6d75 (typo fixes)
         m_cacheGridInfo[grid] = gridInfo;
         iterCache = m_cacheGridInfo.find(grid);
     }
     GridInfo &gridInfo = iterCache->second;
     const int idxSampleLat = gridInfo.idxSampleLat;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     const int idxSampleLong = gridInfo.idxSampleLong;
@@ -350,6 +386,9 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 =======
     const int idxSampleLon = gridInfo.idxSampleLon;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    const int idxSampleLong = gridInfo.idxSampleLong;
+>>>>>>> e4a6fd6d75 (typo fixes)
     const int idxSampleZ = gridInfo.idxSampleZ;
     const bool bilinearInterpolation = gridInfo.bilinearInterpolation;
 
@@ -395,6 +434,7 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     constexpr double convFactorLatLong = 1. / 3600 / 180 * M_PI;
 =======
     constexpr double convFactorLatLon = 1. / 3600 / 180 * M_PI;
@@ -402,6 +442,9 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 =======
     constexpr double convFactorLatLon = 1. / 3600 / 180 * M_PI;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    constexpr double convFactorLatLong = 1. / 3600 / 180 * M_PI;
+>>>>>>> e4a6fd6d75 (typo fixes)
     if (bilinearInterpolation) {
         double m10 = frct.lam;
         double m11 = m10;
@@ -414,6 +457,7 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
         m10 *= frct.phi;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (idxSampleLong >= 0 && idxSampleLat >= 0) {
 =======
         if (idxSampleLon >= 0 && idxSampleLat >= 0) {
@@ -421,10 +465,14 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 =======
         if (idxSampleLon >= 0 && idxSampleLat >= 0) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        if (idxSampleLong >= 0 && idxSampleLat >= 0) {
+>>>>>>> e4a6fd6d75 (typo fixes)
             if (gridInfo.lastIdxPhi != indx.phi ||
                 gridInfo.lastIdxLam != indx.lam) {
                 if (!grid->valuesAt(indx.lam, indx.phi, 2, 2,
                                     idxSampleZ >= 0 ? 3 : 2,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
                                     gridInfo.idxSampleLatLongZ.data(),
@@ -434,6 +482,9 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 =======
                                     gridInfo.idxSampleLatLonZ.data(),
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                    gridInfo.idxSampleLatLongZ.data(),
+>>>>>>> e4a6fd6d75 (typo fixes)
                                     gridInfo.shifts.data())) {
                     return val;
                 }
@@ -446,6 +497,7 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
                      m01 * gridInfo.shifts[6] + m11 * gridInfo.shifts[9]) *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     convFactorLatLong;
                 val.lam =
                     (m00 * gridInfo.shifts[1] + m10 * gridInfo.shifts[4] +
@@ -463,6 +515,13 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                    convFactorLatLong;
+                val.lam =
+                    (m00 * gridInfo.shifts[1] + m10 * gridInfo.shifts[4] +
+                     m01 * gridInfo.shifts[7] + m11 * gridInfo.shifts[10]) *
+                    convFactorLatLong;
+>>>>>>> e4a6fd6d75 (typo fixes)
                 val.z = m00 * gridInfo.shifts[2] + m10 * gridInfo.shifts[5] +
                         m01 * gridInfo.shifts[8] + m11 * gridInfo.shifts[11];
             } else {
@@ -471,6 +530,7 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
                      m01 * gridInfo.shifts[4] + m11 * gridInfo.shifts[6]) *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     convFactorLatLong;
                 val.lam =
                     (m00 * gridInfo.shifts[1] + m10 * gridInfo.shifts[3] +
@@ -488,6 +548,13 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                    convFactorLatLong;
+                val.lam =
+                    (m00 * gridInfo.shifts[1] + m10 * gridInfo.shifts[3] +
+                     m01 * gridInfo.shifts[5] + m11 * gridInfo.shifts[7]) *
+                    convFactorLatLong;
+>>>>>>> e4a6fd6d75 (typo fixes)
             }
         } else {
             val.lam = 0;
@@ -536,6 +603,7 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (idxSampleLong >= 0 && idxSampleLat >= 0) {
 =======
         if (idxSampleLon >= 0 && idxSampleLat >= 0) {
@@ -543,10 +611,14 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 =======
         if (idxSampleLon >= 0 && idxSampleLat >= 0) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        if (idxSampleLong >= 0 && idxSampleLat >= 0) {
+>>>>>>> e4a6fd6d75 (typo fixes)
             if (gridInfo.lastIdxPhi != indx.phi ||
                 gridInfo.lastIdxLam != indx.lam) {
                 if (!grid->valuesAt(indx.lam, indx.phi, 3, 3,
                                     idxSampleZ >= 0 ? 3 : 2,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
                                     gridInfo.idxSampleLatLongZ.data(),
@@ -556,6 +628,9 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 =======
                                     gridInfo.idxSampleLatLonZ.data(),
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                    gridInfo.idxSampleLatLongZ.data(),
+>>>>>>> e4a6fd6d75 (typo fixes)
                                     gridInfo.shifts.data())) {
                     return val;
                 }
@@ -579,6 +654,7 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
                                             latlonz_shift[2][0]) *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                           convFactorLatLong;
                 val.lam = quadraticInterpol(frct.phi, latlonz_shift[0][1],
                                             latlonz_shift[1][1],
@@ -596,6 +672,13 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                          convFactorLatLong;
+                val.lam = quadraticInterpol(frct.phi, latlonz_shift[0][1],
+                                            latlonz_shift[1][1],
+                                            latlonz_shift[2][1]) *
+                          convFactorLatLong;
+>>>>>>> e4a6fd6d75 (typo fixes)
                 val.z =
                     quadraticInterpol(frct.phi, latlonz_shift[0][2],
                                       latlonz_shift[1][2], latlonz_shift[2][2]);
@@ -613,6 +696,7 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
                                       latlon_shift[1][0], latlon_shift[2][0]) *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     convFactorLatLong;
                 val.lam =
                     quadraticInterpol(frct.phi, latlon_shift[0][1],
@@ -630,6 +714,13 @@ PJ_LPZ gridshiftData::grid_interpolate(PJ_CONTEXT *ctx, const std::string &type,
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                    convFactorLatLong;
+                val.lam =
+                    quadraticInterpol(frct.phi, latlon_shift[0][1],
+                                      latlon_shift[1][1], latlon_shift[2][1]) *
+                    convFactorLatLong;
+>>>>>>> e4a6fd6d75 (typo fixes)
             }
         } else {
             val.lam = 0;

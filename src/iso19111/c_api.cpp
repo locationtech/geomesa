@@ -36,11 +36,15 @@
 #include <cstring>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include <limits>
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#include <limits>
+>>>>>>> e4a6fd6d75 (typo fixes)
 #include <map>
 #include <memory>
 #include <new>
@@ -51,11 +55,15 @@
 #include "proj/coordinateoperation.hpp"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "proj/coordinates.hpp"
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#include "proj/coordinates.hpp"
+>>>>>>> e4a6fd6d75 (typo fixes)
 #include "proj/coordinatesystem.hpp"
 #include "proj/crs.hpp"
 #include "proj/datum.hpp"
@@ -78,11 +86,15 @@
 using namespace NS_PROJ::common;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 using namespace NS_PROJ::coordinates;
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+using namespace NS_PROJ::coordinates;
+>>>>>>> e4a6fd6d75 (typo fixes)
 using namespace NS_PROJ::crs;
 using namespace NS_PROJ::cs;
 using namespace NS_PROJ::datum;
@@ -210,6 +222,7 @@ getDBcontextNoException(PJ_CONTEXT *ctx, const char *function) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 static PJ *pj_obj_create(PJ_CONTEXT *ctx, const BaseObjectNNPtr &objIn) {
 =======
 static PJ *pj_obj_create(PJ_CONTEXT *ctx, const IdentifiedObjectNNPtr &objIn) {
@@ -217,6 +230,9 @@ static PJ *pj_obj_create(PJ_CONTEXT *ctx, const IdentifiedObjectNNPtr &objIn) {
 =======
 static PJ *pj_obj_create(PJ_CONTEXT *ctx, const IdentifiedObjectNNPtr &objIn) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static PJ *pj_obj_create(PJ_CONTEXT *ctx, const BaseObjectNNPtr &objIn) {
+>>>>>>> e4a6fd6d75 (typo fixes)
     auto coordop = dynamic_cast<const CoordinateOperation *>(objIn.get());
     if (coordop) {
         auto dbContext = getDBcontextNoException(ctx, __FUNCTION__);
@@ -234,6 +250,9 @@ static PJ *pj_obj_create(PJ_CONTEXT *ctx, const IdentifiedObjectNNPtr &objIn) {
                 pj->iso_obj_is_coordinate_operation = true;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
                 auto sourceEpoch = coordop->sourceCoordinateEpoch();
                 if (sourceEpoch.has_value()) {
                     pj->hasCoordinateEpoch = true;
@@ -249,10 +268,13 @@ static PJ *pj_obj_create(PJ_CONTEXT *ctx, const IdentifiedObjectNNPtr &objIn) {
                                 common::UnitOfMeasure::YEAR);
                     }
                 }
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
                 return pj;
             }
         } catch (const std::exception &) {
@@ -573,16 +595,22 @@ PJ *proj_clone(PJ_CONTEXT *ctx, const PJ *obj) {
                 newPj->ctx = ctx;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 const int old_debug_level = ctx->debug_level;
                 ctx->debug_level = PJ_LOG_NONE;
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                const int old_debug_level = ctx->debug_level;
+                ctx->debug_level = PJ_LOG_NONE;
+>>>>>>> e4a6fd6d75 (typo fixes)
                 for (const auto &altOp : obj->alternativeCoordinateOperations) {
                     newPj->alternativeCoordinateOperations.emplace_back(
                         PJCoordOperation(ctx, altOp));
                 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
                 ctx->debug_level = old_debug_level;
@@ -590,6 +618,9 @@ PJ *proj_clone(PJ_CONTEXT *ctx, const PJ *obj) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                ctx->debug_level = old_debug_level;
+>>>>>>> e4a6fd6d75 (typo fixes)
             }
             return newPj;
         }
@@ -636,10 +667,14 @@ PJ *proj_create(PJ_CONTEXT *ctx, const char *text) {
     try {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
         auto obj =
             nn_dynamic_pointer_cast<BaseObject>(createFromUserInput(text, ctx));
         if (obj) {
             return pj_obj_create(ctx, NN_NO_CHECK(obj));
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -651,6 +686,8 @@ PJ *proj_create(PJ_CONTEXT *ctx, const char *text) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
         }
     } catch (const io::ParsingException &e) {
         if (proj_context_errno(ctx) == 0) {
@@ -736,6 +773,7 @@ PJ *proj_create_from_wkt(PJ_CONTEXT *ctx, const char *wkt,
         }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         auto obj = parser.createFromWKT(wkt);
 =======
         auto obj = nn_dynamic_pointer_cast<IdentifiedObject>(
@@ -745,6 +783,9 @@ PJ *proj_create_from_wkt(PJ_CONTEXT *ctx, const char *wkt,
         auto obj = nn_dynamic_pointer_cast<IdentifiedObject>(
             parser.createFromWKT(wkt));
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        auto obj = parser.createFromWKT(wkt);
+>>>>>>> e4a6fd6d75 (typo fixes)
 
         std::vector<std::string> warningsFromParsing;
         if (out_grammar_errors) {
@@ -764,6 +805,7 @@ PJ *proj_create_from_wkt(PJ_CONTEXT *ctx, const char *wkt,
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (out_warnings) {
 =======
         if (obj && out_warnings) {
@@ -771,6 +813,9 @@ PJ *proj_create_from_wkt(PJ_CONTEXT *ctx, const char *wkt,
 =======
         if (obj && out_warnings) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        if (out_warnings) {
+>>>>>>> e4a6fd6d75 (typo fixes)
             auto derivedCRS = dynamic_cast<const crs::DerivedCRS *>(obj.get());
             if (derivedCRS) {
                 auto warnings =
@@ -794,6 +839,7 @@ PJ *proj_create_from_wkt(PJ_CONTEXT *ctx, const char *wkt,
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         return pj_obj_create(ctx, NN_NO_CHECK(obj));
 =======
         if (obj) {
@@ -805,6 +851,9 @@ PJ *proj_create_from_wkt(PJ_CONTEXT *ctx, const char *wkt,
             return pj_obj_create(ctx, NN_NO_CHECK(obj));
         }
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        return pj_obj_create(ctx, NN_NO_CHECK(obj));
+>>>>>>> e4a6fd6d75 (typo fixes)
     } catch (const std::exception &e) {
         if (out_grammar_errors) {
             std::list<std::string> exc{e.what()};
@@ -1204,14 +1253,20 @@ convertPJObjectTypeToObjectType(PJ_TYPE type, bool &valid) {
         break;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 
     case PJ_TYPE_COORDINATE_METADATA:
         valid = false;
         break;
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     }
     return cppType;
 }
@@ -1378,14 +1433,20 @@ PJ_TYPE proj_get_type(const PJ *obj) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
         if (dynamic_cast<CoordinateMetadata *>(ptr)) {
             return PJ_TYPE_COORDINATE_METADATA;
         }
 
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
         return PJ_TYPE_UNKNOWN;
     };
 
@@ -1401,6 +1462,7 @@ PJ_TYPE proj_get_type(const PJ *obj) {
  * @return TRUE if it is deprecated, FALSE otherwise
  */
 int proj_is_deprecated(const PJ *obj) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     if (!obj) {
@@ -1422,6 +1484,16 @@ int proj_is_deprecated(const PJ *obj) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    if (!obj) {
+        return false;
+    }
+    auto identifiedObj = dynamic_cast<IdentifiedObject *>(obj->iso_obj.get());
+    if (!identifiedObj) {
+        return false;
+    }
+    return identifiedObj->isDeprecated();
+>>>>>>> e4a6fd6d75 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -1488,6 +1560,9 @@ static int proj_is_equivalent_to_internal(PJ_CONTEXT *ctx, const PJ *obj,
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     auto identifiedObj = dynamic_cast<IdentifiedObject *>(obj->iso_obj.get());
     if (!identifiedObj) {
         return false;
@@ -1495,12 +1570,15 @@ static int proj_is_equivalent_to_internal(PJ_CONTEXT *ctx, const PJ *obj,
     auto otherIdentifiedObj =
         dynamic_cast<IdentifiedObject *>(other->iso_obj.get());
     if (!otherIdentifiedObj) {
+<<<<<<< HEAD
 =======
     if (!obj->iso_obj || !other->iso_obj) {
 >>>>>>> locationtech-main
 =======
     if (!obj->iso_obj || !other->iso_obj) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
         return false;
     }
     const auto cppCriterion = ([](PJ_COMPARISON_CRITERION l_criterion) {
@@ -1517,6 +1595,7 @@ static int proj_is_equivalent_to_internal(PJ_CONTEXT *ctx, const PJ *obj,
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     int res = identifiedObj->isEquivalentTo(
         otherIdentifiedObj, cppCriterion,
 =======
@@ -1527,6 +1606,10 @@ static int proj_is_equivalent_to_internal(PJ_CONTEXT *ctx, const PJ *obj,
     int res = obj->iso_obj->isEquivalentTo(
         other->iso_obj.get(), cppCriterion,
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    int res = identifiedObj->isEquivalentTo(
+        otherIdentifiedObj, cppCriterion,
+>>>>>>> e4a6fd6d75 (typo fixes)
         ctx ? getDBcontextNoException(ctx, "proj_is_equivalent_to_with_ctx")
             : nullptr);
     return res;
@@ -1593,6 +1676,7 @@ int proj_is_crs(const PJ *obj) {
 const char *proj_get_name(const PJ *obj) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (!obj) {
         return nullptr;
     }
@@ -1612,6 +1696,16 @@ const char *proj_get_name(const PJ *obj) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    if (!obj) {
+        return nullptr;
+    }
+    auto identifiedObj = dynamic_cast<IdentifiedObject *>(obj->iso_obj.get());
+    if (!identifiedObj) {
+        return nullptr;
+    }
+    const auto &desc = identifiedObj->name()->description();
+>>>>>>> e4a6fd6d75 (typo fixes)
     if (!desc.has_value()) {
         return nullptr;
     }
@@ -1632,21 +1726,28 @@ const char *proj_get_name(const PJ *obj) {
 const char *proj_get_remarks(const PJ *obj) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     if (!obj) {
         return nullptr;
     }
     auto identifiedObj = dynamic_cast<IdentifiedObject *>(obj->iso_obj.get());
     if (!identifiedObj) {
+<<<<<<< HEAD
 =======
     if (!obj || !obj->iso_obj) {
 >>>>>>> locationtech-main
 =======
     if (!obj || !obj->iso_obj) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
         return nullptr;
     }
     // The object will still be alive after the function call.
     // cppcheck-suppress stlcstr
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     return identifiedObj->remarks().c_str();
@@ -1656,6 +1757,9 @@ const char *proj_get_remarks(const PJ *obj) {
 =======
     return obj->iso_obj->remarks().c_str();
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    return identifiedObj->remarks().c_str();
+>>>>>>> e4a6fd6d75 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -1669,6 +1773,7 @@ const char *proj_get_remarks(const PJ *obj) {
  * @return a string, or NULL in case of error or missing name.
  */
 const char *proj_get_id_auth_name(const PJ *obj, int index) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     if (!obj) {
@@ -1690,6 +1795,16 @@ const char *proj_get_id_auth_name(const PJ *obj, int index) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    if (!obj) {
+        return nullptr;
+    }
+    auto identifiedObj = dynamic_cast<IdentifiedObject *>(obj->iso_obj.get());
+    if (!identifiedObj) {
+        return nullptr;
+    }
+    const auto &ids = identifiedObj->identifiers();
+>>>>>>> e4a6fd6d75 (typo fixes)
     if (static_cast<size_t>(index) >= ids.size()) {
         return nullptr;
     }
@@ -1715,6 +1830,7 @@ const char *proj_get_id_auth_name(const PJ *obj, int index) {
 const char *proj_get_id_code(const PJ *obj, int index) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (!obj) {
         return nullptr;
     }
@@ -1734,6 +1850,16 @@ const char *proj_get_id_code(const PJ *obj, int index) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    if (!obj) {
+        return nullptr;
+    }
+    auto identifiedObj = dynamic_cast<IdentifiedObject *>(obj->iso_obj.get());
+    if (!identifiedObj) {
+        return nullptr;
+    }
+    const auto &ids = identifiedObj->identifiers();
+>>>>>>> e4a6fd6d75 (typo fixes)
     if (static_cast<size_t>(index) >= ids.size()) {
         return nullptr;
     }
@@ -1788,6 +1914,7 @@ const char *proj_as_wkt(PJ_CONTEXT *ctx, const PJ *obj, PJ_WKT_TYPE type,
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     auto iWKTExportable = dynamic_cast<IWKTExportable *>(obj->iso_obj.get());
     if (!iWKTExportable) {
 =======
@@ -1796,6 +1923,10 @@ const char *proj_as_wkt(PJ_CONTEXT *ctx, const PJ *obj, PJ_WKT_TYPE type,
 =======
     if (!obj->iso_obj) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    auto iWKTExportable = dynamic_cast<IWKTExportable *>(obj->iso_obj.get());
+    if (!iWKTExportable) {
+>>>>>>> e4a6fd6d75 (typo fixes)
         return nullptr;
     }
 
@@ -1851,6 +1982,7 @@ const char *proj_as_wkt(PJ_CONTEXT *ctx, const PJ *obj, PJ_WKT_TYPE type,
         }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         obj->lastWKT = iWKTExportable->exportToWKT(formatter.get());
 =======
         obj->lastWKT = obj->iso_obj->exportToWKT(formatter.get());
@@ -1858,6 +1990,9 @@ const char *proj_as_wkt(PJ_CONTEXT *ctx, const PJ *obj, PJ_WKT_TYPE type,
 =======
         obj->lastWKT = obj->iso_obj->exportToWKT(formatter.get());
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        obj->lastWKT = iWKTExportable->exportToWKT(formatter.get());
+>>>>>>> e4a6fd6d75 (typo fixes)
         return obj->lastWKT.c_str();
     } catch (const std::exception &e) {
         proj_log_error(ctx, __FUNCTION__, e.what());
@@ -2470,6 +2605,7 @@ const char *proj_get_celestial_body_name(PJ_CONTEXT *ctx, const PJ *obj) {
     SANITIZE_CTX(ctx);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const BaseObject *ptr = obj->iso_obj.get();
 =======
     const IdentifiedObject *ptr = obj->iso_obj.get();
@@ -2477,6 +2613,9 @@ const char *proj_get_celestial_body_name(PJ_CONTEXT *ctx, const PJ *obj) {
 =======
     const IdentifiedObject *ptr = obj->iso_obj.get();
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    const BaseObject *ptr = obj->iso_obj.get();
+>>>>>>> e4a6fd6d75 (typo fixes)
     if (dynamic_cast<const CRS *>(ptr)) {
         const auto geodCRS = extractGeodeticCRS(ctx, obj, __FUNCTION__);
         if (!geodCRS) {
@@ -2682,6 +2821,7 @@ int proj_prime_meridian_get_parameters(PJ_CONTEXT *ctx,
 /** \brief Return the base CRS of a BoundCRS or a DerivedCRS/ProjectedCRS, or
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * the source CRS of a CoordinateOperation, or the CRS of a CoordinateMetadata.
 =======
  * the source CRS of a CoordinateOperation.
@@ -2689,6 +2829,9 @@ int proj_prime_meridian_get_parameters(PJ_CONTEXT *ctx,
 =======
  * the source CRS of a CoordinateOperation.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * the source CRS of a CoordinateOperation, or the CRS of a CoordinateMetadata.
+>>>>>>> e4a6fd6d75 (typo fixes)
  *
  * The returned object must be unreferenced with proj_destroy() after
  * use.
@@ -2727,11 +2870,15 @@ PJ *proj_get_source_crs(PJ_CONTEXT *ctx, const PJ *obj) {
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     auto coordinateMetadata = dynamic_cast<const CoordinateMetadata *>(ptr);
     if (coordinateMetadata) {
         return pj_obj_create(ctx, coordinateMetadata->crs());
     }
 
+<<<<<<< HEAD
     proj_log_error(ctx, __FUNCTION__,
                    "Object is not a BoundCRS, a CoordinateOperation or a "
                    "CoordinateMetadata");
@@ -2743,6 +2890,11 @@ PJ *proj_get_source_crs(PJ_CONTEXT *ctx, const PJ *obj) {
     proj_log_error(ctx, __FUNCTION__,
                    "Object is not a BoundCRS or a CoordinateOperation");
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    proj_log_error(ctx, __FUNCTION__,
+                   "Object is not a BoundCRS, a CoordinateOperation or a "
+                   "CoordinateMetadata");
+>>>>>>> e4a6fd6d75 (typo fixes)
     return nullptr;
 }
 
@@ -5331,6 +5483,7 @@ PJ *proj_create_conversion_two_point_equidistant(
 /** \brief Instantiate a ProjectedCRS with a conversion based on the Tunisia
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Mining Grid projection method.
  *
  * See osgeo::proj::operation::Conversion::createTunisiaMiningGrid().
@@ -5344,12 +5497,20 @@ PJ *proj_create_conversion_two_point_equidistant(
  *
  * See osgeo::proj::operation::Conversion::createTunisiaMappingGrid().
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * Mining Grid projection method.
+ *
+ * See osgeo::proj::operation::Conversion::createTunisiaMiningGrid().
+>>>>>>> e4a6fd6d75 (typo fixes)
  *
  * Linear parameters are expressed in (linear_unit_name,
  * linear_unit_conv_factor).
  * Angular parameters are expressed in (ang_unit_name, ang_unit_conv_factor).
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
  *
  * @deprecated. Replaced by proj_create_conversion_tunisia_mining_grid
  */
@@ -5386,10 +5547,13 @@ PJ *proj_create_conversion_tunisia_mining_grid(
  * Angular parameters are expressed in (ang_unit_name, ang_unit_conv_factor).
  *
  * @since 9.2
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
  */
 PJ *proj_create_conversion_tunisia_mapping_grid(
     PJ_CONTEXT *ctx, double center_lat, double center_long,
@@ -5404,6 +5568,7 @@ PJ *proj_create_conversion_tunisia_mapping_grid(
             createAngularUnit(ang_unit_name, ang_unit_conv_factor));
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         auto conv = Conversion::createTunisiaMiningGrid(
 =======
         auto conv = Conversion::createTunisiaMappingGrid(
@@ -5411,6 +5576,9 @@ PJ *proj_create_conversion_tunisia_mapping_grid(
 =======
         auto conv = Conversion::createTunisiaMappingGrid(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        auto conv = Conversion::createTunisiaMiningGrid(
+>>>>>>> e4a6fd6d75 (typo fixes)
             PropertyMap(), Angle(center_lat, angUnit),
             Angle(center_long, angUnit), Length(false_easting, linearUnit),
             Length(false_northing, linearUnit));
@@ -8559,6 +8727,7 @@ proj_create_operations(PJ_CONTEXT *ctx, const PJ *source_crs,
     auto sourceCRS = std::dynamic_pointer_cast<CRS>(source_crs->iso_obj);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     CoordinateMetadataPtr sourceCoordinateMetadata;
     if (!sourceCRS) {
         sourceCoordinateMetadata =
@@ -8597,17 +8766,51 @@ proj_create_operations(PJ_CONTEXT *ctx, const PJ *source_crs,
 =======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    CoordinateMetadataPtr sourceCoordinateMetadata;
+>>>>>>> e4a6fd6d75 (typo fixes)
     if (!sourceCRS) {
-        proj_log_error(ctx, __FUNCTION__, "source_crs is not a CRS");
-        return nullptr;
+        sourceCoordinateMetadata =
+            std::dynamic_pointer_cast<CoordinateMetadata>(source_crs->iso_obj);
+        if (!sourceCoordinateMetadata) {
+            proj_log_error(ctx, __FUNCTION__,
+                           "source_crs is not a CRS or a CoordinateMetadata");
+            return nullptr;
+        }
+        if (!sourceCoordinateMetadata->coordinateEpoch().has_value()) {
+            sourceCRS = sourceCoordinateMetadata->crs().as_nullable();
+            sourceCoordinateMetadata.reset();
+        }
     }
     auto targetCRS = std::dynamic_pointer_cast<CRS>(target_crs->iso_obj);
+    CoordinateMetadataPtr targetCoordinateMetadata;
     if (!targetCRS) {
+<<<<<<< HEAD
         proj_log_error(ctx, __FUNCTION__, "target_crs is not a CRS");
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        targetCoordinateMetadata =
+            std::dynamic_pointer_cast<CoordinateMetadata>(target_crs->iso_obj);
+        if (!targetCoordinateMetadata) {
+            proj_log_error(ctx, __FUNCTION__,
+                           "target_crs is not a CRS or a CoordinateMetadata");
+            return nullptr;
+        }
+        if (!targetCoordinateMetadata->coordinateEpoch().has_value()) {
+            targetCRS = targetCoordinateMetadata->crs().as_nullable();
+            targetCoordinateMetadata.reset();
+        }
+    }
+
+    if (sourceCoordinateMetadata != nullptr &&
+        targetCoordinateMetadata != nullptr) {
+        proj_log_error(ctx, __FUNCTION__,
+                       "CoordinateMetadata with epoch to CoordinateMetadata "
+                       "with epoch not supported currently");
+>>>>>>> e4a6fd6d75 (typo fixes)
         return nullptr;
     }
 
@@ -8616,6 +8819,9 @@ proj_create_operations(PJ_CONTEXT *ctx, const PJ *source_crs,
         std::vector<IdentifiedObjectNNPtr> objects;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
         auto ops =
             sourceCoordinateMetadata != nullptr
                 ? factory->createOperations(
@@ -8630,6 +8836,7 @@ proj_create_operations(PJ_CONTEXT *ctx, const PJ *source_crs,
                       : factory->createOperations(
                             NN_NO_CHECK(sourceCRS), NN_NO_CHECK(targetCRS),
                             operationContext->operationContext);
+<<<<<<< HEAD
 =======
         auto ops = factory->createOperations(
             NN_NO_CHECK(sourceCRS), NN_NO_CHECK(targetCRS),
@@ -8640,6 +8847,8 @@ proj_create_operations(PJ_CONTEXT *ctx, const PJ *source_crs,
             NN_NO_CHECK(sourceCRS), NN_NO_CHECK(targetCRS),
             operationContext->operationContext);
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
         for (const auto &op : ops) {
             objects.emplace_back(op);
         }
@@ -9278,11 +9487,15 @@ PJ *proj_normalize_for_visualization(PJ_CONTEXT *ctx, const PJ *obj) {
                     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
                     ctx->forceOver = alt.pj->over;
                     auto pjNormalized =
                         pj_obj_create(ctx, co->normalizeForVisualization());
                     pjNormalized->over = alt.pj->over;
                     ctx->forceOver = false;
+<<<<<<< HEAD
 =======
                     auto pjNormalized =
                         pj_obj_create(ctx, co->normalizeForVisualization());
@@ -9293,6 +9506,8 @@ PJ *proj_normalize_for_visualization(PJ_CONTEXT *ctx, const PJ *obj) {
                         pj_obj_create(ctx, co->normalizeForVisualization());
                     pjNormalized->over = alt.pj->over;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
                     pjNew->alternativeCoordinateOperations.emplace_back(
                         alt.idxInOriginalList, minxSrc, minySrc, maxxSrc,
                         maxySrc, minxDst, minyDst, maxxDst, maxyDst,
@@ -9304,11 +9519,15 @@ PJ *proj_normalize_for_visualization(PJ_CONTEXT *ctx, const PJ *obj) {
         } catch (const std::exception &e) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             ctx->forceOver = false;
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            ctx->forceOver = false;
+>>>>>>> e4a6fd6d75 (typo fixes)
             proj_log_debug(ctx, __FUNCTION__, e.what());
             return nullptr;
         }
@@ -9335,6 +9554,7 @@ PJ *proj_normalize_for_visualization(PJ_CONTEXT *ctx, const PJ *obj) {
     try {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         ctx->forceOver = obj->over;
         auto pjNormalized = pj_obj_create(ctx, co->normalizeForVisualization());
         pjNormalized->over = obj->over;
@@ -9345,14 +9565,22 @@ PJ *proj_normalize_for_visualization(PJ_CONTEXT *ctx, const PJ *obj) {
 =======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        ctx->forceOver = obj->over;
+>>>>>>> e4a6fd6d75 (typo fixes)
         auto pjNormalized = pj_obj_create(ctx, co->normalizeForVisualization());
         pjNormalized->over = obj->over;
+        ctx->forceOver = false;
         return pjNormalized;
     } catch (const std::exception &e) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        ctx->forceOver = false;
+>>>>>>> e4a6fd6d75 (typo fixes)
         proj_log_debug(ctx, __FUNCTION__, e.what());
         return nullptr;
     }
@@ -9746,6 +9974,9 @@ proj_get_geoid_models_from_database(PJ_CONTEXT *ctx, const char *auth_name,
 // ---------------------------------------------------------------------------
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 
 /** \brief Return the coordinate epoch associated with a CoordinateMetadata.
  *
@@ -9773,7 +10004,10 @@ double proj_coordinate_metadata_get_epoch(PJ_CONTEXT *ctx, const PJ *obj) {
 }
 
 // ---------------------------------------------------------------------------
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)

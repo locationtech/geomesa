@@ -62,11 +62,15 @@ authors:
     family-names: Jimenez Shaw
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     orcid: https://orcid.org/0000-0002-7227-9173
 =======
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    orcid: https://orcid.org/0000-0002-7227-9173
+>>>>>>> e4a6fd6d75 (typo fixes)
 keywords:
   - PROJ
   - geodesy

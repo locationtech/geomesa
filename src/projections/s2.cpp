@@ -282,6 +282,7 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
     struct pj_opaque *Q = static_cast<struct pj_opaque*>(P->opaque);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     double lat;
 =======
     double lat, lon;
@@ -289,6 +290,9 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 =======
     double lat, lon;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    double lat;
+>>>>>>> e4a6fd6d75 (typo fixes)
 
     /* Convert the geodetic latitude to a geocentric latitude.
      * This corresponds to the shift from the ellipsoid to the sphere
@@ -298,6 +302,7 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
     } else {
         lat = lp.phi;
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 
@@ -312,12 +317,17 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 
     // Convert the lat/lon to x,y,z on the unit sphere
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+
+    // Convert the lat/long to x,y,z on the unit sphere
+>>>>>>> e4a6fd6d75 (typo fixes)
     double x, y, z;
     double sinlat, coslat;
     double sinlon, coslon;
 
     sinlat = sin(lat);
     coslat = cos(lat);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     sinlon = sin(lp.lam);
@@ -330,6 +340,10 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
     sinlon = sin(lon);
     coslon = cos(lon);
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    sinlon = sin(lp.lam);
+    coslon = cos(lp.lam);
+>>>>>>> e4a6fd6d75 (typo fixes)
     x = coslat * coslon;
     y = coslat * sinlon;
     z = sinlat;

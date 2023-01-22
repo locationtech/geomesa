@@ -71,6 +71,7 @@ development since its origins in 2000. The CMake language is carefully
 developed with backwards-compatible policies that aim to provide consistent
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 behavior across different versions. CMake is currently the preferred build
 =======
 behaviour across different versions. CMake is currently the preferred build
@@ -78,6 +79,9 @@ behaviour across different versions. CMake is currently the preferred build
 =======
 behaviour across different versions. CMake is currently the preferred build
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+behavior across different versions. CMake is currently the preferred build
+>>>>>>> e4a6fd6d75 (typo fixes)
 tool for PROJ for the following reasons:
 
 - It has existed in the PROJ code base since 2014, and is familiar to active

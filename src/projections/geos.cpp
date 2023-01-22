@@ -60,6 +60,7 @@ static PJ_XY geos_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
     /* Calculation of the three components of the vector from satellite to
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     ** position on earth surface (long,lat).*/
 =======
     ** position on earth surface (lon,lat).*/
@@ -67,6 +68,9 @@ static PJ_XY geos_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 =======
     ** position on earth surface (lon,lat).*/
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    ** position on earth surface (long,lat).*/
+>>>>>>> e4a6fd6d75 (typo fixes)
     tmp = cos(lp.phi);
     Vx = cos (lp.lam) * tmp;
     Vy = sin (lp.lam) * tmp;
@@ -101,6 +105,7 @@ static PJ_XY geos_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
     /* Calculation of the three components of the vector from satellite to
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     ** position on earth surface (long,lat).*/
 =======
     ** position on earth surface (lon,lat).*/
@@ -108,6 +113,9 @@ static PJ_XY geos_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 =======
     ** position on earth surface (lon,lat).*/
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    ** position on earth surface (long,lat).*/
+>>>>>>> e4a6fd6d75 (typo fixes)
     r = (Q->radius_p) / hypot(Q->radius_p * cos (lp.phi), sin (lp.phi));
     Vx = r * cos (lp.lam) * cos (lp.phi);
     Vy = r * sin (lp.lam) * cos (lp.phi);

@@ -6,10 +6,14 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 double adjlon (double longitude) {
     /* Let longitude slightly overshoot, to avoid spurious sign switching at the date line */
     if (fabs (longitude) < M_PI + 1e-12)
         return longitude;
+<<<<<<< HEAD
 
     /* adjust to 0..2pi range */
     longitude += M_PI;
@@ -28,19 +32,25 @@ double adjlon (double lon) {
     /* Let lon slightly overshoot, to avoid spurious sign switching at the date line */
     if (fabs (lon) < M_PI + 1e-12)
         return lon;
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 
     /* adjust to 0..2pi range */
-    lon += M_PI;
+    longitude += M_PI;
 
     /* remove integral # of 'revolutions'*/
-    lon -= M_TWOPI * floor(lon / M_TWOPI);
+    longitude -= M_TWOPI * floor(longitude / M_TWOPI);
 
     /* adjust back to -pi..pi range */
-    lon -= M_PI;
+    longitude -= M_PI;
 
+<<<<<<< HEAD
     return lon;
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    return longitude;
+>>>>>>> e4a6fd6d75 (typo fixes)
 }
