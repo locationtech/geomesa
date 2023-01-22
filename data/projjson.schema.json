@@ -20,12 +20,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 74eac2217b (typo fixes)
     { "$ref": "#/definitions/concatenated_operation" },
     { "$ref": "#/definitions/coordinate_metadata" }
 =======
@@ -48,12 +51,16 @@
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
     { "$ref": "#/definitions/concatenated_operation" },
     { "$ref": "#/definitions/coordinate_metadata" }
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -77,6 +84,9 @@
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
   ],
 
   "definitions": {
@@ -165,12 +175,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 74eac2217b (typo fixes)
         "minimum_value": { "type": "number" },
         "maximum_value": { "type": "number" },
         "range_meaning": { "type": "string", "enum": [ "exact", "wraparound"] },
@@ -219,8 +232,19 @@
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+        "minimum_value": { "type": "number" },
+        "maximum_value": { "type": "number" },
+        "range_meaning": { "type": "string", "enum": [ "exact", "wraparound"] },
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
         "id": { "$ref": "#/definitions/id" },
         "ids": { "$ref": "#/definitions/ids" }
       },
@@ -347,6 +371,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -357,6 +382,10 @@
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
     "coordinate_metadata": {
       "type": "object",
       "properties": {
@@ -373,6 +402,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -385,6 +417,7 @@
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -412,6 +445,9 @@
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
     "coordinate_system": {
       "type": "object",
       "properties": {
@@ -679,6 +715,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
         "anchor_epoch": {},
 =======
 <<<<<<< HEAD
@@ -693,6 +732,7 @@
 =======
         "anchor_epoch": {},
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -725,6 +765,9 @@
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
         "ellipsoid": {},
         "prime_meridian": {},
         "frame_reference_epoch": { "type": "number" },
@@ -758,6 +801,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
         "anchor_epoch": {},
 =======
 <<<<<<< HEAD
@@ -772,6 +818,7 @@
 =======
         "anchor_epoch": {},
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -804,6 +851,9 @@
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
         "frame_reference_epoch": { "type": "number" },
         "$schema" : {},
         "scope": {},
@@ -961,6 +1011,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
         "anchor_epoch": { "type": "number" },
 =======
 <<<<<<< HEAD
@@ -975,6 +1028,7 @@
 =======
         "anchor_epoch": { "type": "number" },
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -1007,6 +1061,9 @@
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
         "ellipsoid": { "$ref": "#/definitions/ellipsoid" },
         "prime_meridian": { "$ref": "#/definitions/prime_meridian" },
         "$schema" : {},
@@ -1512,6 +1569,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
         "anchor_epoch": { "type": "number" },
 =======
 <<<<<<< HEAD
@@ -1526,6 +1586,7 @@
 =======
         "anchor_epoch": { "type": "number" },
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -1558,6 +1619,9 @@
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
         "$schema" : {},
         "scope": {},
         "area": {},
