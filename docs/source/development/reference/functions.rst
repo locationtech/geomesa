@@ -141,6 +141,7 @@ paragraph for more details.
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     Starting with PROJ 9.2, source_crs or target_crs can be a CoordinateMetadata
     with an associated coordinate epoch (but only one of them, not both).
 
@@ -151,7 +152,15 @@ paragraph for more details.
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    Starting with PROJ 9.2, source_crs or target_crs can be a CoordinateMetadata
+    with an associated coordinate epoch (but only one of them, not both).
+
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     An "area of use" can be specified in area. When it is supplied, the more
     accurate transformation between two given systems can be chosen.
 
@@ -179,6 +188,7 @@ paragraph for more details.
     :type ctx: :c:type:`PJ_CONTEXT` *
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     :param `source_crs`: Source CRS or CoordinateMetadata.
     :type `source_crs`: `const char*`
     :param `target_crs`: Destination SRS or CoordinateMetadata
@@ -195,7 +205,15 @@ paragraph for more details.
     :type `source_crs`: `const char*`
     :param `target_crs`: Destination SRS.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    :param `source_crs`: Source CRS or CoordinateMetadata.
+    :type `source_crs`: `const char*`
+    :param `target_crs`: Destination SRS or CoordinateMetadata
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     :type `target_crs`: `const char*`
     :param `area`: Descriptor of the desired area for the transformation.
     :type `area`: :c:type:`PJ_AREA` *
@@ -213,6 +231,7 @@ paragraph for more details.
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     Starting with PROJ 9.2, source_crs or target_crs can be a CoordinateMetadata
     with an associated coordinate epoch (but only one of them, not both).
 
@@ -223,7 +242,15 @@ paragraph for more details.
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    Starting with PROJ 9.2, source_crs or target_crs can be a CoordinateMetadata
+    with an associated coordinate epoch (but only one of them, not both).
+
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     :param `options`: a list of NUL terminated options, or NULL.
 
     The list of supported options is:
@@ -245,6 +272,9 @@ paragraph for more details.
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     - ONLY_BEST=YES/NO: (PROJ >= 9.2)
       Can be set to YES to cause PROJ to error out if the best
       transformation, known of PROJ, and usable by PROJ if all grids known and
@@ -257,6 +287,7 @@ paragraph for more details.
       ``only_best_default`` setting of :ref:`proj-ini` (the ONLY_BEST option
       when specified overrides such default value).
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -264,7 +295,12 @@ paragraph for more details.
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     - FORCE_OVER=YES/NO: can be set to YES to force the ``+over`` flag on the transformation
       returned by this function. See :ref:`longitude_wrapping`
 
@@ -344,6 +380,7 @@ Coordinate transformation
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     Return the operation used during the last invocation of proj_trans().
 =======
     Return the operation used during the last invokation of proj_trans().
@@ -354,7 +391,13 @@ Coordinate transformation
 =======
     Return the operation used during the last invokation of proj_trans().
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    Return the operation used during the last invocation of proj_trans().
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     This is especially useful when P has been created with proj_create_crs_to_crs()
     and has several alternative operations.
     The returned object must be freed with proj_destroy().
