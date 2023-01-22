@@ -11,6 +11,7 @@
 # from axes, a feature of the projection to allow
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # tessellation but means that there is no uniform scale
 =======
 # tesselation but means that there is no uniform scale
@@ -21,7 +22,13 @@
 =======
 # tesselation but means that there is no uniform scale
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+# tessellation but means that there is no uniform scale
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 # across the coordinate space, so tolerance can be high.
 ------------------------------------------------------------
 
