@@ -120,6 +120,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -134,6 +135,8 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     const char *p = str;
 =======
     char *p = (char *) str;
@@ -178,6 +181,7 @@ double proj_strtod(const char *str, char **endptr) {
 =======
     char *p = (char *) str;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     const char *p = str;
@@ -246,6 +250,11 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    const char *p = str;
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     int n = 0;
     int num_digits_total        = 0;
     int num_digits_after_comma  = 0;
@@ -274,6 +283,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -288,6 +298,8 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
             *endptr = nullptr;
 =======
             *endptr = p;
@@ -332,6 +344,7 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
             *endptr = nullptr;
@@ -400,6 +413,11 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+            *endptr = nullptr;
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
         return HUGE_VAL;
     }
 
@@ -430,6 +448,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -444,6 +463,8 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
             *endptr = const_cast<char*>(str);
 =======
             *endptr = (char *) str;
@@ -488,6 +509,7 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = (char *) str;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
             *endptr = const_cast<char*>(str);
@@ -556,6 +578,11 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+            *endptr = const_cast<char*>(str);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
         return 0;
     }
 
@@ -582,6 +609,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -596,6 +624,8 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
             *endptr = const_cast<char*>(str);
 =======
             *endptr = (char *) str;
@@ -640,6 +670,7 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = (char *) str;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
             *endptr = const_cast<char*>(str);
@@ -708,6 +739,11 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+            *endptr = const_cast<char*>(str);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
         return 0;
     }
 
@@ -745,6 +781,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -759,6 +796,8 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
                 *endptr = const_cast<char*>(str);
 =======
                 *endptr = (char *) str;
@@ -803,6 +842,7 @@ double proj_strtod(const char *str, char **endptr) {
 =======
                 *endptr = (char *) str;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
                 *endptr = const_cast<char*>(str);
@@ -871,6 +911,11 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+                *endptr = const_cast<char*>(str);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
             return 0;
     }
 
@@ -897,6 +942,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -911,6 +957,8 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
             *endptr = const_cast<char*>(str);
 =======
             *endptr = (char *) str;
@@ -955,6 +1003,7 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = (char *) str;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
             *endptr = const_cast<char*>(str);
@@ -1023,6 +1072,11 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+            *endptr = const_cast<char*>(str);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
         return 0;
     }
 
@@ -1053,6 +1107,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1067,6 +1122,8 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
             *endptr = const_cast<char*>(p);
 =======
             *endptr = p;
@@ -1111,6 +1168,7 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
             *endptr = const_cast<char*>(p);
@@ -1179,6 +1237,11 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+            *endptr = const_cast<char*>(p);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
         return sign==-1? -0: 0;
     }
 
@@ -1217,6 +1280,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1231,6 +1295,8 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
             *endptr = const_cast<char*>(p);
 =======
             *endptr = p;
@@ -1275,6 +1341,7 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
             *endptr = const_cast<char*>(p);
@@ -1343,6 +1410,11 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+            *endptr = const_cast<char*>(p);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
         if (sign==-1)
             return -number;
         return number;
@@ -1384,6 +1456,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1398,6 +1471,8 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
                 *endptr = const_cast<char*>(p);
 =======
                 *endptr = p;
@@ -1442,6 +1517,7 @@ double proj_strtod(const char *str, char **endptr) {
 =======
                 *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
                 *endptr = const_cast<char*>(p);
@@ -1510,6 +1586,11 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+                *endptr = const_cast<char*>(p);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
             if (sign==-1)
                 return -number;
             return number;
@@ -1562,6 +1643,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1576,6 +1658,8 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
             *endptr = const_cast<char*>(p);
 =======
             *endptr = p;
@@ -1620,6 +1704,7 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
             *endptr = const_cast<char*>(p);
@@ -1688,6 +1773,11 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+            *endptr = const_cast<char*>(p);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
         return HUGE_VAL;
     }
 
@@ -1735,6 +1825,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1749,6 +1840,8 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
                     *endptr = const_cast<char*>(p);
 =======
                     *endptr = p;
@@ -1793,6 +1886,7 @@ double proj_strtod(const char *str, char **endptr) {
 =======
                     *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
                     *endptr = const_cast<char*>(p);
@@ -1861,6 +1955,11 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+                    *endptr = const_cast<char*>(p);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
                 return HUGE_VAL;
             }
         }
@@ -1906,6 +2005,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1920,6 +2020,8 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         *endptr = const_cast<char*>(p);
 =======
         *endptr = p;
@@ -1964,6 +2066,7 @@ double proj_strtod(const char *str, char **endptr) {
 =======
         *endptr = p;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
         *endptr = const_cast<char*>(p);
@@ -2032,6 +2135,11 @@ double proj_strtod(const char *str, char **endptr) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        *endptr = const_cast<char*>(p);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
     if ((exponent < DBL_MIN_EXP) || (exponent > DBL_MAX_EXP)) {
         errno = ERANGE;

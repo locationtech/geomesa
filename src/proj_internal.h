@@ -596,12 +596,15 @@ struct PJconsts {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -720,12 +723,16 @@ struct PJconsts {
     bool                                 iso_obj_is_coordinate_operation = false;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
     NS_PROJ::util::BaseObjectPtr iso_obj{};
     bool                                 iso_obj_is_coordinate_operation = false;
     double coordinateEpoch = 0;
     bool   hasCoordinateEpoch = false;
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -764,6 +771,8 @@ struct PJconsts {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 
     // cached results
     mutable std::string lastWKT{};
@@ -800,6 +809,7 @@ struct PJconsts {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -814,6 +824,8 @@ struct PJconsts {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     bool errorIfBestTransformationNotAvailable = false;
     bool warnIfBestTransformationNotAvailable = true; /* to remove in PROJ 10? */
 =======
@@ -857,10 +869,14 @@ struct PJconsts {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
     bool errorIfBestTransformationNotAvailable = false;
     bool warnIfBestTransformationNotAvailable = true; /* to remove in PROJ 10? */
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -921,6 +937,8 @@ struct PJconsts {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 
     /*************************************************************************************
 
@@ -1041,6 +1059,7 @@ struct pj_ctx{
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1055,6 +1074,8 @@ struct pj_ctx{
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     bool errorIfBestTransformationNotAvailableDefault = false;
     bool warnIfBestTransformationNotAvailableDefault = true;
 =======
@@ -1098,10 +1119,14 @@ struct pj_ctx{
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
     bool errorIfBestTransformationNotAvailableDefault = false;
     bool warnIfBestTransformationNotAvailableDefault = true;
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1162,6 +1187,8 @@ struct pj_ctx{
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     void    (*logger)(void *, int, const char *) = nullptr;
     void    *logger_app_data = nullptr;
     struct projCppContext* cpp_context = nullptr; /* internal context for C++ code */
@@ -1228,6 +1255,7 @@ struct pj_ctx{
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1242,6 +1270,8 @@ struct pj_ctx{
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1379,6 +1409,7 @@ C_NAMESPACE_VAR struct PJ_DATUMS pj_datums[];
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -1417,6 +1448,10 @@ C_NAMESPACE_VAR struct PJ_DATUMS pj_datums[];
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
 
 #ifdef PJ_LIB_
@@ -1511,6 +1546,7 @@ double  pj_sinhpsi2tanphi(PJ_CONTEXT *, const double, const double);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1525,6 +1561,8 @@ double  pj_sinhpsi2tanphi(PJ_CONTEXT *, const double, const double);
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 double  pj_qsfn_(double, PJ *);
 <<<<<<< HEAD
@@ -1566,6 +1604,7 @@ double  pj_qsfn_(double, PJ *);
 =======
 double  pj_qsfn_(double, PJ *);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
@@ -1630,6 +1669,10 @@ double  pj_qsfn_(double, PJ *);
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 double *pj_authset(double);
 double  pj_authlat(double, double *);
 
@@ -1666,6 +1709,7 @@ PJ_LP     pj_inv_gauss(PJ_CONTEXT *, PJ_LP, const void *);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1680,6 +1724,8 @@ PJ_LP     pj_inv_gauss(PJ_CONTEXT *, PJ_LP, const void *);
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 const struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
 =======
 struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
@@ -1724,6 +1770,7 @@ struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
 =======
 struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 const struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
@@ -1792,6 +1839,11 @@ struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+const struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
 PJ *pj_new(void);
 PJ *pj_default_destructor (PJ *P, int errlev);
