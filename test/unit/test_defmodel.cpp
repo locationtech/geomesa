@@ -748,12 +748,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -868,10 +871,14 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
     constexpr double lonOffsetQueriedXp1 = 0.02;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
     constexpr double longOffsetQueriedX = 0.01;
     constexpr double longOffsetQueriedXp1 = 0.02;
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -908,6 +915,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     constexpr double latOffsetQueriedY = 0.03;
     constexpr double latOffsetQueriedYp1 = 0.04;
     constexpr double zOffsetQueriedXY = 10.;
@@ -938,12 +947,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1048,6 +1060,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
                 longOffsetRadian = DegToRad(longOffsetQueriedXp1);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -1167,6 +1180,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
             } else {
                 return false;
             }
@@ -1215,6 +1230,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1226,9 +1242,12 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> d8e8090c80 (typo fixes)
+=======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1255,6 +1274,10 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
         bool getLongLatZOffset(int ix, int iy, double &longOffsetRadian,
                                double &latOffsetRadian, double &zOffset) const {
             return getLongLatOffset(ix, iy, longOffsetRadian,
@@ -1269,6 +1292,9 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1379,6 +1405,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
             return getLonLatOffset(ix, iy, lonOffsetRadian, latOffsetRadian) &&
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -1416,6 +1443,10 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
                    getZOffset(ix, iy, zOffset);
         }
 
@@ -1480,6 +1511,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1494,6 +1526,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     double newLong;
 =======
     double newLon;
@@ -1538,6 +1572,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
     double newLon;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     double newLong;
@@ -1606,6 +1641,11 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    double newLong;
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
     double newLat;
     double newZ;
     constexpr double tValid = 2018;
@@ -1634,12 +1674,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1788,10 +1831,14 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
         const double lat = gridMinY + iQueriedY * gridResY;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude = gridMinX + iQueriedX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY;
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1800,6 +1847,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_TRUE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
                                  zVal, tValid, newLong, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLong), longitude + tFactor * longOffsetQueriedX,
@@ -1808,6 +1857,9 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
@@ -1825,6 +1877,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1875,6 +1928,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_NEAR(RadToDeg(newLat), lat + tFactor * latOffsetQueriedY, EPS);
         EXPECT_EQ(newZ, zVal);
     }
@@ -1903,12 +1958,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2066,11 +2124,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
         const double lat = gridMinY + iQueriedY * gridResY + alphaY * gridResY;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude =
             gridMinX + iQueriedX * gridResX + alphaX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY + alphaY * gridResY;
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2080,6 +2142,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_TRUE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
                                  zVal, tValid, newLong, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLong),
@@ -2091,6 +2155,9 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
@@ -2108,6 +2175,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2158,6 +2226,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_NEAR(
             RadToDeg(newLat),
             lat + tFactor * (latOffsetQueriedY + alphaY * (latOffsetQueriedYp1 -
@@ -2188,12 +2258,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2364,12 +2437,16 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude = modelMinX - 1e-1;
         const double lat = gridMinY + iQueriedY * gridResY;
         EXPECT_FALSE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
                                   zVal, tValid, newLong, newLat, newZ));
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2410,10 +2487,13 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     }
 
     // Longitude > model max
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2440,6 +2520,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2610,12 +2692,16 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude = modelMaxX + 1e-1;
         const double lat = gridMinY + iQueriedY * gridResY;
         EXPECT_FALSE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
                                   zVal, tValid, newLong, newLat, newZ));
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2656,6 +2742,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     }
 
     // Latitude < model min
@@ -2680,12 +2768,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2856,12 +2947,16 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude = gridMinX + iQueriedX * gridResX;
         const double lat = modelMinY - 1e-1;
         EXPECT_FALSE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
                                   zVal, tValid, newLong, newLat, newZ));
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2902,6 +2997,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     }
 
     // Latitude > model max
@@ -2926,12 +3023,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3102,12 +3202,16 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude = gridMinX + iQueriedX * gridResX;
         const double lat = modelMaxY + 1e-1;
         EXPECT_FALSE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
                                   zVal, tValid, newLong, newLat, newZ));
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3148,10 +3252,13 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     }
 
     // Before timeExtent.first
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3178,6 +3285,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3348,12 +3457,16 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude = gridMinX + iQueriedX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY;
         EXPECT_FALSE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
                                   zVal, 1000, newLong, newLat, newZ));
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3394,10 +3507,13 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     }
 
     // After timeExtent.last
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3424,6 +3540,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3594,12 +3712,16 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude = gridMinX + iQueriedX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY;
         EXPECT_FALSE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
                                   zVal, 3000, newLong, newLat, newZ));
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3640,10 +3762,13 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
     }
 
     // Longitude < grid min
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3670,6 +3795,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3843,6 +3970,9 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude = gridMinX - 1e-1;
         const double lat = gridMinY + iQueriedY * gridResY;
@@ -3850,6 +3980,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
                                  zVal, tValid, newLong, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLong), longitude, EPS);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3891,6 +4022,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_NEAR(RadToDeg(newLat), lat, EPS);
         EXPECT_EQ(newZ, zVal);
     }
@@ -3917,12 +4050,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4096,6 +4232,9 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude = gridMaxX + 1e-1;
         const double lat = gridMinY + iQueriedY * gridResY;
@@ -4103,6 +4242,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
                                  zVal, tValid, newLong, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLong), longitude, EPS);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4144,6 +4284,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_NEAR(RadToDeg(newLat), lat, EPS);
         EXPECT_EQ(newZ, zVal);
     }
@@ -4170,12 +4312,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4349,6 +4494,9 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude = gridMinX + iQueriedX * gridResX;
         const double lat = gridMinY - 1e-1;
@@ -4356,6 +4504,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
                                  zVal, tValid, newLong, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLong), longitude, EPS);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4397,6 +4546,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_NEAR(RadToDeg(newLat), lat, EPS);
         EXPECT_EQ(newZ, zVal);
     }
@@ -4423,12 +4574,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4602,6 +4756,9 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude = gridMinX + iQueriedX * gridResX;
         const double lat = gridMaxY + 1e-1;
@@ -4609,6 +4766,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
                                  zVal, tValid, newLong, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLong), longitude, EPS);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4650,6 +4808,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_NEAR(RadToDeg(newLat), lat, EPS);
         EXPECT_EQ(newZ, zVal);
     }
@@ -4676,12 +4836,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4855,6 +5018,9 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude = gridMinX + iQueriedX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY;
@@ -4862,6 +5028,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
                                  zVal, 2000, newLong, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLong), longitude, EPS);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4903,6 +5070,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_NEAR(RadToDeg(newLat), lat, EPS);
         EXPECT_EQ(newZ, zVal);
     }
@@ -4935,12 +5104,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5091,11 +5263,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
         const double lat = gridMinY + iQueriedY * gridResY + alphaY * gridResY;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude =
             gridMinX + iQueriedX * gridResX + alphaX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY + alphaY * gridResY;
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -5105,6 +5281,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_TRUE(evalVertical.forward(iface, DegToRad(longitude),
                                          DegToRad(lat), zVal, tValid, newLong,
                                          newLat, newZ));
@@ -5113,6 +5291,9 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
@@ -5130,6 +5311,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5180,6 +5362,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_NEAR(RadToDeg(newLat), lat, EPS);
 
         const double zBottom =
@@ -5219,12 +5403,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5382,11 +5569,15 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
         const double lat = gridMinY + iQueriedY * gridResY + alphaY * gridResY;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         const double longitude =
             gridMinX + iQueriedX * gridResX + alphaX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY + alphaY * gridResY;
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -5396,6 +5587,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 >>>>>>> a4391c6673 (typo fixes)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_TRUE(eval3d.forward(iface, DegToRad(longitude), DegToRad(lat),
                                    zVal, tValid, newLong, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLong),
@@ -5407,6 +5600,9 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
@@ -5424,6 +5620,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5474,6 +5671,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_NEAR(
             RadToDeg(newLat),
             lat + tFactor * (latOffsetQueriedY + alphaY * (latOffsetQueriedYp1 -
@@ -5708,6 +5907,7 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -5722,6 +5922,8 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
         double longitude;
 =======
         double lon;
@@ -5766,6 +5968,7 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
         double lon;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
         double longitude;
@@ -5834,6 +6037,11 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        double longitude;
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
         double lat;
         double expected_de;
         double expected_dn;
@@ -5891,12 +6099,15 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6140,15 +6351,19 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
         const double lon = testPoint.lon;
+=======
+        const double longitude = testPoint.longitude;
+>>>>>>> 86ade66356 (typo fixes)
         const double lat = testPoint.lat;
-        double newLon;
+        double newLong;
         double newLat;
         double newZ;
-        EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
-                                 tValid, newLon, newLat, newZ))
-            << lon << " " << lat << " " << testPoint.displacement_type
+        EXPECT_TRUE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
+                                 zVal, tValid, newLong, newLat, newZ))
+            << longitude << " " << lat << " " << testPoint.displacement_type
             << testPoint.interpolation_method;
         EXPECT_NEAR(newZ - zVal, tFactor * testPoint.expected_dz, 1e-8)
+<<<<<<< HEAD
             << lon << " " << lat << " " << testPoint.displacement_type
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6165,7 +6380,13 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+            << longitude << " " << lat << " " << testPoint.displacement_type
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
             << testPoint.interpolation_method;
 
         double de;
@@ -6190,12 +6411,15 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6489,19 +6713,24 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
         DeltaLongLatToEastingNorthing(DegToRad(lat), newLon - DegToRad(lon),
+=======
+        DeltaLongLatToEastingNorthing(DegToRad(lat),
+                                      newLong - DegToRad(longitude),
+>>>>>>> 86ade66356 (typo fixes)
                                       newLat - DegToRad(lat), a, b, de, dn);
         EXPECT_NEAR(de, tFactor * testPoint.expected_de, 1e-8)
-            << lon << " " << lat << " " << testPoint.displacement_type
+            << longitude << " " << lat << " " << testPoint.displacement_type
             << testPoint.interpolation_method;
         EXPECT_NEAR(dn, tFactor * testPoint.expected_dn, 1e-8)
-            << lon << " " << lat << " " << testPoint.displacement_type
+            << longitude << " " << lat << " " << testPoint.displacement_type
             << testPoint.interpolation_method;
 
-        if (lon == gridMinX && lat == gridMinY) {
+        if (longitude == gridMinX && lat == gridMinY) {
             // Redo the exact same test, to test caching
-            double newLon2;
+            double newLong2;
             double newLat2;
             double newZ2;
+<<<<<<< HEAD
             EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                      tValid, newLon2, newLat2, newZ2));
             EXPECT_EQ(newLon2, newLon);
@@ -6520,7 +6749,15 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+            EXPECT_TRUE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
+                                     zVal, tValid, newLong2, newLat2, newZ2));
+            EXPECT_EQ(newLong2, newLong);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
             EXPECT_EQ(newLat2, newLat);
             EXPECT_EQ(newZ2, newZ);
 
@@ -6545,12 +6782,15 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6719,6 +6959,9 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
             EXPECT_TRUE(eval.forward(iface, DegToRad(longitude - gridResX / 2),
                                      DegToRad(lat), zVal, tValid, newLong2,
@@ -6729,6 +6972,7 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
                                      zVal, tValid, newLong2, newLat2, newZ2));
             EXPECT_EQ(newLong2, newLong);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6767,6 +7011,8 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
             EXPECT_EQ(newLat2, newLat);
             EXPECT_EQ(newZ2, newZ);
 
@@ -6789,12 +7035,15 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7056,10 +7305,14 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
             EXPECT_TRUE(eval.forward(iface, DegToRad(lon),
+=======
+            EXPECT_TRUE(eval.forward(iface, DegToRad(longitude),
+>>>>>>> 86ade66356 (typo fixes)
                                      DegToRad(lat - gridResY / 2), zVal, tValid,
-                                     newLon2, newLat2, newZ2));
+                                     newLong2, newLat2, newZ2));
 
             // Redo test at original position
+<<<<<<< HEAD
             EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                      tValid, newLon2, newLat2, newZ2));
             EXPECT_EQ(newLon2, newLon);
@@ -7078,7 +7331,15 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+            EXPECT_TRUE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
+                                     zVal, tValid, newLong2, newLat2, newZ2));
+            EXPECT_EQ(newLong2, newLong);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
             EXPECT_EQ(newLat2, newLat);
             EXPECT_EQ(newZ2, newZ);
         }
@@ -7113,12 +7374,15 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7390,16 +7654,20 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
         const double lon = 165.9;
+=======
+        const double longitude = 165.9;
+>>>>>>> 86ade66356 (typo fixes)
         const double lat = -37.3;
-        double newLon;
+        double newLong;
         double newLat;
         double newZ;
-        EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
-                                 tValid, newLon, newLat, newZ));
+        EXPECT_TRUE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
+                                 zVal, tValid, newLong, newLat, newZ));
 
-        double invLon;
+        double invLongitude;
         double invLat;
         double invZ;
+<<<<<<< HEAD
         EXPECT_TRUE(eval.inverse(iface, newLon, newLat, newZ, tValid, invLon,
                                  invLat, invZ));
         EXPECT_NEAR(RadToDeg(invLon), lon, 1e-10);
@@ -7418,7 +7686,15 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        EXPECT_TRUE(eval.inverse(iface, newLong, newLat, newZ, tValid,
+                                 invLongitude, invLat, invZ));
+        EXPECT_NEAR(RadToDeg(invLongitude), longitude, 1e-10);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
         EXPECT_NEAR(RadToDeg(invLat), lat, 1e-10);
         EXPECT_NEAR(invZ, zVal, 1e-4);
     }
@@ -7452,12 +7728,15 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7565,6 +7844,7 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
         EXPECT_TRUE(eval.forward(iface, DegToRad(longitude), DegToRad(lat),
                                  zVal, tValid, newLong, newLat, newZ));
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -7686,11 +7966,14 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 
         double de;
         double dn;
         constexpr double expected_de = 0.40000000948081327;
         constexpr double expected_dn = -0.19999999810542682;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7717,6 +8000,8 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7818,10 +8103,14 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
         DeltaLongLatToEastingNorthing(DegToRad(lat), newLon - DegToRad(lon),
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
         DeltaLongLatToEastingNorthing(DegToRad(lat),
                                       newLong - DegToRad(longitude),
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7863,6 +8152,8 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
                                       newLat - DegToRad(lat), a, b, de, dn);
         EXPECT_NEAR(de, tFactor * expected_de, 1e-10);
         EXPECT_NEAR(dn, tFactor * expected_dn, 1e-9);
