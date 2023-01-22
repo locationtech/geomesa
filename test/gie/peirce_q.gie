@@ -29,6 +29,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -43,6 +44,8 @@
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 # tessellation but means that there is no uniform scale
 =======
 # tesselation but means that there is no uniform scale
@@ -87,6 +90,7 @@
 =======
 # tesselation but means that there is no uniform scale
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 # tessellation but means that there is no uniform scale
@@ -155,6 +159,11 @@
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+# tessellation but means that there is no uniform scale
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 # across the coordinate space, so tolerance can be high.
 ------------------------------------------------------------
 

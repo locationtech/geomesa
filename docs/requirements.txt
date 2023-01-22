@@ -17,6 +17,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74dba80547 (Fix docutils version for Sphinx docs build)
 =======
@@ -31,6 +32,8 @@
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 8375048ae4 (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -52,6 +55,7 @@
 >>>>>>> 2341036672 (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -84,6 +88,8 @@
 =======
 >>>>>>> 2341036672 (Fix docutils version for Sphinx docs build)
 >>>>>>> 8375048ae4 (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 Sphinx==4.5.0
 sphinx-tabs==3.3.1
 recommonmark==0.7.1
@@ -875,12 +881,17 @@ sphinx-copybutton==0.5.0
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
 =======
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 sphinx==4.5.0
 breathe
@@ -893,6 +904,9 @@ pybtex
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -2635,6 +2649,7 @@ sphinx-copybutton==0.5.0
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
@@ -4579,3 +4594,7 @@ sphinx-copybutton==0.5.0
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
