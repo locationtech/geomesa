@@ -80,6 +80,7 @@ static const char *usage =
     "              [[--area name_or_code] | [--bbox west_long,south_lat,east_long,north_lat]]\n"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     "              [--authority {name}] [--3d]\n"
     "              [--accuracy {accuracy}] [--only-best[=yes|=no]] [--no-ballpark]\n"
 =======
@@ -91,7 +92,14 @@ static const char *usage =
 =======
     "              [--authority {name}] [--accuracy {accuracy}] [--no-ballpark] [--3d]\n"
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    "              [--authority {name}] [--3d]\n"
+    "              [--accuracy {accuracy}] [--only-best[=yes|=no]] [--no-ballpark]\n"
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     "              [+opt[=arg] ...] [+to +opt[=arg] ...] [file ...]\n";
 
 static double (*informat)(const char *,
@@ -433,6 +441,7 @@ int main(int argc, char **argv) {
     bool allowBallpark = true;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     bool onlyBestSet = false;
     bool errorIfBestTransformationNotAvailable = false;
 =======
@@ -442,7 +451,14 @@ int main(int argc, char **argv) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    bool onlyBestSet = false;
+    bool errorIfBestTransformationNotAvailable = false;
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     bool promoteTo3D = false;
 
     /* process run line arguments */
@@ -511,6 +527,9 @@ int main(int argc, char **argv) {
         }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
         else if (strcmp(*argv, "--only-best") == 0 ||
                  strcmp(*argv, "--only-best=yes") == 0 ) {
             onlyBestSet = true;
@@ -520,6 +539,7 @@ int main(int argc, char **argv) {
             onlyBestSet = true;
             errorIfBestTransformationNotAvailable = false;
         }
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -527,7 +547,12 @@ int main(int argc, char **argv) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
         else if (strcmp(*argv, "--3d") == 0 ) {
             promoteTo3D = true;
         }
@@ -939,6 +964,9 @@ int main(int argc, char **argv) {
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     if( onlyBestSet ) {
         if( errorIfBestTransformationNotAvailable ) {
             options.push_back("ONLY_BEST=YES");
@@ -947,6 +975,7 @@ int main(int argc, char **argv) {
             options.push_back("ONLY_BEST=NO");
         }
     }
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -954,7 +983,12 @@ int main(int argc, char **argv) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     options.push_back(nullptr);
     transformation = proj_create_crs_to_crs_from_pj(nullptr, src, dst,
                                                     pj_area, options.data());
