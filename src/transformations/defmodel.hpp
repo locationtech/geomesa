@@ -489,6 +489,7 @@ struct GridPrototype {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -595,6 +596,11 @@ struct GridPrototype {
                          double & /*latOffsetRadian*/) const {
         throw UnimplementedException("getLonLatOffset unimplemented");
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    bool getLongLatOffset(int /*ix*/, int /*iy*/, double & /*longOffsetRadian*/,
+                          double & /*latOffsetRadian*/) const {
+        throw UnimplementedException("getLongLatOffset unimplemented");
+>>>>>>> bf1dfe8af6 (typo fixes)
     }
 
     // cppcheck-suppress functionStatic
@@ -610,6 +616,7 @@ struct GridPrototype {
     }
 
     // cppcheck-suppress functionStatic
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -644,11 +651,14 @@ struct GridPrototype {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     bool getLongLatZOffset(int /*ix*/, int /*iy*/,
                            double & /*longOffsetRadian*/,
                            double & /*latOffsetRadian*/,
                            double & /*zOffset*/) const {
         throw UnimplementedException("getLongLatZOffset unimplemented");
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -770,6 +780,10 @@ struct GridPrototype {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#if 0
+        return getLongLatOffset(ix, iy, longOffsetRadian, latOffsetRadian) &&
+>>>>>>> bf1dfe8af6 (typo fixes)
                getZOffset(ix, iy, zOffset);
 #endif
     }

@@ -46,6 +46,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -124,6 +125,9 @@
 =======
 // windows.h can confict with Criterion::STRICT
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+// windows.h can conflict with Criterion::STRICT
+>>>>>>> bf1dfe8af6 (typo fixes)
 #ifdef STRICT
 #undef STRICT
 #endif
