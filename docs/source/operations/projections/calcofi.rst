@@ -49,6 +49,7 @@ Usage
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 A typical forward CalCOFI projection would be from long/lat coordinates on the
 =======
 A typical forward CalCOFI projection would be from lon/lat coordinates on the
@@ -59,7 +60,13 @@ A typical forward CalCOFI projection would be from lon/lat coordinates on the
 =======
 A typical forward CalCOFI projection would be from lon/lat coordinates on the
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+A typical forward CalCOFI projection would be from long/lat coordinates on the
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 Clark 1866 ellipsoid.
 For example::
 
@@ -73,6 +80,7 @@ Output of the above command::
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 The reverse projection from line/station coordinates to long/lat would be entered
 =======
 The reverse projection from line/station coordinates to lon/lat would be entered
@@ -83,7 +91,13 @@ The reverse projection from line/station coordinates to lon/lat would be entered
 =======
 The reverse projection from line/station coordinates to lon/lat would be entered
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+The reverse projection from line/station coordinates to long/lat would be entered
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 as::
 
     proj +proj=calcofi +ellps=clrk66 -I -E -f "%.2f" <<EOF

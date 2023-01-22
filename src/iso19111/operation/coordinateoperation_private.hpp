@@ -49,10 +49,14 @@ struct CoordinateOperation::Private {
     crs::CRSPtr interpolationCRS_{};
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     std::shared_ptr<util::optional<common::DataEpoch>> sourceCoordinateEpoch_{
         std::make_shared<util::optional<common::DataEpoch>>()};
     std::shared_ptr<util::optional<common::DataEpoch>> targetCoordinateEpoch_{
         std::make_shared<util::optional<common::DataEpoch>>()};
+<<<<<<< HEAD
 =======
     util::optional<common::DataEpoch> sourceCoordinateEpoch_{};
     util::optional<common::DataEpoch> targetCoordinateEpoch_{};
@@ -64,7 +68,12 @@ struct CoordinateOperation::Private {
     util::optional<common::DataEpoch> sourceCoordinateEpoch_{};
     util::optional<common::DataEpoch> targetCoordinateEpoch_{};
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     bool hasBallparkTransformation_ = false;
 
     // do not set this for a ProjectedCRS.definingConversion

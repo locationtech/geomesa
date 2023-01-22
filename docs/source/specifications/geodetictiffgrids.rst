@@ -229,6 +229,7 @@ is an easy way to inspect such grid files:
       another grid of type ``HORIZONTAL_OFFSET`` to perform Geographic 3D
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       offsetting when the horizontal and vertical grids do not have the same
 =======
       offseting when the horizontal and vertical grids do not have the same
@@ -239,7 +240,13 @@ is an easy way to inspect such grid files:
 =======
       offseting when the horizontal and vertical grids do not have the same
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+      offsetting when the horizontal and vertical grids do not have the same
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
       resolution, as found in some NADCON5 grids.
       Added in PROJ 9.2
       Corresponds to PROJ :ref:`gridshift` method.
