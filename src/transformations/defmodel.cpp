@@ -121,6 +121,7 @@ struct Grid : public GridPrototype {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -276,15 +277,20 @@ struct Grid : public GridPrototype {
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
     bool getLonLatOffset(int ix, int iy, double &lonOffsetRadian,
                          double &latOffsetRadian) const {
+=======
+    bool getLongLatOffset(int ix, int iy, double &longOffsetRadian,
+                          double &latOffsetRadian) const {
+>>>>>>> bf1dfe8af6 (typo fixes)
         if (!checkHorizontal(STR_DEGREE)) {
             return false;
         }
-        float lonOffsetDeg;
+        float longOffsetDeg;
         float latOffsetDeg;
-        if (!realGrid->valueAt(ix, iy, sampleX, lonOffsetDeg) ||
+        if (!realGrid->valueAt(ix, iy, sampleX, longOffsetDeg) ||
             !realGrid->valueAt(ix, iy, sampleY, latOffsetDeg)) {
             return false;
         }
+<<<<<<< HEAD
         lonOffsetRadian = lonOffsetDeg * DEG_TO_RAD;
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -299,6 +305,9 @@ struct Grid : public GridPrototype {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        longOffsetRadian = longOffsetDeg * DEG_TO_RAD;
+>>>>>>> bf1dfe8af6 (typo fixes)
         latOffsetRadian = latOffsetDeg * DEG_TO_RAD;
         return true;
     }
@@ -376,6 +385,7 @@ struct Grid : public GridPrototype {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -482,6 +492,11 @@ struct Grid : public GridPrototype {
                           double &latOffsetRadian, double &zOffset) const {
         return getLonLatOffset(ix, iy, lonOffsetRadian, latOffsetRadian) &&
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    bool getLongLatZOffset(int ix, int iy, double &longOffsetRadian,
+                           double &latOffsetRadian, double &zOffset) const {
+        return getLongLatOffset(ix, iy, longOffsetRadian, latOffsetRadian) &&
+>>>>>>> bf1dfe8af6 (typo fixes)
                getZOffset(ix, iy, zOffset);
     }
 

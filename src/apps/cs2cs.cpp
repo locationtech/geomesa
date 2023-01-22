@@ -91,6 +91,7 @@ static const char *usage =
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -184,6 +185,10 @@ static const char *usage =
 =======
     "              [--authority {name}] [--accuracy {accuracy}] [--no-ballpark] [--3d]\n"
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    "              [--authority {name}] [--3d]\n"
+    "              [--accuracy {accuracy}] [--only-best[=yes|=no]] [--no-ballpark]\n"
+>>>>>>> bf1dfe8af6 (typo fixes)
     "              [+opt[=arg] ...] [+to +opt[=arg] ...] [file ...]\n";
 
 static double (*informat)(const char *,
@@ -536,6 +541,7 @@ int main(int argc, char **argv) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -610,6 +616,10 @@ int main(int argc, char **argv) {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    bool onlyBestSet = false;
+    bool errorIfBestTransformationNotAvailable = false;
+>>>>>>> bf1dfe8af6 (typo fixes)
     bool promoteTo3D = false;
 
     /* process run line arguments */
@@ -689,6 +699,7 @@ int main(int argc, char **argv) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -710,6 +721,8 @@ int main(int argc, char **argv) {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
         else if (strcmp(*argv, "--only-best") == 0 ||
                  strcmp(*argv, "--only-best=yes") == 0 ) {
             onlyBestSet = true;
@@ -719,6 +732,7 @@ int main(int argc, char **argv) {
             onlyBestSet = true;
             errorIfBestTransformationNotAvailable = false;
         }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -785,6 +799,8 @@ int main(int argc, char **argv) {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
         else if (strcmp(*argv, "--3d") == 0 ) {
             promoteTo3D = true;
         }
@@ -1207,6 +1223,7 @@ int main(int argc, char **argv) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1228,6 +1245,8 @@ int main(int argc, char **argv) {
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     if( onlyBestSet ) {
         if( errorIfBestTransformationNotAvailable ) {
             options.push_back("ONLY_BEST=YES");
@@ -1236,6 +1255,7 @@ int main(int argc, char **argv) {
             options.push_back("ONLY_BEST=NO");
         }
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1302,6 +1322,8 @@ int main(int argc, char **argv) {
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     options.push_back(nullptr);
     transformation = proj_create_crs_to_crs_from_pj(nullptr, src, dst,
                                                     pj_area, options.data());
