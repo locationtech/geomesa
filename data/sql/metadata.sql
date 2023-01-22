@@ -25,6 +25,7 @@ INSERT INTO "metadata" VALUES('DATABASE.LAYOUT.VERSION.MINOR', 2);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -43,6 +44,8 @@ INSERT INTO "metadata" VALUES('DATABASE.LAYOUT.VERSION.MINOR', 2);
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 INSERT INTO "metadata" VALUES('EPSG.VERSION', 'v10.081');
 INSERT INTO "metadata" VALUES('EPSG.DATE', '2023-01-19');
 =======
@@ -81,14 +84,18 @@ INSERT INTO "metadata" VALUES('EPSG.DATE', '2022-12-13');
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "metadata" VALUES('EPSG.VERSION', 'v10.081');
 INSERT INTO "metadata" VALUES('EPSG.DATE', '2023-01-19');
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -144,6 +151,9 @@ INSERT INTO "metadata" VALUES('EPSG.DATE', '2023-01-19');
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 
 -- The value of ${PROJ_VERSION} is substituted at build time by the actual
 -- value.

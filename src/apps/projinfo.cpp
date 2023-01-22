@@ -57,12 +57,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 #include <proj/coordinates.hpp>
 =======
 <<<<<<< HEAD
@@ -77,6 +80,7 @@
 =======
 #include <proj/coordinates.hpp>
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -145,6 +149,9 @@
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 #include <proj/crs.hpp>
 #include <proj/io.hpp>
 #include <proj/metadata.hpp>
@@ -169,12 +176,15 @@ using namespace NS_PROJ::common;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 using namespace NS_PROJ::coordinates;
 =======
 <<<<<<< HEAD
@@ -189,6 +199,7 @@ using namespace NS_PROJ::coordinates;
 =======
 using namespace NS_PROJ::coordinates;
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -257,6 +268,9 @@ using namespace NS_PROJ::coordinates;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 using namespace NS_PROJ::crs;
 using namespace NS_PROJ::io;
 using namespace NS_PROJ::metadata;
@@ -1059,6 +1073,7 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1077,6 +1092,8 @@ static void outputOperations(
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
     CoordinateMetadataPtr sourceCoordinateMetadata;
     if (!sourceCRS) {
         sourceCoordinateMetadata =
@@ -1129,13 +1146,17 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
     CoordinateMetadataPtr sourceCoordinateMetadata;
     if (!sourceCRS) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     CoordinateMetadataPtr sourceCoordinateMetadata;
@@ -1147,6 +1168,8 @@ static void outputOperations(
     CoordinateMetadataPtr sourceCoordinateMetadata;
     if (!sourceCRS) {
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
         sourceCoordinateMetadata =
             nn_dynamic_pointer_cast<CoordinateMetadata>(sourceObj);
         if (!sourceCoordinateMetadata) {
@@ -1159,6 +1182,7 @@ static void outputOperations(
             sourceCRS = sourceCoordinateMetadata->crs().as_nullable();
             sourceCoordinateMetadata.reset();
         }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1217,6 +1241,10 @@ static void outputOperations(
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     }
 
     auto targetObj =
@@ -1224,6 +1252,7 @@ static void outputOperations(
                     CoordinateOperationContext::IntermediateCRSUse::NEVER,
                     promoteTo3D, normalizeAxisOrder, outputOpt.quiet);
     auto targetCRS = nn_dynamic_pointer_cast<CRS>(targetObj);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1258,6 +1287,8 @@ static void outputOperations(
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
     CoordinateMetadataPtr targetCoordinateMetadata;
     if (!targetCRS) {
         targetCoordinateMetadata =
@@ -1337,6 +1368,7 @@ static void outputOperations(
     // TODO: handle promotion of CoordinateMetadata
     if (sourceCRS && targetCRS && dbContext && !promoteTo3D) {
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1490,6 +1522,9 @@ static void outputOperations(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
         // Auto-promote source/target CRS if it is specified by its name,
         // if it has a known 3D version of it and that the other CRS is 3D.
         // e.g projinfo -s "WGS 84 + EGM96 height" -t "WGS 84"
@@ -1530,12 +1565,15 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 =======
     auto nnSourceCRS = NN_NO_CHECK(sourceCRS);
     auto nnTargetCRS = NN_NO_CHECK(targetCRS);
@@ -1552,6 +1590,7 @@ static void outputOperations(
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1632,6 +1671,9 @@ static void outputOperations(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     std::vector<CoordinateOperationNNPtr> list;
     size_t spatialCriterionPartialIntersectionResultCount = 0;
     bool spatialCriterionPartialIntersectionMoreRelevant = false;
@@ -1659,6 +1701,7 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1686,6 +1729,10 @@ static void outputOperations(
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 
         const auto createOperations = [&]() {
             if (sourceCoordinateMetadata) {
@@ -1710,10 +1757,13 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1726,6 +1776,7 @@ static void outputOperations(
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1785,6 +1836,9 @@ static void outputOperations(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
         ctxt->setSpatialCriterion(spatialCriterion);
         ctxt->setSourceAndTargetCRSExtentUse(crsExtentUse);
         ctxt->setGridAvailabilityUse(gridAvailabilityUse);
@@ -1812,6 +1866,7 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1830,6 +1885,8 @@ static void outputOperations(
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
         list = createOperations();
 =======
         list = CoordinateOperationFactory::create()->createOperations(
@@ -1867,13 +1924,17 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
         list = createOperations();
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1927,6 +1988,9 @@ static void outputOperations(
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
         if (!spatialCriterionExplicitlySpecified &&
             spatialCriterion == CoordinateOperationContext::SpatialCriterion::
                                     STRICT_CONTAINMENT) {
@@ -1950,6 +2014,7 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1968,6 +2033,8 @@ static void outputOperations(
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
                 auto list2 = createOperations();
 =======
                 auto list2 =
@@ -2007,13 +2074,17 @@ static void outputOperations(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
                 auto list2 = createOperations();
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2070,6 +2141,9 @@ static void outputOperations(
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
                 spatialCriterionPartialIntersectionResultCount = list2.size();
                 if (spatialCriterionPartialIntersectionResultCount == 1 &&
                     list.size() == 1 &&
