@@ -478,6 +478,7 @@ struct GridPrototype {
     // cppcheck-suppress functionStatic
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     bool getLongLatOffset(int /*ix*/, int /*iy*/, double & /*longOffsetRadian*/,
                           double & /*latOffsetRadian*/) const {
         throw UnimplementedException("getLongLatOffset unimplemented");
@@ -494,7 +495,15 @@ struct GridPrototype {
                          double & /*latOffsetRadian*/) const {
         throw UnimplementedException("getLonLatOffset unimplemented");
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    bool getLongLatOffset(int /*ix*/, int /*iy*/, double & /*longOffsetRadian*/,
+                          double & /*latOffsetRadian*/) const {
+        throw UnimplementedException("getLongLatOffset unimplemented");
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     }
 
     // cppcheck-suppress functionStatic
@@ -512,11 +521,15 @@ struct GridPrototype {
     // cppcheck-suppress functionStatic
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     bool getLongLatZOffset(int /*ix*/, int /*iy*/,
                            double & /*longOffsetRadian*/,
                            double & /*latOffsetRadian*/,
                            double & /*zOffset*/) const {
         throw UnimplementedException("getLongLatZOffset unimplemented");
+<<<<<<< HEAD
 #if 0
         return getLongLatOffset(ix, iy, longOffsetRadian, latOffsetRadian) &&
 =======
@@ -535,7 +548,14 @@ struct GridPrototype {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+#if 0
+        return getLongLatOffset(ix, iy, longOffsetRadian, latOffsetRadian) &&
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
                getZOffset(ix, iy, zOffset);
 #endif
     }
