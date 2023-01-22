@@ -468,6 +468,7 @@ Test EPSG:32631 to EPSG:4326
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -556,6 +557,11 @@ Check we allow ellipsoids up to a 0.59% relative difference in size
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+Check we allow ellipsoids up to a 0.59% relative difference in size
+0 -90	0.00	0.00 0.00
+##############################################################
+>>>>>>> bf1dfe8af6 (typo fixes)
 Test EPSG:4896 to EPSG:7930
 3496737.2679    743254.4507  5264462.9620	3496737.7857	743254.0394 5264462.6437 2019.0
 3496737.2679    743254.4507  5264462.9620	3496737.9401	743253.8861 5264462.5497 2029.0
@@ -642,6 +648,7 @@ program abnormally terminated
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -663,6 +670,8 @@ program abnormally terminated
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
 ##############################################################
 Test cs2cs --only-best (working)
 49 2 0	48d59'59.756"N	1d59'57.4"E 0.000
@@ -700,6 +709,7 @@ Rel. 9.2.0, March 1st, 2023
 cannot initialize transformation
 cause: File not found or invalid
 program abnormally terminated
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -766,3 +776,5 @@ program abnormally terminated
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)

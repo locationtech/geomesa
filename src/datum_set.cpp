@@ -80,6 +80,7 @@ int pj_datum_set(PJ_CONTEXT *ctx, paralist *pl, PJ *projdef)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -149,6 +150,9 @@ int pj_datum_set(PJ_CONTEXT *ctx, paralist *pl, PJ *projdef)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        const struct PJ_DATUMS * pj_datums = pj_get_datums_ref();
+>>>>>>> bf1dfe8af6 (typo fixes)
         for (i = 0; (s = pj_datums[i].id) && strcmp(name, s) ; ++i) {}
 
         if (!s) {
