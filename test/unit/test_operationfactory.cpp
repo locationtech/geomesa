@@ -8675,12 +8675,15 @@ TEST_F(derivedGeographicCRS_with_to_wgs84_to_geographicCRS, src_from_wkt2) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
     // will have a lat, long axis order
 =======
     // will have a lat, lon axis order
@@ -8697,6 +8700,7 @@ TEST_F(derivedGeographicCRS_with_to_wgs84_to_geographicCRS, src_from_wkt2) {
 =======
     // will have a lat, long axis order
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8774,6 +8778,9 @@ TEST_F(derivedGeographicCRS_with_to_wgs84_to_geographicCRS, src_from_wkt2) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     auto objSrcProj = PROJStringParser().createFromPROJString(
         "+proj=ob_tran +o_proj=latlon +lat_0=0 +lon_0=180 +o_lat_p=18.0 "
         "+o_lon_p=-200.0 +ellps=WGS84 +towgs84=1,2,3 +over +type=crs");
