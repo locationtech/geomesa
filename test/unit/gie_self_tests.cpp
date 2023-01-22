@@ -1064,12 +1064,15 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 74eac2217b (typo fixes)
     double longitude = 120;
     proj_trans_generic(P, PJ_FWD, &lat, sizeof(double), 1, &longitude,
                        sizeof(double), 1, nullptr, 0, 0, nullptr, 0, 0);
@@ -1120,6 +1123,9 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -1130,6 +1136,7 @@ TEST(gie, proj_trans_generic) {
     EXPECT_NEAR(lat, -60, 1e-9);
     EXPECT_NEAR(longitude, 120, 1e-9);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -1155,6 +1162,9 @@ TEST(gie, proj_trans_generic) {
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
 
     proj_destroy(P);
 }
@@ -1251,6 +1261,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -1261,6 +1272,10 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
 
         PJ_COORD input_over_normalized;
         input_over_normalized.xyz.x = -220; // Long in deg
@@ -1274,6 +1289,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1286,6 +1304,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -1313,6 +1332,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
         proj_destroy(Pnormalized);
 
         proj_destroy(P);
@@ -1420,6 +1442,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -1430,6 +1453,10 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
 
         PJ_COORD input_over_normalized;
         input_over_normalized.xyz.x = -220; // Long in deg
@@ -1444,6 +1471,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1456,6 +1486,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -1483,6 +1514,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
         proj_destroy(Pnormalized);
 
         proj_destroy(P);

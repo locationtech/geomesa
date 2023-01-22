@@ -485,12 +485,15 @@ struct GridPrototype {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 74eac2217b (typo fixes)
     bool getLongLatOffset(int /*ix*/, int /*iy*/, double & /*longOffsetRadian*/,
                           double & /*latOffsetRadian*/) const {
         throw UnimplementedException("getLongLatOffset unimplemented");
@@ -518,6 +521,9 @@ struct GridPrototype {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -525,6 +531,7 @@ struct GridPrototype {
                           double & /*latOffsetRadian*/) const {
         throw UnimplementedException("getLongLatOffset unimplemented");
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -553,6 +560,9 @@ struct GridPrototype {
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
     }
 
     // cppcheck-suppress functionStatic
@@ -577,6 +587,7 @@ struct GridPrototype {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -587,6 +598,10 @@ struct GridPrototype {
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
     bool getLongLatZOffset(int /*ix*/, int /*iy*/,
                            double & /*longOffsetRadian*/,
                            double & /*latOffsetRadian*/,
@@ -594,6 +609,9 @@ struct GridPrototype {
         throw UnimplementedException("getLongLatZOffset unimplemented");
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 #if 0
         return getLongLatOffset(ix, iy, longOffsetRadian, latOffsetRadian) &&
 =======
@@ -640,12 +658,16 @@ struct GridPrototype {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 #if 0
         return getLongLatOffset(ix, iy, longOffsetRadian, latOffsetRadian) &&
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -667,6 +689,9 @@ struct GridPrototype {
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
                getZOffset(ix, iy, zOffset);
 #endif
     }

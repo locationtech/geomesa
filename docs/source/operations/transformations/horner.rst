@@ -245,6 +245,9 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -261,6 +264,7 @@ Optional
 =======
     the inverse transformation.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -298,6 +302,9 @@ Optional
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
 
 .. option:: +inv_u=<u_11,u_12,...,u_ij,..,u_mn>
 
@@ -315,6 +322,9 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -331,6 +341,7 @@ Optional
 =======
     the inverse transformation.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -368,6 +379,9 @@ Optional
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
 
 .. option:: +inv_v=<v_11,v_12,...,v_ij,..,v_mn>
 
@@ -385,6 +399,9 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -401,6 +418,7 @@ Optional
 =======
     the inverse transformation.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -438,6 +456,9 @@ Optional
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
 
 .. option:: +inv_c=<c_1,c_2,...,c_N>
 
@@ -455,6 +476,9 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -471,6 +495,7 @@ Optional
 =======
     the inverse transformation.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -508,6 +533,9 @@ Optional
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
 
 .. option:: +range=<value>
 
