@@ -35,6 +35,7 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define PT_O_LAMBDA -2.1144663887911301 /* long -121.15 and */
 =======
 #define PT_O_LAMBDA -2.1144663887911301 /* lon -121.15 and */
@@ -67,6 +68,9 @@ whatever ellipsoid is provided. */
 =======
 #define PT_O_LAMBDA -2.1144663887911301 /* lon -121.15 and */
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#define PT_O_LAMBDA -2.1144663887911301 /* long -121.15 and */
+>>>>>>> 86ade66356 (typo fixes)
 #define PT_O_PHI 0.59602993955606354 /* lat 34.15 */
 #define ROTATION_ANGLE 0.52359877559829882 /*CalCOFI angle of 30 deg in rad */
 
