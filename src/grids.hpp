@@ -102,12 +102,15 @@ class PROJ_GCC_DLL VerticalShiftGrid : public Grid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 74eac2217b (typo fixes)
     PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double longitude,
                                                   double lat) const;
 =======
@@ -130,12 +133,16 @@ class PROJ_GCC_DLL VerticalShiftGrid : public Grid {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
     PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double longitude,
                                                   double lat) const;
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -159,6 +166,9 @@ class PROJ_GCC_DLL VerticalShiftGrid : public Grid {
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
 
     PROJ_FOR_TEST virtual bool isNodata(float /*val*/,
                                         double /* multiplier */) const = 0;
@@ -200,12 +210,15 @@ class PROJ_GCC_DLL VerticalShiftGridSet {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 74eac2217b (typo fixes)
     PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double longitude,
                                                   double lat) const;
 =======
@@ -228,12 +241,16 @@ class PROJ_GCC_DLL VerticalShiftGridSet {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
     PROJ_FOR_TEST const VerticalShiftGrid *gridAt(double longitude,
                                                   double lat) const;
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -257,6 +274,9 @@ class PROJ_GCC_DLL VerticalShiftGridSet {
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
 
     PROJ_FOR_TEST virtual void reassign_context(PJ_CONTEXT *ctx);
     PROJ_FOR_TEST virtual bool reopen(PJ_CONTEXT *ctx);
@@ -283,6 +303,9 @@ class PROJ_GCC_DLL HorizontalShiftGrid : public Grid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double longitude,
 =======
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double lon,
@@ -299,6 +322,7 @@ class PROJ_GCC_DLL HorizontalShiftGrid : public Grid {
 =======
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double longitude,
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -336,6 +360,9 @@ class PROJ_GCC_DLL HorizontalShiftGrid : public Grid {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
                                                     double lat) const;
 
     // x = 0 is western-most column, y = 0 is southern-most line
@@ -350,6 +377,9 @@ class PROJ_GCC_DLL HorizontalShiftGrid : public Grid {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
                                        float &longShift,
 =======
                                        float &lonShift,
@@ -366,6 +396,7 @@ class PROJ_GCC_DLL HorizontalShiftGrid : public Grid {
 =======
                                        float &longShift,
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -403,6 +434,9 @@ class PROJ_GCC_DLL HorizontalShiftGrid : public Grid {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
                                        float &latShift) const = 0;
 
     PROJ_FOR_TEST virtual void reassign_context(PJ_CONTEXT *ctx) = 0;
@@ -439,6 +473,9 @@ class PROJ_GCC_DLL HorizontalShiftGridSet {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double longitude,
 =======
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double lon,
@@ -455,6 +492,7 @@ class PROJ_GCC_DLL HorizontalShiftGridSet {
 =======
     PROJ_FOR_TEST const HorizontalShiftGrid *gridAt(double longitude,
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -492,6 +530,9 @@ class PROJ_GCC_DLL HorizontalShiftGridSet {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
                                                     double lat) const;
 
     PROJ_FOR_TEST virtual void reassign_context(PJ_CONTEXT *ctx);
