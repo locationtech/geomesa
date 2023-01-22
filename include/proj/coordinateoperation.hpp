@@ -49,6 +49,12 @@ class DerivedCRS;
 class ProjectedCRS;
 } // namespace crs
 
+namespace coordinates {
+class CoordinateMetadata;
+using CoordinateMetadataPtr = std::shared_ptr<CoordinateMetadata>;
+using CoordinateMetadataNNPtr = util::nn<CoordinateMetadataPtr>;
+} // namespace coordinates
+
 /** osgeo.proj.operation namespace
 
   \brief Coordinate operations (relationship between any two coordinate
@@ -192,6 +198,11 @@ class PROJ_GCC_DLL CoordinateOperation : public common::ObjectUsage,
     void setAccuracies(
         const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies);
     PROJ_INTERNAL void setHasBallparkTransformation(bool b);
+
+    PROJ_INTERNAL void
+    setSourceCoordinateEpoch(const util::optional<common::DataEpoch> &epoch);
+    PROJ_INTERNAL void
+    setTargetCoordinateEpoch(const util::optional<common::DataEpoch> &epoch);
 
     PROJ_INTERNAL void
     setProperties(const util::PropertyMap
@@ -945,6 +956,11 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
         const common::Angle &centerLong, const common::Length &falseEasting,
         const common::Length &falseNorthing);
 
+    PROJ_DLL static ConversionNNPtr createTunisiaMiningGrid(
+        const util::PropertyMap &properties, const common::Angle &centerLat,
+        const common::Angle &centerLong, const common::Length &falseEasting,
+        const common::Length &falseNorthing);
+
     PROJ_DLL static ConversionNNPtr
     createAlbersEqualArea(const util::PropertyMap &properties,
                           const common::Angle &latitudeFalseOrigin,
@@ -1379,15 +1395,15 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
     PROJ_DLL static ConversionNNPtr
     createGeographic2DOffsets(const util::PropertyMap &properties,
                               const common::Angle &offsetLat,
-                              const common::Angle &offsetLon);
+                              const common::Angle &offsetLong);
 
     PROJ_DLL static ConversionNNPtr createGeographic3DOffsets(
         const util::PropertyMap &properties, const common::Angle &offsetLat,
-        const common::Angle &offsetLon, const common::Length &offsetHeight);
+        const common::Angle &offsetLong, const common::Length &offsetHeight);
 
     PROJ_DLL static ConversionNNPtr createGeographic2DWithHeightOffsets(
         const util::PropertyMap &properties, const common::Angle &offsetLat,
-        const common::Angle &offsetLon, const common::Length &offsetHeight);
+        const common::Angle &offsetLong, const common::Length &offsetHeight);
 
     PROJ_DLL static ConversionNNPtr
     createVerticalOffset(const util::PropertyMap &properties,
@@ -1583,19 +1599,19 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
     PROJ_DLL static TransformationNNPtr createGeographic2DOffsets(
         const util::PropertyMap &properties, const crs::CRSNNPtr &sourceCRSIn,
         const crs::CRSNNPtr &targetCRSIn, const common::Angle &offsetLat,
-        const common::Angle &offsetLon,
+        const common::Angle &offsetLong,
         const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies);
 
     PROJ_DLL static TransformationNNPtr createGeographic3DOffsets(
         const util::PropertyMap &properties, const crs::CRSNNPtr &sourceCRSIn,
         const crs::CRSNNPtr &targetCRSIn, const common::Angle &offsetLat,
-        const common::Angle &offsetLon, const common::Length &offsetHeight,
+        const common::Angle &offsetLong, const common::Length &offsetHeight,
         const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies);
 
     PROJ_DLL static TransformationNNPtr createGeographic2DWithHeightOffsets(
         const util::PropertyMap &properties, const crs::CRSNNPtr &sourceCRSIn,
         const crs::CRSNNPtr &targetCRSIn, const common::Angle &offsetLat,
-        const common::Angle &offsetLon, const common::Length &offsetHeight,
+        const common::Angle &offsetLong, const common::Length &offsetHeight,
         const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies);
 
     PROJ_DLL static TransformationNNPtr createVerticalOffset(
@@ -1899,12 +1915,28 @@ class PROJ_GCC_DLL CoordinateOperationContext {
     PROJ_DLL const std::vector<std::pair<std::string, std::string>> &
     getIntermediateCRS() const;
 
+    PROJ_DLL void
+    setSourceCoordinateEpoch(const util::optional<common::DataEpoch> &epoch);
+
+    PROJ_DLL const util::optional<common::DataEpoch> &
+    getSourceCoordinateEpoch() const;
+
+    PROJ_DLL void
+    setTargetCoordinateEpoch(const util::optional<common::DataEpoch> &epoch);
+
+    PROJ_DLL const util::optional<common::DataEpoch> &
+    getTargetCoordinateEpoch() const;
+
     PROJ_DLL static CoordinateOperationContextNNPtr
     create(const io::AuthorityFactoryPtr &authorityFactory,
            const metadata::ExtentPtr &extent, double accuracy);
 
+    PROJ_DLL CoordinateOperationContextNNPtr clone() const;
+
   protected:
     PROJ_INTERNAL CoordinateOperationContext();
+    PROJ_INTERNAL
+    CoordinateOperationContext(const CoordinateOperationContext &);
     INLINED_MAKE_UNIQUE
 
   private:
@@ -1941,6 +1973,16 @@ class PROJ_GCC_DLL CoordinateOperationFactory {
     createOperations(const crs::CRSNNPtr &sourceCRS,
                      const crs::CRSNNPtr &targetCRS,
                      const CoordinateOperationContextNNPtr &context) const;
+
+    PROJ_DLL std::vector<CoordinateOperationNNPtr> createOperations(
+        const coordinates::CoordinateMetadataNNPtr &sourceCoordinateMetadata,
+        const crs::CRSNNPtr &targetCRS,
+        const CoordinateOperationContextNNPtr &context) const;
+
+    PROJ_DLL std::vector<CoordinateOperationNNPtr> createOperations(
+        const crs::CRSNNPtr &sourceCRS,
+        const coordinates::CoordinateMetadataNNPtr &targetCoordinateMetadata,
+        const CoordinateOperationContextNNPtr &context) const;
 
     PROJ_DLL static CoordinateOperationFactoryNNPtr create();
 
