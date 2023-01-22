@@ -52,12 +52,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 =======
 #define PJ_STRTOD_WORK_BUFFER_SIZE 64
 
@@ -74,6 +77,7 @@
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -154,6 +158,9 @@
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 /************************************************************************/
 /*                              pj_atof()                               */
 /************************************************************************/
@@ -181,12 +188,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
  *   pj_strtod(nptr, nullptr);
 =======
  *   pj_strtod(nptr, (char **)NULL);
@@ -203,6 +213,7 @@
 =======
  *   pj_strtod(nptr, nullptr);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -280,6 +291,9 @@
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
  *
  * This function does the same as standard atof(3), but does not take
  * locale in account. That means, the decimal delimiter is always '.'
@@ -315,6 +329,7 @@ double pj_atof( const char* nptr )
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -333,6 +348,8 @@ double pj_atof( const char* nptr )
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 static char* replace_point_by_locale_point(const char* pszNumber, char point)
 =======
 static char* replace_point_by_locale_point(const char* pszNumber, char point,
@@ -370,13 +387,17 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 static char* replace_point_by_locale_point(const char* pszNumber, char point)
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -430,6 +451,9 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 {
 #if !defined(HAVE_LOCALECONV)
 
@@ -467,6 +491,7 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -485,6 +510,8 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
             char* pszNew = pj_strdup(pszNumber);
             if (!pszNew)
                 return nullptr;
@@ -576,8 +603,11 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -585,6 +615,7 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
             if (!pszNew)
                 return nullptr;
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -635,10 +666,14 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
             pszNew[pszPoint - pszNumber] = byPoint;
             return pszNew;
         }
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -673,6 +708,8 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 
     return nullptr;
 
@@ -715,8 +752,11 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -727,6 +767,7 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 
     const struct lconv *poLconv = localeconv();
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -790,6 +831,9 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     if ( poLconv
          && poLconv->decimal_point
          && poLconv->decimal_point[0] != '\0' )
@@ -802,6 +846,7 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
             const char* pszPoint = strchr(pszNumber, point);
             if (pszPoint || pszLocalePoint)
             {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -836,6 +881,8 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
                 char* pszNew = pj_strdup(pszNumber);
                 if (!pszNew)
                     return nullptr;
@@ -927,8 +974,11 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -936,6 +986,7 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
                 if (!pszNew)
                     return nullptr;
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -986,6 +1037,9 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
                 if( pszLocalePoint )
                     pszNew[pszLocalePoint - pszNumber] = ' ';
                 if( pszPoint )
@@ -994,6 +1048,7 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
             }
         }
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1028,6 +1083,8 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 
     return nullptr;
 
@@ -1068,8 +1125,11 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -1078,6 +1138,7 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 
 #endif
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1137,6 +1198,9 @@ static char* replace_point_by_locale_point(const char* pszNumber, char point)
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 }
 
 /************************************************************************/
@@ -1178,6 +1242,7 @@ double pj_strtod( const char *nptr, char **endptr )
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1196,6 +1261,8 @@ double pj_strtod( const char *nptr, char **endptr )
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 /*  into the temporary buffer, replace the specified decimal delimiter (.)  */
 /*  with the one taken from locale settings (ex ',') and then use standard strtod()  */
 /*  on that buffer.                                                     */
@@ -1241,6 +1308,7 @@ double pj_strtod( const char *nptr, char **endptr )
 /*  into the temporary buffer, replace the specified decimal delimiter (.)  */
 /*  with the one taken from locale settings (ex ',') and then use standard strtod()  */
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 /*  on that buffer.                                                     */
 /* -------------------------------------------------------------------- */
@@ -1461,23 +1529,27 @@ double pj_strtod( const char *nptr, char **endptr )
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
 /*  into the temporary buffer, replace the specified decimal delimiter  */
 /*  with the one, taken from locale settings and use standard strtod()  */
+=======
+>>>>>>> a4391c6673 (typo fixes)
 /*  on that buffer.                                                     */
 /* -------------------------------------------------------------------- */
-    double      dfValue;
-    int         nError;
-    char        szWorkBuffer[PJ_STRTOD_WORK_BUFFER_SIZE];
+    char *pszNumber = replace_point_by_locale_point( nptr, '.' );
+    if ( pszNumber )
+    {
+        char *pszNumberEnd;
+        double dfValue = strtod( pszNumber, &pszNumberEnd );
 
-    char*       pszNumber = replace_point_by_locale_point(nptr, '.', szWorkBuffer);
+        int nError = errno;
 
-    dfValue = strtod( pszNumber, endptr );
-    nError = errno;
+        if ( endptr )
+        {
+            ptrdiff_t offset = pszNumberEnd - pszNumber;
+            *endptr = const_cast<char*>( nptr + offset );
+        }
 
-    if ( endptr )
-        *endptr = (char *)nptr + (*endptr - pszNumber);
-
-    if (pszNumber != (char*) nptr && pszNumber != szWorkBuffer )
         free( pszNumber );
 
+<<<<<<< HEAD
     errno = nError;
     return dfValue;
 <<<<<<< HEAD
@@ -1490,6 +1562,22 @@ double pj_strtod( const char *nptr, char **endptr )
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+        errno = nError;
+
+        return dfValue;
+    }
+    else
+    {
+        return strtod( nptr, endptr );
+    }
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 }
