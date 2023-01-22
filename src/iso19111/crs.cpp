@@ -179,6 +179,51 @@ const BoundCRSPtr &CRS::canonicalBoundCRS() PROJ_PURE_DEFN {
 
 // ---------------------------------------------------------------------------
 
+/** \brief Return whether a CRS is a dynamic CRS.
+ *
+ * A dynamic CRS is a CRS that contains a geodetic CRS whose geodetic reference
+ * frame is dynamic, or a vertical CRS whose vertical reference frame is
+ * dynamic.
+ * @param considerWGS84AsDynamic set to true to consider the WGS 84 / EPSG:6326
+ *                               datum ensemble as dynamic.
+ * @since 9.2
+ */
+bool CRS::isDynamic(bool considerWGS84AsDynamic) const {
+
+    if (auto raw = extractGeodeticCRSRaw()) {
+        const auto &l_datum = raw->datum();
+        if (l_datum) {
+            if (dynamic_cast<datum::DynamicGeodeticReferenceFrame *>(
+                    l_datum.get())) {
+                return true;
+            }
+            if (considerWGS84AsDynamic &&
+                l_datum->nameStr() == "World Geodetic System 1984") {
+                return true;
+            }
+        }
+        if (considerWGS84AsDynamic) {
+            const auto &l_datumEnsemble = raw->datumEnsemble();
+            if (l_datumEnsemble && l_datumEnsemble->nameStr() ==
+                                       "World Geodetic System 1984 ensemble") {
+                return true;
+            }
+        }
+    }
+
+    if (auto vertCRS = extractVerticalCRS()) {
+        const auto &l_datum = vertCRS->datum();
+        if (l_datum && dynamic_cast<datum::DynamicVerticalReferenceFrame *>(
+                           l_datum.get())) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// ---------------------------------------------------------------------------
+
 /** \brief Return the GeodeticCRS of the CRS.
  *
  * Returns the GeodeticCRS contained in a CRS. This works currently with
@@ -618,7 +663,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
                     ->createOperations(NN_NO_CHECK(geodCRS), hubCRS, ctxt);
             CRSPtr candidateBoundCRS;
             int candidateCount = 0;
-            bool candidateHasExactlyMachingExtent = false;
+            bool candidateHasExactlyMatchingExtent = false;
             for (const auto &op : list) {
                 auto transf =
                     util::nn_dynamic_pointer_cast<operation::Transformation>(
@@ -638,16 +683,16 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
                         extentResolved->contains(NN_NO_CHECK(opExtent));
                     if (candidateBoundCRS) {
                         if (exactlyMatchingExtent &&
-                            !candidateHasExactlyMachingExtent) {
+                            !candidateHasExactlyMatchingExtent) {
                             candidateBoundCRS = nullptr;
                         } else if (exactlyMatchingExtent ==
-                                   candidateHasExactlyMachingExtent) {
+                                   candidateHasExactlyMatchingExtent) {
                             candidateCount++;
                         }
                     }
                     if (candidateBoundCRS == nullptr) {
                         candidateCount = 1;
-                        candidateHasExactlyMachingExtent =
+                        candidateHasExactlyMatchingExtent =
                             exactlyMatchingExtent;
                         candidateBoundCRS =
                             BoundCRS::create(thisAsCRS, hubCRS,
@@ -695,17 +740,17 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
                                             NN_NO_CHECK(opExtent));
                                     if (candidateBoundCRS) {
                                         if (exactlyMatchingExtent &&
-                                            !candidateHasExactlyMachingExtent) {
+                                            !candidateHasExactlyMatchingExtent) {
                                             candidateBoundCRS = nullptr;
                                         } else if (
                                             exactlyMatchingExtent ==
-                                            candidateHasExactlyMachingExtent) {
+                                            candidateHasExactlyMatchingExtent) {
                                             candidateCount++;
                                         }
                                     }
                                     if (candidateBoundCRS == nullptr) {
                                         candidateCount = 1;
-                                        candidateHasExactlyMachingExtent =
+                                        candidateHasExactlyMatchingExtent =
                                             exactlyMatchingExtent;
                                         candidateBoundCRS =
                                             BoundCRS::create(
@@ -4283,7 +4328,7 @@ void ProjectedCRS::_exportToWKT(io::WKTFormatter *formatter) const {
         if (!isWKT2 && !l_identifiers.empty() &&
             *(l_identifiers[0]->codeSpace()) == "ESRI") {
             try {
-                // If the id of the objet is in the ESRI namespace, then
+                // If the id of the object is in the ESRI namespace, then
                 // try to find the full ESRI WKT from the database
                 const auto definition = dbContext->getTextDefinition(
                     "projected_crs", "ESRI", l_identifiers[0]->code());
