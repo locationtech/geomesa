@@ -302,6 +302,7 @@ int main(int argc, char *argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -380,6 +381,9 @@ int main(int argc, char *argv[]) {
 =======
         std::cout << "filename,source_id,area_of_use,file_size" << std::endl;
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        std::cout << "filename,area_of_use,source_id,file_size" << std::endl;
+>>>>>>> bf1dfe8af6 (typo fixes)
     }
 
     std::string proj_data_version_str;
@@ -465,6 +469,7 @@ int main(int argc, char *argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -543,6 +548,9 @@ int main(int argc, char *argv[]) {
 =======
                                           << " and we are targetting "
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                          << " and we are targeting "
+>>>>>>> bf1dfe8af6 (typo fixes)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;
@@ -583,6 +591,7 @@ int main(int argc, char *argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -661,6 +670,9 @@ int main(int argc, char *argv[]) {
 =======
                                           << " and we are targetting "
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                          << " and we are targeting "
+>>>>>>> bf1dfe8af6 (typo fixes)
                                           << proj_data_version_str << std::endl;
                             }
                             continue;

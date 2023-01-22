@@ -152,6 +152,7 @@ paragraph for more details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -240,6 +241,11 @@ paragraph for more details.
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    Starting with PROJ 9.2, source_crs or target_crs can be a CoordinateMetadata
+    with an associated coordinate epoch (but only one of them, not both).
+
+>>>>>>> bf1dfe8af6 (typo fixes)
     An "area of use" can be specified in area. When it is supplied, the more
     accurate transformation between two given systems can be chosen.
 
@@ -278,6 +284,7 @@ paragraph for more details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -384,6 +391,11 @@ paragraph for more details.
     :type `source_crs`: `const char*`
     :param `target_crs`: Destination SRS.
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    :param `source_crs`: Source CRS or CoordinateMetadata.
+    :type `source_crs`: `const char*`
+    :param `target_crs`: Destination SRS or CoordinateMetadata
+>>>>>>> bf1dfe8af6 (typo fixes)
     :type `target_crs`: `const char*`
     :param `area`: Descriptor of the desired area for the transformation.
     :type `area`: :c:type:`PJ_AREA` *
@@ -412,6 +424,7 @@ paragraph for more details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -500,6 +513,11 @@ paragraph for more details.
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    Starting with PROJ 9.2, source_crs or target_crs can be a CoordinateMetadata
+    with an associated coordinate epoch (but only one of them, not both).
+
+>>>>>>> bf1dfe8af6 (typo fixes)
     :param `options`: a list of NUL terminated options, or NULL.
 
     The list of supported options is:
@@ -532,6 +550,7 @@ paragraph for more details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -553,6 +572,8 @@ paragraph for more details.
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     - ONLY_BEST=YES/NO: (PROJ >= 9.2)
       Can be set to YES to cause PROJ to error out if the best
       transformation, known of PROJ, and usable by PROJ if all grids known and
@@ -565,6 +586,7 @@ paragraph for more details.
       ``only_best_default`` setting of :ref:`proj-ini` (the ONLY_BEST option
       when specified overrides such default value).
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -631,6 +653,8 @@ paragraph for more details.
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     - FORCE_OVER=YES/NO: can be set to YES to force the ``+over`` flag on the transformation
       returned by this function. See :ref:`longitude_wrapping`
 
@@ -721,6 +745,7 @@ Coordinate transformation
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -799,6 +824,9 @@ Coordinate transformation
 =======
     Return the operation used during the last invokation of proj_trans().
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    Return the operation used during the last invocation of proj_trans().
+>>>>>>> bf1dfe8af6 (typo fixes)
     This is especially useful when P has been created with proj_create_crs_to_crs()
     and has several alternative operations.
     The returned object must be freed with proj_destroy().
