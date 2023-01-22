@@ -17,6 +17,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74dba80547 (Fix docutils version for Sphinx docs build)
 =======
@@ -31,6 +32,8 @@
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 8375048ae4 (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -52,6 +55,7 @@
 >>>>>>> 2341036672 (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -84,6 +88,8 @@
 =======
 >>>>>>> 2341036672 (Fix docutils version for Sphinx docs build)
 >>>>>>> 8375048ae4 (Fix docutils version for Sphinx docs build)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 Sphinx==4.5.0
 sphinx-tabs==3.3.1
 recommonmark==0.7.1
@@ -1094,6 +1100,7 @@ sphinx-copybutton==0.5.0
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> e82f13f69b9 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -1106,12 +1113,18 @@ sphinx-copybutton==0.5.0
 =======
 >>>>>>> c3493f342ed (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> beaa5929b3c (typo fixes)
+=======
 >>>>>>> 86ade66356 (typo fixes)
 >>>>>>> 258eacec280 (typo fixes)
 =======
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 sphinx==4.5.0
 breathe
@@ -1120,6 +1133,7 @@ sphinx_rtd_theme
 sphinxcontrib-spelling
 pybtex
 >>>>>>> e771dc363a (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1135,6 +1149,10 @@ pybtex
 >>>>>>> d3f3c5f3b48 (typo fixes)
 =======
 >>>>>>> 9b73e1e63e2 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> beaa5929b3c (typo fixes)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
@@ -3119,10 +3137,13 @@ sphinx-copybutton==0.5.0
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 31e57b8ac92 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> c3493f342ed (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> beaa5929b3c (typo fixes)
 =======
 >>>>>>> 86ade66356 (typo fixes)
 <<<<<<< HEAD
@@ -5519,4 +5540,11 @@ sphinx-copybutton==0.5.0
 =======
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> c3493f342ed (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> beaa5929b3c (typo fixes)
