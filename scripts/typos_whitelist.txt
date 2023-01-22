@@ -38,6 +38,7 @@ of a Deformation Model <https://github.com/linz/deformation-model-format/blob/ma
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -59,6 +60,8 @@ of a Deformation Model <https://github.com/linz/deformation-model-format/blob/ma
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
     return strcmp(abbrev, "lon") == 0 || strcmp(abbrev, "Lon") == 0;
   projections/som.cpp
 PROJ_HEAD(som, "Space Oblique Mercator")
@@ -152,6 +155,7 @@ NOTE: This is Windows syntax - Unix users use $HEL, etc.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -212,3 +216,5 @@ NOTE: This is Windows syntax - Unix users use $HEL, etc.
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bf1dfe8af6 (typo fixes)
