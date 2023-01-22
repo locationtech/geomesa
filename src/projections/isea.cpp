@@ -68,6 +68,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -88,6 +89,10 @@
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
 #define ISEA_STD_LONG .19634954084936207740
 =======
 #define ISEA_STD_LON .19634954084936207740
@@ -109,10 +114,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -160,6 +168,7 @@
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -232,6 +241,8 @@
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 
 namespace { // anonymous namespace
 struct hex {
@@ -374,6 +385,7 @@ struct isea_geo {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -394,6 +406,10 @@ struct isea_geo {
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
     double longitude, lat;
 =======
     double lon, lat;
@@ -415,10 +431,13 @@ struct isea_geo {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -466,6 +485,7 @@ struct isea_geo {
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -538,6 +558,8 @@ struct isea_geo {
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 };
 } // anonymous namespace
 
@@ -650,6 +672,7 @@ static double az_adjustment(int triangle)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -663,6 +686,8 @@ static double az_adjustment(int triangle)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 48ae38528d (typo fixes)
+=======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -672,6 +697,7 @@ static double az_adjustment(int triangle)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -692,6 +718,8 @@ static double az_adjustment(int triangle)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
     adj = atan2(cos(v.lat) * sin(v.longitude - c.longitude),
             cos(c.lat) * sin(v.lat)
             - sin(c.lat) * cos(v.lat) * cos(v.longitude - c.longitude));
@@ -753,12 +781,17 @@ static double az_adjustment(int triangle)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -771,10 +804,13 @@ static double az_adjustment(int triangle)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -822,6 +858,7 @@ static double az_adjustment(int triangle)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
@@ -863,6 +900,11 @@ static double az_adjustment(int triangle)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
     return adj;
 }
 
@@ -996,6 +1038,7 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1016,6 +1059,10 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
              + cos(center.lat) * cos(ll->lat) * cos(ll->longitude - center.longitude));
 =======
              + cos(center.lat) * cos(ll->lat) * cos(ll->lon - center.lon));
@@ -1037,10 +1084,13 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -1088,6 +1138,7 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1160,6 +1211,8 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
         /* not on this triangle */
         if (z > g + 0.000005) { /* TODO DBL_EPSILON */
             continue;
@@ -1188,6 +1241,7 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1208,6 +1262,10 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
         Az = sph_azimuth(center.longitude, center.lat, ll->longitude, ll->lat);
 =======
         Az = sph_azimuth(center.lon, center.lat, ll->lon, ll->lat);
@@ -1229,10 +1287,13 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -1280,6 +1341,7 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1352,6 +1414,8 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 
         /* step 2 */
 
@@ -1478,6 +1542,7 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1498,6 +1563,10 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
             PJ_TODEG(ll->longitude), PJ_TODEG(ll->lat));
 =======
             PJ_TODEG(ll->lon), PJ_TODEG(ll->lat));
@@ -1519,10 +1588,13 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -1570,6 +1642,7 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1642,6 +1715,8 @@ static int isea_snyder_forward(struct isea_geo * ll, struct isea_pt * out)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 
     exit(EXIT_FAILURE);
 }
@@ -1697,6 +1772,7 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1710,6 +1786,8 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 48ae38528d (typo fixes)
+=======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1719,6 +1797,7 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1739,6 +1818,8 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
     lambda = pt->longitude;
     alpha = np->lat;
     beta = np->longitude;
@@ -1800,12 +1881,17 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -1818,10 +1904,13 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -1869,6 +1958,7 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
@@ -1910,6 +2000,11 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
     lambda0 = beta;
 
     cos_p = cos(phi);
@@ -1960,6 +2055,7 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1980,6 +2076,10 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
     npt.longitude = lambdap;
 =======
     npt.lon = lambdap;
@@ -2001,10 +2101,13 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -2052,6 +2155,7 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2124,6 +2228,8 @@ static struct isea_geo snyder_ctran(struct isea_geo * np, struct isea_geo * pt)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 
     return npt;
 }
@@ -2156,6 +2262,7 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2169,6 +2276,8 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 48ae38528d (typo fixes)
+=======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2178,6 +2287,7 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2198,6 +2308,8 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
     np->longitude += M_PI;
     npt = snyder_ctran(np, pt);
     np->longitude -= M_PI;
@@ -2250,6 +2362,9 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -2331,6 +2446,7 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2425,11 +2541,14 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 
     /*
      * snyder is down tri 3, isea is along side of tri1 from vertex 0 to
      * vertex 1 these are 180 degrees apart
      */
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2466,6 +2585,8 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> 48ae38528d (typo fixes)
+=======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2475,6 +2596,7 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2495,6 +2617,8 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
     npt.longitude += M_PI;
     /* normalize longitude */
     npt.longitude = fmod(npt.longitude, 2 * M_PI);
@@ -2638,12 +2762,17 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -2652,12 +2781,16 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 =======
     npt.longitude += M_PI;
     /* normalize longitude */
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
@@ -2669,6 +2802,10 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
     npt.longitude = fmod(npt.longitude, 2 * M_PI);
     while (npt.longitude > M_PI)
         npt.longitude -= 2 * M_PI;
@@ -2679,8 +2816,11 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
@@ -2706,6 +2846,7 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -2760,6 +2901,12 @@ static struct isea_geo isea_ctran(struct isea_geo * np, struct isea_geo * pt,
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
 
     return npt;
 }
@@ -2796,6 +2943,7 @@ static int isea_grid_init(struct isea_dgg * g)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2816,6 +2964,10 @@ static int isea_grid_init(struct isea_dgg * g)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
     g->o_lon = ISEA_STD_LONG;
 =======
     g->o_lon = ISEA_STD_LON;
@@ -2837,10 +2989,13 @@ static int isea_grid_init(struct isea_dgg * g)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -2888,6 +3043,7 @@ static int isea_grid_init(struct isea_dgg * g)
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2960,6 +3116,8 @@ static int isea_grid_init(struct isea_dgg * g)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
     g->o_az = 0.0;
     g->aperture = 4;
     g->resolution = 6;
@@ -2997,6 +3155,7 @@ static void isea_orient_isea(struct isea_dgg * g)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3017,6 +3176,10 @@ static void isea_orient_isea(struct isea_dgg * g)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
     g->o_lon = ISEA_STD_LONG;
 =======
     g->o_lon = ISEA_STD_LON;
@@ -3038,10 +3201,13 @@ static void isea_orient_isea(struct isea_dgg * g)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -3089,6 +3255,7 @@ static void isea_orient_isea(struct isea_dgg * g)
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3161,6 +3328,8 @@ static void isea_orient_isea(struct isea_dgg * g)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
     g->o_az = 0.0;
 }
 
@@ -3203,6 +3372,7 @@ static int isea_transform(struct isea_dgg * g, struct isea_geo * in,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3223,6 +3393,10 @@ static int isea_transform(struct isea_dgg * g, struct isea_geo * in,
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
     pole.longitude = g->o_lon;
 =======
     pole.lon = g->o_lon;
@@ -3244,10 +3418,13 @@ static int isea_transform(struct isea_dgg * g, struct isea_geo * in,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -3295,6 +3472,7 @@ static int isea_transform(struct isea_dgg * g, struct isea_geo * in,
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3367,6 +3545,8 @@ static int isea_transform(struct isea_dgg * g, struct isea_geo * in,
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 
     i = isea_ctran(&pole, in, g->o_az);
 
@@ -3789,6 +3969,7 @@ static PJ_XY isea_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3809,6 +3990,10 @@ static PJ_XY isea_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
     in.longitude = lp.lam;
 =======
     in.lon = lp.lam;
@@ -3830,10 +4015,13 @@ static PJ_XY isea_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -3881,6 +4069,7 @@ static PJ_XY isea_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3953,6 +4142,8 @@ static PJ_XY isea_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
     in.lat = lp.phi;
 
     try {

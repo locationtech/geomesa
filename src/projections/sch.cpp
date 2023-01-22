@@ -98,6 +98,7 @@ static PJ_LPZ sch_inverse3d(PJ_XYZ xyz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -118,6 +119,10 @@ static PJ_LPZ sch_inverse3d(PJ_XYZ xyz, PJ *P) {
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
     /* Convert geocentric coordinates to lat long */
 =======
     /* Convert geocentric coordinates to lat lon */
@@ -139,10 +144,13 @@ static PJ_LPZ sch_inverse3d(PJ_XYZ xyz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -190,6 +198,7 @@ static PJ_LPZ sch_inverse3d(PJ_XYZ xyz, PJ *P) {
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -262,6 +271,8 @@ static PJ_LPZ sch_inverse3d(PJ_XYZ xyz, PJ *P) {
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
     return Q->cart->inv3d (xyz, Q->cart);
 }
 
@@ -291,6 +302,7 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -311,6 +323,10 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
     /* Convert lat long to geocentric coordinates */
 =======
     /* Convert lat lon to geocentric coordinates */
@@ -332,10 +348,13 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -383,6 +402,7 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -455,6 +475,8 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
     PJ_XYZ xyz  =  Q->cart->fwd3d (lpz, Q->cart);
 
     /* Adjust for offset */
@@ -492,6 +514,7 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -512,6 +535,10 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
     /* Convert to local lat,long */
 =======
     /* Convert to local lat,lon */
@@ -533,10 +560,13 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -584,6 +614,7 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -656,6 +687,8 @@ static PJ_XYZ sch_forward3d(PJ_LPZ lpz, PJ *P) {
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
     lpz  =  Q->cart_sph->inv3d (xyz, Q->cart_sph);
 
     /* Scale by radius */
