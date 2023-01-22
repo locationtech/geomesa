@@ -242,6 +242,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -274,6 +275,9 @@ Optional
 =======
     the inverse tranformation.
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    the inverse transformation.
+>>>>>>> 86ade66356 (typo fixes)
 
 .. option:: +inv_u=<u_11,u_12,...,u_ij,..,u_mn>
 
@@ -288,6 +292,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -320,6 +325,9 @@ Optional
 =======
     the inverse tranformation.
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    the inverse transformation.
+>>>>>>> 86ade66356 (typo fixes)
 
 .. option:: +inv_v=<v_11,v_12,...,v_ij,..,v_mn>
 
@@ -334,6 +342,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -366,6 +375,9 @@ Optional
 =======
     the inverse tranformation.
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    the inverse transformation.
+>>>>>>> 86ade66356 (typo fixes)
 
 .. option:: +inv_c=<c_1,c_2,...,c_N>
 
@@ -380,6 +392,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -412,6 +425,9 @@ Optional
 =======
     the inverse tranformation.
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    the inverse transformation.
+>>>>>>> 86ade66356 (typo fixes)
 
 .. option:: +range=<value>
 
