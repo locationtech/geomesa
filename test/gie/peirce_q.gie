@@ -15,6 +15,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # tessellation but means that there is no uniform scale
 =======
 # tesselation but means that there is no uniform scale
@@ -47,6 +48,9 @@
 =======
 # tesselation but means that there is no uniform scale
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+# tessellation but means that there is no uniform scale
+>>>>>>> 86ade66356 (typo fixes)
 # across the coordinate space, so tolerance can be high.
 ------------------------------------------------------------
 

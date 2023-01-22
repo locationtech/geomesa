@@ -53,6 +53,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "proj/coordinates.hpp"
 =======
 <<<<<<< HEAD
@@ -80,6 +81,9 @@
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#include "proj/coordinates.hpp"
+>>>>>>> 86ade66356 (typo fixes)
 #include "proj/coordinatesystem.hpp"
 #include "proj/crs.hpp"
 #include "proj/datum.hpp"
@@ -117,6 +121,7 @@ using namespace NS_PROJ::common;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 using namespace NS_PROJ::coordinates;
 =======
 <<<<<<< HEAD
@@ -144,6 +149,9 @@ using namespace NS_PROJ::coordinates;
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+using namespace NS_PROJ::coordinates;
+>>>>>>> 86ade66356 (typo fixes)
 using namespace NS_PROJ::crs;
 using namespace NS_PROJ::cs;
 using namespace NS_PROJ::datum;
@@ -1409,6 +1417,7 @@ struct WKTParser::Private {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     static optional<common::Measure> getAnchorEpoch(const WKTNodeNNPtr &node);
 
 =======
@@ -1439,6 +1448,10 @@ struct WKTParser::Private {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    static optional<common::Measure> getAnchorEpoch(const WKTNodeNNPtr &node);
+
+>>>>>>> 86ade66356 (typo fixes)
     static void parseDynamic(const WKTNodeNNPtr &dynamicNode,
                              double &frameReferenceEpoch,
                              util::optional<std::string> &modelName);
@@ -1584,6 +1597,7 @@ struct WKTParser::Private {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     CoordinateMetadataNNPtr buildCoordinateMetadata(const WKTNodeNNPtr &node);
 =======
@@ -1614,6 +1628,10 @@ struct WKTParser::Private {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+
+    CoordinateMetadataNNPtr buildCoordinateMetadata(const WKTNodeNNPtr &node);
+>>>>>>> 86ade66356 (typo fixes)
 };
 //! @endcond
 
@@ -2349,10 +2367,13 @@ optional<std::string> WKTParser::Private::getAnchor(const WKTNodeNNPtr &node) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 optional<common::Measure>
 WKTParser::Private::getAnchorEpoch(const WKTNodeNNPtr &node) {
 
@@ -2370,6 +2391,7 @@ WKTParser::Private::getAnchorEpoch(const WKTNodeNNPtr &node) {
 }
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2396,6 +2418,8 @@ WKTParser::Private::getAnchorEpoch(const WKTNodeNNPtr &node) {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 static const PrimeMeridianNNPtr &
 fixupPrimeMeridan(const EllipsoidNNPtr &ellipsoid,
                   const PrimeMeridianNNPtr &pm) {
@@ -2634,6 +2658,7 @@ GeodeticReferenceFrameNNPtr WKTParser::Private::buildGeodeticReferenceFrame(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     return GeodeticReferenceFrame::create(properties, ellipsoid,
@@ -2676,6 +2701,11 @@ GeodeticReferenceFrameNNPtr WKTParser::Private::buildGeodeticReferenceFrame(
     return GeodeticReferenceFrame::create(
         properties, ellipsoid, getAnchor(node), primeMeridianModified);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    return GeodeticReferenceFrame::create(properties, ellipsoid,
+                                          getAnchor(node), getAnchorEpoch(node),
+                                          primeMeridianModified);
+>>>>>>> 86ade66356 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -2853,6 +2883,7 @@ WKTParser::Private::buildAxis(const WKTNodeNNPtr &node,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2893,6 +2924,8 @@ WKTParser::Private::buildAxis(const WKTNodeNNPtr &node,
                AxisDirectionWKT1::valueOf(toupper(dirString)) != nullptr) {
         direction = AxisDirection::valueOf(tolower(dirString));
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
     }
 
     if (!direction) {
@@ -2919,10 +2952,13 @@ WKTParser::Private::buildAxis(const WKTNodeNNPtr &node,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
     util::optional<double> minVal;
     auto &axisMinValueNode = nodeP->lookForChild(WKTConstants::AXISMINVALUE);
     if (!isNull(axisMinValueNode)) {
@@ -2975,6 +3011,7 @@ WKTParser::Private::buildAxis(const WKTNodeNNPtr &node,
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     return CoordinateSystemAxis::create(
         buildProperties(node).set(IdentifiedObject::NAME_KEY, axisName),
         abbreviation, *direction, unit, minVal, maxVal, rangeMeaning,
@@ -3019,6 +3056,11 @@ WKTParser::Private::buildAxis(const WKTNodeNNPtr &node,
         buildProperties(node).set(IdentifiedObject::NAME_KEY, axisName),
         abbreviation, *direction, unit,
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    return CoordinateSystemAxis::create(
+        buildProperties(node).set(IdentifiedObject::NAME_KEY, axisName),
+        abbreviation, *direction, unit, minVal, maxVal, rangeMeaning,
+>>>>>>> 86ade66356 (typo fixes)
         !isNull(meridianNode) ? buildMeridian(meridianNode).as_nullable()
                               : nullptr);
 }
@@ -4885,6 +4927,7 @@ VerticalReferenceFrameNNPtr WKTParser::Private::buildVerticalReferenceFrame(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     return VerticalReferenceFrame::create(props, getAnchor(node),
@@ -4921,6 +4964,10 @@ VerticalReferenceFrameNNPtr WKTParser::Private::buildVerticalReferenceFrame(
 =======
     return VerticalReferenceFrame::create(props, getAnchor(node));
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    return VerticalReferenceFrame::create(props, getAnchor(node),
+                                          getAnchorEpoch(node));
+>>>>>>> 86ade66356 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -5644,10 +5691,13 @@ WKTParser::Private::buildDerivedProjectedCRS(const WKTNodeNNPtr &node) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 CoordinateMetadataNNPtr
 WKTParser::Private::buildCoordinateMetadata(const WKTNodeNNPtr &node) {
     const auto *nodeP = node->GP();
@@ -5684,6 +5734,7 @@ WKTParser::Private::buildCoordinateMetadata(const WKTNodeNNPtr &node) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5708,6 +5759,8 @@ WKTParser::Private::buildCoordinateMetadata(const WKTNodeNNPtr &node) {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 static bool isGeodeticCRS(const std::string &name) {
     return ci_equal(name, WKTConstants::GEODCRS) ||       // WKT2
            ci_equal(name, WKTConstants::GEODETICCRS) ||   // WKT2
@@ -5944,15 +5997,19 @@ BaseObjectNNPtr WKTParser::Private::build(const WKTNodeNNPtr &node) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
     if (ci_equal(name, WKTConstants::COORDINATEMETADATA)) {
         return util::nn_static_pointer_cast<BaseObject>(
             buildCoordinateMetadata(node));
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -5979,6 +6036,8 @@ BaseObjectNNPtr WKTParser::Private::build(const WKTNodeNNPtr &node) {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
     throw ParsingException(concat("unhandled keyword: ", name));
 }
 
@@ -6031,6 +6090,7 @@ class JSONParser {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     CoordinateMetadataNNPtr buildCoordinateMetadata(const json &j);
 =======
 <<<<<<< HEAD
@@ -6058,6 +6118,9 @@ class JSONParser {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    CoordinateMetadataNNPtr buildCoordinateMetadata(const json &j);
+>>>>>>> 86ade66356 (typo fixes)
 
     void buildGeodeticDatumOrDatumEnsemble(const json &j,
                                            GeodeticReferenceFramePtr &datum,
@@ -6077,10 +6140,13 @@ class JSONParser {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
     static util::optional<common::Measure> getAnchorEpoch(const json &j) {
         if (j.contains("anchor_epoch")) {
             return util::optional<common::Measure>(common::Measure(
@@ -6089,6 +6155,7 @@ class JSONParser {
         return util::optional<common::Measure>();
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -6115,6 +6182,8 @@ class JSONParser {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
     EngineeringDatumNNPtr buildEngineeringDatum(const json &j) {
         return EngineeringDatum::create(buildProperties(j), getAnchor(j));
     }
@@ -6639,6 +6708,7 @@ BaseObjectNNPtr JSONParser::create(const json &j)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     if (type == "CoordinateMetadata") {
@@ -6673,6 +6743,11 @@ BaseObjectNNPtr JSONParser::create(const json &j)
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    if (type == "CoordinateMetadata") {
+        return buildCoordinateMetadata(j);
+    }
+>>>>>>> 86ade66356 (typo fixes)
     if (type == "Axis") {
         return buildAxis(j);
     }
@@ -7055,10 +7130,13 @@ JSONParser::buildConcatenatedOperation(const json &j) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 CoordinateMetadataNNPtr JSONParser::buildCoordinateMetadata(const json &j) {
 
     auto crs = buildCRS(getObject(j, "crs"));
@@ -7076,6 +7154,7 @@ CoordinateMetadataNNPtr JSONParser::buildCoordinateMetadata(const json &j) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -7102,6 +7181,8 @@ CoordinateMetadataNNPtr JSONParser::buildCoordinateMetadata(const json &j) {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 MeridianNNPtr JSONParser::buildMeridian(const json &j) {
     if (!j.contains("longitude")) {
         throw ParsingException("Missing \"longitude\" key");
@@ -7137,10 +7218,13 @@ CoordinateSystemAxisNNPtr JSONParser::buildAxis(const json &j) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 
     util::optional<double> minVal;
     if (j.contains("minimum_value")) {
@@ -7163,6 +7247,7 @@ CoordinateSystemAxisNNPtr JSONParser::buildAxis(const json &j) {
         rangeMeaning = util::optional<RangeMeaning>(*meaning);
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     return CoordinateSystemAxis::create(buildProperties(j), abbreviation,
                                         *direction, unit, minVal, maxVal,
@@ -7204,6 +7289,11 @@ CoordinateSystemAxisNNPtr JSONParser::buildAxis(const json &j) {
     return CoordinateSystemAxis::create(buildProperties(j), abbreviation,
                                         *direction, unit, meridian);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    return CoordinateSystemAxis::create(buildProperties(j), abbreviation,
+                                        *direction, unit, minVal, maxVal,
+                                        rangeMeaning, meridian);
+>>>>>>> 86ade66356 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -7380,6 +7470,7 @@ JSONParser::buildGeodeticReferenceFrame(const json &j) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     return GeodeticReferenceFrame::create(buildProperties(j),
@@ -7422,6 +7513,11 @@ JSONParser::buildGeodeticReferenceFrame(const json &j) {
     return GeodeticReferenceFrame::create(
         buildProperties(j), buildEllipsoid(ellipsoidJ), getAnchor(j), pm);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    return GeodeticReferenceFrame::create(buildProperties(j),
+                                          buildEllipsoid(ellipsoidJ),
+                                          getAnchor(j), getAnchorEpoch(j), pm);
+>>>>>>> 86ade66356 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -7456,6 +7552,7 @@ JSONParser::buildVerticalReferenceFrame(const json &j) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     return VerticalReferenceFrame::create(buildProperties(j), getAnchor(j),
@@ -7492,6 +7589,10 @@ JSONParser::buildVerticalReferenceFrame(const json &j) {
 =======
     return VerticalReferenceFrame::create(buildProperties(j), getAnchor(j));
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    return VerticalReferenceFrame::create(buildProperties(j), getAnchor(j),
+                                          getAnchorEpoch(j));
+>>>>>>> 86ade66356 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -7635,10 +7736,13 @@ static CRSNNPtr importFromCRSURL(const std::string &text,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
     try {
         auto factoryCRS = AuthorityFactory::create(dbContext, auth_name);
         return factoryCRS->createCoordinateReferenceSystem(code, true);
@@ -7667,6 +7771,7 @@ static CRSNNPtr importFromCRSURL(const std::string &text,
             AuthorityFactory::create(dbContext, authNameWithVersion);
         return factoryCRS->createCoordinateReferenceSystem(code, true);
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -7703,6 +7808,8 @@ static CRSNNPtr importFromCRSURL(const std::string &text,
     auto factoryCRS = AuthorityFactory::create(dbContext, auth_name);
     return factoryCRS->createCoordinateReferenceSystem(code, true);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -8412,10 +8519,13 @@ static BaseObjectNNPtr createFromUserInput(const std::string &text,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
     // Parse strings like "ITRF2014 @ 2025.0"
     const auto posAt = text.find('@');
     if (posAt != std::string::npos) {
@@ -8448,6 +8558,7 @@ static BaseObjectNNPtr createFromUserInput(const std::string &text,
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8472,6 +8583,8 @@ static BaseObjectNNPtr createFromUserInput(const std::string &text,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
     throw ParsingException("unrecognized format / unknown name");
 }
 //! @endcond
@@ -8509,6 +8622,7 @@ static BaseObjectNNPtr createFromUserInput(const std::string &text,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
  * "http://www.opengis.net/def/crs/EPSG/0/4326"</li>
@@ -8545,6 +8659,10 @@ static BaseObjectNNPtr createFromUserInput(const std::string &text,
 =======
  * "http://www.opengis.net/def/crs/EPSG/0/4326</li> <li>OGC URL for a compound
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * "http://www.opengis.net/def/crs/EPSG/0/4326"</li>
+ * <li>OGC URL for a compound
+>>>>>>> 86ade66356 (typo fixes)
  * CRS. e.g
  * "http://www.opengis.net/def/crs-compound?1=http://www.opengis.net/def/crs/EPSG/0/4326&2=http://www.opengis.net/def/crs/EPSG/0/3855"</li>
  * <li>an Object name. e.g "WGS 84", "WGS 84 / UTM zone 31N". In that case as
@@ -8556,6 +8674,7 @@ static BaseObjectNNPtr createFromUserInput(const std::string &text,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
  * <li>a CRS name and a coordinate epoch, separated with '@'. For example
  *     "ITRF2014@2025.0". (added in PROJ 9.2)</li>
 =======
@@ -8586,6 +8705,10 @@ static BaseObjectNNPtr createFromUserInput(const std::string &text,
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * <li>a CRS name and a coordinate epoch, separated with '@'. For example
+ *     "ITRF2014@2025.0". (added in PROJ 9.2)</li>
+>>>>>>> 86ade66356 (typo fixes)
  * <li>a compound CRS made from two object names separated with " + ".
  *     e.g. "WGS 84 + EGM96 height"</li>
  * <li>PROJJSON string</li>
@@ -8655,6 +8778,7 @@ BaseObjectNNPtr createFromUserInput(const std::string &text, PJ_CONTEXT *ctx) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (ctx != nullptr) {
 =======
         if (ctx != nullptr && ctx->cpp_context) {
@@ -8687,6 +8811,9 @@ BaseObjectNNPtr createFromUserInput(const std::string &text, PJ_CONTEXT *ctx) {
 =======
         if (ctx != nullptr && ctx->cpp_context) {
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        if (ctx != nullptr) {
+>>>>>>> 86ade66356 (typo fixes)
             // Only connect to proj.db if needed
             if (text.find("proj=") == std::string::npos ||
                 text.find("init=") != std::string::npos) {
@@ -8697,6 +8824,7 @@ BaseObjectNNPtr createFromUserInput(const std::string &text, PJ_CONTEXT *ctx) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     ctx->get_cpp_context()->getDatabaseContext().as_nullable();
 =======
                     ctx->cpp_context->getDatabaseContext().as_nullable();
@@ -8729,6 +8857,9 @@ BaseObjectNNPtr createFromUserInput(const std::string &text, PJ_CONTEXT *ctx) {
 =======
                     ctx->cpp_context->getDatabaseContext().as_nullable();
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                    ctx->get_cpp_context()->getDatabaseContext().as_nullable();
+>>>>>>> 86ade66356 (typo fixes)
             }
         }
     } catch (const std::exception &) {
@@ -11073,10 +11204,13 @@ std::string PROJStringParser::Private::guessBodyName(double a) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 
     auto ret = Ellipsoid::guessBodyName(dbContext_, a);
     if (ret == "Non-Earth body" && dbContext_ == nullptr && ctx_ != nullptr) {
@@ -11087,6 +11221,7 @@ std::string PROJStringParser::Private::guessBodyName(double a) {
         }
     }
     return ret;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -11118,6 +11253,8 @@ std::string PROJStringParser::Private::guessBodyName(double a) {
 =======
     return Ellipsoid::guessBodyName(dbContext_, a);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
