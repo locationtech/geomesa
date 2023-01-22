@@ -167,6 +167,7 @@ test_projjson EPSG:5613
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 test_projjson "ITRF2014@2025.0"
 =======
 <<<<<<< HEAD
@@ -194,6 +195,9 @@ test_projjson "ITRF2014@2025.0"
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+test_projjson "ITRF2014@2025.0"
+>>>>>>> 86ade66356 (typo fixes)
 
 validate_json $TRAVIS_BUILD_DIR/schemas/v0.5/examples/point_motion_operation.json
 

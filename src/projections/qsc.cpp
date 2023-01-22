@@ -114,6 +114,7 @@ static double qsc_fwd_equat_face_theta(double phi, double y, double x, enum Area
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 static double qsc_shift_longitude_origin(double longitude, double offset) {
@@ -154,6 +155,10 @@ static double qsc_shift_lon_origin(double lon, double offset) {
 static double qsc_shift_lon_origin(double lon, double offset) {
     double slon = lon + offset;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static double qsc_shift_longitude_origin(double longitude, double offset) {
+    double slon = longitude + offset;
+>>>>>>> 86ade66356 (typo fixes)
     if (slon < -M_PI) {
         slon += M_TWOPI;
     } else if (slon > +M_PI) {
@@ -172,6 +177,7 @@ static PJ_XY qsc_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     double lat, longitude;
 =======
     double lat, lon;
@@ -204,6 +210,9 @@ static PJ_XY qsc_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward 
 =======
     double lat, lon;
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    double lat, longitude;
+>>>>>>> 86ade66356 (typo fixes)
     double theta, phi;
     double t, mu; /* nu; */
     enum Area area;
@@ -223,6 +232,7 @@ static PJ_XY qsc_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     /* Convert the input lat, longitude into theta, phi as used by QSC.
 =======
     /* Convert the input lat, lon into theta, phi as used by QSC.
@@ -255,6 +265,9 @@ static PJ_XY qsc_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward 
 =======
     /* Convert the input lat, lon into theta, phi as used by QSC.
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    /* Convert the input lat, longitude into theta, phi as used by QSC.
+>>>>>>> 86ade66356 (typo fixes)
      * This depends on the cube face and the area on it.
      * For the top and bottom face, we can compute theta and phi
      * directly from phi, lam. For the other faces, we must use
@@ -265,6 +278,7 @@ static PJ_XY qsc_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     longitude = lp.lam;
@@ -357,34 +371,38 @@ static PJ_XY qsc_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward 
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     lon = lp.lam;
+=======
+    longitude = lp.lam;
+>>>>>>> 86ade66356 (typo fixes)
     if (Q->face == FACE_TOP) {
         phi = M_HALFPI - lat;
-        if (lon >= M_FORTPI && lon <= M_HALFPI + M_FORTPI) {
+        if (longitude >= M_FORTPI && longitude <= M_HALFPI + M_FORTPI) {
             area = AREA_0;
-            theta = lon - M_HALFPI;
-        } else if (lon > M_HALFPI + M_FORTPI || lon <= -(M_HALFPI + M_FORTPI)) {
+            theta = longitude - M_HALFPI;
+        } else if (longitude > M_HALFPI + M_FORTPI || longitude <= -(M_HALFPI + M_FORTPI)) {
             area = AREA_1;
-            theta = (lon > 0.0 ? lon - M_PI : lon + M_PI);
-        } else if (lon > -(M_HALFPI + M_FORTPI) && lon <= -M_FORTPI) {
+            theta = (longitude > 0.0 ? longitude - M_PI : longitude + M_PI);
+        } else if (longitude > -(M_HALFPI + M_FORTPI) && longitude <= -M_FORTPI) {
             area = AREA_2;
-            theta = lon + M_HALFPI;
+            theta = longitude + M_HALFPI;
         } else {
             area = AREA_3;
-            theta = lon;
+            theta = longitude;
         }
     } else if (Q->face == FACE_BOTTOM) {
         phi = M_HALFPI + lat;
-        if (lon >= M_FORTPI && lon <= M_HALFPI + M_FORTPI) {
+        if (longitude >= M_FORTPI && longitude <= M_HALFPI + M_FORTPI) {
             area = AREA_0;
-            theta = -lon + M_HALFPI;
-        } else if (lon < M_FORTPI && lon >= -M_FORTPI) {
+            theta = -longitude + M_HALFPI;
+        } else if (longitude < M_FORTPI && longitude >= -M_FORTPI) {
             area = AREA_1;
-            theta = -lon;
-        } else if (lon < -M_FORTPI && lon >= -(M_HALFPI + M_FORTPI)) {
+            theta = -longitude;
+        } else if (longitude < -M_FORTPI && longitude >= -(M_HALFPI + M_FORTPI)) {
             area = AREA_2;
-            theta = -lon - M_HALFPI;
+            theta = -longitude - M_HALFPI;
         } else {
             area = AREA_3;
+<<<<<<< HEAD
             theta = (lon > 0.0 ? -lon + M_PI : -lon - M_PI);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -395,6 +413,9 @@ static PJ_XY qsc_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward 
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            theta = (longitude > 0.0 ? -longitude + M_PI : -longitude - M_PI);
+>>>>>>> 86ade66356 (typo fixes)
         }
     } else {
         double q, r, s;
@@ -408,6 +429,7 @@ static PJ_XY qsc_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
             longitude = qsc_shift_longitude_origin(longitude, +M_HALFPI);
@@ -461,13 +483,17 @@ static PJ_XY qsc_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward 
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
             lon = qsc_shift_lon_origin(lon, +M_HALFPI);
+=======
+            longitude = qsc_shift_longitude_origin(longitude, +M_HALFPI);
+>>>>>>> 86ade66356 (typo fixes)
         } else if (Q->face == FACE_BACK) {
-            lon = qsc_shift_lon_origin(lon, +M_PI);
+            longitude = qsc_shift_longitude_origin(longitude, +M_PI);
         } else if (Q->face == FACE_LEFT) {
-            lon = qsc_shift_lon_origin(lon, -M_HALFPI);
+            longitude = qsc_shift_longitude_origin(longitude, -M_HALFPI);
         }
         sinlat = sin(lat);
         coslat = cos(lat);
+<<<<<<< HEAD
         sinlon = sin(lon);
         coslon = cos(lon);
 <<<<<<< HEAD
@@ -479,6 +505,10 @@ static PJ_XY qsc_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward 
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        sinlon = sin(longitude);
+        coslon = cos(longitude);
+>>>>>>> 86ade66356 (typo fixes)
         q = coslat * coslon;
         r = coslat * sinlon;
         s = sinlat;
@@ -648,6 +678,7 @@ static PJ_LP qsc_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
             lp.lam = qsc_shift_longitude_origin(lp.lam, -M_HALFPI);
@@ -690,9 +721,13 @@ static PJ_LP qsc_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse 
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
             lp.lam = qsc_shift_lon_origin(lp.lam, -M_HALFPI);
+=======
+            lp.lam = qsc_shift_longitude_origin(lp.lam, -M_HALFPI);
+>>>>>>> 86ade66356 (typo fixes)
         } else if (Q->face == FACE_BACK) {
-            lp.lam = qsc_shift_lon_origin(lp.lam, -M_PI);
+            lp.lam = qsc_shift_longitude_origin(lp.lam, -M_PI);
         } else if (Q->face == FACE_LEFT) {
+<<<<<<< HEAD
             lp.lam = qsc_shift_lon_origin(lp.lam, +M_HALFPI);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -703,6 +738,9 @@ static PJ_LP qsc_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse 
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            lp.lam = qsc_shift_longitude_origin(lp.lam, +M_HALFPI);
+>>>>>>> 86ade66356 (typo fixes)
         }
     }
 
