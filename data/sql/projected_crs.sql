@@ -5618,12 +5618,15 @@ INSERT INTO "usage" VALUES('EPSG','4842','projected_crs','EPSG','6621','EPSG','2
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5800,6 +5803,9 @@ INSERT INTO "usage" VALUES('EPSG','4845','projected_crs','EPSG','6624','EPSG','1
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 INSERT INTO "projected_crs" VALUES('EPSG','6622','NAD83(CSRS)v2 / Quebec Lambert',NULL,'EPSG','4499','EPSG','8237','EPSG','19944',NULL,0);
 INSERT INTO "usage" VALUES('EPSG','4843','projected_crs','EPSG','6622','EPSG','1368','EPSG','1142');
@@ -5808,6 +5814,7 @@ INSERT INTO "usage" VALUES('EPSG','4844','projected_crs','EPSG','6623','EPSG','1
 INSERT INTO "projected_crs" VALUES('EPSG','6624','NAD83(CSRS)v2 / Quebec Albers',NULL,'EPSG','4499','EPSG','8237','EPSG','6645',NULL,0);
 INSERT INTO "usage" VALUES('EPSG','4845','projected_crs','EPSG','6624','EPSG','1368','EPSG','1220');
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5850,6 +5857,8 @@ INSERT INTO "usage" VALUES('EPSG','4845','projected_crs','EPSG','6624','EPSG','1
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "projected_crs" VALUES('EPSG','6625','NAD83(2011) / Utah Central (ftUS)',NULL,'EPSG','4497','EPSG','6318','EPSG','15298',NULL,0);
 INSERT INTO "usage" VALUES('EPSG','4846','projected_crs','EPSG','6625','EPSG','2257','EPSG','1142');
 INSERT INTO "projected_crs" VALUES('EPSG','6626','NAD83(2011) / Utah North (ftUS)',NULL,'EPSG','4497','EPSG','6318','EPSG','15297',NULL,0);
@@ -7714,6 +7723,7 @@ INSERT INTO "usage" VALUES('EPSG','17456','projected_crs','EPSG','9977','EPSG','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7725,9 +7735,12 @@ INSERT INTO "usage" VALUES('EPSG','17456','projected_crs','EPSG','9977','EPSG','
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> d8e8090c80 (typo fixes)
+=======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -7754,6 +7767,10 @@ INSERT INTO "usage" VALUES('EPSG','17456','projected_crs','EPSG','9977','EPSG','
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "projected_crs" VALUES('EPSG','10183','DoPw22 Grid',NULL,'EPSG','4400','EPSG','10175','EPSG','10182',NULL,0);
 INSERT INTO "usage" VALUES('EPSG','18655','projected_crs','EPSG','10183','EPSG','4686','EPSG','1141');
 INSERT INTO "projected_crs" VALUES('EPSG','10188','ShAb07 Grid',NULL,'EPSG','4400','EPSG','10185','EPSG','10187',NULL,0);
@@ -7790,6 +7807,7 @@ INSERT INTO "usage" VALUES('EPSG','19184','projected_crs','EPSG','10280','EPSG',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -7798,6 +7816,8 @@ INSERT INTO "usage" VALUES('EPSG','19184','projected_crs','EPSG','10280','EPSG',
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7834,6 +7854,7 @@ INSERT INTO "usage" VALUES('EPSG','19184','projected_crs','EPSG','10280','EPSG',
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
@@ -7887,6 +7908,10 @@ INSERT INTO "usage" VALUES('EPSG','19184','projected_crs','EPSG','10280','EPSG',
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "projected_crs" VALUES('EPSG','20002','MWC18 Grid',NULL,'EPSG','4400','EPSG','20033','EPSG','10127',NULL,0);
 INSERT INTO "usage" VALUES('EPSG','18336','projected_crs','EPSG','20002','EPSG','4666','EPSG','1141');
 INSERT INTO "projected_crs" VALUES('EPSG','20004','Pulkovo 1995 / Gauss-Kruger zone 4',NULL,'EPSG','4530','EPSG','4200','EPSG','16204',NULL,0);
