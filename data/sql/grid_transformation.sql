@@ -56,12 +56,15 @@ INSERT INTO "usage" VALUES('EPSG','8395','grid_transformation','EPSG','1474','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -581,61 +584,65 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "grid_transformation" VALUES('EPSG','1475','NAD83 to NAD83(HARN) (2)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1728.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','azhpgn.las','EPSG','8658','Longitude difference file','azhpgn.los',NULL,NULL,'NGS-Usa AZ',0);
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','1475','NAD83 to NAD83(HARN) (2)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1728.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','azhpgn.las','EPSG','8658','Longitude difference file','azhpgn.los',NULL,NULL,'NGS-Usa AZ',0);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','8396','grid_transformation','EPSG','1475','EPSG','1373','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1476','NAD83 to NAD83(HARN) (3)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1739.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','cnhpgn.las','EPSG','8658','Longitude difference file','cnhpgn.los',NULL,NULL,'NGS-Usa CA n',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1476','NAD83 to NAD83(HARN) (3)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1739.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','cnhpgn.las','EPSG','8658','Longitude difference file','cnhpgn.los',NULL,NULL,'NGS-Usa CA n',0);
 INSERT INTO "usage" VALUES('EPSG','8397','grid_transformation','EPSG','1476','EPSG','2297','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1477','NAD83 to NAD83(HARN) (4)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1750.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','cshpgn.las','EPSG','8658','Longitude difference file','cshpgn.los',NULL,NULL,'NGS-Usa CA s',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1477','NAD83 to NAD83(HARN) (4)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1750.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','cshpgn.las','EPSG','8658','Longitude difference file','cshpgn.los',NULL,NULL,'NGS-Usa CA s',0);
 INSERT INTO "usage" VALUES('EPSG','8398','grid_transformation','EPSG','1477','EPSG','2298','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1478','NAD83 to NAD83(HARN) (5)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1712.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','cohpgn.las','EPSG','8658','Longitude difference file','cohpgn.los',NULL,NULL,'NGS-Usa CO',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1478','NAD83 to NAD83(HARN) (5)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1712.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','cohpgn.las','EPSG','8658','Longitude difference file','cohpgn.los',NULL,NULL,'NGS-Usa CO',0);
 INSERT INTO "usage" VALUES('EPSG','8399','grid_transformation','EPSG','1478','EPSG','1376','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1479','NAD83 to NAD83(HARN) (6)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1713.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','gahpgn.las','EPSG','8658','Longitude difference file','gahpgn.los',NULL,NULL,'NGS-Usa GA',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1479','NAD83 to NAD83(HARN) (6)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1713.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','gahpgn.las','EPSG','8658','Longitude difference file','gahpgn.los',NULL,NULL,'NGS-Usa GA',0);
 INSERT INTO "usage" VALUES('EPSG','8400','grid_transformation','EPSG','1479','EPSG','1380','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1480','NAD83 to NAD83(HARN) (7)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1714.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','flhpgn.las','EPSG','8658','Longitude difference file','flhpgn.los',NULL,NULL,'NGS-Usa FL',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1480','NAD83 to NAD83(HARN) (7)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1714.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','flhpgn.las','EPSG','8658','Longitude difference file','flhpgn.los',NULL,NULL,'NGS-Usa FL',0);
 INSERT INTO "usage" VALUES('EPSG','8401','grid_transformation','EPSG','1480','EPSG','1379','EPSG','1027');
 INSERT INTO "grid_transformation" VALUES('EPSG','1481','NAD83 to NAD83(HARN) (8)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1715.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','emhpgn.las','EPSG','8658','Longitude difference file','emhpgn.los',NULL,NULL,'NGS-Usa ID MT e',0);
 INSERT INTO "usage" VALUES('EPSG','8402','grid_transformation','EPSG','1481','EPSG','2382','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1482','NAD83 to NAD83(HARN) (9)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1716.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wmhpgn.las','EPSG','8658','Longitude difference file','wmhpgn.los',NULL,NULL,'NGS-Usa ID MT w',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1482','NAD83 to NAD83(HARN) (9)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1716.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wmhpgn.las','EPSG','8658','Longitude difference file','wmhpgn.los',NULL,NULL,'NGS-Usa ID MT w',0);
 INSERT INTO "usage" VALUES('EPSG','8403','grid_transformation','EPSG','1482','EPSG','2383','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1483','NAD83 to NAD83(HARN) (10)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1718.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','kyhpgn.las','EPSG','8658','Longitude difference file','kyhpgn.los',NULL,NULL,'NGS-Usa KY',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1483','NAD83 to NAD83(HARN) (10)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1718.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','kyhpgn.las','EPSG','8658','Longitude difference file','kyhpgn.los',NULL,NULL,'NGS-Usa KY',0);
 INSERT INTO "usage" VALUES('EPSG','8404','grid_transformation','EPSG','1483','EPSG','1386','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1484','NAD83 to NAD83(HARN) (11)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1719.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','lahpgn.las','EPSG','8658','Longitude difference file','lahpgn.los',NULL,NULL,'NGS-Usa LA',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1484','NAD83 to NAD83(HARN) (11)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1719.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','lahpgn.las','EPSG','8658','Longitude difference file','lahpgn.los',NULL,NULL,'NGS-Usa LA',0);
 INSERT INTO "usage" VALUES('EPSG','8405','grid_transformation','EPSG','1484','EPSG','1387','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1485','NAD83 to NAD83(HARN) (12)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1720.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','mdhpgn.las','EPSG','8658','Longitude difference file','mdhpgn.los',NULL,NULL,'NGS-Usa DE MD',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1485','NAD83 to NAD83(HARN) (12)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1720.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','mdhpgn.las','EPSG','8658','Longitude difference file','mdhpgn.los',NULL,NULL,'NGS-Usa DE MD',0);
 INSERT INTO "usage" VALUES('EPSG','8406','grid_transformation','EPSG','1485','EPSG','2377','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1486','NAD83 to NAD83(HARN) (13)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1721.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','mehpgn.las','EPSG','8658','Longitude difference file','mehpgn.los',NULL,NULL,'NGS-Usa ME',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1486','NAD83 to NAD83(HARN) (13)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1721.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','mehpgn.las','EPSG','8658','Longitude difference file','mehpgn.los',NULL,NULL,'NGS-Usa ME',0);
 INSERT INTO "usage" VALUES('EPSG','8407','grid_transformation','EPSG','1486','EPSG','1388','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1487','NAD83 to NAD83(HARN) (14)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1722.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','mihpgn.las','EPSG','8658','Longitude difference file','mihpgn.los',NULL,NULL,'NGS-Usa MI',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1487','NAD83 to NAD83(HARN) (14)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1722.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','mihpgn.las','EPSG','8658','Longitude difference file','mihpgn.los',NULL,NULL,'NGS-Usa MI',0);
 INSERT INTO "usage" VALUES('EPSG','8408','grid_transformation','EPSG','1487','EPSG','1391','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1488','NAD83 to NAD83(HARN) (15)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1723.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','mshpgn.las','EPSG','8658','Longitude difference file','mshpgn.los',NULL,NULL,'NGS-Usa MS',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1488','NAD83 to NAD83(HARN) (15)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1723.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','mshpgn.las','EPSG','8658','Longitude difference file','mshpgn.los',NULL,NULL,'NGS-Usa MS',0);
 INSERT INTO "usage" VALUES('EPSG','8409','grid_transformation','EPSG','1488','EPSG','1393','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1489','NAD83 to NAD83(HARN) (16)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1724.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','nbhpgn.las','EPSG','8658','Longitude difference file','nbhpgn.los',NULL,NULL,'NGS-Usa NE',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1489','NAD83 to NAD83(HARN) (16)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1724.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','nbhpgn.las','EPSG','8658','Longitude difference file','nbhpgn.los',NULL,NULL,'NGS-Usa NE',0);
 INSERT INTO "usage" VALUES('EPSG','8410','grid_transformation','EPSG','1489','EPSG','1396','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1490','NAD83 to NAD83(HARN) (17)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1725.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','nehpgn.las','EPSG','8658','Longitude difference file','nehpgn.los',NULL,NULL,'NGS-Usa NewEng',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1490','NAD83 to NAD83(HARN) (17)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1725.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','nehpgn.las','EPSG','8658','Longitude difference file','nehpgn.los',NULL,NULL,'NGS-Usa NewEng',0);
 INSERT INTO "usage" VALUES('EPSG','8411','grid_transformation','EPSG','1490','EPSG','2378','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1491','NAD83 to NAD83(HARN) (18)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1726.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','nmhpgn.las','EPSG','8658','Longitude difference file','nmhpgn.los',NULL,NULL,'NGS-Usa NM',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1491','NAD83 to NAD83(HARN) (18)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1726.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','nmhpgn.las','EPSG','8658','Longitude difference file','nmhpgn.los',NULL,NULL,'NGS-Usa NM',0);
 INSERT INTO "usage" VALUES('EPSG','8412','grid_transformation','EPSG','1491','EPSG','1400','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1492','NAD83 to NAD83(HARN) (19)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1727.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','nyhpgn.las','EPSG','8658','Longitude difference file','nyhpgn.los',NULL,NULL,'NGS-Usa NY',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1492','NAD83 to NAD83(HARN) (19)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1727.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','nyhpgn.las','EPSG','8658','Longitude difference file','nyhpgn.los',NULL,NULL,'NGS-Usa NY',0);
 INSERT INTO "usage" VALUES('EPSG','8413','grid_transformation','EPSG','1492','EPSG','1401','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1493','NAD83 to NAD83(HARN) (20)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1729.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','ndhpgn.las','EPSG','8658','Longitude difference file','ndhpgn.los',NULL,NULL,'NGS-Usa ND',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1493','NAD83 to NAD83(HARN) (20)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1729.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','ndhpgn.las','EPSG','8658','Longitude difference file','ndhpgn.los',NULL,NULL,'NGS-Usa ND',0);
 INSERT INTO "usage" VALUES('EPSG','8414','grid_transformation','EPSG','1493','EPSG','1403','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1494','NAD83 to NAD83(HARN) (21)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1730.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','okhpgn.las','EPSG','8658','Longitude difference file','okhpgn.los',NULL,NULL,'NGS-Usa OK',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1494','NAD83 to NAD83(HARN) (21)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1730.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','okhpgn.las','EPSG','8658','Longitude difference file','okhpgn.los',NULL,NULL,'NGS-Usa OK',0);
 INSERT INTO "usage" VALUES('EPSG','8415','grid_transformation','EPSG','1494','EPSG','1405','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1495','NAD83 to NAD83(HARN) (22)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1731.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','pvhpgn.las','EPSG','8658','Longitude difference file','pvhpgn.los',NULL,NULL,'NGS-PRVI',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1495','NAD83 to NAD83(HARN) (22)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1731.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','pvhpgn.las','EPSG','8658','Longitude difference file','pvhpgn.los',NULL,NULL,'NGS-PRVI',0);
 INSERT INTO "usage" VALUES('EPSG','8416','grid_transformation','EPSG','1495','EPSG','3634','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1496','NAD83 to NAD83(HARN) (23)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1732.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','sdhpgn.las','EPSG','8658','Longitude difference file','sdhpgn.los',NULL,NULL,'NGS-Usa SD',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1496','NAD83 to NAD83(HARN) (23)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1732.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','sdhpgn.las','EPSG','8658','Longitude difference file','sdhpgn.los',NULL,NULL,'NGS-Usa SD',0);
 INSERT INTO "usage" VALUES('EPSG','8417','grid_transformation','EPSG','1496','EPSG','1410','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1497','NAD83 to NAD83(HARN) (24)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1733.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','tnhpgn.las','EPSG','8658','Longitude difference file','tnhpgn.los',NULL,NULL,'NGS-Usa TN',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1497','NAD83 to NAD83(HARN) (24)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1733.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','tnhpgn.las','EPSG','8658','Longitude difference file','tnhpgn.los',NULL,NULL,'NGS-Usa TN',0);
 INSERT INTO "usage" VALUES('EPSG','8418','grid_transformation','EPSG','1497','EPSG','1411','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1498','NAD83 to NAD83(HARN) (25)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1734.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','ethpgn.las','EPSG','8658','Longitude difference file','ethpgn.los',NULL,NULL,'NGS-Usa TX e',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1498','NAD83 to NAD83(HARN) (25)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1734.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','ethpgn.las','EPSG','8658','Longitude difference file','ethpgn.los',NULL,NULL,'NGS-Usa TX e',0);
 INSERT INTO "usage" VALUES('EPSG','8419','grid_transformation','EPSG','1498','EPSG','2379','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1499','NAD83 to NAD83(HARN) (26)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1735.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wthpgn.las','EPSG','8658','Longitude difference file','wthpgn.los',NULL,NULL,'NGS-Usa TX w',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1499','NAD83 to NAD83(HARN) (26)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1735.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wthpgn.las','EPSG','8658','Longitude difference file','wthpgn.los',NULL,NULL,'NGS-Usa TX w',0);
 INSERT INTO "usage" VALUES('EPSG','8420','grid_transformation','EPSG','1499','EPSG','2380','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1500','NAD83 to NAD83(HARN) (27)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1736.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','vahpgn.las','EPSG','8658','Longitude difference file','vahpgn.los',NULL,NULL,'NGS-Usa VA',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1500','NAD83 to NAD83(HARN) (27)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1736.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','vahpgn.las','EPSG','8658','Longitude difference file','vahpgn.los',NULL,NULL,'NGS-Usa VA',0);
 INSERT INTO "usage" VALUES('EPSG','8421','grid_transformation','EPSG','1500','EPSG','1415','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1501','NAD83 to NAD83(HARN) (28)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1737.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wohpgn.las','EPSG','8658','Longitude difference file','wohpgn.los',NULL,NULL,'NGS-Usa OR WA',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1501','NAD83 to NAD83(HARN) (28)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1737.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wohpgn.las','EPSG','8658','Longitude difference file','wohpgn.los',NULL,NULL,'NGS-Usa OR WA',0);
 INSERT INTO "usage" VALUES('EPSG','8422','grid_transformation','EPSG','1501','EPSG','2381','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1502','NAD83 to NAD83(HARN) (29)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1738.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wihpgn.las','EPSG','8658','Longitude difference file','wihpgn.los',NULL,NULL,'NGS-Usa WI',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1502','NAD83 to NAD83(HARN) (29)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1738.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wihpgn.las','EPSG','8658','Longitude difference file','wihpgn.los',NULL,NULL,'NGS-Usa WI',0);
 INSERT INTO "usage" VALUES('EPSG','8423','grid_transformation','EPSG','1502','EPSG','1418','EPSG','1027');
+<<<<<<< HEAD
 INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1740.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wyhpgn.las','EPSG','8658','Longitude difference file','wyhpgn.los',NULL,NULL,'NGS-Usa WY',0);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -652,7 +659,13 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1740.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wyhpgn.las','EPSG','8658','Longitude difference file','wyhpgn.los',NULL,NULL,'NGS-Usa WY',0);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','8424','grid_transformation','EPSG','1503','EPSG','1419','EPSG','1027');
 INSERT INTO "grid_transformation" VALUES('EPSG','1506','AGD66 to GDA94 (6)','Replaced by AGD66 to GDA94 (11) (code 1803). Input expects longitudes to be positive west; EPSG GeogCRS AGD66 (code 4202) and GDA94 (code 4283) both have longitudes positive east.','EPSG','9615','NTv2','EPSG','4202','EPSG','4283',0.1,'EPSG','8656','Latitude and longitude difference file','tas_1098.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'OSG-Tas 0.1m',0);
 INSERT INTO "usage" VALUES('EPSG','8427','grid_transformation','EPSG','1506','EPSG','1282','EPSG','1031');
@@ -678,12 +691,15 @@ INSERT INTO "usage" VALUES('EPSG','8428','grid_transformation','EPSG','1507','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -963,21 +979,25 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "grid_transformation" VALUES('EPSG','1520','NAD83 to NAD83(HARN) (31)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1741.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','hihpgn.las','EPSG','8658','Longitude difference file','hihpgn.los',NULL,NULL,'NGS-Usa HI',0);
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','1520','NAD83 to NAD83(HARN) (31)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1741.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','hihpgn.las','EPSG','8658','Longitude difference file','hihpgn.los',NULL,NULL,'NGS-Usa HI',0);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','8441','grid_transformation','EPSG','1520','EPSG','1334','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1521','NAD83 to NAD83(HARN) (32)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1742.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','inhpgn.las','EPSG','8658','Longitude difference file','inhpgn.los',NULL,NULL,'NGS-Usa IN',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1521','NAD83 to NAD83(HARN) (32)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1742.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','inhpgn.las','EPSG','8658','Longitude difference file','inhpgn.los',NULL,NULL,'NGS-Usa IN',0);
 INSERT INTO "usage" VALUES('EPSG','8442','grid_transformation','EPSG','1521','EPSG','1383','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1522','NAD83 to NAD83(HARN) (33)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1743.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','kshpgn.las','EPSG','8658','Longitude difference file','kshpgn.los',NULL,NULL,'NGS-Usa KS',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1522','NAD83 to NAD83(HARN) (33)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1743.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','kshpgn.las','EPSG','8658','Longitude difference file','kshpgn.los',NULL,NULL,'NGS-Usa KS',0);
 INSERT INTO "usage" VALUES('EPSG','8443','grid_transformation','EPSG','1522','EPSG','1385','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1523','NAD83 to NAD83(HARN) (34)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1744.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','nvhpgn.las','EPSG','8658','Longitude difference file','nvhpgn.los',NULL,NULL,'NGS-Usa NV',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1523','NAD83 to NAD83(HARN) (34)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1744.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','nvhpgn.las','EPSG','8658','Longitude difference file','nvhpgn.los',NULL,NULL,'NGS-Usa NV',0);
 INSERT INTO "usage" VALUES('EPSG','8444','grid_transformation','EPSG','1523','EPSG','1397','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1524','NAD83 to NAD83(HARN) (35)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1745.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','ohhpgn.las','EPSG','8658','Longitude difference file','ohhpgn.los',NULL,NULL,'NGS-Usa OH',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1524','NAD83 to NAD83(HARN) (35)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1745.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','ohhpgn.las','EPSG','8658','Longitude difference file','ohhpgn.los',NULL,NULL,'NGS-Usa OH',0);
 INSERT INTO "usage" VALUES('EPSG','8445','grid_transformation','EPSG','1524','EPSG','1404','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1525','NAD83 to NAD83(HARN) (36)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1746.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','uthpgn.las','EPSG','8658','Longitude difference file','uthpgn.los',NULL,NULL,'NGS-Usa UT',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1525','NAD83 to NAD83(HARN) (36)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1746.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','uthpgn.las','EPSG','8658','Longitude difference file','uthpgn.los',NULL,NULL,'NGS-Usa UT',0);
 INSERT INTO "usage" VALUES('EPSG','8446','grid_transformation','EPSG','1525','EPSG','1413','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1526','NAD83 to NAD83(HARN) (37)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1747.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wvhpgn.las','EPSG','8658','Longitude difference file','wvhpgn.los',NULL,NULL,'NGS-Usa WV',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1526','NAD83 to NAD83(HARN) (37)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1747.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wvhpgn.las','EPSG','8658','Longitude difference file','wvhpgn.los',NULL,NULL,'NGS-Usa WV',0);
 INSERT INTO "usage" VALUES('EPSG','8447','grid_transformation','EPSG','1526','EPSG','1417','EPSG','1027');
-INSERT INTO "grid_transformation" VALUES('EPSG','1553','NAD83 to NAD83(HARN) (38)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1748.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','ilhpgn.las','EPSG','8658','Longitude difference file','ilhpgn.los',NULL,NULL,'NGS-Usa IL',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','1553','NAD83 to NAD83(HARN) (38)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1748.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','ilhpgn.las','EPSG','8658','Longitude difference file','ilhpgn.los',NULL,NULL,'NGS-Usa IL',0);
 INSERT INTO "usage" VALUES('EPSG','8474','grid_transformation','EPSG','1553','EPSG','1382','EPSG','1027');
+<<<<<<< HEAD
 INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1749.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','njhpgn.las','EPSG','8658','Longitude difference file','njhpgn.los',NULL,NULL,'NGS-Usa NJ',0);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -994,7 +1014,13 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1749.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','njhpgn.las','EPSG','8658','Longitude difference file','njhpgn.los',NULL,NULL,'NGS-Usa NJ',0);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','8475','grid_transformation','EPSG','1554','EPSG','1399','EPSG','1027');
 INSERT INTO "grid_transformation" VALUES('EPSG','1559','AGD84 to GDA94 (3)','Withdrawn and replaced by AGD84 to GDA94 (4) (code 1593) due to binary file format error. Input expects longitudes to be positive west; EPSG GeogCRS AGD84 (code 4203) and GDA94 (code 4283) have longitudes positive east.','EPSG','9615','NTv2','EPSG','4203','EPSG','4283',0.1,'EPSG','8656','Latitude and longitude difference file','wa_0400.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'DOLA-Aus WA 0.1m old',1);
 INSERT INTO "usage" VALUES('EPSG','8480','grid_transformation','EPSG','1559','EPSG','1280','EPSG','1031');
@@ -1078,12 +1104,15 @@ INSERT INTO "usage" VALUES('EPSG','8624','grid_transformation','EPSG','1703','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1257,6 +1286,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','1704','NAD83 to NAD83(HARN) (40)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1708.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','arhpgn.las','EPSG','8658','Longitude difference file','arhpgn.los',NULL,NULL,'NGS-Usa AR',0);
 INSERT INTO "usage" VALUES('EPSG','8625','grid_transformation','EPSG','1704','EPSG','1374','EPSG','1027');
@@ -1264,6 +1296,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1705','NAD83 to NAD83(HARN) (41
 INSERT INTO "usage" VALUES('EPSG','8626','grid_transformation','EPSG','1705','EPSG','1384','EPSG','1027');
 INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1710.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','mnhpgn.las','EPSG','8658','Longitude difference file','mnhpgn.los',NULL,NULL,'NGS-Usa MN',0);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1305,6 +1338,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','8627','grid_transformation','EPSG','1706','EPSG','1392','EPSG','1027');
 INSERT INTO "grid_transformation" VALUES('EPSG','1707','NAD83 to NAD83(HARN) (43)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1711.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','mohpgn.las','EPSG','8658','Longitude difference file','mohpgn.los',NULL,NULL,'NGS-Usa MO',0);
 INSERT INTO "usage" VALUES('EPSG','8628','grid_transformation','EPSG','1707','EPSG','1394','EPSG','1027');
@@ -1440,12 +1475,15 @@ INSERT INTO "usage" VALUES('EPSG','8772','grid_transformation','EPSG','1851','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1566,11 +1604,15 @@ INSERT INTO "usage" VALUES('EPSG','8948','grid_transformation','EPSG','3858','EP
 INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height (2)','Replaces WGS 84 to EGM96 height (1) (CT code 15781). Grid spacing is 1 arc-minute. For a larger grid spacing (in principle less exact) see CT code 3858. For reversible alternative see CT code 9618. An executable using spherical harmonics is available.','EPSG','1025','Geographic3D to GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','3855',0.5,'EPSG','8666','Geoid (height correction) model file','Und_min1x1_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','3858','WGS 84 to EGM2008 height (1)','Replaces WGS 84 to EGM96 height (1) (CT code 15781). Grid spacing is 2.5 arc-minutes. For smaller spacing (in principle more exact) see CT code 3859. For reversible alternative see CT code 9704. An executable using spherical harmonics is also available.','EPSG','1025','Geographic3D to GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','3855',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World 2.5min',0);
 INSERT INTO "usage" VALUES('EPSG','8948','grid_transformation','EPSG','3858','EPSG','1262','EPSG','1133');
 INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height (2)','Replaces WGS 84 to EGM96 height (1) (CT code 15781). Grid spacing is 1 arc-minute. For a larger grid spacing (in principle less exact) see CT code 3858. For reversible alternative see CT code 9618. An executable using spherical harmonics is available.','EPSG','1025','Geographic3D to GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','3855',0.5,'EPSG','8666','Geoid (height correction) model file','Und_min1x1_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World 1min',0);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1609,6 +1651,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','14322','grid_transformation','EPSG','3859','EPSG','1262','EPSG','1133');
 INSERT INTO "grid_transformation" VALUES('EPSG','4459','NZGD2000 to NZVD2009 height (1)','Defines NZVD2009 vertical datum (datum code 1039, CRS code 4440).','EPSG','1030','Geographic3D to GravityRelatedHeight (NZgeoid)','EPSG','4959','EPSG','4440',0.1,'EPSG','8666','Geoid (height correction) model file','nzgeoid09.sid',NULL,NULL,NULL,NULL,NULL,NULL,'LINZ-NZ 2009',0);
 INSERT INTO "usage" VALUES('EPSG','9090','grid_transformation','EPSG','4459','EPSG','1175','EPSG','1133');
@@ -1678,12 +1722,15 @@ INSERT INTO "usage" VALUES('EPSG','9460','grid_transformation','EPSG','5526','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1804,11 +1851,15 @@ INSERT INTO "usage" VALUES('EPSG','9461','grid_transformation','EPSG','5528','EP
 INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000 (1)','May be used as transformation between SAD69(96) and WGS 84 - see tfm code 5543.','EPSG','9615','NTv2','EPSG','5527','EPSG','4674',0.5,'EPSG','8656','Latitude and longitude difference file','SAD96_003.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra',0);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','5528','SAD69 to SIRGAS 2000 (2)','For IBGE, in onshore east and south Brazil only, replaces SAD69 to SIRGAS 2000 (1) (tfm code 15485) for pre-1996 data based on the classical geodetic network. May be used as transformation between SAD69 and WGS 84 - see tfm code 5542.','EPSG','9615','NTv2','EPSG','4618','EPSG','4674',1.0,'EPSG','8656','Latitude and longitude difference file','SAD69_003.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra 1m 1996',0);
 INSERT INTO "usage" VALUES('EPSG','9461','grid_transformation','EPSG','5528','EPSG','3887','EPSG','1068');
 INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000 (1)','May be used as transformation between SAD69(96) and WGS 84 - see tfm code 5543.','EPSG','9615','NTv2','EPSG','5527','EPSG','4674',0.5,'EPSG','8656','Latitude and longitude difference file','SAD96_003.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra 0.5m 1996',0);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1847,6 +1898,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','9462','grid_transformation','EPSG','5529','EPSG','3887','EPSG','1067');
 INSERT INTO "grid_transformation" VALUES('EPSG','5540','Corrego Alegre 1961 to WGS 84 (1)','Parameters from Corrego Alegre 1961 to SIRGAS 2000 (1) (tfm code 5525) assuming that SIRGAS 2000 and WGS 84 are equal within the accuracy of the transformation.','EPSG','9615','NTv2','EPSG','5524','EPSG','4326',2.0,'EPSG','8656','Latitude and longitude difference file','CA61_003.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bra',0);
 INSERT INTO "usage" VALUES('EPSG','9463','grid_transformation','EPSG','5540','EPSG','3874','EPSG','1252');
@@ -1872,12 +1925,15 @@ INSERT INTO "usage" VALUES('EPSG','9464','grid_transformation','EPSG','5541','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1998,11 +2054,15 @@ INSERT INTO "usage" VALUES('EPSG','9465','grid_transformation','EPSG','5542','EP
 INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)','Parameters values taken from SAD69(96) to SIRGAS 2000 (1) (tfm code 5529) assuming that SIRGAS 2000 and WGS 84 are equal within the accuracy of the transformation.','EPSG','9615','NTv2','EPSG','5527','EPSG','4326',1.0,'EPSG','8656','Latitude and longitude difference file','SAD96_003.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bra',0);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','5542','SAD69 to WGS 84 (15)','Parameters values taken from SAD69 to SIRGAS 2000 (2) (tfm code 5528) assuming that SIRGAS 2000 and WGS 84 are equal within the accuracy of the transformation.','EPSG','9615','NTv2','EPSG','4618','EPSG','4326',2.0,'EPSG','8656','Latitude and longitude difference file','SAD69_003.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bra 2m 1996',0);
 INSERT INTO "usage" VALUES('EPSG','9465','grid_transformation','EPSG','5542','EPSG','3887','EPSG','1252');
 INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)','Parameters values taken from SAD69(96) to SIRGAS 2000 (1) (tfm code 5529) assuming that SIRGAS 2000 and WGS 84 are equal within the accuracy of the transformation.','EPSG','9615','NTv2','EPSG','5527','EPSG','4326',1.0,'EPSG','8656','Latitude and longitude difference file','SAD96_003.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bra 1m 1996',0);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2041,6 +2101,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','9466','grid_transformation','EPSG','5543','EPSG','3887','EPSG','1252');
 INSERT INTO "grid_transformation" VALUES('EPSG','5594','FEH2010 to FCSVR10 height (1)','','EPSG','1030','Geographic3D to GravityRelatedHeight (NZgeoid)','EPSG','5592','EPSG','5597',0.1,'EPSG','8666','Geoid (height correction) model file','fehmarn_geoid10.gri',NULL,NULL,NULL,NULL,NULL,NULL,'FEM-Dnk-Deu Feh',1);
 INSERT INTO "usage" VALUES('EPSG','9477','grid_transformation','EPSG','5594','EPSG','3890','EPSG','1133');
@@ -2096,12 +2158,15 @@ INSERT INTO "usage" VALUES('EPSG','9741','grid_transformation','EPSG','6713','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2200,6 +2265,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Parameter values taken from TM75 to ETRS89 (3) (tfm code 6946) assuming that ETRS89 is coincident with WGS 84 within the accuracy of the tfm. Within accuracy of the tfm equivalent to TM75 to WGS 84 (1) (tfm code 1042).','EPSG','9615','NTv2','EPSG','4300','EPSG','4326',1.0,'EPSG','8656','Latitude and longitude difference file','tm75_etrs89.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Ire NT approx',0);
@@ -2310,6 +2376,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Parameter values taken from TM75 to ETRS89 (3) (tfm code 6946) assuming that ETRS89 is coincident with WGS 84 within the accuracy of the tfm. Within accuracy of the tfm equivalent to TM75 to WGS 84 (1) (tfm code 1042).','EPSG','9615','NTv2','EPSG','4300','EPSG','4326',1.0,'EPSG','8656','Latitude and longitude difference file','tm75_etrs89.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Ire NT approx',0);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','9850','grid_transformation','EPSG','6947','EPSG','1305','EPSG','1252');
 INSERT INTO "grid_transformation" VALUES('EPSG','6948','RD/83 to ETRS89 (2)','Recommended by Saxony State Spatial Data and Land Survey Corporation for transformations based on official geospatial data of Saxony. Accuracy 3mm within Saxony; within the rest of RD/83 definition area results at least coincide with EPSG CT code15868.','EPSG','9615','NTv2','EPSG','4745','EPSG','4258',0.03,'EPSG','8656','Latitude and longitude difference file','NTv2_SN.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'GeoSN-Deu SN',0);
 INSERT INTO "usage" VALUES('EPSG','9851','grid_transformation','EPSG','6948','EPSG','2545','EPSG','1028');
@@ -2617,12 +2688,15 @@ INSERT INTO "usage" VALUES('EPSG','10976','grid_transformation','EPSG','9181','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2726,6 +2800,7 @@ reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 19
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 height (2)','Accuracy 0.01m to 0.05m within onshore area. Replaces RGSPM06 to Danger 1950 height (1), CT code 9137. For reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 1950 height (2) (code 9641).','EPSG','1073','Geographic3D to GravityRelatedHeight (IGN2009)','EPSG','4466','EPSG','5792',0.05,'EPSG','8666','Geoid (height correction) model file','RASPM2018.mnt',NULL,NULL,NULL,NULL,NULL,NULL,'IGN-SPM v2',0);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -2846,6 +2921,8 @@ reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 19
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','13868','grid_transformation','EPSG','9228','EPSG','3299','EPSG','1133');
 INSERT INTO "grid_transformation" VALUES('EPSG','9229','NAD83(2011) to NAVD88 height (3)','Uses Geoid18 hybrid model. Replaces 12B model. See information source for further information. For reversible alternative to this transformation see NAD83(2011) to NAD83(2011) + NAVD88 height (3) (code 9595).','EPSG','9665','Geographic3D to GravityRelatedHeight (gtx)','EPSG','6319','EPSG','5703',0.015,'EPSG','8666','Geoid (height correction) model file','g2018u0.bin',NULL,NULL,NULL,NULL,NULL,NULL,'NGS-US Conus 18',0);
 INSERT INTO "usage" VALUES('EPSG','14353','grid_transformation','EPSG','9229','EPSG','1323','EPSG','1132');
@@ -2883,6 +2960,7 @@ INSERT INTO "usage" VALUES('EPSG','13882','grid_transformation','EPSG','9237','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2897,6 +2975,8 @@ INSERT INTO "usage" VALUES('EPSG','13882','grid_transformation','EPSG','9237','E
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011. Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011.  Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
@@ -2941,6 +3021,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011.  Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011. Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
@@ -3009,6 +3090,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011. Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','13883','grid_transformation','EPSG','9238','EPSG','1447','EPSG','1231');
 INSERT INTO "grid_transformation" VALUES('EPSG','9239','NAD27 to NAD83(CSRS)v2 (1)','Uses NT method which expects longitudes positive west; EPSG GeogCRSs NAD27 (code 4267) and NAD83(CSRS) (code 4617) have longitudes positive east. Can be taken as an approximate transformation NAD27 to WGS 84 - see code 1692.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',1.5,'EPSG','8656','Latitude and longitude difference file','QUE27-98.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SGQ-Can QC',0);
 INSERT INTO "usage" VALUES('EPSG','13884','grid_transformation','EPSG','9239','EPSG','1368','EPSG','1151');
@@ -3107,6 +3193,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9330','IGN72 Grande Terre to RG
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3121,6 +3208,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9330','IGN72 Grande Terre to RG
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1079');
 =======
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1031');
@@ -3165,6 +3254,7 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 =======
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1031');
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1079');
@@ -3233,6 +3323,11 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1079');
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "grid_transformation" VALUES('EPSG','9338','DHDN to ETRS89 (9)','Official transformation for the state of Baden-Württemberg. Used in ATKIS (Amtliches Topographisch-Kartographisches Informationssystem [Official Topographic and Cartographic Information System]).','EPSG','9615','NTv2','EPSG','4314','EPSG','4258',0.1,'EPSG','8656','Latitude and longitude difference file','BWTA2017.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'LGL-Deu BWTA2017',0);
 INSERT INTO "usage" VALUES('EPSG','13961','grid_transformation','EPSG','9338','EPSG','4580','EPSG','1055');
 INSERT INTO "grid_transformation" VALUES('EPSG','9352','RGNC91-93 to NGNC08 height (1)','Geoid model RANC08 realizes NGNC08 height (CRS code 9351) to a precision of 2-5cm. For reversible alternative to this transformation see RGNC91-93 to RGNC91-93 + NGNC08 height (1) (code 9640).','EPSG','1073','Geographic3D to GravityRelatedHeight (IGN2009)','EPSG','4907','EPSG','9351',0.03,'EPSG','8666','Geoid (height correction) model file','Ranc08_Circe.mnt',NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl RANC08',0);
@@ -3433,6 +3528,7 @@ INSERT INTO "usage" VALUES('EPSG','14455','grid_transformation','EPSG','9597','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3447,6 +3543,8 @@ INSERT INTO "usage" VALUES('EPSG','14455','grid_transformation','EPSG','9597','E
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif).','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif). ','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
@@ -3491,6 +3589,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif). ','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif).','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
@@ -3559,6 +3658,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif).','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','15074','grid_transformation','EPSG','9598','EPSG','4461','EPSG','1270');
 INSERT INTO "grid_transformation" VALUES('EPSG','9599','GR96 to GR96 + GVR2016 height (1)','Reversible alternative to GR96 to GVR2016 height (1) (code 8269). File is also available in NOAA VDatum format (ggeoid2016.gtx) and GeoTIFF format (ggeoid2016.tif).','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8350',0.1,'EPSG','8666','Geoid (height correction) model file','ggeoid16.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
 INSERT INTO "usage" VALUES('EPSG','15075','grid_transformation','EPSG','9599','EPSG','4454','EPSG','1270');
@@ -3618,12 +3722,15 @@ INSERT INTO "usage" VALUES('EPSG','14449','grid_transformation','EPSG','9617','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3797,6 +3904,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9618','WGS 84 to WGS 84 + EGM2008 height (2)','Reversible alternative to WGS 84 to EGM2008 height (2) (code 3859).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',0.5,'EPSG','8666','Geoid (height correction) model file','Und_min1x1_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World 1min',0);
 INSERT INTO "usage" VALUES('EPSG','15073','grid_transformation','EPSG','9618','EPSG','1262','EPSG','1270');
@@ -3804,6 +3914,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9619','FEH2010 to FEH2010 + FCS
 INSERT INTO "usage" VALUES('EPSG','14326','grid_transformation','EPSG','9619','EPSG','3890','EPSG','1139');
 INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 + KSA-VRF14 height (1)','Reversible alternative to KSA-GRF17 to KSA-VRF14 height (1) (code 9355). File also available in IGN2009 format. To access KSA-GEOID17 contact GCS by email to info@gcs.gov.sa','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','9332','EPSG','9520',0.1,'EPSG','8666','Geoid (height correction) model file','KSA-GEOID17.gra',NULL,NULL,NULL,NULL,'EPSG','9333','GCS-Sau',0);
 >>>>>>> 86ade66356 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3845,6 +3956,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','14453','grid_transformation','EPSG','9620','EPSG','3303','EPSG','1270');
 INSERT INTO "grid_transformation" VALUES('EPSG','9621','POSGAR 2007 to POSGAR 2007 + SRVN16 height (1)','Reversible alternative to POSGAR 2007 to SRVN16 height (1) (code 9256). Uses geoid model Ar16. See information source for more information.','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','5342','EPSG','9521',0.05,'EPSG','8666','Geoid (height correction) model file','GEOIDE-Ar16.gri',NULL,NULL,NULL,NULL,'EPSG','5340','IGN-Arg',0);
 INSERT INTO "usage" VALUES('EPSG','15056','grid_transformation','EPSG','9621','EPSG','4573','EPSG','1270');
@@ -3962,6 +4075,7 @@ INSERT INTO "usage" VALUES('EPSG','14967','grid_transformation','EPSG','9693','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3976,6 +4090,8 @@ INSERT INTO "usage" VALUES('EPSG','14967','grid_transformation','EPSG','9693','E
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World 2.5min',0);
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World',0);
@@ -4020,6 +4136,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World',0);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World 2.5min',0);
@@ -4088,6 +4205,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World 2.5min',0);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','15096','grid_transformation','EPSG','9704','EPSG','1262','EPSG','1270');
 INSERT INTO "grid_transformation" VALUES('EPSG','9706','WGS 84 to WGS 84 + MSL height (1)','Reversible alternative to WGS 84 to MSL height (1) (code 8037). Parameter values are from WGS 84 to WGS 84 + EGM2008 height (2) (CT code 9618) assuming that the EGM2008 surface equals MSL surface within the accuracy of the transformation.','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9705',0.5,'EPSG','8666','Geoid (height correction) model file','Und_min1x1_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','IOGP-World',0);
 INSERT INTO "usage" VALUES('EPSG','15105','grid_transformation','EPSG','9706','EPSG','1262','EPSG','1270');
@@ -4129,12 +4251,15 @@ INSERT INTO "usage" VALUES('EPSG','15283','grid_transformation','EPSG','9730','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4390,17 +4515,21 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "grid_transformation" VALUES('EPSG','9732','Monte Mario to ED50 (1)','For the reverse transformation from ED50 to Monte Mario, iteration may be avoided by using an alternative grid file (35160622_47161840_E50_R40.gsb). ','EPSG','9615','NTv2','EPSG','4265','EPSG','4230',0.1,'EPSG','8656','Latitude and longitude difference file','35160622_47161840_R40_E50.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita',0);
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','9732','Monte Mario to ED50 (1)','For the reverse transformation from ED50 to Monte Mario, iteration may be avoided by using an alternative grid file (35160622_47161840_E50_R40.gsb).','EPSG','9615','NTv2','EPSG','4265','EPSG','4230',0.1,'EPSG','8656','Latitude and longitude difference file','35160622_47161840_R40_E50.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita',0);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','15306','grid_transformation','EPSG','9732','EPSG','4619','EPSG','1031');
-INSERT INTO "grid_transformation" VALUES('EPSG','9733','Monte Mario to IGM95 (4)','For the reverse transformation from IGM95 to Monte Mario, iteration may be avoided by using an alternative grid file (35160622_47161840_F89_R40.gsb). ','EPSG','9615','NTv2','EPSG','4265','EPSG','4670',0.1,'EPSG','8656','Latitude and longitude difference file','35160622_47161840_R40_F89.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','9733','Monte Mario to IGM95 (4)','For the reverse transformation from IGM95 to Monte Mario, iteration may be avoided by using an alternative grid file (35160622_47161840_F89_R40.gsb).','EPSG','9615','NTv2','EPSG','4265','EPSG','4670',0.1,'EPSG','8656','Latitude and longitude difference file','35160622_47161840_R40_F89.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita',0);
 INSERT INTO "usage" VALUES('EPSG','15327','grid_transformation','EPSG','9733','EPSG','4619','EPSG','1031');
-INSERT INTO "grid_transformation" VALUES('EPSG','9734','Monte Mario to RDN2008 (5)','For the reverse transformation from RDN2008 to Monte Mario, iteration may be avoided by using an alternative grid file (35160622_47161840_F00_R40.gsb). ','EPSG','9615','NTv2','EPSG','4265','EPSG','6706',0.1,'EPSG','8656','Latitude and longitude difference file','35160622_47161840_R40_F00.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','9734','Monte Mario to RDN2008 (5)','For the reverse transformation from RDN2008 to Monte Mario, iteration may be avoided by using an alternative grid file (35160622_47161840_F00_R40.gsb).','EPSG','9615','NTv2','EPSG','4265','EPSG','6706',0.1,'EPSG','8656','Latitude and longitude difference file','35160622_47161840_R40_F00.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita',0);
 INSERT INTO "usage" VALUES('EPSG','15308','grid_transformation','EPSG','9734','EPSG','4619','EPSG','1031');
 INSERT INTO "grid_transformation" VALUES('EPSG','9735','ED50 to IGM95 (1)','For the reverse transformation from IGM95 to ED50, iteration may be avoided by using an alternative grid file (35160622_47161840_F89_E50.gsb).','EPSG','9615','NTv2','EPSG','4230','EPSG','4670',0.2,'EPSG','8656','Latitude and longitude difference file','35160622_47161840_E50_F89.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita',0);
 INSERT INTO "usage" VALUES('EPSG','15334','grid_transformation','EPSG','9735','EPSG','4619','EPSG','1032');
-INSERT INTO "grid_transformation" VALUES('EPSG','9736','ED50 to RDN2008 (1)','For the reverse transformation from RDN2008 to ED50, iteration may be avoided by using an alternative grid file (35160622_47161840_F00_E50.gsb). ','EPSG','9615','NTv2','EPSG','4230','EPSG','6706',0.2,'EPSG','8656','Latitude and longitude difference file','35160622_47161840_E50_F00.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','9736','ED50 to RDN2008 (1)','For the reverse transformation from RDN2008 to ED50, iteration may be avoided by using an alternative grid file (35160622_47161840_F00_E50.gsb).','EPSG','9615','NTv2','EPSG','4230','EPSG','6706',0.2,'EPSG','8656','Latitude and longitude difference file','35160622_47161840_E50_F00.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita',0);
 INSERT INTO "usage" VALUES('EPSG','15335','grid_transformation','EPSG','9736','EPSG','4619','EPSG','1032');
-INSERT INTO "grid_transformation" VALUES('EPSG','9737','IGM95 to RDN2008 (1)','For the reverse transformation from RDN2008 to IGM95, iteration may be avoided by using an alternative grid file (35160622_47161840_F00_F89.gsb). ','EPSG','9615','NTv2','EPSG','4670','EPSG','6706',0.01,'EPSG','8656','Latitude and longitude difference file','35160622_47161840_F89_F00.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','9737','IGM95 to RDN2008 (1)','For the reverse transformation from RDN2008 to IGM95, iteration may be avoided by using an alternative grid file (35160622_47161840_F00_F89.gsb).','EPSG','9615','NTv2','EPSG','4670','EPSG','6706',0.01,'EPSG','8656','Latitude and longitude difference file','35160622_47161840_F89_F00.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita',0);
 INSERT INTO "usage" VALUES('EPSG','15336','grid_transformation','EPSG','9737','EPSG','4619','EPSG','1150');
+<<<<<<< HEAD
 INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)','In conjunction with the EOS-TM map projection (code 9738) applied to EOS21-IRF (code 9739), emulates the EOS21 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009 CORS) defines EOS21-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','9739',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-EOS21-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr EOS21 OSNet2009',0);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4417,7 +4546,13 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)','In conjunction with the EOS21-TM map projection (code 9738) applied to EOS21-IRF (code 9739), emulates the EOS21 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009 CORS) defines EOS21-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','9739',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-EOS21-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr EOS21 OSNet2009',0);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','15342','grid_transformation','EPSG','9740','EPSG','4620','EPSG','1141');
 INSERT INTO "grid_transformation" VALUES('EPSG','9759','ETRS89 to ECML14_NB-IRF (1)','In conjunction with the ECML14_NB-TM map projection (code 9760) applied to ECML14_NB-IRF (code 9758), emulates the ECML14_NB Snake projection. Applied to ETRS89 (as realized through the OSNet v2009 CORS) defines ECML14_NB-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','9758',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-ECML14_NB-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr ECML_NB OSNet2009',0);
 INSERT INTO "usage" VALUES('EPSG','16500','grid_transformation','EPSG','9759','EPSG','4621','EPSG','1141');
@@ -4509,6 +4644,7 @@ INSERT INTO "usage" VALUES('EPSG','17356','grid_transformation','EPSG','9941','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -4523,6 +4659,8 @@ INSERT INTO "usage" VALUES('EPSG','17356','grid_transformation','EPSG','9941','E
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955). Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955).  Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
@@ -4567,6 +4705,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955).  Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955). Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
@@ -4635,6 +4774,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955). Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','17385','grid_transformation','EPSG','9954','EPSG','4662','EPSG','1133');
 INSERT INTO "grid_transformation" VALUES('EPSG','9955','ISN93 to ISN93 + ISH2004 height (1)','Reversible alternative to ISN93 to ISH2004 height (1) (code 9954). File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). Replaced by Icegeoid_ISN2004.','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','9948',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,'EPSG','4659','NMI-Isl',0);
 INSERT INTO "usage" VALUES('EPSG','17393','grid_transformation','EPSG','9955','EPSG','4662','EPSG','1270');
@@ -4668,6 +4812,7 @@ INSERT INTO "usage" VALUES('EPSG','17458','grid_transformation','EPSG','9965','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -4682,6 +4827,8 @@ INSERT INTO "usage" VALUES('EPSG','17458','grid_transformation','EPSG','9965','E
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.						','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
@@ -4726,6 +4873,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.						','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
@@ -4794,6 +4942,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','17453','grid_transformation','EPSG','9970','EPSG','4665','EPSG','1141');
 INSERT INTO "grid_transformation" VALUES('EPSG','9975','ETRS89 to FNL22-IRF (1)','In conjunction with the FNL22-TM map projection (code 9976) applied to FNL22-IRF (code 9974), emulates the FNL22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines FNL22-IRF hence is errorless.						','EPSG','9615','NTv2','EPSG','4258','EPSG','9974',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-FNL22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr FNL22 OSNet2009',0);
 INSERT INTO "usage" VALUES('EPSG','17452','grid_transformation','EPSG','9975','EPSG','4664','EPSG','1141');
@@ -4999,6 +5152,7 @@ INSERT INTO "usage" VALUES('EPSG','11084','grid_transformation','EPSG','10083','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -5013,6 +5167,8 @@ INSERT INTO "usage" VALUES('EPSG','11084','grid_transformation','EPSG','10083','
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59). For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59).  For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
@@ -5057,6 +5213,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59).  For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59). For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
@@ -5125,6 +5282,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59). For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','11085','grid_transformation','EPSG','10084','EPSG','1262','EPSG','1133');
 INSERT INTO "grid_transformation" VALUES('EPSG','10106','ETRS89 to SVD2006 height (1)','For reversible alternative see ETRS89 to ETRS89 + SVD2006 height (1) (code 10107).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4937','EPSG','20000',1.0,'EPSG','8666','Geoid (height correction) model file','arcgp-2006-sk.bin',NULL,NULL,NULL,NULL,NULL,NULL,'NMA-Sjm SV 2006',0);
 INSERT INTO "usage" VALUES('EPSG','17961','grid_transformation','EPSG','10106','EPSG','4058','EPSG','1133');
@@ -5186,6 +5348,7 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5197,9 +5360,12 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+>>>>>>> d8e8090c80 (typo fixes)
+=======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -5226,6 +5392,10 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "grid_transformation" VALUES('EPSG','10181','ETRS89 to DoPw22-IRF (1)','In conjunction with DoPw22-TM map projection (code 10182) applied to DoPw22-IRF (code 10175), emulates the DoPw22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines DoPw22-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','10175',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-DoPw22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr DoPw22 OSNet2009',0);
 INSERT INTO "usage" VALUES('EPSG','18852','grid_transformation','EPSG','10181','EPSG','4686','EPSG','1141');
 INSERT INTO "grid_transformation" VALUES('EPSG','10186','ETRS89 to ShAb07-IRF (1)','In conjunction with the ShAb07-TM map projection (code 10187) applied to ShAb07-IRF (code 10185), emulates the ShAb07 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines ShAb07-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','10185',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-ShAb07-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr ShAb07 OSNet2009',0);
@@ -5266,6 +5436,7 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -5274,6 +5445,8 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5310,6 +5483,7 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 86ade66356 (typo fixes)
@@ -5363,6 +5537,10 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "grid_transformation" VALUES('EPSG','15486','CH1903 to CH1903+ (1)','For improved accuracy (0.01m) use CHENyx06 interpolation programme FINELTRA. File CHENyx06 replaced by CHENyx06a; there is a small area at the border of the data where some more real data has been introduced. swisstopo consider the change insignificant.','EPSG','9615','NTv2','EPSG','4149','EPSG','4150',0.2,'EPSG','8656','Latitude and longitude difference file','CHENyx06a.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'BfL-Che',0);
 INSERT INTO "usage" VALUES('EPSG','11497','grid_transformation','EPSG','15486','EPSG','1286','EPSG','1085');
 INSERT INTO "grid_transformation" VALUES('EPSG','15488','RRAF 1991 to IGN 1988 MG height (1)','May be used for transformations from WGS 84 to IGN 1988 MG. Accuracy at each 0.025 deg x 0.025 degree grid node is given within the geoid model file.','EPSG','9664','Geographic3D to GravityRelatedHeight (IGN1997)','EPSG','4973','EPSG','5617',0.2,'EPSG','8666','Geoid (height correction) model file','ggg00_mg.txt',NULL,NULL,NULL,NULL,NULL,NULL,'IGN Glp MG',1);
@@ -5401,12 +5579,15 @@ INSERT INTO "usage" VALUES('EPSG','11797','grid_transformation','EPSG','15786','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5638,13 +5819,17 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "grid_transformation" VALUES('EPSG','15834','NAD83 to NAD83(HARN) (44)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 15835.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','nchpgn.las','EPSG','8658','Longitude difference file','nchpgn.los',NULL,NULL,'NGS-Usa NC',0);
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','15834','NAD83 to NAD83(HARN) (44)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 15835.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','nchpgn.las','EPSG','8658','Longitude difference file','nchpgn.los',NULL,NULL,'NGS-Usa NC',0);
+>>>>>>> 86ade66356 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','11845','grid_transformation','EPSG','15834','EPSG','1402','EPSG','1027');
 INSERT INTO "grid_transformation" VALUES('EPSG','15835','NAD83 to WGS 84 (55)','Parameter files are from NAD83 to NAD83(HARN) (44) (code 15834) assuming that NAD83(HARN) is equivalent to WGS 84 within the accuracy of the transformation.','EPSG','9613','NADCON','EPSG','4269','EPSG','4326',2.0,'EPSG','8657','Latitude difference file','nchpgn.las','EPSG','8658','Longitude difference file','nchpgn.los',NULL,NULL,'OGP-Usa NC',0);
 INSERT INTO "usage" VALUES('EPSG','11846','grid_transformation','EPSG','15835','EPSG','1402','EPSG','1252');
-INSERT INTO "grid_transformation" VALUES('EPSG','15836','NAD83 to NAD83(HARN) (45)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 15837.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','schpgn.las','EPSG','8658','Longitude difference file','schpgn.los',NULL,NULL,'NGS-Usa SC',0);
+INSERT INTO "grid_transformation" VALUES('EPSG','15836','NAD83 to NAD83(HARN) (45)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 15837.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','schpgn.las','EPSG','8658','Longitude difference file','schpgn.los',NULL,NULL,'NGS-Usa SC',0);
 INSERT INTO "usage" VALUES('EPSG','11847','grid_transformation','EPSG','15836','EPSG','1409','EPSG','1027');
 INSERT INTO "grid_transformation" VALUES('EPSG','15837','NAD83 to WGS 84 (56)','Parameter files are from NAD83 to NAD83(HARN) (45) (code 15836) assuming that NAD83(HARN) is equivalent to WGS 84 within the accuracy of the transformation.','EPSG','9613','NADCON','EPSG','4269','EPSG','4326',2.0,'EPSG','8657','Latitude difference file','schpgn.las','EPSG','8658','Longitude difference file','schpgn.los',NULL,NULL,'OGP-Usa SC',0);
 INSERT INTO "usage" VALUES('EPSG','11848','grid_transformation','EPSG','15837','EPSG','1409','EPSG','1252');
+<<<<<<< HEAD
 INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (46)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 15839.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','pahpgn.las','EPSG','8658','Longitude difference file','pahpgn.los',NULL,NULL,'NGS-Usa PA',0);
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5661,7 +5846,13 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (46)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 15839.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','pahpgn.las','EPSG','8658','Longitude difference file','pahpgn.los',NULL,NULL,'NGS-Usa PA',0);
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 INSERT INTO "usage" VALUES('EPSG','11849','grid_transformation','EPSG','15838','EPSG','1407','EPSG','1027');
 INSERT INTO "grid_transformation" VALUES('EPSG','15839','NAD83 to WGS 84 (57)','Parameter files are from NAD83 to NAD83(HARN) (46) (code 15838) assuming that NAD83(HARN) is equivalent to WGS 84 within the accuracy of the transformation.','EPSG','9613','NADCON','EPSG','4269','EPSG','4326',2.0,'EPSG','8657','Latitude difference file','pahpgn.las','EPSG','8658','Longitude difference file','pahpgn.los',NULL,NULL,'OGP-Usa PA',0);
 INSERT INTO "usage" VALUES('EPSG','11850','grid_transformation','EPSG','15839','EPSG','1407','EPSG','1252');
