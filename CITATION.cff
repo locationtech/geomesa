@@ -66,6 +66,7 @@ authors:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     orcid: https://orcid.org/0000-0002-7227-9173
 =======
 <<<<<<< HEAD
@@ -93,6 +94,9 @@ authors:
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    orcid: https://orcid.org/0000-0002-7227-9173
+>>>>>>> 86ade66356 (typo fixes)
 keywords:
   - PROJ
   - geodesy

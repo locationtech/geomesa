@@ -19,6 +19,7 @@ Synopsis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     |           [--authority <name>] [--3d]
@@ -55,6 +56,10 @@ Synopsis
 =======
     |           [--authority <name>] [--no-ballpark] [--accuracy <accuracy>] [--3d]
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    |           [--authority <name>] [--3d]
+    |           [--accuracy <accuracy>] [--only-best[=yes|=no]] [--no-ballpark]
+>>>>>>> 86ade66356 (typo fixes)
     |           ([*+opt[=arg]* ...] [+to *+opt[=arg]* ...] | {source_crs} {target_crs})
     |           file ...
 
@@ -73,6 +78,7 @@ Synopsis
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     - a CRS name and a coordinate epoch, separated with '@'. For example "ITRF2014@2025.0". (*added in 9.2*)
 =======
 <<<<<<< HEAD
@@ -100,6 +106,9 @@ Synopsis
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    - a CRS name and a coordinate epoch, separated with '@'. For example "ITRF2014@2025.0". (*added in 9.2*)
+>>>>>>> 86ade66356 (typo fixes)
     - a OGC URN combining references for compound coordinate reference systems
       (e.g "urn:ogc:def:crs,crs:EPSG::2393,crs:EPSG::5717" or custom abbreviated
       syntax "EPSG:2393+5717"),
@@ -246,10 +255,13 @@ The following control parameters can appear in any order:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 .. option:: --only-best[=yes|=no]
 
     .. versionadded:: 9.2.0
@@ -267,6 +279,7 @@ The following control parameters can appear in any order:
     ``only_best_default`` setting of :ref:`proj-ini` (:option:`--only-best`
     when specified overrides such default value).
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -293,6 +306,8 @@ The following control parameters can appear in any order:
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 .. option:: --no-ballpark
 
     .. versionadded:: 8.0.0
@@ -417,6 +432,7 @@ The x-y output data will appear as three lines of:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     1402285.93  5076292.58 0.00
@@ -522,9 +538,12 @@ which is an approximation at a level of several tens of metres.
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
     1402285.98  5076292.42 0.00
+=======
+    1402285.93  5076292.58 0.00
+>>>>>>> 86ade66356 (typo fixes)
 
-.. note::
 
+<<<<<<< HEAD
     To get those exact values, you have need to have all current grids installed
     locally or use networking capabilities mentioned above.
 <<<<<<< HEAD
@@ -536,6 +555,41 @@ which is an approximation at a level of several tens of metres.
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+To get those exact values, you have need to have all current grids installed
+(in that instance the NADCON5 :file:`us_noaa_nadcon5_nad27_nad83_1986_conus.tif` grid)
+locally or use networking capabilities mentioned above.
+
+To make sure you will get the optimal result, you may add :option:`--only-best`.
+Assuming the above mentioned grid is *not* available,
+
+::
+
+    echo -111.5 45.25919444444 | cs2cs --only-best +proj=latlong +datum=NAD83 +to +proj=utm +zone=10 +datum=NAD27
+
+would return:
+
+::
+
+    Attempt to use coordinate operation axis order change (2D) + Inverse of NAD27 to NAD83 (7) + axis order change (2D) + UTM zone 10N failed. Grid us_noaa_nadcon5_nad27_nad83_1986_conus.tif is not available. Consult https://proj.org/resource_files.html for guidance.
+    *   * inf
+
+Otherwise, if you don't have the grid available and you don't specify :option:`--only-best`:
+
+::
+
+    echo -111.5 45.25919444444 | cs2cs --only-best +proj=latlong +datum=NAD83 +to +proj=utm +zone=10 +datum=NAD27
+
+would return:
+
+::
+
+    1402224.57  5076275.42 0.00
+
+which is the result when the NAD27 and NAD83 datums are dealt as identical,
+which is an approximation at a level of several tens of metres.
+
+>>>>>>> 86ade66356 (typo fixes)
 
 Using EPSG CRS codes
 --------------------
