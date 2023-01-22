@@ -189,6 +189,7 @@ struct CoordinateSystemAxis::Private {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -207,6 +208,8 @@ struct CoordinateSystemAxis::Private {
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
     util::optional<RangeMeaning> rangeMeaning = util::optional<RangeMeaning>();
     util::optional<double> minimumValue{};
     util::optional<double> maximumValue{};
@@ -292,8 +295,11 @@ struct CoordinateSystemAxis::Private {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -302,6 +308,7 @@ struct CoordinateSystemAxis::Private {
     util::optional<double> maximumValue{};
     MeridianPtr meridian{};
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -354,6 +361,9 @@ struct CoordinateSystemAxis::Private {
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 };
 //! @endcond
 
@@ -466,6 +476,7 @@ CoordinateSystemAxis::maximumValue() PROJ_PURE_DEFN {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -493,6 +504,10 @@ CoordinateSystemAxis::maximumValue() PROJ_PURE_DEFN {
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 /** \brief Return the range meaning
  *
  * @return the range meaning, or empty.
@@ -513,10 +528,13 @@ CoordinateSystemAxis::rangeMeaning() PROJ_PURE_DEFN {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -529,6 +547,7 @@ CoordinateSystemAxis::rangeMeaning() PROJ_PURE_DEFN {
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -588,6 +607,9 @@ CoordinateSystemAxis::rangeMeaning() PROJ_PURE_DEFN {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 /** \brief Return the meridian that the axis follows from the pole, for a
  * coordinate
  * reference system centered on a pole.
@@ -643,6 +665,7 @@ CoordinateSystemAxisNNPtr CoordinateSystemAxis::create(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -670,6 +693,10 @@ CoordinateSystemAxisNNPtr CoordinateSystemAxis::create(
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 /** \brief Instantiate a CoordinateSystemAxis.
  *
  * @param properties See \ref general_properties. The name should generally be
@@ -715,10 +742,13 @@ CoordinateSystemAxisNNPtr CoordinateSystemAxis::create(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -731,6 +761,7 @@ CoordinateSystemAxisNNPtr CoordinateSystemAxis::create(
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -790,6 +821,9 @@ CoordinateSystemAxisNNPtr CoordinateSystemAxis::create(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 //! @cond Doxygen_Suppress
 void CoordinateSystemAxis::_exportToWKT(
     // cppcheck-suppress passedByValue
@@ -907,6 +941,7 @@ void CoordinateSystemAxis::_exportToWKT(io::WKTFormatter *formatter, int order,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -934,6 +969,10 @@ void CoordinateSystemAxis::_exportToWKT(io::WKTFormatter *formatter, int order,
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     if (isWKT2 && formatter->use2019Keywords()) {
         if (d->minimumValue.has_value()) {
             formatter->startNode(io::WKTConstants::AXISMINVALUE, false);
@@ -960,10 +999,13 @@ void CoordinateSystemAxis::_exportToWKT(io::WKTFormatter *formatter, int order,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -976,6 +1018,7 @@ void CoordinateSystemAxis::_exportToWKT(io::WKTFormatter *formatter, int order,
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1035,6 +1078,9 @@ void CoordinateSystemAxis::_exportToWKT(io::WKTFormatter *formatter, int order,
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     if (formatter->outputId()) {
         formatID(formatter);
     }
@@ -1094,6 +1140,7 @@ void CoordinateSystemAxis::_exportToJSON(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1121,6 +1168,10 @@ void CoordinateSystemAxis::_exportToJSON(
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     if (d->minimumValue.has_value()) {
         writer->AddObjKey("minimum_value");
         writer->Add(*(d->minimumValue));
@@ -1145,10 +1196,13 @@ void CoordinateSystemAxis::_exportToJSON(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1161,6 +1215,7 @@ void CoordinateSystemAxis::_exportToJSON(
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1220,6 +1275,9 @@ void CoordinateSystemAxis::_exportToJSON(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     if (formatter->outputId()) {
         formatID(formatter);
     }
@@ -2053,6 +2111,7 @@ AxisDirection::AxisDirection(const std::string &nameIn) : CodeList(nameIn) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2071,6 +2130,8 @@ AxisDirection::AxisDirection(const std::string &nameIn) : CodeList(nameIn) {
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
     auto lowerName = tolower(nameIn);
     assert(registry.find(lowerName) == registry.end());
     registry[lowerName] = this;
@@ -2110,8 +2171,11 @@ AxisDirection::AxisDirection(const std::string &nameIn) : CodeList(nameIn) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -2119,6 +2183,7 @@ AxisDirection::AxisDirection(const std::string &nameIn) : CodeList(nameIn) {
     assert(registry.find(lowerName) == registry.end());
     registry[lowerName] = this;
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2176,6 +2241,9 @@ AxisDirection::AxisDirection(const std::string &nameIn) : CodeList(nameIn) {
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -2183,6 +2251,7 @@ AxisDirection::AxisDirection(const std::string &nameIn) : CodeList(nameIn) {
 //! @cond Doxygen_Suppress
 const AxisDirection *
 AxisDirection::valueOf(const std::string &nameIn) noexcept {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2226,6 +2295,10 @@ AxisDirection::valueOf(const std::string &nameIn) noexcept {
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     auto iter = registry.find(tolower(nameIn));
     if (iter == registry.end())
         return nullptr;
@@ -2258,10 +2331,13 @@ const RangeMeaning *RangeMeaning::valueOf(const std::string &nameIn) noexcept {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 =======
     auto iter = registry.find(nameIn);
 <<<<<<< HEAD
@@ -2276,6 +2352,7 @@ const RangeMeaning *RangeMeaning::valueOf(const std::string &nameIn) noexcept {
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2344,6 +2421,9 @@ const RangeMeaning *RangeMeaning::valueOf(const std::string &nameIn) noexcept {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     if (iter == registry.end())
         return nullptr;
     return iter->second;
@@ -2371,6 +2451,7 @@ AxisDirectionWKT1::AxisDirectionWKT1(const std::string &nameIn)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2389,6 +2470,8 @@ AxisDirectionWKT1::AxisDirectionWKT1(const std::string &nameIn)
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
     auto lowerName = tolower(nameIn);
     assert(registry.find(lowerName) == registry.end());
     registry[lowerName] = this;
@@ -2428,8 +2511,11 @@ AxisDirectionWKT1::AxisDirectionWKT1(const std::string &nameIn)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> a4391c6673 (typo fixes)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -2437,6 +2523,7 @@ AxisDirectionWKT1::AxisDirectionWKT1(const std::string &nameIn)
     assert(registry.find(lowerName) == registry.end());
     registry[lowerName] = this;
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2494,6 +2581,9 @@ AxisDirectionWKT1::AxisDirectionWKT1(const std::string &nameIn)
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
 }
 
 // ---------------------------------------------------------------------------
@@ -2515,12 +2605,15 @@ const AxisDirectionWKT1 *AxisDirectionWKT1::valueOf(const std::string &nameIn) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a4391c6673 (typo fixes)
     auto iter = registry.find(tolower(nameIn));
 =======
     auto iter = registry.find(nameIn);
@@ -2537,6 +2630,7 @@ const AxisDirectionWKT1 *AxisDirectionWKT1::valueOf(const std::string &nameIn) {
 =======
     auto iter = registry.find(tolower(nameIn));
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2614,6 +2708,9 @@ const AxisDirectionWKT1 *AxisDirectionWKT1::valueOf(const std::string &nameIn) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> a4391c6673 (typo fixes)
     if (iter == registry.end())
         return nullptr;
     return iter->second;
