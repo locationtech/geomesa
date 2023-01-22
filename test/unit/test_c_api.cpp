@@ -932,7 +932,8 @@ TEST_F(CApi, proj_get_type) {
         auto obj = proj_create_from_wkt(m_ctxt, "AUTHORITY[\"EPSG\", 4326]",
                                         nullptr, nullptr, nullptr);
         ObjectKeeper keeper(obj);
-        ASSERT_EQ(obj, nullptr);
+        ASSERT_NE(obj, nullptr);
+        EXPECT_EQ(proj_get_type(obj), PJ_TYPE_UNKNOWN);
     }
 }
 
@@ -1832,7 +1833,7 @@ TEST_F(CApi, proj_create_operations_prime_meridian_non_greenwich) {
 
     {
         PJ_COORD coord;
-        // lat,lon=49,-4 if using grid
+        // lat,long=49,-4 if using grid
         coord.xy.x = 136555.58288992;
         coord.xy.y = 463344.51894296;
         int idx = proj_get_suggested_operation(m_ctxt, res, PJ_FWD, coord);
@@ -2648,7 +2649,7 @@ TEST_F(CApi, proj_create_projections) {
         ASSERT_NE(projCRS, nullptr);
     }
     {
-        auto projCRS = proj_create_conversion_tunisia_mapping_grid(
+        auto projCRS = proj_create_conversion_tunisia_mining_grid(
             m_ctxt, 0, 0, 0, 0, "Degree", 0.0174532925199433, "Metre", 1.0);
         ObjectKeeper keeper_projCRS(projCRS);
         ASSERT_NE(projCRS, nullptr);
@@ -4707,6 +4708,46 @@ TEST_F(CApi, proj_create_crs_to_crs_from_pj_ballpark_filter) {
 
 // ---------------------------------------------------------------------------
 
+TEST_F(CApi, proj_create_crs_to_crs_coordinate_metadata_in_src) {
+
+    auto P =
+        proj_create_crs_to_crs(m_ctxt, "ITRF2014@2025.0", "GDA2020", nullptr);
+    ObjectKeeper keeper_P(P);
+    ASSERT_NE(P, nullptr);
+
+    PJ_COORD coord;
+    coord.xyzt.x = -30;
+    coord.xyzt.y = 130;
+    coord.xyzt.z = 0;
+    coord.xyzt.t = HUGE_VAL;
+
+    coord = proj_trans(P, PJ_FWD, coord);
+    EXPECT_NEAR(coord.xyzt.x, -30.0000026655, 1e-10);
+    EXPECT_NEAR(coord.xyzt.y, 129.9999983712, 1e-10);
+}
+
+// ---------------------------------------------------------------------------
+
+TEST_F(CApi, proj_create_crs_to_crs_coordinate_metadata_in_target) {
+
+    auto P =
+        proj_create_crs_to_crs(m_ctxt, "GDA2020", "ITRF2014@2025.0", nullptr);
+    ObjectKeeper keeper_P(P);
+    ASSERT_NE(P, nullptr);
+
+    PJ_COORD coord;
+    coord.xyzt.x = -30.0000026655;
+    coord.xyzt.y = 129.9999983712;
+    coord.xyzt.z = 0;
+    coord.xyzt.t = HUGE_VAL;
+
+    coord = proj_trans(P, PJ_FWD, coord);
+    EXPECT_NEAR(coord.xyzt.x, -30, 1e-10);
+    EXPECT_NEAR(coord.xyzt.y, 130, 1e-10);
+}
+
+// ---------------------------------------------------------------------------
+
 static void
 check_axis_is_latitude(PJ_CONTEXT *ctx, PJ *cs, int axis_number,
                        const char *unit_name = "degree",
@@ -5347,7 +5388,7 @@ TEST_F(CApi, proj_create_vertical_crs_ex_implied_accuracy) {
     const double acc = proj_coordoperation_get_accuracy(m_ctxt, transform);
     EXPECT_NEAR(acc, 0.15, 1e-10);
 
-    // Check there's an asssociated area of use
+    // Check there's an associated area of use
     double west_lon_degree = 0;
     double south_lat_degree = 0;
     double east_lon_degree = 0;
@@ -6117,15 +6158,19 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
     // south polar aspect.
     //
     // The boundary with ndiv = 21 then mapped into a line extending to ymin =
-    // -89178007.2 which was the projection of lat = -90d/(ndiv+1), lon = 180d.
+    // -89178007.2 which was the projection of lat = -90d/(ndiv+1), long = 180d.
     //
     // With the implementation of the ellipsoidal gnonomic projection, the
     // horizon is now at lat = +0.3035d.
     //
     // We move the north edge of the box to lat = -90+4.15*(ndiv+1) = +1.3d.
     // The northernmost point on the boundary which is within the horizon is
+<<<<<<< HEAD
     // now lat = -90+4.15*ndiv = -2.85d, lon = 180d for which y = -116576598.5.
 <<<<<<< HEAD
+=======
+    // now lat = -90+4.15*ndiv = -2.85d, long = 180d for which y = -116576598.5.
+>>>>>>> e771dc363a (typo fixes)
     int success =
         proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
                           &out_left, &out_bottom, &out_right, &out_top, 21);
