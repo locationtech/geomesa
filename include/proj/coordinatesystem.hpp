@@ -112,6 +112,9 @@ class AxisDirection : public util::CodeList {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 /** \brief Meaning of the axis value range specified through minimumValue and
  * maximumValue
  *
@@ -140,6 +143,7 @@ class RangeMeaning : public util::CodeList {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -147,7 +151,12 @@ class RangeMeaning : public util::CodeList {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 class Meridian;
 /** Shared pointer of Meridian. */
 using MeridianPtr = std::shared_ptr<Meridian>;
@@ -221,6 +230,7 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
     PROJ_DLL const util::optional<double> &maximumValue() PROJ_PURE_DECL;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     PROJ_DLL const util::optional<RangeMeaning> &rangeMeaning() PROJ_PURE_DECL;
 =======
 <<<<<<< HEAD
@@ -229,7 +239,13 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    PROJ_DLL const util::optional<RangeMeaning> &rangeMeaning() PROJ_PURE_DECL;
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     PROJ_DLL const MeridianPtr &meridian() PROJ_PURE_DECL;
 
     // Non-standard
@@ -241,6 +257,9 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
     PROJ_DLL static CoordinateSystemAxisNNPtr
     create(const util::PropertyMap &properties,
            const std::string &abbreviationIn, const AxisDirection &directionIn,
@@ -250,6 +269,7 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
            const util::optional<RangeMeaning> &rangeMeaningIn,
            const MeridianPtr &meridianIn = nullptr);
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -257,7 +277,12 @@ class PROJ_GCC_DLL CoordinateSystemAxis final : public common::IdentifiedObject,
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     PROJ_PRIVATE :
 
         //! @cond Doxygen_Suppress
