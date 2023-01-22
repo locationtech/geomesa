@@ -52,6 +52,9 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
 /* Deprecated because of wrong name. Use EPSG_xxx_METHOD_TUNISIA_MINING_GRID instead */
 #define EPSG_NAME_METHOD_TUNISIA_MAPPING_GRID "Tunisia Mapping Grid"
 #define EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID 9816
@@ -59,6 +62,7 @@
 #define EPSG_NAME_METHOD_TUNISIA_MINING_GRID "Tunisia Mining Grid"
 #define EPSG_CODE_METHOD_TUNISIA_MINING_GRID 9816
 
+<<<<<<< HEAD
 =======
 #define EPSG_NAME_METHOD_TUNISIA_MAPPING_GRID "Tunisia Mapping Grid"
 #define EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID 9816
@@ -72,7 +76,12 @@
 #define EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID 9816
 
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 #define EPSG_NAME_METHOD_ALBERS_EQUAL_AREA "Albers Equal Area"
 #define EPSG_CODE_METHOD_ALBERS_EQUAL_AREA 9822
 

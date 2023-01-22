@@ -186,6 +186,7 @@ def project_xy(x, y, proj_string):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 def meridian(longitude, lat_min, lat_max):
 =======
 def meridian(lon, lat_min, lat_max):
@@ -196,11 +197,18 @@ def meridian(lon, lat_min, lat_max):
 =======
 def meridian(lon, lat_min, lat_max):
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+def meridian(longitude, lat_min, lat_max):
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     '''
     Calculate meridian coordinates.
     '''
     coords = np.zeros((N_POINTS, 2))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     coords[:, 0] = longitude
@@ -213,7 +221,13 @@ def meridian(lon, lat_min, lat_max):
 =======
     coords[:, 0] = lon
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    coords[:, 0] = longitude
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
     coords[:, 1] = np.linspace(lat_min, lat_max, N_POINTS)
     return coords
 
@@ -241,6 +255,7 @@ def build_graticule(lonmin=-180, lonmax=180, latmin=-85, latmax=85):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     for longitude in range(lonmin, lonmax+1, GRATICULE_WIDTH):
         graticule.append(meridian(longitude, latmin, latmax))
 =======
@@ -254,7 +269,14 @@ def build_graticule(lonmin=-180, lonmax=180, latmin=-85, latmax=85):
     for lon in range(lonmin, lonmax+1, GRATICULE_WIDTH):
         graticule.append(meridian(lon, latmin, latmax))
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    for longitude in range(lonmin, lonmax+1, GRATICULE_WIDTH):
+        graticule.append(meridian(longitude, latmin, latmax))
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
 
     for lat in range(latmin, latmax+1, GRATICULE_WIDTH):
         graticule.append(parallel(lat, lonmin, lonmax))
@@ -370,6 +392,7 @@ def plotproj(plotdef, data, outdir):
     if 'top_interrupted_lons' in plotdef:
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         for longitude in plotdef['top_interrupted_lons']:
             for delta in [-0.0001, 0.0001]:
                 merid = meridian(longitude + delta, 0.0, plotdef['latmax'])
@@ -383,13 +406,17 @@ def plotproj(plotdef, data, outdir):
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
         for lon in plotdef['top_interrupted_lons']:
+=======
+        for longitude in plotdef['top_interrupted_lons']:
+>>>>>>> e4a6fd6d75 (typo fixes)
             for delta in [-0.0001, 0.0001]:
-                merid = meridian(lon + delta, 0.0, plotdef['latmax'])
+                merid = meridian(longitude + delta, 0.0, plotdef['latmax'])
                 interrupted_lines.append(project(merid, plotdef['projstring']))
 
     if 'bottom_interrupted_lons' in plotdef:
-        for lon in plotdef['bottom_interrupted_lons']:
+        for longitude in plotdef['bottom_interrupted_lons']:
             for delta in [-0.0001, 0.0001]:
+<<<<<<< HEAD
                 merid = meridian(lon + delta, plotdef['latmin'], 0)
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -398,7 +425,13 @@ def plotproj(plotdef, data, outdir):
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+                merid = meridian(longitude + delta, plotdef['latmin'], 0)
+>>>>>>> e4a6fd6d75 (typo fixes)
+>>>>>>> aa21c6fa76 (typo fixes)
                 interrupted_lines.append(project(merid, plotdef['projstring']))
 
     for line in interrupted_lines:
