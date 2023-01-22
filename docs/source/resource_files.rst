@@ -137,6 +137,7 @@ Its default content is:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -155,6 +156,8 @@ Its default content is:
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 .. literalinclude:: ../../data/proj.ini
 =======
 =======
@@ -323,6 +326,7 @@ Its default content is:
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 .. literalinclude:: ../../data/proj.ini
 >>>>>>> 86ade66356 (typo fixes)
@@ -363,6 +367,11 @@ Its default content is:
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+.. literalinclude:: ../../data/proj.ini
+>>>>>>> 86ade66356 (typo fixes)
+>>>>>>> d8e8090c80 (typo fixes)
 
 
 Transformation grids
