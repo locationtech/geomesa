@@ -1468,6 +1468,7 @@ TEST(operation, tmg_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1546,6 +1547,9 @@ TEST(operation, tmg_export) {
 =======
     auto conv = Conversion::createTunisiaMappingGrid(
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    auto conv = Conversion::createTunisiaMiningGrid(
+>>>>>>> bf1dfe8af6 (typo fixes)
         PropertyMap(), Angle(1), Angle(2), Length(3), Length(4));
     EXPECT_TRUE(conv->validateParameters().empty());
 
@@ -1566,6 +1570,7 @@ TEST(operation, tmg_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1664,6 +1669,10 @@ TEST(operation, tmg_export) {
               "CONVERSION[\"Tunisia Mapping Grid\",\n"
               "    METHOD[\"Tunisia Mapping Grid\",\n"
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+              "CONVERSION[\"Tunisia Mining Grid\",\n"
+              "    METHOD[\"Tunisia Mining Grid\",\n"
+>>>>>>> bf1dfe8af6 (typo fixes)
               "        ID[\"EPSG\",9816]],\n"
               "    PARAMETER[\"Latitude of false origin\",1,\n"
               "        ANGLEUNIT[\"degree\",0.0174532925199433],\n"
@@ -1694,6 +1703,7 @@ TEST(operation, tmg_export) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1772,6 +1782,9 @@ TEST(operation, tmg_export) {
 =======
         "PROJECTION[\"Tunisia_Mapping_Grid\"],\n"
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        "PROJECTION[\"Tunisia_Mining_Grid\"],\n"
+>>>>>>> bf1dfe8af6 (typo fixes)
         "PARAMETER[\"latitude_of_origin\",1],\n"
         "PARAMETER[\"central_meridian\",2],\n"
         "PARAMETER[\"false_easting\",3],\n"
