@@ -196,6 +196,7 @@ set(SRC_LIBPROJ_ISO19111
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -216,6 +217,10 @@ set(SRC_LIBPROJ_ISO19111
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
   iso19111/coordinates.cpp
 =======
 <<<<<<< HEAD
@@ -235,10 +240,13 @@ set(SRC_LIBPROJ_ISO19111
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -281,6 +289,7 @@ set(SRC_LIBPROJ_ISO19111
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -346,6 +355,8 @@ set(SRC_LIBPROJ_ISO19111
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
   iso19111/crs.cpp
   iso19111/datum.cpp
   iso19111/coordinatesystem.cpp
@@ -522,6 +533,7 @@ add_custom_target(check_wkt2_grammar_md5 ALL
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -542,6 +554,10 @@ add_custom_target(check_wkt2_grammar_md5 ALL
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
                       "-DEXPECTED_MD5SUM=289572eebe9dab3c7225bd48c445c287"
 =======
                       "-DEXPECTED_MD5SUM=f9ee543089ae55a895ae6e16cd0a68b2"
@@ -563,10 +579,13 @@ add_custom_target(check_wkt2_grammar_md5 ALL
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
@@ -614,6 +633,7 @@ add_custom_target(check_wkt2_grammar_md5 ALL
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -686,6 +706,8 @@ add_custom_target(check_wkt2_grammar_md5 ALL
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
                       -P "${CMAKE_CURRENT_SOURCE_DIR}/check_md5sum.cmake"
                   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                   DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/wkt2_grammar.y"

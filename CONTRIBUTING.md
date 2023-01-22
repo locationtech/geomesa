@@ -33,11 +33,15 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
+<<<<<<< HEAD
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
@@ -64,6 +68,8 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -72,8 +78,11 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
@@ -118,6 +127,7 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -160,6 +170,8 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
 computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
@@ -262,23 +274,30 @@ geospatial analytics.
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> e771dc363a (typo fixes)
 =======
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> e771dc363 (typo fixes)
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -322,6 +341,8 @@ geospatial analytics.
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 * Help PROJ-users that is less experienced than yourself.
 * Write a bug report
 * Request a new feature
@@ -352,10 +373,13 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -366,6 +390,7 @@ geospatial analytics.
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -394,6 +419,8 @@ geospatial analytics.
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> 73e3ca4b45 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -430,10 +457,13 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -479,10 +509,14 @@ geospatial analytics.
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 48ae38528d (typo fixes)
 =======
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e771dc363 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 <<<<<<< HEAD
@@ -551,6 +585,10 @@ geospatial analytics.
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> 48ae38528d (typo fixes)
 
 In the following sections you can find some guidelines on how to contribute.
 As PROJ is managed on GitHub most contributions require that you have a GitHub
