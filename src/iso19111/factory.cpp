@@ -1817,6 +1817,7 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1955,6 +1956,13 @@ void DatabaseContext::Private::identify(const DatabaseContextNNPtr &dbContext,
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                    // preferred coordinate system for geographic lat, long
+                    return;
+                }
+                if (authName == metadata::Identifier::EPSG && code == "6423") {
+                    // preferred coordinate system for geographic lat, long, h
+>>>>>>> bf1dfe8af6 (typo fixes)
                     return;
                 }
             }
