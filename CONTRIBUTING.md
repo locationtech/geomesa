@@ -14,6 +14,7 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -34,6 +35,8 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
 computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
@@ -48,6 +51,7 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -73,6 +77,10 @@ geospatial analytics.
 =======
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e771dc363a (typo fixes)
+>>>>>>> 86ade66356 (typo fixes)
 * Help PROJ-users that is less experienced than yourself.
 * Write a bug report
 * Request a new feature
@@ -87,12 +95,16 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 86ade66356 (typo fixes)
 >>>>>>> 73e3ca4b45 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> e771dc363a (typo fixes)
@@ -127,6 +139,10 @@ geospatial analytics.
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e771dc363a (typo fixes)
+>>>>>>> 86ade66356 (typo fixes)
 
 In the following sections you can find some guidelines on how to contribute.
 As PROJ is managed on GitHub most contributions require that you have a GitHub
