@@ -213,48 +213,6 @@ hit the cached RDD and query the in-memory data store that lives on each partiti
 Given some knowledge of your data, it is also possible to ensure that the data will fit in memory by applying an initial query.
 This can be done with the ``query`` option. For example, ``option("query", "dtg AFTER 2016-12-31T23:59:59Z")``
 
-.. _spatial_partitioning_and_faster_joins:
-
-Spatial Partitioning and Faster Joins
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Additional speedups can be attained by also spatially partitioning your data. Adding the option ``option("spatial", "true")``
-will ensure that data that are spatially near each other will be placed on the same partition. By default, your data will
-be partitioned into an NxN grid, but there exist 4 total partitioning strategies, and each can be specified by name with
-``option("strategy", strategyName)``
-
-  EQUAL - Computes the bounds of your data and divides it into an NxN grid of equal size, where ``N = sqrt(numPartitions)``
-
-  WEIGHTED - Like EQUAL, but ensures that equal proportions of the data along each axis are in each grid cell.
-
-  EARTH - Like EQUAL, but uses the whole earth as the bounds instead of computing them based on the data.
-
-  RTREE - Constructs an R-Tree based on a sample of the data, and uses a subset of the bounding rectangles as partition envelopes.
-
-The advantages to spatially partitioning are two fold:
-
-1) Queries with a spatial predicate that lies wholly in one partition can go directly to that partition, skipping the overhead
-of scanning partitions that will be certain to not include the desired data.
-
-2) If two data sets are partitioned by the same scheme, resulting in the same partition envelopes for both relations, then
-spatial joins can use the partition envelope as a key in the join. This dramatically reduces the number of comparisons required
-to complete the join.
-
-Additional data frame options allow for greater control over how partitions are created. For strategies that require a
-sample of the data (WEIGHTED and RTREE), ``sampleSize`` and ``thresholdMultiplier`` can be used to control how much of the
-underlying data is used in the decision process and how many items to allow in an RTree envelope.
-
-Other useful options are as follows:
-
-  ``option("partitions", "n")`` - Specifies the number of partitions that the underlying RDDs will be (overrides default parallelism)
-
-  ``option("bounds", "POLYGON in WellKnownText")`` - Limits the bounds of the grid that ``WEIGHTED`` and ``EQUAL`` strategies use.
-  All data that do not lie in these bounds will be placed in a separate partition
-
-  ``option("cover", "true")`` - Since only the EQUAL and EARTH partition strategies can guarantee that partition envelopes
-  will be identical across relations, data frames with this option set will force the partitioning scheme of data frames
-  that they are joined with to match its own.
-
 GeoJSON Output
 ^^^^^^^^^^^^^^
 
@@ -281,6 +239,8 @@ write to a distributed file system like HDFS.
 
     For this to work, the Data Frame should have a geometry field, meaning its schema should have a ``StructField`` that
     is one of the JTS geometry types provided by GeoMesa.
+
+.. _spark_sedona_integration:
 
 Using GeoMesa SparkSQL with Apache Sedona
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -400,3 +360,50 @@ Here is an example start-up code for using Apache Sedona integration feature in 
    SedonaRegistrator.registerAll(spark)
 
 .. _ST_PointFromText:  http://sedona.apache.org/api/sql/Constructor/#st_pointfromtext
+
+
+.. _spatial_partitioning_and_faster_joins:
+
+Spatial Partitioning and Faster Joins
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. info::
+
+   Apache Sedona is the recommended way to speed up joins. See :ref:`spark_sedona_integration` for details.
+
+Additional speedups can be attained by also spatially partitioning your data. Adding the option ``option("spatial", "true")``
+will ensure that data that are spatially near each other will be placed on the same partition. By default, your data will
+be partitioned into an NxN grid, but there exist 4 total partitioning strategies, and each can be specified by name with
+``option("strategy", strategyName)``
+
+  EQUAL - Computes the bounds of your data and divides it into an NxN grid of equal size, where ``N = sqrt(numPartitions)``
+
+  WEIGHTED - Like EQUAL, but ensures that equal proportions of the data along each axis are in each grid cell.
+
+  EARTH - Like EQUAL, but uses the whole earth as the bounds instead of computing them based on the data.
+
+  RTREE - Constructs an R-Tree based on a sample of the data, and uses a subset of the bounding rectangles as partition envelopes.
+
+The advantages to spatially partitioning are two fold:
+
+1) Queries with a spatial predicate that lies wholly in one partition can go directly to that partition, skipping the overhead
+of scanning partitions that will be certain to not include the desired data.
+
+2) If two data sets are partitioned by the same scheme, resulting in the same partition envelopes for both relations, then
+spatial joins can use the partition envelope as a key in the join. This dramatically reduces the number of comparisons required
+to complete the join.
+
+Additional data frame options allow for greater control over how partitions are created. For strategies that require a
+sample of the data (WEIGHTED and RTREE), ``sampleSize`` and ``thresholdMultiplier`` can be used to control how much of the
+underlying data is used in the decision process and how many items to allow in an RTree envelope.
+
+Other useful options are as follows:
+
+  ``option("partitions", "n")`` - Specifies the number of partitions that the underlying RDDs will be (overrides default parallelism)
+
+  ``option("bounds", "POLYGON in WellKnownText")`` - Limits the bounds of the grid that ``WEIGHTED`` and ``EQUAL`` strategies use.
+  All data that do not lie in these bounds will be placed in a separate partition
+
+  ``option("cover", "true")`` - Since only the EQUAL and EARTH partition strategies can guarantee that partition envelopes
+  will be identical across relations, data frames with this option set will force the partitioning scheme of data frames
+  that they are joined with to match its own.
