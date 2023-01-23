@@ -10,9 +10,7 @@ package org.apache.spark.sql.jts
 
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.GenericInternalRow
-import org.apache.spark.sql.jts.AbstractGeometryUDT.geometryUDTImpl
 import org.apache.spark.sql.types._
-import org.locationtech.geomesa.spark.isUsingSedona
 import org.locationtech.geomesa.spark.jts.util.WKBUtils
 import org.locationtech.jts.geom.Geometry
 
@@ -26,8 +24,10 @@ import scala.reflect._
 abstract class AbstractGeometryUDT[T >: Null <: Geometry: ClassTag](override val simpleString: String)
   extends UserDefinedType[T] {
 
+  private val delegate = AbstractGeometryUDT.impl()
+
   override def pyUDT: String = {
-    val pyUDT = geometryUDTImpl.pyUDT
+    val pyUDT = delegate.pyUDT
     if (pyUDT.isEmpty) {
       // Use our own python bindings
       s"geomesa_pyspark.types.${getClass.getSimpleName}"
@@ -37,28 +37,32 @@ abstract class AbstractGeometryUDT[T >: Null <: Geometry: ClassTag](override val
     }
   }
 
-  override def serialize(obj: T): Any = geometryUDTImpl.serialize(obj)
+  override def serialize(obj: T): Any = delegate.serialize(obj)
 
-  override def sqlType: DataType = geometryUDTImpl.sqlType
+  override def sqlType: DataType = delegate.sqlType
 
   override def userClass: Class[T] = classTag[T].runtimeClass.asInstanceOf[Class[T]]
 
-  override def deserialize(datum: Any): T = geometryUDTImpl.deserialize(datum).asInstanceOf[T]
+  override def deserialize(datum: Any): T = delegate.deserialize(datum).asInstanceOf[T]
 }
 
 object AbstractGeometryUDT {
-  lazy val geometryUDTImpl: UserDefinedType[Geometry] = {
-    if (isUsingSedona) {
-      Class.forName("org.apache.spark.sql.sedona_sql.UDT.GeometryUDT").newInstance().asInstanceOf[UserDefinedType[Geometry]]
-    } else new AbstractGeometryUDTImpl()
-  }
 
-  class AbstractGeometryUDTImpl extends UserDefinedType[Geometry] {
-    override def pyUDT: String = ""
+  import org.locationtech.geomesa.spark.jts.useSedonaSerialization
 
-    override def serialize(obj: Geometry): InternalRow = {
+  private val GeoMesaGeometryUDT = new GeometryUDTImpl()
+
+  private lazy val SedonaGeometryUDT =
+    org.locationtech.geomesa.spark.jts.SedonaGeometryUDT.getOrElse(GeoMesaGeometryUDT)
+
+  private def impl(): UserDefinedType[Geometry] =
+    if (useSedonaSerialization) { SedonaGeometryUDT } else { GeoMesaGeometryUDT }
+
+  private class GeometryUDTImpl extends UserDefinedType[Geometry] {
+    override def pyUDT: String = "" // handled by specific implementing classes
+
+    override def serialize(obj: Geometry): InternalRow =
       new GenericInternalRow(Array[Any](WKBUtils.write(obj)))
-    }
 
     override def sqlType: DataType = StructType(Seq(
       StructField("wkb", DataTypes.BinaryType)
@@ -66,9 +70,7 @@ object AbstractGeometryUDT {
 
     override def userClass: Class[Geometry] = classOf[Geometry]
 
-    override def deserialize(datum: Any): Geometry = {
-      val ir = datum.asInstanceOf[InternalRow]
-      WKBUtils.read(ir.getBinary(0))
-    }
+    override def deserialize(datum: Any): Geometry =
+      WKBUtils.read(datum.asInstanceOf[InternalRow].getBinary(0))
   }
 }

@@ -12,8 +12,6 @@ import org.apache.spark.SparkContext
 import org.apache.spark.sql.SparkSession
 import org.geotools.data.{DataStoreFinder, Transaction}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.spark.haveSedona
-import org.locationtech.geomesa.spark.isUsingSedona
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -22,10 +20,10 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
-class SparkSQLWithoutSedonaTest extends Specification {
+class SparkSQLWithoutSedonaIT extends Specification {
+
+  import scala.collection.JavaConverters._
 
   val dsParams = Map("cqengine" -> "true", "geotools" -> "true")
 
@@ -53,7 +51,7 @@ class SparkSQLWithoutSedonaTest extends Specification {
       .config("spark.ui.enabled", value = false)
       .master("local[2]")
       .getOrCreate()
-    val ds = DataStoreFinder.getDataStore(dsParams)
+    val ds = DataStoreFinder.getDataStore(dsParams.asJava)
     ds.createSchema(chicagoSft)
     WithClose(ds.getFeatureWriterAppend("chicago", Transaction.AUTO_COMMIT)) { writer =>
       chicagoFeatures.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
@@ -82,7 +80,6 @@ class SparkSQLWithoutSedonaTest extends Specification {
       val resGeom = resList(0).getAs[Point]("geom")
       resGeom.getX mustEqual -3.5
       resGeom.getY mustEqual 9.5
-      ok
     }
   }
 }

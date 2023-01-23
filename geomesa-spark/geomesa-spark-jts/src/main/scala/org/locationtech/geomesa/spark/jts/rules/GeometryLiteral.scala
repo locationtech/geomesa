@@ -11,7 +11,6 @@ package org.locationtech.geomesa.spark.jts.rules
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.LeafExpression
 import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
-import org.apache.spark.sql.catalyst.util.ArrayData
 import org.apache.spark.sql.jts.JTSTypes.GeometryTypeInstance
 import org.apache.spark.sql.types.DataType
 import org.locationtech.jts.geom.Geometry

@@ -29,12 +29,13 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConverters._
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLWithSedonaTest extends Specification with LazyLogging {
+class SparkSQLWithSedonaIT extends Specification with LazyLogging {
   // This test should run with geomesa.use.sedona = true, please refer to pom.xml of this project for details
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -108,6 +109,11 @@ class SparkSQLWithSedonaTest extends Specification with LazyLogging {
       .option("geomesa.feature", "points")
       .load()
     pointsDf.createOrReplaceTempView("points")
+  }
+
+  "be enabled" >> {
+    haveSedona must beTrue
+    isUsingSedona must beTrue
   }
 
   "geometry type interoperability" >> {

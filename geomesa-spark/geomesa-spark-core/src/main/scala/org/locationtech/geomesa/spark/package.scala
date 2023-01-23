@@ -8,17 +8,15 @@
 
 package org.locationtech.geomesa
 
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.util.Try
-
 package object spark {
+
   trait Schema {
     def schema: SimpleFeatureType
   }
 
-  def isUsingSedona: Boolean = haveSedona && SystemProperty("geomesa.use.sedona").toBoolean.getOrElse(true)
+  val haveSedona: Boolean = org.locationtech.geomesa.spark.jts.SedonaGeometryUDT.isSuccess
 
-  val haveSedona: Boolean = Try(Class.forName("org.apache.spark.sql.sedona_sql.UDT.GeometryUDT")).isSuccess
+  def isUsingSedona: Boolean = org.locationtech.geomesa.spark.jts.useSedonaSerialization
 }
