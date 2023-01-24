@@ -243,7 +243,7 @@ On the command line, run:
 
     $ java -cp geomesa-tutorials-accumulo/geomesa-tutorials-accumulo-authorizations/target/geomesa-tutorials-accumulo-authorizations-${geomesa.version}.jar \
         org.geomesa.example.accumulo.auths.AuthorizationsTutorial \
-        --accumulo.instance.id <instance>                         \
+        --accumulo.instance.name <instance>                       \
         --accumulo.zookeepers <zookeepers>                        \
         --accumulo.user <user>                                    \
         --accumulo.password <password>                            \

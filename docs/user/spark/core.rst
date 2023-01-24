@@ -14,7 +14,7 @@ against a GeoMesa data store:
 
     // DataStore params to a hypothetical GeoMesa Accumulo table
     val dsParams = Map(
-      "accumulo.instance.id"   -> "instance",
+      "accumulo.instance.name" -> "instance",
       "accumulo.zookeepers"    -> "zoo1,zoo2,zoo3",
       "accumulo.user"          -> "user",
       "accumulo.password"      -> "*****",

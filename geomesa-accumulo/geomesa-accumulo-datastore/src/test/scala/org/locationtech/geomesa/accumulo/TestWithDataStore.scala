@@ -31,11 +31,11 @@ trait TestWithDataStore extends Specification {
 
   // note the table needs to be different to prevent tests from conflicting with each other
   lazy val dsParams: Map[String, String] = Map(
-    AccumuloDataStoreParams.InstanceIdParam.key -> MiniCluster.cluster.getInstanceName,
-    AccumuloDataStoreParams.ZookeepersParam.key -> MiniCluster.cluster.getZooKeepers,
-    AccumuloDataStoreParams.UserParam.key       -> MiniCluster.Users.root.name,
-    AccumuloDataStoreParams.PasswordParam.key   -> MiniCluster.Users.root.password,
-    AccumuloDataStoreParams.CatalogParam.key    -> catalog
+    AccumuloDataStoreParams.InstanceNameParam.key -> MiniCluster.cluster.getInstanceName,
+    AccumuloDataStoreParams.ZookeepersParam.key   -> MiniCluster.cluster.getZooKeepers,
+    AccumuloDataStoreParams.UserParam.key         -> MiniCluster.Users.root.name,
+    AccumuloDataStoreParams.PasswordParam.key     -> MiniCluster.Users.root.password,
+    AccumuloDataStoreParams.CatalogParam.key      -> catalog
   )
 
   lazy val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]

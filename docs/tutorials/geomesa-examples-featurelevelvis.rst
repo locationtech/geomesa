@@ -75,10 +75,10 @@ On the command line, run:
 
     $ java -cp geomesa-tutorials-accumulo/geomesa-tutorials-accumulo-feature-level-vis/target/geomesa-tutorials-accumulo-feature-level-vis-${geomesa.version}.jar \
         org.geomesa.example.accumulo.vis.FeatureLevelVisibilityTutorial \
-        --accumulo.instance.id <instance>                                  \
-        --accumulo.zookeepers <zookeepers>                                 \
-        --accumulo.user <user>                                             \
-        --accumulo.password <password>                                     \
+        --accumulo.instance.name <instance>                             \
+        --accumulo.zookeepers <zookeepers>                              \
+        --accumulo.user <user>                                          \
+        --accumulo.password <password>                                  \
         --accumulo.catalog <table>
 
 where you provide the following arguments:

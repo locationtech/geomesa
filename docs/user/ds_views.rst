@@ -48,7 +48,7 @@ For example, to merge a GeoMesa Accumulo data store with a PostGis data store, y
       "stores": [
         {
           "accumulo.zookeepers": "localhost",
-          "accumulo.instance.id": "test",
+          "accumulo.instance.name": "test",
           "accumulo.catalog": "test",
           "accumulo.user": "test",
           "accumulo.password": "test"
@@ -142,7 +142,7 @@ For example, to combine a GeoMesa Accumulo data store with a PostGis data store,
       "stores": [
         {
           "accumulo.zookeepers": "localhost",
-          "accumulo.instance.id": "test",
+          "accumulo.instance.name": "test",
           "accumulo.catalog": "test",
           "accumulo.user": "test",
           "accumulo.password": "test"
