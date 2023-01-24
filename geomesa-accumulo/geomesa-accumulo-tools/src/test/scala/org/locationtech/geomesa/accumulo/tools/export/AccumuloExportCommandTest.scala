@@ -61,7 +61,7 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
   def createCommand(): AccumuloExportCommand = {
     val command = new AccumuloExportCommand()
     command.params.user        = dsParams(AccumuloDataStoreParams.UserParam.key)
-    command.params.instance    = dsParams(AccumuloDataStoreParams.InstanceIdParam.key)
+    command.params.instance    = dsParams(AccumuloDataStoreParams.InstanceNameParam.key)
     command.params.zookeepers  = dsParams(AccumuloDataStoreParams.ZookeepersParam.key)
     command.params.password    = dsParams(AccumuloDataStoreParams.PasswordParam.key)
     command.params.catalog     = dsParams(AccumuloDataStoreParams.CatalogParam.key)

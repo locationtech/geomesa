@@ -88,18 +88,18 @@ catalogs, we would set up the following parameter maps:
 .. code-block:: scala
 
   val taxiParams = Map(
-    "accumulo.instance.id" -> "instance",
-    "accumulo.zookeepers"  -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "accumulo.user"        -> "user",
-    "accumulo.password"    -> "password",
-    "accumulo.catalog"     -> "nyctaxi")
+    "accumulo.instance.name" -> "instance",
+    "accumulo.zookeepers"    -> "zoo1:2181,zoo2:2181,zoo3:2181",
+    "accumulo.user"          -> "user",
+    "accumulo.password"      -> "password",
+    "accumulo.catalog"       -> "nyctaxi")
 
   val geonamesParams = Map(
-    "accumulo.instance.id" -> "instance",
-    "accumulo.zookeepers"  -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "accumulo.user"        -> "user",
-    "accumulo.password"    -> "password",
-    "accumulo.catalog"     -> "geonames")
+    "accumulo.instance.name" -> "instance",
+    "accumulo.zookeepers"    -> "zoo1:2181,zoo2:2181,zoo3:2181",
+    "accumulo.user"          -> "user",
+    "accumulo.password"      -> "password",
+    "accumulo.catalog"       -> "geonames")
 
 .. note::
 

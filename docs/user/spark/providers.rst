@@ -33,11 +33,11 @@ from the ``geomesa`` Accumulo table:
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val params = Map(
-      "accumulo.instance.id" -> "mycloud",
-      "accumulo.user"        -> "user",
-      "accumulo.password"    -> "password",
-      "accumulo.zookeepers"  -> "zoo1,zoo2,zoo3",
-      "accumulo.catalog"     -> "geomesa")
+      "accumulo.instance.name" -> "mycloud",
+      "accumulo.user"          -> "user",
+      "accumulo.password"      -> "password",
+      "accumulo.zookeepers"    -> "zoo1,zoo2,zoo3",
+      "accumulo.catalog"       -> "geomesa")
     val query = new Query("gdelt")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
 
