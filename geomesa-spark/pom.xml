@@ -17,6 +17,8 @@
         <module>geomesa-spark-jts</module>
         <module>geomesa-spark-jupyter-leaflet</module>
         <module>geomesa-spark-sql</module>
+        <module>geomesa-spark-test-with-sedona</module>
+        <module>geomesa-spark-test-without-sedona</module>
         <module>geomesa_pyspark</module>
     </modules>
 

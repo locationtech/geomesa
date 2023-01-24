@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.spark
 
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.spark.isUsingSedona
 import org.apache.spark.sql.catalyst.expressions.Literal
 import org.apache.spark.sql.catalyst.plans.logical.Filter
 import org.apache.spark.sql.execution.datasources.LogicalRelation
@@ -52,6 +53,10 @@ class SparkSQLDataTest extends Specification with LazyLogging {
   }
 
   "sql data tests" should {
+
+    "not using sedona" >> {
+      isUsingSedona must beFalse
+    }
 
     "ingest chicago" >> {
       SparkSQLTestUtils.ingestChicago(ds)

@@ -11,7 +11,12 @@ package org.locationtech.geomesa
 import org.opengis.feature.simple.SimpleFeatureType
 
 package object spark {
+
   trait Schema {
     def schema: SimpleFeatureType
   }
+
+  val haveSedona: Boolean = org.locationtech.geomesa.spark.jts.SedonaGeometryUDT.isSuccess
+
+  def isUsingSedona: Boolean = org.locationtech.geomesa.spark.jts.useSedonaSerialization
 }

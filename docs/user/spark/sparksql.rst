@@ -213,8 +213,163 @@ hit the cached RDD and query the in-memory data store that lives on each partiti
 Given some knowledge of your data, it is also possible to ensure that the data will fit in memory by applying an initial query.
 This can be done with the ``query`` option. For example, ``option("query", "dtg AFTER 2016-12-31T23:59:59Z")``
 
+GeoJSON Output
+^^^^^^^^^^^^^^
+
+The ``geomesa-spark-sql`` module provides a means of exporting a ``DataFrame`` to a `GeoJSON <http://geojson.org/>`__
+string. This allows for quick visualization of the data in many front-end mapping libraries that support GeoJSON
+input such as Leaflet or Open Layers.
+
+To convert a DataFrame, import the implicit conversion and invoke the ``toGeoJSON`` method.
+
+.. code-block:: scala
+
+    import org.locationtech.geomesa.spark.sql.GeoJSONExtensions._
+    val df: DataFrame = // Some data frame
+    val geojsonDf = df.toGeoJSON
+
+If the result can fit in memory, it can then be collected on the driver and written to a file. If not, each executor can
+write to a distributed file system like HDFS.
+
+.. code:: scala
+
+    val geoJsonString = geojsonDF.collect.mkString("[",",","]")
+
+.. note::
+
+    For this to work, the Data Frame should have a geometry field, meaning its schema should have a ``StructField`` that
+    is one of the JTS geometry types provided by GeoMesa.
+
+.. _spark_sedona_integration:
+
+Using GeoMesa SparkSQL with Apache Sedona
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+GeoMesa SparkSQL can work seamlessly with `Apache Sedona <http://sedona.apache.org/>`_. You can enable this feature by adding
+Apache Sedona JAR to your classpath. For example, you can submit your Spark job with
+``sedona-python-adapter-${spark-version}_${scala-version}-${sedona-version}.jar`` added to ``--jars`` option:
+
+.. code-block:: shell
+
+   spark-submit --jars /path/to/geomesa-spark-runtime-jar.jar,/path/to/sedona-python-adapter-jar.jar ...
+
+.. note::
+
+  Once classes provided by Apache Sedona are available, Apache Sedona integration will be automatically enabled. You can manually
+  disable this feature by setting system property ``geomesa.use.sedona`` to ``false``:
+
+  .. code-block:: shell
+
+    spark-submit --conf "spark.driver.extraJavaOptions=-Dgeomesa.use.sedona=false" \
+                  --conf "spark.executor.extraJavaOptions=-Dgeomesa.use.sedona=false" \
+                  ...
+
+There are several configs to take care of when creating Spark session object:
+
+.. code-block:: scala
+
+    val spark = SparkSession.builder().
+      // ...
+      config("spark.serializer", "org.apache.spark.serializer.KryoSerializer").
+      config("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName).
+      config("spark.geomesa.sedona.udf.prefix", "sedona_").
+      // ...
+      getOrCreate()
+    SQLTypes.init(spark.sqlContext)
+
+- ``spark.serializer`` and ``spark.kryo.registrator`` should be configured to use Kryo serializers provided by GeoMesa
+  Spark. ``GeoMesaSparkKryoRegistrator`` will automatically register other kryo serializers provided by Apache Sedona.
+
+- ``spark.geomesa.sedona.udf.prefix`` option specifies a common prefix to be added to Spark SQL functions provided by
+  Apache Sedona. There're a lot of functions both provided by :doc:`./spark_jts` and Apache Sedona. For example,
+  :ref:`st_pointFromText` provided by Spark JTS takes a single parameter, where ST_PointFromText_ provided by Apache
+  Sedona takes two parameters. Config ``config("spark.geomesa.sedona.udf.prefix", "sedona_")`` allows us to distinguish
+  between these two functions:
+
+  .. code-block:: scala
+
+     spark.sql("SELECT st_pointFromText('POINT (10 20)')")
+     spark.sql("SELECT sedona_ST_PointFromText('10,20', ',')")
+
+  The default value of ``spark.geomesa.sedona.udf.prefix`` is ``"sedona_"``. When this option was explicitly set to
+  empty string, Spark JTS functions will be overriden by functions from Apache Sedona with the same name.
+
+- ``SQLTypes.init`` must be called to register UDFs and UDAFs provided by Apache Sedona.
+
+Geometric predicate function calls to Apache Sedona functions can be pushed down to DataStore by GeoMesa SparkSQL:
+
+.. code-block:: scala
+
+    spark.sql("SELECT geom FROM schema WHERE sedona_ST_Intersects(geom, sedona_ST_PolygonFromEnvelope(100.0,20.0,110.0,30.0))").explain()
+    // == Physical Plan ==
+    // *(1) Scan GeoMesaRelation(...,Some([ geom intersects POLYGON ((100 20, 100 30, 110 30, 110 20, 100 20)) ]),None,None) [geom#32] ...
+
+When performing a spatial join, the predicate for joining two datasets should be a function provided by Apache Sedona,
+otherwise Apache Sedona's catalyst optimization rule won't pickup and optimize your join.
+
+.. code-block:: scala
+
+   // This join is accelerated by Apache Sedona as a RangeJoin
+   spark.sql("SELECT linestrings.geom, polygons.the_geom FROM linestrings JOIN polygons ON sedona_ST_Intersects(linestrings.geom, polygons.the_geom)").explain()
+   // == Physical Plan ==
+   // RangeJoin geom#32: linestring, the_geom#101: multipolygon, true
+   // :- *(1) Scan GeoMesaRelation...
+   // +- *(2) Scan GeoMesaRelation...
+
+   // This is just a normal CartesianProduct or BroadcastNestedLoopJoin
+   spark.sql("SELECT linestrings.geom, polygons.the_geom FROM linestrings JOIN polygons ON ST_Intersects(linestrings.geom, polygons.the_geom)").explain()
+   // == Physical Plan ==
+   // CartesianProduct UDF:st_intersects(geom#32, the_geom#101)
+   // :- *(1) Scan GeoMesaRelation...
+   // +- *(2) Scan GeoMesaRelation...
+
+   // Calling DataFrame functions provided by GeoMesa Spark JTS also yields CartesianProduct or BroadcastNestedLoopJoin
+   dfLineString.join(dfPolygon, st_intersects($"geom", $"the_geom")).explain()
+   // == Physical Plan ==
+   // CartesianProduct UDF(geom#32, the_geom#101)
+   // :- *(1) Scan GeoMesaRelation...
+   // +- *(2) Scan GeoMesaRelation...
+
+.. warning::
+
+   ``option("spatial", "true")`` and any other options described in :ref:`spatial_partitioning_and_faster_joins` won't
+   help configuring spatial joins when using Apache Sedona. Please refer to Apache Sedona documentation for available
+   configuration options.
+
+User can also take advantage of Apache Sedona integration when using PySpark, Please make sure that
+
+  - ``apache-sedona`` package was available in your python environment.
+
+  - ``sedona.register`` package was imported AFTER all ``geomesa_pyspark`` packages.
+
+  - ``SedonaRegister.registerAll`` was called AFTER calling ``geomesa_pyspark.init_sql`` or loading DataFrames from GeoMesa DataStore.
+
+Here is an example start-up code for using Apache Sedona integration feature in PySpark:
+
+.. code-block:: python
+
+   import geomesa_pyspark
+   ...
+   from pyspark.sql import SparkSession
+   ...
+   from sedona.register import SedonaRegistrator
+
+   spark = SparkSession.builder.config(...).getOrCreate()
+   ...
+   geomesa_pyspark.init_sql(spark)
+   SedonaRegistrator.registerAll(spark)
+
+.. _ST_PointFromText:  http://sedona.apache.org/api/sql/Constructor/#st_pointfromtext
+
+
+.. _spatial_partitioning_and_faster_joins:
+
 Spatial Partitioning and Faster Joins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. info::
+
+   Apache Sedona is the recommended way to speed up joins. See :ref:`spark_sedona_integration` for details.
 
 Additional speedups can be attained by also spatially partitioning your data. Adding the option ``option("spatial", "true")``
 will ensure that data that are spatially near each other will be placed on the same partition. By default, your data will
@@ -252,30 +407,3 @@ Other useful options are as follows:
   ``option("cover", "true")`` - Since only the EQUAL and EARTH partition strategies can guarantee that partition envelopes
   will be identical across relations, data frames with this option set will force the partitioning scheme of data frames
   that they are joined with to match its own.
-
-GeoJSON Output
-^^^^^^^^^^^^^^
-
-The ``geomesa-spark-sql`` module provides a means of exporting a ``DataFrame`` to a `GeoJSON <http://geojson.org/>`__
-string. This allows for quick visualization of the data in many front-end mapping libraries that support GeoJSON
-input such as Leaflet or Open Layers.
-
-To convert a DataFrame, import the implicit conversion and invoke the ``toGeoJSON`` method.
-
-.. code-block:: scala
-
-    import org.locationtech.geomesa.spark.sql.GeoJSONExtensions._
-    val df: DataFrame = // Some data frame
-    val geojsonDf = df.toGeoJSON
-
-If the result can fit in memory, it can then be collected on the driver and written to a file. If not, each executor can
-write to a distributed file system like HDFS.
-
-.. code:: scala
-
-    val geoJsonString = geojsonDF.collect.mkString("[",",","]")
-
-.. note::
-
-    For this to work, the Data Frame should have a geometry field, meaning its schema should have a ``StructField`` that
-    is one of the JTS geometry types provided by GeoMesa.
