@@ -182,7 +182,7 @@ object RedisAgeOff extends StrictLogging {
     // expiration tasks, keyed by feature type name
     // note: synchronize access to ensure thread safety
     private val tasks = scala.collection.mutable.Map.empty[String, ScheduledFuture[_]]
-    private val rate = frequency.toSeconds
+    private val rate = frequency.toMillis
     private val es = Executors.newScheduledThreadPool(3)
 
     /**
@@ -193,7 +193,7 @@ object RedisAgeOff extends StrictLogging {
     def schedule(typeName: String): Unit = {
       // schedule with a short initial delay to quickly remove any features that may
       // have expired since the last time there was an active datastore running
-      val future = es.scheduleAtFixedRate(new AgeOffRunner(ds, typeName), 5L, rate, TimeUnit.SECONDS)
+      val future = es.scheduleAtFixedRate(new AgeOffRunner(ds, typeName), 5000L, rate, TimeUnit.MILLISECONDS)
       synchronized {
         tasks.put(typeName, future).foreach(_.cancel(false))
       }
