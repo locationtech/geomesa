@@ -3,7 +3,7 @@
 Avro Schema Registry Converter
 ==============================
 
-The Avro Schema Registry converter handles data written by `Apache Avro <http://avro.apache.org/>`__
+The Avro Schema Registry converter handles data written by `Apache Avro <https://avro.apache.org/>`__
 using a Confluent Schema Registry. The schema registry is a centralized store of versioned Avro schemas.
 
 To use the Avro converter, specify ``type = "avro-schema-registry"`` in your converter definition.

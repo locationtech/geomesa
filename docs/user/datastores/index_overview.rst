@@ -34,4 +34,4 @@ cases, the indices may be specified through :ref:`customizing_index_creation`.
 
 .. rubric:: Footnotes
 
-.. [#ref1] Böhm, Klump, and Kriegel. `"XZ-ordering: a space-filling curve for objects with spatial extension" <http://www.dbs.ifi.lmu.de/Publikationen/Boehm/Ordering_99.pdf>`_ 6th. Int. Symposium on Large Spatial Databases (SSD), 1999, Hong Kong, China.
+.. [#ref1] Böhm, Klump, and Kriegel. `"XZ-ordering: a space-filling curve for objects with spatial extension" <https://www.dbs.ifi.lmu.de/Publikationen/Boehm/Ordering_99.pdf>`_ 6th. Int. Symposium on Large Spatial Databases (SSD), 1999, Hong Kong, China.

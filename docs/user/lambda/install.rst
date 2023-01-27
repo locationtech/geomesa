@@ -116,13 +116,13 @@ As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a `GeoT
 This makes it possible to use GeoMesa as a data store in `GeoServer`_. GeoServer's web site includes
 `installation instructions for GeoServer`_.
 
-.. _installation instructions for GeoServer: http://docs.geoserver.org/stable/en/user/installation/index.html
+.. _installation instructions for GeoServer: https://docs.geoserver.org/stable/en/user/installation/index.html
 
 After GeoServer is installed, you may install the WPS plugin if you plan to use GeoMesa processes. The GeoServer
 WPS Plugin must match the version of the GeoServer instance. The GeoServer website includes instructions for
 downloading and installing `the WPS plugin`_.
 
-.. _the WPS plugin: http://docs.geoserver.org/stable/en/user/services/wps/install.html
+.. _the WPS plugin: https://docs.geoserver.org/stable/en/user/services/wps/install.html
 
 .. note::
 

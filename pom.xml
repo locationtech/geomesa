@@ -1845,6 +1845,14 @@
                 <groupId>redis.clients</groupId>
                 <artifactId>jedis</artifactId>
                 <version>4.3.1</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issue -->
+                        <!-- seems to work fine without it? -->
+                        <groupId>org.json</groupId>
+                        <artifactId>json</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>

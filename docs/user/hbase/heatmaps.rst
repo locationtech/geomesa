@@ -23,7 +23,7 @@ In order to style the density result to produce a heatmap, GeoServer needs a Sty
 To start, add a new SLD style to GeoServer named "heatmap" and use this sld
 :download:`heatmap.sld </user/_static/sld/clientside-heatmap.sld>`
 
-Instruction on how to install SLDs can be found here `GeoServer Styles <http://docs.geoserver.org/latest/en/user/styling/webadmin/index.html>`_.
+Instruction on how to install SLDs can be found here `GeoServer Styles <https://docs.geoserver.org/latest/en/user/styling/webadmin/index.html>`_.
 
 Now you can change the style parameter to be ``styles=heatmap`` in the Layer Preview or PNG preview in GeoServer.
 

@@ -3,11 +3,11 @@
 GeoMesa Metrics
 ===============
 
-GeoMesa provides integration with the `DropWizard Metrics <http://metrics.dropwizard.io/>`__ library for real-time
+GeoMesa provides integration with the `DropWizard Metrics <https://metrics.dropwizard.io/>`__ library for real-time
 reporting with the ``geomesa-metrics`` module.
 
 Reporters are available for `SLF4J <https://www.slf4j.org/>`__, `CloudWatch <https://aws.amazon.com/cloudwatch/>`__,
-`Graphite <https://graphiteapp.org/>`__, and `Ganglia <http://ganglia.sourceforge.net/>`__.
+`Graphite <https://graphiteapp.org/>`__, and `Ganglia <https://ganglia.sourceforge.net/>`__.
 
 Configuration
 -------------
@@ -157,4 +157,4 @@ Extensions
 
 Additional reporters can be added at runtime by implementing
 ``org.locationtech.geomesa.metrics.core.ReporterFactory`` and registering the new class as a
-`service provider <http://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__.
+`service provider <https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__.

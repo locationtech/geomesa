@@ -25,8 +25,8 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  `Java <http://java.oracle.com/>`__ JDK 1.8
--  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
+-  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
 -  Completion of the GeoMesa quick start for your choice of back end
 

@@ -3,7 +3,7 @@
 Global Database of Events, Language, and Tone (GDELT)
 =====================================================
 
-This directory provides `GDELT <http://gdeltproject.org/>`__ GeoMesa
+This directory provides `GDELT <https://gdeltproject.org/>`__ GeoMesa
 ingest commands and converter configuration files.
 
 GDELT Event Database periodically scans news articles and uses natural
@@ -41,7 +41,7 @@ records like "Baltimore, Maryland".
 
 For more information on features of the GDELT data, see their
 documentation
-`here. <http://www.gdeltproject.org/data.html#documentation>`__
+`here. <https://www.gdeltproject.org/data.html#documentation>`__
 
 Ingest Commands
 ---------------
